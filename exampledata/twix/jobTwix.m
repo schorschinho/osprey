@@ -1,0 +1,134 @@
+%% jobTwix.m
+%   This function describes an LCGannet job defined in a MATLAB script.
+%
+%   A valid LCGannet job contains three distinct classes of items:
+%       1. basic information on the MRS sequence used
+%       2. several settings for data handling and modeling
+%       3. a list of MRS (and, optionally, structural imaging) data files 
+%          to be loaded
+%
+%   The list of MRS and structural imaging files is provided in the form of
+%   cell arrays. They can simply be provided explicitly, or from a more
+%   complex script that automatically determines file names from a given
+%   folder structure.
+%
+%   LCGannet distinguishes between four sets of data:
+%       - metabolite (water-suppressed) data
+%           (MANDATORY)
+%           Defined in cell array "files"
+%       - water reference data acquired with the SAME sequence as the
+%           metabolite data, just without water suppression RF pulses. This
+%           data is used to determine complex coil combination
+%           coefficients, and perform eddy current correction.
+%           (OPTIONAL)
+%           Defined in cell array "files_ref"
+%       - additional water data used for water-scaled quantification,
+%           usually from short-TE acquisitions due to reduced T2-weighting
+%           (OPTIONAL)
+%           Defined in cell array "files_w"
+%       - Structural image data used for co-registration and tissue class
+%           segmentation (usually a T1 MPRAGE). These files need to be
+%           provided in the NIfTI format (*.nii).
+%           (OPTIONAL)
+%           Defined in cell array "files_nii"
+%
+%   The sources of MRS data need to be 
+%   Files in the formats
+%       - .7 (GE)
+%       - .SDAT, .DATA/.LIST, .RAW/.SIN/.LAB (Philips)
+%       - .DAT (Siemens)
+%   usually contain all of the acquired data in a single file per scan. GE
+%   systems store water reference data in the same .7 file, so there is no
+%   need to specify it separately under files_ref.
+%
+%   Files in the formats
+%       - .DCM (any)
+%       - .IMA, .RDA (Siemens)
+%   may contain separate files for each average. Instead of providing
+%   individual file names, please specify folders. Metabolite data, water
+%   reference data, and water data need to be located in separate folders.
+%
+%   AUTHOR:
+%       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
+%       goeltzs1@jhmi.edu
+%   
+%   HISTORY:
+%       2019-07-15: First version of the code.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 1. SPECIFY SEQUENCE INFORMATION %%%
+
+% Specify sequence type
+seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
+                                %             - 'MEGA'
+                                %             - 'HERMES'
+                                %             - 'HERCULES'
+                                
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%
+
+% Save LCModel-exportable files for each spectrum?
+opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+% Save jMRUI-exportable files for each spectrum?
+opts.saveJMRUI              = 1;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+                                
+% Choose the fitting algorithm
+opts.fit.method             = 'LCGannet';       % OPTIONS:  - 'LCGannet' (default)
+                                                %           - 'AQSES' (planned)
+                                                %           - 'LCModel' (planned)
+                                                %           - 'TARQUIN' (planned)
+
+% Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
+% (only available for the LCGannet fitting method)
+opts.fit.style              = 'Concatenated';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
+                                                %           - 'Separate' - will fit DIFF and OFF separately
+
+% Determine fitting range (in ppm) for the metabolite and water spectra
+opts.fit.range              = [0.2 4.2];        % [ppm] Default: [0.2 4.2]
+opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
+
+% Determine the baseline knot spacing (in ppm) for the metabolite spectra
+opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
+
+% Add macromolecule and lipid basis functions to the fit? 
+opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
+                                                %             - 1 (yes, default)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
+% When using single-average Siemens RDA or DICOM files, specify their
+% folders instead of single files!
+
+% Specify metabolite data
+% (MANDATORY)
+files       = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-01/mrs/sub-01_press/sub-01_PRESS30.dat',...
+               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-02/mrs/sub-02_press/sub-02_PRESS30.dat'};
+
+% Specify water reference data for eddy-current correction (same sequence as metabolite data!)
+% (OPTIONAL)
+files_ref   = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat',...
+               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat'};
+
+% Specify water data for quantification (e.g. short-TE water scan)
+% (OPTIONAL)
+files_w     = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat',...
+               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat'};
+
+% Specify T1-weighted structural imaging data
+% (OPTIONAL)
+files_nii   = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-01/anat/sub-01_T1w.nii',...
+               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-02/anat/sub-02_T1w.nii'};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
