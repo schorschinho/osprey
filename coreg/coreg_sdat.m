@@ -2,7 +2,7 @@
 % Georg Oeltzschner, Johns Hopkins University 2019.
 % 
 % USAGE:
-% [vol_mask] = coreg_sdat(in, vol_image);
+% [vol_mask] = coreg_sdat(in, vol_image, maskFile);
 % 
 % DESCRIPTION:
 % Creates a SPM volume containing a voxel mask with the same dimensions 
@@ -21,12 +21,14 @@
 % vol_image	= SPM volume of the structural image that the voxel defined in
 %           the 'geometry' field of the input data structure 'in' is
 %           supposed to be co-registered to.
+% maskFile  = Filename under which the SPM volume of the co-registered
+%           voxel mask is supposed to be saved.
 %
 % OUTPUTS:
 % vol_mask  = SPM volume of the coregistered voxel mask.
 % T1_max    = maximum intensity of the image volume.
 
-function [vol_mask, T1_max] = coreg_sdat(in, vol_image)
+function [vol_mask, T1_max] = coreg_sdat(in, vol_image, maskFile)
 
 % Deactivate MATLAB warnings and load geometry parameters
 warning('off','MATLAB:nearlySingularMatrix');
@@ -128,7 +130,7 @@ mask(sphere_mask==1) = isinside;
 mask = reshape(mask, vol_image.dim);
 
 % Fill in the SPM volume header information
-vol_mask.fname   = strrep(vol_image.fname,'.nii','_overlay.nii');
+vol_mask.fname   = maskFile;
 vol_mask.dim     = vol_image.dim;
 vol_mask.dt      = vol_image.dt;
 vol_mask.mat     = vol_image.mat;

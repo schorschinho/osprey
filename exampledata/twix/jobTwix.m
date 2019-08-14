@@ -1,11 +1,12 @@
 %% jobTwix.m
 %   This function describes an LCGannet job defined in a MATLAB script.
 %
-%   A valid LCGannet job contains three distinct classes of items:
+%   A valid LCGannet job contains four distinct classes of items:
 %       1. basic information on the MRS sequence used
 %       2. several settings for data handling and modeling
 %       3. a list of MRS (and, optionally, structural imaging) data files 
 %          to be loaded
+%       4. an output folder to store the results and exported files
 %
 %   The list of MRS and structural imaging files is provided in the form of
 %   cell arrays. They can simply be provided explicitly, or from a more
@@ -32,7 +33,6 @@
 %           (OPTIONAL)
 %           Defined in cell array "files_nii"
 %
-%   The sources of MRS data need to be 
 %   Files in the formats
 %       - .7 (GE)
 %       - .SDAT, .DATA/.LIST, .RAW/.SIN/.LAB (Philips)
@@ -76,8 +76,13 @@ seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
 % Save LCModel-exportable files for each spectrum?
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
+                                                
 % Save jMRUI-exportable files for each spectrum?
 opts.saveJMRUI              = 1;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+                                                                                                
+% Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
+opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                 
 % Choose the fitting algorithm
@@ -130,5 +135,20 @@ files_w     = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-01/m
 % (OPTIONAL)
 files_nii   = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-01/anat/sub-01_T1w.nii',...
                '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/sub-02/anat/sub-02_T1w.nii'};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 4. SPECIFY OUTPUT FOLDER %%
+% The LCGannet data container will be saved as a *.mat file in the output
+% folder that you specify below. In addition, any exported files (for use
+% with jMRUI, TARQUIN, or LCModel) will be saved in sub-folders.
+
+% Specify output folder
+% (MANDATORY)
+outputFolder = '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/twix/derivatives/';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

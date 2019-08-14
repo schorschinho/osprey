@@ -1,4 +1,4 @@
-%% jobSDAT.m
+%% jobIMA.m
 %   This function describes an LCGannet job defined in a MATLAB script.
 %
 %   A valid LCGannet job contains four distinct classes of items:
@@ -61,7 +61,7 @@
 %%% 1. SPECIFY SEQUENCE INFORMATION %%%
 
 % Specify sequence type
-seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
+seqType = 'MEGA';           % OPTIONS:    - 'unedited' (default)
                                 %             - 'MEGA'
                                 %             - 'HERMES'
                                 %             - 'HERCULES'
@@ -76,14 +76,15 @@ seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
 % Save LCModel-exportable files for each spectrum?
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
+                                                
 % Save jMRUI-exportable files for each spectrum?
 opts.saveJMRUI              = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                
+                                                                                                
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
 opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                
+                                
 % Choose the fitting algorithm
 opts.fit.method             = 'LCGannet';       % OPTIONS:  - 'LCGannet' (default)
                                                 %           - 'AQSES' (planned)
@@ -117,28 +118,16 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat',...
-               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat'};
+files       = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/sub-01/mrs/sub-01_mega-press-68/',...
+               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/sub-01/mrs/sub-01_mega-press-80/'};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
-files_ref   = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat',...
-               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat'};
+files_ref   = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/sub-01/mrs/sub-01_mega-press-68-ref/',...
+               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/sub-01/mrs/sub-01_mega-press-80-ref/'};
 
-% Specify water data for quantification (e.g. short-TE water scan)
-% (OPTIONAL)
-files_w     = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat',...
-               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat'};
-
-% Specify T1-weighted structural imaging data
-% (OPTIONAL)
-files_nii   = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-01/anat/sub-01_T1w.nii',...
-               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-02/anat/sub-02_T1w.nii'};
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
+           
+           
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 4. SPECIFY OUTPUT FOLDER %%
@@ -148,6 +137,6 @@ files_nii   = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/sub-01/a
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/sdat/derivatives/';
+outputFolder = '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/derivatives';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

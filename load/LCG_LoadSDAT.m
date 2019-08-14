@@ -3,7 +3,7 @@ function [MRSCont] = LCG_LoadSDAT(MRSCont)
 %   This function reads raw (but coil-combined) data from Philips SDAT files.
 %
 %   USAGE:
-%       [MRSCont] = LCG_LoadTwix(MRSCont);
+%       [MRSCont] = LCG_LoadSDAT(MRSCont);
 %
 %   INPUTS:
 %       MRSCont     = LCGannet MRS data container.

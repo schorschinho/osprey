@@ -50,16 +50,16 @@ for kk = 1:MRSCont.nDatasets
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
     % Read in the raw metabolite data.
-    raw = io_loadspec_dicom(MRSCont.files{kk});
+    raw = io_loadspec_rda(MRSCont.files{kk});
     MRSCont.raw{kk}      = raw;
     
     % Read in the raw reference data.
     if MRSCont.flags.hasRef
-        raw_ref = io_loadspec_dicom(MRSCont.files_ref{kk});
+        raw_ref = io_loadspec_rda(MRSCont.files_ref{kk});
         MRSCont.raw_ref{kk}  = raw_ref;
     end
     if MRSCont.flags.hasWater
-        raw_w   = io_loadspec_dicom(MRSCont.files_w{kk});
+        raw_w   = io_loadspec_rda(MRSCont.files_w{kk});
         MRSCont.raw_w{kk}    = raw_w;
     end
 end

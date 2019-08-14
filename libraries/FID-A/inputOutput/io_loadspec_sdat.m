@@ -68,16 +68,6 @@ end
 
 sz = size(fids);
 
-% Phase correction
-corrph = conj(fids(1,:))./abs(fids(1,:));
-corrph = repmat(corrph, [sz(1) 1]);
-if length(sz) == 2
-    corrph = reshape(corrph, [sz(1) sz(2)]);
-elseif length(sz) == 3
-    corrph = reshape(corrph, [sz(1) sz(2) sz(3)]);
-end
-fids = fids .* corrph;
-
 % Fill in the header information
 txfrq = header.synthesizer_frequency; % transmitter frequency [Hz]
 Bo = txfrq/42577000; % B0 [T]

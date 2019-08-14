@@ -54,19 +54,18 @@ modeling procedure.
 
 While a job is progressing through the `LCGannet` pipeline, all raw and processed
 data associated with this job are stored in a MATLAB structure, the LCGannet
-*data container*. By default, this container is called `MRSCont`.
+*data container*. By default, this container is called `MRSCont`, but you are free to give it a more meaningful variable name.
 
-`LCGannet`'s data handling is based entirely on the free MATLAB toolbox FID-A. The `LCGannet` folder contains a fully functioning version of FID-A, although it
-includes several modifications and additions compared to the original FID-A
-release. The `MRSCont` container functions as a super-structure, containing
+`LCGannet`'s data handling is based in large parts on the free MATLAB toolbox FID-A. The `LCGannet` folder contains a library of, sometimes modified, FID-A functions and additions. Please make sure that you do not include an installation of the original FID-A suite in your MATLAB path.
+
+The `MRSCont` container functions as a super-structure, containing
 FID-A structures for each dataset and processing step, along with additional
 information (e.g. a few basic QA metrics, quantification results, etc).
 
 ## How to organize your raw data
 
 Raw MRS data come in an overwhelming variety of formats, each producing
-different numbers of files. Organizing your raw data in a consistent and
-meaningful way will save you a lot of time and nerves.
+different numbers of files. `LCGannet` does not make a lot of assumptions with regard to your folder structure, since you specify the exact location for each file in a job file prior to each analysis. It is **highly** recommended, however, that you store different acquisitions in separate folders. Organizing your raw data in a consistent and meaningful way will save you a lot of time and nerves.
 
 To ensure optimal functioning of `LCGannet`, we suggest adapting the folder
 hierarchy [proposed by the BIDS (Brain Imaging Data Structure)
@@ -126,6 +125,6 @@ myProject/
 While adhering to the BIDS standard is a recommendation, it is by no means
 binding for most file formats. You can, for example, keep Siemens TWIX files
 (`.dat`) all in the same folder, and `LCGannet` will be able to handle them, if
-you define their paths in the job file accordingly. **However, for
-single-average DICOM data, it is absolutely necessary to keep every scan in a
-separate folder.**
+you define their paths in the job file accordingly.
+
+**There is one exception: For data stored in single-average DICOM (`*.IMA`, `*.DCM`) or single-average Siemens RDA format, it is absolutely necessary to keep every scan in a separate folder.**

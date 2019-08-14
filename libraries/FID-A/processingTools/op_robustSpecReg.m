@@ -334,7 +334,7 @@ if showPlots == 1
     
 end
 
-out = ifft(fftshift(complex(real(spec) - z.real, imag(spec) - z.imag),[],in.dims.t),in.dims.t);
+out = ifft(fftshift(complex(real(spec) - z.real, imag(spec) - z.imag),in.dims.t),[],in.dims.t);
 
 end
 

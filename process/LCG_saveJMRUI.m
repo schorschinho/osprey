@@ -38,11 +38,12 @@ function [MRSCont] = LCG_saveJMRUI(MRSCont)
 close all;
 
 % Set up saving location
-if ~exist('jMRUIFiles','dir')
-    mkdir('jMRUIFiles');
+saveDestination = fullfile(MRSCont.outputFolder, 'jMRUIFiles');
+if ~exist(saveDestination,'dir')
+    mkdir(saveDestination);
 end
 
-%% Calculate coil combination weights
+%% Export files
 
 % Loop over all datasets
 for kk = 1:MRSCont.nDatasets
@@ -58,32 +59,32 @@ for kk = 1:MRSCont.nDatasets
         name = [path_split{end-1} '_' path_split{end} '_' filename];
     end
     if MRSCont.flags.isUnEdited
-        outfile         = ['jMRUIFiles' filesep name '_jMRUI_A.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.A{kk},outfile,te);
+        outfile         = fullfile(saveDestination, [name '_jMRUI_A.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.A{kk},outfile);
     elseif MRSCont.flags.isMEGA
-        outfileA        = ['jMRUIFiles' filesep name '_jMRUI_A.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.A{kk},outfileA,te);
-        outfileB        = ['jMRUIFiles' filesep name '_jMRUI_B.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.B{kk},outfileB,te);
-        outfileDiff1    = ['jMRUIFiles' filesep name '_jMRUI_DIFF1.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.diff1{kk},outfileDiff1,te);
-        outfileSum      = ['jMRUIFiles' filesep name '_jMRUI_SUM.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.sum{kk},outfileSum,te);
+        outfileA        = fullfile(saveDestination, [name '_jMRUI_A.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.A{kk},outfileA);
+        outfileB        = fullfile(saveDestination, [name '_jMRUI_B.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.B{kk},outfileB);
+        outfileDiff1    = fullfile(saveDestination, [name '_jMRUI_DIFF1.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.diff1{kk},outfileDiff1);
+        outfileSum      = fullfile(saveDestination, [name '_jMRUI_SUM.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.sum{kk},outfileSum);
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-        outfileA        = ['jMRUIFiles' filesep name '_jMRUI_A.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.A{kk},outfileA,te);
-        outfileB        = ['jMRUIFiles' filesep name '_jMRUI_B.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.B{kk},outfileB,te);
-        outfileC        = ['jMRUIFiles' filesep name '_jMRUI_C.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.C{kk},outfileC,te);
-        outfileD        = ['jMRUIFiles' filesep name '_jMRUI_D.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.D{kk},outfileD,te);
-        outfileDiff1    = ['jMRUIFiles' filesep name '_jMRUI_DIFF1.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.diff1{kk},outfileDiff1,te);
-        outfileDiff2    = ['jMRUIFiles' filesep name '_jMRUI_DIFF2.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.diff2{kk},outfileDiff2,te);
-        outfileSum      = ['jMRUIFiles' filesep name '_jMRUI_SUM.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.sum{kk},outfileSum,te);
+        outfileA        = fullfile(saveDestination, [name '_jMRUI_A.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.A{kk},outfileA);
+        outfileB        = fullfile(saveDestination, [name '_jMRUI_B.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.B{kk},outfileB);
+        outfileC        = fullfile(saveDestination, [name '_jMRUI_C.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.C{kk},outfileC);
+        outfileD        = fullfile(saveDestination, [name '_jMRUI_D.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.D{kk},outfileD);
+        outfileDiff1    = fullfile(saveDestination, [name '_jMRUI_DIFF1.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.diff1{kk},outfileDiff1);
+        outfileDiff2    = fullfile(saveDestination, [name '_jMRUI_DIFF2.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.diff2{kk},outfileDiff2);
+        outfileSum      = fullfile(saveDestination, [name '_jMRUI_SUM.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.sum{kk},outfileSum);
     else
         error('No flag set for sequence type!');
     end
@@ -105,8 +106,8 @@ for kk = 1:MRSCont.nDatasets
         if length(path_ref_split) > 2
             name_ref = [path_ref_split{end-1} '_' path_ref_split{end} '_' filename_ref];
         end
-        outfileRef      = ['jMRUIFiles' filesep name_ref '_jMRUI_REF.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.ref{kk},outfileRef,te_ref);
+        outfileRef      = fullfile(saveDestination, [name_ref '_jMRUI_REF.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.ref{kk},outfileRef);
     end
     
     % Now do the same for the (short-TE) water signal
@@ -120,8 +121,8 @@ for kk = 1:MRSCont.nDatasets
         if length(path_w_split) > 2
             name_w = [path_w_split{end-1} '_' path_w_split{end} '_' filename_w];
         end
-        outfileW        = ['jMRUIFiles' filesep name_w '_jMRUI_W.TXT'];
-        RF              = io_writejmrui(MRSCont.processed.w{kk},outfileW,te_w);
+        outfileW        = fullfile(saveDestination, [name_w '_jMRUI_W.TXT']);
+        RF              = io_writejmrui(MRSCont.processed.w{kk},outfileW);
     end
 end
 

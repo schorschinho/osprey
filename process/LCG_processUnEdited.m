@@ -2,7 +2,6 @@ function [MRSCont] = LCG_processUnEdited(MRSCont)
 %% [MRSCont] = LCG_processUnEdited(MRSCont)
 %   This function performs the following steps to process un-edited MRS
 %   data (e.g. PRESS, STEAM, sLASER):
-%       - Removal of bad averages (determine by likeliness metric)
 %       - Alignment of individual averages using spectral registration
 %       - Averaging
 %       - Removal of residual water using HSVD filtering
@@ -46,13 +45,14 @@ for kk = 1:MRSCont.nDatasets
     %%% 1. GET RAW DATA %%%
     raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
     
+    
     %%% 2. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
     % If there are reference scans, load them here to allow eddy-current
     % correction of the raw data.
     if MRSCont.flags.hasRef
         raw_ref                         = MRSCont.raw_ref{kk};              % Get the kk-th dataset
         if raw_ref.averages > 1 && raw_ref.flags.averaged == 0
-            [raw_ref,fs_ref,phs_ref]    = op_robustSpecReg(raw_ref, 0);
+            [raw_ref,fs_ref,phs_ref]    = op_alignAverages(raw_ref, 1, 'n');
             raw_ref                     = op_averaging(raw_ref);            % Average
         else
             raw_ref.flags.averaged  = 1;
@@ -63,6 +63,7 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
     end
     
+    
     %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
     if raw.averages > 1 && raw.flags.averaged == 0
         [raw,fs,phs]                = op_robustSpecReg(raw, 0);
@@ -71,6 +72,7 @@ for kk = 1:MRSCont.nDatasets
         raw.flags.averaged  = 1;
         raw.dims.averages   = 0;
     end
+    
     
     %%% 4. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%
     % Automate determination whether the NAA peak has positive polarity.
@@ -87,19 +89,22 @@ for kk = 1:MRSCont.nDatasets
         raw = op_ampScale(raw,-1);
     end
     
+    
     %%% 5. REMOVE RESIDUAL WATER %%%
     [raw,K_A,amp_A]             = op_removeWater(raw,[4.6 4.8],16,0.5*length(raw.fids),0); % Remove the residual water
     raw                         = op_fddccorr(raw,100);                                     % Correct back to baseline
+    
     
     %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS
     [raw,~]                     = op_ppmref(raw,1.9,2.1,2.008);           % Reference to NAA @ 2.008 ppm
     MRSCont.processed.A{kk}     = raw;                                      % Save back to MRSCont container
     
+    
     %%% 7. GET SHORT-TE WATER DATA %%%
     if MRSCont.flags.hasWater
         raw_w                           = MRSCont.raw_w{kk};                % Get the kk-th dataset
         if raw_w.averages > 1 && raw_w.flags.averaged == 0
-            [raw_w,fs_w,phs_w]              = op_robustSpecReg(raw_w, 0);
+            [raw_w,fs_w,phs_w]              = op_alignAverages(raw_w, 1, 'n');
             raw_w                           = op_averaging(raw_w);              % Average
         else
             raw_w.flags.averaged    = 1;
@@ -110,18 +115,30 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.w{kk}         = raw_w; % Save back to MRSCont container
     end
     
+    
     %%% 8. QUALITY CONTROL PARAMETERS %%%
     % Calculate some spectral quality metrics here;
     MRSCont.QM.SNR.A{kk}    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
     FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
     MRSCont.QM.FWHM.A{kk}   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
    
+    if MRSCont.flags.hasRef
+        MRSCont.QM.SNR.ref{kk}  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor
+        FWHM_Hz                 = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
+        MRSCont.QM.FWHM.ref{kk} = FWHM_Hz./MRSCont.processed.ref{kk}.txfrq*1e6; % convert to ppm
+    end
+    if MRSCont.flags.hasWater
+        MRSCont.QM.SNR.w{kk}    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor
+        FWHM_Hz                 = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
+        MRSCont.QM.FWHM.w{kk}   = FWHM_Hz./MRSCont.processed.w{kk}.txfrq*1e6; % convert to ppm
+    end
+    
 end
 fprintf('... done.\n');
 toc(refProcessTime);
 
-%%% 10. SET FLAGS %%%
-MRSCont.flags.badAvgsRemoved    = 1;
+
+%%% 9. SET FLAGS %%%
 MRSCont.flags.avgsAligned       = 1;
 MRSCont.flags.averaged          = 1;
 MRSCont.flags.ECCed             = 1;

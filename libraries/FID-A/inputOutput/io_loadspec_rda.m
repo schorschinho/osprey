@@ -172,12 +172,14 @@ date = rda.StudyDate;
 seq = rda.SequenceDescription;
 TE = rda.TE;
 TR = rda.TR;
-pointsToLeftShift = 'N/A';
+pointsToLeftShift = 0;
 
 %Calculate t and ppm arrays using the calculated parameters:
 f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
 ppm=f/(Bo*42.577);
-ppm=ppm+4.6082;
+% Siemens data assumes the center frequency to be 4.7 ppm:
+centerFreq = 4.7;
+ppm=ppm + centerFreq;
 
 t=[0:dwelltime:(sz(1)-1)*dwelltime];
 

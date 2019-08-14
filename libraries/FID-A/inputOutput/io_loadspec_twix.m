@@ -65,6 +65,7 @@ isWIP859=~isempty(strfind(sequence,'edit_859')); %Is this WIP 859 (MEGA-PRESS)?
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isSiemens=~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'));    % or the Siemens STEAM sequence?
+isUniversal = ~isempty(strfind(sequence,'mgs_univ'));
 
         
 %Make a pulse sequence identifier for the header (out.seq);
@@ -73,6 +74,8 @@ if isSpecial
 elseif isjnMP || isWIP529 || isWIP859
     seq = 'MEGAPRESS';
 elseif isMinn
+    seq = 'MEGAPRESS';
+elseif isUniversal
     seq = 'MEGAPRESS';
 elseif isSiemens
     if ~isempty(strfind(sequence,'svs_st'))

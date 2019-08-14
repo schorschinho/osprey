@@ -1,11 +1,11 @@
 ## Quick Start Guide
 
 This chapter is intended to serve as a quick rundown of the `LCGannet` workflow,
-as well as syntax cheat sheet for experienced users. The full documentation for
+as well as syntax cheat sheet for more experienced users. The full documentation for
 each of the following commands can be found in their respective sections and
 will be released shortly.
 
-Familiarize yourself with the basic `LCGannet` commands. The number of
+Please familiarize yourself with the basic `LCGannet` commands. The number of
 commands is deliberately kept to a minimum, as is the number of possible input
 arguments to these commands.
 
@@ -26,8 +26,9 @@ A valid LCGannet job file contains:
 - a list of MRS (and, optionally, structural imaging) data files to be loaded
 - basic information on the MRS sequence used
 - settings for data modeling
+- an output folder to store the results and exported files
 
-LCGannet job files can be described in `.m` format. Please refer to
+LCGannet job files are described in `.m` format. Please refer to
 the `LCGannetJob` chapter for detailed instructions on how to create a job. A good way to understand the structure of a job file is to study the example jobs in the `LCGannet/exampledata` directory, and to create your own job starting from there.
 
 Before you create your own job, consider the recommendations on how to organize
@@ -75,7 +76,10 @@ calculation of (Hadamard-encoded) difference spectra.
 Finally, `LCGannetProcess` can write the processed spectra into files formats that are readable by spectral fitting software packages like LCModel, TARQUIN, or jMRUI:
 - To write LCModel-readable `.RAW` files, you need to set a switch `opts.saveLCM = 1` in your job file. You can then load the `.RAW` file via the `Other` option in the LCModel file type selection menu.
 - To write jMRUI/TARQUIN-readable `.TXT` files, you need to set a switch `opts.saveJMRUI = 1` in your job file.
-- Please be aware that LCModel may prompt you to enter the number of FID data points (a positive integer number, e.g. 2048), dwell time (in seconds, e.g. 0.0005), and the static magnetic field strength in Hz (eg 123.26 for a Siemens 2.89 T magnet). In TARQUIN, you will probably need to enter the echo time in seconds (e.g. 0.03 for a 30-ms acquisition). You can extract this information from the LCGannet `MRSCont` data container.
+- Please be aware that LCModel may prompt you to enter the number of FID data points (a positive integer number, e.g. 2048), dwell time (in seconds, e.g. 0.0005), and the static magnetic field strength in Hz (eg 123.26 for a Siemens 2.89 T magnet). In TARQUIN, you will probably need to enter the echo time in seconds (e.g. 0.03 for a 30-ms acquisition). You can extract this information from the LCGannet `MRSCont` data container, or ...
+- ... by setting the switch `opts.saveVendor = 1` in your job file, `LCGannet` will create single vendor-specific files, i.e. `.SDAT/.SPAR` files for Philips data, and `.RDA` files for Siemens data, regardless of the raw data format. This function has been introduced to sidestep the above-mentioned problems with `.RAW` and `.TXT` files. LCModel, TARQUIN and jMRUI accept the `.SDAT/.SPAR` and `.RDA` file formats, and should be able to read the header information correctly.
+
+All exported third-party format files are stored in sub-directories of the output folder specified in the job file.
 
 Please refer to the `LCGannetProcess` chapter for details on the implementation
 of the various post-processing steps.
@@ -86,7 +90,7 @@ You can provide a T1-weighted structural image in NIfTI format (`*.nii`) in
 order to perform voxel co-registration and segmentation. The function
 `LCGannetCoreg` will extract voxel geometry information from the MRS data
 headers, and leverage SPM12 NIfTI handling functions to create an SPM image
-volume containing a voxel mask.
+volume containing a voxel mask. The voxel masks will be saved in a sub-directory (`/VoxelMasks/`) of the output folder specified in the job file.
 
 The path to the structural image is provided in the job definition. After
 running `LCGannetLoad`, you can call the co-registration routine using the

@@ -3,13 +3,13 @@ function [MRSCont] = LCGannetJob(jobFile)
 %   This function loads the LCGannet job defined in jobFile.
 %   The job can be submitted in the following formats:
 %       - .m
-%       - .csv
 %
-%   A valid LCGannet job contains three distinct classes of items:
+%   A valid LCGannet job contains four distinct classes of items:
 %       1. basic information on the MRS sequence used
 %       2. several settings for data handling and modeling
-%       3. a list of MRS (and, optionally, structural imaging) data files
+%       3. a list of MRS (and, optionally, structural imaging) data files 
 %          to be loaded
+%       4. an output folder to store the results and exported files
 %
 %   See the example files in the /exampledata/ folder for details.
 %
@@ -18,7 +18,7 @@ function [MRSCont] = LCGannetJob(jobFile)
 %
 %   INPUTS:
 %       jobFile     = File containing a correct LCGannet job definition.
-%                     Accepted file formats are .csv, and .m.
+%                     Accepted file formats are .m.
 %
 %   OUTPUTS:
 %       MRSCont     = LCGannet MRS data container.
@@ -34,30 +34,11 @@ function [MRSCont] = LCGannetJob(jobFile)
 close all;
 warning('off','all');
 
-
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
 [MRSCont] = LCG_Settings;
 
 
-%%% 2. DELETE EXISTING JOB %%%
-if MRSCont.flags.didLoadJob
-    fprintf('''%s'' already contains a job definition: \t\t%s.\n', inputname(1), MRSCont.loadedJob);
-    fprintf('You are about to load the job: \t\t\t\t%s.\n', jobFile);
-   % disp(
-    askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container!)   [y]   ','s');
-    if isempty(askOverWriteJob)
-        askOverWriteJob = 'y';
-    end
-    if askOverWriteJob=='n' || askOverWriteJob=='N'
-        disp('Aborted! No new job loaded.');
-        return;
-    elseif askOverWriteJob=='y' || askOverWriteJob=='y'
-        disp('Continue with loading new job, overwriting existing job.');
-    end
-end
-
-
-%%% 3. CHECK JOB INPUT FILE FORMAT %%%
+%%% 2. CHECK JOB INPUT FILE FORMAT %%%
 last3char   = jobFile((end-2):end);
 last2char   = jobFile((end-1):end);
 if strcmpi(last2char,'.m')
@@ -69,12 +50,12 @@ else
 end
 
 
-%%% 4a. LOAD AND RUN M FILE %%%
+%%% 3a. LOAD AND RUN M FILE %%%
 if strcmp(jobFileFormat, 'm')
     run(jobFile);
 end
 
-%%% 4b. LOAD CSV FILE %%%
+%%% 3b. LOAD CSV FILE %%%
 if strcmp(jobFileFormat,'csv')
     jobCSV = readtable(jobFile, 'Delimiter', ',');
     % UTF-8 encoding may screw up the first column name; correct here
@@ -101,11 +82,15 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_nii')
         files_nii = {jobStruct.files_nii};
     end
-            
+    if isfield(jobStruct, 'outputFolder')
+        outputFolder = {jobStruct.outputFolder};
+    else
+        error('Invalid job file! A job file needs to specify an output folder.');
+    end
 end
 
 
-%%% 5. SAVE SETTINGS INTO MRSCONT %%%
+%%% 4. SAVE SETTINGS INTO MRSCONT %%%
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
@@ -121,7 +106,9 @@ end
 MRSCont.opts = opts;
 
 
-%%% 6. SAVE FILE/FOLDER NAMES INTO MRSCONT %%%
+%%% 5. SAVE FILE/FOLDER NAMES INTO MRSCONT %%%
+% Make sure that the mandatory fields (metabolite data; output folder) are
+% included in the job file.
 if exist('files','var')
     MRSCont.files = files;
 else
@@ -136,15 +123,22 @@ end
 if exist('files_nii','var')
     MRSCont.files_nii = files_nii;
 end
+if exist('outputFolder','var')
+    MRSCont.outputFolder = outputFolder;
+else
+    error('Invalid job file! A job file needs to specify an output folder.');
+end
 
 % Check that each array has an identical number of entries
 fieldNames = {'files', 'files_ref', 'files_w', 'files_nii'};
 ctr = 0;
 for kk = 1:length(fieldNames)
     if isfield(MRSCont, fieldNames{kk})
-        ctr = ctr + 1;
-        whichFieldNames{ctr} = fieldNames{kk};
-        numDataSets(ctr)     = length(MRSCont.(fieldNames{kk}));
+        if ~isempty(MRSCont.(fieldNames{kk}))
+            ctr = ctr + 1;
+            whichFieldNames{ctr} = fieldNames{kk};
+            numDataSets(ctr)     = length(MRSCont.(fieldNames{kk}));
+        end
     end
 end
 
@@ -161,10 +155,36 @@ if length(isUnique) ~= 1
 end
 
 
-%%% 7. SET FLAGS %%%
+%%% 6. SET FLAGS %%%
 MRSCont.flags.didLoadJob    = 1;
 MRSCont.loadedJob           = jobFile;
 
+
+%%% 7. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
+[~,jobfilename,jobfileext]  = fileparts(jobFile);
+outputFile                  = strrep([jobfilename jobfileext], jobfileext, '.mat');
+MRSCont.outputFile          = outputFile;
+if isfile(fullfile(outputFolder, outputFile))
+    fprintf('Your selected output folder ''%s'' already contains an LCGannet output structure: \t%s.\n', outputFolder, outputFile);
+    fprintf('You are about to load the job: \t%s.\n', jobFile);
+    askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container!)   [y]   ','s');
+    if isempty(askOverWriteJob)
+        askOverWriteJob = 'y';
+    end
+    if askOverWriteJob=='n' || askOverWriteJob=='N'
+        disp('Aborted! No new job loaded.');
+        return;
+    elseif askOverWriteJob=='y' || askOverWriteJob=='y'
+        disp('Continue with loading new job, overwriting existing job.');
+    end
+end
+
+%%% 8. SAVE THE OUTPUT STRUCTURE TO THE OUTPUT FOLDER %%%
+% Determine output folder
+if ~exist(outputFolder,'dir')
+    mkdir(outputFolder);
+end
+save(fullfile(outputFolder, outputFile), 'MRSCont');
 
 % Close any remaining open figures
 close all;

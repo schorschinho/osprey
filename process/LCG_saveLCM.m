@@ -38,11 +38,12 @@ function [MRSCont] = LCG_saveLCM(MRSCont)
 close all;
 
 % Set up saving location
-if ~exist('LCModelFiles','dir')
-    mkdir('LCModelFiles');
+saveDestination = fullfile(MRSCont.outputFolder, 'LCModelFiles');
+if ~exist(saveDestination,'dir')
+    mkdir(saveDestination);
 end
 
-%% Calculate coil combination weights
+%% Export files
 
 % Loop over all datasets
 for kk = 1:MRSCont.nDatasets
@@ -58,31 +59,31 @@ for kk = 1:MRSCont.nDatasets
         name = [path_split{end-1} '_' path_split{end} '_' filename];
     end
     if MRSCont.flags.isUnEdited
-        outfile         = ['LCModelFiles' filesep name '_LCM_A.RAW'];
+        outfile         = fullfile(saveDestination, [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfile,te);
     elseif MRSCont.flags.isMEGA
-        outfileA        = ['LCModelFiles' filesep name '_LCM_A.RAW'];
+        outfileA        = fullfile(saveDestination, [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfileA,te);
-        outfileB        = ['LCModelFiles' filesep name '_LCM_B.RAW'];
+        outfileB        = fullfile(saveDestination, [name '_LCM_B.RAW']);
         RF              = io_writelcm(MRSCont.processed.B{kk},outfileB,te);
-        outfileDiff1    = ['LCModelFiles' filesep name '_LCM_DIFF1.RAW'];
+        outfileDiff1    = fullfile(saveDestination, [name '_LCM_DIFF1.RAW']);
         RF              = io_writelcm(MRSCont.processed.diff1{kk},outfileDiff1,te);
-        outfileSum      = ['LCModelFiles' filesep name '_LCM_SUM.RAW'];
+        outfileSum      = fullfile(saveDestination, [name '_LCM_SUM.RAW']);
         RF              = io_writelcm(MRSCont.processed.sum{kk},outfileSum,te);
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-        outfileA        = ['LCModelFiles' filesep name '_LCM_A.RAW'];
+        outfileA        = fullfile(saveDestination, [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfileA,te);
-        outfileB        = ['LCModelFiles' filesep name '_LCM_B.RAW'];
+        outfileB        = fullfile(saveDestination, [name '_LCM_B.RAW']);
         RF              = io_writelcm(MRSCont.processed.B{kk},outfileB,te);
-        outfileC        = ['LCModelFiles' filesep name '_LCM_C.RAW'];
+        outfileC        = fullfile(saveDestination, [name '_LCM_C.RAW']);
         RF              = io_writelcm(MRSCont.processed.C{kk},outfileC,te);
-        outfileD        = ['LCModelFiles' filesep name '_LCM_D.RAW'];
+        outfileD        = fullfile(saveDestination, [name '_LCM_D.RAW']);
         RF              = io_writelcm(MRSCont.processed.D{kk},outfileD,te);
-        outfileDiff1    = ['LCModelFiles' filesep name '_LCM_DIFF1.RAW'];
+        outfileDiff1    = fullfile(saveDestination, [name '_LCM_DIFF1.RAW']);
         RF              = io_writelcm(MRSCont.processed.diff1{kk},outfileDiff1,te);
-        outfileDiff2    = ['LCModelFiles' filesep name '_LCM_DIFF2.RAW'];
+        outfileDiff2    = fullfile(saveDestination, [name '_LCM_DIFF2.RAW']);
         RF              = io_writelcm(MRSCont.processed.diff2{kk},outfileDiff2,te);
-        outfileSum      = ['LCModelFiles' filesep name '_LCM_SUM.RAW'];
+        outfileSum      = fullfile(saveDestination, [name '_LCM_SUM.RAW']);
         RF              = io_writelcm(MRSCont.processed.sum{kk},outfileSum,te);
     else
         error('No flag set for sequence type!');
@@ -105,7 +106,7 @@ for kk = 1:MRSCont.nDatasets
         if length(path_ref_split) > 2
             name_ref = [path_ref_split{end-1} '_' path_ref_split{end} '_' filename_ref];
         end
-        outfileRef      = ['LCModelFiles' filesep name_ref '_LCM_REF.RAW'];
+        outfileRef      = fullfile(saveDestination, [name_ref '_LCM_REF.RAW']);
         RF              = io_writelcm(MRSCont.processed.ref{kk},outfileRef,te_ref);
     end
     
@@ -120,7 +121,7 @@ for kk = 1:MRSCont.nDatasets
         if length(path_w_split) > 2
             name_w = [path_w_split{end-1} '_' path_w_split{end} '_' filename_w];
         end
-        outfileW        = ['LCModelFiles' filesep name_w '_LCM_W.RAW'];
+        outfileW        = fullfile(saveDestination, [name_w '_LCM_W.RAW']);
         RF              = io_writelcm(MRSCont.processed.w{kk},outfileW,te_w);
     end
 end

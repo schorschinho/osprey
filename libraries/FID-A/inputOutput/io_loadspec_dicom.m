@@ -26,6 +26,28 @@ DicomHeader = read_dcm_header(filesInFolder{1});
 seqtype = DicomHeader.seqtype;
 seqorig = DicomHeader.seqorig;
 
+% Extract voxel dimensions
+% If a parameter is set to zero (e.g. if no voxel rotation is
+% performed), the respective field is left empty in the TWIX file. This
+% case needs to be intercepted. Setting to the minimum possible value.
+VoI_Params = {'VoI_InPlaneRot','VoI_RoFOV','VoI_PeFOV','VoIThickness','NormCor','NormSag','NormTra', ...
+              'PosCor','PosSag','PosTra'};
+for pp = 1:length(VoI_Params)
+    if isempty(DicomHeader.(VoI_Params{pp}))
+        DicomHeader.(VoI_Params{pp}) = realmin('double');
+    end
+end
+geometry.size.VoI_RoFOV     = DicomHeader.VoI_RoFOV; % Voxel size in readout direction [mm]
+geometry.size.VoI_PeFOV     = DicomHeader.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
+geometry.size.VoIThickness  = DicomHeader.VoIThickness; % Voxel size in slice selection direction [mm]
+geometry.pos.PosCor         = DicomHeader.PosCor; % Coronal coordinate of voxel [mm]
+geometry.pos.PosSag         = DicomHeader.PosSag; % Sagittal coordinate of voxel [mm]
+geometry.pos.PosTra         = DicomHeader.PosTra; % Transversal coordinate of voxel [mm]
+geometry.rot.VoI_InPlaneRot = DicomHeader.VoI_InPlaneRot; % Voxel rotation in plane
+geometry.rot.NormCor        = DicomHeader.NormCor; % Coronal component of normal vector of voxel
+geometry.rot.NormSag        = DicomHeader.NormSag; % Sagittal component of normal vector of voxel
+geometry.rot.NormTra        = DicomHeader.NormTra; % Transversal component of normal vector of voxel
+
 % Preallocate array in which the FIDs are to be extracted.
 fids = zeros(DicomHeader.vectorSize,length(filesInFolder));
 % Collect all FIDs and sort them into fids array
@@ -230,6 +252,7 @@ out.te=DicomHeader.TE;
 out.tr=DicomHeader.TR;
 out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
+out.geometry = geometry;
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;

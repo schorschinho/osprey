@@ -37,14 +37,12 @@ end
 if MRSCont.flags.isUnEdited
     [MRSCont] = LCG_processUnEdited(MRSCont);
 elseif MRSCont.flags.isMEGA
-    error('Coming soon!');
-    % [MRSCont] = LCG_processMEGA(MRSCont);
+    [MRSCont] = LCG_processMEGA(MRSCont);
 elseif MRSCont.flags.isHERMES
     error('Coming soon!');
     % [MRSCont] = LCG_processHERMES(MRSCont);
 elseif MRSCont.flags.isHERCULES
-    error('Coming soon!');
-    %[MRSCont] = LCG_processHERCULES(MRSCont);
+    [MRSCont] = LCG_processHERCULES(MRSCont);
 else
     error('No flag set for sequence type!');
 end
@@ -55,6 +53,16 @@ end
 % Set exit flags
 MRSCont.flags.didProcess           = 1;
 
+% Save the output structure to the output folder
+% Determine output folder
+outputFolder    = MRSCont.outputFolder;
+outputFile      = MRSCont.outputFile;
+if ~exist(outputFolder,'dir')
+    mkdir(outputFolder);
+end
+save(fullfile(outputFolder, outputFile), 'MRSCont');
+
+
 % Optional: write edited files to LCModel .RAW files
 if MRSCont.opts.saveLCM
     [MRSCont] = LCG_saveLCM(MRSCont);
@@ -64,5 +72,14 @@ end
 if MRSCont.opts.saveJMRUI
     [MRSCont] = LCG_saveJMRUI(MRSCont);
 end
+
+% Optional: write edited files to vendor specific format files readable to
+% LCModel and jMRUI
+% SPAR/SDAT if Philips
+% RDA if Siemens
+if MRSCont.opts.saveVendor
+    [MRSCont] = LCG_saveVendor(MRSCont);
+end
+
 
 end
