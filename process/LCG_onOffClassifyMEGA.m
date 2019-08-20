@@ -15,7 +15,7 @@ function [outA, outB] = LCG_onOffClassifyMEGA(inA, inB, target)
 %
 %   INPUTS:
 %       inA     = FID-A structure containing one MEGA sub-spectrum.
-%       inA     = FID-A structure containing the other MEGA sub-spectrum.
+%       inB     = FID-A structure containing the other MEGA sub-spectrum.
 %       target  = String. Can be 'GABA' or 'GSH'.
 %
 %   OUTPUTS:

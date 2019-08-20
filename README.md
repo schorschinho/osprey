@@ -3,6 +3,30 @@
 LCGannet is an all-in-one software suite for state-of-the art processing and
 quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 
+### Features
+- 1-file job definition system for reproducible data analysis
+- Automated recognition of input file format and sequence origin
+- Fully-automated loading and pre-processing pipeline for optimal SNR, linewidth, phasing, and alignment
+- Integrated linear-combination modeling module
+- Full density-matrix simulated basis sets (using real pulses and sequence timings; including effects of localization and spectral editing) for many metabolites and common sequence implementations
+- Integrated voxel co-registration and segmentation module (requires SPM12)
+- Quantification based on tissue fractions and (customizable) metabolite/tissue water relaxation times
+
+### Supported methods
+- Conventional MRS (STEAM, PRESS, semi-LASER, LASER)
+- MEGA editing
+- Hadamard-encoded editing (HERMES, HERCULES)
+
+### Supported sequence implementations
+- Philips (Johns Hopkins patches; Philips product sequences)
+- Siemens (Siemens WIP sequences; CMRR sequences; Jamie Near sequence)
+- GE (Ralph Noeske sequence)
+
+### Supported file formats
+- Philips: SDAT/SPAR, DATA/LIST (coming soon), SIN/LAB/RAW (coming soon)
+- Siemens: TWIX/DAT, RDA (single- & multi-file), DICOM (DCM/IMA, single- & multi-file)
+- GE: P
+
 ## Getting started
 
 ### Prerequisites

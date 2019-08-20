@@ -11,6 +11,8 @@
 %
 % INPUTS:
 % in        = Input data structure.
+% seqType   = Type of used sequence. Options: 'unedited', 'MEGA', 'HERMES',
+%             'HERCULES'
 % echo      = Return messages to the prompt? (1 = YES (default), 0 = NO)
 %
 % OUTPUTS:
@@ -19,7 +21,7 @@
 % phs       = Vector of phase shifts (in degrees) used for alignment.
 
 
-function [out,fs,phs] = op_robustSpecReg(in, echo)
+function [out,fs,phs] = op_robustSpecReg(in, seqType, echo)
 
 if nargin < 2
     echo = 1;
@@ -61,8 +63,7 @@ lsqnonlinopts = optimoptions(@lsqnonlin);
 lsqnonlinopts = optimoptions(lsqnonlinopts,'Display','off','Algorithm','levenberg-marquardt');
 
 % Initialize common variables and loop over sub-spectra
-parsFit     = [0,0];
-t           = in.t;
+t                 = in.t;
 input.dwelltime   = in.dwelltime;
 
 for mm=1:numSubSpecs
@@ -71,33 +72,33 @@ for mm=1:numSubSpecs
     waterLim = freq <= 4.68 + 0.25 & freq >= 4.68 - 0.25;
     lipidLim = freq <= 1.85 & freq >= 0;
     noiseLim = freq <= 11 & freq >= 10;
-    %%% /Automatic lipid/unstable residual water removal %%%
     
     % Create a lipid-to-noise criterion from the mean unaligned data
     S = mean(in.specs(:,:,mm), 2);
     r = std(S(lipidLim)) / std(S(noiseLim));
+    r_threshold = 40;
     % Create a 'how unstable is the residual water signal?' criterion from
     % the mean unaligned data
     q = sum(abs(in.specs(waterLim,:,mm))) * abs(freq(1) - freq(2));
     q = q / max(q);
-    q = sum(q < 0.4) / length(q);
+    q = sum(q < 0.5) / length(q);
     q_threshold = 0.1;
     
     % If significant lipid signal and/or unstable residual water signal is
     % present, run the Whittaker filtering in the frequency domain.
     lipid_flag = 0;
-    unstable_H20_flag = 0;
-    if r > 40 || q > q_threshold
+    water_flag = 0;
+    if r > r_threshold || q > q_threshold
         % Extract the frequency-domain sub-spectrum
         spec = in.specs(:,:,mm);
         
         % Is there excessive lipid?
-        if r > 40
+        if r > r_threshold
             lipid_flag = 1;
         end
         % Is there unstable residual water?
         if q > q_threshold
-            unstable_H20_flag = 1;
+            water_flag = 1;
         end
         
         reverseStr = '';
@@ -106,18 +107,18 @@ for mm=1:numSubSpecs
         for jj = 1:in.averages
             
             if echo
-                if lipid_flag && ~unstable_H20_flag
+                if lipid_flag && ~water_flag
                     msg = sprintf('\nLipid contamination detected. Applying lipid filter to transient: %d\n', jj);
-                elseif ~lipid_flag && unstable_H20_flag
+                elseif ~lipid_flag && water_flag
                     msg = sprintf('\nUnstable residual water detected. Applying residual water filter to transient: %d\n', jj);
-                elseif lipid_flag && unstable_H20_flag
+                elseif lipid_flag && water_flag
                     msg = sprintf('\nLipid contamination and unstable residual water detected. Applying lipid and residual water filters to transient: %d\n', jj);
                 end
                 fprintf([reverseStr, msg]);
                 reverseStr = repmat(sprintf('\b'), 1, length(msg));
             end
             
-            DataToAlign(:,jj) = SignalFilter(spec(:,jj), lipid_flag, unstable_H20_flag, in);
+            DataToAlign(:,jj) = SignalFilter(spec(:,jj), lipid_flag, water_flag, in);
             
         end
         
@@ -176,7 +177,11 @@ for mm=1:numSubSpecs
     m = zeros(length(target),size(flatdata,3));
     
     % Frame-by-frame determination of frequency of residual water and Cr (if HERMES or GSH editing)
-    F0freqRange = freq - 4.68 >= -0.2 & freq - 4.68 <= 0.2;
+    if strcmp(seqType, 'HERMES') || strcmp(seqType, 'HERCULES')
+        F0freqRange = freq - 3.02 >= -0.15 & freq - 3.02 <= 0.15;
+    else
+        F0freqRange = freq - 4.68 >= -0.2 & freq - 4.68 <= 0.2;
+    end
     [~,FrameMaxPos] = max(abs(real(in.specs(F0freqRange,:))),[],1);
     F0freqRange = freq(F0freqRange);
     F0freq = F0freqRange(FrameMaxPos);
@@ -201,9 +206,8 @@ for mm=1:numSubSpecs
         end
         
         transient = squeeze(flatdata(:,:,jj));
-        input.data = transient(:)/a;
         
-        fun = @(x) SpecReg(input, target/a, x);
+        fun = @(x) SpecReg(transient(:)/a, target/a, time, x);
         params(jj,:) = lsqnonlin(fun, x0(iter,:), [], [], lsqnonlinopts);
         
         f   = params(jj,1);
@@ -213,15 +217,6 @@ for mm=1:numSubSpecs
         m(:,jj) = [real(m_c); imag(m_c)];
         resid = target - m(:,jj);
         MSE(jj) = sum(resid.^2) / (length(resid) - 2);
-        
-%         figure(23);
-%         cla;
-%         hold on;
-%         plot(target/a,'k','LineWidth',1);
-%         plot(m(:,jj)/a,'r','LineWidth',0.5);
-%         hold off;
-%         ylim([-1.75 1.75]);
-%         drawnow;
         
         % Update reference
         w(jj) = 0.5*corr(target, m(:,jj)).^2;
@@ -236,7 +231,7 @@ for mm=1:numSubSpecs
     fs  = params(:,1);
     phs = params(:,2);
     
-    % Apply frequency and phase corrections
+    % Apply frequency and phase corrections to raw data
     for jj = 1:size(flatdata,3)
         fids(:,jj,mm) = DataToAlign(:,jj) .* ...
             exp(1i*params(jj,1)*2*pi*t') * exp(1i*pi/180*params(jj,2));
@@ -247,36 +242,96 @@ if echo
     fprintf('... done.\n');
 end
 
+
+%%% 2. RE-RUN THE RANKING ALGORITHM TO DETERMINE WEIGHTS %%%
+
+% Determine optimal iteration order by calculating a similarity metric (mean squared error)
+w = cell(1,numSubSpecs);
+for mm=1:numSubSpecs
+    DataToWeight = fids(:,:,mm);
+    D = zeros(size(DataToWeight,2));
+    for jj = 1:size(DataToWeight,2)
+        for kk = 1:size(DataToWeight,2)
+            tmp = sum((real(DataToWeight(1:tMax,jj)) - real(DataToWeight(1:tMax,kk))).^2) / tMax;
+            if tmp == 0
+                D(jj,kk) = NaN;
+            else
+                D(jj,kk) = tmp;
+            end
+        end
+    end
+    d = nanmedian(D);
+    w{mm} = 1./d.^2;
+    w{mm} = w{mm}/sum(w{mm});
+    w{mm} = repmat(w{mm}, [size(DataToWeight,1) 1]);
+    
+    % Apply the weighting
+fids_out(:,:,mm) = w{mm} .* DataToWeight;
+    
+end
+
+% Perform weighted averaging
+% No need for 'mean', since the weights vector w is normalized
+fids = sum(fids_out, in.dims.averages);
+    
+%%% 3. WRITE THE NEW STRUCTURE %%%
 %re-calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
 
+%change the dims variables.
+if in.dims.t>in.dims.averages
+    dims.t=in.dims.t-1;
+else
+    dims.t=in.dims.t;
+end
+if in.dims.coils>in.dims.averages
+    dims.coils=in.dims.coils-1;
+else
+    dims.coils=in.dims.coils;
+end
+dims.averages=0;
+if in.dims.subSpecs>in.dims.averages
+    dims.subSpecs=in.dims.subSpecs-1;
+else
+    dims.subSpecs=in.dims.subSpecs;
+end
+if in.dims.extras>in.dims.averages
+    dims.extras=in.dims.extras-1;
+else
+    dims.extras=in.dims.extras;
+end
 
+%re-calculate the sz variable
+sz=size(fids);
+    
 %FILLING IN DATA STRUCTURE
 out=in;
 out.fids=fids;
 out.specs=specs;
-
+out.sz=sz;
+out.dims=dims;
+out.averages=1;
+    
 %FILLING IN THE FLAGS
 out.flags=in.flags;
 out.flags.writtentostruct=1;
 out.flags.freqcorrected=1;
-
+out.flags.averaged=1;
 
 
 
 end
 
 
-function out = SpecReg(input, target, x)
+function out = SpecReg(data, target, time, x)
 
 f   = x(1);
 phi = x(2);
 
-t = 0:input.dwelltime:(length(input.data)/2-1)*input.dwelltime;
-input.data = reshape(input.data, [length(input.data)/2 2]);
-fid = complex(input.data(:,1), input.data(:,2));
+data = reshape(data, [length(data)/2 2]);
+fid = complex(data(:,1), data(:,2));
 
-fid = fid .* exp(1i*pi*(t'*f*2+phi/180));
+fid = fid .* exp(1i*pi*(time'*f*2+phi/180));
 fid = [real(fid); imag(fid)];
 
 out = target - fid;

@@ -39,8 +39,7 @@ if MRSCont.flags.isUnEdited
 elseif MRSCont.flags.isMEGA
     [MRSCont] = LCG_processMEGA(MRSCont);
 elseif MRSCont.flags.isHERMES
-    error('Coming soon!');
-    % [MRSCont] = LCG_processHERMES(MRSCont);
+    [MRSCont] = LCG_processHERMES(MRSCont);
 elseif MRSCont.flags.isHERCULES
     [MRSCont] = LCG_processHERCULES(MRSCont);
 else
