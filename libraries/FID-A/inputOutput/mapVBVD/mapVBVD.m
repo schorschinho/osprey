@@ -560,6 +560,8 @@ if NScans == 1
     twix_obj = twix_obj{1};
 end
 
+fclose(fid)
+
 end % of mapVBVD()
 
 
