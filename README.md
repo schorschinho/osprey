@@ -1,6 +1,6 @@
-# LCGannet
+# Osprey
 
-LCGannet is an all-in-one software suite for state-of-the art processing and
+Osprey is an all-in-one software suite for state-of-the art processing and
 quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 
 ### Features
@@ -19,7 +19,7 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 
 ### Supported sequence implementations
 - Philips (Johns Hopkins patches; Philips product sequences)
-- Siemens (Siemens WIP sequences; CMRR sequences; Jamie Near sequence)
+- Siemens (Johns Hopkins patches; Siemens WIP sequences; CMRR sequences; Jamie Near sequence)
 - GE (Ralph Noeske sequence)
 
 ### Supported file formats
@@ -31,7 +31,7 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 
 ### Prerequisites
 
-LCGannet requires [MATLAB](https://www.mathworks.com/products/matlab.html) and
+Osprey requires [MATLAB](https://www.mathworks.com/products/matlab.html) and
 has been tested on version 2017a and newer. The following toolboxes are
 required for full functionality:
 
@@ -43,8 +43,8 @@ required for full functionality:
 
 ### Installation
 
-Download the latest **LCGannet** code from its [GitHub
-repository](https://github.com/schorschinho/LCGannet), then extract and add the
+Download the latest **Osprey** code from its [GitHub
+repository](https://github.com/schorschinho/osprey), then extract and add the
 entire folder (with subfolders) to your MATLAB path. Make sure to regularly
 check for updates, as we frequently commit new features, bug fixes, and improved
 functions.
@@ -55,7 +55,7 @@ extract and add to your MATLAB path.
 
 ## Contact, Feedback, Suggestions
 
-For any sort of questions, feedback, suggestions, or critique, please reach out to us via gabamrs@gmail.com. We also welcome your direct contributions to LCGannet here in the GitHub repository.
+For any sort of questions, feedback, suggestions, or critique, please reach out to us via gabamrs@gmail.com. We also welcome your direct contributions to Osprey here in the GitHub repository.
 
 ## Developers
 
@@ -64,14 +64,14 @@ For any sort of questions, feedback, suggestions, or critique, please reach out 
 - [Muhammad G. Saleh](mailto:msaleh10@jhu.edu)
 - [Richard A. E. Edden](mailto:raee2@jhu.edu)
 
-Should you publish material that made use of LCGannet, please cite the following publications:
+Should you publish material that made use of Osprey, please cite the following publications:
 
 Oeltzschner G, Saleh MG, Rimbault D, Mikkelsen M, Chan KL, Puts NAJ, Edden RAE. Advanced Hadamard-encoded editing of seven low-concentration brain metabolites: Principles of HERCULES. NeuroImage 185:181-190 (2019)
 
 ## Acknowledgements
 
 We wish to thank the following individuals for their contributions to the
-development of LCGannet and shared processing code:
+development of Osprey and shared processing code:
 
 - Jamie Near (McGill University, Montreal)
 - Ralph Noeske (GE Healthcare, Berlin)
