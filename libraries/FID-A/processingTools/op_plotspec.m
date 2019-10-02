@@ -149,6 +149,7 @@ elseif iscell(in)
         end
         xlim([ppmmin ppmmax]);
         set(gca,'XDir','reverse');
+        set(gca, 'LineWidth', 1, 'TickDir', 'out');
         set(gca,'FontSize',16);
         if isempty(ylab)
             set(gca,'YColor','w');
