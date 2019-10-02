@@ -1,6 +1,6 @@
-function [MRSCont] = LCG_saveJMRUI(MRSCont)
-%% [MRSCont] = LCG_saveJMRUI(MRSCont)
-%   This function writes all MRS data loaded by LCGannetLoad to separate
+function [MRSCont] = osp_saveJMRUI(MRSCont)
+%% [MRSCont] = osp_saveJMRUI(MRSCont)
+%   This function writes all MRS data loaded by OspreyLoad to separate
 %   jMRUI-readable .TXT files.
 %   
 %   One .TXT file is produced for unedited MRS data
@@ -13,13 +13,13 @@ function [MRSCont] = LCG_saveJMRUI(MRSCont)
 %   water scan will be the sum of all water-unsuppressed scans.
 %
 %   USAGE:
-%       [MRSCont] = LCG_saveJMRUI(MRSCont);
+%       [MRSCont] = osp_saveJMRUI(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-23)

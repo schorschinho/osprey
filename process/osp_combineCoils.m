@@ -1,5 +1,5 @@
-function [MRSCont] = LCG_combineCoils(MRSCont)
-%% [MRSCont] = LCG_combineCoils(MRSCont)
+function [MRSCont] = osp_combineCoils(MRSCont)
+%% [MRSCont] = osp_combineCoils(MRSCont)
 %   This function performs a the receiver coil combination of multi-array
 %   data. All coil-combination procedures are performed using the ratio of
 %   the maximum signal in each receiver to the square of the noise as the
@@ -15,13 +15,13 @@ function [MRSCont] = LCG_combineCoils(MRSCont)
 %   using coil sensitivities derived from its own signals.
 %
 %   USAGE:
-%       [MRSCont] = LCG_combineCoils(MRSCont);
+%       [MRSCont] = osp_combineCoils(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-20)

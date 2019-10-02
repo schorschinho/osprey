@@ -1,5 +1,5 @@
-function [outA, outB, outC, outD] = LCG_onOffClassifyHERMES(inA, inB, inC, inD)
-%% [outA, outB, outC, outD] = LCG_onOffClassifyHERMES(inA, inB, inC, inD)
+function [outA, outB, outC, outD] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
+%% [outA, outB, outC, outD] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
 %   This function decides how the four-provided HERMES/HERCULES sub-spectra are
 %   being edited. Currently, this function works for all combinations of
 %   HERMES and HERCULES that include GABA and GSH editing.
@@ -16,7 +16,7 @@ function [outA, outB, outC, outD] = LCG_onOffClassifyHERMES(inA, inB, inC, inD)
 %       - the GABA-ON-GSH-ON spectrum to field D
 %
 %   USAGE:
-%       [outA, outB, outC, outD] = LCG_onOffClassifyMEGA(inA, inB, inC, inD)
+%       [outA, outB, outC, outD] = osp_onOffClassifyMEGA(inA, inB, inC, inD)
 %
 %   INPUTS:
 %       inA     = FID-A structure containing the 1st sub-spectrum.
@@ -88,6 +88,8 @@ eval(['outC = ' inputVars{idx_OFF_ON}]);
 eval(['outD = ' inputVars{idx_ON_ON}]);
 
 end
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

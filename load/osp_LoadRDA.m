@@ -1,16 +1,16 @@
-function [MRSCont] = LCG_LoadDICOM(MRSCont)
-%% [MRSCont] = LCG_LoadDICOM(MRSCont)
-%   This function reads raw (but coil-combined) data from DICOM files
-%   produced by Siemens sequences (*.dcm or *.ima).
+function [MRSCont] = osp_LoadRDA(MRSCont)
+%% [MRSCont] = osp_LoadRDA(MRSCont)
+%   This function reads raw (but coil-combined) data from RDA files
+%   produced by Siemens sequences (*.rda).
 %
 %   USAGE:
-%       [MRSCont] = LCG_LoadDICOM(MRSCont);
+%       [MRSCont] = osp_LoadRDA(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-06-19)
@@ -50,16 +50,16 @@ for kk = 1:MRSCont.nDatasets
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
     % Read in the raw metabolite data.
-    raw = io_loadspec_dicom(MRSCont.files{kk});
+    raw = io_loadspec_rda(MRSCont.files{kk});
     MRSCont.raw{kk}      = raw;
     
     % Read in the raw reference data.
     if MRSCont.flags.hasRef
-        raw_ref = io_loadspec_dicom(MRSCont.files_ref{kk});
+        raw_ref = io_loadspec_rda(MRSCont.files_ref{kk});
         MRSCont.raw_ref{kk}  = raw_ref;
     end
     if MRSCont.flags.hasWater
-        raw_w   = io_loadspec_dicom(MRSCont.files_w{kk});
+        raw_w   = io_loadspec_rda(MRSCont.files_w{kk});
         MRSCont.raw_w{kk}    = raw_w;
     end
 end

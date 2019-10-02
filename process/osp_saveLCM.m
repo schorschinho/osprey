@@ -1,6 +1,6 @@
-function [MRSCont] = LCG_saveLCM(MRSCont)
-%% [MRSCont] = LCG_saveLCM(MRSCont)
-%   This function writes all MRS data loaded by LCGannetLoad to separate
+function [MRSCont] = osp_saveLCM(MRSCont)
+%% [MRSCont] = osp_saveLCM(MRSCont)
+%   This function writes all MRS data loaded by OspreyLoad to separate
 %   LCModel .RAW files.
 %   
 %   One .RAW file is produced for unedited MRS data
@@ -13,13 +13,13 @@ function [MRSCont] = LCG_saveLCM(MRSCont)
 %   water scan will be the sum of all water-unsuppressed scans.
 %
 %   USAGE:
-%       [MRSCont] = LCG_saveLCM(MRSCont);
+%       [MRSCont] = osp_saveLCM(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-03-07)

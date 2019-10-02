@@ -1,15 +1,15 @@
-function [MRSCont] = LCG_LoadP(MRSCont)
-%% [MRSCont] = LCG_LoadP(MRSCont)
+function [MRSCont] = osp_LoadP(MRSCont)
+%% [MRSCont] = osp_LoadP(MRSCont)
 %   This function reads raw (coil-uncombined) data from GE P (*.7) files.
 %
 %   USAGE:
-%       [MRSCont] = LCG_LoadP(MRSCont);
+%       [MRSCont] = osp_LoadP(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-03-17)

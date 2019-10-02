@@ -1,13 +1,13 @@
-function [MRSCont] = LCG_Settings
-%% [MRSCont] = LCG_Settings
+function [MRSCont] = OspreySettings
+%% [MRSCont] = OspreySettings
 %   This function initialises default settings and variables required to
-%   run LCGannet.
+%   run Osprey.
 %
 %   USAGE:
-%       [MRSCont] = LCG_Settings;
+%       [MRSCont] = OspreySettings;
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-18)
@@ -29,7 +29,7 @@ MRSCont.flags.isPRIAM       = 0;
 MRSCont.opts.saveLCM                = 0;
 MRSCont.opts.savejMRUI              = 0;
 MRSCont.opts.saveVendor             = 0;
-MRSCont.opts.fit.method             = 'LCGannet';       % Options: 'LCGannet' (default), 'AQSES' (planned), 'LCModel' (planned), 'TARQUIN' (planned)
+MRSCont.opts.fit.method             = 'Osprey';         % Options: 'Osprey' (default), 'AQSES' (planned), 'LCModel' (planned), 'TARQUIN' (planned)
 MRSCont.opts.fit.range              = [0.2 4.2];        % Default: [0.2 4.2]
 MRSCont.opts.fit.rangeWater         = [2.0 7.4];        % Default: [2.0 7.4]
 MRSCont.opts.fit.style              = 'Concatenated';   % Options: 'Concatenated' (default - will fit DIFF and SUM simultaneously), 'Separate' (will fit DIFF and OFF separately)
@@ -37,25 +37,25 @@ MRSCont.opts.fit.bLineKnotSpace     = 0.4;              % Baseline spline knot s
 MRSCont.opts.fit.fitMM              = 1;                % Add MM and lipid basis functions to basis set? Default: 1.
 
 %%% 2. FIND AND SET PATHS %%%
-% LCGannet
-codeFolder  = strrep(which('LCG_Settings'),[filesep 'LCGannet' filesep 'settings' filesep 'LCG_Settings.m'],'');
-LCGFolder   = [codeFolder filesep 'LCGannet' filesep];
-addpath(genpath(LCGFolder)); % LCGannet path
+% Osprey
+codeFolder  = strrep(which('OspreySettings'),[filesep 'Osprey' filesep 'settings' filesep 'OspreySettings.m'],'');
+ospFolder   = [codeFolder filesep 'Osprey' filesep];
+addpath(genpath(ospFolder)); % Osprey path
 
 % SPM
 addpath(genpath([codeFolder filesep 'spm12' filesep]));    % SPM path
 % Check if SPM12 is installed
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)
-    error('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in LCG_Settings.');
+    error('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.');
 elseif strcmpi(spmversion(end-3:end),'spm8')
     error(['SPM8 detected, but only SPM12 is supported. ' ...
-           'Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in LCG_Settings.']);
+           'Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.']);
 end
 
 %%% 3. INITIALISE MRSCONT FIELDS AND FLAGS %%%
 % Set default fields
-MRSCont.LCGFolder           = LCGFolder;
+MRSCont.ospFolder           = ospFolder;
 MRSCont.files               = {};
 MRSCont.files_ref           = {};
 MRSCont.files_w             = {};

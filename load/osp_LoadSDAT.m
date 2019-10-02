@@ -1,15 +1,15 @@
-function [MRSCont] = LCG_LoadSDAT(MRSCont)
-%% [MRSCont] = LCG_LoadSDAT(MRSCont)
+function [MRSCont] = osp_LoadSDAT(MRSCont)
+%% [MRSCont] = osp_LoadSDAT(MRSCont)
 %   This function reads raw (but coil-combined) data from Philips SDAT files.
 %
 %   USAGE:
-%       [MRSCont] = LCG_LoadSDAT(MRSCont);
+%       [MRSCont] = osp_LoadSDAT(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-20)
