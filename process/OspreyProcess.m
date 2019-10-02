@@ -1,5 +1,5 @@
-function [MRSCont] = LCGannetProcess(MRSCont)
-%% [MRSCont] = LCGannetProcess(MRSCont)
+function [MRSCont] = OspreyProcess(MRSCont)
+%% [MRSCont] = OspreyProcess(MRSCont)
 %   This function pre-processes MRS data from all major vendors.
 %   Data is read from the provided input filenames. It is shaped,
 %   preprocessed, aligned, etc. according to the type of sequence
@@ -7,13 +7,13 @@ function [MRSCont] = LCGannetProcess(MRSCont)
 %   etc.).
 %
 %   USAGE:
-%       MRSCont = LCGannetProcess(MRSCont);
+%       MRSCont = OspreyProcess(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-19)
@@ -28,25 +28,23 @@ function [MRSCont] = LCGannetProcess(MRSCont)
 %   HISTORY:
 %       2019-02-19: First version of the code.
 
-% Check that LCGannetLoad has been run before
+% Check that OspreyLoad has been run before
 if ~MRSCont.flags.didLoadData
-    error('Trying to process data, but raw data has not been loaded yet. Run LCGannetLoad first.')
+    error('Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.')
 end
 
 % Post-process raw data depending on sequence type
 if MRSCont.flags.isUnEdited
-    [MRSCont] = LCG_processUnEdited(MRSCont);
+    [MRSCont] = osp_processUnEdited(MRSCont);
 elseif MRSCont.flags.isMEGA
-    [MRSCont] = LCG_processMEGA(MRSCont);
+    [MRSCont] = osp_processMEGA(MRSCont);
 elseif MRSCont.flags.isHERMES
-    [MRSCont] = LCG_processHERMES(MRSCont);
+    [MRSCont] = osp_processHERMES(MRSCont);
 elseif MRSCont.flags.isHERCULES
-    [MRSCont] = LCG_processHERCULES(MRSCont);
+    [MRSCont] = osp_processHERCULES(MRSCont);
 else
     error('No flag set for sequence type!');
 end
-
-% Start visualization output of load here
 
 %% Clean up and save
 % Set exit flags
@@ -64,12 +62,12 @@ save(fullfile(outputFolder, outputFile), 'MRSCont');
 
 % Optional: write edited files to LCModel .RAW files
 if MRSCont.opts.saveLCM
-    [MRSCont] = LCG_saveLCM(MRSCont);
+    [MRSCont] = osp_saveLCM(MRSCont);
 end
 
 % Optional: write edited files to jMRUI .txt files
 if MRSCont.opts.saveJMRUI
-    [MRSCont] = LCG_saveJMRUI(MRSCont);
+    [MRSCont] = osp_saveJMRUI(MRSCont);
 end
 
 % Optional: write edited files to vendor specific format files readable to
@@ -77,7 +75,7 @@ end
 % SPAR/SDAT if Philips
 % RDA if Siemens
 if MRSCont.opts.saveVendor
-    [MRSCont] = LCG_saveVendor(MRSCont);
+    [MRSCont] = osp_saveVendor(MRSCont);
 end
 
 

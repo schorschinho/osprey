@@ -1,10 +1,10 @@
-function [MRSCont] = LCGannetJob(jobFile)
-%% [MRSCont] = LCGannetJob(jobFile)
-%   This function loads the LCGannet job defined in jobFile.
+function [MRSCont] = OspreyJob(jobFile)
+%% [MRSCont] = OspreyJob(jobFile)
+%   This function loads the Osprey job defined in jobFile.
 %   The job can be submitted in the following formats:
 %       - .m
 %
-%   A valid LCGannet job contains four distinct classes of items:
+%   A valid Osprey job contains four distinct classes of items:
 %       1. basic information on the MRS sequence used
 %       2. several settings for data handling and modeling
 %       3. a list of MRS (and, optionally, structural imaging) data files 
@@ -14,14 +14,14 @@ function [MRSCont] = LCGannetJob(jobFile)
 %   See the example files in the /exampledata/ folder for details.
 %
 %   USAGE:
-%       [MRSCont] = LCGannetJob(jobFile);
+%       [MRSCont] = OspreyJob(jobFile);
 %
 %   INPUTS:
-%       jobFile     = File containing a correct LCGannet job definition.
+%       jobFile     = File containing a correct Osprey job definition.
 %                     Accepted file formats are .m.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
@@ -35,7 +35,7 @@ close all;
 warning('off','all');
 
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
-[MRSCont] = LCG_Settings;
+[MRSCont] = OspreySettings;
 
 
 %%% 2. CHECK JOB INPUT FILE FORMAT %%%
@@ -164,8 +164,8 @@ MRSCont.loadedJob           = jobFile;
 [~,jobfilename,jobfileext]  = fileparts(jobFile);
 outputFile                  = strrep([jobfilename jobfileext], jobfileext, '.mat');
 MRSCont.outputFile          = outputFile;
-if isfile(fullfile(outputFolder, outputFile))
-    fprintf('Your selected output folder ''%s'' already contains an LCGannet output structure: \t%s.\n', outputFolder, outputFile);
+if exist(fullfile(outputFolder, outputFile), 'file') == 2
+    fprintf('Your selected output folder ''%s'' already contains an Osprey output structure: \t%s.\n', outputFolder, outputFile);
     fprintf('You are about to load the job: \t%s.\n', jobFile);
     askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container!)   [y]   ','s');
     if isempty(askOverWriteJob)

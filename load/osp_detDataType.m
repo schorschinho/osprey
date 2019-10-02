@@ -1,17 +1,17 @@
-function [MRSCont, retMsg] = LCG_detDataType(MRSCont)
-%% [MRSCont, retMsg] = LCG_detDataType(MRSCont)
+function [MRSCont, retMsg] = osp_detDataType(MRSCont)
+%% [MRSCont, retMsg] = osp_detDataType(MRSCont)
 %   This function determines the MRI vendor and datatype of the filenames
 %   provided in the MRSCont.files cells. A warning is flagged if the
 %   vendor (and filetype) is not identical between all files.
 %
 %   USAGE:
-%       [MRSCont, retMsg] = LCG_detDataType(MRSCont);
+%       [MRSCont, retMsg] = osp_detDataType(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %       retMsg      = Return message.
 %
 %   AUTHOR:

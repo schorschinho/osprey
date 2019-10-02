@@ -1,15 +1,15 @@
-function [MRSCont] = LCG_LoadTwix(MRSCont)
-%% [MRSCont] = LCG_LoadTwix(MRSCont)
+function [MRSCont] = osp_LoadTwix(MRSCont)
+%% [MRSCont] = osp_LoadTwix(MRSCont)
 %   This function reads raw (un-combined) data from Siemens TWIX files.
 %
 %   USAGE:
-%       [MRSCont] = LCG_LoadTwix(MRSCont);
+%       [MRSCont] = osp_LoadTwix(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-20)

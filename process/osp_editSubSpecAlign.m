@@ -1,10 +1,10 @@
-function [varargout] = LCG_editSubSpecAlign(varargin)
-%% [varargout] = LCG_editSubSpecAlign(varargin)
+function [varargout] = osp_editSubSpecAlign(varargin)
+%% [varargout] = osp_editSubSpecAlign(varargin)
 %   Aligns sub-spectra of (multiplexed) edited MRS data to minimize
 %   subtraction artefacts.
 %
 %   USAGE:
-%       [outA, outB, outC, outD] = LCG_editSubSpecAlign(inA, inB, inC, inD, target);
+%       [outA, outB, outC, outD] = osp_editSubSpecAlign(inA, inB, inC, inD, target);
 %
 %   INPUTS:
 %       inA        = Input data structure with sub-spectrum A.
@@ -48,9 +48,9 @@ elseif nargin == 3
     inB     = varargin{2};
     target  = varargin{3};
 elseif nargin == 2
-    error('Error in LCG_editSubSpecAlign! For MEGA data, provide 2 sub-spectra and the name of the editing target.');
+    error('Error in osp_editSubSpecAlign! For MEGA data, provide 2 sub-spectra and the name of the editing target.');
 else
-    error('Error in LCG_editSubSpecAlign! Needs to have either 2 (for MEGA) or 4 (for HERMES/HERCULES) sub-spectra provided');
+    error('Error in osp_editSubSpecAlign! Needs to have either 2 (for MEGA) or 4 (for HERMES/HERCULES) sub-spectra provided');
 end
 
 % Check whether data is coil-combined. If not, throw error.
@@ -202,7 +202,7 @@ elseif strcmp(seqType, 'MEGA')
 
             
         otherwise
-            error('Error in LCG_editSubSpecAlign! Target string not recognized.');
+            error('Error in osp_editSubSpecAlign! Target string not recognized.');
     end
 
     % Apply the calculated frequency/phase adjustment to the inB spectrum

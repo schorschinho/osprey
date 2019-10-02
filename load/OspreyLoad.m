@@ -1,18 +1,18 @@
-function [MRSCont] = LCGannetLoad(MRSCont)
-%% [MRSCont] = LCGannetLoad(MRSCont)
+function [MRSCont] = OspreyLoad(MRSCont)
+%% [MRSCont] = OspreyLoad(MRSCont)
 %   This function loads the raw MRS data from all major vendors.
 %   Data is read from the provided input filenames. It is shaped according 
 %   to the type of sequence (un-edited data, MEGA-edited (ON/OFF), 
 %   HERMES/HERCULES (A/B/C/D), etc.).
 %
 %   USAGE:
-%       MRSCont = LCGannetLoad(MRSCont);
+%       MRSCont = OspreyLoad(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-19)
@@ -39,55 +39,55 @@ if ~isempty(MRSCont.files_w)
 end
 
 % Determine data types
-[MRSCont, retMsg] = LCG_detDataType(MRSCont);
+[MRSCont, retMsg] = osp_detDataType(MRSCont);
 
 % Load raw data (call loaders depending on file type)
 switch MRSCont.vendor
     case 'Siemens'
         switch MRSCont.datatype
             case 'TWIX'
-                [MRSCont] = LCG_LoadTwix(MRSCont);
+                [MRSCont] = osp_LoadTwix(MRSCont);
             case 'RDA'
-                [MRSCont] = LCG_LoadRDA(MRSCont);
+                [MRSCont] = osp_LoadRDA(MRSCont);
             case 'DICOM'
-                [MRSCont] = LCG_LoadDICOM(MRSCont);
+                [MRSCont] = osp_LoadDICOM(MRSCont);
             otherwise
-                error('Data type not supported. Please contact the Gannet team (gabamrs@gmail.com).');
+                error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
         end
     case 'Philips'
         switch MRSCont.datatype
             case 'SDAT'
-                [MRSCont] = LCG_LoadSDAT(MRSCont);
+                [MRSCont] = osp_LoadSDAT(MRSCont);
             case 'DATA'
-                error('Coming soon!');
-                %[MRSCont] = LCG_LoadDATA(MRSCont);
+                error('Support for Philips DATA/LIST files coming soon!');
+                %[MRSCont] = osp_LoadDATA(MRSCont);
             case 'RAW'
-                error('Coming soon!');
-                %[MRSCont] = LCG_LoadRAW(MRSCont);
+                error('Support for Philips RAW/LAB/SIN files coming soon!');
+                %[MRSCont] = osp_LoadRAW(MRSCont);
             otherwise
-                error('Data type not supported. Please contact the Gannet team (gabamrs@gmail.com).');
+                error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
         end
     case 'GE'
         switch MRSCont.datatype
             case 'P'
-                [MRSCont] = LCG_LoadP(MRSCont);
+                [MRSCont] = osp_LoadP(MRSCont);
             otherwise
-                error('Data type not supported. Please contact the Gannet team (gabamrs@gmail.com).');
+                error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
         end
     otherwise
-        error('Vendor not supported. Please contact the Gannet team (gabamrs@gmail.com).');
+        error('Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).');
 end
 
 % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
 if ~MRSCont.flags.isPRIAM
     if sum(strcmp(MRSCont.datatype, {'TWIX', 'DATA', 'RAW', 'P'})) == 1
-        [MRSCont] = LCG_combineCoils(MRSCont);
+        [MRSCont] = osp_combineCoils(MRSCont);
     else
         fprintf('Data type %s %s is already coil-combined.\n', MRSCont.vendor, MRSCont.datatype);
     end
 elseif MRSCont.flags.isPRIAM
     error('Coming soon!');
-    %[MRSCont] = LCG_senseRecon(MRSCont);
+    %[MRSCont] = osp_senseRecon(MRSCont);
 end
 
 %% Clean up and save

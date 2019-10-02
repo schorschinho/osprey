@@ -1,6 +1,6 @@
-function [MRSCont] = LCG_saveVendor(MRSCont)
-%% [MRSCont] = LCG_saveVendor(MRSCont)
-%   This function writes all MRS data loaded by LCGannetLoad to separate
+function [MRSCont] = osp_saveVendor(MRSCont)
+%% [MRSCont] = osp_saveVendor(MRSCont)
+%   This function writes all MRS data loaded by OspreyLoad to separate
 %   vendor-specific raw data file formats:
 %
 %   -   If the input format is by Philips (SDAT/SPAR, DATA/LIST, SIN/LAB/RAW),
@@ -18,13 +18,13 @@ function [MRSCont] = LCG_saveVendor(MRSCont)
 %   water scan will be the sum of all water-unsuppressed scans.
 %
 %   USAGE:
-%       [MRSCont] = LCG_saveVendor(MRSCont);
+%       [MRSCont] = osp_saveVendor(MRSCont);
 %
 %   INPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   OUTPUTS:
-%       MRSCont     = LCGannet MRS data container.
+%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-08-06)
