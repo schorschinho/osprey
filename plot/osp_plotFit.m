@@ -1,29 +1,3 @@
-% fit_plotBasis.m
-% Georg Oeltzschner, Johns Hopkins University 2019.
-%
-% USAGE:
-% out = fit_plotBasis(basisSet, stagFlag, ppmmin, ppmmax, xlab, ylab, figTitle)
-% 
-% DESCRIPTION:
-% Creates a figure showing all a basis functions in FID-A basis set struct
-% (generated with fit_makeBasis).
-% 
-% INPUTS:
-% MRSCont  = Osprey data container.
-% kk       = Index for the kk-th dataset
-% which    = String for the spectrum to fit
-%            OPTIONS:   'off' (default)
-%                       'diff1'
-%                       'diff2'
-%                       'sum'
-% stagFlag  = flag to decide whether basis functions should be plotted
-%               vertically staggered or simply over one another (optional.
-%               Default: 1 = staggered; 0 = not staggered)
-% xlab      = Label for the x-axis (optional.  Default = 'Frequency (ppm)');
-% ylab      = label for the y-axis (optional.  Default = '');
-% figTitle  = label for the title of the plot (optional.  Default = '');
-
-
 function out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
@@ -32,7 +6,7 @@ function out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   from the individual metabolites.
 %
 %   USAGE:
-%       out = fit_plotBasis(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
+%       out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %
 %   OUTPUTS:
 %       out     = MATLAB figure handle
@@ -45,6 +19,8 @@ function out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %                               'diff1'
 %                               'diff2'
 %                               'sum'
+%                               'ref'
+%                               'w'
 %       stagFlag  = flag to decide whether basis functions should be plotted
 %                   vertically staggered or simply over one another
 %                   (optional)
