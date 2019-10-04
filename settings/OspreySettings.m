@@ -38,12 +38,14 @@ MRSCont.opts.fit.fitMM              = 1;                % Add MM and lipid basis
 
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
-codeFolder  = strrep(which('OspreySettings'),[filesep 'Osprey' filesep 'settings' filesep 'OspreySettings.m'],'');
-ospFolder   = [codeFolder filesep 'Osprey' filesep];
-addpath(genpath(ospFolder)); % Osprey path
+[settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
+allFolders      = strsplit(settingsFolder, filesep);
+ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
+matlabFolder    = strjoin(allFolders(1:end-1), filesep); % parent-parent folder (usually MATLAB folder)
+addpath(genpath(ospFolder));
 
 % SPM
-addpath(genpath([codeFolder filesep 'spm12' filesep]));    % SPM path
+addpath(genpath([matlabFolder filesep 'spm12' filesep]));    % SPM path
 % Check if SPM12 is installed
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)
