@@ -1,6 +1,5 @@
-function out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin ,ppmmax, xlab, ylab, figTitle)
-
-%% out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin ,ppmmax, xlab, ylab, figTitle)
+function out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
+%% out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %   Creates a figure showing raw data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *unprocessed*
 %   data, i.e. all averages will be shown prior to spectral alignment,
@@ -8,16 +7,16 @@ function out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin ,ppmmax, xlab, ylab
 %   OspreyProcess.
 %
 %   USAGE:
-%       out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin ,ppmmax, xlab, ylab, figTitle)
+%       out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
-%       kk       = Index for the kk-th dataset (optional. Default = 1)
-%       which    = String for the spectrum to fit (optional)
-%                   OPTIONS:    'mets' (default)
+%       kk       = Index for the kk-th dataset
+%       which    = String for the spectrum to fit
+%                   OPTIONS:    'mets'
 %                               'ref'
 %                               'w'
 %       stag     = Numerical value representing the fraction of the maximum
@@ -39,8 +38,10 @@ if ~MRSCont.flags.didLoadData
     error('Trying to plot raw data, but no data has been loaded yet. Run OspreyLoad first.')
 end
 
-% Parse input arguments and fall back to defaults if not provided
-if nargin<8
+
+%%% 1. PARSE INPUT ARGUMENTS %%%
+% Fall back to defaults if not provided
+if nargin<9
     switch which
         case 'mets'
             figTitle = sprintf('Load metabolite data plot');
@@ -51,9 +52,9 @@ if nargin<8
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
-    if nargin<7
+    if nargin<8
         ylab='';
-        if nargin<6
+        if nargin<7
             xlab='Frequency (ppm)';
             if nargin<6
                 switch which
@@ -91,7 +92,9 @@ if nargin<8
     end
 end
 
-% Extract spectra in the plot range
+
+%%% 2. EXTRACT DATA TO PLOT %%%
+% Extract raw spectra in the plot range
 switch which
     case 'mets'
         dataToPlot  = op_freqrange(MRSCont.raw{kk}, ppmmin, ppmmax);
@@ -103,6 +106,8 @@ switch which
         error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
 end
 
+
+%%% 3. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 out = figure;
 nAvgs = dataToPlot.averages;
@@ -118,7 +123,8 @@ for rr = 1:nAvgs
 end
 hold off;
 
-% Common style for all outputs
+
+%%% 4. DESIGN FINETUNING %%%
 set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
@@ -134,16 +140,15 @@ set(gca, 'Color', 'w');
 set(gcf, 'Color', 'w');
 box off;
 title(figTitle);
-xlabel(xlab, 'FontSize', 20);
-ylabel(ylab, 'FontSize', 20);
-% Set linewidth coherently
-Fig1Ax1 = get(out, 'Children');
-Fig1Ax1Line1 = get(Fig1Ax1, 'Children');
-if iscell(Fig1Ax1Line1)
-    Fig1Ax1Line1 = Fig1Ax1Line1(~cellfun('isempty', Fig1Ax1Line1));
-    Fig1Ax1Line1 = Fig1Ax1Line1{1};
-end
-%set(Fig1Ax1Line1, 'LineWidth', 1);
+xlabel(xlab, 'FontSize', 16);
+ylabel(ylab, 'FontSize', 16);
+
+
+%%% 5. ADD OSPREY LOGO %%%
+[I, map] = imread('osprey.gif','gif');
+axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
+imshow(I, map);
+axis off;
 
 
 end

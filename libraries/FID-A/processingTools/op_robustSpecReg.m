@@ -19,9 +19,11 @@
 % out       = Output following alignment of averages.
 % fs        = Vector of frequency shifts (in Hz) used for alignment.
 % phs       = Vector of phase shifts (in degrees) used for alignment.
+% w         = Vector of relative weights applied to the individual
+%             averages.
 
 
-function [out,fs,phs] = op_robustSpecReg(in, seqType, echo)
+function [out,fs,phs, w] = op_robustSpecReg(in, seqType, echo)
 
 if nargin < 2
     echo = 1;

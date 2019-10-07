@@ -7,6 +7,9 @@
 % DESCRIPTION:
 % This function fits two Lorentzians to the Cr and Cho peaks, and optimizes
 % the phase of the input spectrum based on Cr/Cho.
+%
+% If data with multiple averages is supplied, the fit is performed to the
+% average, and all averages are phased accordingly.
 % 
 % INPUTS:
 % in            = input data in matlab structure format. 
@@ -26,7 +29,9 @@ if in.dims.coils>0
     error('ERROR:  Can not operate on data with multilple coils!  ABORTING!!')
 end
 if in.dims.averages>0
-    error('ERROR:  Can not operate on data with multiple averages!  ABORTING!!');
+    in_avg = op_averaging(in);
+else
+    in_avg = in;
 end
 if in.dims.extras>0
     error('ERROR:  Can not operate on data with extras dimension!  ABORTING!!');
@@ -36,7 +41,7 @@ if in.dims.subSpecs>0
 end
 
 % Fit the Cr-Cho doublet to the input spectrum
-parsFit = op_creChoFit(in, suppressPlot);
+parsFit = op_creChoFit(in_avg, suppressPlot);
 % Extract phase adjustment
 phShift = parsFit(4);
 % Apply negative phase of the fit to the data
