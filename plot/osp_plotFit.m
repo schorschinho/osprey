@@ -1,5 +1,4 @@
 function out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
-
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   Creates a figure showing data stored in an Osprey data container, as
 %   well as the fit to it, the baseline, the residual, and contributions
@@ -42,7 +41,9 @@ if ~MRSCont.flags.didFit
     error('Trying to plot fitted data, but fit has not been performed yet. Run OspreyFit first.')
 end
 
-% Parse input arguments and fall back to defaults if not provided
+
+%%% 1. PARSE INPUT ARGUMENTS %%%
+% Fall back to defaults if not provided
 if nargin<7
     figTitle = sprintf('Fit plot') ;
     if nargin<6
@@ -65,7 +66,9 @@ if nargin<7
     end
 end
 
-% Extract parameters
+
+%%% 2. EXTRACT DATA TO PLOT %%%
+% Extract processed spectra and fit parameters
 if strcmp(which, 'off')
     dataToPlot  = MRSCont.processed.A{kk};
 else
@@ -83,11 +86,13 @@ freqShift   = MRSCont.fit.results.(which).freqShift{kk};
 beta_j      = MRSCont.fit.results.(which).beta_j{kk};
 spl_pos     = MRSCont.fit.results.(which).spl_pos{kk};
 
+
+%%% 3. PREPARE LINES TO DISPLAY %%%
+% Extract raw and processed spectra in the plot range
 % Concatenate parameters together into one large vector.
 x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j];
 % Apply nonlinear parameters
 [basisSet, B] = fit_applyMetabModel(basisSet, x, spl_pos, fitRangePPM);
-
 % Convert to complex baseline and scaled basis functions
 temp_B      = reshape(B, [length(B)/2, 2]);
 complex_B   = (temp_B(:,1) + 1i*temp_B(:,2));
@@ -96,6 +101,8 @@ fitted      = (basisSet.specs*ampl + complex_B);
 complex_B   = complex_B .* MRSCont.fit.scale{kk};
 fitted      = fitted .* MRSCont.fit.scale{kk};
 
+
+%%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 out = figure;
 % Prepare a couple of useful variables
@@ -104,8 +111,10 @@ if isfield(basisSet, 'nMM')
     nBasisFct = nBasisFct + basisSet.nMM;
 end
 
-% Plot the data, fit, residual, and baseline
-% positive stagger
+
+%%% 5. PLOT DATA, FIT, RESIDUAL, BASELINE %%%
+% positive stagger to offset data, fit, residual, and baseline from the
+% individual metabolite contributions
 stagData = 0.2*(max(abs(min(real(dataToPlot.specs))), abs(max(real(dataToPlot.specs)))));
 % Add the data and plot
 hold on;
@@ -114,7 +123,8 @@ plot(specToPlot.ppm, real(fitted) + stagData, 'r', 'LineWidth', 1.5);
 plot(specToPlot.ppm, real(complex_B) + stagData, 'k', 'LineWidth', 1);
 plot(specToPlot.ppm, real(specToPlot.specs) - real(fitted) + 1.2*max(real(specToPlot.specs)) + stagData, 'k', 'LineWidth', 1);
     
-% Plot the basis functions
+
+%%% 5. PLOT BASIS FUNCTIONS %%%
 if stagFlag
     % Staggered plots will be in all black and separated by the mean of the
     % maximum across all spectra
@@ -147,7 +157,9 @@ else
     
 end
 
-% Common style for all outputs
+
+%%% 8. DESIGN FINETUNING %%%
+% Adapt common style for all axes
 set(gca, 'XDir', 'reverse', 'XLim', [fitRangePPM(1), fitRangePPM(end)]);
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
@@ -163,16 +175,15 @@ set(gca, 'Color', 'w');
 set(gcf, 'Color', 'w');
 box off;
 title(figTitle);
-xlabel(xlab, 'FontSize', 20);
-ylabel(ylab, 'FontSize', 20);
-% Set linewidth coherently
-Fig1Ax1 = get(out, 'Children');
-Fig1Ax1Line1 = get(Fig1Ax1, 'Children');
-if iscell(Fig1Ax1Line1)
-    Fig1Ax1Line1 = Fig1Ax1Line1(~cellfun('isempty', Fig1Ax1Line1));
-    Fig1Ax1Line1 = Fig1Ax1Line1{1};
-end
-%set(Fig1Ax1Line1, 'LineWidth', 1);
+xlabel(xlab, 'FontSize', 16);
+ylabel(ylab, 'FontSize', 16);
+
+
+%%% 9. ADD OSPREY LOGO %%%
+[I, map] = imread('osprey.gif','gif');
+axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
+imshow(I, map);
+axis off;
 
 
 end

@@ -41,7 +41,7 @@ MRSCont.opts.fit.fitMM              = 1;                % Add MM and lipid basis
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
-matlabFolder    = strjoin(allFolders(1:end-1), filesep); % parent-parent folder (usually MATLAB folder)
+matlabFolder    = strjoin(allFolders(1:end-2), filesep); % parent-parent folder (usually MATLAB folder)
 addpath(genpath(ospFolder));
 
 % SPM
