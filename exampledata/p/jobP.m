@@ -1,4 +1,4 @@
-%% jobIMA.m
+%% jobP.m
 %   This function describes an Osprey job defined in a MATLAB script.
 %
 %   A valid Osprey job contains four distinct classes of items:
@@ -62,7 +62,7 @@
 %%% 1. SPECIFY SEQUENCE INFORMATION %%%
 
 % Specify sequence type
-seqType = 'MEGA';           % OPTIONS:    - 'unedited' (default)
+seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
                                 %             - 'MEGA'
                                 %             - 'HERMES'
                                 %             - 'HERCULES'
@@ -77,15 +77,14 @@ seqType = 'MEGA';           % OPTIONS:    - 'unedited' (default)
 % Save LCModel-exportable files for each spectrum?
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                
 % Save jMRUI-exportable files for each spectrum?
 opts.saveJMRUI              = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                                                                
+                                                
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
 opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                
+                                                
 % Choose the fitting algorithm
 opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
                                                 %           - 'AQSES' (planned)
@@ -114,35 +113,32 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
-% When using single-average Siemens RDA or DICOM files, specify their
+% When using single-average RDA or DICOM files, specify their
 % folders instead of single files!
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {strrep(which('exampledata/ima/sub-01/mrs/sub-01_mega-press-68/GABA_COMP_01.MR.ULRIKE_HERMES_GABA_GSH.0020.0001.2019.05.28.16.19.03.946442.108189810.IMA'),...
-                'GABA_COMP_01.MR.ULRIKE_HERMES_GABA_GSH.0020.0001.2019.05.28.16.19.03.946442.108189810.IMA',''),...
-               strrep(which('exampledata/ima/sub-01/mrs/sub-01_mega-press-80/GABA_COMP_01.MR.ULRIKE_HERMES_GABA_GSH.0016.0001.2019.05.28.16.19.03.946442.108180584.IMA'),...
-               'GABA_COMP_01.MR.ULRIKE_HERMES_GABA_GSH.0016.0001.2019.05.28.16.19.03.946442.108180584.IMA','')};
+files       = {which('exampledata/p/sub-01/mrs/sub-01_press35/sub-01_press35.7'),...
+               which('exampledata/p/sub-02/mrs/sub-02_press35/sub-02_press35.7')};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {strrep(which('exampledata/ima/sub-01/mrs/sub-01_mega-press-68-ref/GABA_COMP_01.MR.ULRIKE_HERMES_GABA_GSH.0022.0001.2019.05.28.16.19.03.946442.108192884.IMA'),...
-                'GABA_COMP_01.MR.ULRIKE_HERMES_GABA_GSH.0022.0001.2019.05.28.16.19.03.946442.108192884.IMA',''),...
-               strrep(which('exampledata/ima/sub-01/mrs/sub-01_mega-press-80-ref/GABA_COMP_01.MR.ULRIKE_HERMES_GABA_GSH.0018.0001.2019.05.28.16.19.03.946442.108183658.IMA'),...
-               'GABA_COMP_01.MR.ULRIKE_HERMES_GABA_GSH.0018.0001.2019.05.28.16.19.03.946442.108183658.IMA','')};
+files_ref   = {};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {};        
+files_w     = {};
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {};
-           
+
+files_nii   = {strrep(which('exampledata/p/sub-01/anat/DICOM/I0'),'I0','')...
+               strrep(which('exampledata/p/sub-02/anat/DICOM/I0'),'I0','')};
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -155,6 +151,6 @@ files_nii   = {};
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = strrep(which('exampledata/twix/jobIMA.m'),'jobIMA.m','derivatives');
+outputFolder = strrep(which('exampledata/p/jobP.m'),'jobP.m','derivatives');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -119,27 +119,27 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {'/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-01/mrs/sub-01_press/sub-01_PRESS30.dat',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-02/mrs/sub-02_press/sub-02_PRESS30.dat'};
+files       = {which('exampledata/twix/sub-01/mrs/sub-01_press/sub-01_PRESS30.dat'),...
+               which('exampledata/twix/sub-02/mrs/sub-02_press/sub-02_PRESS30.dat')};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {'/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat'};
+files_ref   = {which('exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat'),...
+               which('exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat')};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {'/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat'};
+files_w     = {which('exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat'),...
+               which('exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat')};
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {'/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-01/anat/sub-01_T1w.nii',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-02/anat/sub-02_T1w.nii'};
+files_nii   = {which('exampledata/twix/sub-01/anat/sub-01_T1w.nii'),...
+               which('exampledata/twix/sub-02/anat/sub-02_T1w.nii')};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -153,6 +153,6 @@ files_nii   = {'/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/sub-01/ana
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = '/Users/Georg/Documents/MATLAB/Osprey/exampledata/twix/derivatives/';
+outputFolder = strrep(which('exampledata/twix/jobTwix.m'),'jobTwix.m','derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -118,27 +118,27 @@ opts.fit.fitMM              = 0;                % OPTIONS:    - 0 (no)
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {%'/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat'};
+files       = {%which('exampledata/sdat/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat'),...
+               which('exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat')};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {%'/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat'};
+files_ref   = {%which('exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat'),...
+               which('exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat')};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {%'/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat'};
+files_w     = {%which('exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat'),...
+               which('exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat')};
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {%'/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-01/anat/sub-01_T1w.nii',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-02/anat/sub-02_T1w.nii'};
+files_nii   = {%which('exampledata/sdat/sub-01/anat/sub-01_T1w.nii'),...
+               which('exampledata/sdat/sub-02/anat/sub-02_T1w.nii')};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -152,6 +152,6 @@ files_nii   = {%'/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/sub-01/an
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = '/Users/Georg/Documents/MATLAB/Osprey/exampledata/sdat/derivatives/';
+outputFolder = strrep(which('exampledata/sdat/jobSDAT.m'),'jobSDAT.m','derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
