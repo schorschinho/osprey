@@ -49,6 +49,12 @@
 %   individual file names, please specify folders. Metabolite data, water
 %   reference data, and water data need to be located in separate folders.
 %
+%   In the example script at hand the MATLAB functions strrep and which are
+%   used to generate a relative path, which allows you to run the examples
+%   on your machine directly. To set up your own Osprey job supply the
+%   specific locations as described above.
+% 
+%
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
 %       goeltzs1@jhmi.edu
@@ -117,17 +123,21 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 % When using single-average Siemens RDA or DICOM files, specify their
 % folders instead of single files!
 
-% Specify metabolite data
+% Specify metabolite data folder
 % (MANDATORY)
-files       = {'/Users/Georg/Documents/MATLAB/Osprey/exampledata/ima/sub-01/mrs/sub-01_mega-press-68/',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/ima/sub-01/mrs/sub-01_mega-press-80/'};
+files       = {strrep(which('exampledata/ima/jobIMA.m'),...
+                'jobIMA.m','sub-01/mrs/sub-01_mega-press-68/'),...
+               strrep(which('exampledata/ima/jobIMA.m'),...
+               'jobIMA.m','sub-01/mrs/sub-01_mega-press-80/')};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {'/Users/Georg/Documents/MATLAB/Osprey/exampledata/ima/sub-01/mrs/sub-01_mega-press-68-ref/',...
-               '/Users/Georg/Documents/MATLAB/Osprey/exampledata/ima/sub-01/mrs/sub-01_mega-press-80-ref/'};
+files_ref   = {strrep(which('exampledata/ima/jobIMA.m'),...
+                'jobIMA.m','sub-01/mrs/sub-01_mega-press-68-ref/'),...
+               strrep(which('exampledata/ima/jobIMA.m'),...
+               'jobIMA.m','sub-01/mrs/sub-01_mega-press-80-ref/')};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
@@ -151,6 +161,6 @@ files_nii   = {};
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = '/Users/Georg/Documents/MATLAB/Osprey/exampledata/ima/derivatives';
+outputFolder = strrep(which('exampledata/twix/jobIMA.m'),'jobIMA.m','derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
