@@ -1,4 +1,4 @@
-%% jobTwix.m
+%% jobRDA.m
 %   This function describes an Osprey job defined in a MATLAB script.
 %
 %   A valid Osprey job contains four distinct classes of items:
@@ -60,6 +60,7 @@
 %   
 %   HISTORY:
 %       2019-07-15: First version of the code.
+%       2019-10-07: HZ - Added relative path to files
 
 
 
@@ -82,17 +83,16 @@ seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
 % Save LCModel-exportable files for each spectrum?
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                
 % Save jMRUI-exportable files for each spectrum?
 opts.saveJMRUI              = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                                                                
+                                                
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
 opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                
+                                                
 % Choose the fitting algorithm
-opts.fit.method             = 'Osprey';       % OPTIONS:  - 'Osprey' (default)
+opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
                                                 %           - 'AQSES' (planned)
                                                 %           - 'LCModel' (planned)
                                                 %           - 'TARQUIN' (planned)
@@ -119,32 +119,31 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
-% When using single-average Siemens RDA or DICOM files, specify their
+% When using single-average RDA or DICOM files, specify their
 % folders instead of single files!
 
-% Specify metabolite data
+% Specify metabolite data folder
 % (MANDATORY)
-files       = {which('exampledata/twix/sub-01/mrs/sub-01_press/sub-01_PRESS30.dat'),...
-               which('exampledata/twix/sub-02/mrs/sub-02_press/sub-02_PRESS30.dat')};
+files       = {strrep(which('exampledata/rda/jobRDA.m'),'jobRDA.m',['sub-01' filesep 'mrs' filesep 'sub-01_acc-press' filesep])...
+               strrep(which('exampledata/rda/jobRDA.m'),'jobRDA.m',['sub-01' filesep 'mrs' filesep 'sub-01_pcg-press' filesep]),...
+               strrep(which('exampledata/rda/jobRDA.m'),'jobRDA.m',['sub-01' filesep 'mrs' filesep 'sub-01_thal-press' filesep])};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {which('exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat'),...
-               which('exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat')};
+files_ref   = {};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {which('exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat'),...
-               which('exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat')};
+files_w     = {};
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {which('exampledata/twix/sub-01/anat/sub-01_T1w.nii'),...
-               which('exampledata/twix/sub-02/anat/sub-02_T1w.nii')};
+
+files_nii   = {};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -158,6 +157,6 @@ files_nii   = {which('exampledata/twix/sub-01/anat/sub-01_T1w.nii'),...
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = strrep(which('exampledata/twix/jobTwix.m'),'jobTwix.m','derivatives');
+outputFolder = strrep(which('exampledata/rda/jobRDA.m'),'jobRDA.m','derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
