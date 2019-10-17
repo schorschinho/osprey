@@ -98,8 +98,16 @@ for kk = 1:MRSCont.nDatasets
     
     
     %%% 5. REMOVE RESIDUAL WATER %%%
-    [raw,~,~]   = op_removeWater(raw,[4.6 4.8],16,0.5*length(raw.fids),0); % Remove the residual water
-    raw         = op_fddccorr(raw,100);                                     % Correct back to baseline
+    [raw_temp,~,~]   = op_removeWater(raw,[4.6 4.8],20,0.75*length(raw.fids),0); % Remove the residual water
+    if isnan(real(raw_temp.fids))
+        rr = 30;
+        while isnan(real(raw_temp.fids))
+            [raw_temp,~,~]   = op_removeWater(raw,[4.6 4.8],rr,0.75*length(raw.fids),0); % Remove the residual water
+            rr = rr-1;
+        end
+    end
+    raw     = raw_temp;
+    raw     = op_fddccorr(raw,100);                                     % Correct back to baseline
     
     
     %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS
