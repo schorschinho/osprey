@@ -18,9 +18,14 @@
 % OUTPUTS:
 % out        = Input dataset in FID-A structure format.
 
-function [out] = io_loadspec_rda(rda_filename)
+function [out] = io_loadspec_rda(folder)
 
-fid = fopen(rda_filename);
+% Create list of complete filenames (incl. path) in the folder
+dirFolder = dir(folder);
+filesInFolder = dirFolder(~[dirFolder.isdir]);
+filesInFolder = strcat(folder, {filesInFolder.name});     
+
+fid = fopen(filesInFolder{1});
 
 head_start_text = '>>> Begin of header <<<';
 head_end_text   = '>>> End of header <<<';
@@ -135,8 +140,14 @@ out.geometry = geometry;
 % 
 % Siemens documentation suggests that the data should be in a double complex format (8bytes for real, and 8 for imaginary?)
 %
-
+fclose(fid);
 bytes_per_point = 16;
+
+% Preallocate array in which the FIDs are to be extracted.
+fids = zeros(length(filesInFolder),rda.VectorSize);
+% Collect all FIDs and sort them into fids array
+for kk = 1:length(filesInFolder)
+fid = fopen(filesInFolder{kk});
 complex_data = fread(fid , rda.CSIMatrix_Size(1) * rda.CSIMatrix_Size(1) *rda.CSIMatrix_Size(1) *rda.VectorSize * 2 , 'double');  
 %fread(fid , 1, 'double');  %This was a check to confirm that we had read all the data (it passed!)
 fclose(fid);
@@ -147,7 +158,8 @@ fclose(fid);
  hmm = reshape(complex_data,  2 , rda.VectorSize , rda.CSIMatrix_Size(1) ,  rda.CSIMatrix_Size(2) ,  rda.CSIMatrix_Size(3) );
  
  %Combine the real and imaginary into the complex matrix
- fids = complex(hmm(1,:,:,:,:),hmm(2,:,:,:,:));
+ fids(kk,:) = complex(hmm(1,:,:,:,:),hmm(2,:,:,:,:));
+end
  fids = fids';
  %Remove the redundant first element in the array
 % Time_domain_data = reshape(hmm_complex, rda.VectorSize , rda.CSIMatrix_Size(1) ,  rda.CSIMatrix_Size(2) ,  rda.CSIMatrix_Size(3));
@@ -165,9 +177,21 @@ dims.t = 1;
 dims.subSpecs = 0;
 Bo = rda.MagneticFieldStrength;
 rawAverages = rda.NumberOfAverages;
-averages = 1;
-subspecs =1;
-rawSubspecs = 'na';
+if length(filesInFolder) >= rawAverages
+   rawAverages = length(filesInFolder);
+   averages = rda.NumberOfAverages;
+   subspecs =  fix(rawAverages/averages);
+   rawSubspecs = rda.NumberOfAverages;
+else if length(filesInFolder) == 1
+    averages = 1;
+    subspecs =1;
+    rawSubspecs = 'na';
+    else
+    averages = 1;
+    subspecs = length(filesInFolder);
+    rawSubspecs = length(filesInFolder);
+    end
+end
 date = rda.StudyDate;
 seq = rda.SequenceDescription;
 TE = rda.TE;
@@ -213,7 +237,11 @@ out.flags.filtered=0;
 out.flags.zeropadded=0;
 out.flags.freqcorrected=0;
 out.flags.phasecorrected=0;
-out.flags.averaged=1;
+if out.averages == 1
+    out.flags.averaged=1;
+else
+    out.flags.averaged=0;
+end
 out.flags.addedrcvrs=1;
 out.flags.subtracted=0;
 out.flags.writtentotext=0;

@@ -61,6 +61,7 @@ For any sort of questions, feedback, suggestions, or critique, please reach out 
 
 - [Georg Oeltzschner](mailto:goeltzs1@jhu.edu)
 - [Mark Mikkelsen](mailto:mmikkel5@jhu.edu)
+- [Helge J. Zöllner](mailto:hzoelln2@jhu.edu)
 - [Muhammad G. Saleh](mailto:msaleh10@jhu.edu)
 - [Richard A. E. Edden](mailto:raee2@jhu.edu)
 
