@@ -74,32 +74,49 @@ if strcmp(which, 'off')
 else
     dataToPlot  = MRSCont.processed.(which){kk};
 end
-fitRangePPM = MRSCont.opts.fit.range;
+if strcmp(which, 'ref') || strcmp(which, 'w')
+    fitRangePPM = MRSCont.opts.fit.rangeWater;
+    basisSet    = MRSCont.fit.resBasisSet.water;
+else
+    fitRangePPM = MRSCont.opts.fit.range;
+    basisSet    = MRSCont.fit.resBasisSet.(which);
+end
 specToPlot  = op_freqrange(dataToPlot, fitRangePPM(1), fitRangePPM(end));
-basisSet    = MRSCont.fit.resBasisSet.(which);
-ampl        = MRSCont.fit.results.(which).ampl{kk};
-zeroPhase   = MRSCont.fit.results.(which).ph0{kk};
-firstPhase  = MRSCont.fit.results.(which).ph1{kk};
-gaussLB     = MRSCont.fit.results.(which).gaussLB{kk};
-lorentzLB   = MRSCont.fit.results.(which).lorentzLB{kk};
-freqShift   = MRSCont.fit.results.(which).freqShift{kk};
-beta_j      = MRSCont.fit.results.(which).beta_j{kk};
-spl_pos     = MRSCont.fit.results.(which).spl_pos{kk};
+fitParams   = MRSCont.fit.results.(which).fitParams{kk};
 
 
 %%% 3. PREPARE LINES TO DISPLAY %%%
 % Extract raw and processed spectra in the plot range
 % Concatenate parameters together into one large vector.
-x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j];
-% Apply nonlinear parameters
-[basisSet, B] = fit_applyMetabModel(basisSet, x, spl_pos, fitRangePPM);
-% Convert to complex baseline and scaled basis functions
-temp_B      = reshape(B, [length(B)/2, 2]);
-complex_B   = (temp_B(:,1) + 1i*temp_B(:,2));
-fitted      = (basisSet.specs*ampl + complex_B);
-% Scale
-complex_B   = complex_B .* MRSCont.fit.scale{kk};
-fitted      = fitted .* MRSCont.fit.scale{kk};
+switch MRSCont.opts.fit.method
+    case 'Osprey'
+        ampl        = fitParams.ampl;
+        zeroPhase   = fitParams.ph0;
+        firstPhase  = fitParams.ph1;
+        gaussLB     = fitParams.gaussLB;
+        lorentzLB   = fitParams.lorentzLB;
+        freqShift   = fitParams.freqShift;
+        if strcmp(which, 'ref') || strcmp(which, 'w')
+            % If water, extract and apply nonlinear parameters
+            x       = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift];
+            [appliedBasisSet] = fit_applynlinwaterOsprey(basisSet, x, fitRangePPM);
+            fitted      = (appliedBasisSet.specs*ampl);
+            fitted      = fitted .* MRSCont.fit.scale{kk};
+        else
+            % If metabolites, extract and apply nonlinear parameters
+            beta_j      = fitParams.beta_j;
+            spl_pos     = fitParams.spl_pos;
+            x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j];
+            [appliedBasisSet, B] = fit_applynlinOsprey(basisSet, x, spl_pos, fitRangePPM);
+            % Convert to complex baseline and scaled basis functions
+            temp_B      = reshape(B, [length(B)/2, 2]);
+            complex_B   = (temp_B(:,1) + 1i*temp_B(:,2));
+            fitted      = (appliedBasisSet.specs*ampl + complex_B);
+            % Scale
+            complex_B   = complex_B .* MRSCont.fit.scale{kk};
+            fitted      = fitted .* MRSCont.fit.scale{kk};
+        end
+end
 
 
 %%% 4. SET UP FIGURE LAYOUT %%%
@@ -120,45 +137,56 @@ stagData = 0.2*(max(abs(min(real(dataToPlot.specs))), abs(max(real(dataToPlot.sp
 hold on;
 plot(specToPlot.ppm, real(specToPlot.specs) + stagData, 'k');
 plot(specToPlot.ppm, real(fitted) + stagData, 'r', 'LineWidth', 1.5);
-plot(specToPlot.ppm, real(complex_B) + stagData, 'k', 'LineWidth', 1);
 plot(specToPlot.ppm, real(specToPlot.specs) - real(fitted) + 1.2*max(real(specToPlot.specs)) + stagData, 'k', 'LineWidth', 1);
-    
+if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
+    plot(specToPlot.ppm, real(complex_B) + stagData, 'k', 'LineWidth', 1, 'Color', 'b');
+end
 
-%%% 5. PLOT BASIS FUNCTIONS %%%
-if stagFlag
-    % Staggered plots will be in all black and separated by the mean of the
-    % maximum across all spectra
-    stag = max(abs(mean(max(real(basisSet.specs)))), abs(mean(min(real(basisSet.specs))))) * MRSCont.fit.scale{kk};
-    % Loop over all basis functions
 
-    for rr = 1:nBasisFct
-        plot(basisSet.ppm, ampl(rr).*basisSet.specs(:,rr).*MRSCont.fit.scale{kk} - rr*stag, 'k');
-        % Instead of a MATLAB legend, annotate each line separately with the
-        % name of the metabolite
-        text(fitRangePPM(1), - rr*stag, basisSet.name{rr}, 'FontSize', 14);
+%%% 6. PLOT BASIS FUNCTIONS %%%
+% Plot separate metabolite basis functions only if not water
+if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
+    if stagFlag
+        % Staggered plots will be in all black and separated by the mean of the
+        % maximum across all spectra
+        stag = max(abs(mean(max(real(appliedBasisSet.specs)))), abs(mean(min(real(appliedBasisSet.specs))))) * MRSCont.fit.scale{kk};
+        % Loop over all basis functions
+        
+        for rr = 1:nBasisFct
+            plot(appliedBasisSet.ppm, ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk} - rr*stag, 'k');
+            % Instead of a MATLAB legend, annotate each line separately with the
+            % name of the metabolite
+            text(fitRangePPM(1), - rr*stag, appliedBasisSet.name{rr}, 'FontSize', 14);
+        end
+        
+        % Preliminary formatting; might need some more stability here, or
+        % differentiation based on sequence type
+        set(gca, 'YLim', [-nBasisFct*stag-0.05*abs(min(real(dataToPlot.specs)))  Inf]);
+        hold off;
+        
+    else
+        % If not staggered, plots will simply be made with distinguishable
+        % colors
+        colours = distinguishable_colors(nBasisFct);
+        
+        % Loop over all basis functions
+        for rr = 1:nBasisFct
+            plot(appliedBasisSet.ppm, ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk}, 'Color', colours(rr,:), 'LineWidth', 1);
+        end
+        legend([newline, appliedBasisSet.name], 'Orientation', 'horizontal');
+        hold off
+        
     end
-    
-    % Preliminary formatting; might need some more stability here, or
-    % differentiation based on sequence type
-    set(gca, 'YLim', [-nBasisFct*stag-0.05*abs(min(real(dataToPlot.specs)))  Inf]);
-    hold off;
     
 else
-    % If not staggered, plots will simply be made with distinguishable
-    % colors
-    colours = distinguishable_colors(nBasisFct);
     
-    % Loop over all basis functions
-    for rr = 1:nBasisFct
-        plot(basisSet.ppm, ampl(rr).*basisSet.specs(:,rr).*MRSCont.fit.scale{kk}, 'Color', colours(rr,:), 'LineWidth', 1);
-    end
-    legend(['Data', 'Fit', 'Baseline', 'Residual', newline, basisSet.name], 'Orientation', 'horizontal' );
-    hold off
+    % If water is being shown, show a simple legend
+    legend('Data', 'Fit', 'Residual');
     
 end
 
 
-%%% 8. DESIGN FINETUNING %%%
+%%% 7. DESIGN FINETUNING %%%
 % Adapt common style for all axes
 set(gca, 'XDir', 'reverse', 'XLim', [fitRangePPM(1), fitRangePPM(end)]);
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
@@ -179,7 +207,7 @@ xlabel(xlab, 'FontSize', 16);
 ylabel(ylab, 'FontSize', 16);
 
 
-%%% 9. ADD OSPREY LOGO %%%
+%%% 8. ADD OSPREY LOGO %%%
 [I, map] = imread('osprey.gif','gif');
 axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
 imshow(I, map);

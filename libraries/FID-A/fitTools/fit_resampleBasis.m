@@ -29,14 +29,17 @@ function [resBasisSet] = fit_resampleBasis(dataToFit, basisSet)
 
 
 % Determine the ppm ranges of both the data and the basis functions.
-ppmRangeData        = dataToFit.ppm;
+ppmRangeData        = dataToFit.ppm';
 ppmRangeBasis       = basisSet.ppm;
 ppmIsInDataRange    = (ppmRangeBasis < ppmRangeData(1)) & (ppmRangeBasis > ppmRangeData(end));
+if sum(ppmIsInDataRange) == 0
+    ppmIsInDataRange    = (ppmRangeBasis > ppmRangeData(1)) & (ppmRangeBasis < ppmRangeData(end));
+end
 
 % Now resample the basis functions to match the resolution and frequency
 % range (ppm axis) of the data.
-fids_interp     = zeros(length(ppmIsInDataRange), (basisSet.nMets + basisSet.nMM)); % allocate memory
-specs_interp    = zeros(length(ppmIsInDataRange), (basisSet.nMets + basisSet.nMM)); % allocate memory
+fids_interp     = zeros(length(ppmRangeData), (basisSet.nMets + basisSet.nMM)); % allocate memory
+specs_interp    = zeros(length(ppmRangeData), (basisSet.nMets + basisSet.nMM)); % allocate memory
 % Loop over the number of basis functions (i.e. metabolites and
 % MM/lipids)
 for ll=1:(basisSet.nMets + basisSet.nMM)
@@ -60,6 +63,8 @@ resBasisSet.ppm     = ppmRangeData;
 resBasisSet.specs   = specs_interp;
 resBasisSet.fids    = fids_interp;
 resBasisSet.sz      = size(resBasisSet.fids);
+resBasisSet.n       = length(resBasisSet.fids);
+
 % Calculate the new spectral width and dwelltime:
 dppm                        = abs(resBasisSet.ppm(2)-resBasisSet.ppm(1));
 ppmrange                    = abs((resBasisSet.ppm(end)-resBasisSet.ppm(1)))+dppm;
