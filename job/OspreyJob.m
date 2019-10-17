@@ -96,19 +96,19 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct,'saveLCM')
         opts.saveLCM = jobStruct(1).saveLCM;
     else
-        fprintf('No LCModel-readable files  saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        fprintf('LCModel-readable files will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         opts.saveLCM = 1;
     end
     if isfield(jobStruct,'saveJMRUI')
         opts.saveJMRUI = jobStruct(1).saveJMRUI;
     else
-        fprintf('No jMRUI-readable files  saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        fprintf('jMRUI-readable files will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         opts.saveJMRUI = 1;
     end
     if isfield(jobStruct,'saveVendor')
         opts.saveVendor = jobStruct(1).saveVendor;
     else
-        fprintf('No vendor-specific files (SDAT/SPAR, RDA, P)  saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        fprintf('Vendor-specific files (SDAT/SPAR, RDA, P) will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         opts.saveVendor = 1;
     end
     if isfield(jobStruct,'method')
@@ -120,7 +120,7 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct,'method')
         opts.fit.style = jobStruct(1).style;
     else
-        fprintf('Fitting algorithm is set to Concatenated (default). Please indicate otherwise in the csv-file or the GUI \n');
+        fprintf('Fitting style is set to Concatenated (default). Please indicate otherwise in the csv-file or the GUI \n');
         opts.fit.style = 'Concatenated';
     end
     if isfield(jobStruct,'lolim_range') && isfield(jobStruct,'uplim_range')
