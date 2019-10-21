@@ -26,9 +26,9 @@ if MRSCont.flags.isUnEdited
         case 'Philips'
             MRSCont.opts.fit.basisSetFile        = which('fit/basissets/philips/press35/basis_philips_press35.mat'); 
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/GE/PRESS/BASIS_MM.mat'); 
+            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/ge/press35/basis_ge_press35.mat'); 
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/press30/basis_siemens_press30.mat'); 
+            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/press35/basis_siemens_press35.mat'); 
     end
 elseif MRSCont.flags.isMEGA
     switch MRSCont.vendor
