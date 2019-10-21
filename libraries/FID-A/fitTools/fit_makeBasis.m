@@ -92,7 +92,7 @@ end
 %         % invert ppm axis
 %         buffer.ppm = ppm;
 %         % re-scale and fft FIDs
-        buffer.ppm = buffer.ppm + 0.04;
+%        buffer.ppm = buffer.ppm + 0.04;
         buffer.specs = fftshift(fft(buffer.fids,[],1),1);
 %end
 
