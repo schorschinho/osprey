@@ -80,7 +80,7 @@ end
 
 % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
 if ~MRSCont.flags.isPRIAM
-    if sum(strcmp(MRSCont.datatype, {'TWIX', 'DATA', 'RAW', 'P'})) == 1
+    if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1
         [MRSCont] = osp_combineCoils(MRSCont);
     else
         fprintf('Data type %s %s is already coil-combined.\n', MRSCont.vendor, MRSCont.datatype);

@@ -1,4 +1,4 @@
-function [MRSCont] = osp_combineCoils(MRSCont)
+function [MRSCont] = osp_combineCoils(MRSCont,kk)
 %% [MRSCont] = osp_combineCoils(MRSCont)
 %   This function performs a the receiver coil combination of multi-array
 %   data. All coil-combination procedures are performed using the ratio of
@@ -40,9 +40,31 @@ function [MRSCont] = osp_combineCoils(MRSCont)
 close all;
 
 %% Calculate coil combination weights
-
+if nargin<2
 % Loop over all datasets
-for kk = 1:MRSCont.nDatasets
+    for kk = 1:MRSCont.nDatasets
+        % Check if reference scans exist, if so, get CC coefficients from there
+        if MRSCont.flags.hasRef
+            cweights            = op_getcoilcombos(MRSCont.raw_ref_uncomb{kk},1,'h');
+            raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{kk},1,'h',cweights);
+            raw_ref_comb        = op_addrcvrs(MRSCont.raw_ref_uncomb{kk},1,'h',cweights);
+            MRSCont.raw{kk}     = raw_comb;
+            MRSCont.raw_ref{kk} = raw_ref_comb;
+        else
+            % if not, use the metabolite scan itself
+            cweights            = op_getcoilcombos(MRSCont.raw_uncomb{kk},1,'h');
+            raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{kk},1,'h',cweights);
+            MRSCont.raw{kk}     = raw_comb;
+        end
+
+        % Now do the same for the (short-TE) water signal
+        if MRSCont.flags.hasWater
+            cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{kk},1,'h');
+            raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{kk},1,'h',cweights_w);
+            MRSCont.raw_w{kk}   = raw_w_comb;
+        end
+    end
+else
     % Check if reference scans exist, if so, get CC coefficients from there
     if MRSCont.flags.hasRef
         cweights            = op_getcoilcombos(MRSCont.raw_ref_uncomb{kk},1,'h');
@@ -51,24 +73,23 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.raw{kk}     = raw_comb;
         MRSCont.raw_ref{kk} = raw_ref_comb;
     else
-        % if not, use the metabolite scan itself
+    % if not, use the metabolite scan itself
         cweights            = op_getcoilcombos(MRSCont.raw_uncomb{kk},1,'h');
         raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{kk},1,'h',cweights);
         MRSCont.raw{kk}     = raw_comb;
     end
-    
+
     % Now do the same for the (short-TE) water signal
     if MRSCont.flags.hasWater
         cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{kk},1,'h');
         raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{kk},1,'h',cweights_w);
         MRSCont.raw_w{kk}   = raw_w_comb;
     end
-end
+end    
 %% Clean up and save
 
 % Set flags
 MRSCont.flags.coilsCombined     = 1;
-
 % Delete un-combined data to free up memory
 raw_fields = {'raw_uncomb','raw_ref_uncomb','raw_w_uncomb'};
 for kk = 1:length(raw_fields)
@@ -77,4 +98,5 @@ for kk = 1:length(raw_fields)
     end
 end
 
+    
 end
