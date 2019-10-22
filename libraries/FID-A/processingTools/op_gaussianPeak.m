@@ -26,13 +26,13 @@ function out=op_gaussianPeak(n,sw,Bo,centerFreq,lw,ppm0,amp);
 dt=1/sw;
 df=sw/n;
 decay=1/(lw*pi);
-f0=(-ppm0+(4.68-centerFreq))*(Bo*42.577)* 2 * pi;
+f0=(-ppm0+centerFreq)*(Bo*42.577)* 2 * pi;
 
 t=[0:dt:(n-1)*dt];
 f=[(-sw/2+(df/2)):df:(sw/2-(df/2))];
 
 ppm=-f/(Bo*42.577);
-ppm=ppm+(4.68-centerFreq);
+ppm=ppm+centerFreq;
 
 fids=amp * exp(-(t.^2)/(2*(decay^2))) .* exp(-1j*f0*t);
 fids=fids';
