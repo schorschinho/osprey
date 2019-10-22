@@ -113,14 +113,13 @@ for kk = 1:MRSCont.nDatasets
     %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
     %%% DATA
     [raw, refShift]             = op_ppmref(raw,1.9,2.1,2.008);             % Reference to NAA @ 2.008 ppm
-                                      % Save back to MRSCont container
-    
+                                      
+    % Save back to MRSCont container
     if strcmp(MRSCont.vendor,'Siemens')
-    % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
-    % with the negative phase of that fit
-    [raw,~]       = op_phaseCrCho(raw, 1);
+        % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+        % with the negative phase of that fit
+        [raw,~]       = op_phaseCrCho(raw, 1);
     end
-    
     MRSCont.processed.A{kk}     = raw;   
     
     
