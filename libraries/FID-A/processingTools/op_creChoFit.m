@@ -59,11 +59,13 @@ x0 = [Area Width maxFreq 0 Baseline 0 1];
 % Set up the least-squares and non-linear solvers
 lsqopts = optimset('lsqcurvefit');
 lsqopts = optimset(lsqopts,'MaxIter',800,'TolX',1e-4,'TolFun',1e-4,'Display','off');
+lb = [0 x0(2)*0.00001 x0(3)-0.42];
+ub = [x0(1)*10000 x0(2)*2 x0(3)+0.58];
 nlinopts = statset('nlinfit');
 nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6);
 
 % Set up the fit problem and solve it
-x0 = lsqcurvefit(@TwoLorentzModel, x0, ppm(freqLim)', real(specRange), [], [], lsqopts);
+x0 = lsqcurvefit(@TwoLorentzModel, x0, ppm(freqLim)', real(specRange), lb, ub, lsqopts);
 [parsFit, residCr] = nlinfit(ppm(freqLim)', specRange, @TwoLorentzModel, x0, nlinopts);
 
 % Optional plotting of data and results
