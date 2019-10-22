@@ -110,9 +110,17 @@ for kk = 1:MRSCont.nDatasets
     raw     = op_fddccorr(raw,100);                                     % Correct back to baseline
     
     
-    %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS
+    %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
+    %%% DATA
     [raw, refShift]             = op_ppmref(raw,1.9,2.1,2.008);             % Reference to NAA @ 2.008 ppm
-    MRSCont.processed.A{kk}     = raw;                                      % Save back to MRSCont container
+                                      
+    % Save back to MRSCont container
+    if strcmp(MRSCont.vendor,'Siemens')
+        % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+        % with the negative phase of that fit
+        [raw,~]       = op_phaseCrCho(raw, 1);
+    end
+    MRSCont.processed.A{kk}     = raw;   
     
     
     %%% 7. GET SHORT-TE WATER DATA %%%
@@ -136,7 +144,7 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
     FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
     MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
-    MRSCont.QM.drift.A(:,kk)= driftPre;
+    MRSCont.QM.drift.A{kk}= driftPre;
     MRSCont.QM.freqShift.A(kk) = refShift;
     
     if MRSCont.flags.hasRef
