@@ -64,11 +64,15 @@ for kk = 1:MRSCont.nDatasets
         raw_w                       = op_leftshift(raw_w,raw_w.pointsToLeftshift);
         MRSCont.raw_w_uncomb{kk}    = raw_w;
     end
+    
+    % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
+    if ~MRSCont.flags.isPRIAM
+            [MRSCont] = osp_combineCoils(MRSCont,kk);
+    elseif MRSCont.flags.isPRIAM
+        error('Coming soon!');
+        %[MRSCont] = osp_senseRecon(MRSCont);
+    end
 end
 fprintf('... done.\n');
 toc(refLoadTime);
-
-% Set flag
-MRSCont.flags.coilsCombined     = 0;
-
 end
