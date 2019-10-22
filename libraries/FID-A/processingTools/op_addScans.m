@@ -63,7 +63,7 @@ else
     end
     
     %re-calculate Specs using fft
-    specs=fftshift(fft(fids,[],in1.dims.t),in1.dims.t);
+    specs=fftshift(fft(fids,[],in1.dims.t),in1.dims.t) .* 1/in1.spectralwidth;
     
     %FILLING IN DATA STRUCTURES
     out=in1;
