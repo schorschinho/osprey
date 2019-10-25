@@ -32,6 +32,7 @@ function [MRSCont] = OspreyQuantify(MRSCont)
 %
 %   HISTORY:
 %       2019-10-09: First version of the code.
+%       2019-10-22: HZ added tables.
 
 % Check that OspreyFit has been run before
 if ~MRSCont.flags.didFit
@@ -94,7 +95,13 @@ if ~exist(saveDestination,'dir')
     mkdir(saveDestination);
 end
 
-
+% Add combinations of metabolites to the basisset
+%%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
+MRSCont.quantify.metabs = MRSCont.fit.basisSet.name;
+for kk = 1:MRSCont.nDatasets
+    MRSCont.quantify.amplMets{kk} = MRSCont.fit.results.off.fitParams{kk}.ampl;
+end
+MRSCont = addMetabComb(MRSCont);
 %% Loop over all datasets
 refProcessTime = tic;
 reverseStr = '';
@@ -105,8 +112,8 @@ for kk = 1:MRSCont.nDatasets
     
     
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
-    basisSet = MRSCont.fit.basisSet; % just for the names
-    amplMets = MRSCont.fit.results.off.fitParams{kk}.ampl;
+    metsName = MRSCont.quantify.metabs; % just for the names
+    amplMets = MRSCont.quantify.amplMets{kk};
     amplWater = MRSCont.fit.results.(waterType).fitParams{kk}.ampl;
     
     
@@ -115,7 +122,7 @@ for kk = 1:MRSCont.nDatasets
     if qtfyCr
         
         % Extract metabolite amplitudes from fit
-        tCrRatios = quantCr(basisSet, amplMets);
+        tCrRatios = quantCr(metsName, amplMets);
         
         % Save back to Osprey data container
         MRSCont.quantify.tCr{kk}  = tCrRatios;
@@ -133,7 +140,7 @@ for kk = 1:MRSCont.nDatasets
         metsTE  = MRSCont.processed.A{kk}.te;
         waterTE = MRSCont.processed.(waterType){kk}.te;
         % Calculate water-scaled, but not tissue-corrected metabolite levels
-        rawWaterScaled = quantH2O(basisSet, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE);
+        rawWaterScaled = quantH2O(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE);
         
         % Save back to Osprey data container
         MRSCont.quantify.rawWaterScaled{kk} = rawWaterScaled;
@@ -190,6 +197,20 @@ for kk = 1:MRSCont.nDatasets
 end
 fprintf('... done.\n');
 toc(refProcessTime);
+%% Create tables
+% Set up readable tables for each quantification.
+if qtfyCr
+    [MRSCont] = ops_createTable(MRSCont,'tCr');
+end
+if qtfyH2O
+    [MRSCont] = ops_createTable(MRSCont,'rawWaterScaled');
+end
+if qtfyCSF
+    [MRSCont] = ops_createTable(MRSCont,'CSFWaterScaled');
+end
+if qtfyTiss
+    [MRSCont] = ops_createTable(MRSCont,'TissCorrWaterScaled');
+end
 
 %% Clean up and save
 % Set exit flags
@@ -206,16 +227,63 @@ save(fullfile(outputFolder, outputFile), 'MRSCont');
 
 end
 
+%%
 
-
+%%% Add combinations of metabolites %%%
+function MRSCont = addMetabComb(MRSCont)
+%% Loop over all datasets
+for kk = 1:MRSCont.nDatasets
+    % tNAA NAA+NAAG
+    idx_1  = find(strcmp(MRSCont.quantify.metabs,'NAA'));
+    idx_2 = find(strcmp(MRSCont.quantify.metabs,'NAAG'));
+    if  ~isempty(idx_1) && ~isempty(idx_2)
+        idx_3 = find(strcmp(MRSCont.quantify.metabs,'tNAA'));
+        if isempty(idx_3)
+            MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'tNAA';
+        end
+        MRSCont.quantify.amplMets{kk}(find(strcmp(MRSCont.quantify.metabs,'tNAA'))) = MRSCont.quantify.amplMets{kk}(idx_1) + MRSCont.quantify.amplMets{kk}(idx_2);
+    end
+    % Glx Glu+Gln
+    idx_1  = find(strcmp(MRSCont.quantify.metabs,'Glu'));
+    idx_2 = find(strcmp(MRSCont.quantify.metabs,'Gln'));
+    if  ~isempty(idx_1) && ~isempty(idx_2)
+        idx_3 = find(strcmp(MRSCont.quantify.metabs,'Glx'));
+        if isempty(idx_3)
+            MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'Glx';
+        end
+        MRSCont.quantify.amplMets{kk}(find(strcmp(MRSCont.quantify.metabs,'Glx'))) = MRSCont.quantify.amplMets{kk}(idx_1) + MRSCont.quantify.amplMets{kk}(idx_2);
+    end
+    % tCho GPC+PCh
+    idx_1  = find(strcmp(MRSCont.quantify.metabs,'GPC'));
+    idx_2 = find(strcmp(MRSCont.quantify.metabs,'PCh'));
+    if  ~isempty(idx_1) && ~isempty(idx_2)
+        idx_3 = find(strcmp(MRSCont.quantify.metabs,'tCho'));
+        if isempty(idx_3)
+            MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'tCho';
+        end
+        MRSCont.quantify.amplMets{kk}(find(strcmp(MRSCont.quantify.metabs,'tCho'))) = MRSCont.quantify.amplMets{kk}(idx_1) + MRSCont.quantify.amplMets{kk}(idx_2);
+    end
+    %Glc+Tau
+    idx_1  = find(strcmp(MRSCont.quantify.metabs,'Glc'));
+    idx_2 = find(strcmp(MRSCont.quantify.metabs,'Tau'));
+    if  ~isempty(idx_1) && ~isempty(idx_2)
+        idx_3 = find(strcmp(MRSCont.quantify.metabs,'GlcTau'));
+        if isempty(idx_3)
+            MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'GlcTau';
+        end
+        MRSCont.quantify.amplMets{kk}(find(strcmp(MRSCont.quantify.metabs,'GlcTau'))) = MRSCont.quantify.amplMets{kk}(idx_1) + MRSCont.quantify.amplMets{kk}(idx_2);
+    end
+end
+end
+%%% /Calculate ratios to totale creatine %%%
 %%%%%%%%%%%% BELOW ARE THE QUANTIFICATION FUNCTIONS %%%%%%%%%%%%
 
 %%% Calculate ratios to totale creatine %%%
-function tCrRatios = quantCr(basisSet, amplMets)
+function tCrRatios = quantCr(metsName, amplMets)
 
 % Calculate tCr ratios
-idx_Cr  = find(strcmp(basisSet.name,'Cr'));
-idx_PCr = find(strcmp(basisSet.name,'PCr'));
+idx_Cr  = find(strcmp(metsName,'Cr'));
+idx_PCr = find(strcmp(metsName,'PCr'));
 tCr = amplMets(idx_Cr) + amplMets(idx_PCr);
 tCrRatios = amplMets./tCr;
     
@@ -225,7 +293,7 @@ end
 
 
 %%% Calculate raw water-scaled estimates %%%
-function rawWaterScaled = quantH2O(basisSet, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE)
+function rawWaterScaled = quantH2O(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE)
 
 % Define constants
 PureWaterConc       = 55500;            % mmol/L
@@ -246,8 +314,8 @@ T1_Water            = 1.100;            % average of WM and GM, Wansapura et al.
 T2_Water            = 0.095;            % average of WM and GM, Wansapura et al. 1999 (JMRI)
 
 % Metabolites
-for kk = 1:length(basisSet.name)
-    [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(basisSet.name{kk});
+for kk = 1:length(metsName)
+    [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName{kk});
     % average across GM and WM
     T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
     T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
@@ -324,8 +392,8 @@ molal_fWM  = (fWM*concW_WM) / (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
 molal_fCSF = (fCSF*concW_CSF) / (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
 
 % Metabolites
-for kk = 1:length(basisSet.name)
-    [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(basisSet.name{kk});
+for kk = 1:length(metsName)
+    [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName{kk});
     % average across GM and WM
     T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
     T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
@@ -391,8 +459,8 @@ alpha = cWM/cGM;
 CorrFactor = (meanfGM + alpha*meanfWM) / ((fGM + alpha*fWM) * (meanfGM + meanfWM));
 
 % GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015)).
-idx_GABA  = find(strcmp(basisSet.name,'GABA'));
-[T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(basisSet.name{idx_GABA});
+idx_GABA  = find(strcmp(metsName,'GABA'));
+[T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName{idx_GABA});
 % average across GM and WM
 T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
 T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
