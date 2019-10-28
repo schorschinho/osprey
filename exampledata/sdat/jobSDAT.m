@@ -106,10 +106,10 @@ opts.fit.range              = [0.2 4.2];        % [ppm] Default: [0.2 4.2]
 opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
 
 % Determine the baseline knot spacing (in ppm) for the metabolite spectra
-opts.fit.bLineKnotSpace     = 0.1;              % [ppm] Default: 0.4.
+opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
 
 % Add macromolecule and lipid basis functions to the fit? 
-opts.fit.fitMM              = 0;                % OPTIONS:    - 0 (no)
+opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
