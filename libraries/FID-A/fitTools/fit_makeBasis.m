@@ -152,8 +152,8 @@ if addMMFlag
     Lip13           = op_addScans(Lip13a,Lip13b);
     MMBase.Lip13    = op_dccorr(Lip13,'p');
     Lip20a          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.04,1.33/2);
-    Lip20b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.25,0.33/2);
-    Lip20c          = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm+lw,2.8,0.33/2);
+    Lip20b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.25,0.67/2);
+    Lip20c          = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm+lw,2.8,0.87/2);
     Lip20           = op_addScans(Lip20a,Lip20b); Lip20 = op_addScans(Lip20,Lip20c);
     MMBase.Lip20    = op_dccorr(Lip20,'p');
     MMLips = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
