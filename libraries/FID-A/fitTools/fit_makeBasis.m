@@ -2,7 +2,7 @@
 % Georg Oeltzschner, Johns Hopkins University 2019.
 %
 % USAGE:
-% [BASIS] = fit_makeBasis(folder, sequence, addMMFlag)
+% [BASIS] = fit_makeBasis(folder, addMMFlag, sequence, editTarget)
 % 
 % DESCRIPTION:
 % Generates a basis set in FID-A structure. The code will search all *.mat
@@ -12,20 +12,25 @@
 % 
 % INPUTS:
 % folder    = folder containing *.mat files representing FID-A structures
+% addMMFlag = Flag to decide whether MM and lipid basis functions should be
+%               added to the basis set.
+%             OPTIONS:  1 = Add MM+lip (Default)
+%                       0 = Don't add MM+lip
 % sequence  = sequence type
 %             OPTIONS:  'unedited' (default)
 %                       'MEGA'
 %                       'HERMES'
 %                       'HERCULES'
-% addMMFlag = Flag to decide whether MM and lipid basis functions should be
-%               added to the basis set.
-%             OPTIONS:  1 = Add MM+lip (Default)
-%                       0 = Don't add MM+lip
+% editTarget= Target molecule of edited data.
+%             OPTIONS:  'GABA'
+%                       'GSH'
+%                       '
+
 %
 % OUTPUTS:
 % BASIS     = Simulated basis set in FID-A structure format. 
 
-function [BASIS] = fit_makeBasis(folder, sequence, addMMFlag)
+function [BASIS] = fit_makeBasis(folder, addMMFlag, sequence, editTarget)
 
 % Parse input arguments
 if nargin < 3
@@ -50,6 +55,20 @@ for kk = 1:nMets
     basisFct = fieldnames(temp);
     % Load the signals, DC-correct and store them in separate dimensions
     for ll = 1:length(basisFct)
+        if isfield(temp.(basisFct{1}), 'centerFreq')
+            buffer.centerFreq           = temp.(basisFct{1}).centerFreq;
+        else
+            temp.(basisFct{1}).centerFreq = 3;
+            buffer.centerFreq = 3;
+        end
+        temp.(basisFct{ll}).specs      = fftshift(fft(temp.(basisFct{ll}).fids, [], 1), 1);
+        spectralwidth = temp.(basisFct{ll}).spectralwidth;
+        sz = temp.(basisFct{ll}).sz;
+        Bo = temp.(basisFct{ll}).Bo;
+        f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
+        ppm=f/(Bo*42.577);
+        ppm=ppm+4.68;
+        temp.(basisFct{ll}).ppm = ppm - (4.68 - temp.(basisFct{1}).centerFreq);
         temp.(basisFct{ll})            = op_dccorr(temp.(basisFct{ll}),'p');
         buffer.fids(:,kk,ll)           = temp.(basisFct{ll}).fids;
         buffer.specs(:,kk,ll)          = temp.(basisFct{ll}).specs;
@@ -74,27 +93,7 @@ for kk = 1:nMets
     buffer.te(kk)               = temp.(basisFct{1}).te;
     buffer.dims                 = temp.(basisFct{1}).dims;
     buffer.flags                = temp.(basisFct{1}).flags;
-    if isfield(temp.(basisFct{1}), 'centerFreq')
-        buffer.centerFreq           = temp.(basisFct{1}).centerFreq;
-    else
-        buffer.centerFreq = 3;
-    end
 end
-
-% If the ppm axis runs from negative to positive, this has run with the old
-% FID-A simulations - correct here:
-% if issorted(buffer.ppm, 'descend')
-%         sw = buffer.spectralwidth;
-%         points = length(buffer.t);
-%         freq = [(-sw/2)+(sw/(2*points)):sw/(points):(sw/2)-(sw/(2*points))];
-%         ppm = freq/(buffer.Bo(1)*42.577);
-%         ppm = ppm - 4.68;
-%         % invert ppm axis
-%         buffer.ppm = ppm;
-%         % re-scale and fft FIDs
-%        buffer.ppm = buffer.ppm + 0.04;
-        buffer.specs = fftshift(fft(buffer.fids,[],1),1);
-%end
 
 % Test whether parameters are the same across all basis functions; flag
 % warning if they are not; write into basis set struct if they are.
@@ -153,8 +152,8 @@ if addMMFlag
     Lip13           = op_addScans(Lip13a,Lip13b);
     MMBase.Lip13    = op_dccorr(Lip13,'p');
     Lip20a          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.04,1.33/2);
-    Lip20b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.25,0.33/2);
-    Lip20c          = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm+lw,2.8,0.33/2);
+    Lip20b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.25,0.67/2);
+    Lip20c          = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm+lw,2.8,0.87/2);
     Lip20           = op_addScans(Lip20a,Lip20b); Lip20 = op_addScans(Lip20,Lip20c);
     MMBase.Lip20    = op_dccorr(Lip20,'p');
     MMLips = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
@@ -162,7 +161,7 @@ if addMMFlag
     % Now copy over the names, fids, and specs into the basis set structure
     for rr = 1:length(MMLips)
         buffer.name{nMets+rr}       = MMLips{rr};
-        for qq = 1:size(length(basisFct))
+        for qq = 1:length(basisFct)
             buffer.fids(:,nMets+rr,qq)   = MMBase.(MMLips{rr}).fids;
             buffer.specs(:,nMets+rr,qq)  = MMBase.(MMLips{rr}).specs;
         end
@@ -178,12 +177,50 @@ else
 end
 
 % If spectral editing has been performed, do the SUM and DIFF spectra here
-% TO DO: CREATE AUTOMATIC RECOGNITION OF ON/OFF
 if strcmp(sequence, 'MEGA')
+    % Automatic recognition of on/off data based on NAA and water peaks
+    switch editTarget
+        case 'GABA'
+            rangeNAA = [1.9 2.1];
+            ptsNAA = BASIS.ppm >= rangeNAA(1) & BASIS.ppm <= rangeNAA(end);
+            idx_NAA = find(strcmp(buffer.name,'NAA'));
+            maxA = max(real(buffer.specs(ptsNAA,idx_NAA,1)));
+            maxB = max(real(buffer.specs(ptsNAA,idx_NAA,2)));
+            if maxA/maxB < 0.1
+                % this means A is on, B is off, indices need to be swapped
+                switchOrder = [2 1];
+            elseif maxA/maxB > 10
+                % this means A is off, B is on, indices stay as the are
+                switchOrder = [1 2];
+            end
+            % apply the switch order
+            buffer.fids = buffer.fids(:,:,switchOrder);
+            buffer.specs = buffer.specs(:,:,switchOrder);
+        case 'GSH'
+            rangeH2O = [4.6 4.8];
+            ptsH2O = BASIS.ppm >= rangeH2O(1) & BASIS.ppm <= rangeH2O(end);
+            idx_H2O = find(strcmp(buffer.name,'H2O'));
+            maxA = max(real(buffer.specs(ptsH2O,idx_H2O,1)));
+            maxB = max(real(buffer.specs(ptsH2O,idx_H2O,2)));
+            if maxA/maxB < 0.1
+                % this means A is on, B is off, indices need to be swapped
+                switchOrder = [2 1];
+            elseif maxA/maxB > 10
+                % this means A is off, B is on, indices stay as the are
+                switchOrder = [1 2];
+            end
+            % apply the switch order
+            buffer.fids = buffer.fids(:,:,switchOrder);
+            buffer.specs = buffer.specs(:,:,switchOrder);
+    end
+    
+    % Now that we have guaranteed that the first dimension is always OFF
+    % and the second one is always ON, we generate the DIFF and SUM.
     buffer.fids(:,:,3)      = buffer.fids(:,:,2) - buffer.fids(:,:,1); % DIFF
     buffer.specs(:,:,3)     = buffer.specs(:,:,2) - buffer.specs(:,:,1);
     buffer.fids(:,:,4)      = buffer.fids(:,:,2) + buffer.fids(:,:,1); % SUM
     buffer.specs(:,:,4)     = buffer.specs(:,:,2) + buffer.specs(:,:,1);
+    
 elseif strcmp(sequence, 'HERMES') || strcmp(sequence, 'HERCULES')
     buffer.fids(:,:,5)      = buffer.fids(:,:,2) + buffer.fids(:,:,3) - buffer.fids(:,:,1) - buffer.fids(:,:,4); % DIFF1 (GABA)
     buffer.specs(:,:,5)     = buffer.specs(:,:,2) + buffer.specs(:,:,3) - buffer.specs(:,:,1) - buffer.specs(:,:,4);
@@ -193,6 +230,7 @@ elseif strcmp(sequence, 'HERMES') || strcmp(sequence, 'HERCULES')
     buffer.specs(:,:,7)     = buffer.specs(:,:,1) + buffer.specs(:,:,3) + buffer.specs(:,:,2) + buffer.specs(:,:,4);
 end
 
+
 % Copy over the FID, specs, dims, and the metabolite names
 BASIS.fids              = buffer.fids;
 BASIS.specs             = buffer.specs;
@@ -201,6 +239,11 @@ BASIS.dims              = buffer.dims;
 BASIS.flags             = buffer.flags;
 BASIS.nMets             = nMets;
 BASIS.sz                = size(BASIS.fids);
+
+% Normalize basis set
+BASIS.scale = max(max(max(real(buffer.specs))));
+BASIS.fids  = BASIS.fids ./ BASIS.scale;
+BASIS.specs = BASIS.specs ./ BASIS.scale;
 
 % Save as *.mat file
 save(['BASIS' save_str '.mat'], 'BASIS');
