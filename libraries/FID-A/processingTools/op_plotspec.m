@@ -23,23 +23,29 @@
 % OUTPUTS:
 % out    = Figure handle.
 
-function out=op_plotspec(in,ppmmin,ppmmax,xlab,ylab,tit,norm)
+function out=op_plotspec(in,norm,ppmmin,ppmmax,xlab,ylab,tit,color,shift)
 
-if nargin<7
-    norm=0; 
-    if nargin<6
+if nargin<9
+    shift = 0;
+    if nargin<8
+    color=0; 
+        if nargin<7
         tit='';
-        if nargin<5
+            if nargin<6
             ylab='';
-            if nargin<4
+                if nargin<5
                 xlab='Frequency (ppm)';
-                if nargin<3
-                    ppmmax=5.2;
-                    if nargin<2
-                        ppmmin=0.2;
-                        if nargin<1
-                            error('ERROR: no input spectrum specified.  Aborting!!');
-                        end
+                    if nargin<4
+                        ppmmax=5.2;
+                            if nargin<3
+                                ppmmin=0.2;
+                                if nargin<2
+                                    norm=0;
+                                    if nargin<1
+                                        error('ERROR: no input spectrum specified.  Aborting!!');
+                                    end
+                                end
+                            end
                     end
                 end
             end
@@ -138,7 +144,11 @@ elseif iscell(in)
         close;
         fignum=figure;
         hold
-        colours=distinguishable_colors(length(in));
+        if color == 0
+            colours=distinguishable_colors(length(in));
+        else
+           colours=ones(length(in),1)*color;
+        end
         for n=1:length(in)
             if ~dim
                 out=plot(in{n}.ppm,real(in{n}.specs)+(n-1)*stagger,'Color',colours(n,:));
@@ -172,33 +182,41 @@ elseif iscell(in)
             set(Fig1Ax1Line1, 'LineWidth', 1);
         end
     else
+        ppmmin_naa=1.7;
+        ppmmax_naa=2.3;
         if ~dim
-            out=plot(in{1}.ppm,real(in{1}.specs)/max(real(in{1}.specs)));
+            spec_naa=in{1}.specs(((in{1}.ppm>ppmmin_naa)&(in{1}.ppm<ppmmax_naa)));            
+            out=plot(in{1}.ppm,real(in{1}.specs)/max(real(spec_naa)) + shift);
         elseif dim==2
-            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,:,1)))/max(real(squeeze(in{1}.specs(:,:,1)))));
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,:,1)))/max(real(squeeze(in{1}.specs(:,:,1)))) + shift);
         elseif dim==3
-            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,:,1)))/max(real(squeeze(in{1}.specs(:,1,:,1)))));
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,:,1)))/max(real(squeeze(in{1}.specs(:,1,:,1)))) + shift);
         elseif dim==4
-            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,:,1)))/max(real(squeeze(in{1}.specs(:,1,1,:,1)))));
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,:,1)))/max(real(squeeze(in{1}.specs(:,1,1,:,1)))) + shift);
         elseif dim==5 
-            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,1,:)))/max(real(squeeze(in{1}.specs(:,1,1,1,:)))));
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,1,:)))/max(real(squeeze(in{1}.specs(:,1,1,1,:)))) + shift);
         end
         disp('Multiple input spectra detected!! Each spectrum is normalized to its maximum. ')
         close;
         fignum=figure;
         hold
-        colours=distinguishable_colors(length(in));
+        if color == 0
+            colours=distinguishable_colors(length(in));
+        else
+           colours=ones(length(in),1)*color;
+        end
         for n=1:length(in)
             if ~dim
-                out=plot(in{n}.ppm,real(in{n}.specs)/max(real(in{n}.specs)),'Color',colours(n,:));
+                spec_naa=in{n}.specs(((in{n}.ppm>ppmmin_naa)&(in{n}.ppm<ppmmax_naa)));
+                out=plot(in{n}.ppm,real(in{n}.specs)/max(real(spec_naa)) + shift,'Color',colours(n,:));
             elseif dim==2
-                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,:,1)))/max(real(squeeze(in{n}.specs(:,:,1)))),'Color',colours(n,:));
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,:,1)))/max(real(squeeze(in{n}.specs(:,:,1)))) + shift,'Color',colours(n,:));
             elseif dim==3
-                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,:,1)))/max(real(squeeze(in{n}.specs(:,1,:,1)))),'Color',colours(n,:));
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,:,1)))/max(real(squeeze(in{n}.specs(:,1,:,1)))) + shift,'Color',colours(n,:));
             elseif dim==4
-                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,:,1)))/max(real(squeeze(in{n}.specs(:,1,1,:,1)))),'Color',colours(n,:));
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,:,1)))/max(real(squeeze(in{n}.specs(:,1,1,:,1)))) + shift,'Color',colours(n,:));
             elseif dim==5 
-                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,1,:)))/max(real(squeeze(in{n}.specs(:,1,1,1,:)))),'Color',colours(n,:));
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,1,:)))/max(real(squeeze(in{n}.specs(:,1,1,1,:)))) + shift,'Color',colours(n,:));
             end
             xlim([ppmmin ppmmax]);
             ylim([-0.75 1.5]);

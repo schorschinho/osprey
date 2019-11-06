@@ -1,4 +1,4 @@
-function out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
+function out = osp_plotLoad(MRSCont, kk, which,GUI, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %% out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %   Creates a figure showing raw data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *unprocessed*
@@ -41,22 +41,25 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin<9
+if nargin<10
     switch which
         case 'mets'
-            figTitle = sprintf('Load metabolite data plot');
+            [~,filen,ext] = fileparts(MRSCont.files{kk});
+            figTitle = sprintf(['Load metabolite data plot:\n' filen ext]);
         case 'ref'
-            figTitle = sprintf('Load water reference data plot');
+            [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
+            figTitle = sprintf(['Load water reference data plot:\n' filen ext]);
         case 'w'
-            figTitle = sprintf('Load water data plot');
+            [~,filen,ext] = fileparts(MRSCont.files_w{kk});
+            figTitle = sprintf(['Load water data plot:\n' filen ext]);
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
-    if nargin<8
+    if nargin<9
         ylab='';
-        if nargin<7
+        if nargin<8
             xlab='Frequency (ppm)';
-            if nargin<6
+            if nargin<7
                 switch which
                     case 'mets'
                         ppmmax = 4.5;
@@ -65,7 +68,7 @@ if nargin<9
                     otherwise
                         error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                 end
-                if nargin<5
+                if nargin<6
                     switch which
                         case 'mets'
                             ppmmin = 0.2;
@@ -74,17 +77,20 @@ if nargin<9
                         otherwise
                             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                     end
-                    if nargin<4
+                    if nargin<5
                         stag = 0;
-                        if nargin < 3
-                            which = 'mets';
-                            if nargin < 2
-                                kk = 1;
-                                if nargin<1
-                                    error('ERROR: no input Osprey container specified.  Aborting!!');
+                         if nargin<4
+                             GUI = 0;
+                            if nargin < 3
+                                which = 'mets';
+                                if nargin < 2
+                                    kk = 1;
+                                    if nargin<1
+                                        error('ERROR: no input Osprey container specified.  Aborting!!');
+                                    end
                                 end
                             end
-                        end
+                         end
                     end
                 end
             end
@@ -130,7 +136,11 @@ set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
 % If no y caption, remove y axis
 if isempty(ylab)
-    set(gca, 'YColor', 'w');
+    if ~GUI
+        set(gca, 'YColor', 'w');
+    else
+        set(gca, 'YColor', [0.93 0.93 0.93]);
+    end
 else
     set(gca, 'YColor', 'k');
 end
@@ -139,17 +149,19 @@ set(gca, 'XColor', 'k');
 set(gca, 'Color', 'w');
 set(gcf, 'Color', 'w');
 box off;
-title(figTitle);
+
+title(figTitle, 'Interpreter', 'none');
 xlabel(xlab, 'FontSize', 16);
 ylabel(ylab, 'FontSize', 16);
 
 
 %%% 5. ADD OSPREY LOGO %%%
-[I, map] = imread('osprey.gif','gif');
-axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
-imshow(I, map);
-axis off;
-
+if ~GUI
+    [I, map] = imread('osprey.gif','gif');
+    axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
+    imshow(I, map);
+    axis off;
+end
 
 end
 
