@@ -211,11 +211,17 @@ end
 if qtfyTiss
     [MRSCont] = ops_createTable(MRSCont,'TissCorrWaterScaled');
 end
+if qtfyAlpha
+    [MRSCont] = ops_createTable(MRSCont,'AlphaCorrWaterScaled');
+    [MRSCont] = ops_createTable(MRSCont,'AlphaCorrWaterScaledGroupNormed');
+end
 
 %% Clean up and save
 % Set exit flags
 MRSCont.flags.didQuantify           = 1;
 
+% Save the metabolite tables as CSV structure
+exportCSV (MRSCont,saveDestination);
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;
