@@ -200,20 +200,20 @@ toc(refProcessTime);
 %% Create tables
 % Set up readable tables for each quantification.
 if qtfyCr
-    [MRSCont] = osp_createTable(MRSCont,'tCr');
+    [MRSCont] = ops_createTable(MRSCont,'tCr');
 end
 if qtfyH2O
-    [MRSCont] = osp_createTable(MRSCont,'rawWaterScaled');
+    [MRSCont] = ops_createTable(MRSCont,'rawWaterScaled');
 end
 if qtfyCSF
-    [MRSCont] = osp_createTable(MRSCont,'CSFWaterScaled');
+    [MRSCont] = ops_createTable(MRSCont,'CSFWaterScaled');
 end
 if qtfyTiss
-    [MRSCont] = osp_createTable(MRSCont,'TissCorrWaterScaled');
+    [MRSCont] = ops_createTable(MRSCont,'TissCorrWaterScaled');
 end
 if qtfyAlpha
-    [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaled');
-    [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaledGroupNormed');
+    [MRSCont] = ops_createTable(MRSCont,'AlphaCorrWaterScaled');
+    [MRSCont] = ops_createTable(MRSCont,'AlphaCorrWaterScaledGroupNormed');
 end
 
 %% Clean up and save
@@ -221,7 +221,7 @@ end
 MRSCont.flags.didQuantify           = 1;
 
 % Save the metabolite tables as CSV structure
-osp_exportCSV (MRSCont,saveDestination);
+exportCSV (MRSCont,saveDestination);
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;
@@ -532,7 +532,7 @@ end
 %%% / Lookup function for metabolite relaxation times %%%
 
 %%% Function to create metaboite overview in MATLAB table format %%%
-function [MRSCont] = osp_createTable(MRSCont,qtfyType)
+function [MRSCont] = ops_createTable(MRSCont,qtfyType)
 
     % Extract metabolite names from basisset
     names = MRSCont.quantify.metabs;
