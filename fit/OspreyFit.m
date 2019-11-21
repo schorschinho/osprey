@@ -52,11 +52,11 @@ close all;
 if MRSCont.flags.isUnEdited
     [MRSCont] = osp_fitUnEdited(MRSCont);
 elseif MRSCont.flags.isMEGA
-    [MRSCont] = osp_fitMEGA(MRSCont, basisSet);
+    [MRSCont] = osp_fitMEGA(MRSCont);
 elseif MRSCont.flags.isHERMES
     [MRSCont] = osp_fitHERMES(MRSCont);
 elseif MRSCont.flags.isHERCULES
-    [MRSCont] = osp_fitHERCULES(MRSCont, basisSet);
+    [MRSCont] = osp_fitHERCULES(MRSCont);
 else
     error('No flag set for sequence type!');
 end
