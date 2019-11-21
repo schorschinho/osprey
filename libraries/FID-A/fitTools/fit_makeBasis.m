@@ -181,11 +181,11 @@ if strcmp(sequence, 'MEGA')
     % Automatic recognition of on/off data based on NAA and water peaks
     switch editTarget
         case 'GABA'
-            rangeNAA = [1.9 2.1];
-            ptsNAA = BASIS.ppm >= rangeNAA(1) & BASIS.ppm <= rangeNAA(end);
+            range_NAA = [1.9 2.1];
+            pts_NAA = BASIS.ppm >= range_NAA(1) & BASIS.ppm <= range_NAA(end);
             idx_NAA = find(strcmp(buffer.name,'NAA'));
-            maxA = max(real(buffer.specs(ptsNAA,idx_NAA,1)));
-            maxB = max(real(buffer.specs(ptsNAA,idx_NAA,2)));
+            maxA = max(real(buffer.specs(pts_NAA,idx_NAA,1)));
+            maxB = max(real(buffer.specs(pts_NAA,idx_NAA,2)));
             if maxA/maxB < 0.1
                 % this means A is on, B is off, indices need to be swapped
                 switchOrder = [2 1];
@@ -197,11 +197,11 @@ if strcmp(sequence, 'MEGA')
             buffer.fids = buffer.fids(:,:,switchOrder);
             buffer.specs = buffer.specs(:,:,switchOrder);
         case 'GSH'
-            rangeH2O = [4.6 4.8];
-            ptsH2O = BASIS.ppm >= rangeH2O(1) & BASIS.ppm <= rangeH2O(end);
-            idx_H2O = find(strcmp(buffer.name,'H2O'));
-            maxA = max(real(buffer.specs(ptsH2O,idx_H2O,1)));
-            maxB = max(real(buffer.specs(ptsH2O,idx_H2O,2)));
+            range_w = [4.6 4.8];
+            pts_w = BASIS.ppm >= range_w(1) & BASIS.ppm <= range_w(end);
+            idx_w = find(strcmp(buffer.name,'H2O'));
+            maxA = max(real(buffer.specs(pts_w,idx_w,1)));
+            maxB = max(real(buffer.specs(pts_w,idx_w,2)));
             if maxA/maxB < 0.1
                 % this means A is on, B is off, indices need to be swapped
                 switchOrder = [2 1];
@@ -222,10 +222,59 @@ if strcmp(sequence, 'MEGA')
     buffer.specs(:,:,4)     = buffer.specs(:,:,2) + buffer.specs(:,:,1);
     
 elseif strcmp(sequence, 'HERMES') || strcmp(sequence, 'HERCULES')
-    buffer.fids(:,:,5)      = buffer.fids(:,:,2) + buffer.fids(:,:,3) - buffer.fids(:,:,1) - buffer.fids(:,:,4); % DIFF1 (GABA)
-    buffer.specs(:,:,5)     = buffer.specs(:,:,2) + buffer.specs(:,:,3) - buffer.specs(:,:,1) - buffer.specs(:,:,4);
-    buffer.fids(:,:,6)      = buffer.fids(:,:,1) + buffer.fids(:,:,3) - buffer.fids(:,:,2) - buffer.fids(:,:,4); % DIFF2 (GSH)
-    buffer.specs(:,:,6)     = buffer.specs(:,:,1) + buffer.specs(:,:,3) - buffer.specs(:,:,2) - buffer.specs(:,:,4);
+    % Determine maximum signal intensities for water and NAA in each
+    % sub-spectrum.
+    range_NAA = [1.9 2.1];
+    pts_NAA = BASIS.ppm >= range_NAA(1) & BASIS.ppm <= range_NAA(end);
+    idx_NAA = find(strcmp(buffer.name,'NAA'));
+    max_NAA(1) = max(real(buffer.specs(pts_NAA,idx_NAA,1)));
+    max_NAA(2) = max(real(buffer.specs(pts_NAA,idx_NAA,2)));
+    max_NAA(3) = max(real(buffer.specs(pts_NAA,idx_NAA,3)));
+    max_NAA(4) = max(real(buffer.specs(pts_NAA,idx_NAA,4)));
+    range_w = [4.6 4.8];
+    pts_w = BASIS.ppm >= range_w(1) & BASIS.ppm <= range_w(end);
+    idx_w = find(strcmp(buffer.name,'H2O'));
+    max_w(1) = max(real(buffer.specs(pts_w,idx_w,1)));
+    max_w(2) = max(real(buffer.specs(pts_w,idx_w,2)));
+    max_w(3) = max(real(buffer.specs(pts_w,idx_w,3)));
+    max_w(4) = max(real(buffer.specs(pts_w,idx_w,4)));
+    % Sort the intensities in ascending order
+    [~,order_w]   = sort(max_w);
+    [~,order_NAA] = sort(max_NAA);
+    % Now loop over the subspectra indices (A = 1, B = 2, etc) to determine
+    % whether the respective experiments have high or low intensities:
+    for ll = 1:4
+        idx_w   = find(order_w == ll);
+        idx_NAA = find(order_NAA == ll);
+        
+        if ismember(idx_w,[3 4])
+            GSH.ON(ll) = 0;
+        elseif ismember(idx_w,[1 2])
+            GSH.ON(ll) = 1;
+        end
+        
+        if ismember(idx_NAA,[3 4])
+            GABA.ON(ll) = 0;
+        elseif ismember(idx_NAA,[1 2])
+            GABA.ON(ll) = 1;
+        end
+        
+    end
+    % Determine the sub-spectra indices belonging to each editing pattern
+    idx_OFF_OFF = find(~GABA.ON & ~GSH.ON);
+    idx_ON_OFF  = find(GABA.ON & ~GSH.ON);
+    idx_OFF_ON  = find(~GABA.ON & GSH.ON);
+    idx_ON_ON   = find(GABA.ON & GSH.ON);
+    permVec = [idx_OFF_OFF, idx_ON_OFF, idx_OFF_ON, idx_ON_ON];
+
+    % Commute the lines of fids and specs
+    buffer.fids = buffer.fids(:,:,permVec);
+    buffer.specs = buffer.specs(:,:,permVec);
+    
+    buffer.fids(:,:,5)      = buffer.fids(:,:,2) + buffer.fids(:,:,4) - buffer.fids(:,:,1) - buffer.fids(:,:,3); % DIFF1 (GABA)
+    buffer.specs(:,:,5)     = buffer.specs(:,:,2) + buffer.specs(:,:,4) - buffer.specs(:,:,1) - buffer.specs(:,:,3);
+    buffer.fids(:,:,6)      = buffer.fids(:,:,3) + buffer.fids(:,:,4) - buffer.fids(:,:,1) - buffer.fids(:,:,2); % DIFF2 (GSH)
+    buffer.specs(:,:,6)     = buffer.specs(:,:,3) + buffer.specs(:,:,4) - buffer.specs(:,:,1) - buffer.specs(:,:,2);
     buffer.fids(:,:,7)      = buffer.fids(:,:,1) + buffer.fids(:,:,3) + buffer.fids(:,:,2) + buffer.fids(:,:,4); % SUM
     buffer.specs(:,:,7)     = buffer.specs(:,:,1) + buffer.specs(:,:,3) + buffer.specs(:,:,2) + buffer.specs(:,:,4);
 end
