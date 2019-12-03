@@ -1,1 +1,9 @@
 .DS_Store
+*.md
+LICENSE.md
+docs/copybatch.bat
+docs/copybatch.bat
+.github/ISSUE_TEMPLATE/bug_report.md
+.github/ISSUE_TEMPLATE/feature_request.md
+exampledata/
+*.bat
