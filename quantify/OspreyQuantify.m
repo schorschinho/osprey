@@ -45,29 +45,6 @@ end
 % not in the basis set, a case we'll omit for now).
 qtfyCr = 1;
 
-% Check which types of metabolite data are available
-if MRSCont.flags.isUnEdited
-    getResults = {'off'};
-elseif MRSCont.flags.isMEGA
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'off'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
-elseif MRSCont.flags.isHERMES
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'diff2', 'sum'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
-elseif MRSCont.flags.isHERCULES
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'diff2', 'off'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
-end
-
 % Check which types of water data are available
 if [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 1]
         % If both water reference and short-TE water data have been
@@ -91,7 +68,7 @@ end
 % Check whether segmentation has been run, and whether tissue parameters
 % exist. In that case, we can do CSF correction, and full tissue
 % correction.
-if qtfyH2O == 1 && MRSCont.flags.didSeg && isfield(MRSCont.seg, 'tissue')
+if MRSCont.flags.didSeg && isfield(MRSCont.seg, 'tissue')
     qtfyCSF     = 1;
     qtfyTiss    = 1;
 else
@@ -99,10 +76,10 @@ else
     qtfyTiss    = 0;
 end
 
-% Check whether tissue correction is available and whether GABA-edited
-% MEGA-PRESS has been run. In this case, we can apply the alpha correction
-% (Harris et al, J Magn Reson Imaging 42:1431-40 (2015)).
-if qtfyTiss == 1 && MRSCont.flags.isMEGA
+% Check whether GABA-edited MEGA-PRESS has been run. In this case, we can
+% apply the alpha correction (Harris et al, J Magn Reson Imaging 42:1431-40
+% (2015)).
+if MRSCont.flags.isMEGA
     qtfyAlpha   = 1;
 else
     qtfyAlpha   = 0;
@@ -119,15 +96,12 @@ if ~exist(saveDestination,'dir')
 end
 
 % Add combinations of metabolites to the basisset
+%%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
 MRSCont.quantify.metabs = MRSCont.fit.basisSet.name;
 for kk = 1:MRSCont.nDatasets
-    for ll = 1:length(getResults)
-        MRSCont.quantify.amplMets{kk}.(getResults{ll}) = MRSCont.fit.results.(getResults{ll}).fitParams{kk}.ampl;
-    end
+    MRSCont.quantify.amplMets{kk} = MRSCont.fit.results.off.fitParams{kk}.ampl;
 end
-MRSCont = addMetabComb(MRSCont, getResults);
-
-
+MRSCont = addMetabComb(MRSCont);
 %% Loop over all datasets
 refProcessTime = tic;
 reverseStr = '';
@@ -135,109 +109,107 @@ for kk = 1:MRSCont.nDatasets
     msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    
-    
+
+
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
     metsName = MRSCont.quantify.metabs; % just for the names
     amplMets = MRSCont.quantify.amplMets{kk};
     amplWater = MRSCont.fit.results.(waterType).fitParams{kk}.ampl;
-    
-    
+
+
     %%% 2. GET CREATINE RATIOS %%%
     % We can always do this, but let's use the flag just to be safe:
     if qtfyCr
-        
+
         % Extract metabolite amplitudes from fit
-        tCrRatios = quantCr(metsName, amplMets, getResults);
-        
+        tCrRatios = quantCr(metsName, amplMets);
+
         % Save back to Osprey data container
-        for ll = 1:length(getResults)
-            MRSCont.quantify.(getResults{ll}).tCr{kk}  = tCrRatios.(getResults{ll});
-        end
-        
+        MRSCont.quantify.tCr{kk}  = tCrRatios;
+
     end
     
-    
+
     %%% 3. GET WATER-SCALED, TISSUE-UNCORRECTED RATIOS %%%
     if qtfyH2O
-       
+
         % Get repetition times
-        metsTR  = MRSCont.processed.A{kk}.tr;
-        waterTR = MRSCont.processed.(waterType){kk}.tr;
+        metsTR  = MRSCont.processed.A{kk}.tr * 1e-3;
+        waterTR = MRSCont.processed.(waterType){kk}.tr * 1e-3;
         % Get echo times
-        metsTE  = MRSCont.processed.A{kk}.te;
-        waterTE = MRSCont.processed.(waterType){kk}.te;
+        metsTE  = MRSCont.processed.A{kk}.te * 1e-3;
+        waterTE = MRSCont.processed.(waterType){kk}.te * 1e-3;
         % Calculate water-scaled, but not tissue-corrected metabolite levels
         rawWaterScaled = quantH2O(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE);
-        
+
         % Save back to Osprey data container
         MRSCont.quantify.rawWaterScaled{kk} = rawWaterScaled;
-        
+
     end
-    
-    
+
+
     %%% 4. GET CSF CORRECTION %%%
     if qtfyCSF
-        
+
         % Apply CSF correction
         fCSF = MRSCont.seg.tissue.fCSF(kk);
         CSFWaterScaled = quantCSF(rawWaterScaled, fCSF);
-        
+
         % Save back to Osprey data container
-        MRSCont.quantify.CSFWaterScaled(kk) = CSFWaterScaled;
-        
+        MRSCont.quantify.CSFWaterScaled{kk} = CSFWaterScaled;
+
     end
-    
-    
+
+
     %%% 5. GET TISSUE CORRECTION %%%
     if qtfyTiss
-        
+
         % Apply tissue correction
         fGM = MRSCont.seg.tissue.fGM(kk);
         fWM = MRSCont.seg.tissue.fWM(kk);
-        TissCorrWaterScaled = quantTiss(amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF);
-        
+        TissCorrWaterScaled = quantTiss(amplMets,metsName, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF);
+
         % Save back to Osprey data container
-        MRSCont.quantify.TissCorrWaterScaled(kk) = TissCorrWaterScaled;
-        
+        MRSCont.quantify.TissCorrWaterScaled{kk} = TissCorrWaterScaled;
+
     end
-    
-    
+
+
     %%% 6. GET ALPHA CORRECTION (THIS IS FOR GABA ONLY AT THIS POINT) %%%
     if qtfyAlpha
-        
+
         % For now, this is done for GABA only; however, the principle
         % could be extended to other metabolites, as long as we have some
         % form of prior knowledge about their concentrations in GM and WM.
-        
+
         % Calculate mean WM/GM fractions
         meanfGM = mean(MRSCont.seg.tissue.fGM); % average GM fraction across datasets
         meanfWM = mean(MRSCont.seg.tissue.fWM); % average WM fraction across datasets
-        [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM);
-        
+        [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(amplMets,metsName, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM);
+
         % Save back to Osprey data container
-        MRSCont.quantify.AlphaCorrWaterScaled = AlphaCorrWaterScaled;
-        MRSCont.quantify.AlphaCorrWaterScaledGroupNormed = AlphaCorrWaterScaledGroupNormed;
-        
+        MRSCont.quantify.AlphaCorrWaterScaled{kk} = AlphaCorrWaterScaled;
+        MRSCont.quantify.AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
+
     end
-    
-    
+
+
 end
 fprintf('... done.\n');
 toc(refProcessTime);
 %% Create tables
 % Set up readable tables for each quantification.
 if qtfyCr
-    [MRSCont] = osp_createTable(MRSCont,'tCr', getResults);
+    [MRSCont] = ops_createTable(MRSCont,'tCr');
 end
 if qtfyH2O
-    [MRSCont] = osp_createTable(MRSCont,'rawWaterScaled', getResults);
+    [MRSCont] = ops_createTable(MRSCont,'rawWaterScaled');
 end
 if qtfyCSF
-    [MRSCont] = osp_createTable(MRSCont,'CSFWaterScaled', getResults);
+    [MRSCont] = ops_createTable(MRSCont,'CSFWaterScaled');
 end
 if qtfyTiss
-    [MRSCont] = osp_createTable(MRSCont,'TissCorrWaterScaled', getResults);
+    [MRSCont] = ops_createTable(MRSCont,'TissCorrWaterScaled');
 end
 if qtfyAlpha
     [MRSCont] = ops_createTable(MRSCont,'AlphaCorrWaterScaled');
@@ -264,7 +236,7 @@ end
 %%
 
 %%% Add combinations of metabolites %%%
-function MRSCont = addMetabComb(MRSCont, getResults)
+function MRSCont = addMetabComb(MRSCont)
 %% Loop over all datasets
 for kk = 1:MRSCont.nDatasets
     % tNAA NAA+NAAG
@@ -275,11 +247,7 @@ for kk = 1:MRSCont.nDatasets
         if isempty(idx_3)
             MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'tNAA';
         end
-        idx_tNAA = find(strcmp(MRSCont.quantify.metabs,'tNAA'));
-        for ll = 1:length(getResults)
-            tNAA = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tNAA) = tNAA;
-        end
+        MRSCont.quantify.amplMets{kk}(find(strcmp(MRSCont.quantify.metabs,'tNAA'))) = MRSCont.quantify.amplMets{kk}(idx_1) + MRSCont.quantify.amplMets{kk}(idx_2);
     end
     % Glx Glu+Gln
     idx_1  = find(strcmp(MRSCont.quantify.metabs,'Glu'));
@@ -289,11 +257,7 @@ for kk = 1:MRSCont.nDatasets
         if isempty(idx_3)
             MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'Glx';
         end
-        idx_Glx = find(strcmp(MRSCont.quantify.metabs,'Glx'));
-        for ll = 1:length(getResults)
-            Glx = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_Glx) = Glx;
-        end
+        MRSCont.quantify.amplMets{kk}(find(strcmp(MRSCont.quantify.metabs,'Glx'))) = MRSCont.quantify.amplMets{kk}(idx_1) + MRSCont.quantify.amplMets{kk}(idx_2);
     end
     % tCho GPC+PCh
     idx_1  = find(strcmp(MRSCont.quantify.metabs,'GPC'));
@@ -303,11 +267,7 @@ for kk = 1:MRSCont.nDatasets
         if isempty(idx_3)
             MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'tCho';
         end
-        idx_tCho = find(strcmp(MRSCont.quantify.metabs,'tCho'));
-        for ll = 1:length(getResults)
-            tCho = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCho) = tCho;
-        end
+        MRSCont.quantify.amplMets{kk}(find(strcmp(MRSCont.quantify.metabs,'tCho'))) = MRSCont.quantify.amplMets{kk}(idx_1) + MRSCont.quantify.amplMets{kk}(idx_2);
     end
     %Glc+Tau
     idx_1  = find(strcmp(MRSCont.quantify.metabs,'Glc'));
@@ -317,11 +277,7 @@ for kk = 1:MRSCont.nDatasets
         if isempty(idx_3)
             MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'GlcTau';
         end
-        idx_GlcTau = find(strcmp(MRSCont.quantify.metabs,'GlcTau'));
-        for ll = 1:length(getResults)
-            GlcTau = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GlcTau) = GlcTau;
-        end
+        MRSCont.quantify.amplMets{kk}(find(strcmp(MRSCont.quantify.metabs,'GlcTau'))) = MRSCont.quantify.amplMets{kk}(idx_1) + MRSCont.quantify.amplMets{kk}(idx_2);
     end
 end
 end
@@ -329,27 +285,14 @@ end
 %%%%%%%%%%%% BELOW ARE THE QUANTIFICATION FUNCTIONS %%%%%%%%%%%%
 
 %%% Calculate ratios to totale creatine %%%
-function tCrRatios = quantCr(metsName, amplMets, getResults)
+function tCrRatios = quantCr(metsName, amplMets)
 
 % Calculate tCr ratios
 idx_Cr  = find(strcmp(metsName,'Cr'));
 idx_PCr = find(strcmp(metsName,'PCr'));
-for ll = 1:length(getResults)
-    tCr.(getResults{ll}) = amplMets.(getResults{ll})(idx_Cr) + amplMets.(getResults{ll})(idx_PCr);
-end
-% If separate fit of sub-spectra has been performed, normalize to 'off' or
-% 'sum'
-if isfield(tCr, 'off')
-    tCrNorm = tCr.off;
-elseif isfield(tCr, 'sum')
-    tCrNorm = tCr.sum;
-elseif isfield(tCr, 'conc')
-    tCrNorm = tCr.conc;
-end
-for ll = 1:length(getResults)
-    tCrRatios.(getResults{ll}) = amplMets.(getResults{ll})./tCrNorm;
-end
-    
+tCr = amplMets(idx_Cr) + amplMets(idx_PCr);
+tCrRatios = amplMets./tCr;
+
 end
 %%% /Calculate ratios to totale creatine %%%
 
@@ -384,12 +327,12 @@ for kk = 1:length(metsName)
     T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
     T1_Factor(kk) = (1-exp(-waterTR./T1_Water)) ./ (1-exp(-metsTR./T1_Metab(kk)));
     T2_Factor(kk) = exp(-waterTE./T2_Water) ./ exp(-metsTE./T2_Metab(kk));
-    
+
     % Calculate
     rawWaterScaled(kk) = (amplMets(kk) ./ amplWater) .* PureWaterConc ...
         .* WaterVisibility .* T1_Factor(kk) .* T2_Factor(kk);
 end
-    
+
 end
 %%% /Calculate raw water-scaled estimates %%%
 
@@ -401,14 +344,14 @@ function CSFWaterScaled = quantCSF(rawWaterScaled, fCSF)
 % Simply divide the raw water-scaled, but tissue-uncorrected values by the
 % non-CSF fraction:
 CSFWaterScaled = rawWaterScaled ./ (1 - fCSF);
-    
+
 end
 %%% /Calculate CSF-corrected water-scaled estimates %%%
 
 
 
 %%% Calculate tissue-corrected water-scaled estimates %%%
-function TissCorrWaterScaled = quantTiss(amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF)
+function TissCorrWaterScaled = quantTiss(amplMets,metsName, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF)
 % This function calculates water-scaled, tissue-corrected metabolite
 % estimates in molal units, according to Gasparovic et al, Magn Reson Med
 % 55:1219-26 (2006).
@@ -460,7 +403,7 @@ for kk = 1:length(metsName)
     % average across GM and WM
     T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
     T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
-    
+
     % Calculate water-scaled, tissue-corrected molal concentration
     % estimates
     TissCorrWaterScaled(kk) = (amplMets(kk) ./ amplWater) .* molal_concW ...
@@ -476,7 +419,7 @@ end
 
 
 %%% Calculate alpha-corrected water-scaled GABA estimates %%%
-function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM)
+function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(amplMets,metsName, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM)
 % This function calculates water-scaled, alpha-corrected GABA
 % estimates in molal units, according to Gasparovic et al, Magn Reson Med
 % 55:1219-26 (2006).
@@ -527,14 +470,14 @@ idx_GABA  = find(strcmp(metsName,'GABA'));
 % average across GM and WM
 T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
 T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
-    
+
 ConcIU_TissCorr_Harris = (amplMets(idx_GABA) ./ amplWater) ...
         .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
             fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
             fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
-        
+
 AlphaCorrWaterScaled = ConcIU_TissCorr_Harris / (fGM + alpha*fWM);
-AlphaCorrWaterScaledGroupNormed = ConcIU_TissCorr_Harris * CorrFactor;        
+AlphaCorrWaterScaledGroupNormed = ConcIU_TissCorr_Harris * CorrFactor;
 
 end
 %%% /Calculate alpha-corrected water-scaled GABA estimates %%%
@@ -543,7 +486,7 @@ end
 
 %%% Lookup function for metabolite relaxation times %%%
 function [T1_GM, T1_WM, T2_GM, T2_WM] = lookUpRelaxTimes(metName)
-    
+
 % Look up table below
 % T1 values for NAA, Glu, Cr, Cho, Ins from Mlynarik et al, NMR Biomed
 % 14:325-331 (2001)
@@ -588,20 +531,17 @@ end
 
 %%% / Lookup function for metabolite relaxation times %%%
 
-%%% Function to create metabolite overview in MATLAB table format %%%
-function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
+%%% Function to create metaboite overview in MATLAB table format %%%
+function [MRSCont] = ops_createTable(MRSCont,qtfyType)
 
     % Extract metabolite names from basisset
     names = MRSCont.quantify.metabs;
 
     conc = zeros(MRSCont.nDatasets,length(names));
-    for ll = 1:length(getResults)
-        for kk = 1:MRSCont.nDatasets
-            conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
-        end
-        % Save back to Osprey data container
-        MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
+    for kk = 1:MRSCont.nDatasets
+        conc(kk,:) = MRSCont.quantify.(qtfyType){kk}';
     end
-
+    % Save back to Osprey data container
+    MRSCont.quantify.tables.(qtfyType)  = array2table(conc,'VariableNames',names);
 end
 %%% Function to create metaboite overview in MATLAB table format %%%
