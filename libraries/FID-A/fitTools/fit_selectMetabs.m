@@ -53,7 +53,7 @@ metsInBasisSet = basisSetIn.name;
 % flagged to be included in the basis set in osp_FitInitialise.m:
 idx_toKeep = zeros(length(metsToKeep),1);
 for kk = 1:length(metsToKeep)
-    if ~metabList.(metsToKeep{kk})
+    if ~isfield(metabList, metsToKeep{kk}) || ~metabList.(metsToKeep{kk})
         idx_toKeep(kk) = 0;
     else
         idx_toKeep(kk) = 1;

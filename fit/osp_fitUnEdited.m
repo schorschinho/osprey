@@ -44,9 +44,6 @@ for kk = 1:MRSCont.nDatasets
     % Call the fit function
     basisSet            = MRSCont.fit.basisSet;
     [fitParams, resBasisSet] = fit_runFit(dataToFit, basisSet, fitModel, fitOpts);
-    % [x, ampl, spl_pos, resBasisSet]  = fit_runFit(dataToFit, basisSet, fitOpts);
-    %[x, ampl, spl_pos, resBasisSet]  = fit_runFit_firstGuess(dataToFit, basisSet, fitOpts);
-    %[x, ampl, spl_pos, resBasisSet]  = fit_runFit_LCModel(dataToFit, basisSet, fitOpts);
     
     % Save back the basis set and fit parameters to MRSCont
     MRSCont.fit.basisSet                    = basisSet;

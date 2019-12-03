@@ -49,9 +49,9 @@ addpath(genpath([matlabFolder filesep 'spm12' filesep]));    % SPM path
 % Check if SPM12 is installed
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)
-    error('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.');
+    warning('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.');
 elseif strcmpi(spmversion(end-3:end),'spm8')
-    error(['SPM8 detected, but only SPM12 is supported. ' ...
+    warning(['SPM8 detected, but only SPM12 is supported. ' ...
            'Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.']);
 end
 

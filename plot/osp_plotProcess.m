@@ -43,7 +43,7 @@ end
 % Fall back to defaults if not provided
 if nargin<5
     switch which
-        case {'A', 'B', 'C', 'D'}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
             ppmmax = 4.5;
         case {'ref', 'w'}
             ppmmax = 2*4.68;
@@ -52,7 +52,7 @@ if nargin<5
     end
     if nargin<4
         switch which
-            case {'A', 'B', 'C', 'D'}
+            case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
                 ppmmin = 0.2;
             case {'ref', 'w'}
                 ppmmin = 0;
@@ -75,7 +75,7 @@ end
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract raw and processed spectra in the plot range
 switch which
-    case {'A', 'B', 'C', 'D'}
+    case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
         rawDataToPlot  = MRSCont.raw{kk};
         procDataToPlot = MRSCont.processed.(which){kk};
     case 'ref'

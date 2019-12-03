@@ -126,7 +126,7 @@ for kk = 1:MRSCont.nDatasets
     %%% 4. DETERMINE ON/OFF STATUS
     % Classify the two sub-spectra such that the OFF spectrum is stored to
     % field A, and the ON spectrum is stored to field B.
-    [raw_A, raw_B]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
+    [raw_A, raw_B, ~]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
     
     
     %%% 5. BUILD SUM AND DIFF SPECTRA %%%
