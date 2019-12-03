@@ -150,7 +150,7 @@ if strcmp(jobFileFormat,'csv')
 end
 
 
-%%% 4. SAVE SETTINGS INTO MRSCONT %%%
+%%% 4. SAVE SETTINGS INTO MRSCONT & STAT FILE %%%
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
@@ -164,7 +164,13 @@ switch seqType
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
 MRSCont.opts = opts;
-
+if exist('file_stat','var')
+    MRSCont.file_stat = file_stat;
+    MRSCont.flags.hasStatfile = 1;
+else
+    MRSCont.flags.hasStatfile = 0;
+end
+    
 
 %%% 5. SAVE FILE/FOLDER NAMES INTO MRSCONT %%%
 % Make sure that the mandatory fields (metabolite data; output folder) are
