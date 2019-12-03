@@ -23,7 +23,7 @@
 % T1_max    = maximum intensity of the image volume.
 % vol_image	= SPM volume of the structural image after DICOM conversion.
 
-function [vol_mask, T1_max, vol_image] = coreg_p(in, dcm_folder, maskFile)
+function [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(in, dcm_folder, maskFile)
 
 % Deactivate MATLAB warnings and load geometry parameters
 warning('off','MATLAB:nearlySingularMatrix');
@@ -78,8 +78,11 @@ dcm_list = dcm_list(~ismember({dcm_list.name}, {'.','..','.DS_Store'}));
 dcm_list = cellstr(char(dcm_list.name));
 dcm_list = dcm_list(cellfun(@isempty, strfind(dcm_list, '.nii'))); %#ok<*STRCLFH>
 dcm_list = dcm_list(cellfun(@isempty, strfind(dcm_list, '.mat')));
+for jj = 1:length(dcm_list)
+    dcm_list{jj} = [dcm_folder filesep dcm_list{jj}];
+end
 dcm_hdr = spm_dicom_headers(char(dcm_list));
-nii_file_dir = spm_dicom_convert(dcm_hdr, 'all', 'flat', 'nii', fullfile(dcm_folder)); % create NIFTI file of T1 image
+nii_file_dir = spm_dicom_convert_osp(dcm_hdr, 'all', 'flat', 'nii', fullfile(dcm_folder)); % create NIFTI file of T1 image
 nii_file = nii_file_dir.files{1};
 % Create SPM volume and read in the NIfTI file with the structural image.
 vol_image = spm_vol(nii_file);
@@ -200,13 +203,13 @@ vol_mask.fname   = maskFile;
 vol_mask.dim     = vol_image.dim;
 vol_mask.dt      = vol_image.dt;
 vol_mask.mat     = vol_image.mat;
-vol_mask.pinfo   = vol_image.pinfo;
-vol_mask.n       = vol_image.n;
 vol_mask.descrip = 'MRS_voxel_mask';
-vol_mask.private = vol_image.private;
 
 % Write the SPM volume to disk
 vol_mask = spm_write_vol(vol_mask,mask);
+
+% Store voxel centre for output figure
+voxel_ctr = VoxOffs;
 
 % Reactivate MATLAB warnings
 warning('on','MATLAB:nearlySingularMatrix');
