@@ -52,11 +52,15 @@ for kk = 1:MRSCont.nDatasets
     if MRSCont.flags.hasRef
         raw_ref                         = MRSCont.raw_ref{kk};              % Get the kk-th dataset
         if raw_ref.averages > 1 && raw_ref.flags.averaged == 0
-            [raw_ref,~,~]               = op_alignAverages(raw_ref, 1, 'n');
+            [raw_ref,fs,phs]               = op_alignAverages(raw_ref, 1, 'n');
             raw_ref                     = op_averaging(raw_ref);            % Average
+            raw_ref.specReg.fs              = fs; % save align parameters
+            raw_ref.specReg.phs             = phs; % save align parameters            
         else
             raw_ref.flags.averaged  = 1;
             raw_ref.dims.averages   = 0;
+            raw_ref.specReg.fs = 0;
+            raw_ref.specReg.phs = 0;               
         end
         [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
         [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
@@ -127,11 +131,15 @@ for kk = 1:MRSCont.nDatasets
     if MRSCont.flags.hasWater
         raw_w                           = MRSCont.raw_w{kk};                % Get the kk-th dataset
         if raw_w.averages > 1 && raw_w.flags.averaged == 0
-            [raw_w,~,~]                 = op_alignAverages(raw_w, 1, 'n');
+            [raw_w,fs,phs]                 = op_alignAverages(raw_w, 1, 'n');
+            raw_w.specReg.fs              = fs; % save align parameters
+            raw_w.specReg.phs             = phs; % save align parameters
             raw_w                       = op_averaging(raw_w);              % Average
         else
             raw_w.flags.averaged    = 1;
             raw_w.dims.averages     = 0;
+            raw_w.specReg.fs = 0;
+            raw_w.specReg.phs = 0;   
         end
         [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
         [raw_w,~]                       = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm

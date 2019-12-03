@@ -22,8 +22,8 @@ function [MRSCont] = osp_processMEGA(MRSCont, target)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-22)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -48,10 +48,10 @@ for kk = 1:MRSCont.nDatasets
     msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    
+
     %%% 1. GET RAW DATA %%%
     raw         = MRSCont.raw{kk};                                          % Get the kk-th dataset
-    
+
     % Get sub-spectra, depending on whether they are stored as such
     if raw.subspecs == 2
         raw_A   = op_takesubspec(raw,1);                    % Get first subspectrum
@@ -62,20 +62,20 @@ for kk = 1:MRSCont.nDatasets
     end
 
     % Perform robust spectral correction with weighted averaging.
-    % This can obviously only be done, if the spectra have not been 
-    % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
+    % This can obviously only be done, if the spectra have not been
+    % pre-averaged, i.e. in some older RDA and DICOM files (which should,
     % generally, not be used).
     if ~raw.flags.averaged
         raw_A   = op_robustSpecReg(raw_A, 'MEGA', 0);
-        raw_B   = op_robustSpecReg(raw_B, 'MEGA', 0);                  
+        raw_B   = op_robustSpecReg(raw_B, 'MEGA', 0);
     end
-        
-    
+
+
     %%% 2. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
     % If there are reference scans, perform the same operations
     if MRSCont.flags.hasRef
         raw_ref                     = MRSCont.raw_ref{kk};              % Get the kk-th dataset
-        
+
         % Some formats end up having subspectra in their reference scans
         % (e.g. Philips), as well as empty lines. Intercept these cases
         % here.
@@ -90,7 +90,7 @@ for kk = 1:MRSCont.nDatasets
             [raw_ref,~,~]           = op_alignAverages(raw_ref,1,'n');  % Align averages
             raw_ref                 = op_averaging(raw_ref);            % Average
         end
-        
+
 %         % The following IF only for Big GABA dataset - a few Siemens datasets
 %         % have been accidentally acquired with the water suppression switched
 %         % on for the water reference scan. In that case, don't do ECC, but
@@ -100,12 +100,12 @@ for kk = 1:MRSCont.nDatasets
             [raw_A,~]               = op_eccKlose(raw_A, raw_ref);
             [raw_B,raw_ref]         = op_eccKlose(raw_B, raw_ref);        % Klose eddy current correction
 %         end
-        
+
         [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
         MRSCont.processed.ref{kk}   = raw_ref;                          % Save back to MRSCont container
     end
-    
-    
+
+
     %%% 3. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%
     % Automate determination whether the Cr peak has positive polarity.
     % For water suppression methods like MOIST, the residual water may
@@ -113,8 +113,8 @@ for kk = 1:MRSCont.nDatasets
     % that the spectrum needs to be flipped.
     raw_A_Cr    = op_freqrange(raw_A,2.8,3.2);
     % Determine the polarity of the respective peak: if the absolute of the
-    % maximum minus the absolute of the minimum is positive, the polarity 
-    % of the respective peak is positive; if the absolute of the maximum 
+    % maximum minus the absolute of the minimum is positive, the polarity
+    % of the respective peak is positive; if the absolute of the maximum
     % minus the absolute of the minimum is negative, the polarity is negative.
     polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
     if polResidCr < 0
@@ -126,9 +126,9 @@ for kk = 1:MRSCont.nDatasets
     %%% 4. DETERMINE ON/OFF STATUS
     % Classify the two sub-spectra such that the OFF spectrum is stored to
     % field A, and the ON spectrum is stored to field B.
-    [raw_A, raw_B, ~]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
-    
-    
+    [raw_A, raw_B]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
+
+
     %%% 5. BUILD SUM AND DIFF SPECTRA %%%
     % Correct the frequency axis so that Cr appears at 3.027 ppm
     [raw_A,~]       = op_ppmref(raw_A,2.9,3.1,3.027);
@@ -142,8 +142,8 @@ for kk = 1:MRSCont.nDatasets
     sum             = op_addScans(raw_A,raw_B);
     % Create the GABA-edited difference spectrum
     diff1           = op_addScans(raw_B,raw_A,1);
-    
-    
+
+
     %%% 6. REMOVE RESIDUAL WATER %%%
     % Remove water and correct back to baseline.
     % The spectra sometimes become NaNs after filtering with too many
@@ -180,7 +180,7 @@ for kk = 1:MRSCont.nDatasets
     end
     diff1   = diff1_temp;
     diff1   = op_fddccorr(diff1,100);                                 % Correct back to baseline
-    
+
     [sum_temp,~,~]           = op_removeWater(sum,[4.6 4.8],20,0.75*length(sum.fids),0); % Remove the residual water
     if isnan(real(sum_temp.fids))
         rr = 30;
@@ -191,16 +191,16 @@ for kk = 1:MRSCont.nDatasets
     end
     sum     = sum_temp;
     sum     = op_fddccorr(sum,100);
-    
-    
-    %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
+
+
+    %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS
     % Reference resulting data correctly and consistently
-    [raw_A,ref_shift]   = op_ppmref(raw_A,1.8,2.2,2.008);           % Reference edit-OFF spectrum to NAA @ 2.008 ppm                                                                          
+    [raw_A,ref_shift]   = op_ppmref(raw_A,1.8,2.2,2.008);           % Reference edit-OFF spectrum to NAA @ 2.008 ppm
     [raw_B]             = op_freqshift(raw_B,ref_shift);            % Apply same shift to edit-OFF
     [diff1]             = op_freqshift(diff1,ref_shift);            % Apply same shift to diff1
     [sum]               = op_freqshift(sum,ref_shift);              % Apply same shift to sum
-    
-    
+
+
     %%% 8. SAVE BACK TO MRSCONT CONTAINER
     MRSCont.processed.A{kk}     = raw_A;                                    % Save edit-OFF back to MRSCont container
     MRSCont.processed.B{kk}     = raw_B;                                    % Save edit-ON back to MRSCont container
@@ -229,14 +229,14 @@ for kk = 1:MRSCont.nDatasets
         [raw_w,~]                   = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
         MRSCont.processed.w{kk}     = raw_w;                            % Save back to MRSCont container
     end
-    
-    
+
+
     %%% 10. QUALITY CONTROL PARAMETERS %%%
     % Calculate some spectral quality metrics here;
     MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
     FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
     MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
-    
+
     if MRSCont.flags.hasRef
         MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor
         FWHM_Hz                 = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
@@ -247,7 +247,7 @@ for kk = 1:MRSCont.nDatasets
         FWHM_Hz                 = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
         MRSCont.QM.FWHM.w(kk)   = FWHM_Hz./MRSCont.processed.w{kk}.txfrq*1e6; % convert to ppm
     end
-            
+
 end
 fprintf('... done.\n');
 toc(refProcessTime);

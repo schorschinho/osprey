@@ -49,9 +49,9 @@ addpath(genpath([matlabFolder filesep 'spm12' filesep]));    % SPM path
 % Check if SPM12 is installed
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)
-    warning('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.');
+    error('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.');
 elseif strcmpi(spmversion(end-3:end),'spm8')
-    warning(['SPM8 detected, but only SPM12 is supported. ' ...
+    error(['SPM8 detected, but only SPM12 is supported. ' ...
            'Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.']);
 end
 
@@ -78,7 +78,7 @@ MRSCont.flags.didQuantify   = 0;
 
 %%% DO NOT EDIT BELOW - DO NOT EDIT BELOW - DO NOT EDIT BELOW - DO NOT EDIT BELOW %%%
 
-%%% 4. INITIALISE ALLOWED FILE TYPES (FOR GUI USE) %%% 
+%%% 4. INITIALISE ALLOWED FILE TYPES (FOR GUI USE) %%%
 global globalDefaults
 globalDefaults.supportedFileTypes.DeIdentify = {'*.sdat','Philips SDAT files (*.sdat)'; ...
     '*.rda','Siemens RDA files (*.rda)'; ...
@@ -91,7 +91,7 @@ globalDefaults.supportedFileTypes.Load = {'*.sdat','Philips SDAT/SPAR files (*.s
     '*.dat','Siemens TWIX files (*.dat)'; ...
     '*.dcm;*.ima','Siemens DICOM files (*.dcm,*.ima)'; ...
     '*.7','GE P-files (*.7)'};
-globalDefaults.supportedFileTypes.Nifti = {'*.nii','NIfTI files (*.nii)'};    
+globalDefaults.supportedFileTypes.Nifti = {'*.nii','NIfTI files (*.nii)'};
 globalDefaults.supportedFileTypes.Mat = {'*.mat','MATLAB files (*.mat)'};
 %%% DO NOT EDIT - DO NOT EDIT - DO NOT EDIT - DO NOT EDIT %%%
 

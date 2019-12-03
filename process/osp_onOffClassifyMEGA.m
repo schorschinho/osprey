@@ -1,5 +1,5 @@
-function [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
-%% [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
+function [outA, outB] = osp_onOffClassifyMEGA(inA, inB, target)
+%% [outA, outB] = osp_onOffClassifyMEGA(inA, inB, target)
 %   This function decides which of the two provided MEGA sub-spectra in the
 %   are the edit-ON or the edit-OFF.
 %
@@ -21,14 +21,12 @@ function [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
 %   OUTPUTS:
 %       outA    = FID-A structure containing the edit-OFF MEGA sub-spectrum.
 %       outB    = FID-A structure containing the edit-ON MEGA sub-spectrum.
-%       switchOrder = Vector indicating the order in which the input
-%               spectra are rearranged in order to generate the output order.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-03-18)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -42,17 +40,15 @@ DIFF = op_addScans(inA, inB, 1);
 
 switch target
     case 'GABA'
-        % Determine whether DIFF spectrum has a positive NAA peak.  
+        % Determine whether DIFF spectrum has a positive NAA peak.
         parsFit = op_naaFit(DIFF,0,0);
-        
+
         if (parsFit(1) * parsFit(2)) > 0 % this is the area under the curve of the NAA fit
             outA = inA;
             outB = inB;
-            switchOrder = [1, 2];
         else
             outA = inB;
             outB = inA;
-            switchOrder = [2, 1];
         end
     case 'GSH'
         error('Automatic ON/OFF classification for GSH-edited data coming soon!');

@@ -3,7 +3,7 @@ function [MRSCont] = OspreyFit(MRSCont)
 %   This function performs spectral fitting on MRS data loaded previously
 %   using OspreyLoad.
 %
-%   The method of fit, fitting range, included metabolites and other 
+%   The method of fit, fitting range, included metabolites and other
 %   settings are set in the job file.
 %
 %   USAGE:
@@ -18,8 +18,8 @@ function [MRSCont] = OspreyFit(MRSCont)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-24)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -52,11 +52,11 @@ close all;
 if MRSCont.flags.isUnEdited
     [MRSCont] = osp_fitUnEdited(MRSCont);
 elseif MRSCont.flags.isMEGA
-    [MRSCont] = osp_fitMEGA(MRSCont);
+    [MRSCont] = osp_fitMEGA(MRSCont, basisSet);
 elseif MRSCont.flags.isHERMES
     [MRSCont] = osp_fitHERMES(MRSCont);
 elseif MRSCont.flags.isHERCULES
-    [MRSCont] = osp_fitHERCULES(MRSCont);
+    [MRSCont] = osp_fitHERCULES(MRSCont, basisSet);
 else
     error('No flag set for sequence type!');
 end

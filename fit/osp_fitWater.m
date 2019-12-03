@@ -41,8 +41,8 @@ idx_toKeep(h2o_idx) = 1;
 % Remove the name, the FIDs and the specs of everything but water
 % from the basis set.
 basisSet.name   = basisSet.name(logical(idx_toKeep));
-basisSet.fids   = basisSet.fids(:,logical(idx_toKeep),1); % index 1 because this is a GSH-OFF spectrum in edited data
-basisSet.specs  = basisSet.specs(:,logical(idx_toKeep),1);
+basisSet.fids   = basisSet.fids(:,logical(idx_toKeep),:);
+basisSet.specs  = basisSet.specs(:,logical(idx_toKeep),:);
 basisSet.nMets  = 1; basisSet.nMM = 0;
 
 %%  Construct the basis functions and the spectrum that is to be fit.
@@ -55,7 +55,7 @@ fitModel    = fitOpts.method;
 
 % Call the fit function
 [fitParamsWater, resBasisSetWater]  = fit_runFitWater(dataToFit, basisSet, fitModel, fitOpts);
-        
+
 %% Save back the fit parameters to MRSCont
 % Discern whether the reference or the short-TE water scan was selected
 switch fitWhich
@@ -67,5 +67,5 @@ end
 % Write
 MRSCont.fit.resBasisSet.water      = resBasisSetWater;
 MRSCont.fit.results.(str).fitParams{kk}   = fitParamsWater;
-        
+
 end

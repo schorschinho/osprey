@@ -33,23 +33,26 @@ for kk = 1:MRSCont.nDatasets
     msg = sprintf('Fitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    
+
     % Apply scaling factor to the data
     dataToFit   = MRSCont.processed.A{kk};
     dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
     % Extract fit options
     fitOpts     = MRSCont.opts.fit;
     fitModel    = fitOpts.method;
-    
+
     % Call the fit function
     basisSet            = MRSCont.fit.basisSet;
     [fitParams, resBasisSet] = fit_runFit(dataToFit, basisSet, fitModel, fitOpts);
-    
+    % [x, ampl, spl_pos, resBasisSet]  = fit_runFit(dataToFit, basisSet, fitOpts);
+    %[x, ampl, spl_pos, resBasisSet]  = fit_runFit_firstGuess(dataToFit, basisSet, fitOpts);
+    %[x, ampl, spl_pos, resBasisSet]  = fit_runFit_LCModel(dataToFit, basisSet, fitOpts);
+
     % Save back the basis set and fit parameters to MRSCont
-    MRSCont.fit.basisSet                    = basisSet;
-    MRSCont.fit.resBasisSet.off             = resBasisSet;
-    MRSCont.fit.results.off.fitParams{kk}   = fitParams;
-    
+    MRSCont.fit.basisSet                       = basisSet;
+    MRSCont.fit.resBasisSet.off{kk}             = resBasisSet;
+    MRSCont.fit.results.off.fitParams{kk}       = fitParams;
+
     %% end time counter
     if isequal(kk, MRSCont.nDatasets)
         fprintf('... done.\n');
