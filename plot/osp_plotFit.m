@@ -1,4 +1,4 @@
-function out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
+function out = osp_plotFit(MRSCont, kk, which, GUI, stagFlag, xlab, ylab, figTitle)
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   Creates a figure showing data stored in an Osprey data container, as
 %   well as the fit to it, the baseline, the residual, and contributions
@@ -20,6 +20,7 @@ function out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %                               'sum'
 %                               'ref'
 %                               'w'
+%       GUI       = flag to decide whether plot is used in GUI
 %       stagFlag  = flag to decide whether basis functions should be plotted
 %                   vertically staggered or simply over one another
 %                   (optional)
@@ -44,20 +45,24 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin<7
-    figTitle = sprintf('Fit plot') ;
-    if nargin<6
+if nargin<8    
+    [~,filen,ext] = fileparts(MRSCont.files{kk});
+    figTitle = sprintf([MRSCont.opts.fit.method ' ' MRSCont.opts.fit.style ' ' which ' fit plot:\n' filen ext]);
+    if nargin<7
         ylab='';
-        if nargin<5
+        if nargin<6
             xlab='Frequency (ppm)';
-            if nargin<4
+            if nargin<5
                 stagFlag = 1;
-                if nargin < 3
-                    which = 'off';
-                    if nargin < 2
-                        kk = 1;
-                        if nargin<1
-                            error('ERROR: no input Osprey container specified.  Aborting!!');
+                if nargin<4
+                    GUI = 0;    
+                    if nargin < 3
+                        which = 'off';
+                        if nargin < 2
+                            kk = 1;
+                            if nargin<1
+                                error('ERROR: no input Osprey container specified.  Aborting!!');
+                            end
                         end
                     end
                 end
@@ -79,7 +84,7 @@ if strcmp(which, 'ref') || strcmp(which, 'w')
     basisSet    = MRSCont.fit.resBasisSet.water;
 else
     fitRangePPM = MRSCont.opts.fit.range;
-    basisSet    = MRSCont.fit.resBasisSet.(which);
+    basisSet    = MRSCont.fit.resBasisSet.(which){kk};
 end
 specToPlot  = op_freqrange(dataToPlot, fitRangePPM(1), fitRangePPM(end));
 fitParams   = MRSCont.fit.results.(which).fitParams{kk};
@@ -132,14 +137,48 @@ end
 %%% 5. PLOT DATA, FIT, RESIDUAL, BASELINE %%%
 % positive stagger to offset data, fit, residual, and baseline from the
 % individual metabolite contributions
-stagData = 0.2*(max(abs(min(real(dataToPlot.specs))), abs(max(real(dataToPlot.specs)))));
+stagData = 0.1*(max(abs(min(real(dataToPlot.specs))), abs(max(real(dataToPlot.specs)))));
+maxPlot = max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData;
 % Add the data and plot
 hold on;
-plot(specToPlot.ppm, real(specToPlot.specs) + stagData, 'k');
-plot(specToPlot.ppm, real(fitted) + stagData, 'r', 'LineWidth', 1.5);
-plot(specToPlot.ppm, real(specToPlot.specs) - real(fitted) + 1.2*max(real(specToPlot.specs)) + stagData, 'k', 'LineWidth', 1);
+if ~GUI
+    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + stagData)/maxPlot, 'k'); % Zeroline
+    plot(specToPlot.ppm, (real(specToPlot.specs) + stagData)/maxPlot, 'k'); % Data
+    plot(specToPlot.ppm, (real(fitted) + stagData)/maxPlot, 'r', 'LineWidth', 1.5); % Fit
+    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs)) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Maximum Data
+
+    plot(specToPlot.ppm, (real(specToPlot.specs) - real(fitted) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Residue
+    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, '--k', 'LineWidth', 0.5); % Zeroline Residue
+    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Max Residue
+else
+    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Zeroline
+    plot(specToPlot.ppm, (real(specToPlot.specs) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Data
+    plot(specToPlot.ppm, (real(fitted) + stagData)/maxPlot, 'Color', MRSCont.colormap.Accent, 'LineWidth', 1.6); % Fit
+    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
+
+    plot(specToPlot.ppm, (real(specToPlot.specs) - real(fitted) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Residue
+    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
+    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue 
+end
+
+if ~GUI
+    text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 14); %Zeroline text
+    text(fitRangePPM(1), (0 + max(real(specToPlot.specs)) + stagData)/maxPlot -0.05, num2str(max(real(specToPlot.specs)),'%1.2e'), 'FontSize', 14); % Maximum Data Text
+    text(fitRangePPM(1), (0 + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, '0', 'FontSize', 14); %Zeroline Residue text
+    text(fitRangePPM(1), (0 + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData)/maxPlot+0.05, num2str(abs(max(real(specToPlot.specs) - real(fitted))),'%1.2e'), 'FontSize', 14); %Max Residue text
+else
+    text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
+    text(fitRangePPM(1), (0 + max(real(specToPlot.specs)) + stagData)/maxPlot-0.05, num2str(max(real(specToPlot.specs)),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); % Maximum Data Text
+    text(fitRangePPM(1), (0 + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residue text
+    text(fitRangePPM(1), (0 + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData)/maxPlot +0.05, num2str(abs(max(real(specToPlot.specs) - real(fitted))),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
+end
+
 if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
-    plot(specToPlot.ppm, real(complex_B) + stagData, 'k', 'LineWidth', 1, 'Color', 'b');
+    if ~GUI
+        plot(specToPlot.ppm, (real(complex_B) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', 'b');
+    else
+        plot(specToPlot.ppm, (real(complex_B) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', MRSCont.colormap.LightAccent);
+    end
 end
 
 
@@ -149,19 +188,25 @@ if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
     if stagFlag
         % Staggered plots will be in all black and separated by the mean of the
         % maximum across all spectra
-        stag = max(abs(mean(max(real(appliedBasisSet.specs)))), abs(mean(min(real(appliedBasisSet.specs))))) * MRSCont.fit.scale{kk};
+%         stag = max(abs(mean(max(real(appliedBasisSet.specs)))), abs(mean(min(real(appliedBasisSet.specs))))) * MRSCont.fit.scale{kk};
+        stag = maxPlot *  2.5 / nBasisFct;
         % Loop over all basis functions
         
         for rr = 1:nBasisFct
-            plot(appliedBasisSet.ppm, ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk} - rr*stag, 'k');
             % Instead of a MATLAB legend, annotate each line separately with the
             % name of the metabolite
-            text(fitRangePPM(1), - rr*stag, appliedBasisSet.name{rr}, 'FontSize', 14);
+            if ~GUI
+                plot(appliedBasisSet.ppm, (ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk} - rr*stag)/maxPlot, 'k');
+                text(fitRangePPM(1), (- rr*stag)/maxPlot, appliedBasisSet.name{rr}, 'FontSize', 14);
+            else
+                plot(appliedBasisSet.ppm, (ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk} - rr*stag)/maxPlot, 'Color',MRSCont.colormap.Foreground);
+                text(fitRangePPM(1), (- rr*stag)/maxPlot, appliedBasisSet.name{rr}, 'FontSize', 10,'Color',MRSCont.colormap.Foreground);
+            end
         end
         
         % Preliminary formatting; might need some more stability here, or
         % differentiation based on sequence type
-        set(gca, 'YLim', [-nBasisFct*stag-0.05*abs(min(real(dataToPlot.specs)))  Inf]);
+        set(gca, 'YLim', [(-nBasisFct-1)*stag/maxPlot  1]);
         hold off;
         
     else
@@ -171,7 +216,7 @@ if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
         
         % Loop over all basis functions
         for rr = 1:nBasisFct
-            plot(appliedBasisSet.ppm, ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk}, 'Color', colours(rr,:), 'LineWidth', 1);
+            plot(appliedBasisSet.ppm, (ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk})/maxPlot, 'Color', colours(rr,:), 'LineWidth', 1);
         end
         legend([newline, appliedBasisSet.name], 'Orientation', 'horizontal');
         hold off
@@ -179,7 +224,10 @@ if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
     end
     
 else
-    
+    % Preliminary formatting; might need some more stability here, or
+    % differentiation based on sequence type
+    set(gca, 'YLim', [0  1]);
+    hold off;
     % If water is being shown, show a simple legend
     legend('Data', 'Fit', 'Residual');
     
@@ -193,26 +241,39 @@ set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
 % If no y caption, remove y axis
 if isempty(ylab)
-    set(gca, 'YColor', 'w');
+    if ~GUI
+        set(gca, 'YColor', 'w');
+        % Black axes, white background
+        set(gca, 'XColor', 'k');
+        set(gca, 'Color', 'w');
+        set(gcf, 'Color', 'w');
+        title(figTitle, 'Interpreter', 'none');
+    else
+        set(gca, 'YColor', MRSCont.colormap.Background);
+        set(gca,'YTickLabel',{});
+        set(gca,'YTick',{});
+        % Dirtywhite axes, light gray background
+        set(gca, 'XColor', MRSCont.colormap.Foreground);
+        set(gca, 'Color', MRSCont.colormap.Background);
+        set(gcf, 'Color', MRSCont.colormap.Background);
+        title(figTitle, 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+    end
 else
     set(gca, 'YColor', 'k');
 end
-% Black axes, white background
-set(gca, 'XColor', 'k');
-set(gca, 'Color', 'w');
-set(gcf, 'Color', 'w');
+
 box off;
-title(figTitle);
 xlabel(xlab, 'FontSize', 16);
 ylabel(ylab, 'FontSize', 16);
 
 
 %%% 8. ADD OSPREY LOGO %%%
-[I, map] = imread('osprey.gif','gif');
-axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
-imshow(I, map);
-axis off;
-
+if ~GUI
+    [I, map] = imread('osprey.gif','gif');
+    axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
+    imshow(I, map);
+    axis off;
+end
 
 end
 
