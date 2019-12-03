@@ -3,7 +3,7 @@
 %
 % USAGE:
 % basisSetOut = fit_selectMetabs(basisSetIn, metabList, fitMM)
-% 
+%
 % DESCRIPTION:
 % This function loads the basis set functions for the metabolites
 % that have a positive flag set in the structure metabList, which has
@@ -18,7 +18,7 @@
 % the basis set, and if they were selected to be included.
 %
 % The other basis functions will be discarded.
-% 
+%
 % OUTPUTS:
 % basisSetOut = FID-A basis set container that only contains the basis
 %               functions specified in metabList
@@ -26,7 +26,7 @@
 % INPUTS:
 % basisSetIn  = FID-A basis set container (created with fit_makeBasis).
 % metabList   = Structure (created with fit_createMetabList) containing
-%               flags for each metabolite/MM/lipid basis function that is 
+%               flags for each metabolite/MM/lipid basis function that is
 %               supposed to be included in the basis set.
 % fitMM       = Flag determining whether MM/lipid basis functions are being
 %               kept in the output basis set. 1 = Yes (default), 0 = No.
@@ -49,11 +49,11 @@ basisSetOut = basisSetIn;
 metsInBasisSet = basisSetIn.name;
 [metsToKeep,~,~] = intersect(metsInBasisSet, all_mets, 'stable');
 
-% Check for each remaining metabolite in the basis set whether it has been 
+% Check for each remaining metabolite in the basis set whether it has been
 % flagged to be included in the basis set in osp_FitInitialise.m:
 idx_toKeep = zeros(length(metsToKeep),1);
 for kk = 1:length(metsToKeep)
-    if ~isfield(metabList, metsToKeep{kk}) || ~metabList.(metsToKeep{kk})
+    if ~metabList.(metsToKeep{kk})
         idx_toKeep(kk) = 0;
     else
         idx_toKeep(kk) = 1;

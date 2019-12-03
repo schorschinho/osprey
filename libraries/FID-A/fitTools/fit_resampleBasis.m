@@ -38,25 +38,22 @@ end
 
 % Now resample the basis functions to match the resolution and frequency
 % range (ppm axis) of the data.
-fids_interp     = zeros(length(ppmRangeData), (basisSet.nMets + basisSet.nMM), size(basisSet.fids, 3)); % allocate memory
-specs_interp    = zeros(length(ppmRangeData), (basisSet.nMets + basisSet.nMM), size(basisSet.fids, 3)); % allocate memory
+fids_interp     = zeros(length(ppmRangeData), (basisSet.nMets + basisSet.nMM)); % allocate memory
+specs_interp    = zeros(length(ppmRangeData), (basisSet.nMets + basisSet.nMM)); % allocate memory
 % Loop over the number of basis functions (i.e. metabolites and
 % MM/lipids)
 for ll=1:(basisSet.nMets + basisSet.nMM)
-    % Loop over the number of sub-spectra (MEGA, HERMES, HERCULES)
-    for rr = 1:size(basisSet.fids, 3)
-        specs_interp(:,ll,rr)      = interp1(ppmRangeBasis(ppmIsInDataRange), basisSet.specs(ppmIsInDataRange,ll,rr), ppmRangeData, 'pchip', 'extrap');
-        %convert back to time domain
-        %if the length of Fids is odd, then you have to do a circshift of one to
-        %make sure that you don't introduce a small frequency shift into the fids
-        %vector.
-        if mod(length(basisSet.specs),2)==0
-            %disp('Length of vector is even.  Doing normal conversion');
-            fids_interp(:,ll,rr)   = ifft(fftshift(specs_interp(:,ll,rr),1),[],1);
-        else
-            %disp('Length of vector is odd.  Doing circshift by 1');
-            fids_interp(:,ll,rr)   = ifft(circshift(fftshift(specs_interp(:,ll,rr),1)),[],1);
-        end
+    specs_interp(:,ll)      = interp1(ppmRangeBasis(ppmIsInDataRange), basisSet.specs(ppmIsInDataRange,ll), ppmRangeData, 'pchip', 'extrap');
+    %convert back to time domain
+    %if the length of Fids is odd, then you have to do a circshift of one to
+    %make sure that you don't introduce a small frequency shift into the fids
+    %vector.
+    if mod(length(basisSet.specs),2)==0
+        %disp('Length of vector is even.  Doing normal conversion');
+        fids_interp(:,ll)   = ifft(fftshift(specs_interp(:,ll),1),[],1);
+    else
+        %disp('Length of vector is odd.  Doing circshift by 1');
+        fids_interp(:,ll)   = ifft(circshift(fftshift(specs_interp(:,ll),1)),[],1);
     end
 end
 
