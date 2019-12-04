@@ -189,7 +189,11 @@ out.tr=GEhdr.TR;
 out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
 out.geometry = GEhdr.geometry;
-
+temp = out.geometry.size;
+out.geometry.size = [];
+out.geometry.size.dim1 = temp(1);
+out.geometry.size.dim2 = temp(2);
+out.geometry.size.dim3 = temp(3);
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;
@@ -233,7 +237,11 @@ out_w.tr=GEhdr.TR;
 out_w.pointsToLeftshift=0;
 out_w.centerFreq = centerFreq;
 out_w.geometry = GEhdr.geometry;
-
+temp = out_w.geometry.size;
+out_w.geometry.size = [];
+out_w.geometry.size.dim1 = temp(1);
+out_w.geometry.size.dim2 = temp(2);
+out_w.geometry.size.dim3 = temp(3);
 %FILLING IN THE FLAGS
 out_w.flags.writtentostruct=1;
 out_w.flags.gotparams=1;
