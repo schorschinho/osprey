@@ -88,6 +88,7 @@ function OspreyGUI(MRSCont)
     gui.SelectedDataset = 1;
     gui.SelectedSubFile = 1;
     gui.SelectedFit = 1;
+    gui.SelectedModel = 1;
     gui.SelectedQuant = 1;
     gui.NoSpecs = 1;
     gui.SpecNames = {'metabolites'};
@@ -124,8 +125,10 @@ function OspreyGUI(MRSCont)
     end
     gui.GeometryNames = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
     if MRSCont.flags.didQuantify %Get variables regarding the quantification
-        gui.NoQuants = length(fieldnames(MRSCont.quantify.tables));
-        gui.QuantNames = fieldnames(MRSCont.quantify.tables);
+        gui.NoQuantModels = length(fieldnames(MRSCont.quantify.tables));
+        gui.QuantModelNames = fieldnames(MRSCont.quantify.tables);
+        gui.NoQuants = length(fieldnames(MRSCont.quantify.tables.(gui.QuantModelNames{1})));
+        gui.QuantNames = fieldnames(MRSCont.quantify.tables.(gui.QuantModelNames{1}));
         gui.NoQuantMetabs = length(MRSCont.quantify.metabs);
     end
     if MRSCont.flags.didOverview %Get variables for the overview tab
@@ -712,7 +715,7 @@ end
         QuantText(2:end,1) = MRSCont.quantify.metabs';
             for q = 1 : gui.NoQuants
                 QuantText(1,q+1) = gui.QuantNames(q);
-                QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.QuantNames{q})(gui.SelectedDataset,:))';
+                QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.QuantModelNames{gui.SelectedModel}).(gui.QuantNames{q})(gui.SelectedDataset,:))';
             end
         temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
             'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
@@ -854,7 +857,7 @@ end
                                         'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         QuantTextOv = cell(MRSCont.nDatasets+1,gui.NoQuantMetabs);
         QuantTextOv(1,:) = MRSCont.quantify.metabs;
-        QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.QuantNames{gui.SelectedQuant})(:,:));
+        QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.QuantModelNames{gui.SelectedModel}).(gui.QuantNames{gui.SelectedQuant})(:,:));
         temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv,...
             'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         set(temp,'BackgroundColor',gui.colormap.Background)
@@ -882,7 +885,7 @@ end
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 %osp_plotQuantifyTable to create distribution overview as raincloud plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotRaincloud(MRSCont,gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},'Raincloud plot',1);
+        [temp] = osp_plotRaincloud(MRSCont,gui.QuantModelNames{gui.SelectedModel}, gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},'Raincloud plot',1);
         gui.ViewAxes = gca();
         set( gui.ViewAxes, 'Parent', gui.distrOvPlot);
         close( temp );
@@ -913,7 +916,7 @@ end
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 %osp_plotQuantifyTable is used to create a correlation plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotScatter(MRSCont,gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},gui.CorrMeas{gui.SelectedCorr},gui.CorrNames{gui.SelectedCorr},1);
+        [temp] = osp_plotScatter(MRSCont, gui.QuantModelNames{gui.SelectedModel}, gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},gui.CorrMeas{gui.SelectedCorr},gui.CorrNames{gui.SelectedCorr},1);
         gui.ViewAxes = gca();
         set( gui.ViewAxes, 'Parent', gui.corrOvPlot);
         set(gui.corrOvPlot,'Heights', [-0.07 -0.90 -0.03]);
@@ -1273,17 +1276,18 @@ function osp_updatequantOvWindow() %updates the quantification table overview ta
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
         QuantTextOv = cell(MRSCont.nDatasets+1,gui.NoQuantMetabs);
         QuantTextOv(1,:) = MRSCont.quantify.metabs;
-        QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.QuantNames{gui.SelectedQuant})(:,:));
+        QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.QuantModelNames{gui.SelectedModel}).(gui.QuantNames{gui.SelectedQuant})(:,:));
         temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv);
         set( temp, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         set( temp, 'Parent', gui.quantOvResults );
+        set(gui.quantOvResults, 'Title', ['Results: ' (gui.QuantNames{gui.SelectedQuant})]);
 end
 
 function osp_updatedistrOvWindow() %updates the raincloud plot overview tab
             delete(gui.distrOvPlot.Children(3).Children)
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
             temp = figure( 'Visible', 'off' );
-            [temp] = osp_plotRaincloud(MRSCont,gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},'Raincloud plot',1);
+            [temp] = osp_plotRaincloud(MRSCont,gui.QuantModelNames{gui.SelectedModel},gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},'Raincloud plot',1);
             set( temp.Children(2).Children, 'Parent', gui.distrOvPlot.Children(3) );
             set(  gui.distrOvPlot.Children(3), 'XLabel', temp.Children(2).XLabel);
             set(  gui.distrOvPlot.Children(3), 'YLim', temp.Children(2).YLim);
@@ -1299,15 +1303,15 @@ function osp_updatecorrOvWindow()   %updates the correlation overview tab
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
             temp = figure( 'Visible', 'off' );
             if gui.SelectedCorrChoice == 1
-                temp = osp_plotScatter(MRSCont,gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},gui.CorrMeas{gui.SelectedCorr},gui.CorrNames{gui.SelectedCorr},1);
+                temp = osp_plotScatter(MRSCont,gui.QuantModelNames{gui.SelectedModel},gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},gui.CorrMeas{gui.SelectedCorr},gui.CorrNames{gui.SelectedCorr},1);
             else if gui.SelectedCorrChoice == 2
-                temp = osp_plotScatter(MRSCont,gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},MRSCont.quantify.metabs{gui.SelectedCorr},MRSCont.quantify.metabs{gui.SelectedCorr},1);
+                temp = osp_plotScatter(MRSCont,gui.QuantModelNames{gui.SelectedModel},gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},MRSCont.quantify.metabs{gui.SelectedCorr},MRSCont.quantify.metabs{gui.SelectedCorr},1);
                 else
                     switch gui.SelectedCorr
                         case 1
-                        temp = osp_plotScatter(MRSCont,gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},MRSCont.QM.SNR.A',gui.QMNames{gui.SelectedCorr},1);
+                        temp = osp_plotScatter(MRSCont,gui.QuantModelNames{gui.SelectedModel},gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},MRSCont.QM.SNR.A',gui.QMNames{gui.SelectedCorr},1);
                         case 2
-                        temp = osp_plotScatter(MRSCont,gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},MRSCont.QM.FWHM.A',gui.QMNames{gui.SelectedCorr},1);
+                        temp = osp_plotScatter(MRSCont,gui.QuantModelNames{gui.SelectedModel},gui.QuantNames{gui.SelectedQuant},MRSCont.quantify.metabs{gui.SelectedMetab},MRSCont.QM.FWHM.A',gui.QMNames{gui.SelectedCorr},1);
                     end
                 end
             end

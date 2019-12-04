@@ -1,4 +1,4 @@
-function [out_rain] = osp_plotRaincloud(MRSCont,which,metab,tit,GUI)
+function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GUI)
 %% [out_rain] = osp_plotRaincloud(MRSCont,which,metab,plots,tit,GUI)
 % Creates raincloud plot from the quantification tables and the chosen quantifcation and metabolite
 % The figure contains raincloud plots with boxplots, as well as, mean
@@ -13,6 +13,7 @@ function [out_rain] = osp_plotRaincloud(MRSCont,which,metab,tit,GUI)
 %
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
+%       model    = Fitting style 
 %       which    = Quantification
 %                   OPTIONS:    'tCr'
 %                               'rawWaterScaled'
@@ -50,18 +51,18 @@ cb(4,:) = temp;
 
 %%% 2. EXTRACT METABOLITE CONCENTRATIONS%%%
 idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
-ConcData = MRSCont.quantify.tables.(which) {:,idx_1};      
+ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};      
 
-if strcmp(which, 'tCr')
+if strcmp(quant, 'tCr')
     ylab = [metab ' / tCr'];
 end
-if strcmp(which, 'rawWaterScaled')
+if strcmp(quant, 'rawWaterScaled')
     ylab = [metab ' rawWaterScaled  (i.u.)'];
 end
-if strcmp(which, 'CSFWaterScaled')
+if strcmp(quant, 'CSFWaterScaled')
     ylab = [metab ' CSFWaterScaled  (i.u.)'];
 end
-if strcmp(which, 'TissCorrWaterScaled')
+if strcmp(quant, 'TissCorrWaterScaled')
     ylab = [metab 'TissCorrWaterScaled  (i.u.)'];
 end
 %%% 3. CREATE RAINCLOUD PLOT %%%

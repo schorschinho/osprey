@@ -1,4 +1,4 @@
-function [out_scat] = osp_plotScatter(MRSCont,which,metab,corrData,corrDataName,GUI)
+function [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDataName,GUI)
 %% [out_scat] = osp_plotScatter(MRSCont,which,metab,plots,corrData,corrDataName)
 % Creates correlation figure of  the chosen quantifcation and metabolite
 % one figure contains a correlation analysis with subgroup correlations.
@@ -13,19 +13,20 @@ function [out_scat] = osp_plotScatter(MRSCont,which,metab,corrData,corrDataName,
 %
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
+%       model    = Fitting Style
 %       which    = Quantification
 %                   OPTIONS:    'tCr' (default)
 %                               'rawWaterScaled'
 %       metab    = metabolite for analysis
-%                  GABA is default                     
+%                  GABA is default
 %       corrData = Data for correlation analysis
 %       GUI      = flag if fiure is used in GUI
 %
 %   AUTHOR:
-%       Helge Zöllner (Johns Hopkins University, 2019-11-14)
+%       Helge ZÃ¶llner (Johns Hopkins University, 2019-11-14)
 %       hzoelln2@jhmi.edu
 %
-%   CREDITS:    
+%   CREDITS:
 %       This code is uses a modified version of the regression_line_ci
 %       package to plot confidence intervals
 %       Boris Gutman
@@ -41,7 +42,7 @@ function [out_scat] = osp_plotScatter(MRSCont,which,metab,corrData,corrDataName,
 if nargin<6
     GUI = 0;
     if nargin<5
-        corrDataName = 'correlation measure';    
+        corrDataName = 'correlation measure';
         if nargin<4
             error('No correlation data passed. Please add correlation data to the MRSCont.');
             if nargin<3
@@ -70,16 +71,16 @@ cb(4,:) = temp;
 
 %%% 3. EXTRACT METABOLITE CONCENTRATIONS%%%
 idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
-ConcData = MRSCont.quantify.tables.(which) {:,idx_1};
+ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};
 metabFlag = 0;
 
 if ischar(corrData)
     metabFlag = 1;
     idx_1  = find(strcmp(MRSCont.quantify.metabs,corrData));
-    corrData = MRSCont.quantify.tables.(which) {:,idx_1};    
+    corrData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};
 end
 
-if strcmp(which, 'tCr')
+if strcmp(quant, 'tCr')
     ylab = [metab ' / tCr'];
     if metabFlag
         xlab = [corrDataName ' / tCr'];
@@ -87,7 +88,7 @@ if strcmp(which, 'tCr')
         xlab = corrDataName;
     end
 end
-if strcmp(which, 'rawWaterScaled')
+if strcmp(quant, 'rawWaterScaled')
     ylab = [metab ' rawWaterScaled  (i.u.)'];
     if metabFlag
         xlab = [corrDataName ' rawWaterScaled  (i.u.)'];
@@ -95,7 +96,7 @@ if strcmp(which, 'rawWaterScaled')
         xlab = corrDataName;
     end
 end
-if strcmp(which, 'CSFWaterScaled')
+if strcmp(quant, 'CSFWaterScaled')
     ylab = [metab ' CSFWaterScaled  (i.u.)'];
     if metabFlag
         xlab = [corrDataName ' CSFWaterScaled  (i.u.)'];
@@ -103,7 +104,7 @@ if strcmp(which, 'CSFWaterScaled')
         xlab = corrDataName;
     end
 end
-if strcmp(which, 'TissCorrWaterScaled')
+if strcmp(quant, 'TissCorrWaterScaled')
     ylab = [metab ' TissCorrWaterScaled  (i.u.)'];
     if metabFlag
         xlab = [corrDataName ' TissCorrWaterScaled  (i.u.)'];
@@ -120,7 +121,7 @@ for g = 1 : MRSCont.overview.NoGroups
     y_tmp = ConcData(MRSCont.overview.groups == g);
     scatter (x_tmp,y_tmp,'SizeData', 10, 'MarkerFaceColor', cb(g,:), 'MarkerEdgeColor', 'none');
     hold on
-end    
+end
 legend(MRSCont.overview.groupNames);
 legend('boxoff');
 legend('AutoUpdate','off','Location','north','Orientation','horizontal');

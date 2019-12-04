@@ -135,93 +135,97 @@ for kk = 1:MRSCont.nDatasets
     msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    
-    
+
+
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
     metsName = MRSCont.quantify.metabs; % just for the names
     amplMets = MRSCont.quantify.amplMets{kk};
     amplWater = MRSCont.fit.results.(waterType).fitParams{kk}.ampl;
-    
-    
+
+
     %%% 2. GET CREATINE RATIOS %%%
     % We can always do this, but let's use the flag just to be safe:
     if qtfyCr
-        
+
         % Extract metabolite amplitudes from fit
         tCrRatios = quantCr(metsName, amplMets, getResults);
-        
+
         % Save back to Osprey data container
         for ll = 1:length(getResults)
             MRSCont.quantify.(getResults{ll}).tCr{kk}  = tCrRatios.(getResults{ll});
         end
-        
+
     end
-    
-    
+
+
     %%% 3. GET WATER-SCALED, TISSUE-UNCORRECTED RATIOS %%%
     if qtfyH2O
-       
+
         % Get repetition times
-        metsTR  = MRSCont.processed.A{kk}.tr;
-        waterTR = MRSCont.processed.(waterType){kk}.tr;
+        metsTR  = MRSCont.processed.A{kk}.tr * 1e-3;
+        waterTR = MRSCont.processed.(waterType){kk}.tr * 1e-3;
         % Get echo times
-        metsTE  = MRSCont.processed.A{kk}.te;
-        waterTE = MRSCont.processed.(waterType){kk}.te;
+        metsTE  = MRSCont.processed.A{kk}.te * 1e-3;
+        waterTE = MRSCont.processed.(waterType){kk}.te * 1e-3;
         % Calculate water-scaled, but not tissue-corrected metabolite levels
-        rawWaterScaled = quantH2O(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE);
-        
+        rawWaterScaled = quantH2O(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE);
+
         % Save back to Osprey data container
-        MRSCont.quantify.rawWaterScaled{kk} = rawWaterScaled;
-        
+        for ll = 1:length(getResults)
+            MRSCont.quantify.(getResults{ll}).rawWaterScaled{kk} = rawWaterScaled.(getResults{ll});
+        end
+
     end
-    
-    
+
+
     %%% 4. GET CSF CORRECTION %%%
     if qtfyCSF
-        
+
         % Apply CSF correction
         fCSF = MRSCont.seg.tissue.fCSF(kk);
-        CSFWaterScaled = quantCSF(rawWaterScaled, fCSF);
-        
+        CSFWaterScaled = quantCSF(rawWaterScaled, fCSF, getResults);
+
         % Save back to Osprey data container
-        MRSCont.quantify.CSFWaterScaled(kk) = CSFWaterScaled;
-        
+        for ll = 1:length(getResults)        
+            MRSCont.quantify.(getResults{ll}).CSFWaterScaled{kk} = CSFWaterScaled.(getResults{ll});
+        end
     end
-    
-    
+
+
     %%% 5. GET TISSUE CORRECTION %%%
     if qtfyTiss
-        
+
         % Apply tissue correction
         fGM = MRSCont.seg.tissue.fGM(kk);
         fWM = MRSCont.seg.tissue.fWM(kk);
-        TissCorrWaterScaled = quantTiss(amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF);
-        
+        TissCorrWaterScaled = quantTiss(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF);
+
         % Save back to Osprey data container
-        MRSCont.quantify.TissCorrWaterScaled(kk) = TissCorrWaterScaled;
-        
+        for ll = 1:length(getResults)        
+            MRSCont.quantify.(getResults{ll}).TissCorrWaterScaled{kk} = TissCorrWaterScaled.(getResults{ll});
+        end
     end
-    
-    
+
+
     %%% 6. GET ALPHA CORRECTION (THIS IS FOR GABA ONLY AT THIS POINT) %%%
     if qtfyAlpha
-        
+
         % For now, this is done for GABA only; however, the principle
         % could be extended to other metabolites, as long as we have some
         % form of prior knowledge about their concentrations in GM and WM.
-        
+
         % Calculate mean WM/GM fractions
         meanfGM = mean(MRSCont.seg.tissue.fGM); % average GM fraction across datasets
         meanfWM = mean(MRSCont.seg.tissue.fWM); % average WM fraction across datasets
-        [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM);
-        
+        [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName,amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM);
+
         % Save back to Osprey data container
-        MRSCont.quantify.AlphaCorrWaterScaled = AlphaCorrWaterScaled;
-        MRSCont.quantify.AlphaCorrWaterScaledGroupNormed = AlphaCorrWaterScaledGroupNormed;
-        
+        MRSCont.quantify.AlphaCorrWaterScaled{kk} = AlphaCorrWaterScaled;
+        MRSCont.quantify.AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
+
     end
-    
-    
+
+
 end
 fprintf('... done.\n');
 toc(refProcessTime);
@@ -239,11 +243,15 @@ end
 if qtfyTiss
     [MRSCont] = osp_createTable(MRSCont,'TissCorrWaterScaled', getResults);
 end
-
+if qtfyAlpha
+    [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaled', getResults);
+    [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaledGroupNormed', getResults);
+end
 %% Clean up and save
 % Set exit flags
 MRSCont.flags.didQuantify           = 1;
-
+% Save the metabolite tables as CSV structure
+exportCSV (MRSCont,saveDestination, getResults);
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;
@@ -343,14 +351,14 @@ end
 for ll = 1:length(getResults)
     tCrRatios.(getResults{ll}) = amplMets.(getResults{ll})./tCrNorm;
 end
-    
+
 end
 %%% /Calculate ratios to totale creatine %%%
 
 
 
 %%% Calculate raw water-scaled estimates %%%
-function rawWaterScaled = quantH2O(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE)
+function rawWaterScaled = quantH2O(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE)
 
 % Define constants
 PureWaterConc       = 55500;            % mmol/L
@@ -371,38 +379,41 @@ T1_Water            = 1.100;            % average of WM and GM, Wansapura et al.
 T2_Water            = 0.095;            % average of WM and GM, Wansapura et al. 1999 (JMRI)
 
 % Metabolites
-for kk = 1:length(metsName)
-    [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName{kk});
-    % average across GM and WM
-    T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
-    T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
-    T1_Factor(kk) = (1-exp(-waterTR./T1_Water)) ./ (1-exp(-metsTR./T1_Metab(kk)));
-    T2_Factor(kk) = exp(-waterTE./T2_Water) ./ exp(-metsTE./T2_Metab(kk));
-    
-    % Calculate
-    rawWaterScaled(kk) = (amplMets(kk) ./ amplWater) .* PureWaterConc ...
-        .* WaterVisibility .* T1_Factor(kk) .* T2_Factor(kk);
+for ll = 1:length(getResults)
+    for kk = 1:length(metsName)
+        [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName{kk});
+        % average across GM and WM
+        T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
+        T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
+        T1_Factor(kk) = (1-exp(-waterTR./T1_Water)) ./ (1-exp(-metsTR./T1_Metab(kk)));
+        T2_Factor(kk) = exp(-waterTE./T2_Water) ./ exp(-metsTE./T2_Metab(kk));
+
+        % Calculate
+        rawWaterScaled.(getResults{ll})(kk,1) = (amplMets.(getResults{ll})(kk) ./ amplWater) .* PureWaterConc ...
+            .* WaterVisibility .* T1_Factor(kk) .* T2_Factor(kk);
+    end
 end
-    
 end
 %%% /Calculate raw water-scaled estimates %%%
 
 
 
 %%% Calculate CSF-corrected water-scaled estimates %%%
-function CSFWaterScaled = quantCSF(rawWaterScaled, fCSF)
+function CSFWaterScaled = quantCSF(rawWaterScaled, fCSF, getResults)
 
 % Simply divide the raw water-scaled, but tissue-uncorrected values by the
 % non-CSF fraction:
-CSFWaterScaled = rawWaterScaled ./ (1 - fCSF);
-    
+for ll = 1:length(getResults)
+    CSFWaterScaled.(getResults{ll}) = rawWaterScaled.(getResults{ll}) ./ (1 - fCSF);
+end
+
 end
 %%% /Calculate CSF-corrected water-scaled estimates %%%
 
 
 
 %%% Calculate tissue-corrected water-scaled estimates %%%
-function TissCorrWaterScaled = quantTiss(amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF)
+function TissCorrWaterScaled = quantTiss(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF)
 % This function calculates water-scaled, tissue-corrected metabolite
 % estimates in molal units, according to Gasparovic et al, Magn Reson Med
 % 55:1219-26 (2006).
@@ -449,28 +460,29 @@ molal_fWM  = (fWM*concW_WM) / (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
 molal_fCSF = (fCSF*concW_CSF) / (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
 
 % Metabolites
-for kk = 1:length(metsName)
-    [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName{kk});
-    % average across GM and WM
-    T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
-    T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
-    
-    % Calculate water-scaled, tissue-corrected molal concentration
-    % estimates
-    TissCorrWaterScaled(kk) = (amplMets(kk) ./ amplWater) .* molal_concW ...
-        .* (molal_fGM  * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
-            molal_fWM  * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
-            molal_fCSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk)))) / ...
-            (1 - molal_fCSF);
-end
+for ll = 1:length(getResults)
+    for kk = 1:length(metsName)
+        [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName{kk});
+        % average across GM and WM
+        T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
+        T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
 
+        % Calculate water-scaled, tissue-corrected molal concentration
+        % estimates
+        TissCorrWaterScaled.(getResults{ll})(kk,1) = (amplMets.(getResults{ll})(kk) ./ amplWater) .* molal_concW ...
+            .* (molal_fGM  * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+                molal_fWM  * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+                molal_fCSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk)))) / ...
+                (1 - molal_fCSF);
+    end
+end
 end
 %%% /Calculate CSF-corrected water-scaled estimates %%%
 
 
 
 %%% Calculate alpha-corrected water-scaled GABA estimates %%%
-function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM)
+function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM)
 % This function calculates water-scaled, alpha-corrected GABA
 % estimates in molal units, according to Gasparovic et al, Magn Reson Med
 % 55:1219-26 (2006).
@@ -521,14 +533,15 @@ idx_GABA  = find(strcmp(metsName,'GABA'));
 % average across GM and WM
 T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
 T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
-    
-ConcIU_TissCorr_Harris = (amplMets(idx_GABA) ./ amplWater) ...
-        .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-            fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-            fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
-        
-AlphaCorrWaterScaled = ConcIU_TissCorr_Harris / (fGM + alpha*fWM);
-AlphaCorrWaterScaledGroupNormed = ConcIU_TissCorr_Harris * CorrFactor;        
+for ll = 1:length(getResults)
+    ConcIU_TissCorr_Harris.(getResults{ll}) = (amplMets.(getResults{ll})(idx_GABA) ./ amplWater) ...
+            .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+                fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+                fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
+
+    AlphaCorrWaterScaled.(getResults{ll}) = ConcIU_TissCorr_Harris.(getResults{ll}) / (fGM + alpha*fWM);
+    AlphaCorrWaterScaledGroupNormed.(getResults{ll}) = ConcIU_TissCorr_Harris.(getResults{ll}) * CorrFactor;
+end
 
 end
 %%% /Calculate alpha-corrected water-scaled GABA estimates %%%
@@ -537,7 +550,7 @@ end
 
 %%% Lookup function for metabolite relaxation times %%%
 function [T1_GM, T1_WM, T2_GM, T2_WM] = lookUpRelaxTimes(metName)
-    
+
 % Look up table below
 % T1 values for NAA, Glu, Cr, Cho, Ins from Mlynarik et al, NMR Biomed
 % 14:325-331 (2001)
