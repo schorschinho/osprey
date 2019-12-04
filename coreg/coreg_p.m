@@ -61,9 +61,9 @@ end
 
 angulations = get_euler(e1_SVS_n2, e2_SVS_n2, e3_SVS_n2);
 
-e1_SVS = geom.size(1) * e1_SVS_n2;
-e2_SVS = geom.size(2) * e2_SVS_n2;
-e3_SVS = geom.size(3) * e3_SVS_n2;
+e1_SVS = geom.size.dim1 * e1_SVS_n2;
+e2_SVS = geom.size.dim2 * e2_SVS_n2;
+e3_SVS = geom.size.dim3 * e3_SVS_n2;
 
 % LPS gives center of voxel
 LPS_SVS_edge = VoxOffs - 0.5 * e1_SVS ...
@@ -149,7 +149,7 @@ E_MRI = [e1_MRI_n2 e2_MRI_n2 e3_MRI_n2];
 c_MRS = VoxOffs';
 c_MRI = E_MRI' * (c_MRS - LPS_MRI_edge);
 d_MRI = c_MRI ./ MRI_voxel_size';
-s_MRS = sqrt(sum(geom.size(:).^2))/2;
+s_MRS = sqrt(sum([geom.size.dim1 .^2, geom.size.dim2 .^2, geom.size.dim3 .^2]))/2;
 d_MRS = s_MRS ./ MRI_voxel_size';
 
 [Xm,Ym,Zm] = ndgrid(1:MRI_dim(1), 1:MRI_dim(2), 1:MRI_dim(3));
@@ -209,6 +209,7 @@ vol_mask.descrip = 'MRS_voxel_mask';
 vol_mask = spm_write_vol(vol_mask,mask);
 
 % Store voxel centre for output figure
+VoxOffs(1:2) = -VoxOffs(1:2);
 voxel_ctr = VoxOffs;
 
 % Reactivate MATLAB warnings
