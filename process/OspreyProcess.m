@@ -41,7 +41,8 @@ elseif MRSCont.flags.isMEGA
 elseif MRSCont.flags.isHERMES
     [MRSCont] = osp_processHERMES(MRSCont);
 elseif MRSCont.flags.isHERCULES
-    [MRSCont] = osp_processHERCULES(MRSCont);
+    % For now, process HERCULES like HERMES data
+    [MRSCont] = osp_processHERMES(MRSCont);
 else
     error('No flag set for sequence type!');
 end

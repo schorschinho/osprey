@@ -1,5 +1,5 @@
-function [outA, outB, outC, outD] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
-%% [outA, outB, outC, outD] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
+function [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
+%% [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
 %   This function decides how the four-provided HERMES/HERCULES sub-spectra are
 %   being edited. Currently, this function works for all combinations of
 %   HERMES and HERCULES that include GABA and GSH editing.
@@ -29,6 +29,7 @@ function [outA, outB, outC, outD] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
 %       outB    = FID-A structure containing the GABA-ON-GSH-OFF spectrum.
 %       outC    = FID-A structure containing the GABA-OFF-GSH-ON spectrum.
 %       outD    = FID-A structure containing the GABA-ON-GSH-ON spectrum.
+%       commuteOrder = Order of commuting the input spectra.
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-08-15)
@@ -86,6 +87,9 @@ eval(['outA = ' inputVars{idx_OFF_OFF}]);
 eval(['outB = ' inputVars{idx_ON_OFF}]);
 eval(['outC = ' inputVars{idx_OFF_ON}]);
 eval(['outD = ' inputVars{idx_ON_ON}]);
+
+% Save commute order
+commuteOrder = [find(idx_OFF_OFF), find(idx_ON_OFF), find(idx_OFF_ON), find(idx_ON_ON)];
 
 end
 

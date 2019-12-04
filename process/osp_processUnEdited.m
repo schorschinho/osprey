@@ -65,10 +65,8 @@ for kk = 1:MRSCont.nDatasets
     
     
     %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
-    % Measure drift pre-alignment
-    driftPre = op_measureDrift(raw);
     if raw.averages > 1 && raw.flags.averaged == 0
-        [raw, fs, phs, weights]     = op_robustSpecReg(raw, 'unedited', 0); % Align and average
+        [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0); % Align and average
         raw.specReg.fs              = fs; % save align parameters
         raw.specReg.phs             = phs; % save align parameters
         raw.specReg.weights         = weights; % save align parameters
@@ -79,7 +77,6 @@ for kk = 1:MRSCont.nDatasets
         raw.specReg.phs             = 0; % save align parameters
         raw.specReg.weights         = 1; % save align parameters
     end
-    
     
     %%% 4. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%
     % Automate determination whether the NAA peak has positive polarity.
@@ -144,8 +141,9 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
     FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
     MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
-    MRSCont.QM.drift.A{kk}= driftPre;
-    MRSCont.QM.freqShift.A(kk) = refShift;
+    MRSCont.QM.drift.pre.A{kk}  = driftPre;
+    MRSCont.QM.drift.post.A{kk} = driftPost;
+    MRSCont.QM.freqShift.A(kk)  = refShift;
     
     if MRSCont.flags.hasRef
         MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor

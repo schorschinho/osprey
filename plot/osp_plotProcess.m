@@ -43,7 +43,7 @@ end
 % Fall back to defaults if not provided
 if nargin<6
     switch which
-        case {'mets'}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
             ppmmax = 4.5;
         case {'ref', 'w'}
             ppmmax = 2*4.68;
@@ -52,7 +52,7 @@ if nargin<6
     end
     if nargin<5
         switch which
-            case {'mets'}
+            case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
                 ppmmin = 0.2;
             case {'ref', 'w'}
                 ppmmin = 0;
@@ -74,14 +74,52 @@ if nargin<6
     end
 end
 
+% Set up colormaps
+if GUI
+    colormap = MRSCont.colormap;
+else
+    colormap.Background     = [1 1 1];
+    colormap.LightAccent    = [110/255 136/255 164/255];
+    colormap.Foreground     = [0 0 0];
+    colormap.Accent         = [11/255 71/255 111/255];
+end
+
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract raw and processed spectra in the plot range
 switch which
-    case {'mets'}
+    case {'A', 'B', 'C', 'D'}
+        raw            = MRSCont.raw{kk};
+        procDataToPlot = MRSCont.processed.(which){kk};
+        
+        % Get sub-spectra, depending on whether they are stored as such
+        if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
+            if raw.subspecs == 4
+                raw_A   = op_takesubspec(raw,1);                    % Get first subspectrum
+                raw_B   = op_takesubspec(raw,2);                    % Get second subspectrum
+                raw_C   = op_takesubspec(raw,3);                    % Get third subspectrum
+                raw_D   = op_takesubspec(raw,4);                    % Get fourth subspectrum
+            else
+                raw_A   = op_takeaverages(raw,1:4:raw.averages);    % Get first subspectrum
+                raw_B   = op_takeaverages(raw,2:4:raw.averages);    % Get second subspectrum
+                raw_C   = op_takeaverages(raw,3:4:raw.averages);    % Get third subspectrum
+                raw_D   = op_takeaverages(raw,4:4:raw.averages);    % Get fourth subspectrum
+            end
+        elseif MRSCont.flags.isMEGA
+            if raw.subspecs == 2
+                raw_A   = op_takesubspec(raw,1);                    % Get first subspectrum
+                raw_B   = op_takesubspec(raw,2);                    % Get second subspectrum
+            else
+                raw_A   = op_takeaverages(raw,1:2:raw.averages);    % Get first subspectrum
+                raw_B   = op_takeaverages(raw,2:2:raw.averages);    % Get second subspectrum
+            end
+        end
+        
+        eval(['rawDataToPlot = raw_' which ';']);
+        
+    case {'diff1', 'diff2', 'sum'}
         rawDataToPlot  = MRSCont.raw{kk};
-        procDataToPlot = MRSCont.processed.A{kk};
-        which = 'A';
+        procDataToPlot = MRSCont.processed.(which){kk};
     case 'ref'
         rawDataToPlot  = MRSCont.raw_ref{kk};
         procDataToPlot = MRSCont.processed.ref{kk};
@@ -101,7 +139,6 @@ else
     out = figure('Visible','off');
 end
 
-nAvgs = rawDataToPlot.averages;
 % Divide the figure into six tiles, create four axes
 ax_raw      = subplot(3, 2, 1);
 ax_aligned  = subplot(3, 2, 3);
@@ -113,13 +150,14 @@ ax_drift    = subplot(3, 2, 2);
 % Add the data and plot
 hold(ax_raw, 'on');    
 % Loop over all averages
+nAvgsRaw = rawDataToPlot.averages;
 if ~GUI
-    for rr = 1:nAvgs
+    for rr = 1:nAvgsRaw
         plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr), 'LineWidth', 0.5);
     end
 else
-    for rr = 1:nAvgs
-        plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr), 'LineWidth', 0.5, 'Color', MRSCont.colormap.Foreground);
+    for rr = 1:nAvgsRaw
+        plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr), 'LineWidth', 0.5, 'Color', colormap.Foreground);
     end
 end
 plotRange = op_freqrange(rawDataToPlot, ppmmin, ppmmax);
@@ -132,17 +170,17 @@ if ~(strcmp(which,'w') || strcmp(which,'ref'))
         plot(ax_raw, [3.027 3.027], [y(1)-y(2) y(2)], ':k', 'LineWidth', 0.5);
         plot(ax_raw, [3.200 3.200], [y(1)-y(2) y(2)], ':k', 'LineWidth', 0.5);
     else
-        plot(ax_raw, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', MRSCont.colormap.Foreground, 'LineWidth', 0.5);
-        plot(ax_raw, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', MRSCont.colormap.Foreground, 'LineWidth', 0.5);
-        plot(ax_raw, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', MRSCont.colormap.Foreground, 'LineWidth', 0.5);
+        plot(ax_raw, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
+        plot(ax_raw, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
+        plot(ax_raw, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
     end
         
 end
 hold(ax_raw, 'off');
-title(ax_raw, 'Pre-alignment', 'Color', MRSCont.colormap.Foreground);
-xlabel(ax_raw, 'Frequency (ppm)', 'Color', MRSCont.colormap.Foreground)
+title(ax_raw, 'Pre-alignment', 'Color', colormap.Foreground);
+xlabel(ax_raw, 'Frequency (ppm)', 'Color', colormap.Foreground)
 if GUI
-    set(ax_raw, 'YColor', MRSCont.colormap.Background);
+    set(ax_raw, 'YColor', colormap.Background);
     set(ax_raw,'YTickLabel',{})
     set(ax_raw,'YTick',{})
 end
@@ -152,8 +190,15 @@ end
 % Apply stored corrections to calculate the spectra to display
 applyDataToPlot = rawDataToPlot;
 t = rawDataToPlot.t;
-fs = procDataToPlot.specReg.fs;
-phs = procDataToPlot.specReg.phs;
+switch which
+    case {'A', 'B', 'C', 'D'} 
+        fs = procDataToPlot.specReg.fs;
+        phs = procDataToPlot.specReg.phs;
+    case {'diff1', 'diff2', 'sum'}
+        fs = rawDataToPlot.specReg.fs;
+        phs = rawDataToPlot.specReg.phs;
+end
+
 if isfield(MRSCont.QM.freqShift, which)
     refShift = -repmat(MRSCont.QM.freqShift.(which)(kk), size(fs));
     fs = fs + refShift;
@@ -167,12 +212,12 @@ applyDataToPlot.specs = fftshift(fft(applyDataToPlot.fids,[],rawDataToPlot.dims.
 hold(ax_aligned, 'on');    
 % Loop over all averages
 if ~GUI
-    for rr = 1:nAvgs
+    for rr = 1:nAvgsRaw
         plot(ax_aligned, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr), 'LineWidth', 0.5);
     end
 else
-    for rr = 1:nAvgs
-        plot(ax_aligned, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr), 'LineWidth', 0.5, 'Color', MRSCont.colormap.Foreground);
+    for rr = 1:nAvgsRaw
+        plot(ax_aligned, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr), 'LineWidth', 0.5, 'Color', colormap.Foreground);
     end
 end
 set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
@@ -183,16 +228,16 @@ if ~(strcmp(which,'w') || strcmp(which,'ref'))
         plot(ax_aligned, [3.027 3.027], [y(1)-y(2) y(2)], ':k', 'LineWidth', 0.5);
         plot(ax_aligned, [3.200 3.200], [y(1)-y(2) y(2)], ':k', 'LineWidth', 0.5);
     else
-        plot(ax_aligned, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color',MRSCont.colormap.Foreground,  'LineWidth', 0.5);
-        plot(ax_aligned, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color',MRSCont.colormap.Foreground,  'LineWidth', 0.5);
-        plot(ax_aligned, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color',MRSCont.colormap.Foreground,  'LineWidth', 0.5);        
+        plot(ax_aligned, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+        plot(ax_aligned, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+        plot(ax_aligned, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);        
     end
 end
 hold(ax_aligned, 'off');
-title(ax_aligned, 'Post-alignment', 'Color', MRSCont.colormap.Foreground);
-xlabel(ax_aligned, 'Frequency (ppm)', 'Color', MRSCont.colormap.Foreground)
+title(ax_aligned, 'Post-alignment', 'Color', colormap.Foreground);
+xlabel(ax_aligned, 'Frequency (ppm)', 'Color', colormap.Foreground)
 if GUI
-    set(ax_aligned, 'YColor', MRSCont.colormap.Background);
+    set(ax_aligned, 'YColor', colormap.Background);
     set(ax_aligned,'YTickLabel',{})
     set(ax_aligned,'YTick',{})
 end
@@ -214,16 +259,16 @@ if ~(strcmp(which,'w') || strcmp(which,'ref'))
         plot(ax_proc, [3.027 3.027], [y(1)-y(2) y(2)], ':k', 'LineWidth', 0.5);
         plot(ax_proc, [3.200 3.200], [y(1)-y(2) y(2)], ':k', 'LineWidth', 0.5);
     else
-        plot(ax_proc, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color',MRSCont.colormap.Foreground,  'LineWidth', 0.5);
-        plot(ax_proc, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color',MRSCont.colormap.Foreground,  'LineWidth', 0.5);
-        plot(ax_proc, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color',MRSCont.colormap.Foreground,  'LineWidth', 0.5);        
+        plot(ax_proc, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+        plot(ax_proc, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+        plot(ax_proc, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);        
     end    
 end
 hold(ax_proc, 'off');
-title(ax_proc, 'Aligned and averaged', 'Color', MRSCont.colormap.Foreground);
-xlabel(ax_proc, 'Frequency (ppm)', 'Color', MRSCont.colormap.Foreground)
+title(ax_proc, 'Aligned and averaged', 'Color', colormap.Foreground);
+xlabel(ax_proc, 'Frequency (ppm)', 'Color', colormap.Foreground)
 if GUI
-    set(ax_proc, 'YColor', MRSCont.colormap.Background);
+    set(ax_proc, 'YColor', colormap.Background);
     set(ax_proc,'YTickLabel',{})
     set(ax_proc,'YTick',{})
 end
@@ -231,8 +276,8 @@ end
 %%% 7. GENERATE DRIFT PLOT %%%
 if isfield(MRSCont.QM.drift, which)
     if length(MRSCont.QM.drift.(which){kk}) > 1
-        crDriftPre = MRSCont.QM.drift.(which){kk};
-        crDriftPost = op_measureDrift(applyDataToPlot);
+        crDriftPre = MRSCont.QM.drift.pre.(which){kk};
+        crDriftPost = MRSCont.QM.drift.post.(which){kk};
         hold(ax_drift, 'on');
         if ~GUI
             plot(ax_drift, crDriftPre, 'o', 'Color', 'r');
@@ -240,10 +285,10 @@ if isfield(MRSCont.QM.drift, which)
             text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end), 'Pre', 'Color', 'r');
             text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end), 'Post', 'Color', 'b');
         else
-            plot(ax_drift, crDriftPre, 'o', 'Color', MRSCont.colormap.Foreground);
-            plot(ax_drift, crDriftPost, 'o', 'Color', MRSCont.colormap.Foreground, 'MarkerFaceColor', MRSCont.colormap.Foreground);
-            text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end), 'Pre', 'Color', MRSCont.colormap.Foreground);
-            text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end), 'Post', 'Color', MRSCont.colormap.Foreground);
+            plot(ax_drift, crDriftPre, 'o', 'Color', colormap.Foreground);
+            plot(ax_drift, crDriftPost, 'o', 'Color', colormap.Foreground, 'MarkerFaceColor', colormap.Foreground);
+            text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end), 'Pre', 'Color', colormap.Foreground);
+            text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end), 'Post', 'Color', colormap.Foreground);
         end
         set(ax_drift, 'YLim', [3.028-0.06 3.028+0.06]);
         x = xlim;
@@ -253,9 +298,9 @@ if isfield(MRSCont.QM.drift, which)
             plot(ax_drift, [x(1) x(2)], [3.028+0.04 3.028+0.04], '--k', 'LineWidth', 0.5);
             hold(ax_drift, 'off');
         else
-            plot(ax_drift, [x(1) x(2)], [3.028 3.028],'LineStyle', ':', 'Color',MRSCont.colormap.Foreground, 'LineWidth', 0.5);
-            plot(ax_drift, [x(1) x(2)], [3.028-0.04 3.028-0.04],'LineStyle', '--', 'Color',MRSCont.colormap.Foreground, 'LineWidth', 0.5);
-            plot(ax_drift, [x(1) x(2)], [3.028+0.04 3.028+0.04],'LineStyle', '--', 'Color',MRSCont.colormap.Foreground, 'LineWidth', 0.5);
+            plot(ax_drift, [x(1) x(2)], [3.028 3.028],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
+            plot(ax_drift, [x(1) x(2)], [3.028-0.04 3.028-0.04],'LineStyle', '--', 'Color', colormap.Foreground, 'LineWidth', 0.5);
+            plot(ax_drift, [x(1) x(2)], [3.028+0.04 3.028+0.04],'LineStyle', '--', 'Color', colormap.Foreground, 'LineWidth', 0.5);
             hold(ax_drift, 'off');
         end
     else
@@ -265,7 +310,7 @@ if isfield(MRSCont.QM.drift, which)
         if ~GUI 
             text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color');            
         else
-            text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color',MRSCont.colormap.Foreground);
+            text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
         end
     end
 else
@@ -275,7 +320,7 @@ else
     if ~GUI 
         text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color');            
     else
-        text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color',MRSCont.colormap.Foreground);
+        text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
     end
 end
     if ~GUI
@@ -283,9 +328,9 @@ end
         ylabel(ax_drift, 'Cr frequency (ppm)');
         title(ax_drift, 'Frequency drift');
     else
-        xlabel(ax_drift, 'Averages', 'Color', MRSCont.colormap.Foreground);
-        ylabel(ax_drift, 'Cr frequency (ppm)', 'Color', MRSCont.colormap.Foreground);
-        title(ax_drift, 'Frequency drift', 'Color', MRSCont.colormap.Foreground);        
+        xlabel(ax_drift, 'Averages', 'Color', colormap.Foreground);
+        ylabel(ax_drift, 'Cr frequency (ppm)', 'Color', colormap.Foreground);
+        title(ax_drift, 'Frequency drift', 'Color', colormap.Foreground);        
     end
 
 
@@ -308,13 +353,13 @@ for ll = 1:length(axs)
             set(gca, 'YColor', 'k');
         end
     else
-        set(gca, 'XColor', MRSCont.colormap.Foreground);
-        set(gca, 'Color', MRSCont.colormap.Background);
+        set(gca, 'XColor', colormap.Foreground);
+        set(gca, 'Color', colormap.Background);
         % If no y caption, remove y axis
         if isempty(gca.YLabel.String)
-            set(gca, 'YColor', MRSCont.colormap.Background);
+            set(gca, 'YColor', colormap.Background);
         else
-            set(gca, 'YColor', MRSCont.colormap.Foreground);
+            set(gca, 'YColor', colormap.Foreground);
         end        
     end
 
@@ -330,6 +375,7 @@ box off;
 
 
 %%% 9. ADD OSPREY LOGO %%%
+% Add to the printout, but not if displayed in the GUI.
 if ~GUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
