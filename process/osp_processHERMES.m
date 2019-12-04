@@ -45,6 +45,11 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 1. GET RAW DATA %%%
     raw         = MRSCont.raw{kk};                          % Get the kk-th dataset
+    % Measure and save drift information
+    driftPre    = op_measureDrift(raw);
+    MRSCont.QM.drift.pre.diff1{kk}  = driftPre;
+    MRSCont.QM.drift.pre.diff2{kk}  = driftPre;
+    MRSCont.QM.drift.pre.sum{kk}    = driftPre;
     
     % Get sub-spectra, depending on whether they are stored as such
     if raw.subspecs == 4
@@ -64,10 +69,12 @@ for kk = 1:MRSCont.nDatasets
     % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
     % generally, not be used).
     if ~raw.flags.averaged
-        raw_A   = op_robustSpecReg(raw_A, 'HERMES', 0);
-        raw_B   = op_robustSpecReg(raw_B, 'HERMES', 0);                  
-        raw_C   = op_robustSpecReg(raw_C, 'HERMES', 0);                    
-        raw_D   = op_robustSpecReg(raw_D, 'HERMES', 0);
+        
+        [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERMES', 0);
+        [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERMES', 0);                  
+        [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERMES', 0);                    
+        [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERMES', 0);     
+
     end
         
     
@@ -124,9 +131,46 @@ for kk = 1:MRSCont.nDatasets
     %%% 4. DETERMINE ON/OFF STATUS
     % Classify the four sub-spectra such that the OFF spectrum is stored to
     % field A, and the ON spectrum is stored to field B.
-    [raw_A, raw_B, raw_C, raw_D] = osp_onOffClassifyHERMES(raw_A, raw_B, raw_C, raw_D);
-    
-       
+    [raw_A, raw_B, raw_C, raw_D, commuteOrder] = osp_onOffClassifyHERMES(raw_A, raw_B, raw_C, raw_D);
+    subSpecNames = {'A', 'B', 'C', 'D'};
+    % Save drift information back to container
+    eval(['MRSCont.QM.drift.pre.A{kk} = driftPre' subSpecNames{commuteOrder(1)} ';']);
+    eval(['MRSCont.QM.drift.pre.B{kk} = driftPre' subSpecNames{commuteOrder(2)} ';']);
+    eval(['MRSCont.QM.drift.pre.C{kk} = driftPre' subSpecNames{commuteOrder(3)} ';']);
+    eval(['MRSCont.QM.drift.pre.D{kk} = driftPre' subSpecNames{commuteOrder(4)} ';']);
+    eval(['MRSCont.QM.drift.post.A{kk} = driftPost' subSpecNames{commuteOrder(1)} ';']);
+    eval(['MRSCont.QM.drift.post.B{kk} = driftPost' subSpecNames{commuteOrder(2)} ';']);
+    eval(['MRSCont.QM.drift.post.C{kk} = driftPost' subSpecNames{commuteOrder(3)} ';']);
+    eval(['MRSCont.QM.drift.post.D{kk} = driftPost' subSpecNames{commuteOrder(4)} ';']);
+    % Generate the drift plot for the entire experiment in
+    % the correct order
+    driftPost = [MRSCont.QM.drift.post.A{kk}, MRSCont.QM.drift.post.B{kk}, MRSCont.QM.drift.post.C{kk}, MRSCont.QM.drift.post.D{kk}]';
+    driftPost = reshape(driftPost, [raw.averages, 1]);
+    MRSCont.QM.drift.post.diff1{kk}  = driftPost;
+    MRSCont.QM.drift.post.diff2{kk}  = driftPost;
+    MRSCont.QM.drift.post.sum{kk}    = driftPost;
+
+    eval(['raw_A.specReg.fs     = fs_' subSpecNames{commuteOrder(1)} ';']); % save align parameters
+    eval(['raw_B.specReg.fs     = fs_' subSpecNames{commuteOrder(2)} ';']);
+    eval(['raw_C.specReg.fs   	= fs_' subSpecNames{commuteOrder(3)} ';']);
+    eval(['raw_D.specReg.fs 	= fs_' subSpecNames{commuteOrder(4)} ';']);
+    eval(['raw_A.specReg.phs 	= phs_' subSpecNames{commuteOrder(1)} ';']);
+    eval(['raw_B.specReg.phs    = phs_' subSpecNames{commuteOrder(2)} ';']);
+    eval(['raw_C.specReg.phs    = phs_' subSpecNames{commuteOrder(3)} ';']);
+    eval(['raw_D.specReg.phs    = phs_' subSpecNames{commuteOrder(4)} ';']);
+    eval(['raw_A.specReg.weights 	= weights_' subSpecNames{commuteOrder(1)} ';']);
+    eval(['raw_B.specReg.weights    = weights_' subSpecNames{commuteOrder(2)} ';']);
+    eval(['raw_C.specReg.weights    = weights_' subSpecNames{commuteOrder(3)} ';']);
+    eval(['raw_D.specReg.weights    = weights_' subSpecNames{commuteOrder(4)} ';']);
+    % Generate the frequency and phase plots for the entire experiment in
+    % the correct order
+    fs = [raw_A.specReg.fs, raw_B.specReg.fs, raw_C.specReg.fs, raw_D.specReg.fs]';
+    fs = reshape(fs, [raw.averages, 1]);
+    phs = [raw_A.specReg.phs, raw_B.specReg.phs, raw_C.specReg.phs, raw_D.specReg.phs]';
+    phs = reshape(phs, [raw.averages, 1]);
+    MRSCont.raw{kk}.specReg.fs              = fs; % save align parameters
+    MRSCont.raw{kk}.specReg.phs             = phs; % save align parameters
+
     %%% 5. BUILD SUM AND DIFF SPECTRA %%%
     % Correct the frequency axis so that Cr appears at 3.027 ppm
     [raw_A,~] = op_ppmref(raw_A, 2.9, 3.1, 3.027);
@@ -148,6 +192,7 @@ for kk = 1:MRSCont.nDatasets
     diff2   = op_addScans(raw_C,raw_D);
     diff2   = op_addScans(diff2,raw_A,1);
     diff2   = op_addScans(diff2,raw_B,1);
+    
     
     %%% 6. REMOVE RESIDUAL WATER %%%
     % Remove water and correct back to baseline.
@@ -211,13 +256,13 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
     % Reference resulting data correctly and consistently
-    [raw_A,ref_shift]   = op_ppmref(raw_A,1.8,2.2,2.008);           % Reference OFF-OFF spectrum to NAA @ 2.008 ppm                                                                          
-    [raw_B]             = op_freqshift(raw_B,ref_shift);            % Apply same shift to ON-OFF
-    [raw_C]             = op_freqshift(raw_C,ref_shift);            % Apply same shift to OFF-ON
-    [raw_D]             = op_freqshift(raw_D,ref_shift);            % Apply same shift to ON-ON
-    [diff1]             = op_freqshift(diff1,ref_shift);            % Apply same shift to diff1
-    [diff2]             = op_freqshift(diff2,ref_shift);            % Apply same shift to diff2
-    [sum]               = op_freqshift(sum,ref_shift);              % Apply same shift to sum
+    [raw_A, refShift]   = op_ppmref(raw_A,1.8,2.2,2.008);          % Reference OFF-OFF spectrum to NAA @ 2.008 ppm                                                                          
+    [raw_B]             = op_freqshift(raw_B,refShift);            % Apply same shift to ON-OFF
+    [raw_C]             = op_freqshift(raw_C,refShift);            % Apply same shift to OFF-ON
+    [raw_D]             = op_freqshift(raw_D,refShift);            % Apply same shift to ON-ON
+    [diff1]             = op_freqshift(diff1,refShift);            % Apply same shift to diff1
+    [diff2]             = op_freqshift(diff2,refShift);            % Apply same shift to diff2
+    [sum]               = op_freqshift(sum,refShift);              % Apply same shift to sum
     
     
     %%% 8. SAVE BACK TO MRSCONT CONTAINER
@@ -258,6 +303,7 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
     FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
     MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.freqShift.A(kk) = refShift;
     
     if MRSCont.flags.hasRef
         MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor

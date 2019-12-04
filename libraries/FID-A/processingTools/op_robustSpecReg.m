@@ -23,7 +23,7 @@
 %             averages.
 
 
-function [out,fs,phs, w] = op_robustSpecReg(in, seqType, echo)
+function [out, fs, phs, w, driftPre, driftPost] = op_robustSpecReg(in, seqType, echo)
 
 if nargin < 2
     echo = 1;
@@ -50,8 +50,15 @@ end
 % get aligned separately.
 if in.dims.subSpecs == 0
     numSubSpecs = 1;
+    % Measure drift pre-alignment
+    driftPre = op_measureDrift(in);
 else
     numSubSpecs = in.sz(in.dims.subSpecs);
+    % Measure drift pre-alignment
+    for mm = 1:numSubSpecs
+        in_sub = op_takesubspec(in, mm);
+        driftPre(mm) = op_measureDrift(in_sub);
+    end
 end
 
 % Pre-allocate memory.
@@ -69,6 +76,7 @@ t                 = in.t;
 input.dwelltime   = in.dwelltime;
 
 for mm=1:numSubSpecs
+
     %%% Automatic lipid/unstable residual water removal %%%
     freq        = in.ppm;
     waterLim = freq <= 4.68 + 0.25 & freq >= 4.68 - 0.25;
@@ -244,8 +252,26 @@ if echo
     fprintf('... done.\n');
 end
 
+%%% 2. CALCULATE THE DRIFT AFTER CORRECTIONS
+out_temp=in;
+out_temp.fids=fids;
+%re-calculate Specs using fft
+out_temp.specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
+% Measure drift post-alignment
+if in.dims.subSpecs == 0
+    numSubSpecs = 1;
+    driftPost = op_measureDrift(out_temp);
+else
+    numSubSpecs = in.sz(in.dims.subSpecs);
+    % Measure drift pre-alignment
+    for mm = 1:numSubSpecs
+        out_temp_sub = op_takesubspec(out_temp, mm);
+        driftPost(mm) = op_measureDrift(out_temp_sub);
+    end
+end
 
-%%% 2. RE-RUN THE RANKING ALGORITHM TO DETERMINE WEIGHTS %%%
+
+%%% 3. RE-RUN THE RANKING ALGORITHM TO DETERMINE WEIGHTS %%%
 
 % Determine optimal iteration order by calculating a similarity metric (mean squared error)
 w = cell(1,numSubSpecs);
