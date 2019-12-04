@@ -7,7 +7,7 @@ function [MRSCont] = OspreyJob(jobFile)
 %   A valid Osprey job contains four distinct classes of items:
 %       1. basic information on the MRS sequence used
 %       2. several settings for data handling and modeling
-%       3. a list of MRS (and, optionally, structural imaging) data files 
+%       3. a list of MRS (and, optionally, structural imaging) data files
 %          to be loaded
 %       4. an output folder to store the results and exported files
 %
@@ -64,7 +64,7 @@ if strcmp(jobFileFormat,'csv')
     end
     % Convert to a struct array
     jobStruct = table2struct(jobCSV);
-    
+
     % Check whether the relevant fieldnames have been entered,
     % and save them as separate cells to be saved into the MRSCont
     % container.
@@ -150,7 +150,7 @@ if strcmp(jobFileFormat,'csv')
 end
 
 
-%%% 4. SAVE SETTINGS INTO MRSCONT %%%
+%%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
@@ -164,6 +164,12 @@ switch seqType
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
 MRSCont.opts = opts;
+if exist('file_stat','var')
+    MRSCont.file_stat = file_stat;
+    MRSCont.flags.hasStatfile = 1;
+else
+    MRSCont.flags.hasStatfile = 0;
+end
 
 
 %%% 5. SAVE FILE/FOLDER NAMES INTO MRSCONT %%%
@@ -210,7 +216,7 @@ if length(isUnique) ~= 1
         msg2 = sprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
         msg = strcat(msg,msg2);
     end
-    
+
     error('MyComponent:invalidJob', ['Invalid job file! ' msg '\b.']);
 end
 
