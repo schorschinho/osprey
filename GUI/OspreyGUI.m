@@ -87,6 +87,7 @@ function OspreyGUI(MRSCont)
 
     gui.SelectedDataset = 1;
     gui.SelectedSubFile = 1;
+    gui.SelectedSubSpec = 1;
     gui.SelectedFit = 1;
     gui.SelectedModel = 1;
     gui.SelectedQuant = 1;
@@ -109,6 +110,7 @@ function OspreyGUI(MRSCont)
     if MRSCont.flags.didProcess %Get variables regarding the processing
         gui.NoPro = length(fieldnames(MRSCont.processed));
         gui.ProNames = fieldnames(MRSCont.processed);
+        gui.ProNames = sort(gui.ProNames);
     end
     if MRSCont.flags.didFit %Get variables regarding the fitting
         gui.NoFits = length(fieldnames(MRSCont.fit.results));
@@ -462,21 +464,19 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
                 'Padding', 5,'BackgroundColor', gui.colormap.Background);
             set(gui.(gui.proTabhandles{t}), 'Heights', [-0.1 -0.9]);
             % Get parameter from file to fill the info panel
-            if gui.SelectedSubFile == 1
-                StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                             '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
-                             '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                             num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-            else if gui.SelectedSubFile == 2
-            StatText = ['Reference Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                             '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.averages)...
-                             '; Sz: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                             num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+            if (strcmp(gui.ProNames{gui.SelectedSubSpec},'A') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D') || strcmp(gui.ProNames{gui.SelectedSubSpec},'C') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D'))
+                StatText = ['Metabolite Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
+                            num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
+                            ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6)...
+                            ' Hz Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6) ' Hz'];
+            else if strcmp(gui.ProNames{gui.SelectedSubSpec},'ref')
+            StatText = ['Reference Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
+                        num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
+                        ' ppm / Hz']
                 else
-                    StatText = ['Water Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                             '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.averages)...
-                             '; Sz: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                             num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+                    StatText = ['Water Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
+                                num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '/' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
+                                ' ppm / Hz']
                 end
             end
             gui.proInfoText  = uicontrol('Parent',gui.proInfo,'style','text',...
@@ -487,14 +487,7 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
  %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
  %osp_plotProcess is used to visualize the processed spectra
             temp = figure( 'Visible', 'off' );
-            if gui.SelectedSubFile == 1
-                temp = osp_plotProcess(MRSCont, gui.SelectedDataset,'mets',1 );
-            else if gui.SelectedSubFile == 2
-                    temp = osp_plotProcess(MRSCont, gui.SelectedDataset,'ref',1 );
-                else
-                    temp = osp_plotProcess(MRSCont, gui.SelectedDataset,'w',1 );
-                end
-            end
+            temp = osp_plotProcess(MRSCont, gui.SelectedDataset,gui.ProNames{t},1 );
                 gui.proSpecs = uix.VBox('Parent', gui.proPlot, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     gui.proPre = uix.VBox('Parent', gui.proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
                     gui.proPost = uix.VBox('Parent', gui.proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
@@ -994,34 +987,25 @@ function osp_updateProWindow()
         gui.EmptyProPlot = 0;
 %%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 % All the information from the Raw data is read out here
-        if gui.SelectedSubFile == 1
-            StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-        else if gui.SelectedSubFile == 2
-        StatText = ['Reference Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+        if (strcmp(gui.ProNames{gui.SelectedSubSpec},'A') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D') || strcmp(gui.ProNames{gui.SelectedSubSpec},'C') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D'))
+            StatText = ['Metabolite Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
+                        num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
+                        ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6)...
+                        ' Hz Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6) ' Hz'];
+        else if strcmp(gui.ProNames{gui.SelectedSubSpec},'ref')
+        StatText = ['Reference Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
+                    num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
+                    ' ppm / Hz']
             else
-                StatText = ['Water Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+                StatText = ['Water Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
+                            num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '/' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
+                            ' ppm / Hz']
             end
         end
         set(gui.proInfoText, 'String',sprintf(StatText))
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
         temp = figure( 'Visible', 'off' );
-        if gui.SelectedSubFile == 1
-            temp = osp_plotProcess(MRSCont, gui.SelectedDataset,'mets',1 );
-        else if gui.SelectedSubFile == 2
-                temp = osp_plotProcess(MRSCont, gui.SelectedDataset,'ref',1 );
-            else
-                temp = osp_plotProcess(MRSCont, gui.SelectedDataset,'w',1 );
-            end
-        end
+        temp = osp_plotProcess(MRSCont, gui.SelectedDataset,gui.ProNames{gui.SelectedSubSpec},1 );
         delete(gui.proDrift.Children.Children)
         delete(gui.proAlgn.Children.Children)
         delete(gui.proPost.Children.Children)
@@ -1353,7 +1337,7 @@ function onListSelection( src, ~) %Callback Listbox with all files
             case 2
                 gui.proInfoText = gui.(gui.proTabhandles{gui.SelectedSubFile}).Children(2).Children;
                 % Grid for Plot and Data control sliders
-                gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubFile});
+                gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubSpec});
                 osp_updateProWindow();
             case 3
                 osp_updateCoregWindow();
@@ -1406,25 +1390,79 @@ function SelectionChangedFcn(varargin) %Callback for the main tab panel
                 end
             end
        case 2
-            spec = gui.SelectedSubFile;
-            if ~(spec == 2 || spec ==3)
-                gui.SelectedFit = 1;
-            else
-                if spec == 2
-                    gui.SelectedFit = 2;
+            spec = gui.SelectedSubSpec;
+
+            if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
+                if ~(spec == 5 || spec == 6)
+                    gui.SelectedSubFile = 1;
+                    gui.SelectedFit = 1;
                 else
-                    gui.SelectedFit = 3;
+                    if spec == 5
+                        gui.SelectedSubFile = 2;
+                        gui.SelectedFit = 4;
+                    else
+                        gui.SelectedSubFile = 3;
+                        gui.SelectedFit = 5;
+                    end
                 end
+            elseif MRSCont.flags.isMEGA
+                if ~(spec == 3 || spec == 4)
+                    gui.SelectedSubFile = 1;
+                    gui.SelectedFit = 1;
+                else
+                    if spec == 3
+                        gui.SelectedSubFile = 2;
+                        gui.SelectedFit = 3;
+                    else
+                        gui.SelectedSubFile = 3;
+                        gui.SelectedFit = 4;
+                    end
+                end
+            elseif MRSCont.flags.isUnEdited
+                        gui.SelectedSubFile = spec;
+                        gui.SelectedFit = spec;
             end
+
        case 4
-            if strcmp(gui.FitNames{gui.SelectedFit},'ref')
-                spec = 2;
+            if (strcmp(gui.FitNames{gui.SelectedFit},'off') || strcmp(gui.FitNames{gui.SelectedFit},'diff1')||...
+                strcmp(gui.FitNames{gui.SelectedFit},'diff2') || strcmp(gui.FitNames{gui.SelectedFit},'sum'))
+                spec = 1;
             else
                 if strcmp(gui.FitNames{gui.SelectedFit},'w')
                     spec = 3;
                 else
-                    spec = 1;
+                    spec = 2;
                 end
+            end
+            if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
+                if ~(spec == 2 || spec == 3)
+                    gui.SelectedSubFile = 1;
+                    gui.SelectedSubSpec = 1;
+                else
+                    if spec == 2
+                        gui.SelectedSubFile = 2;
+                        gui.SelectedSubSpec = 5;
+                    else
+                        gui.SelectedSubFile = 3;
+                        gui.SelectedSubSpec = 6;
+                    end
+                end
+            elseif MRSCont.flags.isMEGA
+                if ~(spec == 2 || spec == 3)
+                    gui.SelectedSubFile = 1;
+                    gui.SelectedSubSpec = 1;
+                else
+                    if spec == 2
+                        gui.SelectedSubFile = 2;
+                        gui.SelectedSubSpec = 3;
+                    else
+                        gui.SelectedSubFile = 3;
+                        gui.SelectedSubSpec = 4;
+                    end
+                end
+            elseif MRSCont.flags.isUnEdited
+                        gui.SelectedSubFile = spec;
+                        gui.SelectedSubSpec = spec;
             end
        case 5
        otherwise
@@ -1438,14 +1476,12 @@ function SelectionChangedFcn(varargin) %Callback for the main tab panel
         gui.ListBox.Enable = 'on';
         gui.dataInfoText = gui.(gui.rawTabhandles{gui.SelectedSubFile}).Children(2).Children;
         gui.dataPlot = gui.(gui.rawTabhandles{gui.SelectedSubFile});
-        gui.SelectedSubFile = spec;
         set(gui.rawTab, 'selection', gui.SelectedSubFile);
         case 2
         gui.ListBox.Enable = 'on';
         gui.proInfoText = gui.(gui.proTabhandles{gui.SelectedSubFile}).Children(2).Children;
-        gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubFile});
-        gui.SelectedSubFile = spec;
-        set(gui.proTab, 'selection', gui.SelectedSubFile);
+        gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubSpec});
+        set(gui.proTab, 'selection', gui.SelectedSubSpec);
         osp_updateProWindow()
         case 3
         gui.ListBox.Enable = 'on';
@@ -1483,15 +1519,13 @@ end
 
 function ProTabChangeFcn(varargin) %Callback for tab changes in the raw tab
     % User selected tab refreshs plot
-    gui.SelectedSubFile = varargin{1,2}.NewValue;
+    gui.SelectedSubSpec = varargin{1,2}.NewValue;
     slider_value=get(gui.sl_proData,'value');
     idx=round(slider_value);
     % Parameter shown in the info panel on top
     gui.proInfoText = gui.(gui.proTabhandles{gui.SelectedSubFile}).Children(2).Children;
     % Grid for Plot and Data control sliders
-    gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubFile});
-    gui.sl_proData = gui.(gui.proTabhandles{gui.SelectedSubFile}).Children(1).Children(1).Children;
-    set(gui.sl_proData, 'value', idx);
+    gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubSpec});
     gui.proPre = gui.proPlot.Children(1).Children(3).Children(2);
     gui.proPost = gui.proPlot.Children(1).Children(3).Children(1);
     gui.proDrift = gui.proPlot.Children(1).Children(2).Children(2);
