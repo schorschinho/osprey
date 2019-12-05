@@ -49,7 +49,7 @@ end
       vol = in.geometry.size.VoI_RoFOV * in.geometry.size.VoI_PeFOV * in.geometry.size.VoIThickness;
   else %GE
       % For GE data, there is currently no designation
-      vol = in.geometry.size(1) * in.geometry.size(2) * in.geometry.size(3);
+      vol = in.geometry.size.dim1 * in.geometry.size.dim2 * in.geometry.size.dim3;
   end
 % Nuc=0;
 % PatName='No Name';

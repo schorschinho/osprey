@@ -113,6 +113,8 @@ switch which
                 raw_A   = op_takeaverages(raw,1:2:raw.averages);    % Get first subspectrum
                 raw_B   = op_takeaverages(raw,2:2:raw.averages);    % Get second subspectrum
             end
+        elseif MRSCont.flags.isUnEdited
+                raw_A = raw;                                        % Get all averages
         end
         
         eval(['rawDataToPlot = raw_' which ';']);
@@ -142,7 +144,7 @@ end
 % Divide the figure into six tiles, create four axes
 ax_raw      = subplot(3, 2, 1);
 ax_aligned  = subplot(3, 2, 3);
-ax_proc     = subplot(3, 2, 5);
+ax_proc     = subplot(3, 2, 4);
 ax_drift    = subplot(3, 2, 2);
 
 
@@ -202,11 +204,12 @@ end
 if isfield(MRSCont.QM.freqShift, which)
     refShift = -repmat(MRSCont.QM.freqShift.(which)(kk), size(fs));
     fs = fs + refShift;
+    for jj = 1:size(applyDataToPlot.fids,2)
+        applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
+            exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
+    end
 end
-for jj = 1:size(applyDataToPlot.fids,2)
-    applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
-        exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
-end
+
 applyDataToPlot.specs = fftshift(fft(applyDataToPlot.fids,[],rawDataToPlot.dims.t),rawDataToPlot.dims.t);
 
 hold(ax_aligned, 'on');    
@@ -274,8 +277,8 @@ if GUI
 end
 
 %%% 7. GENERATE DRIFT PLOT %%%
-if isfield(MRSCont.QM.drift, which)
-    if length(MRSCont.QM.drift.(which){kk}) > 1
+if isfield(MRSCont.QM.drift.pre, which)
+    if length(MRSCont.QM.drift.pre.(which){kk}) > 1
         crDriftPre = MRSCont.QM.drift.pre.(which){kk};
         crDriftPost = MRSCont.QM.drift.post.(which){kk};
         hold(ax_drift, 'on');
@@ -318,7 +321,7 @@ else
     x = xlim;
     y = ylim;
     if ~GUI 
-        text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color');            
+        text(ax_drift, x(2)/6, y(2)/2, 'No drift data available');            
     else
         text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
     end

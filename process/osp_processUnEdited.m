@@ -20,8 +20,8 @@ function [MRSCont] = osp_processUnEdited(MRSCont)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-20)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -41,11 +41,11 @@ for kk = 1:MRSCont.nDatasets
     msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    
+
     %%% 1. GET RAW DATA %%%
     raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
-    
-    
+
+
     %%% 2. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
     % If there are reference scans, load them here to allow eddy-current
     % correction of the raw data.
@@ -62,8 +62,8 @@ for kk = 1:MRSCont.nDatasets
         [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
         MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
     end
-    
-    
+
+
     %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
     if raw.averages > 1 && raw.flags.averaged == 0
         [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0); % Align and average
@@ -76,8 +76,10 @@ for kk = 1:MRSCont.nDatasets
         raw.specReg.fs              = 0; % save align parameters
         raw.specReg.phs             = 0; % save align parameters
         raw.specReg.weights         = 1; % save align parameters
+        driftPre = op_measureDrift(raw);
+        driftPost = driftPre;
     end
-    
+
     %%% 4. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%
     % Automate determination whether the NAA peak has positive polarity.
     % For water suppression methods like MOIST, the residual water may
@@ -85,15 +87,15 @@ for kk = 1:MRSCont.nDatasets
     % that the spectrum needs to be flipped.
     raw_NAA     = op_freqrange(raw,1.9,2.1);
     % Determine the polarity of the respective peak: if the absolute of the
-    % maximum minus the absolute of the minimum is positive, the polarity 
-    % of the respective peak is positive; if the absolute of the maximum 
+    % maximum minus the absolute of the minimum is positive, the polarity
+    % of the respective peak is positive; if the absolute of the maximum
     % minus the absolute of the minimum is negative, the polarity is negative.
     polResidNAA = abs(max(real(raw_NAA.specs))) - abs(min(real(raw_NAA.specs)));
     if polResidNAA < 0
         raw = op_ampScale(raw,-1);
     end
-    
-    
+
+
     %%% 5. REMOVE RESIDUAL WATER %%%
     [raw_temp,~,~]   = op_removeWater(raw,[4.6 4.8],20,0.75*length(raw.fids),0); % Remove the residual water
     if isnan(real(raw_temp.fids))
@@ -105,21 +107,21 @@ for kk = 1:MRSCont.nDatasets
     end
     raw     = raw_temp;
     raw     = op_fddccorr(raw,100);                                     % Correct back to baseline
-    
-    
+
+
     %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
     %%% DATA
     [raw, refShift]             = op_ppmref(raw,1.9,2.1,2.008);             % Reference to NAA @ 2.008 ppm
-                                      
+
     % Save back to MRSCont container
     if strcmp(MRSCont.vendor,'Siemens')
         % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
         % with the negative phase of that fit
         [raw,~]       = op_phaseCrCho(raw, 1);
     end
-    MRSCont.processed.A{kk}     = raw;   
-    
-    
+    MRSCont.processed.A{kk}     = raw;
+
+
     %%% 7. GET SHORT-TE WATER DATA %%%
     if MRSCont.flags.hasWater
         raw_w                           = MRSCont.raw_w{kk};                % Get the kk-th dataset
@@ -134,8 +136,8 @@ for kk = 1:MRSCont.nDatasets
         [raw_w,~]                       = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
         MRSCont.processed.w{kk}         = raw_w; % Save back to MRSCont container
     end
-    
-    
+
+
     %%% 8. QUALITY CONTROL PARAMETERS %%%
     % Calculate some spectral quality metrics here;
     MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
@@ -144,7 +146,9 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.drift.pre.A{kk}  = driftPre;
     MRSCont.QM.drift.post.A{kk} = driftPost;
     MRSCont.QM.freqShift.A(kk)  = refShift;
-    
+    MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost - 3.02);
+
     if MRSCont.flags.hasRef
         MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor
         FWHM_Hz                 = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
@@ -155,7 +159,7 @@ for kk = 1:MRSCont.nDatasets
         FWHM_Hz                 = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
         MRSCont.QM.FWHM.w(kk)   = FWHM_Hz./MRSCont.processed.w{kk}.txfrq*1e6; % convert to ppm
     end
-    
+
 end
 fprintf('... done.\n');
 toc(refProcessTime);
