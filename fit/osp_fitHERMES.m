@@ -102,17 +102,18 @@ for kk = 1:MRSCont.nDatasets
         
         %%% 3a. FIT CONCATENATED SPECTRUM
         % Apply scaling factor to the data
-        dataToFit   = MRSCont.processed.A{kk};
-        basisSetOff = MRSCont.fit.basisSet;
-        basisSetOff.fids = basisSetOff.fids(:,:,1);
-        basisSetOff.specs = basisSetOff.specs(:,:,1);
-        dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
-        
+        dataToFit   = {MRSCont.processed.diff1{kk}, MRSCont.processed.diff2{kk}, MRSCont.processed.sum{kk}};
+        basisSetConc = MRSCont.fit.basisSet;
+        basisSetConc.fids = basisSetConc.fids(:,:,5:7);
+        basisSetConc.specs = basisSetConc.specs(:,:,5:7);
+        for rr = 1:length(dataToFit)
+            dataToFit{rr}   = op_ampScale(dataToFit{rr}, 1/MRSCont.fit.scale{kk});
+        end
+
         % Call the fit function
-        [fitParamsConc, resBasisSetConc] = fit_runFitMultiplex(dataToFit, basisSetOff, fitModel, fitOpts);
+        [fitParamsConc, resBasisSetConc] = fit_runFitMultiplex(dataToFit, basisSetConc, fitModel, fitOpts);
         
         % Save back the basis set and fit parameters to MRSCont
-        MRSCont.fit.basisSet                   = basisSet;
         MRSCont.fit.resBasisSet.conc           = resBasisSetConc;
         MRSCont.fit.results.conc.fitParams{kk} = fitParamsConc;
         

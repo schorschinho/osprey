@@ -84,7 +84,7 @@ if strcmp(which, 'ref') || strcmp(which, 'w')
     basisSet    = MRSCont.fit.resBasisSet.water;
 else
     fitRangePPM = MRSCont.opts.fit.range;
-    basisSet    = MRSCont.fit.resBasisSet.(which){kk};
+    basisSet    = MRSCont.fit.resBasisSet.(which);
 end
 specToPlot  = op_freqrange(dataToPlot, fitRangePPM(1), fitRangePPM(end));
 fitParams   = MRSCont.fit.results.(which).fitParams{kk};
