@@ -55,7 +55,7 @@ elseif MRSCont.flags.isHERCULES
         case 'GE'
             MRSCont.opts.fit.basisSetFile        = which('fit/basissets/GE/HERCULES/BASIS.mat');
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which('fitbasissets/Siemens/HERCULES/BASIS.mat');
+            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hercules-press/basis_siemens_hercules-press.mat');
     end
 end
 
