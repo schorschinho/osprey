@@ -26,7 +26,7 @@ You will need the following software and code:
   website](http://www.fil.ion.ucl.ac.uk/spm/software/spm12/), then extract and
   add to your MATLAB path.
 
-- *(COMING SOON)* If you want to use the `Osprey` Graphical User Interface (GUI),
+- If you want to use the `Osprey` Graphical User Interface (GUI),
   please download the following toolboxes from the MATLAB File Exchange:
 
     - [GUI Layout
@@ -56,9 +56,9 @@ While a job is progressing through the `Osprey` pipeline, all raw and processed
 data associated with this job are stored in a MATLAB structure, the Osprey
 *data container*. By default, this container is called `MRSCont`, but you are free to give it a more meaningful variable name.
 
-`Osprey`'s data handling is based in large parts on the free MATLAB toolbox FID-A. The `Osprey` folder contains a library of, sometimes modified, FID-A functions and additions. Please make sure that you do not include an installation of the original FID-A suite in your MATLAB path.
+`Osprey`'s data handling is based in large parts on the free MATLAB toolbox FID-A. The `Osprey` folder contains a library of, sometimes modified, FID-A functions and additions. Please make sure that you do **not** include an installation of the original FID-A suite in your MATLAB path, as some functions in the `Osprey` folder might be shadowed by FID-A functions with the same name.
 
-The `MRSCont` container functions as a super-structure, containing
+The `MRSCont` data container functions as a super-structure, containing
 FID-A structures for each dataset and processing step, along with additional
 information (e.g. a few basic QA metrics, quantification results, etc).
 

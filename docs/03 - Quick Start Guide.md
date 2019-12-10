@@ -2,12 +2,10 @@
 
 This chapter is intended to serve as a quick rundown of the `Osprey` workflow,
 as well as syntax cheat sheet for more experienced users. The full documentation for
-each of the following commands can be found in their respective sections and
-will be released shortly.
+each of the following commands can be found in their respective sections.
 
 Please familiarize yourself with the basic `Osprey` commands. The number of
-commands is deliberately kept to a minimum, as is the number of possible input
-arguments to these commands.
+commands is deliberately kept to a minimum to facilitate a largely automated workflow with as little user interaction as necessary.
 
 ### OspreyJob
 
@@ -110,13 +108,17 @@ white matter (WM), and cerebro-spinal fluid (CSF). The relative volume fractions
 for each tissue class is subsequently used to perform water-scaled concentration
 estimation, including CSF correction and tissue-specific relaxation correction.
 
+`OspreySeg` requires that `OspreyLoad` and `OspreyCoreg` have been run before. It can be called with the command
+
+```
+[MRSCont] = OspreySeg(MRSCont);
+```
+
 Please refer to the `OspreySeg` chapter for details.
 
 ### OspreyFit
 
-`OspreyFit` will be released shortly.
-
-This function will perform linear-combination modeling of the processed spectra.
+`OspreyFit` performs linear-combination modeling of the processed spectra.
 The Osprey fitting algorithm is using metabolite basis functions for the
 specific MRS sequence, which are calculated from 2-D spatially resolved full
 density-matrix simulations, using the real sequence timings and pulse waveforms
@@ -130,12 +132,55 @@ baseline parameters in order to minimize the difference between the modeled
 spectra and the data.
 
 `OspreyFit` will save all relevant modeling parameters into the `MRSCont` data
-container. These values will be subsequently used in `OspreyQuant` to produce
+container. These values will be subsequently used in `OspreyQuantify` to produce
 quantitative estimates for all metabolites specified in the basis set.
+
+`OspreyFit` requires that `OspreyLoad` and `OspreyProcess` have been run before. It can be called with the command
+
+```
+[MRSCont] = OspreyFit(MRSCont);
+```
 
 Please refer to the `OspreyFit` chapter for details on the algorithmic
 implementation, basis set creation, and available modeling settings.
 
-### OspreyQuant
+### OspreyQuantify
 
-`OspreyQuant` will be released shortly.
+`OspreyQuantify` calculates various quantitative results from the modeling parameters
+that were previously estimated by `OspreyFit`. Depending on the data that you have provided
+in the job file (and on the type of sequence that has been run), not all of the following
+quantitative results may be available:
+
+- Metabolite ratios with respect to total creatine. Since the internal creatine standard is
+present in all spectra, this result is always calculated.
+- Raw water-scaled metabolite ratios. This is the pure, uncorrected ratio of the metabolite
+amplitude to the amplitude of an unsuppressed water signal. If a short-TE water reference spectrum
+has been provided (in the `files_w` field in the job file), its amplitude will be used as the denominator
+instead of the water reference signal (`files_ref` in the job file).
+- CSF-corrected water-scaled ratios. This is the raw water-scaled metabolite ratio corrected by the fractional
+volume of CSF in the value ($1/f_{CSF}$).
+- Tissue- and relaxation-corrected water-scaled ratios. These values are fully corrected for tissue-fraction and relaxation effects according to Gasparovic et al, Magn Reson Med 55:1219-1226 (2016).
+
+`OspreyQuantify` requires that at least `OspreyLoad`, `OspreyProcess` and `OspreyFit` have been run before - any metrics involving tissue fractions require `OspreyCoreg` and `OspreySeg` as well. `OspreyQuantify` is invoked with the command
+
+```
+[MRSCont] = OspreyQuantify(MRSCont);
+```
+
+Please refer to the `OspreyQuantify` chapter for details on the availability of each quantification technique, detailed mathematical implementations, and the default relaxation correction values.
+
+### OspreyGUI
+
+At any given point during your analysis (after `OspreyLoad`), you can invoke the `Osprey` GUI to visualize the above steps.
+
+The `Osprey` GUI contains several tabs representing the various stages of the `Osprey` workflow, i.e. `Load`, `Process`, `Fit`, `Coreg/Seg`, and `Quantify`.
+
+In addition, various useful summary plots and basic statistical evaluations of the quantitative results are shown in the `Overview` tab. This tab gets activated only if more than one dataset has been fully analyzed.
+
+The GUI can be initialized using the command
+
+```
+[MRSCont] = OspreyQuantify(MRSCont);
+```
+
+All of the above-mentioned analysis steps can also be called from inside the GUI using the respective buttons. Please refer to the `OspreyGUI` chapter for details.
