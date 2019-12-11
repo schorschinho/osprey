@@ -45,19 +45,31 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 1. GET RAW DATA %%%
     raw         = MRSCont.raw{kk};                          % Get the kk-th dataset
-    % Measure and save drift information
-    driftPre    = op_measureDrift(raw);
-    MRSCont.QM.drift.pre.diff1{kk}  = driftPre;
-    MRSCont.QM.drift.pre.diff2{kk}  = driftPre;
-    MRSCont.QM.drift.pre.sum{kk}    = driftPre;
     
     % Get sub-spectra, depending on whether they are stored as such
     if raw.subspecs == 4
+        
         raw_A   = op_takesubspec(raw,1);                    % Get first subspectrum
         raw_B   = op_takesubspec(raw,2);                    % Get second subspectrum
         raw_C   = op_takesubspec(raw,3);                    % Get third subspectrum
         raw_D   = op_takesubspec(raw,4);                    % Get fourth subspectrum
+        
+        % Measure and save drift information
+        driftPreA    = op_measureDrift(raw_A);
+        driftPreB    = op_measureDrift(raw_B);
+        driftPreC    = op_measureDrift(raw_C);
+        driftPreD    = op_measureDrift(raw_D);
+        MRSCont.QM.drift.pre.diff1{kk}  = [driftPreA driftPreB driftPreC driftPreD];
+        MRSCont.QM.drift.pre.diff2{kk}  = [driftPreA driftPreB driftPreC driftPreD];
+        MRSCont.QM.drift.pre.sum{kk}    = [driftPreA driftPreB driftPreC driftPreD];
+        
     else
+        % Measure and save drift information
+        driftPre    = op_measureDrift(raw);
+        MRSCont.QM.drift.pre.diff1{kk}  = driftPre;
+        MRSCont.QM.drift.pre.diff2{kk}  = driftPre;
+        MRSCont.QM.drift.pre.sum{kk}    = driftPre;
+    
         raw_A   = op_takeaverages(raw,1:4:raw.averages);    % Get first subspectrum
         raw_B   = op_takeaverages(raw,2:4:raw.averages);    % Get second subspectrum
         raw_C   = op_takeaverages(raw,3:4:raw.averages);    % Get third subspectrum

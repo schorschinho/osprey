@@ -80,3 +80,4 @@ out.subspecs=1;
 %FILLING IN THE FLAGS
 out.flags=in.flags;
 out.flags.writtentostruct=1;
+out.flags.isISIS=0;
