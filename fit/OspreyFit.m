@@ -56,7 +56,8 @@ elseif MRSCont.flags.isMEGA
 elseif MRSCont.flags.isHERMES
     [MRSCont] = osp_fitHERMES(MRSCont);
 elseif MRSCont.flags.isHERCULES
-    [MRSCont] = osp_fitHERCULES(MRSCont);
+    % For now, fit HERCULES like HERMES data
+    [MRSCont] = osp_fitHERMES(MRSCont);
 else
     error('No flag set for sequence type!');
 end
@@ -96,5 +97,14 @@ end
 %% Clean up and save
 % Set exit flags
 MRSCont.flags.didFit           = 1;
+
+% Save the output structure to the output folder
+% Determine output folder
+outputFolder    = MRSCont.outputFolder;
+outputFile      = MRSCont.outputFile;
+if ~exist(outputFolder,'dir')
+    mkdir(outputFolder);
+end
+save(fullfile(outputFolder, outputFile), 'MRSCont');
 
 end
