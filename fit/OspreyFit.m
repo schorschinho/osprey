@@ -98,4 +98,13 @@ end
 % Set exit flags
 MRSCont.flags.didFit           = 1;
 
+% Save the output structure to the output folder
+% Determine output folder
+outputFolder    = MRSCont.outputFolder;
+outputFile      = MRSCont.outputFile;
+if ~exist(outputFolder,'dir')
+    mkdir(outputFolder);
+end
+save(fullfile(outputFolder, outputFile), 'MRSCont');
+
 end

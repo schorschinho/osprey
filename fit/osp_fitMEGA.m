@@ -57,7 +57,7 @@ for kk = 1:MRSCont.nDatasets
         [fitParamsOff, resBasisSetOff] = fit_runFit(dataToFit, basisSetOff, fitModel, fitOpts);
         
         % Save back the basis set and fit parameters to MRSCont
-        MRSCont.fit.resBasisSet.off             = resBasisSetOff;
+        MRSCont.fit.resBasisSet.off{kk}             = resBasisSetOff;
         MRSCont.fit.results.off.fitParams{kk}   = fitParamsOff;
         
         
@@ -73,7 +73,7 @@ for kk = 1:MRSCont.nDatasets
         [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
         
         % Save back the basis set and fit parameters to MRSCont
-        MRSCont.fit.resBasisSet.diff1           = resBasisSetDiff1;
+        MRSCont.fit.resBasisSet.diff1{kk}           = resBasisSetDiff1;
         MRSCont.fit.results.diff1.fitParams{kk} = fitParamsDiff1;
         
     end
@@ -104,7 +104,7 @@ for kk = 1:MRSCont.nDatasets
         [fitParamsConc, resBasisSetConc] = fit_runFitMultiplex(dataToFit, basisSetConc, fitModel, fitOpts);
         
         % Save back the basis set and fit parameters to MRSCont
-        MRSCont.fit.resBasisSet.conc           = resBasisSetConc;
+        MRSCont.fit.resBasisSet.conc{kk}           = resBasisSetConc;
         MRSCont.fit.results.conc.fitParams{kk} = fitParamsConc;
         
     end

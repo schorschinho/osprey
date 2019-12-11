@@ -47,7 +47,7 @@ for kk = 1:MRSCont.nDatasets
     
     % Save back the basis set and fit parameters to MRSCont
     MRSCont.fit.basisSet                    = basisSet;
-    MRSCont.fit.resBasisSet.off             = resBasisSet;
+    MRSCont.fit.resBasisSet.off{kk}             = resBasisSet;
     MRSCont.fit.results.off.fitParams{kk}   = fitParams;
     
     %% end time counter
