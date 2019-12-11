@@ -51,6 +51,27 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 1. GET RAW DATA %%%
     raw         = MRSCont.raw{kk};                                          % Get the kk-th dataset
+
+    % Perform robust spectral correction with weighted averaging.
+    % This can obviously only be done, if the spectra have not been 
+    % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
+    % generally, not be used).
+    if raw.averages > 1 && raw.flags.averaged == 0
+%         raw_A   = op_robustSpecReg(raw_A, 'MEGA', 0);
+%         raw_B   = op_robustSpecReg(raw_B, 'MEGA', 0);   
+        [raw, fs, phs, weights, driftPre, driftPost]   = op_robustSpecReg(raw, 'MEGA', 0);
+        raw.specReg.fs              = fs; % save align parameters
+        raw.specReg.phs             = phs; % save align parameters
+        raw.specReg.weights         = weights; % save align parameters
+    else
+        raw.flags.averaged  = 1;
+        raw.dims.averages   = 0;
+        raw.specReg.fs              = 0; % save align parameters
+        raw.specReg.phs             = 0; % save align parameters
+        raw.specReg.weights         = 1; % save align parameters
+        driftPre = op_measureDrift(raw);
+        driftPost = driftPre;
+    end
     
     % Get sub-spectra, depending on whether they are stored as such
     if raw.subspecs == 2
@@ -60,16 +81,6 @@ for kk = 1:MRSCont.nDatasets
         raw_A   = op_takeaverages(raw,1:2:raw.averages);    % Get first subspectrum
         raw_B   = op_takeaverages(raw,2:2:raw.averages);    % Get second subspectrum
     end
-
-    % Perform robust spectral correction with weighted averaging.
-    % This can obviously only be done, if the spectra have not been 
-    % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
-    % generally, not be used).
-    if ~raw.flags.averaged
-        raw_A   = op_robustSpecReg(raw_A, 'MEGA', 0);
-        raw_B   = op_robustSpecReg(raw_B, 'MEGA', 0);                  
-    end
-        
     
     %%% 2. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
     % If there are reference scans, perform the same operations
@@ -141,7 +152,7 @@ for kk = 1:MRSCont.nDatasets
     % Create the sum spectrum
     sum             = op_addScans(raw_A,raw_B);
     % Create the GABA-edited difference spectrum
-    diff1           = op_addScans(raw_B,raw_A,1);
+    diff1           = op_addScans(raw_A,raw_B,1);
     
     
     %%% 6. REMOVE RESIDUAL WATER %%%
@@ -195,10 +206,11 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
     % Reference resulting data correctly and consistently
-    [raw_A,ref_shift]   = op_ppmref(raw_A,1.8,2.2,2.008);           % Reference edit-OFF spectrum to NAA @ 2.008 ppm                                                                          
-    [raw_B]             = op_freqshift(raw_B,ref_shift);            % Apply same shift to edit-OFF
-    [diff1]             = op_freqshift(diff1,ref_shift);            % Apply same shift to diff1
-    [sum]               = op_freqshift(sum,ref_shift);              % Apply same shift to sum
+    [~,refShift]   = op_ppmref(raw_B,1.8,2.2,2.008);           % Reference edit-OFF spectrum to NAA @ 2.008 ppm
+    [raw_A]             = op_freqshift(raw_A,refShift);            % Apply same shift to edit-OFF
+    [raw_B]             = op_freqshift(raw_B,refShift);            % Apply same shift to edit-OFF
+    [diff1]             = op_freqshift(diff1,refShift);            % Apply same shift to diff1
+    [sum]               = op_freqshift(sum,refShift);              % Apply same shift to sum
     
     
     %%% 8. SAVE BACK TO MRSCONT CONTAINER
@@ -233,9 +245,41 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 10. QUALITY CONTROL PARAMETERS %%%
     % Calculate some spectral quality metrics here;
-    MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
-    FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
+    MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk},2.8,3.2); % Cr amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},2.8,3.2); % in Hz
     MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.drift.pre.A{kk}  = driftPre{1};
+    MRSCont.QM.drift.post.A{kk} = driftPost{1};
+    MRSCont.QM.freqShift.A(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre{1} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost{1} - 3.02);
+    
+    MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk}); % NAA amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.B{kk},1.8,2.2); % in Hz
+    MRSCont.QM.FWHM.B(kk)   = FWHM_Hz./MRSCont.processed.B{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.drift.pre.B{kk}  = driftPre{2};
+    MRSCont.QM.drift.post.B{kk} = driftPost{2};
+    MRSCont.QM.freqShift.B(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.B(kk) = mean(driftPre{2} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.B(kk) = mean(driftPost{2} - 3.02);
+    
+    MRSCont.QM.SNR.diff1(kk)    = op_getSNR(MRSCont.processed.diff1{kk},2.8,3.2); % GABA amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.diff1{kk},2.8,3.2); % in Hz
+    MRSCont.QM.FWHM.diff1(kk)   = FWHM_Hz./MRSCont.processed.diff1{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.drift.pre.diff1{kk}  = reshape([driftPre{1}'; driftPre{2}'], [], 1)';
+    MRSCont.QM.drift.post.diff1{kk} = reshape([driftPost{1}'; driftPost{2}'], [], 1)';
+    MRSCont.QM.freqShift.diff1(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.pre.diff1{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.post.diff1{kk} - 3.02);
+    
+    MRSCont.QM.SNR.sum(kk)    = op_getSNR(MRSCont.processed.sum{kk},2.8,3.2); % Cr amplitude over noise floor
+    FWHM_Hz                     = op_getLW(MRSCont.processed.sum{kk},2.8,3.2); % in Hz
+    MRSCont.QM.FWHM.sum(kk)   = FWHM_Hz./MRSCont.processed.sum{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.drift.pre.sum{kk}  =  MRSCont.QM.drift.pre.diff1{kk};
+    MRSCont.QM.drift.post.sum{kk} = MRSCont.QM.drift.post.diff1{kk};
+    MRSCont.QM.freqShift.sum(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.pre.sum{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.post.sum{kk} - 3.02);
     
     if MRSCont.flags.hasRef
         MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor

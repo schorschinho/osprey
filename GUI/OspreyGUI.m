@@ -23,7 +23,7 @@ function OspreyGUI(MRSCont)
 %       MRSCont     = Osprey MRS data container.
 %
 %   AUTHORS:
-%       Helge ZÃ¶llner (Johns Hopkins University, 2019-11-07)
+%       Helge Zöllner (Johns Hopkins University, 2019-11-07)
 %       hzoelln2@jhmi.edu
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-06-30)
 %       goeltzs1@jhmi.edu
@@ -36,8 +36,13 @@ function OspreyGUI(MRSCont)
 %
 %   HISTORY:
 %       2019-07-11: First version of the code.
+%
 
+
+
+ 
 %% Initialize global variables
+
     % Close any remaining open figures & specifiy spmfolder
     close all;
     [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
@@ -83,6 +88,8 @@ function OspreyGUI(MRSCont)
     gui.colormap.LightAccent = [110/255 136/255 164/255];
     gui.colormap.Foreground = [11/255 71/255 111/255];
     gui.colormap.Accent = [11/255 71/255 111/255];
+    
+    
     MRSCont.colormap = gui.colormap;
 
     gui.SelectedDataset = 1;
@@ -95,17 +102,17 @@ function OspreyGUI(MRSCont)
     gui.SpecNames = {'metabolites'};
     gui.SelectedMetab = 1;
     gui.KeyPress = 0;
-    if MRSCont.flags.hasRef %Get variables regarding Subspectra
-        gui.NoSpecs = gui.NoSpecs + 1;
-        gui.SpecNames{2} = 'reference';
-        if MRSCont.flags.hasWater
-            gui.NoSpecs = gui.NoSpecs + 1;
-            gui.SpecNames{3} = 'water';
+    if MRSCont.flags.didLoadData
+        if ~isempty(MRSCont.raw{1,gui.SelectedDataset}.seq)
+            if strcmp(sprintf('\n'),MRSCont.raw{1,gui.SelectedDataset}.seq(end)) %Clean up Sequence Name if needed
+                SeqName = MRSCont.raw{1,gui.SelectedDataset}.seq(1:end-1);
+            else
+                SeqName = MRSCont.raw{1,gui.SelectedDataset}.seq;
+            end
+        else
+            SeqName ='';
         end
-    else if MRSCont.flags.hasWater
-            gui.NoSpecs = gui.NoSpecs + 1;
-            gui.SpecNames{2} = 'water';
-        end
+        gui.GeometryNames = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
     end
     if MRSCont.flags.didProcess %Get variables regarding the processing
         gui.NoPro = length(fieldnames(MRSCont.processed));
@@ -116,16 +123,7 @@ function OspreyGUI(MRSCont)
         gui.NoFits = length(fieldnames(MRSCont.fit.results));
         gui.FitNames = fieldnames(MRSCont.fit.results);
     end
-    if ~isempty(MRSCont.raw{1,gui.SelectedDataset}.seq)
-        if strcmp(sprintf('\n'),MRSCont.raw{1,gui.SelectedDataset}.seq(end)) %Clean up Sequence Name if needed
-            SeqName = MRSCont.raw{1,gui.SelectedDataset}.seq(1:end-1);
-        else
-            SeqName = MRSCont.raw{1,gui.SelectedDataset}.seq;
-        end
-    else
-        SeqName ='';
-    end
-    gui.GeometryNames = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
+
     if MRSCont.flags.didQuantify %Get variables regarding the quantification
         gui.NoQuantModels = length(fieldnames(MRSCont.quantify.tables));
         gui.QuantModelNames = fieldnames(MRSCont.quantify.tables);
@@ -149,7 +147,7 @@ function OspreyGUI(MRSCont)
         gui.QMNames = {'SNR','FWHM (ppm)'};
     end
 %% Create the overall figure
-gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', ...
+gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', 'Visible', 'on',...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
     % Resize such that width is 1.2941 * height (1.2941 is the ratio
     % between width and height of standard US letter size (11x8.5 in).
@@ -173,40 +171,64 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
         [img, ~, ~] = imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
         [img2] = imresize(img, 0.09);
         set(gui.b_about,'CData', img2);
-        logoFcn = @()imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
-        logoBanner = uiw.utility.loadIcon(logoFcn);
-    % Here the intro banner is created
-    gui.d = uiw.dialog.About('Name', 'Osprey','Version','0.0.1','Date', 'October 6, 2019',...
-        'Timeout', 3,'CustomText', 'Osprey is provided by Johns Hopkins University.',...
-        'ContactInfo', 'gabamrs@gmail.com','LogoCData', logoBanner);
+
 %% Create left menu
     gui.p2 = uix.VButtonBox(...
             'Parent', gui.leftMenu, 'Padding', 5, 'Spacing', 5, ...
             'BackgroundColor',gui.colormap.Background);
     set(gui.leftMenu, 'Heights', [-0.2 -0.8]);
     set(gui.p2, 'ButtonSize', [300 60]);
-    % Data input button
-    gui.b_input = uicontrol('Parent', gui.p2,'Style','PushButton','String','Data input','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
-    set(gui.b_input,'Units','Normalized','Position',[0.1 0.9 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-    set(gui.b_input,'Callback',{@gui_input});
     % Load button
-    gui.b_load = uicontrol('Parent', gui.p2,'Style','PushButton','String','Load data','Enable','off','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
+    gui.b_load = uicontrol('Parent', gui.p2,'Style','PushButton','String','Load data','Enable','on','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
     set(gui.b_load,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+    set(gui.b_load,'Callback',{@onLoad});
+    if MRSCont.flags.didLoadData
+        gui.b_load.Enable = 'off';
+    end
+    % Process button
+    gui.b_proc = uicontrol('Parent', gui.p2,'Style','PushButton','String','Process data','Enable','on','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
+    set(gui.b_proc,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+    set(gui.b_proc,'Callback',{@onProc});
+    if MRSCont.flags.didProcess
+        gui.b_proc.Enable = 'off';
+    else if ~MRSCont.flags.didLoadData
+            gui.b_proc.Enable = 'off';
+        end 
+    end
     % Fit button
-    gui.b_fit = uicontrol('Parent', gui.p2,'Style','PushButton','String','Fit data','Enable','off','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
+    gui.b_fit = uicontrol('Parent', gui.p2,'Style','PushButton','String','Fit data','Enable','on','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
     set(gui.b_fit,'Units','Normalized','Position',[0.1 0.67 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+    set(gui.b_fit,'Callback',{@onFit});
+    if MRSCont.flags.didFit
+        gui.b_fit.Enable = 'off';
+    else if ~MRSCont.flags.didProcess
+            gui.b_fit.Enable = 'off';
+        end
+    end
     % Coregister button
     gui.b_coreg = uicontrol('Parent', gui.p2,'Style','PushButton','String','CoRegister','Enable','off','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
     set(gui.b_coreg,'Units','Normalized','Position',[0.1 0.59 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+    set(gui.b_coreg,'Callback',{@onCoreg});
+    if ~isempty(MRSCont.files_nii) && ~MRSCont.flags.didCoreg && MRSCont.flags.didLoadData
+        gui.b_coreg.Enable = 'on';
+    end
     % Segment button
     gui.b_segm = uicontrol('Parent', gui.p2,'Style','PushButton','String','Segment','Enable','off','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
     set(gui.b_segm,'Units','Normalized','Position',[0.1 0.51 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+        set(gui.b_segm,'Callback',{@onSeg});
+    if ~isempty(MRSCont.files_nii) && ~MRSCont.flags.didSeg && MRSCont.flags.didCoreg
+        gui.b_segm.Enable = 'on';
+    end
     % Quantify button
-    gui.b_quant = uicontrol('Parent', gui.p2,'Style','PushButton','String','Quantify','Enable','off','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
+    gui.b_quant = uicontrol('Parent', gui.p2,'Style','PushButton','String','Quantify','Enable','on','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
     set(gui.b_quant,'Units','Normalized','Position',[0.1 0.43 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-    % CoRegStandAlone button
-    gui.b_coregSA = uicontrol('Parent', gui.p2,'Style','PushButton','String','CoRegStandAlone','Enable','off','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
-    set(gui.b_coregSA,'Units','Normalized','Position',[0.1 0.28 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+    set(gui.b_quant,'Callback',{@onQuant});
+    if MRSCont.flags.didQuantify
+        gui.b_quant.Enable = 'off';
+    else if ~MRSCont.flags.didFit
+            gui.b_quant.Enable = 'off';
+        end
+    end
     % DeIdentify button
     gui.b_deid = uicontrol('Parent', gui.p2,'Style','PushButton','String','DeIdentify','Enable','off','ForegroundColor', gui.colormap.Foreground,'BackgroundColor', gui.colormap.Background);
     set(gui.b_deid,'Units','Normalized','Position',[0.1 0.2 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
@@ -220,10 +242,10 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
     gui.controlPanel = uix.Panel('Parent', gui.leftMenu, 'Title', 'Select a File:','BackgroundColor',gui.colormap.Background);
     set(gui.controlPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold', 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground);
     gui.fileList = MRSCont.files;
-    SepFileList = cell(1,MRSCont.nDatasets);
-    gui.RedFileList = cell(1,MRSCont.nDatasets);
-    gui.OnlyFileList = cell(1,MRSCont.nDatasets);
-    for i = 1 : MRSCont.nDatasets
+    SepFileList = cell(1,length(MRSCont.files));
+    gui.RedFileList = cell(1,length(MRSCont.files));
+    gui.OnlyFileList = cell(1,length(MRSCont.files));
+    for i = 1 : length(MRSCont.files)
         SepFileList{i} =  split(gui.fileList(i), filesep);
         if length(SepFileList{i}) == 1
             SepFileList{i} =  split(gui.fileList(i), '\');
@@ -237,6 +259,7 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
                             'Value', gui.SelectedDataset, 'Interruptible', 'on', 'BusyAction', 'cancel', ...
                             'ForegroundColor',gui.colormap.Foreground,...
                             'Callback', {@onListSelection},'KeyPressFcn',@WindowKeyDown, 'KeyReleaseFcn', @WindowKeyUp);
+
 %% Create the display panel tab row
     gui.tabs = uix.TabPanel('Parent', gui.mainLayout, 'Padding', 5, 'FontName', 'Arial',...
                             'FontSize', 16,'SelectionChangedFcn',@(src,event)SelectionChangedFcn(src,event),'BackgroundColor',gui.colormap.Background,...
@@ -248,7 +271,7 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
         gui.proTab      = uix.TabPanel('Parent', gui.tabs, 'Padding', 5,'Padding', 5, 'BackgroundColor',gui.colormap.Background,...
                                         'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
                                        'FontName', 'Arial', 'TabLocation','bottom',...
-                                       'FontSize', 10,'SelectionChangedFcn',@(src,event)ProTabChangeFcn(src,event));
+                                       'FontSize', 10);
         gui.coregTab    = uix.VBox('Parent', gui.tabs, 'Spacing', 5, 'BackgroundColor',gui.colormap.Background);
         gui.fitTab      = uix.TabPanel('Parent', gui.tabs, 'Padding', 5,'Padding', 5, 'BackgroundColor',gui.colormap.Background,...
                                         'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
@@ -263,12 +286,105 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
     gui.tabs.TabWidth   = 115;
     gui.tabs.Selection  = 1;
     gui.tabs.TabEnables = {'off', 'off', 'off', 'off', 'off', 'off'};
-    set( gui.mainLayout, 'Widths', [-0.12  -0.88], 'Spacing', 5 );
+    set( gui.mainLayout, 'Widths', [-0.2  -0.8], 'Spacing', 5 );
 %% Here we create the inital setup of the tabs
     % Now enable the display tabs depending on which processing steps have
     % been completed:
-%%%%%%%%%%%%LOAD PANEL SETUP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if MRSCont.flags.didLoadData % Was data loaded at all that can be looked at?
+if MRSCont.flags.didLoadData % Was data loaded at all that can be looked at?
+    osp_iniLoadWindow();
+end
+if MRSCont.flags.didProcess % Has data fitting been run?
+    osp_iniProcessWindow();
+end
+if MRSCont.flags.didCoreg % Have coreg/segment masks been created?
+    osp_iniCoregWindow();
+end
+if MRSCont.flags.didFit % Has data fitting been run?
+    osp_iniFitWindow();
+end
+if MRSCont.flags.didQuantify % Has data fitting been run?
+    osp_iniQuantifyWindow();
+end
+if MRSCont.flags.didOverview % Has data fitting been run?
+    osp_iniOverviewWindow();
+end
+gui.tabs.Selection  = 1;
+if ~MRSCont.flags.didLoadData    
+    gui.ListBox.Enable = 'off';
+end
+set(gui.window, 'Visible','on');
+%% FUNCTIONS FOR THE LEFT MENU
+function updateListBox()
+    gui.SelectedDataset = get(gui.ListBox, 'value');
+    switch gui.tabs.Selection
+        case 1
+            osp_updateLoadWindow();
+        case 2
+            gui.proInfoText = gui.(gui.proTabhandles{gui.SelectedSubFile}).Children(2).Children;
+            % Grid for Plot and Data control sliders
+            gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubFile});
+            osp_updateProWindow();
+        case 3
+            osp_updateCoregWindow();
+        case 4
+            osp_updateFitWindow();
+        case 5
+            osp_updateQuantifyWindow();
+    end
+end
+%% FUNCTIONS FOR THE ALL TAB
+function osp_processingWindow()
+    switch gui.tabs.Selection
+        case 1
+            gui.tabs.TabEnables{1} = 'on';
+            gui.dummy = uix.VBox('Parent', gui.rawTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+            gui.dummyTxt = uicontrol('Parent',gui.dummy,'style','text', ...
+                                          'FontSize', 16, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
+                                          'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
+            gui.rawTab.TabTitles  = {'...'};
+        case 2 
+            gui.tabs.TabEnables{2} = 'on';
+            gui.dummy = uix.VBox('Parent', gui.proTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+            gui.dummyTxt = uicontrol('Parent',gui.dummy,'style','text', ...
+                                          'FontSize', 16, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
+                                          'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
+            gui.proTab.TabTitles  = {'...'};
+        case 3 
+            gui.tabs.TabEnables{3} = 'on';
+            gui.dummy = uix.VBox('Parent', gui.coregTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+            gui.dummyTxt = uicontrol('Parent',gui.dummy,'style','text', ...
+                                          'FontSize', 16, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
+                                          'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
+        case 4 
+            gui.tabs.TabEnables{4} = 'on';
+            gui.dummy = uix.VBox('Parent', gui.fitTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+            gui.dummyTxt = uicontrol('Parent',gui.dummy,'style','text', ...
+                                          'FontSize', 16, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
+                                          'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
+            gui.fitTab.TabTitles  = {'...'};
+        case 5 
+            gui.tabs.TabEnables{5} = 'on';
+            gui.dummy = uix.VBox('Parent', gui.quantifyTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+            gui.dummyTxt = uicontrol('Parent',gui.dummy,'style','text', ...
+                                          'FontSize', 16, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
+                                          'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
+    end
+    set(gui.dummyTxt, 'String', sprintf('In progress...'));        
+end
+%% FUNCTIONS FOR THE LOAD TAB
+function osp_iniLoadWindow()
+        if MRSCont.flags.hasRef %Get variables regarding Subspectra
+            gui.NoSpecs = gui.NoSpecs + 1;
+            gui.SpecNames{2} = 'reference';
+        if MRSCont.flags.hasWater
+            gui.NoSpecs = gui.NoSpecs + 1;
+            gui.SpecNames{3} = 'water';
+        end
+        else if MRSCont.flags.hasWater
+            gui.NoSpecs = gui.NoSpecs + 1;
+            gui.SpecNames{2} = 'water';
+            end
+        end
         gui.tabs.TabEnables{1} = 'on';
         gui.tabs.Selection  = 1;
         gui.EmptydataPlot = 0;
@@ -308,7 +424,7 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
                                      'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                      'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
             % Grid for Plot and Data control sliders
-            gui.dataPlot = uix.HBox('Parent', gui.(gui.rawTabhandles{t}), 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+            gui.dataPlot = uix.VBox('Parent', gui.(gui.rawTabhandles{t}), 'Padding', 5, 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
             gui.dataInfoText  = uicontrol('Parent',gui.dataInfo,'style','text',...
                                           'FontSize', 12, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
                                           'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
@@ -338,23 +454,125 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
         temp = figure( 'Visible', 'off' );
         if t == 1
             temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'mets',1 );
+            if MRSCont.flags.isUnEdited
+                gui.ViewAxes = gca();
+                set( gui.ViewAxes, 'Parent', gui.dataPlot );
+            end
+            if MRSCont.flags.isMEGA
+                set( temp.Children(2), 'Parent', gui.dataPlot );
+                set( temp.Children(1), 'Parent', gui.dataPlot );
+                set(gui.dataPlot,'Heights', [-0.49 -0.49]);
+                set(gui.dataPlot.Children(2), 'Units', 'normalized')
+                set(gui.dataPlot.Children(2), 'OuterPosition', [0,0.5,1,0.5])
+                set(gui.dataPlot.Children(1), 'Units', 'normalized')
+                set(gui.dataPlot.Children(1), 'OuterPosition', [0,0,1,0.5])
+            end
         else if t == 2
                 temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'ref',1 );
+                if MRSCont.flags.isUnEdited
+                    gui.ViewAxes = gca();
+                    set( gui.ViewAxes, 'Parent', gui.dataPlot );
+                end
+                if MRSCont.flags.isMEGA
+                    set( temp.Children(2), 'Parent', gui.dataPlot );
+                    set( temp.Children(1), 'Parent', gui.dataPlot );
+                    set(gui.dataPlot,'Heights', [-0.49 -0.49]);
+                    set(gui.dataPlot.Children(2), 'Units', 'normalized')
+                    set(gui.dataPlot.Children(2), 'OuterPosition', [0,0.5,1,0.5])
+                    set(gui.dataPlot.Children(1), 'Units', 'normalized')
+                    set(gui.dataPlot.Children(1), 'OuterPosition', [0,0,1,0.5])
+                end
             else
                 temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'w',1 );
+                gui.ViewAxes = gca();
+                set( gui.ViewAxes, 'Parent', gui.dataPlot );
             end
         end
-        gui.ViewAxes = gca();
-        set( gui.ViewAxes, 'Parent', gui.dataPlot );
+
         % Get rid of the Load figure
         close( temp );
         end
-    end
-    set(gui.mainLayout, 'Widths', [-0.2 -0.8]);
-%%%%%%%%%%%%LOAD PANEL SETUP ENDS HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%PROCESSED PANEL SETUP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if MRSCont.flags.didProcess % Has data fitting been run?
-        gui.tabs.TabEnables{2} = 'on';
+end
+function osp_updateLoadWindow()
+        gui.dataInfo = gui.(gui.rawTabhandles{gui.SelectedSubFile}).Children(2);
+        gui.dataInfoText = gui.(gui.rawTabhandles{gui.SelectedSubFile}).Children(2).Children;
+        % Grid for Plot and Data control sliders
+        gui.dataPlot = gui.(gui.rawTabhandles{gui.SelectedSubFile});
+        gui.EmptydataPlot = 0;
+%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+% All the information from the Raw data is read out here
+        if gui.SelectedSubFile == 1
+            StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+        else if gui.SelectedSubFile == 2
+            StatText = ['Reference Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+            else
+                StatText = ['Water Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+            end
+        end
+        set(gui.dataInfoText, 'String',sprintf(StatText))
+%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+        temp = figure( 'Visible', 'off' );
+        if gui.SelectedSubFile == 1
+            temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'mets',1 );
+            if MRSCont.flags.isUnEdited
+                gui.ViewAxes = gca();
+                delete(gui.dataPlot.Children(1).Children(1).Children)
+                set( gui.ViewAxes.Children, 'Parent', gui.dataPlot.Children(1).Children(1));
+                set(  gui.dataPlot.Children(1).Children(1).Title, 'String', gui.ViewAxes.Title.String)
+                set(  gui.dataPlot.Children(1).Children(1), 'XLim', gui.ViewAxes.XLim)
+            end
+            if MRSCont.flags.isMEGA               
+                delete(gui.dataPlot.Children(1).Children(1).Children)
+                delete(gui.dataPlot.Children(1).Children(2).Children)
+                set( temp.Children(2).Children, 'Parent', gui.dataPlot.Children(1).Children(2));
+                set( temp.Children(1).Children, 'Parent', gui.dataPlot.Children(1).Children(1));
+                set(  gui.dataPlot.Children(1).Children(2).Title, 'String', temp.Children(2).Title.String)
+                set(  gui.dataPlot.Children(1).Children(2), 'XLim', temp.Children(2).XLim)
+                set(  gui.dataPlot.Children(1).Children(1), 'XLim', temp.Children(1).XLim)
+            end
+        else if gui.SelectedSubFile == 2
+                temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'ref',1 );
+                if MRSCont.flags.isUnEdited
+                    gui.ViewAxes = gca();
+                    delete(gui.dataPlot.Children(1).Children(1).Children)
+                    set( gui.ViewAxes.Children, 'Parent', gui.dataPlot.Children(1).Children(1));
+                    set(  gui.dataPlot.Children(1).Children(1).Title, 'String', gui.ViewAxes.Title.String)
+                    set(  gui.dataPlot.Children(1).Children(1), 'XLim', gui.ViewAxes.XLim)
+                end
+                if MRSCont.flags.isMEGA               
+                    delete(gui.dataPlot.Children(1).Children(1).Children)
+                    delete(gui.dataPlot.Children(1).Children(2).Children)
+                    set( temp.Children(2).Children, 'Parent', gui.dataPlot.Children(1).Children(2));
+                    set( temp.Children(1).Children, 'Parent', gui.dataPlot.Children(1).Children(1));
+                    set(  gui.dataPlot.Children(1).Children(2).Title, 'String', temp.Children(2).Title.String)
+                    set(  gui.dataPlot.Children(1).Children(2), 'XLim', temp.Children(2).XLim)
+                    set(  gui.dataPlot.Children(1).Children(1), 'XLim', temp.Children(1).XLim)
+                end
+            else
+                temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'w',1 );
+                gui.ViewAxes = gca();
+                delete(gui.dataPlot.Children(1).Children(1).Children)
+                set( gui.ViewAxes.Children, 'Parent', gui.dataPlot.Children(1).Children(1));
+                set(  gui.dataPlot.Children(1).Children(1).Title, 'String', gui.ViewAxes.Title.String)
+                set(  gui.dataPlot.Children(1).Children(1), 'XLim', gui.ViewAxes.XLim)
+            end
+        end
+        % Get rid of the Load figure
+        close( temp );    
+        set(gui.dataInfo,'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}] )
+end
+%% FUNCTIONS FOR THE PROCESS TAB
+function osp_iniProcessWindow()
+    gui.tabs.TabEnables{2} = 'on';
         gui.tabs.Selection  = 2;
         gui.EmptyProPlot = 0;
 %%%%%%%%%%%%%%%%%%CREATING SUB TABS FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
@@ -387,67 +605,112 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
         end
         if MRSCont.flags.isMEGA
             if (MRSCont.flags.hasRef && MRSCont.flags.hasWater)
+                gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.refProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.proTab.TabTitles  = {'on','off','reference','water'};
-                gui.proTab.TabEnables = {'on', 'on','on', 'on'};
-                gui.proTabhandles = {'AProTab','BProTab', 'refProTab', 'wProTab'};
+                gui.proTab.TabTitles  = {'on','off','diff','sum','reference','water'};
+                gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
+                gui.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab', 'wProTab'};
             else
                 if MRSCont.flags.hasRef
+                    gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.refProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.proTab.TabTitles  = {'on','off','reference'};
-                    gui.proTab.TabEnables = {'on', 'on','on'};
-                    gui.proTabhandles = {'AProTab','BProTab','refProTab'};
+                    gui.proTab.TabTitles  = {'on','off','diff','sum','reference'};
+                    gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
+                    gui.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab'};
                 end
                 if MRSCont.flags.hasWater
+                    gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.wProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.proTab.TabTitles  = {'on','off','water'};
-                    gui.proTab.TabEnables = {'on', 'on','on'};
-                    gui.proTabhandles = {'AProTab','BProTab','wProTab'};
+                    gui.proTab.TabTitles  = {'on','off','diff','sum','water'};
+                    gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
+                    gui.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'wProTab'};
                 end
             end
         end
         if MRSCont.flags.isHERMES
             if (MRSCont.flags.hasRef && MRSCont.flags.hasWater)
+                gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.CProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.DProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.refProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.proTab.TabTitles  = {'A','B','C','D','reference','water'};
-                gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
-                gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'refProTab', 'wProTab'};
+                gui.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','reference','water'};
+                gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on', 'on', 'on', 'on'};
+                gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'diff1ProTab', 'diff2ProTab', 'sumProTab', 'refProTab', 'wProTab'};
             else
                 if MRSCont.flags.hasRef
+                    gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.CProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.DProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
                     gui.refProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.proTab.TabTitles  = {'A','B','C','D','reference'};
-                    gui.proTab.TabEnables = {'on', 'on','on','on'};
-                    gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','refProTab'};
+                    gui.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','reference'};
+                    gui.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on'};
+                    gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','refProTab'};
                 end
                 if MRSCont.flags.hasWater
+                    gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.CProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.DProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
                     gui.wProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.proTab.TabTitles  = {'A','B','C','D','water'};
-                    gui.proTab.TabEnables = {'on', 'on','on','on'};
-                    gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','wProTab'};
+                    gui.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','water'};
+                    gui.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on'};
+                    gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','wProTab'};
                 end
             end
         end
         if MRSCont.flags.isHERCULES
             if (MRSCont.flags.hasRef && MRSCont.flags.hasWater)
+                gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.CProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.DProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);   
+                gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                
                 gui.refProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.proTab.TabTitles  = {'A','B','C','D','reference','water'};
                 gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
-                gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'refProTab', 'wProTab'};
+                gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab', 'refProTab', 'wProTab'};
             else
                 if MRSCont.flags.hasRef
+                    gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.CProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.DProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
                     gui.refProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.proTab.TabTitles  = {'A','B','C','D','reference'};
                     gui.proTab.TabEnables = {'on', 'on','on','on'};
-                    gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','refProTab'};
+                    gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','refProTab'};
                 end
                 if MRSCont.flags.hasWater
+                    gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.CProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.DProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
                     gui.wProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.proTab.TabTitles  = {'A','B','C','D','water'};
                     gui.proTab.TabEnables = {'on', 'on','on','on'};
-                    gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','wProTab'};
+                    gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','wProTab'};
                 end
             end
         end
@@ -455,28 +718,29 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
 %%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 % All the information from the Raw data is read out here
         for t = length(gui.proTabhandles) : -1 : 1
-            gui.proTab.Selection  = t;
-            gui.proInfo = uix.Panel('Parent', gui.(gui.proTabhandles{t}), ...
+            ind=find(ismember(gui.proTabhandles,[gui.ProNames{t} 'ProTab']));
+            gui.proTab.Selection  = ind;
+            gui.proInfo = uix.Panel('Parent', gui.(gui.proTabhandles{ind}), ...
                 'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}],...
                 'HighlightColor', gui.colormap.Foreground,'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             % Creates layout for plotting and data control
-            gui.proPlot = uix.HBox('Parent', gui.(gui.proTabhandles{t}), ...
+            gui.proPlot = uix.HBox('Parent', gui.(gui.proTabhandles{ind}), ...
                 'Padding', 5,'BackgroundColor', gui.colormap.Background);
-            set(gui.(gui.proTabhandles{t}), 'Heights', [-0.1 -0.9]);
+            set(gui.(gui.proTabhandles{ind}), 'Heights', [-0.1 -0.9]);
             % Get parameter from file to fill the info panel
-            if (strcmp(gui.ProNames{gui.SelectedSubSpec},'A') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D') || strcmp(gui.ProNames{gui.SelectedSubSpec},'C') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D'))
-                StatText = ['Metabolite Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
-                            num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
-                            ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6)...
-                            ' Hz Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6) ' Hz'];
-            else if strcmp(gui.ProNames{gui.SelectedSubSpec},'ref')
-            StatText = ['Reference Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
-                        num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
-                        ' ppm / Hz']
+            if (strcmp(gui.ProNames{t},'A') || strcmp(gui.ProNames{t},'B') || strcmp(gui.ProNames{t},'C') || strcmp(gui.ProNames{t},'D') || strcmp(gui.ProNames{t},'diff1') || strcmp(gui.ProNames{t},'diff2') || strcmp(gui.ProNames{t},'sum'))
+                StatText = ['Metabolite Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{t})(gui.SelectedDataset)) '; FWHM: '...
+                            num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){gui.SelectedDataset}.txfrq/1e6))...
+                            ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.ProNames{t})(gui.SelectedDataset)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){gui.SelectedDataset}.txfrq/1e6)...
+                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){gui.SelectedDataset}.txfrq/1e6) ' Hz'];
+            else if strcmp(gui.ProNames{t},'ref')
+            StatText = ['Reference Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{t})(gui.SelectedDataset)) '; FWHM: '...
+                        num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){gui.SelectedDataset}.txfrq/1e6))...
+                        ' ppm / Hz'];
                 else
-                    StatText = ['Water Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
-                                num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '/' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
-                                ' ppm / Hz']
+                    StatText = ['Water Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{t})(gui.SelectedDataset)) '; FWHM: '...
+                                num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)) '/' (num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){gui.SelectedDataset}.txfrq/1e6))...
+                                ' ppm / Hz'];
                 end
             end
             gui.proInfoText  = uicontrol('Parent',gui.proInfo,'style','text',...
@@ -501,7 +765,6 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
             set( temp.Children(1), 'Parent', gui.proPre );
             close( temp );
 %%%%%%%%%%%%%%%%%%DATA CONTROLS FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Creates the scroll bar for the datasets of the MRSCont on the right side
             set(gui.proPlot,'Widths', [-0.49 -0.49]);
 
             set(gui.proPre.Children(1), 'Units', 'normalized')
@@ -513,10 +776,63 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', .
             set(gui.proAlgn.Children(1), 'Units', 'normalized')
             set(gui.proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
         end
-    end
-%%%%%%%%%%%%PROCESSED PANEL SETUP ENDS HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%COREG/SEG PANEL SETUP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if MRSCont.flags.didCoreg % Have coreg/segment masks been created?
+    set(gui.proTab,'SelectionChangedFcn',@(src,event)ProTabChangeFcn(src,event));
+end
+function osp_updateProWindow()
+        gui.EmptyProPlot = 0;
+        if (MRSCont.flags.isMEGA || MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+            if (gui.SelectedSubSpec == 1 || gui.SelectedSubSpec == 2 || gui.SelectedSubSpec == 3 || gui.SelectedSubSpec == 6)
+                t = gui.SelectedSubSpec;
+            else if gui.SelectedSubSpec == 4
+                    t = 5;
+                else
+                    t = 4;
+                end
+            end
+        else
+            t = gui.SelectedSubSpec;
+        end
+%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+% All the information from the Raw data is read out here
+        if (strcmp(gui.ProNames{t},'A') || strcmp(gui.ProNames{t},'B') || strcmp(gui.ProNames{t},'C') || strcmp(gui.ProNames{t},'D') || strcmp(gui.ProNames{t},'diff1') || strcmp(gui.ProNames{t},'diff2') || strcmp(gui.ProNames{t},'sum'))
+                               StatText = ['Metabolite Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{t})(gui.SelectedDataset)) '; FWHM: '...
+                            num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){gui.SelectedDataset}.txfrq/1e6))...
+                            ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.ProNames{t})(gui.SelectedDataset)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){gui.SelectedDataset}.txfrq/1e6)...
+                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){gui.SelectedDataset}.txfrq/1e6) ' Hz'];
+        else if strcmp(gui.ProNames{t},'ref')
+        StatText = ['Reference Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{t})(gui.SelectedDataset)) '; FWHM: '...
+                    num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){t}.txfrq/1e6))...
+                    ' ppm / Hz'];
+            else
+                StatText = ['Water Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
+                            num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)) '/' (num2str(MRSCont.QM.FWHM.(gui.ProNames{t})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{t}){t}.txfrq/1e6))...
+                            ' ppm / Hz'];
+            end
+        end
+        set(gui.proInfoText, 'String',sprintf(StatText))
+%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+        temp = figure( 'Visible', 'off' );
+        temp = osp_plotProcess(MRSCont, gui.SelectedDataset,gui.ProNames{t},1 );
+        delete(gui.proDrift.Children.Children)
+        delete(gui.proAlgn.Children.Children)
+        delete(gui.proPost.Children.Children)
+        delete(gui.proPre.Children.Children)
+        set( temp.Children(1).Children, 'Parent', gui.proDrift.Children ); % Update drift plot
+        set(  gui.proDrift.Children, 'YLim', temp.Children(1).YLim);
+        set( temp.Children(2).Children, 'Parent', gui.proAlgn.Children ); % Update aligned and averaged plot
+        set(  gui.proAlgn.Children, 'XLim', temp.Children(2).XLim);
+        set(  gui.proAlgn.Children, 'YLim', temp.Children(2).YLim);
+        set( temp.Children(3).Children, 'Parent', gui.proPost.Children ); % Update post alignment plot
+        set(  gui.proPost.Children, 'XLim', temp.Children(3).XLim);
+        set(  gui.proPost.Children, 'YLim', temp.Children(3).YLim);
+        set( temp.Children(4).Children, 'Parent', gui.proPre.Children ); % Update pre alignment plot
+        set(  gui.proPre.Children, 'XLim', temp.Children(4).XLim);
+        set(  gui.proPre.Children, 'YLim', temp.Children(4).YLim);
+        close( temp );
+        set(gui.proInfo,'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}] )
+end
+%% FUNCTIONS FOR THE COREG/SEG TAB
+function osp_iniCoregWindow()
     addpath(genpath([spmversion filesep]));
     gui.tabs.TabEnables{3} = 'on';
     gui.tabs.Selection  = 3;
@@ -566,10 +882,65 @@ if MRSCont.flags.didCoreg % Have coreg/segment masks been created?
 
     rmpath(genpath([spmversion filesep]));
 end
-%%%%%%%%%%%%COREG PANEL SETUP ENDS HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%FIT PANEL SETUP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if MRSCont.flags.didFit % Has data fitting been run?
-        gui.tabs.TabEnables{4} = 'on';
+
+function osp_updateCoregWindow()
+        addpath(genpath([spmversion filesep]));
+        gui.EmptyProPlot = 0;
+%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+% All the information from the Raw data is read out here
+        StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+       set(gui.CoregInfoText, 'String',sprintf(StatText))
+%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+        if MRSCont.flags.didSeg && length(gui.coregResults.Children) == 2
+            delete( gui.coregResults.Children(1) );
+            delete( gui.coregResults.Children(1) );
+            temp = figure( 'Visible', 'off' );
+            temp = osp_plotCoreg(MRSCont, gui.SelectedDataset, 1);
+            set( temp.Children, 'Parent', gui.coregResults);
+            colormap(gui.coregResults.Children(1),'gray')
+            close( temp );
+            temp = figure( 'Visible', 'off' );
+            temp = osp_plotSegment(MRSCont, gui.SelectedDataset, 1);
+            set( temp.Children, 'Parent', gui.coregResults );
+            colormap(gui.coregResults.Children(1),'gray')
+            close( temp );
+        else if MRSCont.flags.didSeg && length(gui.coregResults.Children) == 1
+            delete( gui.coregResults.Children(1) );
+            temp = figure( 'Visible', 'off' );
+            temp = osp_plotCoreg(MRSCont, gui.SelectedDataset, 1);
+            set( temp.Children, 'Parent', gui.coregResults);
+            colormap(gui.coregResults.Children(1),'gray')
+            close( temp );
+            temp = figure( 'Visible', 'off' );
+            temp = osp_plotSegment(MRSCont, gui.SelectedDataset, 1);
+            set( temp.Children, 'Parent', gui.coregResults );
+            colormap(gui.coregResults.Children(1),'gray')
+            close( temp );
+            else if length(gui.coregResults.Children) == 1
+                    temp = figure( 'Visible', 'off' );
+                    temp = osp_plotCoreg(MRSCont, gui.SelectedDataset, 1);
+                    delete( gui.coregResults.Children(1) );
+                    set( temp.Children, 'Parent', gui.coregResults );
+                    colormap(gui.coregResults.Children,'gray')
+                    close( temp );
+                else
+                    temp = figure( 'Visible', 'off' );
+                    temp = osp_plotCoreg(MRSCont, gui.SelectedDataset, 1);
+                    set( temp.Children, 'Parent', gui.coregResults );
+                    colormap(gui.coregResults.Children,'gray')
+                    close( temp ); 
+                end
+            end
+        end
+
+        rmpath(genpath([spmversion filesep]));
+end
+%% FUNCTIONS FOR THE FIT TAB
+function osp_iniFitWindow()
+    gui.tabs.TabEnables{4} = 'on';
         gui.tabs.Selection  = 4;
         gui.EmptyFitPlot = 0;
 %%%%%%%%%%%%%%%%%%CREATING SUB TABS FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
@@ -620,15 +991,22 @@ end
             RawAmpl = MRSCont.fit.results.(gui.FitNames{gui.SelectedFit}).fitParams{1,gui.SelectedDataset}.ampl .* MRSCont.fit.scale{gui.SelectedDataset};
             if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater)
                 if ~(strcmp(gui.FitNames{gui.SelectedFit}, 'ref') || strcmp(gui.FitNames{gui.SelectedFit}, 'w'))
+                    NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl)
-                        RawAmplText = [RawAmplText, [MRSCont.fit.resBasisSet.(gui.FitNames{gui.SelectedFit}){1,gui.SelectedDataset}.name{m} ': ' num2str(RawAmpl(m),'%1.2e') '\n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.FitNames{gui.SelectedFit}){1,gui.SelectedDataset}.name{m} ': \n']];
+                        RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                 else
-                   RawAmplText = ['Water: ' num2str(RawAmpl,'%1.2e')];
+                   NameText = ['Water: ' ];
+                   RawAmplText = [num2str(RawAmpl,'%1.2e')];
                 end
                 set(gui.fitResults, 'Title', ['Raw Amplitudes']);
-                gui.fitResultsText  = uicontrol('Parent',gui.fitResults,'style','text',...
+                    gui.fitResultsText = uix.HBox('Parent', gui.fitResults, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.fitResultsTextNames  = uicontrol('Parent',gui.fitResultsText,'style','text',...
+                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    gui.fitResultsTextAmpl  = uicontrol('Parent',gui.fitResultsText,'style','text',...
                     'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             else
@@ -638,20 +1016,31 @@ end
                     else
                         RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.SelectedDataset}.ampl .* MRSCont.fit.scale{gui.SelectedDataset});
                     end
+                    NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl)
-                        RawAmplText = [RawAmplText, [MRSCont.fit.resBasisSet.(gui.FitNames{gui.SelectedFit}){1,gui.SelectedDataset}.name{m} ': ' num2str(RawAmpl(m),'%1.2e') '\n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.FitNames{gui.SelectedFit}){1,gui.SelectedDataset}.name{m} ': \n']];
+                        RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                     set(gui.fitResults, 'Title', ['Raw Water Ratio']);
-                    gui.fitResultsText  = uicontrol('Parent',gui.fitResults,'style','text',...
+                    gui.fitResultsText = uix.HBox('Parent', gui.fitResults, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.fitResultsTextNames  = uicontrol('Parent',gui.fitResultsText,'style','text',...
+                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    gui.fitResultsTextAmpl  = uicontrol('Parent',gui.fitResultsText,'style','text',...
                     'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 else
-                   RawAmplText = ['Water: ' num2str(RawAmpl,'%1.2e')];
+                   NameText = ['Water: ' ];
+                   RawAmplText = [num2str(RawAmpl,'%1.2e')];
                    set(gui.fitResults, 'Title', ['Raw Amplitudes']);
-                    gui.fitResultsText  = uicontrol('Parent',gui.fitResults,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
-                    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                   gui.fitResultsText = uix.HBox('Parent', gui.fitResults, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                   gui.fitResultsTextNames  = uicontrol('Parent',gui.fitResultsText,'style','text',...
+                   'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                   'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                   gui.fitResultsTextAmpl  = uicontrol('Parent',gui.fitResultsText,'style','text',...
+                   'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                   'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 end
             end
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
@@ -665,11 +1054,94 @@ end
 %Creates the scroll bar for the datasets of the MRSCont on the right side
             set(gui.fitPlot,'Widths', [-0.16 -0.84]);
         end
-    end
-%%%%%%%%%%%%FIT PANEL SETUP ENDS HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%QUANTIFY PANEL SETUP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if MRSCont.flags.didQuantify % Has data fitting been run?
-        gui.tabs.TabEnables{5} = 'on';
+end
+
+function osp_updateFitWindow()
+        gui.fitPlot = gui.(gui.fitTabhandles{gui.SelectedFit}).Children(1).Children(2);
+        gui.fitInfo = gui.(gui.fitTabhandles{gui.SelectedFit}).Children(2);
+        gui.fitInfoText = gui.(gui.fitTabhandles{gui.SelectedFit}).Children(2).Children;
+        gui.fitResults  = gui.(gui.fitTabhandles{gui.SelectedFit}).Children(1).Children(1);
+        gui.fitResultsTextAmpl = gui.(gui.fitTabhandles{gui.SelectedFit}).Children(1).Children(1).Children(1).Children(1);
+        gui.fitResultsTextNames = gui.(gui.fitTabhandles{gui.SelectedFit}).Children(1).Children(1).Children(1).Children(2);
+        
+        gui.EmptyFitPlot = 0;
+%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+% All the information from the Raw data is read out here
+        if gui.SelectedFit == 1
+            StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+        else if gui.SelectedFit == 2
+        StatText = ['Reference Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+            else
+                StatText = ['Water Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+            end
+        end
+        set(gui.fitInfoText, 'String',sprintf(StatText))
+        % Update amplitudes for the fit results panel based on the files in the MRSCont (Raw Amplitudes or Water-scaled if ref or water supplied)
+        RawAmpl = MRSCont.fit.results.(gui.FitNames{gui.SelectedFit}).fitParams{1,gui.SelectedDataset}.ampl .* MRSCont.fit.scale{gui.SelectedDataset};
+        if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater)
+            if ~(strcmp(gui.FitNames{gui.SelectedFit}, 'ref') || strcmp(gui.FitNames{gui.SelectedFit}, 'w'))
+                NameText = [''];
+                RawAmplText = [''];
+                for m = 1 : length(RawAmpl)
+                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.FitNames{gui.SelectedFit}){1,gui.SelectedDataset}.name{m} ': \n']];
+                    RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                end
+            else
+               NameText = ['Water: ' ];
+               RawAmplText = [num2str(RawAmpl,'%1.2e')];
+            end
+            set(gui.fitResults, 'Title', ['Raw Amplitudes']);
+            set(gui.fitResultsTextNames, 'String',sprintf(NameText));
+            set(gui.fitResultsTextAmpl, 'String',sprintf(RawAmplText));
+        else
+            if ~(strcmp(gui.FitNames{gui.SelectedFit}, 'ref') || strcmp(gui.FitNames{gui.SelectedFit}, 'w'))
+                if MRSCont.flags.hasRef
+                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.SelectedDataset}.ampl .* MRSCont.fit.scale{gui.SelectedDataset});
+                else
+                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.SelectedDataset}.ampl .* MRSCont.fit.scale{gui.SelectedDataset});
+                end
+                NameText = [''];
+                RawAmplText = [''];
+                for m = 1 : length(RawAmpl)
+                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.FitNames{gui.SelectedFit}){1,gui.SelectedDataset}.name{m} ': \n']];
+                    RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                end
+                set(gui.fitResults, 'Title', ['Raw Water Ratio']);
+                set(gui.fitResultsTextNames, 'String',sprintf(NameText));
+                set(gui.fitResultsTextAmpl, 'String',sprintf(RawAmplText));
+            else
+               NameText = ['Water: \t'];
+               RawAmplText = [num2str(RawAmpl,'%1.2e')];
+               set(gui.fitResults, 'Title', ['Raw Amplitudes']);
+                set(gui.fitResultsTextNames, 'String',sprintf(NameText));
+                set(gui.fitResultsTextAmpl, 'String',sprintf(RawAmplText));
+            end
+        end
+%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+        temp = figure( 'Visible', 'off' );
+        temp = osp_plotFit(MRSCont, gui.SelectedDataset,gui.FitNames{gui.SelectedFit},1 );
+        gui.ViewAxes = gca();
+        delete(gui.fitPlot.Children)
+        set( gui.ViewAxes.Children, 'Parent', gui.fitPlot); %Update plot
+        set(  gui.fitPlot.Title, 'String', gui.ViewAxes.Title.String) %Update title
+        set(  gui.fitPlot, 'XLim', gui.ViewAxes.XLim) % Update Xlim
+        set(  gui.fitPlot, 'YLim', gui.ViewAxes.YLim) % Update Ylim
+        % Get rid of the Load figure
+        close( temp );
+        set(gui.fitInfo,'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}] )
+end
+%% FUNCTIONS FOR THE QUANTIFY TAB
+function osp_iniQuantifyWindow()
+gui.tabs.TabEnables{5} = 'on';
         gui.tabs.Selection  = 5;
         gui.EmptyQuantPlot = 0;
 %%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
@@ -714,12 +1186,48 @@ end
             'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         set ( temp, 'BackgroundColor',gui.colormap.Background);
         set( temp, 'Parent', gui.quantPlot );
+end
 
-    end
-%%%%%%%%%%%%QUANTIFY PANEL SETUP ENDS HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%OVERVIEW PANEL SETUP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if MRSCont.flags.didOverview % Has data fitting been run?
-        gui.tabs.TabEnables{6} = 'on';
+function osp_updateQuantifyWindow()
+        gui.EmptyQuantPlot = 0;
+%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+% All the information from the Raw data is read out here
+        if gui.SelectedSubFile == 1
+            StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+        else if gui.SelectedSubFile == 2
+        StatText = ['Reference Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+            else
+                StatText = ['Water Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
+                         '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
+                         num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
+            end
+        end
+        set(gui.QuantInfoText, 'String',sprintf(StatText))
+%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
+        QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.NoQuants);
+        QuantText{1,1} = 'Metabolite';
+        QuantText(2:end,1) = MRSCont.quantify.metabs';
+        for q = 1 : gui.NoQuants
+            QuantText(1,q+1) = gui.QuantNames(q);
+            QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.QuantModelNames{gui.SelectedModel}).(gui.QuantNames{q})(gui.SelectedDataset,:))';
+        end
+        temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
+            'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+         set( temp, 'BackgroundColor',gui.colormap.Background);
+        delete(gui.quantPlot.Children)
+        set( temp, 'Parent', gui.quantPlot ); %Update table
+        set(gui.quantInfo,'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}]) %Update info Title
+end
+%% FUNCTIONS FOR THE OVERVIEW TAB
+function osp_iniOverviewWindow()
+    gui.tabs.TabEnables{6} = 'on';
         gui.tabs.Selection  = 6;
  %%%%%%%%%%%%%%%%%%CREATING SUB TABS FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
         gui.specsOvTab = uix.HBox('Parent', gui.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
@@ -750,19 +1258,19 @@ end
         gui.shiftind = 0.2;
         for g = 1 :  gui.NoGroups
             temp = figure( 'Visible', 'off' );
-            if gui.SelectedSubFile ==1
+            if (strcmp(gui.ProNames{gui.SelectedSubSpec},'A') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D') || strcmp(gui.ProNames{gui.SelectedSubSpec},'C') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D'))
                 if gui.NAAnormed ==1
                     shift = gui.shiftind * (g-1);
-                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(gui.ProNames{2}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubFile}]);
+                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(gui.ProNames{gui.SelectedSubSpec}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubSpec}]);
                 else
-                    ylimmax = max(real(MRSCont.overview.all_data.(gui.ProNames{2}){1,1}.specs));
+                    ylimmax = max(real(MRSCont.overview.all_data.(gui.ProNames{gui.SelectedSubFile}){1,1}.specs));
                     shift = ylimmax * gui.shiftind * (g-1);
-                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.ProNames{2}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubFile}]);
+                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.ProNames{gui.SelectedSubSpec}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubSpec}]);
                 end
             else
                 ylimmax = max(real(MRSCont.overview.all_data.(gui.ProNames{1}){1,1}.specs));
                 shift = ylimmax * gui.shiftind * (g-1);
-                temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.ProNames{1}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubFile}]);
+                temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.ProNames{gui.SelectedSubSpec}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubSpec}]);
             end
             set(gca, 'YColor', MRSCont.colormap.Background);
             set(gca,'YTickLabel',{})
@@ -856,7 +1364,7 @@ end
         set(temp,'BackgroundColor',gui.colormap.Background)
         set( temp, 'Parent', gui.quantOvResults );
         set(gui.quantOvPlot,'Heights', [-0.07 -0.93]);
-    end
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Overview Panel for distributions/raincloud plots
         gui.overviewTab.Selection  = 4;
@@ -915,276 +1423,26 @@ end
         set(gui.corrOvPlot,'Heights', [-0.07 -0.90 -0.03]);
         gui.corrOvPlot.Children(3).Legend.Location = 'North';
         close( temp );
-%%%%%%%%%%%%OVERVIEW PANEL SETUP ENDS HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-gui.tabs.Selection  = 1;
-gui.overviewTab.Selection  = 2;
-%% FUNCTIONS FOR THE LEFT MENU
-function updateListBox()
-    gui.SelectedDataset = get(gui.ListBox, 'value');
-    switch gui.tabs.Selection
-        case 1
-            osp_updateLoadWindow();
-        case 2
-            gui.proInfoText = gui.(gui.proTabhandles{gui.SelectedSubFile}).Children(2).Children;
-            % Grid for Plot and Data control sliders
-            gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubFile});
-            osp_updateProWindow();
-        case 3
-            osp_updateCoregWindow();
-        case 4
-            osp_updateFitWindow();
-        case 5
-            osp_updateQuantifyWindow();
-    end
+        gui.overviewTab.Selection  = 2;
 end
-%% FUNCTIONS FOR THE LOAD TAB
-function osp_updateLoadWindow()
-        gui.dataInfoText = gui.(gui.rawTabhandles{gui.SelectedSubFile}).Children(2).Children;
-        % Grid for Plot and Data control sliders
-        gui.dataPlot = gui.(gui.rawTabhandles{gui.SelectedSubFile});
-        gui.EmptydataPlot = 0;
-%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-% All the information from the Raw data is read out here
-        if gui.SelectedSubFile == 1
-            StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-        else if gui.SelectedSubFile == 2
-            StatText = ['Reference Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-            else
-                StatText = ['Water Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-            end
-        end
-        set(gui.dataInfoText, 'String',sprintf(StatText))
-%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-        temp = figure( 'Visible', 'off' );
-        if gui.SelectedSubFile == 1
-            temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'mets',1 );
-        else if gui.SelectedSubFile == 2
-                temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'ref',1 );
-            else
-                temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'w',1 );
-            end
-        end
-        gui.ViewAxes = gca();
-        delete(gui.dataPlot.Children(1).Children(1).Children)
-        set( gui.ViewAxes.Children, 'Parent', gui.dataPlot.Children(1).Children(1));
-        set(  gui.dataPlot.Children(1).Children(1).Title, 'String', gui.ViewAxes.Title.String)
-        set(  gui.dataPlot.Children(1).Children(1), 'XLim', gui.ViewAxes.XLim)
-        % Get rid of the Load figure
-        close( temp );
-        set(gui.dataInfo,'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}] )
-end
-%% FUNCTIONS FOR THE PROCESS TAB
-function osp_updateProWindow()
-        gui.EmptyProPlot = 0;
-%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-% All the information from the Raw data is read out here
-        if (strcmp(gui.ProNames{gui.SelectedSubSpec},'A') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D') || strcmp(gui.ProNames{gui.SelectedSubSpec},'C') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D'))
-            StatText = ['Metabolite Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
-                        num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
-                        ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6)...
-                        ' Hz Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6) ' Hz'];
-        else if strcmp(gui.ProNames{gui.SelectedSubSpec},'ref')
-        StatText = ['Reference Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
-                    num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
-                    ' ppm / Hz']
-            else
-                StatText = ['Water Data -> SNR: ' num2str(MRSCont.QM.SNR.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '; FWHM: '...
-                            num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)) '/' (num2str(MRSCont.QM.FWHM.(gui.ProNames{gui.SelectedSubSpec})(gui.SelectedDataset)*MRSCont.processed.(gui.ProNames{gui.SelectedSubSpec}){gui.SelectedDataset}.txfrq/1e6))...
-                            ' ppm / Hz']
-            end
-        end
-        set(gui.proInfoText, 'String',sprintf(StatText))
-%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-        temp = figure( 'Visible', 'off' );
-        temp = osp_plotProcess(MRSCont, gui.SelectedDataset,gui.ProNames{gui.SelectedSubSpec},1 );
-        delete(gui.proDrift.Children.Children)
-        delete(gui.proAlgn.Children.Children)
-        delete(gui.proPost.Children.Children)
-        delete(gui.proPre.Children.Children)
-        set( temp.Children(1).Children, 'Parent', gui.proDrift.Children ); % Update drift plot
-        set(  gui.proDrift.Children, 'YLim', temp.Children(1).YLim);
-        set( temp.Children(2).Children, 'Parent', gui.proAlgn.Children ); % Update aligned and averaged plot
-        set(  gui.proAlgn.Children, 'XLim', temp.Children(2).XLim);
-        set(  gui.proAlgn.Children, 'YLim', temp.Children(2).YLim);
-        set( temp.Children(3).Children, 'Parent', gui.proPost.Children ); % Update post alignment plot
-        set(  gui.proPost.Children, 'XLim', temp.Children(3).XLim);
-        set(  gui.proPost.Children, 'YLim', temp.Children(3).YLim);
-        set( temp.Children(4).Children, 'Parent', gui.proPre.Children ); % Update pre alignment plot
-        set(  gui.proPre.Children, 'XLim', temp.Children(4).XLim);
-        set(  gui.proPre.Children, 'YLim', temp.Children(4).YLim);
-        close( temp );
-        set(gui.proInfo,'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}] )
-end
-%% FUNCTIONS FOR THE COREG/SEG TAB
-function osp_updateCoregWindow()
-        addpath(genpath([spmversion filesep]));
-        gui.EmptyProPlot = 0;
-%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-% All the information from the Raw data is read out here
-        StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-       set(gui.CoregInfoText, 'String',sprintf(StatText))
-%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-        if MRSCont.flags.didSeg
-            delete( gui.coregResults.Children(1) );
-            delete( gui.coregResults.Children(1) );
-            temp = figure( 'Visible', 'off' );
-            temp = osp_plotCoreg(MRSCont, gui.SelectedDataset, 1);
-            set( temp.Children, 'Parent', gui.coregResults);
-            colormap(gui.coregResults.Children(1),'gray')
-            close( temp );
-            temp = figure( 'Visible', 'off' );
-            temp = osp_plotSegment(MRSCont, gui.SelectedDataset, 1);
-            set( temp.Children, 'Parent', gui.coregResults );
-            colormap(gui.coregResults.Children(1),'gray')
-            close( temp );
-        else
-            temp = figure( 'Visible', 'off' );
-            temp = osp_plotCoreg(MRSCont, gui.SelectedDataset, 1);
-            delete( gui.coregResults.Children(1) );
-            set( temp.Children, 'Parent', gui.coregResults );
-            colormap(gui.coregResults.Children,'gray')
-            close( temp );
-        end
-
-        rmpath(genpath([spmversion filesep]));
-end
-%% FUNCTIONS FOR THE FIT TAB
-function osp_updateFitWindow()
-        gui.EmptyFitPlot = 0;
-%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-% All the information from the Raw data is read out here
-        if gui.SelectedFit == 1
-            StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-        else if gui.SelectedFit == 2
-        StatText = ['Reference Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-            else
-                StatText = ['Water Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-            end
-        end
-        set(gui.fitInfoText, 'String',sprintf(StatText))
-        % Update amplitudes for the fit results panel based on the files in the MRSCont (Raw Amplitudes or Water-scaled if ref or water supplied)
-        RawAmpl = MRSCont.fit.results.(gui.FitNames{gui.SelectedFit}).fitParams{1,gui.SelectedDataset}.ampl .* MRSCont.fit.scale{gui.SelectedDataset};
-        if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater)
-            if ~(strcmp(gui.FitNames{gui.SelectedFit}, 'ref') || strcmp(gui.FitNames{gui.SelectedFit}, 'w'))
-                RawAmplText = [''];
-                for m = 1 : length(RawAmpl)
-                    RawAmplText = [RawAmplText, [MRSCont.fit.resBasisSet.(gui.FitNames{gui.SelectedFit}){1,gui.SelectedDataset}.name{m} ': ' num2str(RawAmpl(m),'%1.2e') '\n']];
-                end
-            else
-               RawAmplText = ['Water: ' num2str(RawAmpl,'%1.2e')];
-            end
-            set(gui.fitResults, 'Title', ['Raw Amplitudes']);
-            set(gui.fitResultsText, 'String',sprintf(RawAmplText))
-        else
-            if ~(strcmp(gui.FitNames{gui.SelectedFit}, 'ref') || strcmp(gui.FitNames{gui.SelectedFit}, 'w'))
-                if MRSCont.flags.hasRef
-                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.SelectedDataset}.ampl .* MRSCont.fit.scale{gui.SelectedDataset});
-                else
-                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.SelectedDataset}.ampl .* MRSCont.fit.scale{gui.SelectedDataset});
-                end
-                RawAmplText = [''];
-                for m = 1 : length(RawAmpl)
-                    RawAmplText = [RawAmplText, [MRSCont.fit.resBasisSet.(gui.FitNames{gui.SelectedFit}){1,gui.SelectedDataset}.name{m} ': ' num2str(RawAmpl(m),'%1.2e') '\n']];
-                end
-                set(gui.fitResults, 'Title', ['Raw Water Ratio']);
-                set(gui.fitResultsText, 'String',sprintf(RawAmplText))
-            else
-               RawAmplText = ['Water: ' num2str(RawAmpl,'%1.2e')];
-               set(gui.fitResults, 'Title', ['Raw Amplitudes']);
-               set(gui.fitResultsText, 'String',sprintf(RawAmplText))
-            end
-        end
-%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-        temp = figure( 'Visible', 'off' );
-        temp = osp_plotFit(MRSCont, gui.SelectedDataset,gui.FitNames{gui.SelectedFit},1 );
-        gui.ViewAxes = gca();
-        delete(gui.fitPlot.Children(1).Children(2).Children)
-        set( gui.ViewAxes.Children, 'Parent', gui.fitPlot.Children(1).Children(2)); %Update plot
-        set(  gui.fitPlot.Children(1).Children(2).Title, 'String', gui.ViewAxes.Title.String) %Update title
-        set(  gui.fitPlot.Children(1).Children(2), 'XLim', gui.ViewAxes.XLim) % Update Xlim
-        set(  gui.fitPlot.Children(1).Children(2), 'YLim', gui.ViewAxes.YLim) % Update Ylim
-        % Get rid of the Load figure
-        close( temp );
-        set(gui.fitInfo,'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}] )
-end
-%% FUNCTIONS FOR THE QUANTIFY TAB
-function osp_updateQuantifyWindow()
-        gui.EmptyQuantPlot = 0;
-%%%%%%%%%%%%%%%%%%FILLING INFO PANEL FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-% All the information from the Raw data is read out here
-        if gui.SelectedSubFile == 1
-            StatText = ['Metabolite Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-        else if gui.SelectedSubFile == 2
-        StatText = ['Reference Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_ref{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-            else
-                StatText = ['Water Data -> Sequence: ' SeqName '; B0: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.te) ' / ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2})) ' x ' num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})) ' mm = '...
-                         num2str(MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{1}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{2}) * MRSCont.raw_w{1,gui.SelectedDataset}.geometry.size.(gui.GeometryNames{3})/1000) ' ml'];
-            end
-        end
-        set(gui.QuantInfoText, 'String',sprintf(StatText))
-%%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
-        QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.NoQuants);
-        QuantText{1,1} = 'Metabolite';
-        QuantText(2:end,1) = MRSCont.quantify.metabs';
-        for q = 1 : gui.NoQuants
-            QuantText(1,q+1) = gui.QuantNames(q);
-            QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.QuantNames{q})(gui.SelectedDataset,:))';
-        end
-        temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
-            'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-         set( temp, 'BackgroundColor',gui.colormap.Background);
-        delete(gui.quantPlot.Children)
-        set( temp, 'Parent', gui.quantPlot ); %Update table
-        set(gui.quantInfo,'Title', ['Actual file: ' MRSCont.files{gui.SelectedDataset}]) %Update info Title
-end
-%% FUNCTIONS FOR THE OVERVIEW TAB
 function osp_updateSpecsOvWindow() %updates the overview tab for the spectra
         delete(gui.specsOvPlot.Children(2).Children)
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
         for g = 1 :  gui.NoGroups
             temp = figure( 'Visible', 'off' );
-            if gui.SelectedSubFile ==1
+            if (strcmp(gui.ProNames{gui.SelectedSubSpec},'A') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D') || strcmp(gui.ProNames{gui.SelectedSubSpec},'C') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D'))
                 if gui.NAAnormed ==1
                     shift = gui.shiftind * (g-1);
-                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(gui.ProNames{2}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubFile}]);
+                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(gui.ProNames{gui.SelectedSubSpec}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubSpec}]);
                 else
-                    ylimmax = max(real(MRSCont.overview.all_data.(gui.ProNames{2}){1,1}.specs));
+                    ylimmax = max(real(MRSCont.overview.all_data.(gui.ProNames{gui.SelectedSubFile}){1,1}.specs));
                     shift = ylimmax * gui.shiftind * (g-1);
-                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.ProNames{2}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubFile}]);
+                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.ProNames{gui.SelectedSubSpec}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubSpec}]);
                 end
             else
                 ylimmax = max(real(MRSCont.overview.all_data.(gui.ProNames{1}){1,1}.specs));
                 shift = ylimmax * gui.shiftind * (g-1);
-                temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.ProNames{1}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubFile}]);
+                temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.ProNames{gui.SelectedSubSpec}),2,1,cb(g,:),shift,['Overview ' gui.proTab.TabTitles{gui.SelectedSubSpec}]);
             end
             set(gca, 'YColor', MRSCont.colormap.Background);
             set(gca,'YTickLabel',{})
@@ -1198,12 +1456,12 @@ function osp_updateSpecsOvWindow() %updates the overview tab for the spectra
                 copyobj(ax.Children, gui.specsOvPlot.Children(2));
                 close( figpl );
         end
-        if gui.SelectedSubFile ==1 % Update title and limits
+        if gui.SelectedSubSpec ==1 % Update title and limits
             set(gui.specsOvPlot.Children(2), 'XLim', [0.2 4.5])
-            set(gui.specsOvPlot.Children(2).Title, 'String', ['Overview ' gui.proTab.TabTitles{1}])
+            set(gui.specsOvPlot.Children(2).Title, 'String', ['Overview ' gui.proTab.TabTitles{gui.SelectedSubSpec}])
         else
             set(gui.specsOvPlot.Children(2), 'XLim', [0 2*4.68])
-            set(gui.specsOvPlot.Children(2).Title, 'String', ['Overview ' gui.proTab.TabTitles{2}])
+            set(gui.specsOvPlot.Children(2).Title, 'String', ['Overview ' gui.proTab.TabTitles{gui.SelectedSubSpec}])
         end
 end
 
@@ -1213,46 +1471,46 @@ function osp_updatemeanOvWindow() %updates the mean and sd overview tab
         for g = 1 :  gui.NoGroups
             temp = figure;
             hold on
-            if gui.SelectedSubFile ==1
+            if (strcmp(gui.ProNames{gui.SelectedSubSpec},'A') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D') || strcmp(gui.ProNames{gui.SelectedSubSpec},'C') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D'))
                 if gui.NAAnormed ==1
                     shift = gui.shift * (g-1);
-                    yu = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{2}]) + ...
-                        MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.ProNames{2}]);
-                    yl = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{2}]) - ...
-                        MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.ProNames{2}]);
-                    temp = fill([MRSCont.overview.(['ppm_' (gui.ProNames{2})]) fliplr(MRSCont.overview.(['ppm_' (gui.ProNames{2})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                    plot(MRSCont.overview.(['ppm_' (gui.ProNames{2})]),MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{2}])+shift ,'color',cb(g,:), 'LineWidth', 1);
+                    yu = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{gui.SelectedSubSpec}]) + ...
+                        MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.ProNames{gui.SelectedSubSpec}]);
+                    yl = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{gui.SelectedSubSpec}]) - ...
+                        MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.ProNames{gui.SelectedSubSpec}]);
+                    temp = fill([MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]) fliplr(MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                    plot(MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]),MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{gui.SelectedSubSpec}])+shift ,'color',cb(g,:), 'LineWidth', 1);
                 else
                     ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.ProNames{2}]));
                     shift = ylimmax * gui.shift * (g-1);
-                    yu = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{2}]) + ...
-                        MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{2}]);
-                    yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{2}]) - ...
-                        MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{2}]);
-                    temp = fill([MRSCont.overview.(['ppm_' (gui.ProNames{2})]) fliplr(MRSCont.overview.(['ppm_' (gui.ProNames{2})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                    plot(MRSCont.overview.(['ppm_' (gui.ProNames{2})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{2}])+shift ,'color',cb(g,:), 'LineWidth', 1);
+                    yu = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{gui.SelectedSubSpec}]) + ...
+                        MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{gui.SelectedSubSpec}]);
+                    yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{gui.SelectedSubSpec}]) - ...
+                        MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{gui.SelectedSubSpec}]);
+                    temp = fill([MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]) fliplr(MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                    plot(MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{gui.SelectedSubSpec}])+shift ,'color',cb(g,:), 'LineWidth', 1);
                 end
 
             else
                 ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.ProNames{1}]));
                 shift = ylimmax * gui.shift * (g-1);
-                yu = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{1}]) + ...
-                    MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{1}]);
-                yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{1}]) - ...
-                    MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{1}]);
-                temp = fill([MRSCont.overview.(['ppm_' (gui.ProNames{1})]) fliplr(MRSCont.overview.(['ppm_' (gui.ProNames{1})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                plot(MRSCont.overview.(['ppm_' (gui.ProNames{1})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{1}])+shift ,'color',cb(g,:), 'LineWidth', 1);
+                yu = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{gui.SelectedSubSpec}]) + ...
+                    MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{gui.SelectedSubSpec}]);
+                yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{gui.SelectedSubSpec}]) - ...
+                    MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.ProNames{gui.SelectedSubSpec}]);
+                temp = fill([MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]) fliplr(MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                plot(MRSCont.overview.(['ppm_' (gui.ProNames{gui.SelectedSubSpec})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.ProNames{gui.SelectedSubSpec}])+shift ,'color',cb(g,:), 'LineWidth', 1);
             end
                 figpl = get(temp.Parent,'Parent');
                 set(temp.Parent.Children,'Parent',gui.meanOvPlot.Children(2))
                 close(figpl);
         end
-        if gui.SelectedSubFile ==1 %Update title and limits
+        if (strcmp(gui.ProNames{gui.SelectedSubSpec},'A') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D') || strcmp(gui.ProNames{gui.SelectedSubSpec},'C') || strcmp(gui.ProNames{gui.SelectedSubSpec},'D'))
             set(gui.meanOvPlot.Children(2), 'XLim', [0.2 4.5])
-            set(gui.meanOvPlot.Children(2).Title, 'String', ['Mean \pm SD ' gui.proTab.TabTitles{1}])
+            set(gui.meanOvPlot.Children(2).Title, 'String', ['Mean \pm SD ' gui.proTab.TabTitles{gui.SelectedSubSpec}])
         else
             set(gui.meanOvPlot.Children(2), 'XLim', [0 2*4.68])
-            set(gui.meanOvPlot.Children(2).Title, 'String', ['Mean \pm SD ' gui.proTab.TabTitles{2}])
+            set(gui.meanOvPlot.Children(2).Title, 'String', ['Mean \pm SD ' gui.proTab.TabTitles{gui.SelectedSubSpec}])
         end
 end
 
@@ -1322,6 +1580,148 @@ function osp_updatecorrOvWindow()   %updates the correlation overview tab
             end
 end
 %% CALLBACK FUNCTIONS FOR THE LEFT MENU
+function onLoad( ~, ~ ) %Callback Load button
+    gui.tabs.Selection  = 1;
+    osp_processingWindow()
+    % User wants load data
+    MRSCont = OspreyLoad(MRSCont);
+    delete(gui.dummy);
+    if ~isempty(MRSCont.raw{1,gui.SelectedDataset}.seq)
+        if strcmp(sprintf('\n'),MRSCont.raw{1,gui.SelectedDataset}.seq(end)) %Clean up Sequence Name if needed
+            SeqName = MRSCont.raw{1,gui.SelectedDataset}.seq(1:end-1);
+        else
+            SeqName = MRSCont.raw{1,gui.SelectedDataset}.seq;
+        end
+    else
+            SeqName ='';
+    end
+    gui.GeometryNames = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
+    osp_iniLoadWindow();
+    gui.b_load.Enable = 'off';
+    gui.b_proc.Enable = 'on';
+    gui.b_coreg.Enable = 'on';
+    gui.ListBox.Enable = 'on';
+end % onLoad
+
+function onProc( ~, ~ ) %Callback Process button
+    gui.tabs.Selection  = 2;
+    osp_processingWindow()
+    % User wants to process the data
+    MRSCont = OspreyProcess(MRSCont);
+    delete(gui.dummy);
+    gui.NoPro = length(fieldnames(MRSCont.processed));
+    gui.ProNames = fieldnames(MRSCont.processed);
+    gui.ProNames = sort(gui.ProNames);
+    osp_iniProcessWindow();
+    gui.b_proc.Enable = 'off';
+    gui.b_fit.Enable = 'on';
+end % onProc
+
+function onFit( ~, ~ ) %Callback Fit button
+    gui.tabs.Selection  = 4;
+    osp_processingWindow()
+    % User wants to quit out of the application
+    MRSCont = OspreyFit(MRSCont);
+    delete(gui.dummy);    
+    gui.NoFits = length(fieldnames(MRSCont.fit.results));
+    gui.FitNames = fieldnames(MRSCont.fit.results);
+    osp_iniFitWindow();
+    gui.b_fit.Enable = 'off';
+    gui.b_quant.Enable = 'on';
+end % onFit
+
+function onCoreg( ~, ~ ) %Callback Fit button
+    if isfield(gui, 'coregResults')
+        if length(gui.coregTab.Children) == 3
+                delete( gui.coregTab.Children(1) );
+                delete( gui.coregTab.Children(1) );
+                delete( gui.coregTab.Children(1) );
+        else if length(gui.coregTab.Children) == 2
+                delete( gui.coregTab.Children(1) );
+                delete( gui.coregTab.Children(1) );
+            else
+                delete( gui.coregTab.Children(1) );
+            end
+        end
+    end
+    gui.tabs.Selection  = 3;
+    osp_processingWindow()   
+    % User wants to quit out of the application
+    addpath(genpath([spmversion filesep]));
+    MRSCont = OspreyCoreg(MRSCont);    
+    rmpath(genpath([spmversion filesep]));
+    delete(gui.dummy);     
+    osp_iniCoregWindow();
+    gui.b_coreg.Enable = 'off';
+    gui.b_segm.Enable = 'on';
+end % onCoreg
+
+function onSeg( ~, ~ ) %Callback Fit button
+    if isfield(gui, 'coregResults')
+        if length(gui.coregTab.Children) == 3
+                delete( gui.coregTab.Children(1) );
+                delete( gui.coregTab.Children(1) );
+                delete( gui.coregTab.Children(1) );
+        else if length(gui.coregTab.Children) == 2
+                delete( gui.coregTab.Children(1) );
+                delete( gui.coregTab.Children(1) );
+            else
+                delete( gui.coregTab.Children(1) );
+            end
+        end
+    end
+    gui.tabs.Selection  = 3;
+    osp_processingWindow()
+    % User wants to quit out of the application
+    addpath(genpath([spmversion filesep]));
+    MRSCont = OspreySeg(MRSCont);
+    rmpath(genpath([spmversion filesep]));
+    delete(gui.dummy);     
+    osp_iniCoregWindow();       
+    gui.b_segm.Enable = 'off';
+    if MRSCont.flags.didQuantify
+        MRSCont = OspreyQuantify(MRSCont);
+        gui.NoQuantModels = length(fieldnames(MRSCont.quantify.tables));
+        gui.QuantModelNames = fieldnames(MRSCont.quantify.tables);
+        gui.NoQuants = length(fieldnames(MRSCont.quantify.tables.(gui.QuantModelNames{1})));
+        gui.QuantNames = fieldnames(MRSCont.quantify.tables.(gui.QuantModelNames{1}));
+        gui.NoQuantMetabs = length(MRSCont.quantify.metabs);
+        gui.pop_quantOvPlotControls.String = gui.QuantNames;
+        gui.pop_distrOvQuantControls.String = gui.QuantNames;
+        gui.pop_corrOvQuantControls.String = gui.QuantNames;
+    end
+end % onSeg
+
+function onQuant( ~, ~ ) %Callback Quantify button
+    gui.tabs.Selection  = 5;
+    osp_processingWindow()
+    % User wants to quit out of the application
+    MRSCont = OspreyQuantify(MRSCont);
+    delete(gui.dummy);     
+    gui.NoQuantModels = length(fieldnames(MRSCont.quantify.tables));
+    gui.QuantModelNames = fieldnames(MRSCont.quantify.tables);
+    gui.NoQuants = length(fieldnames(MRSCont.quantify.tables.(gui.QuantModelNames{1})));
+    gui.QuantNames = fieldnames(MRSCont.quantify.tables.(gui.QuantModelNames{1}));
+    gui.NoQuantMetabs = length(MRSCont.quantify.metabs);
+    osp_iniQuantifyWindow();
+    MRSCont = OspreyOverview(MRSCont);
+    gui.NAAnormed = 1;
+    gui.NoGroups = MRSCont.overview.NoGroups;
+    [cb] = cbrewer('qual', 'Dark2', 12, 'pchip');
+    temp = cb(3,:);
+    cb(3,:) = cb(4,:);
+    cb(4,:) = temp;
+    if isfield(MRSCont.overview, 'corr')
+        gui.CorrNames = MRSCont.overview.corr.Names{1};
+        gui.CorrMeas = MRSCont.overview.corr.Meas;
+    end
+    gui.SelectedCorr = 1;
+    gui.SelectedCorrChoice = 1;
+    gui.QMNames = {'SNR','FWHM (ppm)'};
+    osp_iniOverviewWindow();
+    gui.b_quant.Enable = 'off';
+end % onFit
+
 function onExit( ~, ~ ) %Callback Exit button
     % User wants to quit out of the application
     delete( gui.window );
@@ -1365,12 +1765,20 @@ function WindowKeyDown(src,EventData)
     if strcmp(EventData.Key, 'uparrow')
         OldValue = get( gui.ListBox,'value');
         gui.KeyPress = 1;
-        set(gui.ListBox, 'value', OldValue-1 );
+        if OldValue == 1
+            set(gui.ListBox, 'value', MRSCont.nDatasets );
+        else
+            set(gui.ListBox, 'value', OldValue-1 );
+        end
     end
     if strcmp(EventData.Key, 'downarrow')
         OldValue = get( gui.ListBox,'value');
         gui.KeyPress = 1;
-        set(gui.ListBox, 'value', OldValue+1);
+        if OldValue == MRSCont.nDatasets
+            set(gui.ListBox, 'value', 1 );
+        else
+            set(gui.ListBox, 'value', OldValue+1 );
+        end
     end
 end
 %% CALLBACK FUNCTIONS FOR THE TAB
@@ -1504,15 +1912,10 @@ end
 function RawTabChangeFcn(varargin) %Callback for tab changes in the raw tab
    % User selected tab refreshs plot
     gui.SelectedSubFile = varargin{1,2}.NewValue;
-    gui.sl_plotData = gui.(gui.rawTabhandles{varargin{1,2}.OldValue}).Children(1).Children(1).Children;
-    slider_value=get(gui.sl_plotData,'value');
-    idx=round(slider_value);
     % Parameter shown in the info panel on top
     gui.dataInfoText = gui.(gui.rawTabhandles{gui.SelectedSubFile}).Children(2).Children;
     % Grid for Plot and Data control sliders
     gui.dataPlot = gui.(gui.rawTabhandles{gui.SelectedSubFile});
-    gui.sl_plotData = gui.(gui.rawTabhandles{gui.SelectedSubFile}).Children(1).Children(1).Children;
-    set(gui.sl_plotData, 'value', idx);
     osp_updateLoadWindow();
 end
 %% CALLBACK FUNCTIONS FOR THE PROCESS TAB
@@ -1520,16 +1923,14 @@ end
 function ProTabChangeFcn(varargin) %Callback for tab changes in the raw tab
     % User selected tab refreshs plot
     gui.SelectedSubSpec = varargin{1,2}.NewValue;
-    slider_value=get(gui.sl_proData,'value');
-    idx=round(slider_value);
     % Parameter shown in the info panel on top
-    gui.proInfoText = gui.(gui.proTabhandles{gui.SelectedSubFile}).Children(2).Children;
-    % Grid for Plot and Data control sliders
+    gui.proInfoText = gui.(gui.proTabhandles{gui.SelectedSubSpec}).Children(2).Children;
+    % Grid for Plot and Data control sliders gui.(gui.proTabhandles{ind})
     gui.proPlot = gui.(gui.proTabhandles{gui.SelectedSubSpec});
-    gui.proPre = gui.proPlot.Children(1).Children(3).Children(2);
-    gui.proPost = gui.proPlot.Children(1).Children(3).Children(1);
-    gui.proDrift = gui.proPlot.Children(1).Children(2).Children(2);
-    gui.proAlgn = gui.proPlot.Children(1).Children(2).Children(1);
+    gui.proPre = gui.proPlot.Children(1).Children(2).Children(2);
+    gui.proPost = gui.proPlot.Children(1).Children(2).Children(1);
+    gui.proDrift = gui.proPlot.Children(1).Children(1).Children(2);
+    gui.proAlgn = gui.proPlot.Children(1).Children(1).Children(1);
     osp_updateProWindow();
 end
 %% CALLBACK FUNCTIONS FOR THE FIT TAB
@@ -1553,14 +1954,14 @@ end
 function pop_specsOvPlot_Call(h,~) %Callback for the popup menu of subspectra in the spectra overview tab
         idx=(h.Value);
         h.Value=idx;
-        gui.SelectedSubFile = idx;
+        gui.SelectedSubSpec = idx;
         osp_updateSpecsOvWindow()
 end % pop_specsOvPlot_Call
 
 function pop_meanOvPlot_Call(h,~)  %Callback for the popup menu of subspectra in the mean sd overview tab
         idx=(h.Value);
         h.Value=idx;
-        gui.SelectedSubFile = idx;
+        gui.SelectedSubSpec = idx;
         osp_updatemeanOvWindow()
 end % pop_meanOvPlot_Call
 

@@ -43,11 +43,21 @@ for ss = 1 : NoSubSpec
     for kk = 1 : MRSCont.nDatasets
         temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
     end
-    max_point = max(temp_sz);
+        [max_point,max_ind] = max(temp_sz);
     for kk = 1 : MRSCont.nDatasets
         if MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1) < max_point
-            zf = max_point/MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
-            MRSCont.overview.all_data.(SubSpecNames{ss}){1,kk}=op_zeropad(MRSCont.processed.(SubSpecNames{ss}){1,kk},zf);
+%             zf = max_point/MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
+%             MRSCont.overview.all_data.(SubSpecNames{ss}){1,kk}=op_zeropad(MRSCont.processed.(SubSpecNames{ss}){1,kk},zf);
+            % Determine the ppm ranges of both the dataset with the most datapoints and the dataset which is should be interpolated.
+            ppmRangeData        = MRSCont.processed.(SubSpecNames{ss}){1,max_ind}.ppm';
+            ppmRangeDataToInt       = MRSCont.processed.(SubSpecNames{ss}){1,kk}.ppm;
+            ppmIsInDataRange    = (ppmRangeDataToInt < ppmRangeData(1)) & (ppmRangeDataToInt > ppmRangeData(end));
+            if sum(ppmIsInDataRange) == 0
+                ppmIsInDataRange    = (ppmRangeDataToInt > ppmRangeData(1)) & (ppmRangeDataToInt < ppmRangeData(end));
+            end
+            MRSCont.overview.all_data.(SubSpecNames{ss}){1,kk}.specs      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_data.(SubSpecNames{ss}){1,kk}.specs(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
+            MRSCont.overview.all_data.(SubSpecNames{ss}){1,kk}.ppm = ppmRangeData;
+
         end
     end
 end
@@ -63,10 +73,10 @@ for kk = 1 : MRSCont.nDatasets
                     MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/MRSCont.fit.results.w.fitParams{1,kk}.ampl;
                     MRSCont.overview.all_data.w{1,kk}.specs =  MRSCont.overview.all_data.w{1,kk}.specs/MRSCont.fit.results.w.fitParams{1,kk}.ampl;
                 else
-                    MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/max(real(MRSCont.overview.all_data.A{1,kk}.specs(MRSCont.overview.all_data.A{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.A{1,kk}.ppm > 2.1)));
+                    MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/max(real(MRSCont.overview.all_data.A{1,kk}.specs(MRSCont.overview.all_data.A{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.A{1,kk}.ppm < 2.1)));
                 end
             end
-            MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.A{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.A{1,kk}.ppm > 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.A{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.A{1,kk}.ppm < 2.1)));
         end
         if MRSCont.flags.isMEGA
             if MRSCont.flags.hasRef
@@ -79,12 +89,12 @@ for kk = 1 : MRSCont.nDatasets
                     MRSCont.overview.all_data.B{1,kk}.specs= MRSCont.overview.all_data.B{1,kk}.specs/MRSCont.fit.results.w.fitParams{1,kk}.ampl;
                     MRSCont.overview.all_data.w{1,kk}.specs =  MRSCont.overview.all_data.w{1,kk}.specs/MRSCont.fit.results.w.fitParams{1,kk}.ampl;
                 else
-                    MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/max(real(MRSCont.overview.all_data.B{1,kk}.specs(MRSCont.overview.all_data.B{1,kk}.ppm > 1.9 && MRSCont.overview.all_data.B{1,kk}.ppm > 2.1)));
-                    MRSCont.overview.all_data.B{1,kk}.specs= MRSCont.overview.all_data.B{1,kk}.specs/max(real(MRSCont.overview.all_data.B{1,kk}.specs(MRSCont.overview.all_data.B{1,kk}.ppm > 1.9 && MRSCont.overview.all_data.B{1,kk}.ppm > 2.1)));
+                    MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/max(real(MRSCont.overview.all_data.B{1,kk}.specs(MRSCont.overview.all_data.B{1,kk}.ppm > 1.9 && MRSCont.overview.all_data.B{1,kk}.ppm < 2.1)));
+                    MRSCont.overview.all_data.B{1,kk}.specs= MRSCont.overview.all_data.B{1,kk}.specs/max(real(MRSCont.overview.all_data.B{1,kk}.specs(MRSCont.overview.all_data.B{1,kk}.ppm > 1.9 && MRSCont.overview.all_data.B{1,kk}.ppm < 2.1)));
                 end
             end
-            MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.B{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.B{1,kk}.ppm > 2.1)));
-            MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.B{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.B{1,kk}.ppm > 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.B{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.B{1,kk}.ppm < 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.B{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.B{1,kk}.ppm < 2.1)));
         end
         if MRSCont.flags.isHERMES
             if MRSCont.flags.hasRef
@@ -101,16 +111,16 @@ for kk = 1 : MRSCont.nDatasets
                     MRSCont.overview.all_data.D{1,kk}.specs= MRSCont.overview.all_data.D{1,kk}.specs/MRSCont.fit.results.w.fitParams{1,kk}.ampl;
                     MRSCont.overview.all_data.w{1,kk}.specs =  MRSCont.overview.all_data.w{1,kk}.specs/MRSCont.fit.results.w.fitParams{1,kk}.ampl;
                 else
-                    MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm > 2.1)));
-                    MRSCont.overview.all_data.B{1,kk}.specs= MRSCont.overview.all_data.B{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm > 2.1)));
-                    MRSCont.overview.all_data.C{1,kk}.specs= MRSCont.overview.all_data.C{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm > 2.1)));
-                    MRSCont.overview.all_data.D{1,kk}.specs= MRSCont.overview.all_data.D{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm > 2.1)));
+                    MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm < 2.1)));
+                    MRSCont.overview.all_data.B{1,kk}.specs= MRSCont.overview.all_data.B{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm < 2.1)));
+                    MRSCont.overview.all_data.C{1,kk}.specs= MRSCont.overview.all_data.C{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm < 2.1)));
+                    MRSCont.overview.all_data.D{1,kk}.specs= MRSCont.overview.all_data.D{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm < 2.1)));
                 end
             end
-            MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 2.1)));
-            MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 2.1)));
-            MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 2.1)));
-            MRSCont.overview.all_data_NAAnormalized.D{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.D{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm < 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm < 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm < 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.D{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.D{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm < 2.1)));
          end
         if MRSCont.flags.isHERCULES
             if MRSCont.flags.hasRef
@@ -127,16 +137,16 @@ for kk = 1 : MRSCont.nDatasets
                     MRSCont.overview.all_data.D{1,kk}.specs= MRSCont.overview.all_data.D{1,kk}.specs/MRSCont.fit.results.w.fitParams{1,kk}.ampl;
                     MRSCont.overview.all_data.w{1,kk}.specs =  MRSCont.overview.all_data.w{1,kk}.specs/MRSCont.fit.results.w.fitParams{1,kk}.ampl;
                 else
-                    MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm > 2.1)));
-                    MRSCont.overview.all_data.B{1,kk}.specs= MRSCont.overview.all_data.B{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm > 2.1)));
-                    MRSCont.overview.all_data.C{1,kk}.specs= MRSCont.overview.all_data.C{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm > 2.1)));
-                    MRSCont.overview.all_data.D{1,kk}.specs= MRSCont.overview.all_data.D{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm > 2.1)));
+                    MRSCont.overview.all_data.A{1,kk}.specs= MRSCont.overview.all_data.A{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm < 2.1)));
+                    MRSCont.overview.all_data.B{1,kk}.specs= MRSCont.overview.all_data.B{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm < 2.1)));
+                    MRSCont.overview.all_data.C{1,kk}.specs= MRSCont.overview.all_data.C{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm < 2.1)));
+                    MRSCont.overview.all_data.D{1,kk}.specs= MRSCont.overview.all_data.D{1,kk}.specs/max(real(MRSCont.overview.all_data.C{1,kk}.specs(MRSCont.overview.all_data.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data.C{1,kk}.ppm < 2.1)));
                 end
             end
-            MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 2.1)));
-            MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 2.1)));
-            MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 2.1)));
-            MRSCont.overview.all_data_NAAnormalized.D{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.D{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.A{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm < 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.B{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm < 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm < 2.1)));
+            MRSCont.overview.all_data_NAAnormalized.D{1,kk}.specs= MRSCont.overview.all_data_NAAnormalized.D{1,kk}.specs/max(real(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.specs(MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm > 1.9 & MRSCont.overview.all_data_NAAnormalized.C{1,kk}.ppm < 2.1)));
         end
     else
         error('This script works only on fully processed data. Run the whole Osprey pipeline first. Seg/Coreg is not needed')
