@@ -57,7 +57,7 @@ else
     % Measure drift pre-alignment
     for mm = 1:numSubSpecs
         in_sub = op_takesubspec(in, mm);
-        driftPre(mm) = op_measureDrift(in_sub);
+        driftPre{mm} = op_measureDrift(in_sub);
     end
 end
 
@@ -114,7 +114,7 @@ for mm=1:numSubSpecs
         reverseStr = '';
         
         % Loop over averages in the sub-spectrum
-        for jj = 1:in.averages
+        for jj = 1:in.sz(in.dims.averages)
             
             if echo
                 if lipid_flag && ~water_flag
@@ -266,7 +266,7 @@ else
     % Measure drift pre-alignment
     for mm = 1:numSubSpecs
         out_temp_sub = op_takesubspec(out_temp, mm);
-        driftPost(mm) = op_measureDrift(out_temp_sub);
+        driftPost{mm} = op_measureDrift(out_temp_sub);
     end
 end
 

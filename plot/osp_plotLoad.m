@@ -46,18 +46,18 @@ if nargin<10
     switch which
         case 'mets'
             [~,filen,ext] = fileparts(MRSCont.files{kk});
-            figTitle = sprintf(['Load metabolite data plot:\n' filen ext]);
+            figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n']);
         case 'ref'
             if ~strcmp(MRSCont.datatype,'P')
                 [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
-                figTitle = sprintf(['Load water reference data plot:\n' filen ext]);
+                figTitle = sprintf(['Load water reference data plot: ' filen ext '\n']);
             else
                 [~,filen,ext] = fileparts(MRSCont.files{kk});
-                figTitle = sprintf(['Load interleaved water reference data plot:\n' filen ext]);
+                figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n']);
             end
         case 'w'
             [~,filen,ext] = fileparts(MRSCont.files_w{kk});
-            figTitle = sprintf(['Load water data plot:\n' filen ext]);
+            figTitle = sprintf(['Load water data plot: ' filen ext '\n']);
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
@@ -122,59 +122,155 @@ end
 %%% 3. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 out = figure;
-nAvgs = dataToPlot.averages;
 
-% Add the data and plot
-hold on;    
+% Divide the figure into tiles depending on the number of subspec
+% Add the data and plot   
 % Staggered plots will be in all black and separated by the mean of the
 % maximum across all averages divided by the number of averages
 stag = stag*max(abs(mean(max(real(dataToPlot.specs)))), abs(mean(min(real(dataToPlot.specs)))));
-% Loop over all averages
-if ~GUI
-    for rr = 1:nAvgs
-        plot(dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5);
+
+if MRSCont.flags.isUnEdited
+    axesHandles.A = gca();
+    nAvgs = dataToPlot.averages;
+    % Loop over all averages
+    if ~GUI
+        for rr = 1:nAvgs
+            plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5);
+            hold on; 
+        end
+    else
+        for rr = 1:nAvgs
+            plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            hold on; 
+        end
     end
+    axesNames = {'A'};
+end
+if MRSCont.flags.isMEGA && ~strcmp(which, 'w')
+    axesHandles.A  = subplot(2, 1, 1);
+    axesHandles.B  = subplot(2, 1, 2);
+    nAvgs = dataToPlot.averages/2;
+    hold(axesHandles.A, 'on');
+    hold(axesHandles.B, 'on');  
+    % Loop over all averages
+    if ~GUI
+        for rr = 1:nAvgs
+            plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5);
+            plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5);
+        end
+    else
+        for rr = 1:nAvgs
+            plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        end
+    end
+    axesNames = {'A','B'};
 else
-    for rr = 1:nAvgs
-        plot(dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+    axesHandles.A = gca();
+    nAvgs = dataToPlot.averages;
+    % Loop over all averages
+    if ~GUI
+        for rr = 1:nAvgs
+            plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5);
+            hold on; 
+        end
+    else
+        for rr = 1:nAvgs
+            plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            hold on; 
+        end
+    end
+    axesNames = {'A'};    
+end
+if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+    if ~strcmp(which, 'w')
+        axesHandles.A  = subplot(2, 2, 1);
+        axesHandles.B  = subplot(2, 2, 2);
+        axesHandles.C  = subplot(2, 2, 3);
+        axesHandles.D  = subplot(2, 2, 4);
+        nAvgs = dataToPlot.averages/4;
+        hold(axesHandles.A, 'on');
+        hold(axesHandles.B, 'on');  
+        hold(axesHandles.C, 'on');
+        hold(axesHandles.D, 'on');  
+        % Loop over all averages
+        if ~GUI
+            for rr = 1:nAvgs
+                plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5);
+                plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5);
+                plot(axesHandles.C,dataToPlot.ppm, dataToPlot.specs(:,rr,3) + rr*stag(3), 'k', 'LineWidth', 0.5);
+                plot(axesHandles.D,dataToPlot.ppm, dataToPlot.specs(:,rr,4) + rr*stag(4), 'k', 'LineWidth', 0.5);  
+            end
+        else
+            for rr = 1:nAvgs
+                plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+                plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+                plot(axesHandles.C,dataToPlot.ppm, dataToPlot.specs(:,rr,3) + rr*stag(3), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground); 
+                plot(axesHandles.D,dataToPlot.ppm, dataToPlot.specs(:,rr,4) + rr*stag(4), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            end
+        end
+        axesNames = {'A','B','C','D'};
+    else
+        axesHandles.A = gca();
+        nAvgs = dataToPlot.averages;
+        % Loop over all averages
+        if ~GUI
+            for rr = 1:nAvgs
+                plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5);
+                hold on; 
+            end
+        else
+            for rr = 1:nAvgs
+                plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+                hold on; 
+            end
+        end
+        axesNames = {'A'}; 
     end
 end
 hold off;
-
-
 %%% 4. DESIGN FINETUNING %%%
-set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
-set(gca, 'LineWidth', 1, 'TickDir', 'out');
-set(gca, 'FontSize', 16);
-% If no y caption, remove y axis
-if isempty(ylab)
+for ax = 1 : length(axesNames)
+    set(axesHandles.(axesNames{ax}), 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
+    set(axesHandles.(axesNames{ax}), 'LineWidth', 1, 'TickDir', 'out');
+    set(axesHandles.(axesNames{ax}), 'FontSize', 16);
+    set(axesHandles.(axesNames{ax}), 'Units', 'normalized');
+    % If no y caption, remove y axis
+    if isempty(ylab)
     if ~GUI
-        set(gca, 'YColor', 'w');
-        set(gca, 'XColor', 'k');
-        set(gca, 'Color', 'w');
-        set(gcf, 'Color', 'w');
-        title(figTitle, 'Interpreter', 'none');
+        set(axesHandles.(axesNames{ax}), 'YColor', 'w');
+        set(axesHandles.(axesNames{ax}), 'XColor', 'k');
+        set(axesHandles.(axesNames{ax}), 'Color', 'w');
+        if ax == 1
+            title(axesHandles.(axesNames{ax}),[figTitle ' Subspectra ' axesNames{ax}], 'Interpreter', 'none');
+        else
+            title(axesHandles.(axesNames{ax}),[' Subspectra ' axesNames{ax}], 'Interpreter', 'none');
+        end
     else
-        set(gca, 'YColor', MRSCont.colormap.Background);
-        set(gca,'YTickLabel',{})
-        set(gca,'YTick',{})
-        set(gca, 'XColor', MRSCont.colormap.Foreground);
-        set(gca, 'Color', MRSCont.colormap.Background);
-        set(gcf, 'Color', MRSCont.colormap.Background);
-        title(figTitle, 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+        set(axesHandles.(axesNames{ax}), 'YColor', MRSCont.colormap.Background);
+        set(axesHandles.(axesNames{ax}),'YTickLabel',{})
+        set(axesHandles.(axesNames{ax}),'YTick',{})
+        set(axesHandles.(axesNames{ax}), 'XColor', MRSCont.colormap.Foreground);
+        set(axesHandles.(axesNames{ax}), 'Color', MRSCont.colormap.Background);
+        if ax == 1
+            title(axesHandles.(axesNames{ax}),[figTitle ' Subspectra ' axesNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+        else
+            title(axesHandles.(axesNames{ax}),[' Subspectra ' axesNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+        end
     end
-else
-    set(gca, 'YColor', 'k');
+    else
+    set(axesHandles.(axesNames{ax}), 'YColor', 'k');
+    end
+    % Black axes, white background
+    box off;
+    xlabel(axesHandles.(axesNames{ax}),xlab, 'FontSize', 16);
+    ylabel(axesHandles.(axesNames{ax}),ylab, 'FontSize', 16);
 end
-% Black axes, white background
-
-box off;
-
-
-xlabel(xlab, 'FontSize', 16);
-ylabel(ylab, 'FontSize', 16);
-
-
+if ~GUI
+    set(gcf, 'Color', 'w');
+else
+    set(gcf, 'Color', MRSCont.colormap.Background);
+end
 %%% 5. ADD OSPREY LOGO %%%
 if ~GUI
     [I, map] = imread('osprey.gif','gif');

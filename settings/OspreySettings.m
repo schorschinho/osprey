@@ -74,6 +74,7 @@ MRSCont.flags.didCoreg      = 0;
 MRSCont.flags.didSeg        = 0;
 MRSCont.flags.didFit        = 0;
 MRSCont.flags.didQuantify   = 0;
+MRSCont.flags.didOverview   = 0;
 
 
 %%% DO NOT EDIT BELOW - DO NOT EDIT BELOW - DO NOT EDIT BELOW - DO NOT EDIT BELOW %%%
