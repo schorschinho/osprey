@@ -1,4 +1,4 @@
-function out = osp_plotFit(MRSCont, kk, which, GUI, stagFlag, xlab, ylab, figTitle)
+function out = osp_plotFit(MRSCont, kk, which, GUI, conc, stagFlag, xlab, ylab, figTitle)
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   Creates a figure showing data stored in an Osprey data container, as
 %   well as the fit to it, the baseline, the residual, and contributions
@@ -45,23 +45,30 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin<8    
+if nargin<9    
     [~,filen,ext] = fileparts(MRSCont.files{kk});
-    figTitle = sprintf([MRSCont.opts.fit.method ' ' MRSCont.opts.fit.style ' ' which ' fit plot:\n' filen ext]);
-    if nargin<7
+    if strcmp(which, 'conc')
+        figTitle = sprintf([MRSCont.opts.fit.method ' ' MRSCont.opts.fit.style ' ' conc ' fit plot:\n' filen ext]);
+    else
+        figTitle = sprintf([MRSCont.opts.fit.method ' ' MRSCont.opts.fit.style ' ' which ' fit plot:\n' filen ext]);
+    end
+    if nargin<8
         ylab='';
-        if nargin<6
+        if nargin<7
             xlab='Frequency (ppm)';
-            if nargin<5
+            if nargin<6
                 stagFlag = 1;
-                if nargin<4
-                    GUI = 0;    
-                    if nargin < 3
-                        which = 'off';
-                        if nargin < 2
-                            kk = 1;
-                            if nargin<1
-                                error('ERROR: no input Osprey container specified.  Aborting!!');
+                if nargin<5
+                    conc = 'diff1';
+                    if nargin<4
+                        GUI = 0;    
+                        if nargin < 3
+                            which = 'off';
+                            if nargin < 2
+                                kk = 1;
+                                if nargin<1
+                                    error('ERROR: no input Osprey container specified.  Aborting!!');
+                                end
                             end
                         end
                     end
@@ -74,17 +81,25 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract processed spectra and fit parameters
-if strcmp(which, 'off')
-    dataToPlot  = MRSCont.processed.A{kk};
+if  strcmp(which, 'conc')
+    dataToPlot  = MRSCont.processed.(conc){kk};
 else
-    dataToPlot  = MRSCont.processed.(which){kk};
+    if strcmp(which, 'off')
+        dataToPlot  = MRSCont.processed.A{kk};
+    else
+        dataToPlot  = MRSCont.processed.(which){kk};
+    end
 end
 if strcmp(which, 'ref') || strcmp(which, 'w')
     fitRangePPM = MRSCont.opts.fit.rangeWater;
-    basisSet    = MRSCont.fit.resBasisSet.water{kk};
-else
-    fitRangePPM = MRSCont.opts.fit.range;
-    basisSet    = MRSCont.fit.resBasisSet.(which){kk};
+    basisSet    = MRSCont.fit.resBasisSet.(which).water{kk};
+else if strcmp(which, 'conc')
+        fitRangePPM = MRSCont.opts.fit.range;
+        basisSet    = MRSCont.fit.resBasisSet.(which){kk};
+    else
+        fitRangePPM = MRSCont.opts.fit.range;
+        basisSet    = MRSCont.fit.resBasisSet.(which){kk};
+    end
 end
 specToPlot  = op_freqrange(dataToPlot, fitRangePPM(1), fitRangePPM(end));
 fitParams   = MRSCont.fit.results.(which).fitParams{kk};
@@ -107,19 +122,43 @@ switch MRSCont.opts.fit.method
             [appliedBasisSet] = fit_applynlinwaterOsprey(basisSet, x, fitRangePPM);
             fitted      = (appliedBasisSet.specs*ampl);
             fitted      = fitted .* MRSCont.fit.scale{kk};
-        else
-            % If metabolites, extract and apply nonlinear parameters
-            beta_j      = fitParams.beta_j;
-            spl_pos     = fitParams.spl_pos;
-            x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j];
-            [appliedBasisSet, B] = fit_applynlinOsprey(basisSet, x, spl_pos, fitRangePPM);
-            % Convert to complex baseline and scaled basis functions
-            temp_B      = reshape(B, [length(B)/2, 2]);
-            complex_B   = (temp_B(:,1) + 1i*temp_B(:,2));
-            fitted      = (appliedBasisSet.specs*ampl + complex_B);
-            % Scale
-            complex_B   = complex_B .* MRSCont.fit.scale{kk};
-            fitted      = fitted .* MRSCont.fit.scale{kk};
+        else if strcmp(which, 'conc')
+                % If concatened metabolites, extract and apply nonlinear
+                % parameters and shifts
+                beta_j      = fitParams.beta_j;
+                spl_pos     = fitParams.spl_pos;
+                addFreqShift = fitParams.addFreqShift;
+                x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j; addFreqShift];
+                [appliedBasisSet, B] = fit_applynlinOspreyMultiplex(basisSet, x, spl_pos, fitRangePPM);
+                % Convert to complex baseline and scaled basis functions
+                switch conc
+                    case 'diff1'
+                        B_conc = B(:,1);
+                        appliedBasisSet.specs = appliedBasisSet.specs(:,:,1);
+                    case 'sum'
+                        B_conc = B(:,2);
+                        appliedBasisSet.specs = appliedBasisSet.specs(:,:,2);
+                    end
+                temp_B      = reshape(B_conc, [length(B_conc)/2, 2]);
+                complex_B   = (temp_B(:,1) + 1i*temp_B(:,2));
+                fitted      = (appliedBasisSet.specs*ampl + complex_B);
+                % Scale
+                complex_B   = complex_B .* MRSCont.fit.scale{kk};
+                fitted      = fitted .* MRSCont.fit.scale{kk};
+            else
+                % If metabolites, extract and apply nonlinear parameters
+                beta_j      = fitParams.beta_j;
+                spl_pos     = fitParams.spl_pos;
+                x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j];
+                [appliedBasisSet, B] = fit_applynlinOsprey(basisSet, x, spl_pos, fitRangePPM);
+                % Convert to complex baseline and scaled basis functions
+                temp_B      = reshape(B, [length(B)/2, 2]);
+                complex_B   = (temp_B(:,1) + 1i*temp_B(:,2));
+                fitted      = (appliedBasisSet.specs*ampl + complex_B);
+                % Scale
+                complex_B   = complex_B .* MRSCont.fit.scale{kk};
+                fitted      = fitted .* MRSCont.fit.scale{kk};
+            end
         end
 end
 
@@ -229,7 +268,7 @@ else
     set(gca, 'YLim', [0  1]);
     hold off;
     % If water is being shown, show a simple legend
-    legend('Data', 'Fit', 'Residual');
+    %legend('Data', 'Fit', 'Residual');
     
 end
 

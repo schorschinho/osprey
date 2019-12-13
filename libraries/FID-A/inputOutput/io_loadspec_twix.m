@@ -84,7 +84,9 @@ elseif isSiemens
         seq = 'PRESS';
     end
 end
-
+if ~exist('seq')
+    seq = 'Unknown';
+end
 %If this is the SPECIAL sequence, it probably contains both inversion-on
 %and inversion-off subspectra on a single dimension, unless it is the VB
 %version of Jamie Near's SPECIAL sequence, in which case the subspecs are

@@ -65,7 +65,7 @@ switch fitWhich
         str = 'w';
 end
 % Write
-MRSCont.fit.resBasisSet.water      = resBasisSetWater;
+MRSCont.fit.resBasisSet.(str).water{kk}      = resBasisSetWater;
 MRSCont.fit.results.(str).fitParams{kk}   = fitParamsWater;
         
 end
