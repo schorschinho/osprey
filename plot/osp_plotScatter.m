@@ -70,8 +70,13 @@ cb(3,:) = cb(4,:);
 cb(4,:) = temp;
 
 %%% 3. EXTRACT METABOLITE CONCENTRATIONS%%%
-idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
-ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};
+if strcmp(quant,'AlphaCorrWaterScaled') || strcmp(quant,'AlphaCorrWaterScaledGroupNormed')
+    idx_1  = 1;
+    ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};
+else
+    idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
+    ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};
+end
 metabFlag = 0;
 
 if ischar(corrData)
@@ -108,6 +113,22 @@ if strcmp(quant, 'TissCorrWaterScaled')
     ylab = [metab ' TissCorrWaterScaled  (i.u.)'];
     if metabFlag
         xlab = [corrDataName ' TissCorrWaterScaled  (i.u.)'];
+    else
+        xlab = corrDataName;
+    end
+end
+if strcmp(quant, 'AlphaCorrWaterScaled')
+    ylab = [metab ' AlphaCorrWaterScaled  (i.u.)'];
+    if metabFlag
+        xlab = [corrDataName ' AlphaCorrWaterScaled  (i.u.)'];
+    else
+        xlab = corrDataName;
+    end
+end
+if strcmp(quant, 'AlphaCorrWaterScaledGroupNormed')
+    ylab = [metab ' AlphaCorrWaterScaledGroupNormed  (i.u.)'];
+    if metabFlag
+        xlab = [corrDataName ' AlphaCorrWaterScaledGroupNormed  (i.u.)'];
     else
         xlab = corrDataName;
     end

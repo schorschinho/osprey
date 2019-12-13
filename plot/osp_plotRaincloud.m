@@ -50,8 +50,13 @@ cb(3,:) = cb(4,:);
 cb(4,:) = temp;
 
 %%% 2. EXTRACT METABOLITE CONCENTRATIONS%%%
-idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
-ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};      
+if strcmp(quant,'AlphaCorrWaterScaled') || strcmp(quant,'AlphaCorrWaterScaledGroupNormed')
+    idx_1  = 1;
+    ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
+else
+    idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
+    ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
+end
 
 if strcmp(quant, 'tCr')
     ylab = [metab ' / tCr'];
@@ -63,7 +68,13 @@ if strcmp(quant, 'CSFWaterScaled')
     ylab = [metab ' CSFWaterScaled  (i.u.)'];
 end
 if strcmp(quant, 'TissCorrWaterScaled')
-    ylab = [metab 'TissCorrWaterScaled  (i.u.)'];
+    ylab = [metab ' TissCorrWaterScaled  (i.u.)'];
+end
+if strcmp(quant, 'AlphaCorrWaterScaled')
+    ylab = [metab ' AlphaCorrWaterScaled  (i.u.)'];
+end
+if strcmp(quant, 'AlphaCorrWaterScaledGroupNormed')
+    ylab = [metab ' AlphaCorrWaterScaledGroupNormed  (i.u.)'];
 end
 %%% 3. CREATE RAINCLOUD PLOT %%%
 % Generate a new figure and keep the handle memorized
@@ -123,7 +134,7 @@ box off
 %%% 4. ADD OSPREY LOGO %%%
 if ~GUI
     [I, map] = imread('osprey.gif','gif');
-    axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
+    axes(out_rain, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);
     axis off;
 end
