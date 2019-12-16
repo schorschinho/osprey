@@ -83,7 +83,9 @@ if ~MRSCont.flags.isPRIAM
     if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1
         [MRSCont] = osp_combineCoils(MRSCont);
     else
-        fprintf('Data type %s %s is already coil-combined.\n', MRSCont.vendor, MRSCont.datatype);
+        if ~strcmp(MRSCont.datatype, 'TWIX')
+            fprintf('Data type %s %s is already coil-combined.\n', MRSCont.vendor, MRSCont.datatype);
+        end
     end
 elseif MRSCont.flags.isPRIAM
     error('Coming soon!');

@@ -70,7 +70,7 @@ if MRSCont.flags.hasRef
     reverseStr = '';
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
-        msg = sprintf('Fitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
+        msg = sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
@@ -85,7 +85,7 @@ if MRSCont.flags.hasWater
     reverseStr = '';
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
-        msg = sprintf('Fitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
+        msg = sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         [MRSCont] = osp_fitWater(MRSCont, kk, 'w');

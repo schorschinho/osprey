@@ -217,12 +217,11 @@ for kk = 1:MRSCont.nDatasets
         % Calculate mean WM/GM fractions
         meanfGM = mean(MRSCont.seg.tissue.fGM); % average GM fraction across datasets
         meanfWM = mean(MRSCont.seg.tissue.fWM); % average WM fraction across datasets
-        [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName,amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM);
+        [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName,amplMets, amplWater,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM);
 
         % Save back to Osprey data container
-        MRSCont.quantify.AlphaCorrWaterScaled{kk} = AlphaCorrWaterScaled;
-        MRSCont.quantify.AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
-
+        MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaled{kk} = AlphaCorrWaterScaled;
+        MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
     end
 
 
@@ -244,8 +243,8 @@ if qtfyTiss
     [MRSCont] = osp_createTable(MRSCont,'TissCorrWaterScaled', getResults);
 end
 if qtfyAlpha
-    [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaled', getResults);
-    [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaledGroupNormed', getResults);
+    [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaled', getResults(1));
+    [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaledGroupNormed', getResults(1));
 end
 %% Clean up and save
 % Set exit flags
@@ -482,7 +481,7 @@ end
 
 
 %%% Calculate alpha-corrected water-scaled GABA estimates %%%
-function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM)
+function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName, amplMets, amplWater,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM)
 % This function calculates water-scaled, alpha-corrected GABA
 % estimates in molal units, according to Gasparovic et al, Magn Reson Med
 % 55:1219-26 (2006).
@@ -533,16 +532,13 @@ idx_GABA  = find(strcmp(metsName,'GABA'));
 % average across GM and WM
 T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
 T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
-for ll = 1:length(getResults)
-    ConcIU_TissCorr_Harris.(getResults{ll}) = (amplMets.(getResults{ll})(idx_GABA) ./ amplWater) ...
-            .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-                fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-                fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
+ConcIU_TissCorr_Harris = (amplMets.(getResults{1})(idx_GABA) ./ amplWater) ...
+        .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+            fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+            fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
 
-    AlphaCorrWaterScaled.(getResults{ll}) = ConcIU_TissCorr_Harris.(getResults{ll}) / (fGM + alpha*fWM);
-    AlphaCorrWaterScaledGroupNormed.(getResults{ll}) = ConcIU_TissCorr_Harris.(getResults{ll}) * CorrFactor;
-end
-
+AlphaCorrWaterScaled = ConcIU_TissCorr_Harris / (fGM + alpha*fWM);
+AlphaCorrWaterScaledGroupNormed = ConcIU_TissCorr_Harris * CorrFactor;
 end
 %%% /Calculate alpha-corrected water-scaled GABA estimates %%%
 
@@ -597,18 +593,31 @@ end
 
 %%% Function to create metabolite overview in MATLAB table format %%%
 function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
+    if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWaterScaledGroupNormed'))
+        % Extract metabolite names from basisset
+        names = MRSCont.quantify.metabs;
 
-    % Extract metabolite names from basisset
-    names = MRSCont.quantify.metabs;
-
-    conc = zeros(MRSCont.nDatasets,length(names));
-    for ll = 1:length(getResults)
-        for kk = 1:MRSCont.nDatasets
-            conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
+        conc = zeros(MRSCont.nDatasets,length(names));
+        for ll = 1:length(getResults)
+            for kk = 1:MRSCont.nDatasets
+                conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
+            end
+            % Save back to Osprey data container
+            MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
         end
-        % Save back to Osprey data container
-        MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
-    end
+    else
+            % Extract metabolite names from basisset
+        names = {'GABA'};
 
+
+        conc = zeros(MRSCont.nDatasets,length(names));
+        for ll = 1:length(getResults)
+            for kk = 1:MRSCont.nDatasets
+                conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
+            end
+            % Save back to Osprey data container
+            MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
+        end
+    end
 end
 %%% Function to create metaboite overview in MATLAB table format %%%

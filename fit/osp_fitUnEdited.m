@@ -30,7 +30,7 @@ function [MRSCont] = osp_fitUnEdited(MRSCont)
 metFitTime = tic;
 reverseStr = '';
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Fitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
+    msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
     
