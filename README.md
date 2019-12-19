@@ -56,12 +56,10 @@ extract and add to your MATLAB path.
 If you want to use the `Osprey` Graphical User Interface (GUI),
 please download the following toolboxes from the MATLAB File Exchange:
 
-    - [GUI Layout
-      Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox)
+- [GUI Layout Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox)
       (David Sampson)
 
-    - [Widget
-      Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/66235-widgets-toolbox)
+- [Widget Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/66235-widgets-toolbox)
       (Robin Jackey)
 
 Download both toolboxes in the MATLAB toolbox format (.mltbx). You can
