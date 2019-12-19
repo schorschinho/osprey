@@ -53,6 +53,21 @@ To perform voxel co-registration and tissue segmentation, download **SPM12**
 [from the UCL website](http://www.fil.ion.ucl.ac.uk/spm/software/spm12/), then
 extract and add to your MATLAB path.
 
+If you want to use the `Osprey` Graphical User Interface (GUI),
+please download the following toolboxes from the MATLAB File Exchange:
+
+    - [GUI Layout
+      Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox)
+      (David Sampson)
+
+    - [Widget
+      Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/66235-widgets-toolbox)
+      (Robin Jackey)
+
+Download both toolboxes in the MATLAB toolbox format (.mltbx). You can
+double-click to install. MATLAB will automatically add the toolboxes to its
+path.
+
 ## Contact, Feedback, Suggestions
 
 For any sort of questions, feedback, suggestions, or critique, please reach out to us via gabamrs@gmail.com. We also welcome your direct contributions to Osprey here in the GitHub repository.
