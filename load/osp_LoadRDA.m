@@ -57,6 +57,19 @@ for kk = 1:MRSCont.nDatasets
     if MRSCont.flags.hasRef
         raw_ref = io_loadspec_rda(MRSCont.files_ref{kk});
         MRSCont.raw_ref{kk}  = raw_ref;
+        if MRSCont.raw_ref{kk}.subspecs > 1
+            if MRSCont.flags.isMEGA
+                raw_ref_A               = op_takesubspec(MRSCont.raw_ref{kk},1);
+                raw_ref_B               = op_takesubspec(MRSCont.raw_ref{kk},2);
+                MRSCont.raw_ref{kk} = op_concatAverages(raw_ref_A,raw_ref_B);
+            else
+                raw_ref_A               = op_takesubspec(MRSCont.raw_ref{kk},1);
+                raw_ref_B               = op_takesubspec(MRSCont.raw_ref{kk},2);
+                raw_ref_C               = op_takesubspec(MRSCont.raw_ref{kk},3);
+                raw_ref_D               = op_takesubspec(MRSCont.raw_ref{kk},4);                    
+                MRSCont.raw_ref{kk} = op_concatAverages(raw_ref_A,raw_ref_B,raw_ref_C,raw_ref_D);
+            end
+        end
     end
     if MRSCont.flags.hasWater
         raw_w   = io_loadspec_rda(MRSCont.files_w{kk});

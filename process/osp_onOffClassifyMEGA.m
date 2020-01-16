@@ -27,6 +27,7 @@ function [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-03-18)
 %       goeltzs1@jhmi.edu
+%           
 %   
 %   CREDITS:    
 %       This code is based on numerous functions from the FID-A toolbox by
@@ -36,23 +37,31 @@ function [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
 %
 %   HISTORY:
 %       2019-03-18: First version of the code.
+%       2020-01-15: Modified by Helge Zoellner (absolute value
+%       implementation)
 
-% Calculate difference spectrum
-DIFF = op_addScans(inA, inB, 1);
 
 switch target
     case 'GABA'
-        % Determine whether DIFF spectrum has a positive NAA peak.  
-        parsFit = op_naaFit(DIFF,0,0);
+        % Determine which of the differences has an upright NAA peak
+        tempA = op_freqrange(inA, 1.7, 2.3);
+        tempB = op_freqrange(inB, 1.7, 2.3);
+
+        specA = abs(tempA.specs);
+        specB = abs(tempB.specs);
         
-        if (parsFit(1) * parsFit(2)) > 0 % this is the area under the curve of the NAA fit
+        max_diffAB = max(specA - specB);
+        max_diffBA = max(specB - specA);
+        
+        
+        if max_diffAB > max_diffBA
             outA = inA;
             outB = inB;
-            switchOrder = [1, 2];
+            switchOrder = 0;
         else
             outA = inB;
             outB = inA;
-            switchOrder = [2, 1];
+            switchOrder = 1;
         end
     case 'GSH'
         error('Automatic ON/OFF classification for GSH-edited data coming soon!');
