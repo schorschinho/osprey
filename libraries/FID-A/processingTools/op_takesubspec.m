@@ -75,6 +75,9 @@ out.fids=fids;
 out.specs=specs;
 out.sz=sz;
 out.dims=dims;
+if ~out.flags.averaged
+    out.averages = out.sz(out.dims.averages);
+end
 out.subspecs=1;
 
 %FILLING IN THE FLAGS

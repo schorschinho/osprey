@@ -103,9 +103,14 @@ for kk = 1:MRSCont.nDatasets
             [raw_ref_A]             = op_rmempty(raw_ref_A);            % Remove empty lines
             raw_ref_B               = op_takesubspec(raw_ref,2);
             [raw_ref_B]             = op_rmempty(raw_ref_B);            % Remove empty lines
-            raw_ref                 = op_concatAverages(raw_ref_A,raw_ref_B);
+            raw_ref_C               = op_takesubspec(raw_ref,3);
+            [raw_ref_C]             = op_rmempty(raw_ref_C);            % Remove empty lines
+            raw_ref_D               = op_takesubspec(raw_ref,4);
+            [raw_ref_D]             = op_rmempty(raw_ref_D);            % Remove empty lines
+            raw_ref                 = op_concatAverages(raw_ref_A,raw_ref_B,raw_ref_C,raw_ref_D);            
         end
         if ~raw_ref.flags.averaged
+            [raw_ref]             = op_rmempty(raw_ref); 
             [raw_ref,~,~]           = op_alignAverages(raw_ref,1,'n');  % Align averages
             raw_ref                 = op_averaging(raw_ref);            % Average
         end

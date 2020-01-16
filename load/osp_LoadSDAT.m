@@ -64,10 +64,33 @@ for kk = 1:MRSCont.nDatasets
     if MRSCont.flags.hasRef
         if MRSCont.flags.isUnEdited
             raw_ref = io_loadspec_sdat(MRSCont.files_ref{kk},1);
+            [raw_ref] = op_rmempty(raw_ref);
         elseif MRSCont.flags.isMEGA
             raw_ref = io_loadspec_sdat(MRSCont.files_ref{kk},2);
+            if raw_ref.subspecs > 1
+                raw_ref_A               = op_takesubspec(raw_ref,1);
+                [raw_ref_A]             = op_rmempty(raw_ref_A);            % Remove empty lines
+                raw_ref_B               = op_takesubspec(raw_ref,2);
+                [raw_ref_B]             = op_rmempty(raw_ref_B);            % Remove empty lines
+                raw_ref                 = op_concatAverages(raw_ref_A,raw_ref_B);
+            else
+                [raw_ref] = op_rmempty(raw_ref);
+            end
         elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
             raw_ref = io_loadspec_sdat(MRSCont.files_ref{kk},1);
+            if raw_ref.subspecs > 1
+                raw_ref_A               = op_takesubspec(raw_ref,1);
+                [raw_ref_A]             = op_rmempty(raw_ref_A);            % Remove empty lines
+                raw_ref_B               = op_takesubspec(raw_ref,2);
+                [raw_ref_B]             = op_rmempty(raw_ref_B);            % Remove empty lines
+                raw_ref_C               = op_takesubspec(raw_ref,3);
+                [raw_ref_C]             = op_rmempty(raw_ref_C);            % Remove empty lines
+                raw_ref_D               = op_takesubspec(raw_ref,4);
+                [raw_ref_D]             = op_rmempty(raw_ref_D);            % Remove empty lines
+                raw_ref                 = op_concatAverages(raw_ref_A,raw_ref_B,raw_ref_C,raw_ref_D);  
+            else
+                [raw_ref] = op_rmempty(raw_ref); 
+            end
         end
         MRSCont.raw_ref{kk}  = raw_ref;
     end

@@ -137,7 +137,8 @@ for kk = 1:MRSCont.nDatasets
     %%% 4. DETERMINE ON/OFF STATUS
     % Classify the two sub-spectra such that the OFF spectrum is stored to
     % field A, and the ON spectrum is stored to field B.
-    [raw_A, raw_B, ~]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
+    [raw_A, raw_B, switchOrder]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
+
     
     
     %%% 5. BUILD SUM AND DIFF SPECTRA %%%
@@ -151,9 +152,19 @@ for kk = 1:MRSCont.nDatasets
     [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target);
     % Create the sum spectrum
     sum             = op_addScans(raw_A,raw_B);
+    if switchOrder
+        sum.flags.orderswitched = 1;
+    else
+        sum.flags.orderswitched = 0;
+    end
     % Create the GABA-edited difference spectrum
-    diff1           = op_addScans(raw_A,raw_B,1);
-    
+    diff1           = op_addScans(raw_B,raw_A,1);
+    if switchOrder
+        diff1.flags.orderswitched = 1;
+    else
+        diff1.flags.orderswitched = 0;
+    end
+    diff1.target = target;
     
     %%% 6. REMOVE RESIDUAL WATER %%%
     % Remove water and correct back to baseline.
@@ -206,7 +217,7 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
     % Reference resulting data correctly and consistently
-    [~,refShift]   = op_ppmref(raw_B,1.8,2.2,2.008);           % Reference edit-OFF spectrum to NAA @ 2.008 ppm
+    [~,refShift]   = op_ppmref(raw_A,1.8,2.2,2.008);           % Reference edit-OFF spectrum to NAA @ 2.008 ppm
     [raw_A]             = op_freqshift(raw_A,refShift);            % Apply same shift to edit-OFF
     [raw_B]             = op_freqshift(raw_B,refShift);            % Apply same shift to edit-OFF
     [diff1]             = op_freqshift(diff1,refShift);            % Apply same shift to diff1
@@ -245,8 +256,8 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 10. QUALITY CONTROL PARAMETERS %%%
     % Calculate some spectral quality metrics here;
-    MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk},2.8,3.2); % Cr amplitude over noise floor
-    FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},2.8,3.2); % in Hz
+    MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
     MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
     MRSCont.QM.drift.pre.A{kk}  = driftPre{1};
     MRSCont.QM.drift.post.A{kk} = driftPost{1};
@@ -254,8 +265,8 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre{1} - 3.02);
     MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost{1} - 3.02);
     
-    MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk}); % NAA amplitude over noise floor
-    FWHM_Hz                 = op_getLW(MRSCont.processed.B{kk},1.8,2.2); % in Hz
+    MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk}); % Cr amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.B{kk},2.8,3.2); % in Hz
     MRSCont.QM.FWHM.B(kk)   = FWHM_Hz./MRSCont.processed.B{kk}.txfrq*1e6; % convert to ppm
     MRSCont.QM.drift.pre.B{kk}  = driftPre{2};
     MRSCont.QM.drift.post.B{kk} = driftPost{2};

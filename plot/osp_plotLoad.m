@@ -145,8 +145,9 @@ if MRSCont.flags.isUnEdited
         end
     end
     axesNames = {'A'};
+    TitleNames = {'A'};
 end
-if MRSCont.flags.isMEGA && ~strcmp(which, 'w')
+if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref'))
     axesHandles.A  = subplot(2, 1, 1);
     axesHandles.B  = subplot(2, 1, 2);
     nAvgs = dataToPlot.averages/2;
@@ -165,7 +166,8 @@ if MRSCont.flags.isMEGA && ~strcmp(which, 'w')
         end
     end
     axesNames = {'A','B'};
-else
+    TitleNames = {'A','B'};
+else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref'))
     axesHandles.A = gca();
     nAvgs = dataToPlot.averages;
     % Loop over all averages
@@ -180,10 +182,16 @@ else
             hold on; 
         end
     end
-    axesNames = {'A'};    
+    axesNames = {'A'};
+    if strcmp(which, 'w')
+        TitleNames = {'A'};
+    else
+        TitleNames = {'A & B'};
+    end
+    end
 end
 if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-    if ~strcmp(which, 'w')
+    if ~(strcmp(which, 'w') || strcmp(which, 'ref'))
         axesHandles.A  = subplot(2, 2, 1);
         axesHandles.B  = subplot(2, 2, 2);
         axesHandles.C  = subplot(2, 2, 3);
@@ -210,6 +218,7 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
             end
         end
         axesNames = {'A','B','C','D'};
+        TitleNames = {'A','B','C','D'};
     else
         axesHandles.A = gca();
         nAvgs = dataToPlot.averages;
@@ -226,6 +235,11 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
             end
         end
         axesNames = {'A'}; 
+        if strcmp(which, 'w')
+            TitleNames = {'A'};
+        else
+            TitleNames = {'A & B & C & D'};
+        end
     end
 end
 hold off;
@@ -242,9 +256,9 @@ for ax = 1 : length(axesNames)
         set(axesHandles.(axesNames{ax}), 'XColor', 'k');
         set(axesHandles.(axesNames{ax}), 'Color', 'w');
         if ax == 1
-            title(axesHandles.(axesNames{ax}),[figTitle ' Subspectra ' axesNames{ax}], 'Interpreter', 'none');
+            title(axesHandles.(axesNames{ax}),[figTitle ' Subspectra ' TitleNames{ax}], 'Interpreter', 'none');
         else
-            title(axesHandles.(axesNames{ax}),[' Subspectra ' axesNames{ax}], 'Interpreter', 'none');
+            title(axesHandles.(axesNames{ax}),[' Subspectra ' TitleNames{ax}], 'Interpreter', 'none');
         end
     else
         set(axesHandles.(axesNames{ax}), 'YColor', MRSCont.colormap.Background);
@@ -253,9 +267,9 @@ for ax = 1 : length(axesNames)
         set(axesHandles.(axesNames{ax}), 'XColor', MRSCont.colormap.Foreground);
         set(axesHandles.(axesNames{ax}), 'Color', MRSCont.colormap.Background);
         if ax == 1
-            title(axesHandles.(axesNames{ax}),[figTitle ' Subspectra ' axesNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+            title(axesHandles.(axesNames{ax}),[figTitle ' Subspectra ' TitleNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
         else
-            title(axesHandles.(axesNames{ax}),[' Subspectra ' axesNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+            title(axesHandles.(axesNames{ax}),[' Subspectra ' TitleNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
         end
     end
     else
