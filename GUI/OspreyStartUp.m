@@ -23,7 +23,7 @@ function  OspreyStartUp
 %       MRSCont     = Osprey MRS data container.
 %
 %   AUTHORS:
-%       Helge Zöllner (Johns Hopkins University, 2019-11-07)
+%       Helge Zoellner (Johns Hopkins University, 2019-11-07)
 %       hzoelln2@jhmi.edu
 %
 
@@ -108,12 +108,12 @@ gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBa
 %% FUNCTIONS
 function loadJob()    
     gui.data.MRSCont = OspreyJob(gui.out{1});
-    OspreyGUI(gui.data.MRSCont);
+    OspreyGUIapp(gui.data.MRSCont);
     delete(gui.window);
 end
 function loadMRSCont()
     gui.data = load(gui.out{1}, 'MRSCont');
-    OspreyGUI(gui.data.MRSCont);
+    OspreyGUIapp(gui.data.MRSCont);
     delete(gui.window);
 end
 %% CALLBACK FUNCTIONS

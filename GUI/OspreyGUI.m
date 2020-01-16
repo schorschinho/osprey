@@ -23,7 +23,7 @@ function OspreyGUI(MRSCont)
 %       MRSCont     = Osprey MRS data container.
 %
 %   AUTHORS:
-%       Helge Zöllner (Johns Hopkins University, 2019-11-07)
+%       Helge Zoellner (Johns Hopkins University, 2019-11-07)
 %       hzoelln2@jhmi.edu
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-06-30)
 %       goeltzs1@jhmi.edu
@@ -137,6 +137,16 @@ function OspreyGUI(MRSCont)
                     end
                 end
             end
+            if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+                gui.FitNames = {'diff1','diff2','sum'};
+                if length(gui.FitNamestmp) == 2
+                    gui.FitNames{4} = gui.FitNamestmp{2};
+                else if length(gui.FitNamestmp) == 3
+                     gui.FitNames{4} = gui.FitNamestmp{2};
+                     gui.FitNames{5} = gui.FitNamestmp{3};
+                    end
+                end
+            end
             gui.NoFits = length(gui.FitNames); 
         else
             gui.FitNames = fieldnames(MRSCont.fit.results);
@@ -171,7 +181,7 @@ function OspreyGUI(MRSCont)
         gui.QMNames = {'SNR','FWHM (ppm)'};
     end
 %% Create the overall figure
-gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', 'Visible', 'on',...
+gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on',...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
     % Resize such that width is 1.2941 * height (1.2941 is the ratio
     % between width and height of standard US letter size (11x8.5 in).
@@ -303,7 +313,7 @@ gui.window = figure('Name', 'Osprey', 'NumberTitle', 'off', 'MenuBar', 'none', '
         gui.overviewTab = uix.TabPanel('Parent', gui.tabs, 'Padding', 5,'Padding', 5, 'BackgroundColor',gui.colormap.Background,...
                                         'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
                                        'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10, 'SelectionChangedFcn',@(src,event)OverviewTabChangedFcn(src,event));
-    gui.tabs.TabTitles  = {'Raw', 'Processed', 'Cor/Reg', 'Fit', 'Quantified','Overview'};
+    gui.tabs.TabTitles  = {'Raw', 'Processed', 'Cor/Seg', 'Fit', 'Quantified','Overview'};
     gui.tabs.TabWidth   = 115;
     gui.tabs.Selection  = 1;
     gui.tabs.TabEnables = {'off', 'off', 'off', 'off', 'off', 'off'};
@@ -496,19 +506,8 @@ function osp_iniLoadWindow()
             end
         else if t == 2 %ref data/tab
                 temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'ref',1 );
-                if MRSCont.flags.isUnEdited % One window for UnEdited
-                    gui.ViewAxes = gca();
-                    set( gui.ViewAxes, 'Parent', gui.dataPlot );
-                end
-                if MRSCont.flags.isMEGA %Two windows for MEGA
-                    set( temp.Children(2), 'Parent', gui.dataPlot );
-                    set( temp.Children(1), 'Parent', gui.dataPlot );
-                    set(gui.dataPlot,'Heights', [-0.49 -0.49]);
-                    set(gui.dataPlot.Children(2), 'Units', 'normalized')
-                    set(gui.dataPlot.Children(2), 'OuterPosition', [0,0.5,1,0.5])
-                    set(gui.dataPlot.Children(1), 'Units', 'normalized')
-                    set(gui.dataPlot.Children(1), 'OuterPosition', [0,0,1,0.5])
-                end
+                gui.ViewAxes = gca();
+                set( gui.ViewAxes, 'Parent', gui.dataPlot );
             else %water data/tab has only one window all the time
                 temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'w',1 );
                 gui.ViewAxes = gca();
@@ -569,22 +568,11 @@ function osp_updateLoadWindow()
             end
         else if gui.SelectedSubFile == 2 %Is Ref data/tab?
                 temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'ref',1 );
-                if MRSCont.flags.isUnEdited %Is Unedited?
-                    gui.ViewAxes = gca();
-                    delete(gui.dataPlot.Children(1).Children(1).Children)
-                    set( gui.ViewAxes.Children, 'Parent', gui.dataPlot.Children(1).Children(1));
-                    set(  gui.dataPlot.Children(1).Children(1).Title, 'String', gui.ViewAxes.Title.String)
-                    set(  gui.dataPlot.Children(1).Children(1), 'XLim', gui.ViewAxes.XLim)
-                end
-                if MRSCont.flags.isMEGA %Is MEGA?           
-                    delete(gui.dataPlot.Children(1).Children(1).Children)
-                    delete(gui.dataPlot.Children(1).Children(2).Children)
-                    set( temp.Children(2).Children, 'Parent', gui.dataPlot.Children(1).Children(2));
-                    set( temp.Children(1).Children, 'Parent', gui.dataPlot.Children(1).Children(1));
-                    set(  gui.dataPlot.Children(1).Children(2).Title, 'String', temp.Children(2).Title.String)
-                    set(  gui.dataPlot.Children(1).Children(2), 'XLim', temp.Children(2).XLim)
-                    set(  gui.dataPlot.Children(1).Children(1), 'XLim', temp.Children(1).XLim)
-                end
+                gui.ViewAxes = gca();
+                delete(gui.dataPlot.Children(1).Children(1).Children)
+                set( gui.ViewAxes.Children, 'Parent', gui.dataPlot.Children(1).Children(1));
+                set(  gui.dataPlot.Children(1).Children(1).Title, 'String', gui.ViewAxes.Title.String)
+                set(  gui.dataPlot.Children(1).Children(1), 'XLim', gui.ViewAxes.XLim)
             else %Is water data/tab?
                 temp = osp_plotLoad(MRSCont, gui.SelectedDataset,'w',1 );
                 gui.ViewAxes = gca();
@@ -639,7 +627,7 @@ function osp_iniProcessWindow()
                 gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.refProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.proTab.TabTitles  = {'on','off','diff','sum','reference','water'};
+                gui.proTab.TabTitles  = {'off','on','diff','sum','reference','water'};
                 gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
                 gui.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab', 'wProTab'}; %Create 6 tabs
             else
@@ -647,8 +635,8 @@ function osp_iniProcessWindow()
                     gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.refProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.proTab.TabTitles  = {'on','off','diff','sum','reference'};
+                    gui.refProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.proTab.TabTitles  = {'off','on','diff','sum','reference'};
                     gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab'}; %Create 5 tabs
                 end
@@ -656,8 +644,8 @@ function osp_iniProcessWindow()
                     gui.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.wProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.proTab.TabTitles  = {'on','off','diff','sum','water'};
+                    gui.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.proTab.TabTitles  = {'off','on','diff','sum','water'};
                     gui.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'wProTab'}; %Create 5 tabs
                 end
@@ -684,7 +672,7 @@ function osp_iniProcessWindow()
                     gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
-                    gui.refProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.refProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','reference'};
                     gui.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on'};
                     gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','refProTab'}; %Create 8 tabs
@@ -696,7 +684,7 @@ function osp_iniProcessWindow()
                     gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
-                    gui.wProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','water'};
                     gui.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on'};
                     gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','wProTab'}; %Create 8 tabs
@@ -724,7 +712,7 @@ function osp_iniProcessWindow()
                     gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
-                    gui.refProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.refProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.proTab.TabTitles  = {'A','B','C','D','reference'};
                     gui.proTab.TabEnables = {'on', 'on','on','on'};
                     gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','refProTab'}; %Create 8 tabs
@@ -736,7 +724,7 @@ function osp_iniProcessWindow()
                     gui.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.diff2ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
-                    gui.wProTab = uix.VBox('Parent', gui.rawTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.proTab.TabTitles  = {'A','B','C','D','water'};
                     gui.proTab.TabEnables = {'on', 'on','on','on'};
                     gui.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','wProTab'}; %Create 8 tabs
@@ -1573,7 +1561,10 @@ function osp_updatemeanOvWindow()
                     yl = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{t}]) - ...
                         MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.ProNames{t}]);
                     temp = fill([MRSCont.overview.(['ppm_' (gui.ProNames{t})]) fliplr(MRSCont.overview.(['ppm_' (gui.ProNames{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                    plot(MRSCont.overview.(['ppm_' (gui.ProNames{t})]),MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{t}])+shift ,'color',cb(g,:), 'LineWidth', 1);
+                    plot(MRSCont.overview.(['ppm_' (gui.FitNames{t})]),MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_' gui.FitNames{t}])+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1);
+                    plot(MRSCont.overview.(['ppm_' (gui.ProNames{t})]),MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.ProNames{t}])+shift ,'color',cb(g,:), 'LineWidth', 2);
+                    plot(MRSCont.overview.(['ppm_' (gui.FitNames{t})]),MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_baseline_' gui.FitNames{t}])+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1);
+                    plot(MRSCont.overview.(['ppm_' (gui.FitNames{t})]),MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_res_' gui.FitNames{t}])+shift ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);
                 else %Not NAA normalized ... Normalize to max
                     ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.ProNames{2}]));
                     shift = ylimmax * gui.shift * (g-1);
