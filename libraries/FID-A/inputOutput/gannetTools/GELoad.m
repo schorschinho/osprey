@@ -135,8 +135,8 @@ switch num2str(rdbm_rev_num)
         image_user20 = 62;
         image_user22 = 64;
         tlhc         = 133;
-        trhc         = 124;
-        brhc         = 127;
+        trhc         = 136;
+        brhc         = 139;
         
     case '24'
         % int
@@ -295,6 +295,7 @@ o_hdr_value = fread(fid, brhc+2, 'real*4');
 % Save geometry information to header
 hdr.geometry.size       = o_hdr_value(image_user8:image_user8+2)';
 hdr.geometry.pos        = o_hdr_value(image_user11:image_user11+2)';
+
 hdr.geometry.rot.tlhc   = o_hdr_value(tlhc:tlhc+2)';
 hdr.geometry.rot.trhc   = o_hdr_value(trhc:trhc+2)';
 hdr.geometry.rot.brhc   = o_hdr_value(brhc:brhc+2)';

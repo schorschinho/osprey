@@ -75,6 +75,13 @@ LPS_SVS_edge = VoxOffs - 0.5 * e1_SVS ...
 % Read all DICOM files into one volume
 dcm_list = dir(dcm_folder);
 dcm_list = dcm_list(~ismember({dcm_list.name}, {'.','..','.DS_Store'}));
+hidden = logical(ones(1,length(dcm_list)));
+for jj = 1:length(dcm_list) 
+    if strcmp(dcm_list(jj).name(1),'.')
+        hidden(jj) = 0;
+    end
+end
+dcm_list = dcm_list(hidden);%delete hidden files 
 dcm_list = cellstr(char(dcm_list.name));
 dcm_list = dcm_list(cellfun(@isempty, strfind(dcm_list, '.nii'))); %#ok<*STRCLFH>
 dcm_list = dcm_list(cellfun(@isempty, strfind(dcm_list, '.mat')));
