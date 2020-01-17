@@ -71,6 +71,15 @@ seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
                                 %             - 'MEGA'
                                 %             - 'HERMES'
                                 %             - 'HERCULES'
+
+% Specify editing targets
+editTarget = 'none';            % OPTIONS:    - 'none' (default if 'unedited')
+                                %             - 'GABA', 'GSH'
+                                %               (for 'MEGA')
+                                %             - 'GABA_GSH', 'GABA_GSH_EtOH'
+                                %               (for 'HERMES')
+                                %             - 'HERCULES1', 'HERCULES2'
+                                %               (for 'HERCULES')
                                 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

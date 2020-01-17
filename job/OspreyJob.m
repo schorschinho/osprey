@@ -93,6 +93,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Sequence type is set to unedited (default). Please indicate otherwise in the csv-file or the GUI \n');
         seqType = 'unedited';
     end
+    if isfield(jobStruct,'editTarget')
+        opts.editTarget = jobStruct(1).editTarget;
+    else
+        fprintf('Editing target is set to none (default). Please indicate otherwise in the csv-file or the GUI \n');
+        opts.editTarget = 'unedited';
+    end
     if isfield(jobStruct,'saveLCM')
         opts.saveLCM = jobStruct(1).saveLCM;
     else
@@ -154,12 +160,16 @@ end
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
+        opts.editTarget             = 'none';
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
+        opts.editTarget             = editTarget;
     case 'HERMES'
         MRSCont.flags.isHERMES      = 1;
+        opts.editTarget             = editTarget;
     case 'HERCULES'
         MRSCont.flags.isHERCULES    = 1;
+        opts.editTarget             = editTarget;
     otherwise
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
@@ -221,12 +231,21 @@ if length(isUnique) ~= 1
 end
 
 
-%%% 6. SET FLAGS %%%
+%%% 6. SET UP DEFAULT OSPREY COLORMAP %%%
+% Default colormap
+colormap.Background     = [255/255 254/255 254/255];
+colormap.LightAccent    = [110/255 136/255 164/255];
+colormap.Foreground     = [11/255 71/255 111/255];
+colormap.Accent         = [11/255 71/255 111/255];
+MRSCont.colormap        = colormap;
+
+
+%%% 7. SET FLAGS %%%
 MRSCont.flags.didLoadJob    = 1;
 MRSCont.loadedJob           = jobFile;
 
 
-%%% 7. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
+%%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
 [~,jobfilename,jobfileext]  = fileparts(jobFile);
 outputFile                  = strrep([jobfilename jobfileext], jobfileext, '.mat');
 MRSCont.outputFile          = outputFile;
