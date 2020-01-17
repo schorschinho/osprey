@@ -33,15 +33,12 @@ if nargin<4
     fitOpts = fit_defaultFitOpts(fitModel);
 end
 
-%%% 1. PREPARE BASIS SET %%%
-% Resample basis set to match data resolution and frequency range
-resBasisSet             = fit_resampleBasis(dataToFit, basisSet);
-
-
-%%% 2. SELECT THE MODEL %%%
+%%% 1. SELECT THE MODEL %%%
 switch fitModel
     case 'Osprey'
-        [fitParams] = fit_Osprey(dataToFit, resBasisSet, fitOpts);
+        [fitParams, resBasisSet] = fit_Osprey(dataToFit, basisSet, fitOpts);
+    case 'LCModel'
+        [fitParams, resBasisSet] = fit_LCModel(dataToFit, basisSet, fitOpts);
 end
 
 end
@@ -58,6 +55,13 @@ function fitOpts = fit_defaultFitOpts(fitModel)
 
 switch fitModel
     case 'Osprey'
+        % Determine fitting range (in ppm) for the metabolite and water spectra
+        fitOpts.range              = [0.2 4.2];        % [ppm] Default: [0.2 4.2]
+        fitOpts.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
+        
+        % Determine the baseline knot spacing (in ppm) for the metabolite spectra
+        fitOpts.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
+    case 'LCModel'
         % Determine fitting range (in ppm) for the metabolite and water spectra
         fitOpts.range              = [0.2 4.2];        % [ppm] Default: [0.2 4.2]
         fitOpts.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]

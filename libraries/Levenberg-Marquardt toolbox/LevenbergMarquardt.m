@@ -102,16 +102,16 @@ RelTolX=1e-5;               %   breakup optimization if all relative changes in 
 %   Levenberg-Marquardt parameters
 Jacobian='off';             %   user supplies jacobian as second output argument of fun if set to 'on', otherwise 'off' (default)
 MaxStepNo=2;                %   no of steps taken to find jacobian when "Jacobiab" is set to 'limit' or 'extrapolation'
-FinDiffRelStep=eps^(1/3);   %   multiplies step size of non-supplied Jacobian finite difference step
-TypicalX=1;                 %   scales step size of non-supplied Jacobian finite difference step
+FinDiffRelStep=eps^(1/2);   %   multiplies step size of non-supplied Jacobian finite difference step
+TypicalX=ones(n);                 %   scales step size of non-supplied Jacobian finite difference step
 DerivativeCheck='off';      %   if set to 'on' it checks Jacobian in first step
-ScaleProblem='Jacobian';    %   if set to 'Jacobian' the problem is rescaled, by 'none' its not.
+ScaleProblem='none';    %   if set to 'Jacobian' the problem is rescaled, by 'none' its not.
 InitDamping=1e-2;           %   initial dampening
 MinDamping=1e-7;            %   minimal dampening
 MaxDamping=1e20;             %   maximal dampening
 FactDamping=10;             %   increases or decreases dampening in loop
 MaxEigTol=1e-6;             %   if largest eigenvalue becomes smaller than this value we attempt to use contraction mapping
-Broyden_updates='on';       %   set to 'on' it gives Broyden updates for the Jacobian for every 2*n steps, set to 'off' it requires updates in each iteration, 
+Broyden_updates='off';       %   set to 'on' it gives Broyden updates for the Jacobian for every 2*n steps, set to 'off' it requires updates in each iteration, 
 %                               set to an integer thats the amount of steps until we update
 conservative_updates=1;     %   set to 1 it will only enforce the tolerances for foo, stepsize or eigenvalue when we just updated Jacobian
 %%  DYNAMIC READ IN OF STRUCTURE THAT GIVES OPTIONS

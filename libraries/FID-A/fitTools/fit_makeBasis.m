@@ -124,36 +124,46 @@ if addMMFlag
     n = BASIS.n;
     sw = BASIS.spectralwidth;
     Bo = BASIS.Bo;
-    lw = BASIS.linewidth;
     centerFreq = BASIS.centerFreq;
     % The amplitude and FWHM values are determined as for the LCModel and
     % TARQUIN algorithms (see Wilson et al., MRM 2011).
     hzppm = Bo*42.577;
-    % op_gaussianPeak with amp = 1 produces a signal with the amplitude
-    % equivalent to two fully simulated protons
-    MM09            = op_gaussianPeak(n,sw,Bo,centerFreq,0.14*hzppm+lw,0.91,3/2);
+    
+    % To scale the amplitudes correctly, we first need to determine the
+    % area of the 3.027 ppm CH3 signal of creatine
+    [CrArea] = detCrArea(buffer);
+    oneProtonArea = CrArea/3;
+    
+    % Next, we determine the area of a Gaussian singlet with nominal area 1
+    testGaussian    = op_gaussianPeak(n,sw,Bo,centerFreq,0.1*hzppm,0,1);
+    testGaussian    = op_dccorr(testGaussian,'p');
+    gaussianArea    = sum(real(testGaussian.specs));
+    
+    % Now we know the scaling factor to generate MM/lipid signals with the
+    % correct relative scaling with respect to the CH3 signal
+    MM09            = op_gaussianPeak(n,sw,Bo,centerFreq,0.14*hzppm,0.91,3*oneProtonArea/gaussianArea);
     MMBase.MM09     = op_dccorr(MM09,'p');
-    MM12            = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,1.21,2/2);
+    MM12            = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,1.21,2*oneProtonArea/gaussianArea);
     MMBase.MM12     = op_dccorr(MM12,'p');
-    MM14            = op_gaussianPeak(n,sw,Bo,centerFreq,0.17*hzppm+lw,1.43,2/2);
+    MM14            = op_gaussianPeak(n,sw,Bo,centerFreq,0.17*hzppm,1.43,2*oneProtonArea/gaussianArea);
     MMBase.MM14     = op_dccorr(MM14,'p');
-    MM17            = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,1.67,2/2);
+    MM17            = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,1.67,2*oneProtonArea/gaussianArea);
     MMBase.MM17     = op_dccorr(MM17,'p');
-    MM20a           = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.08,1.33/2);
-    MM20b           = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm+lw,2.25,0.33/2);
-    MM20c           = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,1.95,0.33/2);
-    MM20d           = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm+lw,3.0,0.4/2);
+    MM20a           = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,2.08,1.33*oneProtonArea/gaussianArea);
+    MM20b           = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm,2.25,0.33*oneProtonArea/gaussianArea);
+    MM20c           = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,1.95,0.33*oneProtonArea/gaussianArea);
+    MM20d           = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm,3.0,0.4*oneProtonArea/gaussianArea);
     MM20            = op_addScans(MM20a,MM20b); MM20 = op_addScans(MM20,MM20c); MM20 = op_addScans(MM20,MM20d);
     MMBase.MM20     = op_dccorr(MM20,'p');
-    Lip09           = op_gaussianPeak(n,sw,Bo,centerFreq,0.14*hzppm+lw,0.89,3/2);
+    Lip09           = op_gaussianPeak(n,sw,Bo,centerFreq,0.14*hzppm,0.89,3*oneProtonArea/gaussianArea);
     MMBase.Lip09    = op_dccorr(Lip09,'p');
-    Lip13a          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,1.28,2/2);
-    Lip13b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.89*hzppm+lw,1.28,2/2);
+    Lip13a          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,1.28,2*oneProtonArea/gaussianArea);
+    Lip13b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.89*hzppm,1.28,2*oneProtonArea/gaussianArea);
     Lip13           = op_addScans(Lip13a,Lip13b);
     MMBase.Lip13    = op_dccorr(Lip13,'p');
-    Lip20a          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.04,1.33/2);
-    Lip20b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm+lw,2.25,0.67/2);
-    Lip20c          = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm+lw,2.8,0.87/2);
+    Lip20a          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,2.04,1.33*oneProtonArea/gaussianArea);
+    Lip20b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,2.25,0.67*oneProtonArea/gaussianArea);
+    Lip20c          = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm,2.8,0.87*oneProtonArea/gaussianArea);
     Lip20           = op_addScans(Lip20a,Lip20b); Lip20 = op_addScans(Lip20,Lip20c);
     MMBase.Lip20    = op_dccorr(Lip20,'p');
     MMLips = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
@@ -299,4 +309,73 @@ save(['BASIS' save_str '.mat'], 'BASIS');
 
 end
 
-   
+
+% detCrArea.m
+% Georg Oeltzschner, Johns Hopkins University 2020
+% 
+% USAGE:
+% [CrArea] = detCrArea(buffer);
+% 
+% DESCRIPTION:
+% Finds the creatine spectrum in the temporary basis set buffer, then fits
+% a Lorentzian to the 3.027 ppm CH3 creatine singlet to determine its area.
+% Subsequently, macromolecule and lipid basis functions are scaled
+% accordingly.
+% 
+% INPUTS:
+% in        = a temporary buffer containing simulated basis functions
+%
+% OUTPUTS:
+% CrArea    = Estimated area under the 3.027 ppm CH3 Cr singlet.
+
+
+function [CrArea] = detCrArea(in);
+
+% Find the creatine basis function
+idx_Cr          = find(strcmp(in.name,'Cr'));
+if isempty(idx_Cr)
+    error('No basis function with nametag ''Cr'' found! Abort!');
+end
+
+%[~, idx_3027]   = min(abs(buffer.ppm(:,1)-3.027));
+
+% Determine the window where we are going to look for the peak.
+ppm = in.ppm(:,1);
+ppmmin = 3.027 - 0.4;
+ppmmax = 3.027 + 0.4;
+refWindow = in.specs(ppm>ppmmin & ppm<ppmmax, idx_Cr);
+ppmWindow = in.ppm(ppm>ppmmin & ppm<ppmmax);
+
+% Find the maximum and its index
+maxRef_index    = find(abs(real(refWindow)) == max(abs(real((refWindow)))));
+maxRef          = real(refWindow(maxRef_index));
+
+% Determine an initial estimate for the FWHM
+% Peak lines can be super narrow, so overestimate it slightly
+gtHalfMax   = find(abs(real(refWindow)) >= 0.4*abs(maxRef));
+FWHM1       = abs(ppmWindow(gtHalfMax(1)) - ppmWindow(gtHalfMax(end)));
+FWHM1       = FWHM1*(42.577*in.Bo(1));  %Assumes proton.
+
+% Determine an initial estimate for the center frequency of the Cr peak
+crFreq = ppmWindow(maxRef_index);
+
+% Set up the fit
+parsGuess=zeros(1,5);
+parsGuess(1) = maxRef;  % amplitude
+parsGuess(2) = (5*in.Bo/3)/(42.577*in.Bo); %FWHM.  Assumes Proton.  LW = 5/3 Hz/T.   % FWHM. Assumes Proton.
+parsGuess(3) = crFreq;  % center frequency
+parsGuess(4) = 0;       % baseline offset
+parsGuess(5) = 0;       % phase
+    
+% Run first guess
+yGuess  = op_lorentz(parsGuess, ppmWindow);
+parsFit = nlinfit(ppmWindow, real(refWindow'), @op_lorentz, parsGuess);
+yFit    = op_lorentz(parsFit, ppmWindow);
+    
+% figure;
+% plot(ppmWindow,refWindow,'.',ppmWindow,yGuess,':',ppmWindow,yFit);
+% legend('data','guess','fit');
+
+CrArea = sum(yFit);
+
+end

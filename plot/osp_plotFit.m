@@ -5,7 +5,7 @@ function out = osp_plotFit(MRSCont, kk, which, GUI, conc, stagFlag, xlab, ylab, 
 %   from the individual metabolites.
 %
 %   USAGE:
-%       out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
+%       out = osp_plotFit(MRSCont, kk, which, GUI, conc, stagFlag, xlab, ylab, figTitle)
 %
 %   OUTPUTS:
 %       out     = MATLAB figure handle
@@ -13,7 +13,7 @@ function out = osp_plotFit(MRSCont, kk, which, GUI, conc, stagFlag, xlab, ylab, 
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
-%       which    = String for the spectrum to fit (optional)
+%       which    = String for the spectrum to plot (optional)
 %                   OPTIONS:    'off' (default)
 %                               'diff1'
 %                               'diff2'
@@ -21,6 +21,7 @@ function out = osp_plotFit(MRSCont, kk, which, GUI, conc, stagFlag, xlab, ylab, 
 %                               'ref'
 %                               'w'
 %       GUI       = flag to decide whether plot is used in GUI
+%       conc      = 
 %       stagFlag  = flag to decide whether basis functions should be plotted
 %                   vertically staggered or simply over one another
 %                   (optional)
@@ -44,13 +45,16 @@ end
 
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
+% Get the fit method and style
+fitMethod   = MRSCont.opts.fit.method;
+fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
 if nargin<9    
     [~,filen,ext] = fileparts(MRSCont.files{kk});
     if strcmp(which, 'conc')
-        figTitle = sprintf([MRSCont.opts.fit.method ' ' MRSCont.opts.fit.style ' ' conc ' fit plot:\n' filen ext]);
+        figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext]);
     else
-        figTitle = sprintf([MRSCont.opts.fit.method ' ' MRSCont.opts.fit.style ' ' which ' fit plot:\n' filen ext]);
+        figTitle = sprintf([fitMethod ' ' fitStyle ' ' which ' fit plot:\n' filen ext]);
     end
     if nargin<8
         ylab='';
@@ -101,65 +105,68 @@ else if strcmp(which, 'conc')
         basisSet    = MRSCont.fit.resBasisSet.(which){kk};
     end
 end
-specToPlot  = op_freqrange(dataToPlot, fitRangePPM(1), fitRangePPM(end));
+
+% Get the fit parameters
 fitParams   = MRSCont.fit.results.(which).fitParams{kk};
+% Pack up into structs to feed into the reconstruction functions
+inputData.dataToFit                 = dataToPlot;
+inputData.basisSet                  = basisSet;
+inputSettings.scale                 = MRSCont.fit.scale{kk};
+inputSettings.fitRangePPM           = fitRangePPM;
+inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
 
 
 %%% 3. PREPARE LINES TO DISPLAY %%%
-% Extract raw and processed spectra in the plot range
-% Concatenate parameters together into one large vector.
-switch MRSCont.opts.fit.method
+% Extract data, ppm axes, fit, residual, baseline, and individual
+% metabolite contributions.
+% Obviously, depending on the fit method that has been used, we need to
+% reconstruct the plots with fit method functions
+switch fitMethod
+    % Depending on whether metabolite or water data are to be
+    % displayed, create the plots via different models
     case 'Osprey'
-        ampl        = fitParams.ampl;
-        zeroPhase   = fitParams.ph0;
-        firstPhase  = fitParams.ph1;
-        gaussLB     = fitParams.gaussLB;
-        lorentzLB   = fitParams.lorentzLB;
-        freqShift   = fitParams.freqShift;
         if strcmp(which, 'ref') || strcmp(which, 'w')
-            % If water, extract and apply nonlinear parameters
-            x       = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift];
-            [appliedBasisSet] = fit_applynlinwaterOsprey(basisSet, x, fitRangePPM);
-            fitted      = (appliedBasisSet.specs*ampl);
-            fitted      = fitted .* MRSCont.fit.scale{kk};
-        else if strcmp(which, 'conc')
-                % If concatened metabolites, extract and apply nonlinear
-                % parameters and shifts
-                beta_j      = fitParams.beta_j;
-                spl_pos     = fitParams.spl_pos;
-                addFreqShift = fitParams.addFreqShift;
-                x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j; addFreqShift];
-                [appliedBasisSet, B] = fit_applynlinOspreyMultiplex(basisSet, x, spl_pos, fitRangePPM);
-                % Convert to complex baseline and scaled basis functions
-                switch conc
-                    case 'diff1'
-                        B_conc = B(:,1);
-                        appliedBasisSet.specs = appliedBasisSet.specs(:,:,1);
-                    case 'sum'
-                        B_conc = B(:,2);
-                        appliedBasisSet.specs = appliedBasisSet.specs(:,:,2);
-                    end
-                temp_B      = reshape(B_conc, [length(B_conc)/2, 2]);
-                complex_B   = (temp_B(:,1) + 1i*temp_B(:,2));
-                fitted      = (appliedBasisSet.specs*ampl + complex_B);
-                % Scale
-                complex_B   = complex_B .* MRSCont.fit.scale{kk};
-                fitted      = fitted .* MRSCont.fit.scale{kk};
-            else
-                % If metabolites, extract and apply nonlinear parameters
-                beta_j      = fitParams.beta_j;
-                spl_pos     = fitParams.spl_pos;
-                x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j];
-                [appliedBasisSet, B] = fit_applynlinOsprey(basisSet, x, spl_pos, fitRangePPM);
-                % Convert to complex baseline and scaled basis functions
-                temp_B      = reshape(B, [length(B)/2, 2]);
-                complex_B   = (temp_B(:,1) + 1i*temp_B(:,2));
-                fitted      = (appliedBasisSet.specs*ampl + complex_B);
-                % Scale
-                complex_B   = complex_B .* MRSCont.fit.scale{kk};
-                fitted      = fitted .* MRSCont.fit.scale{kk};
-            end
+            % if water, use the water model
+            [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
+        else
+            % if metabolites, use the metabolite model
+            [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
         end
+    case 'LCModel'
+        if strcmp(which, 'ref') || strcmp(which, 'w')
+            % if water, use the water model
+            [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
+        else
+            % if metabolites, use the metabolite model
+            [ModelOutput] = fit_LCModelParamsToModel(inputData, inputSettings, fitParams);
+        end
+        % leave the concatenated case out for now?
+        
+%         else if strcmp(which, 'conc')
+%                 % If concatened metabolites, extract and apply nonlinear
+%                 % parameters and shifts
+%                 beta_j      = fitParams.beta_j;
+%                 spl_pos     = fitParams.spl_pos;
+%                 addFreqShift = fitParams.addFreqShift;
+%                 x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j; addFreqShift];
+%                 [appliedBasisSet, B] = fit_applynlinOspreyMultiplex(basisSet, x, spl_pos, fitRangePPM);
+%                 % Convert to complex baseline and scaled basis functions
+%                 switch conc
+%                     case 'diff1'
+%                         B_conc = B(:,1);
+%                         appliedBasisSet.specs = appliedBasisSet.specs(:,:,1);
+%                     case 'sum'
+%                         B_conc = B(:,2);
+%                         appliedBasisSet.specs = appliedBasisSet.specs(:,:,2);
+%                     end
+%                 temp_B      = reshape(B_conc, [length(B_conc)/2, 2]);
+%                 baseline   = (temp_B(:,1) + 1i*temp_B(:,2));
+%                 fitted      = (appliedBasisSet.specs*ampl + baseline);
+%                 % Scale
+%                 baseline   = baseline .* MRSCont.fit.scale{kk};
+%                 fitted      = fitted .* MRSCont.fit.scale{kk};
+%             end
+%         end
 end
 
 
@@ -174,49 +181,60 @@ end
 
 
 %%% 5. PLOT DATA, FIT, RESIDUAL, BASELINE %%%
-% positive stagger to offset data, fit, residual, and baseline from the
-% individual metabolite contributions
-stagData = 0.1*(max(abs(min(real(dataToPlot.specs))), abs(max(real(dataToPlot.specs)))));
-maxPlot = max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData;
+% Unpack the ModelOutput struct
+ppm         = ModelOutput.ppm;
+dataToPlot  = ModelOutput.data;
+fit         = ModelOutput.completeFit;
+residual    = ModelOutput.residual;
+% If water, don't get baseline and individual fits
+if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
+    baseline    = ModelOutput.baseline;
+    indivPlots  = ModelOutput.indivMets;
+end
+
+% Determine a positive stagger to offset data, fit, residual, and 
+% baseline from the individual metabolite contributions
+stagData = 0.1*(max(abs(min(dataToPlot)), abs(max(dataToPlot))));
+maxPlot = max(dataToPlot + abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData;
 % Add the data and plot
 hold on;
 if ~GUI
-    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + stagData)/maxPlot, 'k'); % Zeroline
-    plot(specToPlot.ppm, (real(specToPlot.specs) + stagData)/maxPlot, 'k'); % Data
-    plot(specToPlot.ppm, (real(fitted) + stagData)/maxPlot, 'r', 'LineWidth', 1.5); % Fit
-    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs)) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Maximum Data
+    plot(ppm, (zeros(1,length(ppm)) + stagData)/maxPlot, 'k'); % Zeroline
+    plot(ppm, (dataToPlot + stagData)/maxPlot, 'k'); % Data
+    plot(ppm, (fit + stagData)/maxPlot, 'r', 'LineWidth', 1.5); % Fit
+    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Maximum Data
 
-    plot(specToPlot.ppm, (real(specToPlot.specs) - real(fitted) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Residue
-    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, '--k', 'LineWidth', 0.5); % Zeroline Residue
-    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Max Residue
+    plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Residual
+    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '--k', 'LineWidth', 0.5); % Zeroline Residue
+    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Max Residue
 else
-    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Zeroline
-    plot(specToPlot.ppm, (real(specToPlot.specs) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Data
-    plot(specToPlot.ppm, (real(fitted) + stagData)/maxPlot, 'Color', MRSCont.colormap.Accent, 'LineWidth', 1.6); % Fit
-    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
+    plot(ppm, (zeros(1,length(ppm)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Zeroline
+    plot(ppm, (dataToPlot + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Data
+    plot(ppm, (fit + stagData)/maxPlot, 'Color', MRSCont.colormap.Accent, 'LineWidth', 1.6); % Fit
+    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
 
-    plot(specToPlot.ppm, (real(specToPlot.specs) - real(fitted) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Residue
-    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
-    plot(specToPlot.ppm, (zeros(1,length(specToPlot.ppm)) + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue 
+    plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Residual
+    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
+    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue 
 end
 
 if ~GUI
     text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 14); %Zeroline text
-    text(fitRangePPM(1), (0 + max(real(specToPlot.specs)) + stagData)/maxPlot -0.05, num2str(max(real(specToPlot.specs)),'%1.2e'), 'FontSize', 14); % Maximum Data Text
-    text(fitRangePPM(1), (0 + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, '0', 'FontSize', 14); %Zeroline Residue text
-    text(fitRangePPM(1), (0 + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData)/maxPlot+0.05, num2str(abs(max(real(specToPlot.specs) - real(fitted))),'%1.2e'), 'FontSize', 14); %Max Residue text
+    text(fitRangePPM(1), (0 + max(dataToPlot) + stagData)/maxPlot -0.05, num2str(max(dataToPlot),'%1.2e'), 'FontSize', 14); % Maximum Data Text
+    text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '0', 'FontSize', 14); %Zeroline Residua; text
+    text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot+0.05, num2str(abs(max(dataToPlot - fit)),'%1.2e'), 'FontSize', 14); %Max Residue text
 else
     text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
-    text(fitRangePPM(1), (0 + max(real(specToPlot.specs)) + stagData)/maxPlot-0.05, num2str(max(real(specToPlot.specs)),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); % Maximum Data Text
-    text(fitRangePPM(1), (0 + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residue text
-    text(fitRangePPM(1), (0 + max(real(specToPlot.specs) +  abs(min(real(specToPlot.specs) - real(fitted)))) + abs(max(real(specToPlot.specs) - real(fitted))) + stagData)/maxPlot +0.05, num2str(abs(max(real(specToPlot.specs) - real(fitted))),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
+    text(fitRangePPM(1), (0 + max(dataToPlot) + stagData)/maxPlot-0.05, num2str(max(dataToPlot),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); % Maximum Data Text
+    text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
+    text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot +0.05, num2str(abs(max(dataToPlot - fit)),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
 end
 
 if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
     if ~GUI
-        plot(specToPlot.ppm, (real(complex_B) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', 'b');
+        plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', 'b');
     else
-        plot(specToPlot.ppm, (real(complex_B) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', MRSCont.colormap.LightAccent);
+        plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', MRSCont.colormap.LightAccent);
     end
 end
 
@@ -235,11 +253,11 @@ if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
             % Instead of a MATLAB legend, annotate each line separately with the
             % name of the metabolite
             if ~GUI
-                plot(appliedBasisSet.ppm, (ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk} - rr*stag)/maxPlot, 'k');
-                text(fitRangePPM(1), (- rr*stag)/maxPlot, appliedBasisSet.name{rr}, 'FontSize', 14);
+                plot(ppm, (indivPlots(:,rr) - rr*stag)/maxPlot, 'k');
+                text(fitRangePPM(1), (- rr*stag)/maxPlot, basisSet.name{rr}, 'FontSize', 14);
             else
-                plot(appliedBasisSet.ppm, (ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk} - rr*stag)/maxPlot, 'Color',MRSCont.colormap.Foreground);
-                text(fitRangePPM(1), (- rr*stag)/maxPlot, appliedBasisSet.name{rr}, 'FontSize', 10,'Color',MRSCont.colormap.Foreground);
+                plot(ppm, (indivPlots(:,rr) - rr*stag)/maxPlot, 'Color',MRSCont.colormap.Foreground);
+                text(fitRangePPM(1), (- rr*stag)/maxPlot, basisSet.name{rr}, 'FontSize', 10,'Color',MRSCont.colormap.Foreground);
             end
         end
         
@@ -255,9 +273,9 @@ if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
         
         % Loop over all basis functions
         for rr = 1:nBasisFct
-            plot(appliedBasisSet.ppm, (ampl(rr).*appliedBasisSet.specs(:,rr).*MRSCont.fit.scale{kk})/maxPlot, 'Color', colours(rr,:), 'LineWidth', 1);
+            plot(ppm, indivPlots(:,rr)/maxPlot, 'Color', colours(rr,:), 'LineWidth', 1);
         end
-        legend([newline, appliedBasisSet.name], 'Orientation', 'horizontal');
+        legend([newline, basisSet.name], 'Orientation', 'horizontal');
         hold off
         
     end

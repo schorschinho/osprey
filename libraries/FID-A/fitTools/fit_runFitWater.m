@@ -42,6 +42,8 @@ resBasisSet             = fit_resampleBasis(dataToFit, basisSet);
 switch fitModel
     case 'Osprey'
         [fitParamsWater] = fit_waterOsprey(dataToFit, resBasisSet, fitOpts);
+    case 'LCModel'
+        [fitParamsWater] = fit_waterOsprey(dataToFit, resBasisSet, fitOpts);
 end
 
 
