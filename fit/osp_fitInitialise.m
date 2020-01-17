@@ -22,22 +22,28 @@ function [MRSCont] = osp_fitInitialise(MRSCont)
 % Find the right basis set (provided as *.mat file in Osprey basis set
 % format)
 if MRSCont.flags.isUnEdited
+    % Extract TE from first dataset
+    te = num2str(MRSCont.raw{1}.te);
     switch MRSCont.vendor
         case 'Philips'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/philips/press35/basis_philips_press35.mat'); 
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/philips/press' te '/basis_philips_press' te '.mat']); 
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/ge/press35/basis_ge_press35.mat'); 
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/ge/press' te '/basis_ge_press' te '.mat']); 
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/press35/basis_siemens_press35.mat'); 
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/siemens/press' te '/basis_siemens_press' te '.mat']); 
     end
 elseif MRSCont.flags.isMEGA
+    % Extract edit target from MRSCont
+    editTarget = lower(MRSCont.opts.editTarget);
+    % Extract TE from first dataset
+    te = num2str(MRSCont.raw{1}.te);
     switch MRSCont.vendor
         case 'Philips'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/philips/megapress68/basis_philips_megapress68.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/philips/megapress_' editTarget te '/basis_philips_megapress_' editTarget te '.mat']);
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/GE/MP_GABA/BASIS_noMM.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/ge/megapress_' editTarget te '/basis_ge_megapress_' editTarget te '.mat']);
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/megapress68/basis_siemens_megapress68.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/siemens/megapress_' editTarget te '/basis_siemens_megapress_' editTarget te '.mat']);
     end
 elseif MRSCont.flags.isHERMES
     switch MRSCont.vendor

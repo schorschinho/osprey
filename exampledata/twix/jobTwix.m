@@ -71,7 +71,16 @@ seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
                                 %             - 'MEGA'
                                 %             - 'HERMES'
                                 %             - 'HERCULES'
-                                
+
+% Specify editing targets
+editTarget = 'none';            % OPTIONS:    - 'none' (default if 'unedited')
+                                %             - 'GABA', 'GSH'
+                                %               (for 'MEGA')
+                                %             - 'GABA_GSH', 'GABA_GSH_EtOH'
+                                %               (for 'HERMES')
+                                %             - 'HERCULES1', 'HERCULES2'
+                                %               (for 'HERCULES')
+                               
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -99,7 +108,7 @@ opts.fit.method             = 'Osprey';       % OPTIONS:  - 'Osprey' (default)
 
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
 % (only available for the Osprey fitting method)
-opts.fit.style              = 'Concatenated';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
+opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
                                                 %           - 'Separate' - will fit DIFF and OFF separately
 
 % Determine fitting range (in ppm) for the metabolite and water spectra
