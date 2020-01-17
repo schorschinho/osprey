@@ -42,15 +42,15 @@ for kk = 1:MRSCont.nDatasets
     fitModel    = fitOpts.method;
     
     % Call the fit function
-    basisSet            = MRSCont.fit.basisSet;
+    basisSet    = MRSCont.fit.basisSet;
     [fitParams, resBasisSet] = fit_runFit(dataToFit, basisSet, fitModel, fitOpts);
     
     % Save back the basis set and fit parameters to MRSCont
     MRSCont.fit.basisSet                    = basisSet;
-    MRSCont.fit.resBasisSet.off{kk}             = resBasisSet;
+    MRSCont.fit.resBasisSet.off{kk}         = resBasisSet;
     MRSCont.fit.results.off.fitParams{kk}   = fitParams;
     
-    %% end time counter
+    % end time counter
     if isequal(kk, MRSCont.nDatasets)
         fprintf('... done.\n');
         toc(metFitTime);
