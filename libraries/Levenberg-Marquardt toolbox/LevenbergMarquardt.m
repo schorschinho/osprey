@@ -463,6 +463,8 @@ elseif funccount==MaxFunEvals || iteration==MaxIter
 elseif stop
     how='Output function terminated algorithm';
     exitflag=1;
+else
+    exitflag=1;
 end
 if nargout>5
     output=OtptFcnVl;

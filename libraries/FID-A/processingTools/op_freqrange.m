@@ -15,13 +15,20 @@
 % OUTPUTS:
 % out        = Output following frequency range selection.
 
-function out=op_freqrange(in,ppmmin,ppmmax);
-
+function out=op_freqrange(in,ppmmin,ppmmax,npoints);
+if nargin < 4
+    npoints = 0;
+end
 %Calculate Specs using fft
 fullspecs=fftshift(fft(in.fids,[],in.dims.t),in.dims.t);
 
 %now take only the specified range of the spectrum
 specs=fullspecs(in.ppm>=ppmmin & in.ppm<=ppmmax,:,:);
+
+if npoints ~= 0 && npoints < length(specs)
+    ppmmin = ppmmin + (in.ppm(2) -in.ppm(1));
+    specs=fullspecs(in.ppm>=ppmmin & in.ppm<=ppmmax,:,:);
+end
 
 %convert back to time domain
 %if the length of Fids is odd, then you have to do a circshift of one to

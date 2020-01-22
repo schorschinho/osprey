@@ -281,7 +281,7 @@ resBasisSet.specs = fftshift(fft(resBasisSet.fids,[],1),1);
 % Run the frequency-domain operations on the basis functions
 % (first order phase correction)
 % Cut out the frequency range of the basis set
-resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end));
+resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end),length(splineArray(:,1,1)));
 % Create a ppm vector around a pivot point (water)
 ppm_ax = resBasisSet.ppm;
 pivotPoint = 4.68;
@@ -317,7 +317,7 @@ end
 % functions 
 AB = [A B];
 % Cut out the data over the fit range, and use real part only
-dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end));
+dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end),length(splineArray(:,1,1)));
 data        = real(dataToFit.specs);
 b           = data;
 
@@ -485,7 +485,7 @@ resBasisSet.specs = fftshift(fft(resBasisSet.fids,[],1),1);
 % Run the frequency-domain operations on the basis functions
 % (first order phase correction)
 % Cut out the frequency range of the basis set
-resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end));
+resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end),length(splineArray(:,1,1)));
 ppm_ax = resBasisSet.ppm;
 pivotPoint = 4.68;
 multiplier = ppm_ax - pivotPoint;
@@ -520,7 +520,7 @@ end
 % functions 
 AB = [A B];
 % Cut out the data over the fit range, and use real part only
-dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end));
+dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end),length(splineArray(:,1,1)));
 data        = real(dataToFit.specs);
 b           = data;
 

@@ -1,4 +1,4 @@
-function [MRSCont] = osp_processHERMES(MRSCont)
+function [MRSCont] = osp_processHERMES(MRSCont,target1,target2)
 %% [MRSCont] = osp_processHERMES(MRSCont)
 %   This function performs the following steps to process HERMES-edited
 %   (4-step) MRS data:
@@ -35,6 +35,11 @@ function [MRSCont] = osp_processHERMES(MRSCont)
 close all;
 warning('off','all');
 
+% Parse input arguments
+if nargin < 2
+    target1 = 'GABA'; % GABA and GSH editing as default
+    target2 = 'GSH'; % GABA and GSH editing as default    
+end
 %% Loop over all datasets
 refProcessTime = tic;
 reverseStr = '';
@@ -161,6 +166,11 @@ for kk = 1:MRSCont.nDatasets
     eval(['MRSCont.QM.drift.post.D{kk} = driftPost' subSpecNames{commuteOrder(4)} ';']);
     % Generate the drift plot for the entire experiment in
     % the correct order
+    driftPre = [MRSCont.QM.drift.pre.A{kk}, MRSCont.QM.drift.pre.B{kk}, MRSCont.QM.drift.pre.C{kk}, MRSCont.QM.drift.pre.D{kk}]';
+    driftPre = reshape(driftPre, [raw.averages, 1]);
+    MRSCont.QM.drift.pre.diff1{kk}  = driftPre;
+    MRSCont.QM.drift.pre.diff2{kk}  = driftPre;
+    MRSCont.QM.drift.pre.sum{kk}    = driftPre;
     driftPost = [MRSCont.QM.drift.post.A{kk}, MRSCont.QM.drift.post.B{kk}, MRSCont.QM.drift.post.C{kk}, MRSCont.QM.drift.post.D{kk}]';
     driftPost = reshape(driftPost, [raw.averages, 1]);
     MRSCont.QM.drift.post.diff1{kk}  = driftPost;
@@ -201,14 +211,19 @@ for kk = 1:MRSCont.nDatasets
     sum     = op_addScans(raw_A,raw_B);
     sum     = op_addScans(sum,raw_C);
     sum     = op_addScans(sum,raw_D);
+    sum.commuteOrder = commuteOrder;
     % Create the GABA-edited difference spectrum
     diff1   = op_addScans(raw_B,raw_D);
     diff1   = op_addScans(diff1,raw_A,1);
     diff1   = op_addScans(diff1,raw_C,1);
+    diff1.target = target1;
+    diff1.commuteOrder = commuteOrder;
     % Create the GSH-edited difference spectrum
     diff2   = op_addScans(raw_C,raw_D);
     diff2   = op_addScans(diff2,raw_A,1);
     diff2   = op_addScans(diff2,raw_B,1);
+    diff2.target = target2;
+    diff2.commuteOrder = commuteOrder;
     
     
     %%% 6. REMOVE RESIDUAL WATER %%%
@@ -281,6 +296,11 @@ for kk = 1:MRSCont.nDatasets
     [diff2]             = op_freqshift(diff2,refShift);            % Apply same shift to diff2
     [sum]               = op_freqshift(sum,refShift);              % Apply same shift to sum
     
+    % Add commuteOrder
+    raw_A.commuteOrder = commuteOrder(1);
+    raw_B.commuteOrder = commuteOrder(2);
+    raw_C.commuteOrder = commuteOrder(3);
+    raw_D.commuteOrder = commuteOrder(4);
     
     %%% 8. SAVE BACK TO MRSCONT CONTAINER
     MRSCont.processed.A{kk}     = raw_A;                                    % Save OFF-OFF back to MRSCont container
@@ -320,7 +340,51 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
     FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
     MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
-    MRSCont.QM.freqShift.A(kk) = refShift;
+    MRSCont.QM.freqShift.A(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(MRSCont.QM.drift.pre.A{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(MRSCont.QM.drift.post.A{kk} - 3.02);
+    
+    MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk},2.8,3.2); % Cr amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.B{kk},2.8,3.2); % in Hz
+    MRSCont.QM.FWHM.B(kk)   = FWHM_Hz./MRSCont.processed.B{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.freqShift.B(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.B(kk) = mean(MRSCont.QM.drift.pre.B{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.B(kk) = mean(MRSCont.QM.drift.post.B{kk} - 3.02);
+    
+    MRSCont.QM.SNR.C(kk)    = op_getSNR(MRSCont.processed.C{kk}); % NAA amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.C{kk},1.8,2.2); % in Hz
+    MRSCont.QM.FWHM.C(kk)   = FWHM_Hz./MRSCont.processed.C{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.freqShift.C(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.C(kk) = mean(MRSCont.QM.drift.pre.C{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.C(kk) = mean(MRSCont.QM.drift.post.C{kk} - 3.02);
+    
+    MRSCont.QM.SNR.D(kk)    = op_getSNR(MRSCont.processed.D{kk},2.8,3.2); % Cr amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.D{kk},2.8,3.2); % in Hz
+    MRSCont.QM.FWHM.D(kk)   = FWHM_Hz./MRSCont.processed.D{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.freqShift.D(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.D(kk) = mean(MRSCont.QM.drift.pre.D{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.D(kk) = mean(MRSCont.QM.drift.post.D{kk} - 3.02);
+    
+    MRSCont.QM.SNR.diff1(kk)    = op_getSNR(MRSCont.processed.diff1{kk},2.8,3.2); % GABA amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.diff1{kk},2.8,3.2); % in Hz
+    MRSCont.QM.FWHM.diff1(kk)   = FWHM_Hz./MRSCont.processed.diff1{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.freqShift.diff1(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.pre.diff1{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.post.diff1{kk} - 3.02);
+    
+    MRSCont.QM.SNR.diff2(kk)    = op_getSNR(MRSCont.processed.diff2{kk},2.8,3.2); % GSH amplitude over noise floor
+    FWHM_Hz                 = op_getLW(MRSCont.processed.diff2{kk},2.8,3.2); % in Hz
+    MRSCont.QM.FWHM.diff2(kk)   = FWHM_Hz./MRSCont.processed.diff1{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.freqShift.diff2(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.diff2(kk) = mean(MRSCont.QM.drift.pre.diff2{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.diff2(kk) = mean(MRSCont.QM.drift.post.diff2{kk} - 3.02);
+    
+    MRSCont.QM.SNR.sum(kk)    = op_getSNR(MRSCont.processed.sum{kk}); % Cr amplitude over noise floor
+    FWHM_Hz                     = op_getLW(MRSCont.processed.sum{kk},2.8,3.2); % in Hz
+    MRSCont.QM.FWHM.sum(kk)   = FWHM_Hz./MRSCont.processed.sum{kk}.txfrq*1e6; % convert to ppm
+    MRSCont.QM.freqShift.sum(kk)  = refShift;
+    MRSCont.QM.drift.pre.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.pre.sum{kk} - 3.02);
+    MRSCont.QM.drift.post.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.post.sum{kk} - 3.02);
     
     if MRSCont.flags.hasRef
         MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor
