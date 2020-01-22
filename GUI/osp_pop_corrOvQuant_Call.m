@@ -29,12 +29,12 @@ function osp_pop_corrOvQuant_Call(src,~,gui)
         gui.quant.Selected.Quant = idx;
         if strcmp(gui.quant.Names.Quants(idx),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(idx),'AlphaCorrWaterScaledGroupNormed')
            set(gui.controls.pop_corrOvMetab, 'String', {'GABA'});
-           set(gui.controls.pop_corrOvMetabControls, 'Value', gui.quant.idx.GABA);
-           set(gui.controls.pop_corrOvMetabControls, 'Enable', 'off');
+           set(gui.controls.pop_corrOvMetab, 'Value', gui.quant.idx.GABA);
+           set(gui.controls.pop_corrOvMetab, 'Enable', 'off');
         else
-           set(gui.controls.pop_corrOvMetabControls, 'String', MRSCont.quantify.metabs);
-           set(gui.controls.pop_corrOvMetabControls, 'Value', gui.quant.idx.GABA);
-           set(gui.controls.pop_corrOvMetabControls, 'Enable', 'on');
+           set(gui.controls.pop_corrOvMetab, 'String', MRSCont.quantify.metabs);
+           set(gui.controls.pop_corrOvMetab, 'Value', gui.quant.idx.GABA);
+           set(gui.controls.pop_corrOvMetab, 'Enable', 'on');
         end
         osp_updatecorrOvWindow(gui);
 end % pop_corrOvQuant_Call

@@ -31,23 +31,33 @@ function osp_onFit( ~, ~ ,gui)
 %%% 2. CALL OSPREYFIT %%%
     MRSCont = OspreyFit(MRSCont);
     delete(gui.layout.dummy);    
-    if strcmp(MRSCont.opts.fit.style, 'Concatenated') %Which fit style?
-            FitNamestmp = fieldnames(MRSCont.fit.results);
-            if MRSCont.flags.isUnEdited
-                gui.fit.Names = fieldnames(MRSCont.fit.results);
-            end
-            if MRSCont.flags.isMEGA %Add the right fit names
-                gui.fit.Names = {'diff1','sum'};
-                if length(FitNamestmp) == 2
-                    gui.fit.Names{3} = FitNamestmp{2};
-                else if length(FitNamestmp) == 3
-                     gui.fit.Names{3} = FitNamestmp{2};
-                     gui.fit.Names{4} = FitNamestmp{3};
-                    end
+    if strcmp(MRSCont.opts.fit.style, 'Concatenated')
+        temp = fieldnames(MRSCont.fit.results);
+        if MRSCont.flags.isUnEdited
+            gui.fit.Names = fieldnames(MRSCont.fit.results);
+        end
+        if MRSCont.flags.isMEGA
+            gui.fit.Names = {'diff1','sum'};
+            if length(temp) == 2
+                gui.fit.Names{3} = temp{2};
+            else if length(temp) == 3
+                gui.fit.Names{3} = temp{2};
+                gui.fit.Names{4} = temp{3};
                 end
             end
-            gui.fit.Number = length(gui.fit.Names); 
-    else %Seperate fits
+        end
+        if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+            gui.fit.Names = {'diff1','diff2','sum'};
+            if length(temp) == 2
+                gui.fit.Names{4} = temp{2};
+            else if length(temp) == 3
+                gui.fit.Names{4} = temp{2};
+                gui.fit.Names{5} = temp{3};
+                end
+            end
+        end
+        gui.fit.Number = length(gui.fit.Names); 
+    else
         gui.fit.Names = fieldnames(MRSCont.fit.results);
         gui.fit.Number = length(fieldnames(MRSCont.fit.results));   
     end

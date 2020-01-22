@@ -59,14 +59,9 @@ function osp_iniOverviewWindow(gui)
         for g = 1 :  gui.overview.Number.Groups %Loop over groups. Difterenc colors and shifts for different groups
             temp = figure( 'Visible', 'off' );
             if (strcmp(gui.process.Names{gui.process.Selected},'A') || strcmp(gui.process.Names{gui.process.Selected},'D') || strcmp(gui.process.Names{gui.process.Selected},'C') || strcmp(gui.process.Names{gui.process.Selected},'D')) %Metabolite data
-                if gui.overview.NAAnormed ==1 %Has been normalized to NAA
-                    shift = gui.layout.shiftind * (g-1);
-                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(gui.process.Names{gui.process.Selected}),2,1,gui.colormap.cb(g,:),shift,['Overview ' gui.layout.proTab.TabTitles{gui.process.Selected}]);
-                else %Normalize to max value of the spec
                     ylimmax = max(real(MRSCont.overview.all_data.(gui.process.Names{gui.load.Selected}){1,1}.specs));
-                    shift = ylimmax * gui.shiftind * (g-1);
+                    shift = ylimmax * gui.layout.shiftind * (g-1);
                     temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.process.Names{gui.process.Selected}),2,1,gui.colormap.cb(g,:),shift,['Overview ' gui.layout.proTab.TabTitles{gui.process.Selected}]);
-                end
             else %Is water data
                 ylimmax = max(real(MRSCont.overview.all_data.(gui.process.Names{1}){1,1}.specs));
                 shift = ylimmax * gui.layout.shiftind * (g-1);

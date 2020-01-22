@@ -25,6 +25,9 @@ function osp_updateProWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class   
         gui.layout.EmptyProPlot = 0;
+        if (MRSCont.flags.isUnEdited)
+            t = gui.process.Selected;
+        end
         if (MRSCont.flags.isMEGA) %Is Edited? Pick the right tab
             if (gui.process.Selected == 1 || gui.process.Selected == 2 || gui.process.Selected == 3)
                 t = gui.process.Selected;                   
@@ -37,8 +40,19 @@ function osp_updateProWindow(gui)
                     end
                 end
             end
-        else
-            t = gui.process.Selected;
+        end
+        if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is Hadamard? Pick the right tab
+            if (gui.process.Selected == 1 || gui.process.Selected == 2 || gui.process.Selected == 3 || gui.process.Selected == 4 || gui.process.Selected == 5 || gui.process.Selected == 6)
+                t = gui.process.Selected;                   
+            else if gui.process.Selected == 7
+                    t = 8;                 
+                else if MRSCont.flags.hasWater
+                    t = 9;
+                    else
+                    t = 7;
+                    end
+                end
+            end
         end
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here

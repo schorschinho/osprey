@@ -27,24 +27,37 @@ function osp_updatemeanOvWindow(gui)
         delete(gui.Plot.meanOv.Children(2).Children)
 %%% 2. VISUALIZATION PART OF THIS TAB %%%
         if (MRSCont.flags.isMEGA) %Is Edited? Pick the right tab
-            if (gui.process.Selected == 1 || gui.process.Selected == 2 || gui.process.Selected == 3)
+            if (gui.process.Selected == 1 || gui.process.Selected == 2)
                 t = gui.process.Selected;
-                if (strcmp(gui.quant.Names.Model,'conc'))
-                    fit = 1;
-                end                    
+                fit = t;
+            else if gui.process.Selected == 3
+                    t = gui.process.Selected;
+                    fit = 2;
             else if gui.process.Selected == 4
-                    t = 5;
-                    if (strcmp(gui.quant.Names.Model,'conc'))
-                        fit = 2;
-                    end                     
-                else if MRSCont.flags.hasWater
-                    t = 6;
-                    if (strcmp(gui.quant.Names.Model,'conc'))
-                        fit = 3;
-                    end 
+                    t = 5; 
+                    else if gui.process.Selected == 5
+                    t = 4;
+                    else if MRSCont.flags.hasWater
+                        t = 6;
+                        end
                     end
                 end
+                end
             end
+        end
+        if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is Edited? Pick the right tab
+            if (gui.process.Selected == 1 || gui.process.Selected == 2 || gui.process.Selected == 3 || gui.process.Selected == 4 || gui.process.Selected == 5 || gui.process.Selected == 6)
+                t = gui.process.Selected;
+            else if gui.process.Selected == 7
+                    t = 8; 
+                    else if gui.process.Selected == 8
+                    t = 7;
+                    else if MRSCont.flags.hasWater
+                        t = 9;
+                        end
+                    end
+                end
+            end   
         else
             t = gui.process.Selected;
         end
@@ -53,84 +66,70 @@ function osp_updatemeanOvWindow(gui)
             hold on
             if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum'))
                 %Metabolite data
-                if (strcmp(gui.quant.Names.Model,'conc') && ~strcmp(gui.process.Names{t},'A'))%Is Concatenated 
-                    if gui.overview.NAAnormed ==1 %Is NAA normalized
+                if (strcmp(gui.quant.Names.Model{1},'conc') && ~strcmp(gui.process.Names{t},'A'))%Is Concatenated 
                         shift = gui.layout.shift * (g-1);
-                        yu = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}]) + ...
-                            MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.process.Names{t}]);
-                        yl = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}]) - ...
-                            MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.process.Names{t}]);
-                        temp = fill([MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                        plot(MRSCont.overview.ppm_fit_conc,MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_conc_fit' num2str(fit)])+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1);
-                        plot(MRSCont.overview.ppm_fit_conc,MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_conc_baseline_' num2str(fit)])+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1);
-                        plot(MRSCont.overview.ppm_fit_conc,MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_conc_res_' num2str(fit)])+shift ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);
-                        plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);                        
-                    else %Not NAA normalized ... Normalize to max
+                        yu = MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_conc_' (gui.process.Names{t})]) + ...
+                            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_data_conc_' (gui.process.Names{t})]);
+                        yl = MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_conc_' (gui.process.Names{t})]) - ...
+                            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_data_conc_' (gui.process.Names{t})]);
+                        temp = fill([MRSCont.overview.(['ppm_fit_conc_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_fit_conc_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                        plot(MRSCont.overview.(['ppm_fit_conc_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_conc_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1);
+                        plot(MRSCont.overview.(['ppm_fit_conc_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_baseline_conc_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1);
+                        plot(MRSCont.overview.(['ppm_fit_conc_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_res_conc_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);                       
+                        plot(MRSCont.overview.(['ppm_fit_conc_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_conc_' (gui.process.Names{t})])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);                                      
+                else if  (~strcmp(gui.process.Names{t},'sum') && ~strcmp(gui.process.Names{t},'A'))                   
                         ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.process.Names{2}]));
                         shift = ylimmax * gui.layout.shift * (g-1);
-                        yu = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}]) + ...
-                            MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.process.Names{t}]);
-                        yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}]) - ...
-                            MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.process.Names{t}]);
-                        temp = fill([MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                        plot(MRSCont.overview.ppm_fit_conc,MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_' gui.fit.Names{t}])+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1);
-                        plot(MRSCont.overview.ppm_fit_conc,MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_conc_baseline_' num2str(fit)])+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1);
-                        plot(MRSCont.overview.ppm_fit_conc,MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_conc_res_' num2str(fit)])+shift ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);
-                        plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_conc_fit' num2str(fit)])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 1);
-                    end                
-                else
-                    if gui.overview.NAAnormed ==1 %Is NAA normalized
-                        shift = gui.layout.shift * (g-1);
-                        yu = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}]) + ...
-                            MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.process.Names{t}]);
-                        yl = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}]) - ...
-                            MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.process.Names{t}]);
-                        temp = fill([MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                        if (strcmp(gui.quant.Names.Model,'conc') && strcmp(gui.process.Names{t},'A'))%Is Concatenated 
-                            plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
+                        yu = MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]) + ...
+                            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]);
+                        yl = MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]) - ...
+                            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]);
+                        temp = fill([MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                        if (strcmp(gui.quant.Names.Model{1},'conc') && strcmp(gui.process.Names{t},'A'))%Is Concatenated 
+                            plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
                         else
-                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_' gui.fit.Names{t}])+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1);
-                            plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
-                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_baseline_' gui.fit.Names{t}])+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1);
-                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g) '_NAAnormalized']).(['mean_res_' gui.fit.Names{t}])+shift ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);
+                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1);
+                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})])+shift,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
+                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_baseline_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1);
+                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_res_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);
                         end
-                    else %Not NAA normalized ... Normalize to max
-                        ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.process.Names{2}]));
-                        shift = ylimmax * gui.layout.shift * (g-1);
-                        yu = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}]) + ...
-                            MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.process.Names{t}]);
-                        yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}]) - ...
-                            MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.process.Names{t}]);
-                        temp = fill([MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                        if (strcmp(gui.quant.Names.Model,'conc') && strcmp(gui.process.Names{t},'A'))%Is Concatenated 
-                            plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 1);
+                    else if (~strcmp(gui.quant.Names.Model{1},'conc') && strcmp(gui.process.Names{t},'A')) 
+                            ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.process.Names{2}]));
+                            shift = ylimmax * gui.layout.shift * (g-1);
+                            yu = MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]) + ...
+                                 MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]);
+                            yl = MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]) - ...
+                            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]);
+                            temp = fill([MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                            if (strcmp(gui.quant.Names.Model{1},'conc') && strcmp(gui.process.Names{t},'A'))%Is Concatenated 
+                                plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
+                            else
+                                plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1);
+                                plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})])+shift,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
+                                plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_baseline_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1);
+                                plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_res_' (gui.fit.Names{fit}) '_' (gui.process.Names{t})])+shift ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);
+                            end
                         else
-                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_' gui.fit.Names{t}])+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1);
-                            plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 1);
-                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_baseline_' gui.fit.Names{t}])+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1);
-                            plot(MRSCont.overview.(['ppm_fit_' (gui.fit.Names{t})]),MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_res_' gui.fit.Names{t}])+shift ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);
+                            ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.process.Names{2}]));
+                            shift = ylimmax * gui.layout.shift * (g-1);
+                            yu = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}]) + ...
+                                MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.process.Names{t}]);
+                            yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}]) - ...
+                                MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.process.Names{t}]);
+                            temp = fill([MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                            plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
                         end
                     end
                 end 
             else if (strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D'))
-                if gui.overview.NAAnormed ==1 %Is NAA normalized
-                    shift = gui.layout.shift * (g-1);
-                    yu = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}]) + ...
-                        MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.process.Names{t}]);
-                    yl = MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}]) - ...
-                        MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['sd_' gui.process.Names{t}]);
-                    temp = fill([MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
-                    plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g) '_NAAnormalized']).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
-                else %Not NAA normalized ... Normalize to max
                     ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.process.Names{2}]));
                     shift = ylimmax * gui.layout.shift * (g-1);
                     yu = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}]) + ...
                         MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.process.Names{t}]);
                     yl = MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}]) - ...
                         MRSCont.overview.(['sort_data_g' num2str(g)]).(['sd_' gui.process.Names{t}]);
-                    temp = fill([MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
+                    temp = fill([MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]) fliplr(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]))], [yu+shift fliplr(yl)+shift], [0 0 0],'FaceAlpha',0.1, 'linestyle', 'none');
                     plot(MRSCont.overview.(['ppm_data_' (gui.process.Names{t})]),MRSCont.overview.(['sort_data_g' num2str(g)]).(['mean_' gui.process.Names{t}])+shift ,'color',gui.colormap.cb(g,:), 'LineWidth', 2);
-                end
             else %Water data
                 ylimmax = max(MRSCont.overview.(['sort_data_g' num2str(1)]).(['mean_' gui.process.Names{1}]));
                 shift = ylimmax * gui.layout.shift * (g-1);
