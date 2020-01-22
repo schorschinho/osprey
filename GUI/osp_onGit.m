@@ -1,15 +1,12 @@
-function osp_onExit( ~, ~,gui)
-%% osp_onExit
-%   Callback function on exit button click. Closes gui.
+function osp_onGit( ~, ~)
+%% osp_onGit
+%   Callback function on git button click. Visits GitHub Schorschinho.
 %
 %
 %   USAGE:
-%       osp_onExit( ~, ~ ,gui);
+%       osp_onOsp( ~, ~ );
 %
-%   INPUT:      gui      = gui class containing all handles and the MRSCont 
 %
-%   OUTPUT:     Changes in gui parameters and MRSCont are written into the
-%               gui class
 %
 %
 %   AUTHORS:
@@ -24,7 +21,7 @@ function osp_onExit( ~, ~,gui)
 %
 %   HISTORY:
 %       2020-01-16: First version of the code.
-%%% 1. CLOSE %%%
-    % User wants to quit out of the application
-    delete( gui.figure );
-end % onExit
+%%% 1. Visit websites %%%
+
+web('https://github.com/schorschinho/osprey', '-browser'); %Github Link
+end 

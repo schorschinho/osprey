@@ -1,15 +1,12 @@
-function osp_onExit( ~, ~,gui)
-%% osp_onExit
-%   Callback function on exit button click. Closes gui.
+function osp_onPub( ~, ~)
+%% osp_onPub
+%   Callback function on publication button. Visits HERCULES paper.
 %
 %
 %   USAGE:
-%       osp_onExit( ~, ~ ,gui);
+%       osp_onPub( ~, ~ );
 %
-%   INPUT:      gui      = gui class containing all handles and the MRSCont 
 %
-%   OUTPUT:     Changes in gui parameters and MRSCont are written into the
-%               gui class
 %
 %
 %   AUTHORS:
@@ -24,7 +21,9 @@ function osp_onExit( ~, ~,gui)
 %
 %   HISTORY:
 %       2020-01-16: First version of the code.
-%%% 1. CLOSE %%%
-    % User wants to quit out of the application
-    delete( gui.figure );
-end % onExit
+%%% 1. Visit websites %%%
+
+
+web('https://www.ncbi.nlm.nih.gov/sites/myncbi/1lo2w1io3qTgqH/collections/59221405/public/', '-browser'); %HERCULES paper will create a pubmed collection for referencing all papers
+
+end 

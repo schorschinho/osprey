@@ -31,21 +31,21 @@ function osp_WindowKeyDown(~,EventData,gui)
 % Get MRSCont from hidden class container
     MRSCont = getappdata(gui.figure,'MRSCont');    
     if strcmp(EventData.Key, 'uparrow')
-        OldValue = get( gui.ListBox,'value');
+        OldValue = get( gui.layout.ListBox,'value');
         gui.controls.KeyPress = 1;
         if OldValue == 1
-            set(gui.ListBox, 'value', MRSCont.nDatasets );
+            set(gui.layout.ListBox, 'value', MRSCont.nDatasets );
         else
-            set(gui.ListBox, 'value', OldValue-1 );
+            set(gui.layout.ListBox, 'value', OldValue-1 );
         end
     end
     if strcmp(EventData.Key, 'downarrow')
-        OldValue = get( gui.ListBox,'value');
+        OldValue = get( gui.layout.ListBox,'value');
         gui.controls.KeyPress = 1;
         if OldValue == MRSCont.nDatasets
-            set(gui.ListBox, 'value', 1 );
+            set(gui.layout.ListBox, 'value', 1 );
         else
-            set(gui.ListBox, 'value', OldValue+1 );
+            set(gui.layout.ListBox, 'value', OldValue+1 );
         end
     end
 end

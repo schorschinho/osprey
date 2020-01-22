@@ -171,16 +171,22 @@ Please refer to the `OspreyQuantify` chapter for details on the availability of 
 
 ### OspreyGUI
 
-At any given point during your analysis (after `OspreyLoad`), you can invoke the `Osprey` GUI to visualize the above steps.
+At any given point during your analysis, you can invoke the `Osprey` GUI to visualize the above steps.
 
 The `Osprey` GUI contains several tabs representing the various stages of the `Osprey` workflow, i.e. `Load`, `Process`, `Fit`, `Coreg/Seg`, and `Quantify`.
 
 In addition, various useful summary plots and basic statistical evaluations of the quantitative results are shown in the `Overview` tab. This tab gets activated only if more than one dataset has been fully analyzed.
 
-The GUI can be initialized using the command
+The GUI can be initialized using the command.
 
 ```
-[MRSCont] = OspreyQuantify(MRSCont);
+OspreyStartUp
 ```
 
 All of the above-mentioned analysis steps can also be called from inside the GUI using the respective buttons. Please refer to the `OspreyGUI` chapter for details.
+
+You can also load a MRSCont from your MATLAB workspace into the GUI by using
+
+```
+gui = OspreyGUIapp(MRSCont);
+```

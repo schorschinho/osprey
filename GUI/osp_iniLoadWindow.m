@@ -44,27 +44,27 @@ function osp_iniLoadWindow(gui)
         gui.layout.EmptydataPlot = 0;
  %%% 2. CREATING SUB TABS FOR THIS TAB %%%
  % In this case one tab for each subspec (A,B,C,D,ref,water)
-            gui.layout.metabLoTab = uix.VBox('Parent', gui.layout.rawTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+            gui.layout.metabLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
             gui.layout.rawTab.TabWidth   = 115;
             gui.layout.rawTab.Selection  = 1;
             gui.layout.rawTabhandles = {'metabLoTab'};
             if gui.controls.Number == 2
                 if MRSCont.flags.hasRef
-                    gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                    gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
                     gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;
                     gui.layout.rawTab.TabEnables = {'on', 'on'};
                     gui.layout.rawTabhandles = {'metabLoTab', 'refLoTab'};
                 end
                 if MRSCont.flags.hasWater
-                    gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                    gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
                     gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;
                     gui.layout.rawTab.TabEnables = {'on', 'on'};
                     gui.layout.rawTabhandles = {'metabLoTab', 'wLoTab'};
                 end
             end
             if gui.controls.Number == 3
-                gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
-                gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background);
+                gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
                 gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;
                 gui.layout.rawTab.TabEnables = {'on', 'on','on'};
                 gui.layout.rawTabhandles = {'metabLoTab', 'refLoTab', 'wLoTab'};
@@ -78,7 +78,11 @@ function osp_iniLoadWindow(gui)
                                      'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                      'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
             % Grid for Plot and Data control sliders
-            gui.Plot.data = uix.VBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'Padding', 5, 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
+            if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) % HBox for HERMES/HERCULES
+                gui.Plot.data = uix.HBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
+            else
+                gui.Plot.data = uix.VBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
+            end
             gui.InfoText.data  = uicontrol('Parent',gui.Info.data,'style','text',...
                                           'FontSize', 12, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
                                           'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
@@ -87,17 +91,17 @@ function osp_iniLoadWindow(gui)
         % Get parameter from file to fill the info panel
         if gui.load.Selected == 1 %Is metabolite data?
             StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
+                         '\nraw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
         else if gui.load.Selected == 2 %Is water or ref data?
         StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
+                         '\nraw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
             else
                 StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '; raw subspecs: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.averages)...
+                         '\nraw subspecs: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
             end
@@ -121,6 +125,28 @@ function osp_iniLoadWindow(gui)
                 set(gui.Plot.data.Children(2), 'OuterPosition', [0,0.5,1,0.5])
                 set(gui.Plot.data.Children(1), 'Units', 'normalized')
                 set(gui.Plot.data.Children(1), 'OuterPosition', [0,0,1,0.5])
+            end
+            if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Four windows for HERMES/HERCULES
+                gui.layout.multiACload = uix.VBox('Parent', gui.Plot.data, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                    gui.layout.multiAload = uix.VBox('Parent', gui.layout.multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
+                    gui.layout.multiCload = uix.VBox('Parent', gui.layout.multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
+                gui.layout.multiBDload = uix.VBox('Parent', gui.Plot.data,'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                    gui.layout.multiBload = uix.VBox('Parent', gui.layout.multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
+                    gui.layout.multiDload = uix.VBox('Parent', gui.layout.multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
+                set( temp.Children(1), 'Parent', gui.layout.multiDload );
+                set( temp.Children(1), 'Parent', gui.layout.multiCload );
+                set( temp.Children(1), 'Parent', gui.layout.multiBload );
+                set( temp.Children(1), 'Parent', gui.layout.multiAload );
+                set(gui.Plot.data,'Width', [-0.49 -0.49]);
+                set(gui.layout.multiDload.Children(1), 'Units', 'normalized')
+                set(gui.layout.multiDload.Children(1), 'OuterPosition', [0,0,1,1])
+                set(gui.layout.multiCload.Children(1), 'Units', 'normalized')
+                set(gui.layout.multiCload.Children(1), 'OuterPosition', [0,0,1,1])
+                set(gui.layout.multiBload.Children(1), 'Units', 'normalized')
+                set(gui.layout.multiBload.Children(1), 'OuterPosition', [0,0,1,1])
+                set(gui.layout.multiAload.Children(1), 'Units', 'normalized')
+                set(gui.layout.multiAload.Children(1), 'OuterPosition', [0,0,1,1])
+                
             end
         else if t == 2 %ref data/tab
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',1 );

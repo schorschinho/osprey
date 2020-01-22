@@ -32,28 +32,28 @@ function osp_iniProcessWindow(gui)
         gui.layout.EmptyProPlot = 0;
 %%% 2. CREATING SUB TABS FOR THIS TAB %%%
 % In this case one tab fo each subspec (A,B,C,D,ref,water)
-        gui.layout.AProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.proTab.TabWidth   = 115;
+        gui.layout.AProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+        gui.layout.proTab.TabWidth   = 90;
         gui.layout.proTabhandles = {'AProTab'};
 % Set up tabs with regard to the sequence type
         if MRSCont.flags.isUnEdited %Is UnEdited?
             if (MRSCont.flags.hasRef && MRSCont.flags.hasWater) %Has water and reference (This should actually not happen with UnEdited data...) 
-                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
                 gui.layout.proTab.TabTitles  = {'metabolites','reference','water'};
                 gui.layout.proTab.TabEnables = {'on', 'on','on'};
                 gui.layout.proTabhandles = {'AProTab', 'refProTab', 'wProTab'}; % Create 3 Tabs
                 gui.process.SNR = {'tNAA','water','water'};
             else
                 if MRSCont.flags.hasRef %Has only reference?
-                    gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
                     gui.layout.proTab.TabTitles  = {'metabolites','reference'};
                     gui.layout.proTab.TabEnables = {'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab', 'refProTab'}; % Create 2 Tabs
                     gui.process.SNR = {'tNAA','water'};
                 end
                 if MRSCont.flags.hasWater %Has only water?
-                    gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
                     gui.layout.proTab.TabTitles  = {'metabolites','water'};
                     gui.layout.proTab.TabEnables = {'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab', 'wProTab'}; %Create 2 Tabs
@@ -63,31 +63,31 @@ function osp_iniProcessWindow(gui)
         end
         if MRSCont.flags.isMEGA %Is MEGA?
             if (MRSCont.flags.hasRef && MRSCont.flags.hasWater) %Has water and reference?
-                gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+                gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+                gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
                 gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.proTab.TabTitles  = {'off','on','diff','sum','reference','water'};
+                gui.layout.proTab.TabTitles  = {'off','on','diff','sum','ref','water'};
                 gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
                 gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab', 'wProTab'}; %Create 6 tabs
                 gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'water','tNAA','water'};
             else
                 if MRSCont.flags.hasRef %Has only reference?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.proTab.TabTitles  = {'off','on','diff','sum','reference'};
+                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.proTab.TabTitles  = {'off','on','diff','sum','ref'};
                     gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab'}; %Create 5 tabs
                     gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'water','tNAA'};
                 end
                 if MRSCont.flags.hasWater %Has only water?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.wProTab = uix.VBox('Parent', gui.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.BProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.sumProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background);
+                    gui.layout.wProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background);
                     gui.layout.proTab.TabTitles  = {'off','on','diff','sum','water'};
                     gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'wProTab'}; %Create 5 tabs
@@ -95,7 +95,7 @@ function osp_iniProcessWindow(gui)
                 end
             end
         end
-        if MRSCont.flags.isHERMES %Is HERMES?
+        if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is HERMES\HERCULES?
             if (MRSCont.flags.hasRef && MRSCont.flags.hasWater) %Has water and reference?
                 gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
@@ -105,9 +105,10 @@ function osp_iniProcessWindow(gui)
                 gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','reference','water'};
+                gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','ref','water'};
                 gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on', 'on', 'on', 'on'};
                 gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'diff1ProTab', 'diff2ProTab', 'sumProTab', 'refProTab', 'wProTab'}; %Create 9 tabs
+                gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'water','tNAA','water'};
             else
                 if MRSCont.flags.hasRef %Has only reference?
                     gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
@@ -117,9 +118,10 @@ function osp_iniProcessWindow(gui)
                     gui.layout.diff2ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
                     gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','reference'};
-                    gui.layout.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on'};
+                    gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','ref'};
+                    gui.layout.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','refProTab'}; %Create 8 tabs
+                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water'};
                 end
                 if MRSCont.flags.hasWater %Has only water?
                     gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
@@ -130,48 +132,9 @@ function osp_iniProcessWindow(gui)
                     gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
                     gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','water'};
-                    gui.layout.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on'};
+                    gui.layout.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','wProTab'}; %Create 8 tabs
-                end
-            end
-        end
-        if MRSCont.flags.isHERCULES %Is HERCULES?
-            if (MRSCont.flags.hasRef && MRSCont.flags.hasWater) %Has water and reference?
-                gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.DProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);   
-                gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.diff2ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                
-                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                gui.layout.proTab.TabTitles  = {'A','B','C','D','reference','water'};
-                gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
-                gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab', 'refProTab', 'wProTab'}; %Create 9 tabs
-            else
-                if MRSCont.flags.hasRef %Has only reference?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.DProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.diff2ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
-                    gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.proTab.TabTitles  = {'A','B','C','D','reference'};
-                    gui.layout.proTab.TabEnables = {'on', 'on','on','on'};
-                    gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','refProTab'}; %Create 8 tabs
-                end
-                if MRSCont.flags.hasWater %Has only water?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.DProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.diff2ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);                    
-                    gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    gui.layout.proTab.TabTitles  = {'A','B','C','D','water'};
-                    gui.layout.proTab.TabEnables = {'on', 'on','on','on'};
-                    gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','wProTab'}; %Create 8 tabs
+                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water'};
                 end
             end
         end
@@ -183,7 +146,8 @@ function osp_iniProcessWindow(gui)
             gui.layout.proTab.Selection  = ind;
             gui.Info.pro = uix.Panel('Parent', gui.layout.(gui.layout.proTabhandles{ind}), ...
                 'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
-                'HighlightColor', gui.colormap.Foreground,'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                'HighlightColor', gui.colormap.Foreground,'FontName', 'Arial', 'BackgroundColor',...
+                gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
             % Creates layout for plotting and data control
             gui.Plot.pro = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}), ...
                 'Padding', 5,'BackgroundColor', gui.colormap.Background);

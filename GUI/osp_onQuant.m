@@ -37,6 +37,7 @@ function osp_onQuant( ~, ~ ,gui)
     gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1}));
     gui.quant.Number.Metabs = length(MRSCont.quantify.metabs);
     gui.overview.Selected.Metab = find(strcmp(MRSCont.quantify.metabs, 'tNAA'));
+    gui.quant.idx.GABA = find(strcmp(MRSCont.quantify.metabs, 'GABA'));
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 %%% 3. INITIALIZE QUANTIFY OUTPUT WINDOW %%%    
     osp_iniQuantifyWindow(gui);
@@ -57,16 +58,16 @@ function osp_onQuant( ~, ~ ,gui)
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 %%% 4. CALL OSPREYOVERVIEW %%%    
     osp_iniOverviewWindow(gui);
-    set(gui.layout.overviewTab, 'SelectionChangedFcn',{@osp_OverviewTabChangedFcn,gui,MRSCont});
-    set(gui.controls.pop_specsOvPlot,'callback',{@osp_pop_specsOvPlot_Call,gui,MRSCont});
-    set(gui.controls.pop_meanOvPlot,'callback',{@osp_pop_meanOvPlot_Call,gui,MRSCont});
-    set(gui.controls.pop_quantOvPlot,'callback',{@osp_pop_quantOvPlot_Call,gui,MRSCont});
-    set(gui.controls.pop_distrOvQuant,'callback',{@osp_pop_distrOvQuant_Call,gui,MRSCont});
-    set(gui.controls.pop_distrOvMetab,'callback',{@osp_pop_distrOvMetab_Call,gui,MRSCont});
-    set(gui.controls.pop_corrOvQuant,'callback',{@osp_pop_corrOvQuant_Call,gui,MRSCont});
-    set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui,MRSCont});
-    set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui,MRSCont});
-    set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui,MRSCont});
+    set(gui.layout.overviewTab, 'SelectionChangedFcn',{@osp_OverviewTabChangedFcn,gui});
+    set(gui.controls.pop_specsOvPlot,'callback',{@osp_pop_specsOvPlot_Call,gui});
+    set(gui.controls.pop_meanOvPlot,'callback',{@osp_pop_meanOvPlot_Call,gui});
+    set(gui.controls.pop_quantOvPlot,'callback',{@osp_pop_quantOvPlot_Call,gui});
+    set(gui.controls.pop_distrOvQuant,'callback',{@osp_pop_distrOvQuant_Call,gui});
+    set(gui.controls.pop_distrOvMetab,'callback',{@osp_pop_distrOvMetab_Call,gui});
+    set(gui.controls.pop_corrOvQuant,'callback',{@osp_pop_corrOvQuant_Call,gui});
+    set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui});
+    set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
+    set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
     gui.layout.b_quant.Enable = 'off';
 
 end % onQuant
