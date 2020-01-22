@@ -95,15 +95,15 @@ switch which
         % Get sub-spectra, depending on whether they are stored as such
         if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
             if raw.subspecs == 4
-                raw_A   = op_takesubspec(raw,1);                    % Get first subspectrum
-                raw_B   = op_takesubspec(raw,2);                    % Get second subspectrum
-                raw_C   = op_takesubspec(raw,3);                    % Get third subspectrum
-                raw_D   = op_takesubspec(raw,4);                    % Get fourth subspectrum
+                raw_A   = op_takesubspec(raw,procDataToPlot.commuteOrder);                    % Get first subspectrum
+                raw_B   = op_takesubspec(raw,procDataToPlot.commuteOrder);                    % Get second subspectrum
+                raw_C   = op_takesubspec(raw,procDataToPlot.commuteOrder);                    % Get third subspectrum
+                raw_D   = op_takesubspec(raw,procDataToPlot.commuteOrder);                    % Get fourth subspectrum
             else
-                raw_A   = op_takeaverages(raw,1:4:raw.averages);    % Get first subspectrum
-                raw_B   = op_takeaverages(raw,2:4:raw.averages);    % Get second subspectrum
-                raw_C   = op_takeaverages(raw,3:4:raw.averages);    % Get third subspectrum
-                raw_D   = op_takeaverages(raw,4:4:raw.averages);    % Get fourth subspectrum
+                raw_A   = op_takeaverages(raw,procDataToPlot.commuteOrder:4:raw.averages);    % Get first subspectrum
+                raw_B   = op_takeaverages(raw,procDataToPlot.commuteOrder:4:raw.averages);    % Get second subspectrum
+                raw_C   = op_takeaverages(raw,procDataToPlot.commuteOrder:4:raw.averages);    % Get third subspectrum
+                raw_D   = op_takeaverages(raw,procDataToPlot.commuteOrder:4:raw.averages);    % Get fourth subspectrum
             end
         elseif MRSCont.flags.isMEGA
             if raw.subspecs == 2
@@ -128,6 +128,12 @@ switch which
         rawDataToPlot  = MRSCont.raw{kk};
         procDataToPlot = MRSCont.processed.(which){kk};
         if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
+                temp_spec = cat(3,rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(1)),rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(2)),...
+                                rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(3)),rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(4)));
+                temp_fid = cat(3,rawDataToPlot.fids(:,:,procDataToPlot.commuteOrder(1)),rawDataToPlot.fids(:,:,procDataToPlot.commuteOrder(2)),...
+                                rawDataToPlot.fids(:,:,procDataToPlot.commuteOrder(3)),rawDataToPlot.fids(:,:,procDataToPlot.commuteOrder(4)));
+                rawDataToPlot.fids = temp_fid;
+                rawDataToPlot.specs = temp_spec;
                 proc_A   = MRSCont.processed.A{kk};                   % Get first subspectrum
                 proc_B   = MRSCont.processed.B{kk};                  % Get second subspectrum
                 proc_C   = MRSCont.processed.C{kk};                   % Get third subspectrum
@@ -183,9 +189,9 @@ if MRSCont.flags.isUnEdited
         end
     end
     plotRange = op_freqrange(rawDataToPlot, ppmmin, ppmmax);
-    yLims = [mean(min(real(plotRange.specs))) mean(max(real(plotRange.specs)))].*1.5;
+    yLims = [mean(min(real(plotRange.specs))) - (mean(min(real(plotRange.specs)))*0.5) mean(max(real(plotRange.specs)))*1.5];
     set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
-    y = ylim;
+    y = yLims;
 end
 
 if MRSCont.flags.isMEGA 
@@ -214,7 +220,7 @@ if MRSCont.flags.isMEGA
     end
     set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
    
-    y = ylim;
+    y = yLims;
     else
         if ~GUI
             for rr = 1:nAvgsRaw
@@ -226,22 +232,28 @@ if MRSCont.flags.isMEGA
             end
         end
         plotRange = op_freqrange(rawDataToPlot, ppmmin, ppmmax);
-        yLims = [mean(min(real(plotRange.specs))) mean(max(real(plotRange.specs)))].*1.5;
+        yLims = [mean(min(real(plotRange.specs))) - (mean(min(real(plotRange.specs)))*0.5) mean(max(real(plotRange.specs)))*1.5];
         set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
-        y = ylim;
+        y = yLims;
   end
 end
 
 if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-    if ~strcmp(which, 'w')
-        stag = 0.3*max(abs(mean(max(real(rawDataToPlot.specs)))), abs(mean(min(real(rawDataToPlot.specs)))));
+    if ~strcmp(which, 'w') && ~strcmp(which, 'ref') && ~strcmp(which, 'A') && ~strcmp(which, 'B') && ~strcmp(which, 'C') && ~strcmp(which, 'D')
+        temp_spec = op_freqrange (rawDataToPlot,1.8,2.2);
+        stag = (abs(max(mean(max(real(temp_spec.specs))))) + abs(min(mean(min(real(temp_spec.specs))))))/4;
+        stag = [0,2,6.5,8.5] .* stag;
         if ~GUI
             for rr = 1:nAvgsRaw
-                plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr,1), 'LineWidth', 0.5);
+                plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr,1) + stag(1), 'LineWidth', 0.5);
                 plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr,2) + stag(2), 'LineWidth', 0.5);
                 plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr,3) + stag(3), 'LineWidth', 0.5);
                 plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr,4) + stag(4), 'LineWidth', 0.5);
             end
+            text(ax_raw, ppmmin+0.3, stag(1)+0.75, 'A');
+            text(ax_raw, ppmmin+0.3, stag(2)+0.75 , 'B');
+            text(ax_raw, ppmmin+0.3, stag(3)-0.75, 'C');
+            text(ax_raw, ppmmin+0.3, stag(4)-0.75 , 'D');              
         else
             for rr = 1:nAvgsRaw
                 plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr,1), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
@@ -249,12 +261,30 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
                 plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr,3) + stag(3), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
                 plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr,4) + stag(4), 'LineWidth', 0.5, 'Color', colormap.Foreground);
             end
+            text(ax_raw, ppmmin+0.3, stag(1)+0.75, 'A', 'Color', colormap.LightAccent);
+            text(ax_raw, ppmmin+0.3, stag(2)+0.75 , 'B', 'Color', colormap.Foreground);
+            text(ax_raw, ppmmin+0.3, stag(3)-0.75, 'C', 'Color', colormap.LightAccent);
+            text(ax_raw, ppmmin+0.3, stag(4)-0.75 , 'D', 'Color', colormap.Foreground);  
+        end
+        yLims = [(mean(min(real(temp_spec.specs(1))))- mean(min(real(temp_spec.specs(1))))*1.5) mean(max(real(temp_spec.specs(4))))+stag(4)*1.5];
+        set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
+        y = yLims;
+        
+    else
+        if ~GUI
+            for rr = 1:nAvgsRaw
+                plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr), 'LineWidth', 0.5);
+            end
+        else
+            for rr = 1:nAvgsRaw
+                plot(ax_raw, rawDataToPlot.ppm, rawDataToPlot.specs(:,rr), 'LineWidth', 0.5, 'Color', colormap.Foreground);
+            end
         end
         plotRange = op_freqrange(rawDataToPlot, ppmmin, ppmmax);
-        yLims = [mean(min(real(plotRange.specs(:,:,1)))) (mean(max(real(plotRange.specs(:,:,4))))+stag(4))].*1.5;
+        yLims = [mean(min(real(plotRange.specs))) - (mean(min(real(plotRange.specs)))*0.5) mean(max(real(plotRange.specs)))*1.5];
         set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
-        y = ylim;               
-    end
+        y = yLims;
+    end    
 end
 
 if ~(strcmp(which,'w') || strcmp(which,'ref'))
@@ -341,9 +371,9 @@ if MRSCont.flags.isUnEdited
         end
     end
     plotRange = op_freqrange(applyDataToPlot, ppmmin, ppmmax);
-    yLims = [mean(min(real(plotRange.specs))) mean(max(real(plotRange.specs)))].*1.5;
+    yLims = [mean(min(real(plotRange.specs))) - (mean(min(real(plotRange.specs)))*0.5) mean(max(real(plotRange.specs)))*1.5];
     set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
-    y = ylim;
+    y = yLims;
 end
 
 if MRSCont.flags.isMEGA
@@ -370,7 +400,7 @@ if MRSCont.flags.isMEGA
             text(ax_aligned, ppmmin+0.3, yLims(1) + stag(2), 'on', 'Color', colormap.Foreground);
         end
         set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
-        y = ylim;
+        y = yLims;
     else
         if ~GUI
             for rr = 1:nAvgsRaw
@@ -382,16 +412,18 @@ if MRSCont.flags.isMEGA
             end
         end
         plotRange = op_freqrange(applyDataToPlot, ppmmin, ppmmax);
-        yLims = [mean(min(real(plotRange.specs))) mean(max(real(plotRange.specs)))].*1.5;
+        yLims = [mean(min(real(plotRange.specs))) - (mean(min(real(plotRange.specs)))*0.5) mean(max(real(plotRange.specs)))*1.5];
         set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
-        y = ylim;
+        y = yLims;
     end
 end
 
 
 if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-    if ~strcmp(which, 'w')
-        stag = 0.3*max(abs(mean(max(real(applyDataToPlot.specs)))), abs(mean(min(real(applyDataToPlot.specs)))));
+    if ~strcmp(which, 'w') && ~strcmp(which, 'ref') && ~strcmp(which, 'A') && ~strcmp(which, 'B') && ~strcmp(which, 'C') && ~strcmp(which, 'D')
+        temp_spec = op_freqrange (applyDataToPlot,1.8,2.2);
+        stag = (abs(max(mean(max(real(temp_spec.specs))))) + abs(min(mean(min(real(temp_spec.specs))))))/4;
+        stag = [0,2,6.5,8.5] .* stag;
         if ~GUI
             for rr = 1:nAvgsRaw
                 plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr,1), 'LineWidth', 0.5);
@@ -399,6 +431,10 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
                 plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr,3) + stag(3), 'LineWidth', 0.5);
                 plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr,4) + stag(4), 'LineWidth', 0.5);
             end
+            text(ax_aligned, ppmmin+0.3, stag(1)+0.75, 'A');
+            text(ax_aligned, ppmmin+0.3, stag(2)+0.75 , 'B');
+            text(ax_aligned, ppmmin+0.3, stag(3)-0.75, 'C');
+            text(ax_aligned, ppmmin+0.3, stag(4)-0.75 , 'D');             
         else
             for rr = 1:nAvgsRaw
                 plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr,1), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
@@ -406,11 +442,28 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
                 plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr,3) + stag(3), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
                 plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr,4) + stag(4), 'LineWidth', 0.5, 'Color', colormap.Foreground);
             end
+            text(ax_aligned, ppmmin+0.3, stag(1)+0.75, 'A', 'Color', colormap.LightAccent);
+            text(ax_aligned, ppmmin+0.3, stag(2)+0.75 , 'B', 'Color', colormap.Foreground);
+            text(ax_aligned, ppmmin+0.3, stag(3)-0.75, 'C', 'Color', colormap.LightAccent);
+            text(ax_aligned, ppmmin+0.3, stag(4)-0.75 , 'D', 'Color', colormap.Foreground); 
         end
-        plotRange = op_freqrange(applyDataToPlot, ppmmin, ppmmax);
-        yLims = [mean(min(real(plotRange.specs(:,:,1)))) (mean(max(real(plotRange.specs(:,:,4))))+stag(4))].*1.5;
+        yLims = [(mean(min(real(temp_spec.specs(1))))- mean(min(real(temp_spec.specs(1))))*1.5) mean(max(real(temp_spec.specs(4))))+stag(4)*1.5];
         set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
-        y = ylim;               
+        y = yLims;              
+    else
+        if ~GUI
+            for rr = 1:nAvgsRaw
+                plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr), 'LineWidth', 0.5);
+            end
+        else
+            for rr = 1:nAvgsRaw
+                plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr), 'LineWidth', 0.5, 'Color', colormap.Foreground);
+            end
+        end
+        plotRange = op_freqrange(rawDataToPlot, ppmmin, ppmmax);
+        yLims = [mean(min(real(plotRange.specs))) - (mean(min(real(plotRange.specs)))*0.5) mean(max(real(plotRange.specs)))*1.5];
+        set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
+        y = yLims;
     end
 end
 
@@ -444,7 +497,11 @@ if ~GUI
 else
     plot(ax_proc, procDataToPlot.ppm, procDataToPlot.specs/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
 end
-y = [-0.2, 1.2];
+if strcmp(which,'diff2')
+    y = [-1.2, 1.2];
+else
+    y = [-0.2, 1.2];
+end
 set(ax_proc, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
 if ~(strcmp(which,'w') || strcmp(which,'ref'))
     if ~GUI    
@@ -499,7 +556,7 @@ if isfield(MRSCont.QM.drift.pre, which)
     else 
         axes(ax_drift);
         x = xlim;
-        y = ylim;
+        y = yLims;
         if ~GUI 
             text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color');            
         else
@@ -509,7 +566,7 @@ if isfield(MRSCont.QM.drift.pre, which)
 else
     axes(ax_drift);
     x = xlim;
-    y = ylim;
+    y = yLims;
     if ~GUI 
         text(ax_drift, x(2)/6, y(2)/2, 'No drift data available');            
     else

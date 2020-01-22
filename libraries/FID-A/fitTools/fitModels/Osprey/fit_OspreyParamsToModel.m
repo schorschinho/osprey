@@ -49,7 +49,33 @@ freqShift   = fitParams.freqShift; % Frequency shift [Hz] for each basis functio
 ampl        = fitParams.ampl; % Amplitudes for metabolite/MM/lipid basis functions
 beta_j      = fitParams.beta_j; % Amplitudes for baseline spline basis functions
 spl_pos     = fitParams.spl_pos; %spline positions
-
+% ... is concatenated
+if strcmp(inputSettings.fitStyle,'Concatenated')
+    n_beta_j = length(beta_j);
+    if inputSettings.flags.isMEGA
+        switch inputSettings.concatenated.Subspec
+            case 'diff1'
+                basisSet.fids = basisSet.fids(:,:,1);
+                beta_j = beta_j(1:n_beta_j/2);
+            case 'sum'
+                basisSet.fids = basisSet.fids(:,:,2);
+                beta_j = beta_j(1+n_beta_j/2:end);
+        end
+    end
+    if (inputSettings.flags.isHERMES || inputSettings.flags.isHERCULES)
+        switch inputSettings.concatenated.Subspec
+            case 'diff1'
+                basisSet.fids = basisSet.fids(:,:,1);
+                beta_j = beta_j(1:n_beta_j/3);
+            case 'diff2'
+                basisSet.fids = basisSet.fids(:,:,2);
+                beta_j = beta_j(1+n_beta_j/3:2*n_beta_j/3);
+            case 'sum'
+                basisSet.fids = basisSet.fids(:,:,3);
+                beta_j = beta_j(1+2*n_beta_j/3:end);
+        end
+    end
+end
 
 %%% 2. APPLY THE NON-LINEAR PARAMETERS %%%
 % Run the time-domain operations on the basis functions

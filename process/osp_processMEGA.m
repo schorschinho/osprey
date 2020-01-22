@@ -265,7 +265,7 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre{1} - 3.02);
     MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost{1} - 3.02);
     
-    MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk}); % Cr amplitude over noise floor
+    MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk},2.8,3.2); % Cr amplitude over noise floor
     FWHM_Hz                 = op_getLW(MRSCont.processed.B{kk},2.8,3.2); % in Hz
     MRSCont.QM.FWHM.B(kk)   = FWHM_Hz./MRSCont.processed.B{kk}.txfrq*1e6; % convert to ppm
     MRSCont.QM.drift.pre.B{kk}  = driftPre{2};
@@ -283,7 +283,7 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.drift.pre.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.pre.diff1{kk} - 3.02);
     MRSCont.QM.drift.post.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.post.diff1{kk} - 3.02);
     
-    MRSCont.QM.SNR.sum(kk)    = op_getSNR(MRSCont.processed.sum{kk},2.8,3.2); % Cr amplitude over noise floor
+    MRSCont.QM.SNR.sum(kk)    = op_getSNR(MRSCont.processed.sum{kk}); % Cr amplitude over noise floor
     FWHM_Hz                     = op_getLW(MRSCont.processed.sum{kk},2.8,3.2); % in Hz
     MRSCont.QM.FWHM.sum(kk)   = FWHM_Hz./MRSCont.processed.sum{kk}.txfrq*1e6; % convert to ppm
     MRSCont.QM.drift.pre.sum{kk}  =  MRSCont.QM.drift.pre.diff1{kk};

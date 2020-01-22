@@ -34,7 +34,7 @@ if MRSCont.flags.isUnEdited
     end
 elseif MRSCont.flags.isMEGA
     % Extract edit target from MRSCont
-    editTarget = lower(MRSCont.opts.editTarget);
+    editTarget = lower(MRSCont.opts.editTarget{1});
     % Extract TE from first dataset
     te = num2str(MRSCont.raw{1}.te);
     switch MRSCont.vendor

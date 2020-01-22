@@ -161,6 +161,10 @@ switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
         opts.editTarget             = 'none';
+        if strcmp(opts.fit.style, 'Concatenated')
+            fprintf('Fitting style was changed to Separate, because this is unedited data. Please indicate otherwise in the csv-file or the GUI \n');
+            opts.fit.style = 'Separate';
+        end        
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
         opts.editTarget             = editTarget;
