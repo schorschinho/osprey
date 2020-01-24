@@ -2,7 +2,7 @@
 % Jamie Near, McGill University 2015.
 % 
 % USAGE:
-% out=op_plotspec(in,norm,GUI,color,shift,ppmmin,ppmmax,xlab,ylab,tit)
+% out=op_plotspec(in,norm,GUI,color,shift,tit,ppmmin,ppmmax,xlab,ylab)
 % 
 % DESCRIPTION:
 % Plot the MR spectrum in the frequency domain.  
@@ -189,7 +189,9 @@ elseif iscell(in)
         elseif dim==5 
             out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,1,:)))/max(real(squeeze(in{1}.specs(:,1,1,1,:))))+shift);
         end
-        disp('Multiple input spectra detected!! Each spectrum is normalized to its maximum. ')
+        if ~GUI
+            disp('Multiple input spectra detected!! Each spectrum is normalized to its maximum. ')
+        end
         close;
         out=figure;
         hold
@@ -228,7 +230,9 @@ elseif iscell(in)
         elseif dim==5 
             out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,1,:)))+shift);
         end
-        disp('Multiple input spectra detected!! But they are already normalized. ')
+        if ~GUI
+            disp('Multiple input spectra detected!! But they are already normalized. ')
+        end
         close;
         out=figure;
         hold

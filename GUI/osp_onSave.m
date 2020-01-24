@@ -27,6 +27,8 @@ function osp_onSave( ~, ~,gui)
 %%% 1. SAVE %%%
     % Save the output structure to the output folder
     % Determine output folder
+    refProcessTime = tic;
+    fprintf('Saving MRS container...\n');
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class    
     outputFolder    = MRSCont.outputFolder;
     outputFile      = MRSCont.outputFile;
@@ -34,4 +36,6 @@ function osp_onSave( ~, ~,gui)
         mkdir(outputFolder);
     end
     save(fullfile(outputFolder, outputFile), 'MRSCont');
+    fprintf('... done.\n');
+    toc(refProcessTime);
 end % onExit

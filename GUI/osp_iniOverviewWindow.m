@@ -48,32 +48,20 @@ function osp_iniOverviewWindow(gui)
             'Padding', 5,'BackgroundColor',gui.colormap.Background);
 
 %Creates popup menu for the processed Subspectra (A,B,C,D,ref,water)
-        gui.controls.specsOvPlot = uix.Panel('Parent', gui.Plot.specsOv,'Title', 'Actual Subspectra', ...
+       tempFitNames = gui.layout.fitTab.TabTitles;
+       for i = 1 : gui.fit.Number
+           tempFitNames{i} = strcat('Fit: ',tempFitNames{i}); 
+       end
+        gui.controls.specsOvPlot = uix.Panel('Parent', gui.Plot.specsOv,'Title', 'Individual spectra or fit', ...
                                             'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         gui.controls.pop_specsOvPlot = uicontrol('Parent',gui.controls.specsOvPlot,'style','popupmenu',...
                                                 'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                                'String',gui.layout.proTab.TabTitles, 'Value', 1);
+                                                'String',[gui.layout.proTab.TabTitles;tempFitNames], 'Value', 1);
 
 %op_plotspec is used to visualize the processed data
         gui.layout.shiftind = 0.2;
         for g = 1 :  gui.overview.Number.Groups %Loop over groups. Difterenc colors and shifts for different groups
-            temp = figure( 'Visible', 'off' );
-            if (strcmp(gui.process.Names{gui.process.Selected},'A') || strcmp(gui.process.Names{gui.process.Selected},'D') || strcmp(gui.process.Names{gui.process.Selected},'C') || strcmp(gui.process.Names{gui.process.Selected},'D')) %Metabolite data
-                    ylimmax = max(real(MRSCont.overview.all_data.(gui.process.Names{gui.load.Selected}){1,1}.specs));
-                    shift = ylimmax * gui.layout.shiftind * (g-1);
-                    temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.process.Names{gui.process.Selected}),2,1,gui.colormap.cb(g,:),shift,['Overview ' gui.layout.proTab.TabTitles{gui.process.Selected}]);
-            else %Is water data
-                ylimmax = max(real(MRSCont.overview.all_data.(gui.process.Names{1}){1,1}.specs));
-                shift = ylimmax * gui.layout.shiftind * (g-1);
-                temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(g)]).(gui.process.Names{gui.process.Selected}),2,1,gui.colormap.cb(g,:),shift,['Overview ' gui.layout.proTab.TabTitles{gui.process.Selected}]);
-            end
-            set(gca, 'YColor', MRSCont.colormap.Background);
-            set(gca,'YTickLabel',{})
-            set(gca,'YTick',{});
-            set(gca,'XColor',MRSCont.colormap.Foreground);
-            set(gca,'Color','w');
-            set(gcf,'Color','w');
-            title(['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}],'Color', MRSCont.colormap.Foreground);
+            temp = osp_plotOverviewSpec(MRSCont, gui.process.Names{gui.process.Selected},1, g, gui.layout.shiftind);
             if g == 1
                 ax=get(temp,'Parent');
                 figpl = get(ax,'Parent');
@@ -84,7 +72,7 @@ function osp_iniOverviewWindow(gui)
             else
                 ax=get(temp,'Parent');
                 figpl = get(ax,'Parent');
-                copyobj(ax.Children, gui.ViewAxes);
+                copyobj(ax.Children, gui.Plot.specsOv.Children(2));
                 % Get rid of the Load figure
                 close( figpl );
             end
@@ -100,8 +88,9 @@ function osp_iniOverviewWindow(gui)
        gui.layout.overviewTab.Selection  = 2;
        gui.Plot.meanOv = uix.VBox('Parent', gui.layout.meanOvTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
 
-%Creates popup menu for the processed Subspectra (A,B,C,D,ref,water)
-       gui.controls.meanOvPlot = uix.Panel('Parent', gui.Plot.meanOv,'Title', 'Actual Subspectra', ...
+%Creates popup menu for the processed Subspectra and fits (A,B,C,D,ref,water)
+
+       gui.controls.meanOvPlot = uix.Panel('Parent', gui.Plot.meanOv,'Title', 'Actual spectrum', ...
                                           'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
        gui.controls.pop_meanOvPlot = uicontrol('Parent',gui.controls.meanOvPlot,'style','popupmenu',...
                                               'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...

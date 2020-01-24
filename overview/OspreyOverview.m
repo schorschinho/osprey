@@ -229,7 +229,7 @@ for sf = 1 : NoFit
     [max_point_fit.([FitNames{sf} '_' dataPlotNames{sf}]),max_ind_fit.([FitNames{sf} '_' dataPlotNames{sf}])] = max(temp_fit_sz.([FitNames{sf} '_' dataPlotNames{sf}]));
 end
 
-    
+
 for sf = 1 : NoFit
     for kk = 1 : MRSCont.nDatasets
         if length(MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit) < max_point_fit.([FitNames{sf} '_' dataPlotNames{sf}])
