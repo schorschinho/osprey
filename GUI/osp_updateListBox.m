@@ -33,10 +33,10 @@ function osp_updateListBox(gui)
             % Grid for Plot and Data control sliders
             gui.Plot.pro = gui.layout.(gui.layout.proTabhandles{gui.load.Selected});
             osp_updateProWindow(gui);
-        case 3 %Coreg tab?
-            osp_updateCoregWindow(gui);
-        case 4 %Fit tab?
+        case 3 %Fit tab?
             osp_updateFitWindow(gui);
+        case 4 %Coreg tab?
+            osp_updateCoregWindow(gui);
         case 5 %Quantify tab?
             osp_updateQuantifyWindow(gui);
     end
