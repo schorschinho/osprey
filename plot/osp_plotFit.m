@@ -114,7 +114,12 @@ inputData.basisSet                  = basisSet;
 inputSettings.scale                 = MRSCont.fit.scale{kk};
 inputSettings.fitRangePPM           = fitRangePPM;
 inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-
+inputSettings.fitStyle              = MRSCont.opts.fit.style;
+inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
+inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
+inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
+inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
+inputSettings.concatenated.Subspec  = conc;
 
 %%% 3. PREPARE LINES TO DISPLAY %%%
 % Extract data, ppm axes, fit, residual, baseline, and individual
@@ -140,33 +145,6 @@ switch fitMethod
             % if metabolites, use the metabolite model
             [ModelOutput] = fit_LCModelParamsToModel(inputData, inputSettings, fitParams);
         end
-        % leave the concatenated case out for now?
-        
-%         else if strcmp(which, 'conc')
-%                 % If concatened metabolites, extract and apply nonlinear
-%                 % parameters and shifts
-%                 beta_j      = fitParams.beta_j;
-%                 spl_pos     = fitParams.spl_pos;
-%                 addFreqShift = fitParams.addFreqShift;
-%                 x          = [zeroPhase; firstPhase; gaussLB; lorentzLB; freqShift; beta_j; addFreqShift];
-%                 [appliedBasisSet, B] = fit_applynlinOspreyMultiplex(basisSet, x, spl_pos, fitRangePPM);
-%                 % Convert to complex baseline and scaled basis functions
-%                 switch conc
-%                     case 'diff1'
-%                         B_conc = B(:,1);
-%                         appliedBasisSet.specs = appliedBasisSet.specs(:,:,1);
-%                     case 'sum'
-%                         B_conc = B(:,2);
-%                         appliedBasisSet.specs = appliedBasisSet.specs(:,:,2);
-%                     end
-%                 temp_B      = reshape(B_conc, [length(B_conc)/2, 2]);
-%                 baseline   = (temp_B(:,1) + 1i*temp_B(:,2));
-%                 fitted      = (appliedBasisSet.specs*ampl + baseline);
-%                 % Scale
-%                 baseline   = baseline .* MRSCont.fit.scale{kk};
-%                 fitted      = fitted .* MRSCont.fit.scale{kk};
-%             end
-%         end
 end
 
 

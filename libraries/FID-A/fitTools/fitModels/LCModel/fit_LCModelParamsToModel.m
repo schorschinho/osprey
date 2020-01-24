@@ -74,7 +74,7 @@ basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
 % Run the frequency-domain operations on the basis functions
 % (first order phase correction)
 % Cut out the frequency range of the basis set
-basisSet = op_freqrange(basisSet,fitRangePPM(1),fitRangePPM(end));
+basisSet = op_freqrange(basisSet,fitRangePPM(1),fitRangePPM(end),length(splineArray(:,1,1)));
 % Create a ppm vector around a pivot point (water)
 ppm_ax = basisSet.ppm;
 pivotPoint = 4.68;
@@ -109,7 +109,7 @@ completeFit = A * ampl + baseline;
 % Apply initial referencing shift
 dataToFit   = op_freqshift(dataToFit, -refShift);
 dataToFit   = op_ampScale(dataToFit, 1/scale);
-dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end));
+dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end),length(splineArray(:,1,1)));
 % Use only the real part to fit here
 data        = real(dataToFit.specs); % data
 ppm         = dataToFit.ppm;

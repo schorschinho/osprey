@@ -122,7 +122,6 @@ end
 %%% 3. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 out = figure;
-
 % Divide the figure into tiles depending on the number of subspec
 % Add the data and plot   
 % Staggered plots will be in all black and separated by the mean of the
@@ -192,6 +191,7 @@ else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref'))
 end
 if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
     if ~(strcmp(which, 'w') || strcmp(which, 'ref'))
+        figTitle ='';
         axesHandles.A  = subplot(2, 2, 1);
         axesHandles.B  = subplot(2, 2, 2);
         axesHandles.C  = subplot(2, 2, 3);
@@ -256,7 +256,7 @@ for ax = 1 : length(axesNames)
         set(axesHandles.(axesNames{ax}), 'XColor', 'k');
         set(axesHandles.(axesNames{ax}), 'Color', 'w');
         if ax == 1
-            title(axesHandles.(axesNames{ax}),[figTitle ' Subspectra ' TitleNames{ax}], 'Interpreter', 'none');
+            title(axesHandles.(axesNames{ax}),[figTitle 'Subspectra ' TitleNames{ax}], 'Interpreter', 'none');
         else
             title(axesHandles.(axesNames{ax}),[' Subspectra ' TitleNames{ax}], 'Interpreter', 'none');
         end
@@ -267,7 +267,7 @@ for ax = 1 : length(axesNames)
         set(axesHandles.(axesNames{ax}), 'XColor', MRSCont.colormap.Foreground);
         set(axesHandles.(axesNames{ax}), 'Color', MRSCont.colormap.Background);
         if ax == 1
-            title(axesHandles.(axesNames{ax}),[figTitle ' Subspectra ' TitleNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+            title(axesHandles.(axesNames{ax}),[figTitle 'Subspectra ' TitleNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
         else
             title(axesHandles.(axesNames{ax}),[' Subspectra ' TitleNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
         end
