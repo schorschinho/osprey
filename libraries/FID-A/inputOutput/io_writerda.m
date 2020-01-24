@@ -46,89 +46,89 @@ data=[real(reshape_data);-imag(reshape_data)];
 
 % Open a file with the designated name, and write the header information
 sparFile    = [outfile '.RDA'];
-fid         = fopen(sparFile,'w+');
-fprintf(fid,'>>> Begin of header <<<\n');
-fprintf(fid,'PatientName: \n');
-fprintf(fid,'PatientID: \n');
-fprintf(fid,'PatientSex: \n');
-fprintf(fid,'PatientBirthDate: \n');
-fprintf(fid,'StudyDate: \n');
-fprintf(fid,'StudyTime: \n');
-fprintf(fid,'StudyDescription: \n');
-fprintf(fid,'PatientAge: \n');
-fprintf(fid,'PatientWeight: \n');
-fprintf(fid,'SeriesDate: \n');
-fprintf(fid,'SeriesTime: \n');
-fprintf(fid,'SeriesDescription: \n');
-fprintf(fid,'ProtocolName: \n');
-fprintf(fid,'PatientPosition: \n');
-fprintf(fid,'SeriesNumber: \n');
-fprintf(fid,'InstitutionName: \n');
-fprintf(fid,'StationName: \n');
-fprintf(fid,'ModelName: \n');
-fprintf(fid,'DeviceSerialNumber: \n');
-fprintf(fid,'SoftwareVersion[0]: \n');
-fprintf(fid,'InstanceDate: \n');
-fprintf(fid,'InstanceTime: \n');
-fprintf(fid,'InstanceNumber: \n');
-fprintf(fid,'InstanceComments: \n');
-fprintf(fid,'AcquisitionNumber: \n');
-fprintf(fid,'SequenceName: \n');
-fprintf(fid,'SequenceDescription: \n');
-fprintf(fid,'TR: %4.6f\n', in.tr);
-fprintf(fid,'TE: %4.6f\n', in.te);
-fprintf(fid,'TM: 0.000000\n');
-fprintf(fid,'TI: 0.000000\n');
-fprintf(fid,'DwellTime: %i\n', in.dwelltime*1e6);
-fprintf(fid,'EchoNumber: 1\n');
-fprintf(fid,'NumberOfAverages: %4.6f\n', in.sz(2));
-fprintf(fid,'MRFrequency: %4.6f\n', in.txfrq*1e-6);
-fprintf(fid,'MagneticFieldStrength: %4.6f\n', in.Bo);
-fprintf(fid,'NumOfPhaseEncodingSteps: 1\n');
-fprintf(fid,'FlipAngle: 90.000000\n');
-fprintf(fid,'VectorSize: %i\n', in.sz(1));
-fprintf(fid,'CSIMatrixSize[0]: 1\n');
-fprintf(fid,'CSIMatrixSize[1]: 1\n');
-fprintf(fid,'CSIMatrixSize[2]: 1\n');
-fprintf(fid,'CSIMatrixSizeOfScan[0]: 1\n');
-fprintf(fid,'CSIMatrixSizeOfScan[1]: 1\n');
-fprintf(fid,'CSIMatrixSizeOfScan[2]: 1\n');
-fprintf(fid,'CSIGridShift[0]: 0\n');
-fprintf(fid,'CSIGridShift[1]: 0\n');
-fprintf(fid,'CSIGridShift[2]: 0\n');
-fprintf(fid,'HammingFilter: Off\n');
-fprintf(fid,'FrequencyCorrection: NO\n');
-fprintf(fid,'TransmitCoil: Body\n');
-fprintf(fid,'TransmitRefAmplitude[1H]: \n'); % to read into extra Siemens parameter field
-fprintf(fid,'SliceThickness: \n'); % to read into extra Siemens parameter field
-fprintf(fid,'PositionVector[0]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'PositionVector[1]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'PositionVector[2]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'RowVector[0]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'RowVector[1]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'RowVector[2]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'ColumnVector[0]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'ColumnVector[1]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'ColumnVector[2]: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'VOIPositionSag: %4.6f\n', in.geometry.pos.PosSag);
-fprintf(fid,'VOIPositionCor: %4.6f\n', in.geometry.pos.PosCor);
-fprintf(fid,'VOIPositionTra: %4.6f\n', in.geometry.pos.PosTra);
-fprintf(fid,'VOIThickness: %4.6f\n', in.geometry.size.VoIThickness);
-fprintf(fid,'VOIPhaseFOV: %4.6f\n', in.geometry.size.VoI_PeFOV);
-fprintf(fid,'VOIReadoutFOV: %4.6f\n', in.geometry.size.VoI_RoFOV);
-fprintf(fid,'VOINormalSag: %4.6f\n', in.geometry.rot.NormSag);
-fprintf(fid,'VOINormalCor: %4.6f\n', in.geometry.rot.NormCor);
-fprintf(fid,'VOIRotationInPlane: %4.6f\n', in.geometry.rot.VoI_InPlaneRot);
-fprintf(fid,'FoVHeight: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'FoVWidth: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'FoV3D: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'PercentOfRectFoV: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'NumberOfRows: 1\n');
-fprintf(fid,'NumberOfColumns: 1\n');
-fprintf(fid,'NumberOf3DParts: 1\n');
-fprintf(fid,'PixelSpacingRow: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'PixelSpacingCol: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'PixelSpacing3D: 0\n'); % to read into extra Siemens parameter field
-fprintf(fid,'>>> End of header <<<\n');
+fid         = fopen(sparFile,'wt+');
+fprintf(fid,'>>> Begin of header <<<\r\n');
+fprintf(fid,'PatientName: \r\n');
+fprintf(fid,'PatientID: \r\n');
+fprintf(fid,'PatientSex: \r\n');
+fprintf(fid,'PatientBirthDate: \r\n');
+fprintf(fid,'StudyDate: \r\n');
+fprintf(fid,'StudyTime: \r\n');
+fprintf(fid,'StudyDescription: \r\n');
+fprintf(fid,'PatientAge: \r\n');
+fprintf(fid,'PatientWeight: \r\n');
+fprintf(fid,'SeriesDate: \r\n');
+fprintf(fid,'SeriesTime: \r\n');
+fprintf(fid,'SeriesDescription: \r\n');
+fprintf(fid,'ProtocolName: \r\n');
+fprintf(fid,'PatientPosition: \r\n');
+fprintf(fid,'SeriesNumber: \r\n');
+fprintf(fid,'InstitutionName: \r\n');
+fprintf(fid,'StationName: \r\n');
+fprintf(fid,'ModelName: \r\n');
+fprintf(fid,'DeviceSerialNumber: \r\n');
+fprintf(fid,'SoftwareVersion[0]: \r\n');
+fprintf(fid,'InstanceDate: \r\n');
+fprintf(fid,'InstanceTime: \r\n');
+fprintf(fid,'InstanceNumber: \r\n');
+fprintf(fid,'InstanceComments: \r\n');
+fprintf(fid,'AcquisitionNumber: \r\n');
+fprintf(fid,'SequenceName: \r\n');
+fprintf(fid,'SequenceDescription: \r\n');
+fprintf(fid,'TR: %4.6f\r\n', in.tr);
+fprintf(fid,'TE: %4.6f\r\n', in.te);
+fprintf(fid,'TM: 0.000000\r\n');
+fprintf(fid,'TI: 0.000000\r\n');
+fprintf(fid,'DwellTime: %i\r\n', in.dwelltime*1e6);
+fprintf(fid,'EchoNumber: 1\r\n');
+fprintf(fid,'NumberOfAverages: %4.6f\r\n', in.sz(2));
+fprintf(fid,'MRFrequency: %4.6f\r\n', in.txfrq*1e-6);
+fprintf(fid,'MagneticFieldStrength: %4.6f\r\n', in.Bo);
+fprintf(fid,'NumOfPhaseEncodingSteps: 1\r\n');
+fprintf(fid,'FlipAngle: 90.000000\r\n');
+fprintf(fid,'VectorSize: %i\r\n', in.sz(1));
+fprintf(fid,'CSIMatrixSize[0]: 1\r\n');
+fprintf(fid,'CSIMatrixSize[1]: 1\r\n');
+fprintf(fid,'CSIMatrixSize[2]: 1\r\n');
+fprintf(fid,'CSIMatrixSizeOfScan[0]: 1\r\n');
+fprintf(fid,'CSIMatrixSizeOfScan[1]: 1\r\n');
+fprintf(fid,'CSIMatrixSizeOfScan[2]: 1\r\n');
+fprintf(fid,'CSIGridShift[0]: 0\r\n');
+fprintf(fid,'CSIGridShift[1]: 0\r\n');
+fprintf(fid,'CSIGridShift[2]: 0\r\n');
+fprintf(fid,'HammingFilter: Off\r\n');
+fprintf(fid,'FrequencyCorrection: NO\r\n');
+fprintf(fid,'TransmitCoil: Body\r\n');
+fprintf(fid,'TransmitRefAmplitude[1H]: \r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'SliceThickness: \r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'PositionVector[0]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'PositionVector[1]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'PositionVector[2]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'RowVector[0]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'RowVector[1]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'RowVector[2]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'ColumnVector[0]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'ColumnVector[1]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'ColumnVector[2]: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'VOIPositionSag: %4.6f\r\n', in.geometry.pos.PosSag);
+fprintf(fid,'VOIPositionCor: %4.6f\r\n', in.geometry.pos.PosCor);
+fprintf(fid,'VOIPositionTra: %4.6f\r\n', in.geometry.pos.PosTra);
+fprintf(fid,'VOIThickness: %4.6f\r\n', in.geometry.size.VoIThickness);
+fprintf(fid,'VOIPhaseFOV: %4.6f\r\n', in.geometry.size.VoI_PeFOV);
+fprintf(fid,'VOIReadoutFOV: %4.6f\r\n', in.geometry.size.VoI_RoFOV);
+fprintf(fid,'VOINormalSag: %4.6f\r\n', in.geometry.rot.NormSag);
+fprintf(fid,'VOINormalCor: %4.6f\r\n', in.geometry.rot.NormCor);
+fprintf(fid,'VOIRotationInPlane: %4.6f\r\n', in.geometry.rot.VoI_InPlaneRot);
+fprintf(fid,'FoVHeight: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'FoVWidth: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'FoV3D: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'PercentOfRectFoV: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'NumberOfRows: 1\r\n');
+fprintf(fid,'NumberOfColumns: 1\r\n');
+fprintf(fid,'NumberOf3DParts: 1\r\n');
+fprintf(fid,'PixelSpacingRow: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'PixelSpacingCol: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'PixelSpacing3D: 0\r\n'); % to read into extra Siemens parameter field
+fprintf(fid,'>>> End of header <<<\r\n');
 fwrite(fid,data,'double');
 fclose(fid);
