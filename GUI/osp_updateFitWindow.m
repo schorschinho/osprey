@@ -24,8 +24,10 @@ function osp_updateFitWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
+        Selection = gui.fit.Names{gui.fit.Selected};
         gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(2);
-        gui.Info.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2);
+        gui.upperBox.fit.Info = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2);
+        gui.controls.b_save_fitTab = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1).Children;
         gui.InfoText.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children;
         gui.Results.fit  = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1);
         gui.Results.FitTextAmpl = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1).Children(1).Children(1);
@@ -34,24 +36,20 @@ function osp_updateFitWindow(gui)
         gui.layout.EmptyFitPlot = 0;
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-        if gui.fit.Selected == 1 %Metabolite data?
-            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-        else if gui.fit.Selected == 2 %Reference data?
-        StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
+        if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
+            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
+                        '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ...
+                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(Selection){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.resBasisSet.(Selection){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM) ...
+                        ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected})];
+        else if strcmp (Selection, 'ref') %Reference data?
+        StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
+                        '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
             else %Water data?
-                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
+                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
+                        '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
             end
         end
-        set(gui.InfoText.fit, 'String',sprintf(StatText))
+        set(gui.upperBox.fit.Info.Children(2).Children, 'String',sprintf(StatText))
         % Update amplitudes for the fit results panel based on the files in the MRSCont (Raw Amplitudes or Water-scaled if ref or water supplied)
         if   ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w') %Is not concateneted or is reference/water fit 
             gui.fit.Style = gui.fit.Names{gui.fit.Selected};
@@ -66,7 +64,7 @@ function osp_updateFitWindow(gui)
                 NameText = [''];
                 RawAmplText = [''];
                 for m = 1 : length(RawAmpl) %Names and amplitudes
-                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,gui.controls.Selected}.name{m} ': \n']];
+                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                 end
             else %Water fit
@@ -86,7 +84,7 @@ function osp_updateFitWindow(gui)
                 NameText = [''];
                 RawAmplText = [''];
                 for m = 1 : length(RawAmpl)
-                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,gui.controls.Selected}.name{m} ': \n']];
+                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                 end
                 set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
@@ -102,15 +100,18 @@ function osp_updateFitWindow(gui)
         end
 %%%3. VISUALIZATION PART OF THIS TAB %%%
         temp = figure( 'Visible', 'off' );
-        temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,gui.fit.Names{gui.fit.Selected});
+        temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,Selection);
         ViewAxes = gca();
         delete(gui.Plot.fit.Children)
         set(ViewAxes.Children, 'Parent', gui.Plot.fit); %Update plot
         set(gui.Plot.fit.Title, 'String', ViewAxes.Title.String) %Update title
         set(gui.Plot.fit, 'XLim', ViewAxes.XLim) % Update Xlim
         set(gui.Plot.fit, 'YLim', ViewAxes.YLim) % Update Ylim
+        set(gui.Plot.fit, 'Units', 'normalized');
+        set(gui.Plot.fit, 'OuterPosition', [0.17,0.02,0.75,0.98])
         % Get rid of the Load figure
         close(temp);
-        set(gui.Info.fit,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}] );
+        set(gui.upperBox.fit.Info.Children(2),'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}] );
+        set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); % Get MRSCont from hidden container in gui class
 end

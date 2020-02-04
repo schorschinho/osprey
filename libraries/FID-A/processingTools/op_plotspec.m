@@ -133,7 +133,7 @@ elseif iscell(in)
         stagger=input('Please enter the desired vertical spacing of the spectra in ARB UNITS:  ');
         close;
         out=figure;
-        hold
+        hold on;
         if color == 0
             colours=distinguishable_colors(length(in));
         else
@@ -194,7 +194,7 @@ elseif iscell(in)
         end
         close;
         out=figure;
-        hold
+        hold on;
         if color == 0
             colours=distinguishable_colors(length(in));
         else
@@ -235,7 +235,7 @@ elseif iscell(in)
         end
         close;
         out=figure;
-        hold
+        hold on;
         if color == 0
             colours=distinguishable_colors(length(in));
         else

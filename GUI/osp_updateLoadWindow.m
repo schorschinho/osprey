@@ -24,10 +24,11 @@ function osp_updateLoadWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
-        gui.Info.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2);
-        gui.InfoText.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children;
+        gui.upperBox.data.Info = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(2);
+        gui.InfoText.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(2).Children;
         % Grid for Plot and Data control sliders
         gui.Plot.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected});
+        gui.controls.b_save_RawTab = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(1).Children;
         gui.layout.EmptyPlot.data = 0;
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
@@ -102,6 +103,7 @@ function osp_updateLoadWindow(gui)
         end
         % Get rid of the Load figure
         close( temp );    
-        set(gui.Info.data,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}] );
+        set(gui.upperBox.data.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}] );
+        set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

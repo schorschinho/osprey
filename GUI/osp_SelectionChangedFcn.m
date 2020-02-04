@@ -125,7 +125,7 @@ MRSCont = getappdata(gui.figure,'MRSCont');
    switch gui.layout.tabs.Selection
         case 1 %Load tab
         gui.layout.ListBox.Enable = 'on';
-        gui.dataInfoText = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children;
+        gui.InfoText.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children;
         gui.Plot.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected});
         set(gui.layout.rawTab, 'selection', gui.load.Selected);
         case 2 %Process tab
@@ -134,15 +134,15 @@ MRSCont = getappdata(gui.figure,'MRSCont');
         gui.Plot.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected});
         set(gui.layout.proTab, 'selection', gui.process.Selected);
         osp_updateProWindow(gui);
-        case 3 %Coreg tab
-        gui.layout.ListBox.Enable = 'on';
-        gui.InfoText.coreg = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
-        case 4 %Fit Tab
+        case 3 %Fit tab
         gui.layout.ListBox.Enable = 'on';
         gui.InfoText.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children;
         gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected});
-        set(gui.fitTab, 'selection', gui.fit.Selected);
+        set(gui.layout.fitTab, 'selection', gui.fit.Selected);
         osp_updateFitWindow(gui);
+        case 4 %Coreg Tab
+        gui.layout.ListBox.Enable = 'on';
+        gui.InfoText.coreg = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
         case 5 % Quantify tab
         gui.layout.ListBox.Enable = 'on';
         osp_updateQuantifyWindow(gui);

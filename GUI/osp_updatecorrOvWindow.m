@@ -26,23 +26,24 @@ function osp_updatecorrOvWindow(gui)
             MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
             rmpath(genpath([gui.folder.spmversion filesep]));
             delete(gui.Plot.corrOv.Children(3).Children)
+            Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
+            split_Selection = strsplit(Selection,'-');  
 %%% 2. VISUALIZATION PART OF THIS TAB %%%
-            temp = figure( 'Visible', 'off' );
-           if strcmp(gui.quant.Names.Quants(gui.quant.Selected.Quant),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(gui.quant.Selected.Quant),'AlphaCorrWaterScaledGroupNormed')
+           if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                 metab = 'GABA';
             else
                 metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
            end 
             if gui.overview.Selected.CorrChoice == 1
-                temp = osp_plotScatter(MRSCont,gui.quant.Names.Model{gui.quant.Selected.Model},gui.quant.Names.Quants{gui.quant.Selected.Quant},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},1);
+                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},1);
             else if gui.overview.Selected.CorrChoice == 2
-                temp = osp_plotScatter(MRSCont,gui.quant.Names.Model{gui.quant.Selected.Model},gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab,1);
+                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab,1);
                 else
                     switch gui.overview.Selected.Corr
                         case 1
-                        temp = osp_plotScatter(MRSCont,gui.quant.Names.Model{gui.quant.Selected.Model},gui.quant.Names.Quants{gui.quant.Selected.Quant},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
+                        temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
                         case 2
-                        temp = osp_plotScatter(MRSCont,gui.quant.Names.Model{gui.quant.Selected.Model},gui.quant.Names.Quants{gui.quant.Selected.Quant},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
+                        temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
                     end
                 end
             end

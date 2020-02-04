@@ -1,4 +1,4 @@
-function [MRSCont] = OspreyJob(jobFile)
+function [MRSCont] = OspreyJob(jobFile,GUI)
 %% [MRSCont] = OspreyJob(jobFile)
 %   This function loads the Osprey job defined in jobFile.
 %   The job can be submitted in the following formats:
@@ -19,6 +19,7 @@ function [MRSCont] = OspreyJob(jobFile)
 %   INPUTS:
 %       jobFile     = File containing a correct Osprey job definition.
 %                     Accepted file formats are .m.
+%       GUI         = flag to decide whether plot is used in GUI
 %
 %   OUTPUTS:
 %       MRSCont     = Osprey MRS data container.
@@ -30,9 +31,12 @@ function [MRSCont] = OspreyJob(jobFile)
 %   HISTORY:
 %       2019-07-15: First version of the code.
 
-% Close any remaining open figures
+% Close any remaining open figures and parse input arguments
 close all;
 warning('off','all');
+if nargin<2
+    GUI = 0;
+end
 
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
 [MRSCont] = OspreySettings;
@@ -253,18 +257,53 @@ MRSCont.loadedJob           = jobFile;
 [~,jobfilename,jobfileext]  = fileparts(jobFile);
 outputFile                  = strrep([jobfilename jobfileext], jobfileext, '.mat');
 MRSCont.outputFile          = outputFile;
-if exist(fullfile(outputFolder, outputFile), 'file') == 2
-    fprintf('Your selected output folder ''%s'' already contains an Osprey output structure: \t%s.\n', outputFolder, outputFile);
-    fprintf('You are about to load the job: \t%s.\n', jobFile);
-    askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container!)   [y]   ','s');
-    if isempty(askOverWriteJob)
-        askOverWriteJob = 'y';
+if ~GUI
+    if exist(fullfile(outputFolder, outputFile), 'file') == 2
+        fprintf('Your selected output folder ''%s'' already contains an Osprey output structure: \t%s.\n', outputFolder, outputFile);
+        fprintf('You are about to load the job: \t%s.\n', jobFile);
+        askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container!)   [y]   ','s');
+        if isempty(askOverWriteJob)
+            askOverWriteJob = 'y';
+        end
+        if askOverWriteJob=='n' || askOverWriteJob=='N'
+             askloadMRSCont = input('Do you want to load the corresponding MRS Container (y/n)? [y]   ','s');
+             if isempty(askloadMRSCont)
+                askloadMRSCont = 'y';
+             end
+             if askloadMRSCont=='n' || askloadMRSCont=='N'
+                disp('Aborted! No new job loaded.');
+                return;
+                else if askloadMRSCont=='y' || askloadMRSCont=='y'
+                        load(fullfile(outputFolder, outputFile));
+                    end
+             end
+        elseif askOverWriteJob=='y' || askOverWriteJob=='y'
+            disp('Continue with loading new job, overwriting existing job.');
+        end
     end
-    if askOverWriteJob=='n' || askOverWriteJob=='N'
-        disp('Aborted! No new job loaded.');
-        return;
-    elseif askOverWriteJob=='y' || askOverWriteJob=='y'
-        disp('Continue with loading new job, overwriting existing job.');
+else
+    opts.Interpreter = 'tex';
+    opts.Default = 'Yes';
+    if exist(fullfile(outputFolder, outputFile), 'file') == 2
+        askOverWriteJob = questdlg(['Your selected output folder already contains an Osprey output structure: ' outputFile '\newline' ...
+                                      'You are about to load the job: ', strrep(outputFile,'.mat','.m') '\newline' ...
+                                      'Do you want to overwrite the existing job? \newline (Warning: This will delete all data in the data container!)'], ...
+        'Load jobFile', 'Yes ','No', opts);
+        if strcmp(askOverWriteJob, 'No')
+             askloadMRSCont = questdlg( 'Do you want to load the corresponding MRS Container?', ...
+        'Load MRS Container', 'Yes ','No','Yes');
+
+             if strcmp(askloadMRSCont, 'No')
+                disp('Aborted! No new job loaded.');
+                return;
+                else if strcmp(askloadMRSCont, 'Yes')
+                        load(fullfile(outputFolder, outputFile));
+                    end
+             end
+        elseif strcmp(askOverWriteJob, 'Yes')
+            disp('Continue with loading new job, overwriting existing job.');
+        end
+    
     end
 end
 
