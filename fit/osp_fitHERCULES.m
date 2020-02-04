@@ -1,9 +1,9 @@
-function [MRSCont] = osp_fitHERMES(MRSCont)
-%% [MRSCont] = osp_fitHERMES(MRSCont)
+function [MRSCont] = osp_fitHERCULES(MRSCont)
+%% [MRSCont] = osp_fitHERCULES(MRSCont)
 %   This function performs spectral fitting of HERMES MRS data.
 %
 %   USAGE:
-%       [MRSCont] = osp_fitHERMES(MRSCont);
+%       [MRSCont] = osp_fitHERCULES(MRSCont);
 %
 %   INPUTS:
 %       MRSCont     = Osprey MRS data container.
