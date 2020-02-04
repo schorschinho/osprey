@@ -42,15 +42,25 @@ elseif MRSCont.flags.isHERMES
     [MRSCont] = osp_processHERMES(MRSCont);
 elseif MRSCont.flags.isHERCULES
     % For now, process HERCULES like HERMES data
-    [MRSCont] = osp_processHERMES(MRSCont);
+    [MRSCont] = osp_processHERCULES(MRSCont);
 else
     error('No flag set for sequence type!');
 end
 
+% Gather some more information from the processed data
+SubSpecNames = fieldnames(MRSCont.processed);
+NoSubSpec = length(fieldnames(MRSCont.processed));
+for ss = 1 : NoSubSpec
+    for kk = 1 : MRSCont.nDatasets
+            temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
+    end
+    [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_ind,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_indsort]  = unique(temp_sz,'Stable');
+    [MRSCont.info.(SubSpecNames{ss}).max_ndatapoint,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind] = max(temp_sz);
+end
 %% Clean up and save
-% Set exit flags
+% Set exit flags and reorder fields
 MRSCont.flags.didProcess           = 1;
-
+MRSCont.processed                  = orderfields(MRSCont.processed);
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;
