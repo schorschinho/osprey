@@ -25,6 +25,7 @@ A valid Osprey job file contains:
 - basic information on the MRS sequence used
 - settings for data modeling
 - an output folder to store the results and exported files
+- an external csv file with statistical information (e.g. group allocations, age,...)
 
 Osprey job files are described in `.m` format. Please refer to
 the `OspreyJob` chapter for detailed instructions on how to create a job. A good way to understand the structure of a job file is to study the example jobs in the `Osprey/exampledata` directory, and to create your own job starting from there.
@@ -169,11 +170,24 @@ volume of CSF in the value ($1/f_{CSF}$).
 
 Please refer to the `OspreyQuantify` chapter for details on the availability of each quantification technique, detailed mathematical implementations, and the default relaxation correction values.
 
+### OspreyOverview
+
+`OspreyOverview` creates scaled individual spectra for all sub-spectra. Furthermore, the indivdual fits, baseline estimates, and residuals are stored. For each of the before mentioned measures the mean and the standard deviation are calculated.
+If different groups are passed through the external csv file the data is separated based on the corresponding groups.
+
+`OspreyOverview` requires that at least `OspreyLoad`, `OspreyProcess` and `OspreyFit` have been run before. `OspreyOverview` is invoked with the command
+
+```
+[MRSCont] = OspreyOverview(MRSCont);
+```
+
+Please refer to the `OspreyOverview` chapter for details on the scaling and how correlation measures are stored.
+
 ### OspreyGUI
 
 At any given point during your analysis, you can invoke the `Osprey` GUI to visualize the above steps.
 
-The `Osprey` GUI contains several tabs representing the various stages of the `Osprey` workflow, i.e. `Load`, `Process`, `Fit`, `Coreg/Seg`, and `Quantify`.
+The `Osprey` GUI contains several tabs representing the various stages of the `Osprey` workflow, i.e. `Load`, `Process`, `Fit`, `Coreg/Seg`, and `Quantify`. It allows the export of different figures as esp files.
 
 In addition, various useful summary plots and basic statistical evaluations of the quantitative results are shown in the `Overview` tab. This tab gets activated only if more than one dataset has been fully analyzed.
 
