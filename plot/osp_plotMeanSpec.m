@@ -247,9 +247,10 @@ end
 if exist('residual_mean', 'var')
     residual_yu = residual_mean + residual_sd;
     residual_yl = residual_mean - residual_sd;
-    maxshift = max([fit_yu data_yu]);
 end
-
+maxshift = max(data_yu);
+maxshift_abs = max(abs(data_yu));
+shift = maxshift_abs * shift;
 %%% 3. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 out = figure('Visible','on');
@@ -267,7 +268,7 @@ if GUI
     fill([ppm fliplr(ppm)], [data_yu+shift fliplr(data_yl)+shift], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow data
 
     if exist('fit_mean', 'var')
-        plot(ppm,fit_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %Fit
+        plot(ppm,fit_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1.5); %Fit
         if ~group
             plot(ppm,residual_mean+shift+ max(maxshift +  abs(min(residual_mean))) ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);  %Residual
         end
@@ -359,10 +360,10 @@ ylabel(ylab, 'FontSize', 16);
 
 %%% 6. ADD OSPREY LOGO %%%
 if ~GUI
-    %[I, map] = imread('osprey.gif','gif');
-    %axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
-    %imshow(I, map);
-    %axis off;
+    [I, map] = imread('osprey.gif','gif');
+    axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
+    imshow(I, map);
+    axis off;
 end
 
 end

@@ -262,8 +262,8 @@ for ax = 1 : length(axesNames)
         end
     else
         set(axesHandles.(axesNames{ax}), 'YColor', MRSCont.colormap.Background);
-        set(axesHandles.(axesNames{ax}),'YTickLabel',{})
-        set(axesHandles.(axesNames{ax}),'YTick',{})
+        set(axesHandles.(axesNames{ax}),'YTickLabel',[])
+        set(axesHandles.(axesNames{ax}),'YTick',[])
         set(axesHandles.(axesNames{ax}), 'XColor', MRSCont.colormap.Foreground);
         set(axesHandles.(axesNames{ax}), 'Color', MRSCont.colormap.Background);
         if ax == 1

@@ -94,15 +94,20 @@ else
         dataToPlot  = MRSCont.processed.(which){kk};
     end
 end
+
 if strcmp(which, 'ref') || strcmp(which, 'w')
     fitRangePPM = MRSCont.opts.fit.rangeWater;
-    basisSet    = MRSCont.fit.resBasisSet.(which).water{kk};
+    basisSet    = MRSCont.fit.resBasisSet.(which).water{MRSCont.info.(which).unique_ndatapoint_indsort(kk)};
 else if strcmp(which, 'conc')
         fitRangePPM = MRSCont.opts.fit.range;
-        basisSet    = MRSCont.fit.resBasisSet.(which){kk};
-    else
-        fitRangePPM = MRSCont.opts.fit.range;
-        basisSet    = MRSCont.fit.resBasisSet.(which){kk};
+        basisSet    = MRSCont.fit.resBasisSet.(which){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
+    else if strcmp(which, 'off')
+            fitRangePPM = MRSCont.opts.fit.range;
+            basisSet    = MRSCont.fit.resBasisSet.(which){MRSCont.info.A.unique_ndatapoint_indsort(kk)};
+        else
+            fitRangePPM = MRSCont.opts.fit.range;
+            basisSet    = MRSCont.fit.resBasisSet.(which){MRSCont.info.(which).unique_ndatapoint_indsort(kk)};
+        end
     end
 end
 
@@ -150,7 +155,11 @@ end
 
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
-out = figure;
+canvasSize  = get(0,'defaultfigureposition');
+if stagFlag && ~(strcmp(which, 'ref') || strcmp(which, 'w'))
+    canvasSize(4) = canvasSize(4) * 1.8;
+end
+out = figure('Position', canvasSize);
 % Prepare a couple of useful variables
 nBasisFct = basisSet.nMets;
 if isfield(basisSet, 'nMM')
@@ -302,12 +311,14 @@ xlabel(xlab, 'FontSize', 16);
 ylabel(ylab, 'FontSize', 16);
 
 
-%%% 8. ADD OSPREY LOGO %%%
+%%% 8. ADD OSPREY LOGO AND TIGHTEN FIGURE %%%
 if ~GUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);
     axis off;
+else
+    out = tightfig(out);
 end
 
 end
