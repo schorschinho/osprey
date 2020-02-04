@@ -1,5 +1,5 @@
 function [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDataName,GUI)
-%% [out_scat] = osp_plotScatter(MRSCont,which,metab,plots,corrData,corrDataName)
+%% [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDataName,GUI)
 % Creates correlation figure of  the chosen quantifcation and metabolite
 % one figure contains a correlation analysis with subgroup correlations.
 % If no groups are defined the distribution of the whole dataset will be shown. If no
@@ -14,16 +14,15 @@ function [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDat
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
 %       model    = Fitting Style
-%       which    = Quantification
+%       quant    = Quantification
 %                   OPTIONS:    'tCr' (default)
 %                               'rawWaterScaled'
-%       metab    = metabolite for analysis
-%                  GABA is default
+%       quant    = Quantification
 %       corrData = Data for correlation analysis
 %       GUI      = flag if fiure is used in GUI
 %
 %   AUTHOR:
-%       Helge Zöllner (Johns Hopkins University, 2019-11-14)
+%       Helge Zoellner (Johns Hopkins University, 2019-11-14)
 %       hzoelln2@jhmi.edu
 %
 %   CREDITS:
@@ -198,7 +197,7 @@ ylabel(ylab,'FontSize',16);
 %%% 5. ADD OSPREY LOGO %%%
 if ~GUI
     [I, map] = imread('osprey.gif','gif');
-    axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
+    axes(out_scat, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);
     axis off;
 end

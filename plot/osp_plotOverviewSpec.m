@@ -136,7 +136,7 @@ else % Is fit?
                 end           
             case {'ref','w'}
                 fit = fitwhich;
-                data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fit '_' fitwhich]);
+                data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fitwhich '_' fit]);
         end
     end
     
@@ -156,15 +156,21 @@ end
 %%% 3. PLOT DATA %%%
 if length(which)>4
     if ~strcmp(which(1:4),'Fit:')
+        maxshift_abs = max(abs(data{1}.specs));
+        shift = maxshift_abs * shift;
         out = op_plotspec(data,2,1,cb(g,:),shift,figTitle);
     else
+        maxshift_abs = max(abs(data{1}.fit));
+        shift = maxshift_abs * shift;
         out = plot(data{1}.ppm,data{1}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
-        hold on
-        for kk = 2 : MRSCont.nDatasets 
+        hold on;
+        for kk = 2 : length(data) 
             plot(data{kk}.ppm,data{kk}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
         end
     end
 else
+    maxshift_abs = max(abs(data{1}.specs));
+    shift = maxshift_abs * shift;
     out = op_plotspec(data,2,1,cb(g,:),shift,figTitle);
 end
 %%% 4. DESIGN FINETUNING %%%

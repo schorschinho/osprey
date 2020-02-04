@@ -121,13 +121,13 @@ set(gca, 'YLim', [(minYlim - 0.05) 1.10]);
 % Black axes, white background
 if ~GUI
     set(gca, 'YColor', 'w');
-    title([tit ': ' metab],'FontSize',16);
+    title([tit ': ' model ' ' metab],'FontSize',16);
 else
     set(gca, 'YColor', MRSCont.colormap.Background);
     set(gca, 'XColor', MRSCont.colormap.Foreground);
     set(gca,'YTickLabel',{})
     set(gca,'YTick',{})
-    title([tit ': ' metab],'FontSize',16, 'Color', MRSCont.colormap.Foreground);
+    title([tit ': ' model ' ' metab],'FontSize',16, 'Color', MRSCont.colormap.Foreground);
 end
 box off
 
