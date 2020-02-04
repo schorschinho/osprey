@@ -81,15 +81,10 @@ NoFit = length(FitNames);
 %%% 3. INTERPOLATION & NORMALIZATION %%%
 % Processed data
 MRSCont.overview.all_data = MRSCont.processed;
-temp_sz = zeros(1,MRSCont.nDatasets);
 for ss = 1 : NoSubSpec
     for kk = 1 : MRSCont.nDatasets
-        temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
-    end
-        [max_point,max_ind] = max(temp_sz);
-    for kk = 1 : MRSCont.nDatasets
-        if MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1) < max_point
-            ppmRangeData        = MRSCont.processed.(SubSpecNames{ss}){1,max_ind}.ppm';
+        if MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1) < MRSCont.info.(SubSpecNames{ss}).max_ndatapoint
+            ppmRangeData        = MRSCont.processed.(SubSpecNames{ss}){1,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind}.ppm';
             ppmRangeDataToInt       = MRSCont.processed.(SubSpecNames{ss}){1,kk}.ppm;
             ppmIsInDataRange    = (ppmRangeDataToInt < ppmRangeData(1)) & (ppmRangeDataToInt > ppmRangeData(end));
             if sum(ppmIsInDataRange) == 0
@@ -116,7 +111,7 @@ for sf = 1 : NoFit
         if strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w')
             % if water, use the water model
             fitRangePPM = MRSCont.opts.fit.rangeWater;
-            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{kk};
+            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{MRSCont.info.(FitNames{sf}).unique_ndatapoint_indsort(kk)};
             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
             % Get the fit parameters
             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
@@ -131,10 +126,11 @@ for sf = 1 : NoFit
             MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit      = ModelOutput.completeFit;
             MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm      = ModelOutput.ppm;
             MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = ModelOutput.data;
+            MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res      = ModelOutput.residual;            
         else
             % if metabolites, use the metabolite model
             fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
+            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){MRSCont.info.A.unique_ndatapoint_indsort(kk)};
             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
             % Get the fit parameters
             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
@@ -167,7 +163,7 @@ for sf = 1 : NoFit
             if strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w')
                 % if water, use the water model
             fitRangePPM = MRSCont.opts.fit.rangeWater;
-            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{kk};
+            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{MRSCont.info.(FitNames{sf}).unique_ndatapoint_indsort(kk)};
             dataToPlot  = MRSCont.processed.(FitNames{sf}){kk};
             % Get the fit parameters
             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
@@ -182,10 +178,15 @@ for sf = 1 : NoFit
             MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit      = ModelOutput.completeFit;
             MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm      = ModelOutput.ppm;
             MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = ModelOutput.data;
+            MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res      = ModelOutput.residual;            
             else
                 % if metabolites, use the metabolite model
                 fitRangePPM = MRSCont.opts.fit.range;
-                basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
+                if strcmp(FitNames{sf}, 'off')
+                    basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){MRSCont.info.A.unique_ndatapoint_indsort(kk)};
+                else
+                    basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){MRSCont.info.(FitNames{sf}).unique_ndatapoint_indsort(kk)};
+                end
                 dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
                 % Get the fit parameters
                 fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
@@ -317,14 +318,26 @@ for kk = 1 : MRSCont.nDatasets
                     MRSCont.overview.all_models.conc_sum{1,kk}.fit= MRSCont.overview.all_models.conc_sum{1,kk}.fit/MRSCont.fit.scale{kk};
                     MRSCont.overview.all_models.conc_diff1{1,kk}.baseline= MRSCont.overview.all_models.conc_diff1{1,kk}.baseline/MRSCont.fit.scale{kk};
                     MRSCont.overview.all_models.conc_diff2{1,kk}.baseline= MRSCont.overview.all_models.conc_diff2{1,kk}.baseline/MRSCont.fit.scale{kk};
-                    MRSCont.overview.all_models.conc_sum{1,kk}.baseline= MRSCont.overview.all_models.conc_sum{1,kk}.baseline/MRSCont.fit.scale{kk};                    
+                    MRSCont.overview.all_models.conc_sum{1,kk}.baseline= MRSCont.overview.all_models.conc_sum{1,kk}.baseline/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.conc_diff1{1,kk}.res= MRSCont.overview.all_models.conc_diff1{1,kk}.res/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.conc_diff2{1,kk}.res= MRSCont.overview.all_models.conc_diff2{1,kk}.res/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.conc_sum{1,kk}.res= MRSCont.overview.all_models.conc_sum{1,kk}.res/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.conc_diff1{1,kk}.data= MRSCont.overview.all_models.conc_diff1{1,kk}.data/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.conc_diff2{1,kk}.data= MRSCont.overview.all_models.conc_diff2{1,kk}.data/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.conc_sum{1,kk}.data= MRSCont.overview.all_models.conc_sum{1,kk}.data/MRSCont.fit.scale{kk};                    
                 else
                     MRSCont.overview.all_models.diff1_diff1{1,kk}.fit= MRSCont.overview.all_models.diff1_diff1{1,kk}.fit/MRSCont.fit.scale{kk};
                     MRSCont.overview.all_models.diff2_diff2{1,kk}.fit= MRSCont.overview.all_models.diff2_diff2{1,kk}.fit/MRSCont.fit.scale{kk};
                     MRSCont.overview.all_models.sum_sum{1,kk}.fit= MRSCont.overview.all_models.sum_sum{1,kk}.fit/MRSCont.fit.scale{kk};
                     MRSCont.overview.all_models.diff1_diff1{1,kk}.baseline= MRSCont.overview.all_models.diff1_diff1{1,kk}.baseline/MRSCont.fit.scale{kk};
                     MRSCont.overview.all_models.diff2_diff2{1,kk}.baseline= MRSCont.overview.all_models.diff2_diff2{1,kk}.baseline/MRSCont.fit.scale{kk};
-                    MRSCont.overview.all_models.sum_sum{1,kk}.baseline= MRSCont.overview.all_models.sum_sum{1,kk}.baseline/MRSCont.fit.scale{kk};                    
+                    MRSCont.overview.all_models.sum_sum{1,kk}.baseline= MRSCont.overview.all_models.sum_sum{1,kk}.baseline/MRSCont.fit.scale{kk}; 
+                   MRSCont.overview.all_models.diff1_diff1{1,kk}.data= MRSCont.overview.all_models.diff1_diff1{1,kk}.data/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.diff2_diff2{1,kk}.data= MRSCont.overview.all_models.diff2_diff2{1,kk}.data/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.sum_sum{1,kk}.data= MRSCont.overview.all_models.sum_sum{1,kk}.data/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.diff1_diff1{1,kk}.res= MRSCont.overview.all_models.diff1_diff1{1,kk}.res/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.diff2_diff2{1,kk}.res= MRSCont.overview.all_models.diff2_diff2{1,kk}.res/MRSCont.fit.scale{kk};
+                    MRSCont.overview.all_models.sum_sum{1,kk}.res= MRSCont.overview.all_models.sum_sum{1,kk}.res/MRSCont.fit.scale{kk};
                 end
                 if MRSCont.flags.hasRef
                     MRSCont.overview.all_data.ref{1,kk}.specs =  MRSCont.overview.all_data.ref{1,kk}.specs/MRSCont.fit.scale{kk};
@@ -396,21 +409,21 @@ for sf = 1 : NoFit
             tempSubdata = tempSubSpec;
             for kk = 1 : length(MRSCont.overview.(['sort_fit_g' num2str(g)]).([FitNames{sf} '_' dataPlotNames{sf}]))
               tempSubSpec(kk,:) = MRSCont.overview.(['sort_fit_g' num2str(g)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit;
+              tempSubRes(kk,:) = MRSCont.overview.(['sort_fit_g' num2str(g)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res;
+              tempSubdata(kk,:) = MRSCont.overview.(['sort_fit_g' num2str(g)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data;              
               if ~(strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'ref_ref') || strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'w_w'))
                 tempSubBaseline(kk,:) = MRSCont.overview.(['sort_fit_g' num2str(g)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.baseline;
-                tempSubRes(kk,:) = MRSCont.overview.(['sort_fit_g' num2str(g)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res;
-                tempSubdata(kk,:) = MRSCont.overview.(['sort_fit_g' num2str(g)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data;
               end
             end
             MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanmean(real(tempSubSpec),1);
             MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanstd(real(tempSubSpec),1);
+            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_res_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanmean(real(tempSubRes),1);
+            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_res_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanstd(real(tempSubRes),1);
+            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanmean(real(tempSubdata),1);
+            MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_data_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanstd(real(tempSubdata),1);            
             if ~(strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'ref_ref') || strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'w_w'))
                 MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_baseline_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanmean(real(tempSubBaseline),1);
-                MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_baseline_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanstd(real(tempSubBaseline),1);
-                MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_res_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanmean(real(tempSubRes),1);
-                MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_res_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanstd(real(tempSubRes),1);
-                MRSCont.overview.(['sort_fit_g' num2str(g)]).(['mean_data_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanmean(real(tempSubdata),1);
-                MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_data_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanstd(real(tempSubdata),1);                 
+                MRSCont.overview.(['sort_fit_g' num2str(g)]).(['sd_baseline_' [FitNames{sf} '_' dataPlotNames{sf}]]) = nanstd(real(tempSubBaseline),1);                 
             end
             MRSCont.overview.(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]]) = MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,1}.ppm;
     end
