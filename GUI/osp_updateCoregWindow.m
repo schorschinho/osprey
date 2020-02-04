@@ -25,6 +25,7 @@ function osp_updateCoregWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         addpath(genpath([gui.folder.spmversion filesep])); % Add SPM  path
+        gui.controls.b_save_coregTab = gui.layout.coregTab.Children(2).Children(1).Children;
         gui.layout.EmptyProPlot = 0;
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
@@ -32,7 +33,7 @@ function osp_updateCoregWindow(gui)
                          '\nraw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-       set(gui.InfoText.coreg, 'String',sprintf(StatText))
+       set(gui.upperBox.coreg.Info.Children, 'String',sprintf(StatText))
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
         if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 2 %Did seg & has been visualized already
             delete( gui.Results.coreg.Children(1) ); %delete seg contents
@@ -77,5 +78,6 @@ function osp_updateCoregWindow(gui)
         end
 
         rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path
+        set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); %Write  MRSCont into hidden container in gui class
 end

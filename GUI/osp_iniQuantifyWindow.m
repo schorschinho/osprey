@@ -31,55 +31,53 @@ function osp_iniQuantifyWindow(gui)
         gui.layout.tabs.TabEnables{5} = 'on';
         gui.layout.tabs.Selection  = 5;
         gui.layout.EmptyQuantPlot = 0;
-%%% 2. FILLING INFO PANEL FOR THIS TAB %%%
+        
+        %%% 2. CREATING SUB TABS FOR THIS TAB %%%%
+% In this case one tab fo each fit (off,sum,diff1,diff2,ref,water)
+         gui.layout.quantifyTab.TabWidth   = 115;
+         for t = 1 : gui.quant.Number.Model %Create tabs depending on the number of fits
+                gui.layout.(['quantTab' gui.quant.Names.Model{t}]) = uix.VBox('Parent', gui.layout.quantifyTab,...
+                                                                               'BackgroundColor',gui.colormap.Background);
+                gui.layout.quantifyTabhandles{t} = ['quantTab' gui.quant.Names.Model{t}];
+         end
+        gui.layout.quantifyTab.TabTitles  = gui.quant.Names.Model;
+        
+%%% 3. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-        gui.Info.quant = uix.Panel('Parent', gui.layout.quantifyTab, 'Padding', 5, ...
-                                  'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
-                                  'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
-                                  'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-        % Creates layout for plotting and data control
-        gui.Plot.quant = uix.HBox('Parent', gui.layout.quantifyTab,'BackgroundColor',gui.colormap.Background);
-        set(gui.layout.quantifyTab, 'Heights', [-0.1 -0.9]);
-        % Get parameter from file to fill the info panel
-        if gui.load.Selected == 1 %Is metabolite data
-            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-        else if gui.load.Selected == 2 %Is reference data
-        StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-            else %Is water data?
-                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-            end
-        end
-       gui.InfoText.quant  = uicontrol('Parent',gui.Info.quant,'style','text',...
-            'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
-            'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-%%% 3. VISUALIZATION PART OF THIS TAB %%%%
+        for t = 1 : gui.quant.Number.Model %Loop over fits
+            gui.upperBox.quant.Info = uix.Panel('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}), 'Padding', 5, ...
+                                      'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
+                                      'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                      'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            % Creates layout for plotting and data control
+            gui.Plot.quant = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background);
+            set(gui.layout.(gui.layout.quantifyTabhandles{t}), 'Heights', [-0.1 -0.9]);
+            % Get parameter from file to fill the info panel
+           StatText = ['Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style ...
+                         '\nSelected subspecs: ' gui.quant.Names.Model{gui.quant.Selected.Model} ];
+                     gui.InfoText.quant  = uicontrol('Parent',gui.upperBox.quant.Info,'style','text',...
+                'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+%%% 4. VISUALIZATION PART OF THIS TAB %%%%
 % In this case a table is created based on a uicontol slider
-        QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.quant.Number.Quants);
-        QuantText{1,1} = 'Metabolite';
-        QuantText(2:end,1) = MRSCont.quantify.metabs';
-            for q = 1 : gui.quant.Number.Quants % Collect all results
-                QuantText(1,q+1) = gui.quant.Names.Quants(q);
-                if strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')
-                    idx_GABA  = find(strcmp(MRSCont.quantify.metabs,'GABA'));
-                    tempQuantText = cell(length(MRSCont.quantify.metabs),1);
-                    tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
-                    QuantText(2:end,q+1) = tempQuantText;
-                else
-                    QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
+            QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.quant.Number.Quants);
+            QuantText{1,1} = 'Metabolite';
+            QuantText(2:end,1) = MRSCont.quantify.metabs';
+                for q = 1 : gui.quant.Number.Quants % Collect all results
+                    QuantText(1,q+1) = gui.quant.Names.Quants(q);
+                    if strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')
+                        idx_GABA  = find(strcmp(MRSCont.quantify.metabs,'GABA'));
+                        tempQuantText = cell(length(MRSCont.quantify.metabs),1);
+                        tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
+                        QuantText(2:end,q+1) = tempQuantText;
+                    else
+                        QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
+                    end
                 end
-            end
-        temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
-            'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-        set ( temp, 'BackgroundColor',gui.colormap.Background);
-        set( temp, 'Parent', gui.Plot.quant);
+            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            set ( temp, 'BackgroundColor',gui.colormap.Background);
+            set( temp, 'Parent', gui.Plot.quant);
+        end
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

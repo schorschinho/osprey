@@ -76,7 +76,14 @@ elseif isjnMP || isWIP529 || isWIP859
 elseif isMinn
     seq = 'MEGAPRESS';
 elseif isUniversal
-    seq = 'MEGAPRESS';
+    if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 1 
+        seq = 'HERMES';
+    else if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 2
+            seq = 'HERCULES';
+         else
+            seq = 'MEGAPRESS';
+        end
+    end
 elseif isSiemens
     if ~isempty(strfind(sequence,'svs_st'))
     seq = 'STEAM';
@@ -347,6 +354,16 @@ elseif length(sqzDims)==2
 elseif length(sqzDims)==1
     fids=permute(fids,[dims.t]);
     dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0;
+end
+
+%Now reorder the fids for the Universal HERMES/HERCULES implementation 
+if strcmp(seq,'HERMES') || strcmp(seq,'HERCULES')
+    fids_A = fids(:,:,1:4:end);
+    fids_B = fids(:,:,2:4:end);
+    fids_C = fids(:,:,3:4:end);
+    fids_D = fids(:,:,4:4:end);
+    fids = cat(4,fids_A,fids_B,fids_C,fids_D);
+    dims.subSpecs=4;
 end
 
 %Now get the size of the data array:

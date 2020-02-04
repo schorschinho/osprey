@@ -30,8 +30,8 @@ function osp_onQuant( ~, ~ ,gui)
     [gui] = osp_processingWindow(gui);
 %%% 2. CALL OSPREYQUANTIFY %%%    
     MRSCont = OspreyQuantify(MRSCont);
-    delete(gui.layout.dummy);     
-    gui.quant.Number.Models = length(fieldnames(MRSCont.quantify.tables));
+    delete(gui.layout.dummy);  
+    gui.quant.Number.Model = length(fieldnames(MRSCont.quantify.tables));
     gui.quant.Names.Model = fieldnames(MRSCont.quantify.tables);
     gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1})));
     gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1}));
@@ -55,6 +55,7 @@ function osp_onQuant( ~, ~ ,gui)
     gui.overview.Selected.Corr = 1;
     gui.overview.Selected.CorrChoice = 1;
     gui.overview.Names.QM = {'SNR','FWHM (ppm)'};
+    set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});      
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 %%% 4. CALL OSPREYOVERVIEW %%%    
     osp_iniOverviewWindow(gui);

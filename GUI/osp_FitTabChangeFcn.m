@@ -30,8 +30,8 @@ function osp_FitTabChangeFcn(src,~,gui)
     gui.Info.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2);
     gui.Results.fit =  gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1);
     gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected});
-    gui.InfoText.fit = gui.layout.(gui.layoutgui.fitTabhandles{gui.fit.Selected}).Children(2).Children;
-    gui.ResultsText.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1).Children;
+    gui.InfoText.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children;
+    gui.Results.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1).Children;
     delete(gui.Plot.fit.Children(1).Children(2).Children)
     % Grid for Plot
     gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected});
