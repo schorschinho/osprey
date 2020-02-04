@@ -62,7 +62,7 @@ elseif MRSCont.flags.isHERMES
     end
 elseif MRSCont.flags.isHERCULES
     if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'diff2', 'off'};
+        getResults = {'diff1', 'diff2', 'sum'};
     elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
         getResults = {'conc'};
     end

@@ -1,6 +1,6 @@
-function [MRSCont] = osp_processHERMES(MRSCont,target1,target2)
-%% [MRSCont] = osp_processHERMES(MRSCont)
-%   This function performs the following steps to process HERMES-edited
+function [MRSCont] = osp_processHERCULES(MRSCont,target1,target2)
+%% [MRSCont] = osp_processHERCULES(MRSCont)
+%   This function performs the following steps to process HERCULES-edited
 %   (4-step) MRS data:
 %       - Alignment of individual averages using robust spectral registration
 %       - Averaging
@@ -87,10 +87,10 @@ for kk = 1:MRSCont.nDatasets
     % generally, not be used).
     if ~raw.flags.averaged
         
-        [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERMES', 0);
-        [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERMES', 0);                  
-        [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERMES', 0);                    
-        [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERMES', 0);     
+        [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERCULES', 0);
+        [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERCULES', 0);                  
+        [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERCULES', 0);                    
+        [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERCULES', 0);     
 
     end
         

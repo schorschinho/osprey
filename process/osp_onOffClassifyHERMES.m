@@ -83,10 +83,10 @@ idx_ON_ON   = GABA.ON & GSH.ON;
 
 % Commute for output
 inputVars = {'inA', 'inB', 'inC', 'inD'};
-eval(['outA = ' inputVars{idx_OFF_OFF}]);
-eval(['outB = ' inputVars{idx_ON_OFF}]);
-eval(['outC = ' inputVars{idx_OFF_ON}]);
-eval(['outD = ' inputVars{idx_ON_ON}]);
+eval(['outA = ' inputVars{idx_OFF_OFF} ';']);
+eval(['outB = ' inputVars{idx_ON_OFF} ';']);
+eval(['outC = ' inputVars{idx_OFF_ON} ';']);
+eval(['outD = ' inputVars{idx_ON_ON} ';']);
 
 % Save commute order
 commuteOrder = [find(idx_OFF_OFF), find(idx_ON_OFF), find(idx_OFF_ON), find(idx_ON_ON)];
