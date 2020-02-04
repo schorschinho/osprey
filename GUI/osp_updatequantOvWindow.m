@@ -24,15 +24,17 @@ function osp_updatequantOvWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
+        Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
+        split_Selection = strsplit(Selection,'-');
 %This function updates the quantification table overview tab
-        if strcmp(gui.quant.Names.Quants(gui.quant.Selected.Quant),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(gui.quant.Selected.Quant),'AlphaCorrWaterScaledGroupNormed')
+        if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                 QuantTextOv = cell(MRSCont.nDatasets+1,1);
                 QuantTextOv(1,:) = {'GABA'};
-                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant})(:,:));
+                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
         else
             QuantTextOv = cell(MRSCont.nDatasets+1,gui.quant.Number.Metabs);
             QuantTextOv(1,:) = MRSCont.quantify.metabs;
-            QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant})(:,:));
+            QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
         end
         temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv);
         set( temp, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);

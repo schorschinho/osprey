@@ -44,7 +44,7 @@ function osp_iniLoadWindow(gui)
         gui.layout.EmptydataPlot = 0;
  %%% 2. CREATING SUB TABS FOR THIS TAB %%%
  % In this case one tab for each subspec (A,B,C,D,ref,water)
-            gui.layout.metabLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
+            gui.layout.metabLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background,'Spacing',5);
             gui.layout.rawTab.TabWidth   = 115;
             gui.layout.rawTab.Selection  = 1;
             gui.layout.rawTabhandles = {'metabLoTab'};
@@ -73,20 +73,32 @@ function osp_iniLoadWindow(gui)
  % All the information from the Raw data is read out here
         for t = gui.controls.Number : -1 : 1 % Loop over subspectra & tabs
             % Parameter shown in the info panel on top
-            gui.Info.data = uix.Panel('Parent', gui.layout.(gui.layout.rawTabhandles{t}), ...
+            gui.upperBox.data.box = uix.HBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}),'BackgroundColor',gui.colormap.Background, 'Spacing',5);
+            gui.upperBox.data.Info = uix.Panel('Parent', gui.upperBox.data.box, ...
                                      'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
                                      'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                      'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            gui.upperBox.data.upperButtons = uix.Panel('Parent', gui.upperBox.data.box, ...
+                                     'Padding', 5, 'Title', ['Save'],...
+                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            gui.controls.b_save_RawTab = uicontrol('Parent',gui.upperBox.data.upperButtons,'Style','PushButton');
+            [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
+            [img2] = imresize(img, 0.10);
+            set(gui.controls.b_save_RawTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+            set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint});
+            set(gui.upperBox.data.box, 'Width', [-0.9 -0.1]);
             % Grid for Plot and Data control sliders
             if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) % HBox for HERMES/HERCULES
                 gui.Plot.data = uix.HBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
             else
                 gui.Plot.data = uix.VBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
             end
-            gui.InfoText.data  = uicontrol('Parent',gui.Info.data,'style','text',...
+            gui.InfoText.data  = uicontrol('Parent',gui.upperBox.data.Info,'style','text',...
                                           'FontSize', 12, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
                                           'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
             set(gui.layout.(gui.layout.rawTabhandles{t}), 'Heights', [-0.1 -0.9]);
+
 
         % Get parameter from file to fill the info panel
         if gui.load.Selected == 1 %Is metabolite data?

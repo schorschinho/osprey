@@ -104,7 +104,7 @@ gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBa
     set( gui.mainLayout, 'Heights', [-0.2 -0.10  -0.7] );
 %% FUNCTIONS
 function loadJob(gui)    
-    gui.data.MRSCont = OspreyJob(gui.out{1});
+    gui.data.MRSCont = OspreyJob(gui.out{1},1);
     idx =gui.colors.Value;
     switch idx
         case 1

@@ -29,7 +29,7 @@ function osp_updatemeanOvWindow(gui)
         Selection = gui.controls.pop_meanOvPlot.String(gui.process.Selected);
         for g = 1 :  gui.overview.Number.Groups
             if gui.overview.Number.Groups > 1
-                temp = osp_plotMeanSpec(MRSCont, Selection{1},1,g,0.1,1);
+                temp = osp_plotMeanSpec(MRSCont, Selection{1},1,g,1/gui.overview.Number.Groups,1);
                 ViewAxes = gca();
                 set(ViewAxes.Children,'Parent',gui.Plot.meanOv.Children(2))
                 if g < gui.overview.Number.Groups

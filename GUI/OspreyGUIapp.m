@@ -47,7 +47,7 @@ classdef OspreyGUIapp < handle
         overview % OspreyOverview infos
         figure % figure handle
         layout % Layout infos
-        Info % info box struct
+        upperBox % contains upper part of gui
         Plot % plot struct
         InfoText % info text struct (left side of fit plot)
         Results % result struct (fit results)
@@ -173,6 +173,7 @@ classdef OspreyGUIapp < handle
                 gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1}));
                 gui.quant.Number.Metabs = length(MRSCont.quantify.metabs);
                 gui.quant.Selected.Metab = find(strcmp(MRSCont.quantify.metabs, 'tNAA'));
+                gui.quant.Selected.Model = 1;
                 gui.quant.idx.GABA = find(strcmp(MRSCont.quantify.metabs, 'GABA'));
             end
             if MRSCont.flags.didOverview %Get variables for the overview tab
@@ -339,7 +340,9 @@ classdef OspreyGUIapp < handle
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
                                         'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);                        
             gui.layout.coregTab    = uix.VBox('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background);
-            gui.layout.quantifyTab = uix.VBox('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background);
+            gui.layout.quantifyTab = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
+                                            'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
+                                        'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
             gui.layout.overviewTab = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
                                         'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
@@ -353,16 +356,20 @@ classdef OspreyGUIapp < handle
         % Now enable the display tabs depending on which processing steps have
         % been completed:
             if MRSCont.flags.didLoadData % Was data loaded at all that can be looked at?
-                osp_iniLoadWindow(gui); 
+                osp_iniLoadWindow(gui);
+                set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
             end
             if MRSCont.flags.didProcess % Has data fitting been run?
                 osp_iniProcessWindow(gui);
-            end
-            if MRSCont.flags.didCoreg % Have coreg/segment masks been created?
-                osp_iniCoregWindow(gui);
+                set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
             end
             if MRSCont.flags.didFit % Has data fitting been run?
                 osp_iniFitWindow(gui);
+                set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint,gui});
+            end            
+            if MRSCont.flags.didCoreg % Have coreg/segment masks been created?
+                osp_iniCoregWindow(gui);
+                set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
             end
             if MRSCont.flags.didQuantify % Has data fitting been run?
                 osp_iniQuantifyWindow(gui);
@@ -379,6 +386,10 @@ classdef OspreyGUIapp < handle
                 set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui});
                 set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
                 set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
+                set(gui.controls.b_save_specOvTab,'Callback',{@osp_onPrint,gui});
+                set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
+                set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
+                set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
             end
             gui.layout.tabs.Selection  = 1;
             if ~MRSCont.flags.didLoadData %Turn of Listbox if data has not been loaded    
@@ -391,7 +402,8 @@ classdef OspreyGUIapp < handle
             set(gui.layout.rawTab, 'SelectionChangedFcn',{@osp_RawTabChangeFcn,gui});
             set(gui.layout.proTab,'SelectionChangedFcn',{@osp_ProTabChangeFcn,gui});
             set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});
-            set(gui.layout.ListBox,'Callback', {@osp_onListSelection,gui},'KeyPressFcn',{@osp_WindowKeyDown,gui}, 'KeyReleaseFcn', {@osp_WindowKeyUp,gui});
+            set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});            
+            set(gui.layout.ListBox,'Callback', {@osp_onListSelection,gui},'KeyPressFcn',{@osp_WindowKeyDown,gui}, 'KeyReleaseFcn', {@osp_WindowKeyUp,gui});     
         end                
     end
 end                                                      % End of class definition

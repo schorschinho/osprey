@@ -27,7 +27,9 @@ function osp_pop_corrOvQuant_Call(src,~,gui)
         idx=(src.Value);
         src.Value=idx;
         gui.quant.Selected.Quant = idx;
-        if strcmp(gui.quant.Names.Quants(idx),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(idx),'AlphaCorrWaterScaledGroupNormed')
+        Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
+        split_Selection = strsplit(Selection,'-');
+        if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
            set(gui.controls.pop_corrOvMetab, 'String', {'GABA'});
            set(gui.controls.pop_corrOvMetab, 'Value', gui.quant.idx.GABA);
            set(gui.controls.pop_corrOvMetab, 'Enable', 'off');

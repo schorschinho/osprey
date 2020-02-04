@@ -45,18 +45,30 @@ function osp_iniOverviewWindow(gui)
 %Overview Panel for all specs sorted by groups
         gui.Plot.specsOv = uix.VBox(...
             'Parent', gui.layout.specsOvTab, ...
-            'Padding', 5,'BackgroundColor',gui.colormap.Background);
+            'BackgroundColor',gui.colormap.Background,'Padding', 5);
 
 %Creates popup menu for the processed Subspectra (A,B,C,D,ref,water)
        tempFitNames = gui.layout.fitTab.TabTitles;
        for i = 1 : gui.fit.Number
            tempFitNames{i} = strcat('Fit: ',tempFitNames{i}); 
        end
-        gui.controls.specsOvPlot = uix.Panel('Parent', gui.Plot.specsOv,'Title', 'Individual spectra or fit', ...
-                                            'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-        gui.controls.pop_specsOvPlot = uicontrol('Parent',gui.controls.specsOvPlot,'style','popupmenu',...
+       gui.upperBox.specsOv.box = uix.HBox('Parent', gui.Plot.specsOv,'BackgroundColor',gui.colormap.Background, 'Spacing',5);
+       gui.controls.specsOvPlot = uix.Panel('Parent', gui.upperBox.specsOv.box,'Title', 'Individual spectra or fit', ...
+                                            'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                            'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+       gui.controls.pop_specsOvPlot = uicontrol('Parent',gui.controls.specsOvPlot,'style','popupmenu',...
                                                 'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                                 'String',[gui.layout.proTab.TabTitles;tempFitNames], 'Value', 1);
+       gui.upperBox.specsOv.upperButtons = uix.Panel('Parent', gui.upperBox.specsOv.box, ...
+                                     'Padding', 5, 'Title', ['Save'],...
+                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+       gui.controls.b_save_specOvTab = uicontrol('Parent',gui.upperBox.specsOv.upperButtons,'Style','PushButton');
+       [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
+       [img2] = imresize(img, 0.05);
+       set(gui.controls.b_save_specOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+       set(gui.controls.b_save_specOvTab,'Callback',{@osp_onPrint,gui});
+       set(gui.upperBox.specsOv.box, 'Width', [-0.9 -0.1])                                            
 
 %op_plotspec is used to visualize the processed data
         gui.layout.shiftind = 0.2;
@@ -86,16 +98,26 @@ function osp_iniOverviewWindow(gui)
 
 %%% 3. MEAN SPECS %%%
        gui.layout.overviewTab.Selection  = 2;
-       gui.Plot.meanOv = uix.VBox('Parent', gui.layout.meanOvTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+       gui.Plot.meanOv = uix.VBox('Parent', gui.layout.meanOvTab,'BackgroundColor',gui.colormap.Background,'Padding', 5);
 
 %Creates popup menu for the processed Subspectra and fits (A,B,C,D,ref,water)
-
-       gui.controls.meanOvPlot = uix.Panel('Parent', gui.Plot.meanOv,'Title', 'Actual spectrum', ...
-                                          'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+       gui.upperBox.meanOv.box = uix.HBox('Parent', gui.Plot.meanOv,'BackgroundColor',gui.colormap.Background, 'Spacing',5); 
+       gui.controls.meanOvPlot = uix.Panel('Parent', gui.upperBox.meanOv.box,'Title', 'Actual spectrum', ...
+                                          'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                          'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
        gui.controls.pop_meanOvPlot = uicontrol('Parent',gui.controls.meanOvPlot,'style','popupmenu',...
                                               'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                               'String',gui.layout.proTab.TabTitles, 'Value', 1);
-
+       gui.upperBox.meanOv.upperButtons = uix.Panel('Parent', gui.upperBox.meanOv.box, ...
+                                     'Padding', 5, 'Title', ['Save'],...
+                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+       gui.controls.b_save_meanOvTab = uicontrol('Parent',gui.upperBox.meanOv.upperButtons,'Style','PushButton');
+       [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
+       [img2] = imresize(img, 0.05);
+       set(gui.controls.b_save_meanOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+       set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
+       set(gui.upperBox.meanOv.box, 'Width', [-0.9 -0.1])  
 %op_plotspec is used for a dummy plot which is update later
         gui.layout.shift = 0.5;
         temp = figure( 'Visible', 'off' );
@@ -126,19 +148,27 @@ function osp_iniOverviewWindow(gui)
 
 %%% 4. QUANTIFICATION TABLE %%%
         gui.layout.overviewTab.Selection  = 3;
-        gui.Plot.quantOv = uix.VBox('Parent', gui.layout.quantOvTab,'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.Plot.quantOv = uix.VBox('Parent', gui.layout.quantOvTab,'BackgroundColor',gui.colormap.Background,'Padding', 5);
 
 %Creates Popup menu to change between quantifications (tCr, waterScaled etc.)
+       tempFitNames = gui.layout.fitTab.TabTitles;
+       for i = 0 : (gui.fit.Number - 3)
+           for j = 1 : gui.quant.Number.Quants
+            gui.quant.popMenuNames{j + (gui.quant.Number.Quants*i)} = [strcat(tempFitNames{i+1}, '-') ,gui.quant.Names.Quants{j}];
+           end
+       end
         gui.controls.quantOvPlot = uix.Panel('Parent', gui.Plot.quantOv,'Title', 'Actual Quantification', ...
-                                            'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                                            'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                            'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
         gui.controls.pop_quantOvPlot = uicontrol('Parent',gui.controls.quantOvPlot,'style','popupmenu',...
                                                 'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                                'String',gui.quant.Names.Quants, 'Value', 1);
+                                                'String',gui.quant.popMenuNames, 'Value', 1);
  
 % Quantification table is created based on uicontrol
         gui.Results.quantOv = uix.Panel('Parent', gui.Plot.quantOv, 'Padding', 5, ...
                                         'Title', ['Results: ' (gui.quant.Names.Quants{gui.quant.Selected.Quant})],...
-                                        'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                                        'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                        'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
         QuantTextOv = cell(MRSCont.nDatasets+1,gui.quant.Number.Metabs);
         QuantTextOv(1,:) = MRSCont.quantify.metabs;
         QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant})(:,:));
@@ -150,19 +180,31 @@ function osp_iniOverviewWindow(gui)
     
 %%% 5. RAINCLOUD PLOTS %%%
         gui.layout.overviewTab.Selection  = 4;
-        gui.Plot.distrOv = uix.VBox('Parent', gui.layout.distrOvTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.Plot.distrOv = uix.VBox('Parent', gui.layout.distrOvTab, 'BackgroundColor',gui.colormap.Background,'Padding', 5);
 
 %Creates popup menus for differnt quantifications and metabolites
-        gui.controls.distrOvPanel = uix.Panel('Parent', gui.Plot.distrOv,'Title', 'Actual Quantification and Metabolite', ...
-                                             'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        gui.upperBox.distrOv.box = uix.HBox('Parent', gui.Plot.distrOv,'BackgroundColor',gui.colormap.Background, 'Spacing',5); 
+        gui.controls.distrOvPanel = uix.Panel('Parent', gui.upperBox.distrOv.box,'Title', 'Actual Quantification and Metabolite', ...
+                                             'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                             'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
         gui.controls.distrOv = uix.HBox('Parent', gui.controls.distrOvPanel,...
                                        'Padding', 5, 'Spacing', 10,'BackgroundColor',gui.colormap.Background);
         gui.controls.pop_distrOvQuant = uicontrol('Parent',gui.controls.distrOv,'style','popupmenu',...
                                                  'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial',...
-                                                 'String',gui.quant.Names.Quants, 'Value', 1);
+                                                 'String',gui.quant.popMenuNames, 'Value', 1);
         gui.controls.pop_distrOvMetab = uicontrol('Parent',gui.controls.distrOv,'style','popupmenu',...
                                                  'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                                  'String',MRSCont.quantify.metabs, 'Value', 1);
+       gui.upperBox.distrOv.upperButtons = uix.Panel('Parent', gui.upperBox.distrOv.box, ...
+                                     'Padding', 5, 'Title', ['Save'],...
+                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);                                            
+       gui.controls.b_save_distrOvTab = uicontrol('Parent',gui.upperBox.distrOv.upperButtons,'Style','PushButton');
+       [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
+       [img2] = imresize(img, 0.05);
+       set(gui.controls.b_save_distrOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+       set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
+       set(gui.upperBox.distrOv.box, 'Width', [-0.9 -0.1])                                               
 
 %osp_plotQuantifyTable to create distribution overview as raincloud plot
         temp = figure( 'Visible', 'off' );
@@ -176,16 +218,18 @@ function osp_iniOverviewWindow(gui)
  %%% 6. CORRELATION PLOTS %%%
         rmpath(genpath([gui.folder.spmversion filesep]));
         gui.layout.overviewTab.Selection  = 5;
-        gui.Plot.corrOv = uix.VBox('Parent', gui.layout.corrOvTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.Plot.corrOv = uix.VBox('Parent', gui.layout.corrOvTab,'BackgroundColor',gui.colormap.Background,'Padding', 5);
  %%%%%%%%%%%%%%%%%%DATA CONTROLS FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Creates popup menu for differnt quantification, metabolite and
 % correaltion measure
-        gui.controls.corrOvPanel = uix.Panel('Parent', gui.Plot.corrOv,'Title', 'Actual Quantification, Metabolite, and Correlation Measure', ...
-                                            'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        gui.upperBox.corrOv.box = uix.HBox('Parent', gui.Plot.corrOv,'BackgroundColor',gui.colormap.Background, 'Spacing',5); 
+        gui.controls.corrOvPanel = uix.Panel('Parent', gui.upperBox.corrOv.box,'Title', 'Actual Quantification, Metabolite, and Correlation Measure', ...
+                                            'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                            'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
         gui.controls.corrOv = uix.HBox('Parent', gui.controls.corrOvPanel,'Padding', 5, 'Spacing', 10,'BackgroundColor',gui.colormap.Background);
         gui.controls.pop_corrOvQuant = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                                 'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial',...
-                                                'String',gui.quant.Names.Quants, 'Value', 1);
+                                                'String',gui.quant.popMenuNames, 'Value', 1);
         gui.controls.pop_corrOvMetab = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                                 'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                                 'String',MRSCont.quantify.metabs, 'Value', 1);
@@ -195,6 +239,16 @@ function osp_iniOverviewWindow(gui)
         gui.controls.pop_whichcorrOvCorr = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                        'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                        'String',{'MRSCont.overview.corr','metabolites','QM'}, 'Value', 1);
+       gui.upperBox.corrOv.upperButtons = uix.Panel('Parent', gui.upperBox.corrOv.box, ...
+                                     'Padding', 5, 'Title', ['Save'],...
+                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);                                            
+       gui.controls.b_save_corrOvTab = uicontrol('Parent',gui.upperBox.corrOv.upperButtons,'Style','PushButton');
+       [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
+       [img2] = imresize(img, 0.05);
+       set(gui.controls.b_save_corrOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+       set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
+       set(gui.upperBox.corrOv.box, 'Width', [-0.9 -0.1])                                      
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 %osp_plotQuantifyTable is used to create a correlation plot
         temp = figure( 'Visible', 'off' );
