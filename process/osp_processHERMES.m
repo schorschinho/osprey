@@ -37,8 +37,8 @@ warning('off','all');
 
 % Parse input arguments
 if nargin < 2
-    target1 = 'GABA'; % GABA and GSH editing as default
-    target2 = 'GSH'; % GABA and GSH editing as default    
+    target1 = MRSCont.opts.editTarget{1}; 
+    target2 = MRSCont.opts.editTarget{2};  
 end
 %% Loop over all datasets
 refProcessTime = tic;

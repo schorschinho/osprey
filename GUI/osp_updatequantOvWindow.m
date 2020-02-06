@@ -39,5 +39,5 @@ function osp_updatequantOvWindow(gui)
         temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv);
         set( temp, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         set( temp, 'Parent', gui.Results.quantOv );
-        set(gui.Results.quantOv, 'Title', ['Results: ' (gui.quant.Names.Quants{gui.quant.Selected.Quant})]);
+        set(gui.Results.quantOv, 'Title', ['Results: ' split_Selection{2}]);
 end

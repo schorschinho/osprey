@@ -60,12 +60,14 @@ function osp_iniQuantifyWindow(gui)
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
 %%% 4. VISUALIZATION PART OF THIS TAB %%%%
 % In this case a table is created based on a uicontol slider
+            gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t})));
+            gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t}));
             QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.quant.Number.Quants);
             QuantText{1,1} = 'Metabolite';
             QuantText(2:end,1) = MRSCont.quantify.metabs';
                 for q = 1 : gui.quant.Number.Quants % Collect all results
                     QuantText(1,q+1) = gui.quant.Names.Quants(q);
-                    if strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')
+                    if (strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')) && isfield(MRSCont.quantify.tables.(gui.quant.Names.Model{t}),'AlphaCorrWaterScaled')
                         idx_GABA  = find(strcmp(MRSCont.quantify.metabs,'GABA'));
                         tempQuantText = cell(length(MRSCont.quantify.metabs),1);
                         tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
