@@ -226,11 +226,36 @@ if strcmp(sequence, 'MEGA')
     
     % Now that we have guaranteed that the first dimension is always OFF
     % and the second one is always ON, we generate the DIFF and SUM.
-    buffer.fids(:,:,3)      = buffer.fids(:,:,2) - buffer.fids(:,:,1); % DIFF
-    buffer.specs(:,:,3)     = buffer.specs(:,:,2) - buffer.specs(:,:,1);
-    buffer.fids(:,:,4)      = buffer.fids(:,:,2) + buffer.fids(:,:,1); % SUM
-    buffer.specs(:,:,4)     = buffer.specs(:,:,2) + buffer.specs(:,:,1);
-    
+    for rr = 1:length(buffer.name)
+        switch editTarget
+            case 'GABA'
+                % GABA-edited data have co-edited MM09 that we need to put
+                % in the DIFF. Therefore loop over metabolite names.
+                % If MM09, then don't subtract the ON and OFF out; instead mimic
+                % the co-edited MM09 signal in the DIFF by just a simple OFF MM09.
+                if strcmp(buffer.name{rr}, 'MM09')
+                    buffer.fids(:,rr,3)      = buffer.fids(:,rr,1); % DIFF
+                    buffer.specs(:,rr,3)     = buffer.specs(:,rr,1);
+                else
+                    buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
+                    buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);
+                end
+            case 'GSH'
+                % GSH-edited data have co-edited MM14 and MM12 that we need to put
+                % in the DIFF. Therefore loop over metabolite names.
+                % If one of those, then don't subtract the ON and OFF out; instead mimic
+                % the co-edited signal in the DIFF by just a simple OFF MM14 or MM12.
+                if strcmp(buffer.name{rr}, 'MM14') || strcmp(buffer.name{rr}, 'MM12')
+                    buffer.fids(:,rr,3)      = buffer.fids(:,rr,1); % DIFF
+                    buffer.specs(:,rr,3)     = buffer.specs(:,rr,1);
+                else
+                    buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
+                    buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);
+                end
+        end
+        buffer.fids(:,rr,4)      = buffer.fids(:,rr,2) + buffer.fids(:,rr,1); % SUM
+        buffer.specs(:,rr,4)     = buffer.specs(:,rr,2) + buffer.specs(:,rr,1);
+    end
 elseif strcmp(sequence, 'HERMES') || strcmp(sequence, 'HERCULES')
     % Determine maximum signal intensities for water and NAA in each
     % sub-spectrum.
@@ -281,14 +306,29 @@ elseif strcmp(sequence, 'HERMES') || strcmp(sequence, 'HERCULES')
     buffer.fids = buffer.fids(:,:,permVec);
     buffer.specs = buffer.specs(:,:,permVec);
     
-    buffer.fids(:,:,5)      = buffer.fids(:,:,2) + buffer.fids(:,:,4) - buffer.fids(:,:,1) - buffer.fids(:,:,3); % DIFF1 (GABA)
-    buffer.specs(:,:,5)     = buffer.specs(:,:,2) + buffer.specs(:,:,4) - buffer.specs(:,:,1) - buffer.specs(:,:,3);
-    buffer.fids(:,:,6)      = buffer.fids(:,:,3) + buffer.fids(:,:,4) - buffer.fids(:,:,1) - buffer.fids(:,:,2); % DIFF2 (GSH)
-    buffer.specs(:,:,6)     = buffer.specs(:,:,3) + buffer.specs(:,:,4) - buffer.specs(:,:,1) - buffer.specs(:,:,2);
-    buffer.fids(:,:,7)      = buffer.fids(:,:,1) + buffer.fids(:,:,3) + buffer.fids(:,:,2) + buffer.fids(:,:,4); % SUM
-    buffer.specs(:,:,7)     = buffer.specs(:,:,1) + buffer.specs(:,:,3) + buffer.specs(:,:,2) + buffer.specs(:,:,4);
+    % Now generate the DIFFs and the SUM.
+    % Making sure to include co-edited MMs appropriately in the DIFF.
+    for rr = 1:length(buffer.name)
+        if strcmp(buffer.name{rr}, 'MM09')
+            buffer.fids(:,rr,5)      = buffer.fids(:,rr,2) + buffer.fids(:,rr,4); % DIFF1 (GABA)
+            buffer.specs(:,rr,5)     = buffer.specs(:,rr,2) + buffer.specs(:,rr,4);
+            buffer.fids(:,rr,6)      = buffer.fids(:,rr,3) + buffer.fids(:,rr,4) - buffer.fids(:,rr,1) - buffer.fids(:,rr,2); % DIFF2 (GSH)
+            buffer.specs(:,rr,6)     = buffer.specs(:,rr,3) + buffer.specs(:,rr,4) - buffer.specs(:,rr,1) - buffer.specs(:,rr,2);
+        elseif strcmp(buffer.name{rr}, 'MM14') || strcmp(buffer.name{rr}, 'MM12')
+            buffer.fids(:,rr,5)      = buffer.fids(:,rr,2) + buffer.fids(:,rr,4) - buffer.fids(:,rr,1) - buffer.fids(:,rr,3); % DIFF1 (GABA)
+            buffer.specs(:,rr,5)     = buffer.specs(:,rr,2) + buffer.specs(:,rr,4) - buffer.specs(:,rr,1) - buffer.specs(:,rr,3);
+            buffer.fids(:,rr,6)      = buffer.fids(:,rr,3) + buffer.fids(:,rr,4); % DIFF2 (GSH)
+            buffer.specs(:,rr,6)     = buffer.specs(:,rr,3) + buffer.specs(:,rr,4);
+        else
+            buffer.fids(:,rr,5)      = buffer.fids(:,rr,2) + buffer.fids(:,rr,4) - buffer.fids(:,rr,1) - buffer.fids(:,rr,3); % DIFF1 (GABA)
+            buffer.specs(:,rr,5)     = buffer.specs(:,rr,2) + buffer.specs(:,rr,4) - buffer.specs(:,rr,1) - buffer.specs(:,rr,3);
+            buffer.fids(:,rr,6)      = buffer.fids(:,rr,3) + buffer.fids(:,rr,4) - buffer.fids(:,rr,1) - buffer.fids(:,rr,2); % DIFF2 (GSH)
+            buffer.specs(:,rr,6)     = buffer.specs(:,rr,3) + buffer.specs(:,rr,4) - buffer.specs(:,rr,1) - buffer.specs(:,rr,2);
+        end
+        buffer.fids(:,rr,7)      = buffer.fids(:,rr,1) + buffer.fids(:,rr,3) + buffer.fids(:,rr,2) + buffer.fids(:,rr,4); % SUM
+        buffer.specs(:,rr,7)     = buffer.specs(:,rr,1) + buffer.specs(:,rr,3) + buffer.specs(:,rr,2) + buffer.specs(:,rr,4);
+    end
 end
-
 
 % Copy over the FID, specs, dims, and the metabolite names
 BASIS.fids              = buffer.fids;
