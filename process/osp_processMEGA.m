@@ -38,7 +38,7 @@ warning('off','all');
 
 % Parse input arguments
 if nargin < 2
-    target = 'GABA'; % GABA editing as default
+    target = MRSCont.opts.editTarget{1}; % GABA editing as default
 end
 
 %% Loop over all datasets

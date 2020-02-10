@@ -193,7 +193,7 @@ classdef OspreyGUIapp < handle
             end
             
         %% Create the overall figure
-            gui.figure = figure('Name', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none',...
+            gui.figure = figure('Name', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on',...
                                 'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
             setappdata(gui.figure,'MRSCont',MRSCont);
         % Resize such that width is 1.2941 * height (1.2941 is the ratio

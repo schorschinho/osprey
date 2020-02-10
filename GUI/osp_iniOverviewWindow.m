@@ -152,9 +152,15 @@ function osp_iniOverviewWindow(gui)
 
 %Creates Popup menu to change between quantifications (tCr, waterScaled etc.)
        tempFitNames = gui.layout.fitTab.TabTitles;
-       for i = 0 : (gui.fit.Number - 3)
-           for j = 1 : gui.quant.Number.Quants
-            gui.quant.popMenuNames{j + (gui.quant.Number.Quants*i)} = [strcat(tempFitNames{i+1}, '-') ,gui.quant.Names.Quants{j}];
+       popMenuNames_Count = 0;
+       for i = 0 : gui.fit.Number-1
+           if ~strcmp(tempFitNames{i+1},'ref') && ~strcmp(tempFitNames{i+1},'w')
+               gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(tempFitNames{i+1})));
+               gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(tempFitNames{i+1}));
+               for j = 1 : gui.quant.Number.Quants
+                   popMenuNames_Count = popMenuNames_Count + 1;
+                   gui.quant.popMenuNames{popMenuNames_Count} = [strcat(tempFitNames{i+1}, '-') ,gui.quant.Names.Quants{j}];
+               end
            end
        end
         gui.controls.quantOvPlot = uix.Panel('Parent', gui.Plot.quantOv,'Title', 'Actual Quantification', ...

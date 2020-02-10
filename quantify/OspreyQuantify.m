@@ -91,7 +91,7 @@ end
 % Check whether segmentation has been run, and whether tissue parameters
 % exist. In that case, we can do CSF correction, and full tissue
 % correction.
-if qtfyH2O == 1 && MRSCont.flags.didSeg && isfield(MRSCont.seg, 'tissue')
+if qtfyH2O == 1 && MRSCont.flags.didSeg && isfield(MRSCont.seg, 'tissue') 
     qtfyCSF     = 1;
     qtfyTiss    = 1;
 else
@@ -102,10 +102,13 @@ end
 % Check whether tissue correction is available and whether GABA-edited
 % MEGA-PRESS has been run. In this case, we can apply the alpha correction
 % (Harris et al, J Magn Reson Imaging 42:1431-40 (2015)).
-if qtfyTiss == 1 && MRSCont.flags.isMEGA
+if qtfyTiss == 1 && MRSCont.flags.isMEGA && (strcmp(MRSCont.opts.editTarget{1},'GABA'))
     qtfyAlpha   = 1;
-else
-    qtfyAlpha   = 0;
+else if qtfyTiss == 1 && (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && (strcmp(MRSCont.opts.editTarget{1},'GABA') || strcmp(MRSCont.opts.editTarget{2},'GABA')) 
+    qtfyAlpha   = 1;
+     else
+        qtfyAlpha   = 0;
+    end
 end
 
 % Close any remaining open figures

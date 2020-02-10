@@ -35,6 +35,8 @@ function osp_updateQuantifyWindow(gui)
                          '\nSelected subspecs: ' gui.quant.Names.Model{gui.quant.Selected.Model} ];
         set(gui.InfoText.quant, 'String',sprintf(StatText))
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
+        gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t})));
+        gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t}));
         QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.quant.Number.Quants);
         QuantText{1,1} = 'Metabolite';
         QuantText(2:end,1) = MRSCont.quantify.metabs';
