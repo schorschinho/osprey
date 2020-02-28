@@ -1,5 +1,3 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schorschinho/osprey/38d4c7d36a1478463537a1482e99768e05817b6e)
-
 # Osprey
 
 Osprey is an all-in-one software suite for state-of-the art processing and
