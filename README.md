@@ -1,4 +1,4 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schorschinho/osprey/38d4c7d36a1478463537a1482e99768e05817b6e?urlpath=https%3A%2F%2Fgithub.com%2Fschorschinho%2Fosprey%2Fdocs%2FOsprey.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/schorschinho/osprey/38d4c7d36a1478463537a1482e99768e05817b6e)
 
 # Osprey
 
