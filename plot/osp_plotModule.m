@@ -77,7 +77,27 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', colormapfig.Background);
-    input_figure = uix.VBox('Parent', out,  'BackgroundColor',colormapfig.Background, 'Spacing', 5);                
+    switch Module
+        case 'OspreyLoad'
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
+        case 'OspreyProcess'
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
+        case 'OspreyFit'
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
+        case 'OspreyCoreg'
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
+        case 'OspreySeg'
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg ' ' MRSCont.ver.Seg]; 
+        case 'OspreyOverview'
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
+        otherwise
+            Title = '';
+    end
+            
+    Frame = uix.Panel('Parent',out, 'Padding', 1, 'Title', Title,...
+                                 'FontName', 'Arial', 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground,...
+                                 'HighlightColor', colormapfig.Background, 'ShadowColor', colormapfig.Background);
+    input_figure = uix.VBox('Parent', Frame,  'BackgroundColor',colormapfig.Background, 'Spacing', 5);                
     box = uix.HBox('Parent', input_figure,'BackgroundColor',colormapfig.Background, 'Spacing',6);
     Info = uix.Panel('Parent',box, 'Padding', 5, 'Title', MRSCont.files{kk},...
                                  'FontName', 'Arial', 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground,...
@@ -89,10 +109,13 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
     axis off;
     ViewAxes = gca();
     set( ViewAxes,'Box','off','XColor', 'none','YColor','none', 'Parent', box );
-
     set(box, 'Width', [-0.9 -0.1]);
-    if strcmp(sprintf('\n'),MRSCont.raw{1,kk}.seq(end)) %Clean up Sequence Name if needed
-        Seq = MRSCont.raw{1,kk}.seq(1:end-1);
+    if ~strcmp('',MRSCont.raw{1,kk}.seq)
+        if strcmp(sprintf('\n'),MRSCont.raw{1,kk}.seq(end)) %Clean up Sequence Name if needed
+            Seq = MRSCont.raw{1,kk}.seq(1:end-1);
+        else
+            Seq = MRSCont.raw{1,kk}.seq;
+        end
     else
         Seq = MRSCont.raw{1,kk}.seq;
     end

@@ -116,8 +116,9 @@ fprintf('... done.\n');
 toc(refProcessTime);
 
 %% Clean up and save
-% Set exit flags
+% Set exit flags and version
 MRSCont.flags.didCoreg           = 1;
+MRSCont.ver.Coreg            = '100 Coreg';
 
 % Save the output structure to the output folder
 % Determine output folder

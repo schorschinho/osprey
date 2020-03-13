@@ -35,7 +35,25 @@ function osp_onPrint( ~, ~ ,gui)
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
-    input_figure = uix.VBox('Parent', out,  'BackgroundColor',gui.colormap.Background, 'Spacing', 5);                
+    switch selectedTab
+        case 1
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
+        case 2
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
+        case 3
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
+        case '4'
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
+        case '5'
+            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
+        otherwise
+            Title = '';
+    end
+            
+    Frame = uix.Panel('Parent',out, 'Padding', 1, 'Title', Title,...
+                                 'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                 'HighlightColor', gui.colormap.Background, 'ShadowColor', gui.colormap.Background);
+    input_figure = uix.VBox('Parent', Frame,  'BackgroundColor',gui.colormap.Background, 'Spacing', 5);                            
     box = uix.HBox('Parent', input_figure,'BackgroundColor',gui.colormap.Background, 'Spacing',6);
     Info = uix.Panel('Parent',box, 'Padding', 5, 'Title', MRSCont.files{gui.controls.Selected},...
                                  'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -86,7 +104,7 @@ function osp_onPrint( ~, ~ ,gui)
      %osp_plotLoad is used to visualize the raw data. Number of subplots
      %depends on the number of subspectra of the seuqence
             if gui.load.Selected == 1 %Metabolite data/tab
-                outputFile      = [filename '_OspreyLoad_mets.eps'];
+                outputFile      = [filename '_OspreyLoad_mets.pdf'];
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',1 );
                 if MRSCont.flags.isUnEdited % One window for UnEdited
                     ViewAxes = gca();
@@ -127,12 +145,12 @@ function osp_onPrint( ~, ~ ,gui)
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',1 );
                     ViewAxes = gca();
                     set( ViewAxes, 'Parent', Plot );
-                    outputFile      = [filename '_OspreyLoad_ref.eps'];
+                    outputFile      = [filename '_OspreyLoad_ref.pdf'];
                 else %water data/tab has only one window all the time
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',1 );
                     ViewAxes = gca();
                     set(ViewAxes, 'Parent', Plot );
-                    outputFile      = [filename '_OspreyLoad_w.eps'];
+                    outputFile      = [filename '_OspreyLoad_w.pdf'];
                 end
             end
             set(input_figure, 'Heights', [-0.1 -0.9]);
@@ -224,7 +242,7 @@ function osp_onPrint( ~, ~ ,gui)
             set(proAlgn.Children(1), 'Units', 'normalized')
             set(proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
             
-            outputFile      = [filename '_OspreyProcess_' Selection '.eps'];
+            outputFile      = [filename '_OspreyProcess_' Selection '.pdf'];
         case 3 %Fit
              outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyFit');
             [~,filename,~]  = fileparts(MRSCont.files{gui.controls.Selected});
@@ -325,7 +343,7 @@ function osp_onPrint( ~, ~ ,gui)
             set(Plot,'Widths', [-0.16 -0.84]);
             set(Plot.Children(2), 'Units', 'normalized');
             set(Plot.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
-            outputFile      = [filename '_OspreyFit_' gui.fit.Style '_' Selection '.eps'];
+            outputFile      = [filename '_OspreyFit_' gui.fit.Style '_' Selection '.pdf'];
         case 4 %Coreg/Seg
             outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyCoregSeg');
             addpath(genpath([gui.folder.spmversion filesep])); % Add SPM  path
@@ -369,7 +387,7 @@ function osp_onPrint( ~, ~ ,gui)
                 colormap(Results.Children,'gray');
                 close( temp );
             end            
-            outputFile      = [filename '_OspreyCoregSeg.eps'];
+            outputFile      = [filename '_OspreyCoregSeg.pdf'];
             rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path
         case 6 %Overview
             ovSelection = get(gui.layout.overviewTab, 'Selection');
@@ -390,7 +408,7 @@ function osp_onPrint( ~, ~ ,gui)
                 case 1 %SpecOverview
                     Selection = gui.controls.pop_specsOvPlot.String(gui.process.Selected);
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview','Individual');
-                    outputFile  = [Selection{1} '.eps']; 
+                    outputFile  = [Selection{1} '.pdf']; 
                     for g = 1 :  gui.overview.Number.Groups %Loop over groups
                         temp = osp_plotOverviewSpec(MRSCont, Selection{1},1, g, gui.layout.shiftind);
                         if g == 1
@@ -408,10 +426,11 @@ function osp_onPrint( ~, ~ ,gui)
                 case 2 %MeanOverview
                     Selection = gui.controls.pop_meanOvPlot.String(gui.process.Selected);
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Mean');
-                    outputFile  = [Selection{1} '.eps'];                    
+                    outputFile  = [Selection{1} '.pdf'];                    
                     for g = 1 :  gui.overview.Number.Groups
                         if gui.overview.Number.Groups > 1
-                            temp = osp_plotMeanSpec(MRSCont, Selection{1},1,g,0.1,1);
+                            temp = osp_plotMeanSpec(MRSCont, Selection{1},0,g,1/gui.overview.Number.Groups,1);
+                            delete(temp.Children(1))
                             if g == 1
                                 fig_hold = temp;
                             else
@@ -421,10 +440,11 @@ function osp_onPrint( ~, ~ ,gui)
                                 close(temp);
                             end   
                         else
-                            fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},1,g);
+                            fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},0,g);
                         end
                     end
                     set(fig_hold.Children, 'Parent', Plot );
+                    close(fig_hold);
                     
                 case 4 %Raincloud plot
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Raincloud');
@@ -438,9 +458,9 @@ function osp_onPrint( ~, ~ ,gui)
                     fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',1);
                     delete( fig_hold.Children(1));
                     set( fig_hold.Children, 'Parent', Plot );
-                    set(out.Children.Children(1).Children,'Children',flipud(out.Children.Children(1).Children.Children));
+                    set(out.Children.Children(1).Children(1).Children,'Children',flipud(out.Children.Children(1).Children(1).Children.Children));
                     close(fig_hold);
-                    outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '.eps'];  
+                    outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '.pdf'];  
                 case 5 %Correlation plot
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Correlation');
                     Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
@@ -452,18 +472,18 @@ function osp_onPrint( ~, ~ ,gui)
                     end 
                     if gui.overview.Selected.CorrChoice == 1
                         fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},0);
-                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.eps'];
+                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
                     else if gui.overview.Selected.CorrChoice == 2
                         fig_hold = osp_plotScatter(MRSCont,split_Selection{1},gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab,0);
-                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  MRSCont.quantify.metabs{gui.overview.Selected.Metab} '.eps'];
+                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  MRSCont.quantify.metabs{gui.overview.Selected.Metab} '.pdf'];
                         else
                             switch gui.overview.Selected.Corr
                                 case 1
                                 fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},0);
-                                outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.eps'];
+                                outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
                                 case 2
                                 fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr},0);
-                                outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.eps'];
+                                outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
                             end
                         end
                     end
@@ -484,6 +504,12 @@ function osp_onPrint( ~, ~ ,gui)
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-saveas(out,fullfile(outputFolder,outputFile),'epsc');
+fig_pos = out.PaperPosition;
+out.PaperSize = [fig_pos(3) fig_pos(4)];
+
+% print(fig,'-dpdf','-painters','-r600','-bestfit',strcat(plot_path,plot_name));
+
+% print(out,fullfile(outputFolder,outputFile),'-dpdf') % then print it
+ saveas(out,fullfile(outputFolder,outputFile),'pdf');
 close(out);
 end
