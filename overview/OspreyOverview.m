@@ -163,7 +163,8 @@ for sf = 1 : NoFit
             if strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w')
                 % if water, use the water model
             fitRangePPM = MRSCont.opts.fit.rangeWater;
-            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{MRSCont.info.(FitNames{sf}).unique_ndatapoint_indsort(kk)};
+%             basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{MRSCont.info.(FitNames{sf}).unique_ndatapoint_indsort(kk)};
+            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{kk};
             dataToPlot  = MRSCont.processed.(FitNames{sf}){kk};
             % Get the fit parameters
             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
@@ -183,9 +184,11 @@ for sf = 1 : NoFit
                 % if metabolites, use the metabolite model
                 fitRangePPM = MRSCont.opts.fit.range;
                 if strcmp(FitNames{sf}, 'off')
-                    basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){MRSCont.info.A.unique_ndatapoint_indsort(kk)};
+%                     basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){MRSCont.info.A.unique_ndatapoint_indsort(kk)};
+                    basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
                 else
-                    basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){MRSCont.info.(FitNames{sf}).unique_ndatapoint_indsort(kk)};
+%                     basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){MRSCont.info.(FitNames{sf}).unique_ndatapoint_indsort(kk)};
+                    basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
                 end
                 dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
                 % Get the fit parameters
@@ -241,12 +244,12 @@ for sf = 1 : NoFit
                         ppmIsInDataRange    = (ppmRangeDataToInt > ppmRangeData(1)) & (ppmRangeDataToInt < ppmRangeData(end));
                     end
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
+                    MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
+                    MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');                   
                     if ~strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'ref_ref') || strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'w_w')
                         MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.baseline = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.baseline(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
                         MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittNAA      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittNAA(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
                         MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
-                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
-                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');                   
                     end
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm = ppmRangeData';
         end
@@ -442,8 +445,9 @@ if MRSCont.flags.hasStatfile
 end
 
 %%% 7. CLEAN UP AND SAVE %%%
-% Set exit flags
+% Set exit flags and version
 MRSCont.flags.didOverview          = 1;
+MRSCont.ver.Over             = '100 Overview';
 
 % Save the output structure to the output folder
 % Determine output folder

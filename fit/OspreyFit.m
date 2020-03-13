@@ -95,19 +95,20 @@ if MRSCont.flags.hasWater
 end
 
 %% Clean up and save
-% Set exit flags
+% Set exit flags and version
 MRSCont.flags.didFit           = 1;
+MRSCont.ver.Fit            = '100 Fit';
 
 % Delete redundant resBasiset entries
-FitNames = fieldnames(MRSCont.fit.results);
-NoFit = length(fieldnames(MRSCont.fit.results));
-for sf = 1 : NoFit
-    if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
-        MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(MRSCont.info.A.unique_ndatapoint_ind);
-    else
-        MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_ind); 
-    end
-end
+% FitNames = fieldnames(MRSCont.fit.results);
+% NoFit = length(fieldnames(MRSCont.fit.results));
+% for sf = 1 : NoFit
+%     if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
+%         MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(MRSCont.info.A.unique_ndatapoint_ind);
+%     else
+%         MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_ind); 
+%     end
+% end
 
 % Save the output structure to the output folder
 % Determine output folder

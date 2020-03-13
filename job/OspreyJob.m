@@ -248,9 +248,11 @@ colormap.Accent         = [11/255 71/255 111/255];
 MRSCont.colormap        = colormap;
 
 
-%%% 7. SET FLAGS %%%
+%%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didLoadJob    = 1;
 MRSCont.loadedJob           = jobFile;
+MRSCont.ver.Osp             = '100 Osprey';
+MRSCont.ver.Job             = '100 job';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

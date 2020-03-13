@@ -93,8 +93,9 @@ elseif MRSCont.flags.isPRIAM
 end
 
 %% Clean up and save
-% Set exit flags
+% Set exit flags and version
 MRSCont.flags.didLoadData           = 1;
+MRSCont.ver.Load             = '100 Load';
 
 % Save the output structure to the output folder
 % Determine output folder
