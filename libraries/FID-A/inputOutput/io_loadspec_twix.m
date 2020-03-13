@@ -65,16 +65,12 @@ isWIP859=~isempty(strfind(sequence,'edit_859')); %Is this WIP 859 (MEGA-PRESS)?
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isSiemens=~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'));    % or the Siemens STEAM sequence?
-isUniversal = ~isempty(strfind(sequence,'mgs_univ'));
+isUniversal = ~isempty(strfind(sequence,'univ'));
 
         
 %Make a pulse sequence identifier for the header (out.seq);
 if isSpecial
     seq = 'SPECIAL';
-elseif isjnMP || isWIP529 || isWIP859
-    seq = 'MEGAPRESS';
-elseif isMinn
-    seq = 'MEGAPRESS';
 elseif isUniversal
     if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 1 
         seq = 'HERMES';
@@ -83,7 +79,11 @@ elseif isUniversal
          else
             seq = 'MEGAPRESS';
         end
-    end
+    end 
+elseif isMinn
+    seq = 'MEGAPRESS';
+elseif isjnMP || isWIP529 || isWIP859
+    seq = 'MEGAPRESS';
 elseif isSiemens
     if ~isempty(strfind(sequence,'svs_st'))
     seq = 'STEAM';
@@ -92,7 +92,7 @@ elseif isSiemens
     end
 end
 if ~exist('seq')
-    seq = 'Unknown';
+    seq = 'HERMES';
 end
 %If this is the SPECIAL sequence, it probably contains both inversion-on
 %and inversion-off subspectra on a single dimension, unless it is the VB

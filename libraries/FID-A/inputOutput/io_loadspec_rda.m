@@ -13,17 +13,22 @@
 % operated on by the other functions in this MRS toolbox.
 % 
 % INPUTS:
-% filename   = filename of Siemens rda data to load.
+% pathname   = pathname of Siemens rda data to load. Can be folder or file,
+% which will autmatically be distinguished.
 %
 % OUTPUTS:
 % out        = Input dataset in FID-A structure format.
 
-function [out] = io_loadspec_rda(folder)
+function [out] = io_loadspec_rda(pathname)
 
-% Create list of complete filenames (incl. path) in the folder
-dirFolder = dir(folder);
-filesInFolder = dirFolder(~[dirFolder.isdir]);
-filesInFolder = strcat(folder, {filesInFolder.name});     
+if isfile(pathname)
+    filesInFolder{1} = pathname;
+else
+    % Create list of complete filenames (incl. path) in the folder
+    dirFolder = dir(pathname);
+    filesInFolder = dirFolder(~[dirFolder.isdir]);
+    filesInFolder = strcat(pathname, {filesInFolder.name});     
+end
 
 fid = fopen(filesInFolder{1});
 
@@ -148,6 +153,10 @@ fids = zeros(length(filesInFolder),rda.VectorSize);
 % Collect all FIDs and sort them into fids array
 for kk = 1:length(filesInFolder)
 fid = fopen(filesInFolder{kk});
+tline = fgets(fid);
+while (isempty(strfind(tline , head_end_text)))   
+    tline = fgets(fid);    
+end
 complex_data = fread(fid , rda.CSIMatrix_Size(1) * rda.CSIMatrix_Size(1) *rda.CSIMatrix_Size(1) *rda.VectorSize * 2 , 'double');  
 %fread(fid , 1, 'double');  %This was a check to confirm that we had read all the data (it passed!)
 fclose(fid);
@@ -169,12 +178,15 @@ end
 specs = fftshift(fft(fids,[],1),1);
 
 % make calculations for the output mrs structure
-sz = rda.VectorSize;
+sz = size(fids);
 dwelltime = rda.DwellTime/1000000;
 spectralwidth=1/dwelltime;
 txfrq = rda.MRFrequency*1000000;
 dims.t = 1;
 dims.subSpecs = 0;
+dims.coils = 0;
+dims.extras = 0;
+dims.averages = 2;
 Bo = rda.MagneticFieldStrength;
 rawAverages = rda.NumberOfAverages;
 if length(filesInFolder) >= rawAverages
@@ -201,8 +213,8 @@ pointsToLeftShift = 0;
 %Calculate t and ppm arrays using the calculated parameters:
 f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
 ppm=f/(Bo*42.577);
-% Siemens data assumes the center frequency to be 4.7 ppm:
-centerFreq = 4.7;
+% Siemens data assumes the center frequency to be 4.6082 ppm:
+centerFreq = 4.6082;
 ppm=ppm + centerFreq;
 
 t=[0:dwelltime:(sz(1)-1)*dwelltime];
@@ -227,7 +239,8 @@ out.seq=seq;
 out.te=TE;
 out.tr=TR;
 out.pointsToLeftshift=pointsToLeftShift;
-
+out.centerFreq = centerFreq;
+out.geometry = geometry;
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
