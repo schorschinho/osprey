@@ -212,7 +212,7 @@ resBasisSet.specs = fftshift(fft(resBasisSet.fids,[],1),1);
 % Run the frequency-domain operations on the basis functions
 % (first order phase correction)
 % Cut out the frequency range of the basis set
-resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end));
+resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end),size(splineArray,1));
 % Create a ppm vector around a pivot point (water)
 ppm_ax      = resBasisSet.ppm;
 pivotPoint  = 4.68;
@@ -243,7 +243,7 @@ B = [real(B); imag(B)];
 A   = [real(resBasisSet.specs); imag(resBasisSet.specs)];
 AB  = [A B];
 % Cut out the data over the fit range, and turn complex into real problem
-dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end));
+dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end),size(splineArray,1));
 data        = [real(dataToFit.specs); imag(dataToFit.specs)];
 b           = data;
 
@@ -339,7 +339,7 @@ resBasisSet.specs = fftshift(fft(resBasisSet.fids,[],1),1);
 % Run the frequency-domain operations on the basis functions
 % (first order phase correction)
 % Cut out the frequency range of the basis set
-resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end));
+resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end),size(splineArray,1));
 % Create a ppm vector around a pivot point (water)
 ppm_ax      = resBasisSet.ppm;
 pivotPoint  = 4.68;
@@ -370,7 +370,7 @@ B = [real(B); imag(B)];
 A   = [real(resBasisSet.specs); imag(resBasisSet.specs)];
 AB  = [A B];
 % Cut out the data over the fit range, and turn complex into real problem
-dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end));
+dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end),size(splineArray,1));
 data        = [real(dataToFit.specs); imag(dataToFit.specs)];
 b           = data;
 

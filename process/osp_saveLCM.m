@@ -39,12 +39,18 @@ close all;
 
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'LCModelFiles');
-if ~exist(saveDestination,'dir')
-    mkdir(saveDestination);
+if ~exist(fullfile(saveDestination,'metabs'),'dir')
+    mkdir(fullfile(saveDestination,'metabs'));
+    if MRSCont.flags.hasRef && ~exist(fullfile(saveDestination,'ref'),'dir')
+        mkdir(fullfile(saveDestination,'ref'));
+    end
+    if MRSCont.flags.hasWater && ~exist(fullfile(saveDestination,'w'),'dir')
+        mkdir(fullfile(saveDestination,'w'));
+    end        
 end
 
-%% Export files
-
+%%% 1Export files
+osp_LCMcontrol;
 % Loop over all datasets
 for kk = 1:MRSCont.nDatasets
     
@@ -59,31 +65,33 @@ for kk = 1:MRSCont.nDatasets
         name = [path_split{end-1} '_' path_split{end} '_' filename];
     end
     if MRSCont.flags.isUnEdited
-        outfile         = fullfile(saveDestination, [name '_LCM_A.RAW']);
+        outfile         = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfile,te);
+        RF              = osp_writelcm_control(MRSCont,kk,'A',LCMparam);
     elseif MRSCont.flags.isMEGA
-        outfileA        = fullfile(saveDestination, [name '_LCM_A.RAW']);
+        outfileA        = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfileA,te);
-        outfileB        = fullfile(saveDestination, [name '_LCM_B.RAW']);
+        outfileB        = fullfile(saveDestination,'metabs', [name '_LCM_B.RAW']);
         RF              = io_writelcm(MRSCont.processed.B{kk},outfileB,te);
-        outfileDiff1    = fullfile(saveDestination, [name '_LCM_DIFF1.RAW']);
+        outfileDiff1    = fullfile(saveDestination,'metabs', [name '_LCM_DIFF1.RAW']);
         RF              = io_writelcm(MRSCont.processed.diff1{kk},outfileDiff1,te);
-        outfileSum      = fullfile(saveDestination, [name '_LCM_SUM.RAW']);
+        RF              = osp_writelcm_control(MRSCont,kk,'diff1',LCMparam);
+        outfileSum      = fullfile(saveDestination,'metabs', [name '_LCM_SUM.RAW']);
         RF              = io_writelcm(MRSCont.processed.sum{kk},outfileSum,te);
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-        outfileA        = fullfile(saveDestination, [name '_LCM_A.RAW']);
+        outfileA        = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfileA,te);
-        outfileB        = fullfile(saveDestination, [name '_LCM_B.RAW']);
+        outfileB        = fullfile(saveDestination,'metabs', [name '_LCM_B.RAW']);
         RF              = io_writelcm(MRSCont.processed.B{kk},outfileB,te);
-        outfileC        = fullfile(saveDestination, [name '_LCM_C.RAW']);
+        outfileC        = fullfile(saveDestination,'metabs', [name '_LCM_C.RAW']);
         RF              = io_writelcm(MRSCont.processed.C{kk},outfileC,te);
-        outfileD        = fullfile(saveDestination, [name '_LCM_D.RAW']);
+        outfileD        = fullfile(saveDestination,'metabs', [name '_LCM_D.RAW']);
         RF              = io_writelcm(MRSCont.processed.D{kk},outfileD,te);
-        outfileDiff1    = fullfile(saveDestination, [name '_LCM_DIFF1.RAW']);
+        outfileDiff1    = fullfile(saveDestination,'metabs', [name '_LCM_DIFF1.RAW']);
         RF              = io_writelcm(MRSCont.processed.diff1{kk},outfileDiff1,te);
-        outfileDiff2    = fullfile(saveDestination, [name '_LCM_DIFF2.RAW']);
+        outfileDiff2    = fullfile(saveDestination,'metabs', [name '_LCM_DIFF2.RAW']);
         RF              = io_writelcm(MRSCont.processed.diff2{kk},outfileDiff2,te);
-        outfileSum      = fullfile(saveDestination, [name '_LCM_SUM.RAW']);
+        outfileSum      = fullfile(saveDestination,'metabs', [name '_LCM_SUM.RAW']);
         RF              = io_writelcm(MRSCont.processed.sum{kk},outfileSum,te);
     else
         error('No flag set for sequence type!');
@@ -106,7 +114,7 @@ for kk = 1:MRSCont.nDatasets
         if length(path_ref_split) > 2
             name_ref = [path_ref_split{end-1} '_' path_ref_split{end} '_' filename_ref];
         end
-        outfileRef      = fullfile(saveDestination, [name_ref '_LCM_REF.RAW']);
+        outfileRef      = fullfile(saveDestination,'ref', [name_ref '_LCM_REF.RAW']);
         RF              = io_writelcm(MRSCont.processed.ref{kk},outfileRef,te_ref);
     end
     
@@ -121,9 +129,10 @@ for kk = 1:MRSCont.nDatasets
         if length(path_w_split) > 2
             name_w = [path_w_split{end-1} '_' path_w_split{end} '_' filename_w];
         end
-        outfileW        = fullfile(saveDestination, [name_w '_LCM_W.RAW']);
+        outfileW        = fullfile(saveDestination,'w', [name_w '_LCM_W.RAW']);
         RF              = io_writelcm(MRSCont.processed.w{kk},outfileW,te_w);
     end
+
 end
 
 % Set exit flags
