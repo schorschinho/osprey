@@ -66,10 +66,12 @@ for kk = 1:MRSCont.nDatasets
     else
         raw.flags.averaged  = 1;
         raw.dims.averages   = 0;
-        raw.specReg.fs              = 0; % save align parameters
-        raw.specReg.phs             = 0; % save align parameters
-        raw.specReg.weights         = 1; % save align parameters
-        driftPre = op_measureDrift(raw);
+        raw.specReg.fs              = zeros(1,2); % save align parameters
+        raw.specReg.phs             = zeros(1,2); % save align parameters
+        raw.specReg.weights{1}         = ones(1,1); % save align parameters
+        raw.specReg.weights{2}         = ones(1,1); % save align parameters
+        driftPre{1} = 0;
+        driftPre{2} = 0;
         driftPost = driftPre;
     end
     
@@ -139,11 +141,33 @@ for kk = 1:MRSCont.nDatasets
     % field A, and the ON spectrum is stored to field B.
     [raw_A, raw_B, switchOrder]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
 
-    
+    raw_A.specReg.fs     = raw.specReg.fs(:,1); % save align parameters
+    raw_B.specReg.fs     = raw.specReg.fs(:,2);
+    raw_A.specReg.phs     = raw.specReg.phs(:,1);
+    raw_B.specReg.phs     = raw.specReg.phs(:,2);
+    raw_A.specReg.weights 	= raw.specReg.weights{1}(1,:);
+    raw_B.specReg.weights    = raw.specReg.weights{2}(1,:);
+    raw_A.specReg.weights = raw_A.specReg.weights'/(max(raw_A.specReg.weights));
+    raw_B.specReg.weights = raw_B.specReg.weights'/(max(raw_B.specReg.weights));
+    % Generate the frequency and phase plots for the entire experiment in
+    % the correct order
+    fs = [raw_A.specReg.fs, raw_B.specReg.fs]';
+    fs = reshape(fs, [raw.rawAverages, 1]);
+    phs = [raw_A.specReg.phs, raw_B.specReg.phs]';
+    phs = reshape(phs, [raw.rawAverages, 1]);
+    weights = [raw_A.specReg.weights, raw_B.specReg.weights]';
+    weights = reshape(weights, [raw.rawAverages, 1]);
+    MRSCont.raw{kk}.specReg.fs              = fs; % save align parameters
+    MRSCont.raw{kk}.specReg.phs             = phs; % save align parameters
+    MRSCont.raw{kk}.specReg.weights             = weights; % save align parameters 
     
     %%% 5. BUILD SUM AND DIFF SPECTRA %%%
     % Correct the frequency axis so that Cr appears at 3.027 ppm
-    [raw_A,~]       = op_ppmref(raw_A,2.9,3.1,3.027);
+    temp_spec   = op_addScans(raw_A,raw_B);  
+    [refShift_SubSpecAlign, ~] = osp_CrChoReferencing(temp_spec);
+    % Apply initial referencing shift
+    raw_A = op_freqshift(raw_A, -refShift_SubSpecAlign);
+    raw_B = op_freqshift(raw_B, -refShift_SubSpecAlign);
     % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
     % with the negative phase of that fit
     [raw_A,~]       = op_phaseCrCho(raw_A, 1);
@@ -157,6 +181,9 @@ for kk = 1:MRSCont.nDatasets
     else
         sum.flags.orderswitched = 0;
     end
+    sum.specReg.fs = fs;
+    sum.specReg.phs = phs;
+    sum.specReg.weights = weights;
     % Create the GABA-edited difference spectrum
     diff1           = op_addScans(raw_B,raw_A,1);
     if switchOrder
@@ -165,7 +192,9 @@ for kk = 1:MRSCont.nDatasets
         diff1.flags.orderswitched = 0;
     end
     diff1.target = target;
-    
+    diff1.specReg.fs = fs;
+    diff1.specReg.phs = phs;
+    diff1.specReg.weights = weights;
     %%% 6. REMOVE RESIDUAL WATER %%%
     % Remove water and correct back to baseline.
     % The spectra sometimes become NaNs after filtering with too many
@@ -217,11 +246,11 @@ for kk = 1:MRSCont.nDatasets
     
     %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
     % Reference resulting data correctly and consistently
-    [~,refShift]   = op_ppmref(raw_A,1.8,2.2,2.008);           % Reference edit-OFF spectrum to NAA @ 2.008 ppm
-    [raw_A]             = op_freqshift(raw_A,refShift);            % Apply same shift to edit-OFF
-    [raw_B]             = op_freqshift(raw_B,refShift);            % Apply same shift to edit-OFF
-    [diff1]             = op_freqshift(diff1,refShift);            % Apply same shift to diff1
-    [sum]               = op_freqshift(sum,refShift);              % Apply same shift to sum
+    [refShift_final, ~] = osp_CrChoReferencing(sum);
+    [raw_A]             = op_freqshift(raw_A,-refShift_final);            % Apply same shift to edit-OFF
+    [raw_B]             = op_freqshift(raw_B,-refShift_final);            % Apply same shift to edit-OFF
+    [diff1]             = op_freqshift(diff1,-refShift_final);            % Apply same shift to diff1
+    [sum]               = op_freqshift(sum,-refShift_final);              % Apply same shift to sum
     
     
     %%% 8. SAVE BACK TO MRSCONT CONTAINER
@@ -261,7 +290,7 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
     MRSCont.QM.drift.pre.A{kk}  = driftPre{1};
     MRSCont.QM.drift.post.A{kk} = driftPost{1};
-    MRSCont.QM.freqShift.A(kk)  = refShift;
+    MRSCont.QM.freqShift.A(kk)  = refShift_SubSpecAlign + refShift_final;;
     MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre{1} - 3.02);
     MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost{1} - 3.02);
     
@@ -270,7 +299,7 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.FWHM.B(kk)   = FWHM_Hz./MRSCont.processed.B{kk}.txfrq*1e6; % convert to ppm
     MRSCont.QM.drift.pre.B{kk}  = driftPre{2};
     MRSCont.QM.drift.post.B{kk} = driftPost{2};
-    MRSCont.QM.freqShift.B(kk)  = refShift;
+    MRSCont.QM.freqShift.B(kk)  = refShift_SubSpecAlign + refShift_final;;
     MRSCont.QM.drift.pre.AvgDeltaCr.B(kk) = mean(driftPre{2} - 3.02);
     MRSCont.QM.drift.post.AvgDeltaCr.B(kk) = mean(driftPost{2} - 3.02);
     
@@ -279,7 +308,7 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.FWHM.diff1(kk)   = FWHM_Hz./MRSCont.processed.diff1{kk}.txfrq*1e6; % convert to ppm
     MRSCont.QM.drift.pre.diff1{kk}  = reshape([driftPre{1}'; driftPre{2}'], [], 1)';
     MRSCont.QM.drift.post.diff1{kk} = reshape([driftPost{1}'; driftPost{2}'], [], 1)';
-    MRSCont.QM.freqShift.diff1(kk)  = refShift;
+    MRSCont.QM.freqShift.diff1(kk)  = refShift_SubSpecAlign + refShift_final;;
     MRSCont.QM.drift.pre.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.pre.diff1{kk} - 3.02);
     MRSCont.QM.drift.post.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.post.diff1{kk} - 3.02);
     
@@ -288,7 +317,7 @@ for kk = 1:MRSCont.nDatasets
     MRSCont.QM.FWHM.sum(kk)   = FWHM_Hz./MRSCont.processed.sum{kk}.txfrq*1e6; % convert to ppm
     MRSCont.QM.drift.pre.sum{kk}  =  MRSCont.QM.drift.pre.diff1{kk};
     MRSCont.QM.drift.post.sum{kk} = MRSCont.QM.drift.post.diff1{kk};
-    MRSCont.QM.freqShift.sum(kk)  = refShift;
+    MRSCont.QM.freqShift.sum(kk)  = refShift_SubSpecAlign + refShift_final;;
     MRSCont.QM.drift.pre.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.pre.sum{kk} - 3.02);
     MRSCont.QM.drift.post.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.post.sum{kk} - 3.02);
     

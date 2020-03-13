@@ -47,19 +47,31 @@ else
     error('No flag set for sequence type!');
 end
 
-% Gather some more information from the processed data
+% Gather some more information from the processed data   y(isnan(y(1:end-1))) = [];
 SubSpecNames = fieldnames(MRSCont.processed);
 NoSubSpec = length(fieldnames(MRSCont.processed));
 for ss = 1 : NoSubSpec
     for kk = 1 : MRSCont.nDatasets
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
+            temp_sw(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth;
     end
     [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_ind,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_indsort]  = unique(temp_sz,'Stable');
     [MRSCont.info.(SubSpecNames{ss}).max_ndatapoint,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind] = max(temp_sz);
+    temp_sw_store = temp_sw;
+    for np = 1 : length(MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint)
+        [max_ind] = find(temp_sz==MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint(np));
+        temp_sw(max_ind) = nan;
+        [MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np},MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np},~]  = unique(temp_sw,'Stable');
+        nanind = isnan(MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np});
+        MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np}(isnan(MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np}(1:end))) = [];
+        MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np}(nanind ==1) = [];
+        temp_sw = temp_sw_store;
+    end
 end
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess           = 1;
+MRSCont.ver.Pro             = '100 Pro';
 MRSCont.processed                  = orderfields(MRSCont.processed);
 % Save the output structure to the output folder
 % Determine output folder

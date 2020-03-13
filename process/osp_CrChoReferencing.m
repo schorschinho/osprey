@@ -1,5 +1,5 @@
-function [refShift, refFWHM] = fit_LCModelReferencing(dataToFit)
-%% [refShift, refFWHM] = fit_LCModelReferencing(dataToFit)
+function [refShift, refFWHM] = osp_CrChoReferencing(dataToFit)
+%% [refShift, refFWHM] = osp_CrChoReferencing(dataToFit)
 %   Calculates the reference shift and full-width half-maximum (FWHM) of a
 %   spectrum according to the LCModel algorithm. The algorithm is described in:
 %       S.W. Provencher, "Estimation of metabolite concentrations from
@@ -38,10 +38,10 @@ x = ppm;
 y = zeros(size(x));
 
 % Set up delta functions
-[a,b] = min((abs(x-2.01)));
+% [a,b] = min((abs(x-2.01)));
 [c,d] = min((abs(x-3.03)));
 [e,f] = min((abs(x-3.22)));
-y(b) = 1;
+% y(b) = 1;
 y(d) = 1;
 y(f) = 1;
 
