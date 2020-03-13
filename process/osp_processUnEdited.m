@@ -66,10 +66,36 @@ for kk = 1:MRSCont.nDatasets
 
     %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
     if raw.averages > 1 && raw.flags.averaged == 0
-        [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0); % Align and average
+        temp_A = op_averaging(raw);
+        raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
+        polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
+        temp_rawA = raw;
+        if polResidCr < 0        
+            temp_rawA = op_ampScale(temp_rawA,-1);
+        end
+        temp_proc = temp_rawA;
+        temp_spec   = temp_proc;
+        for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1))
+            fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1));
+            specs = temp_proc.specs(:,av:av+(round(temp_rawA.averages*0.1)-1));
+            temp_spec.fids = mean(fids,2);
+            temp_spec.specs = mean(specs,2);
+            [refShift, ~] = osp_CrChoReferencing(temp_spec);
+            refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift;
+        end
+        if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0
+            fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
+            specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
+            temp_spec.fids = mean(fids,2);
+            temp_spec.specs = mean(specs,2);
+            [refShift, ~] = osp_CrChoReferencing(temp_spec);
+            refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift;        
+        end
+        [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0,refShift_ind_ini); % Align and average
         raw.specReg.fs              = fs; % save align parameters
         raw.specReg.phs             = phs; % save align parameters
-        raw.specReg.weights         = weights; % save align parameters
+        raw.specReg.weights         = weights{1}(1,:)'; % save align parameters);
+        raw.specReg.weights         = raw.specReg.weights/max(raw.specReg.weights);
     else
         raw.flags.averaged  = 1;
         raw.dims.averages   = 0;
@@ -111,13 +137,15 @@ for kk = 1:MRSCont.nDatasets
 
     %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
     %%% DATA
-    [raw, refShift]             = op_ppmref(raw,1.9,2.1,2.008);             % Reference to NAA @ 2.008 ppm
+    [refShift, ~] = osp_CrChoReferencing(raw);
+    [raw]             = op_freqshift(raw,-refShift);            % Reference to NAA @ 2.008 ppm         
 
     % Save back to MRSCont container
     if strcmp(MRSCont.vendor,'Siemens')
         % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
         % with the negative phase of that fit
-        [raw,~]       = op_phaseCrCho(raw, 1);
+        [raw,globalPhase]       = op_phaseCrCho(raw, 1);
+        raw.specReg.phs = raw.specReg.phs - globalPhase*180/pi;
     end
     MRSCont.processed.A{kk}     = raw;
 
