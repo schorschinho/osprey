@@ -152,7 +152,6 @@ switch fitMethod
         end
 end
 
-
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 canvasSize  = get(0,'defaultfigureposition');
@@ -173,6 +172,7 @@ ppm         = ModelOutput.ppm;
 dataToPlot  = ModelOutput.data;
 fit         = ModelOutput.completeFit;
 residual    = ModelOutput.residual;
+
 % If water, don't get baseline and individual fits
 if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
     baseline    = ModelOutput.baseline;
@@ -185,44 +185,22 @@ stagData = 0.1*(max(abs(min(dataToPlot)), abs(max(dataToPlot))));
 maxPlot = max(dataToPlot + abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData;
 % Add the data and plot
 hold on;
-if ~GUI
-    plot(ppm, (zeros(1,length(ppm)) + stagData)/maxPlot, 'k'); % Zeroline
-    plot(ppm, (dataToPlot + stagData)/maxPlot, 'k'); % Data
-    plot(ppm, (fit + stagData)/maxPlot, 'r', 'LineWidth', 1.5); % Fit
-    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Maximum Data
+plot(ppm, (zeros(1,length(ppm)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Zeroline
+plot(ppm, (dataToPlot + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Data
+plot(ppm, (fit + stagData)/maxPlot, 'Color', MRSCont.colormap.Accent, 'LineWidth', 1.6); % Fit
+plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
 
-    plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Residual
-    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '--k', 'LineWidth', 0.5); % Zeroline Residue
-    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'k', 'LineWidth', 1); % Max Residue
-else
-    plot(ppm, (zeros(1,length(ppm)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Zeroline
-    plot(ppm, (dataToPlot + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Data
-    plot(ppm, (fit + stagData)/maxPlot, 'Color', MRSCont.colormap.Accent, 'LineWidth', 1.6); % Fit
-    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
+plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Residual
+plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
+plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue 
 
-    plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Residual
-    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
-    plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue 
-end
-
-if ~GUI
-    text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 14); %Zeroline text
-    text(fitRangePPM(1), (0 + max(dataToPlot) + stagData)/maxPlot -0.05, num2str(max(dataToPlot),'%1.2e'), 'FontSize', 14); % Maximum Data Text
-    text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '0', 'FontSize', 14); %Zeroline Residua; text
-    text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot+0.05, num2str(abs(max(dataToPlot - fit)),'%1.2e'), 'FontSize', 14); %Max Residue text
-else
-    text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
-    text(fitRangePPM(1), (0 + max(dataToPlot) + stagData)/maxPlot-0.05, num2str(max(dataToPlot),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); % Maximum Data Text
-    text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
-    text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot +0.05, num2str(abs(max(dataToPlot - fit)),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
-end
+text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
+text(fitRangePPM(1), (0 + max(dataToPlot) + stagData)/maxPlot-0.05, num2str(max(dataToPlot),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); % Maximum Data Text
+text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
+text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot +0.05, num2str(abs(max(dataToPlot - fit)),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
 
 if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
-    if ~GUI
-        plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', 'b');
-    else
-        plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', MRSCont.colormap.LightAccent);
-    end
+    plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', MRSCont.colormap.LightAccent);
 end
 
 
@@ -239,13 +217,8 @@ if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
         for rr = 1:nBasisFct
             % Instead of a MATLAB legend, annotate each line separately with the
             % name of the metabolite
-            if ~GUI
-                plot(ppm, (indivPlots(:,rr) - rr*stag)/maxPlot, 'k');
-                text(fitRangePPM(1), (- rr*stag)/maxPlot, basisSet.name{rr}, 'FontSize', 14);
-            else
-                plot(ppm, (indivPlots(:,rr) - rr*stag)/maxPlot, 'Color',MRSCont.colormap.Foreground);
-                text(fitRangePPM(1), (- rr*stag)/maxPlot, basisSet.name{rr}, 'FontSize', 10,'Color',MRSCont.colormap.Foreground);
-            end
+            plot(ppm, (indivPlots(:,rr) - rr*stag)/maxPlot, 'Color',MRSCont.colormap.Foreground);
+            text(fitRangePPM(1), (- rr*stag)/maxPlot, basisSet.name{rr}, 'FontSize', 10,'Color',MRSCont.colormap.Foreground);
         end
         
         % Preliminary formatting; might need some more stability here, or

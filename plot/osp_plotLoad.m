@@ -126,22 +126,15 @@ out = figure;
 % Add the data and plot   
 % Staggered plots will be in all black and separated by the mean of the
 % maximum across all averages divided by the number of averages
-stag = stag*max(abs(mean(max(real(dataToPlot.specs)))), abs(mean(min(real(dataToPlot.specs)))));
+stag = stag*max(abs(mean(max(real(dataToPlot.specs)),2)), abs(mean(min(real(dataToPlot.specs)),2)));
 
 if MRSCont.flags.isUnEdited
     axesHandles.A = gca();
     nAvgs = dataToPlot.averages;
     % Loop over all averages
-    if ~GUI
-        for rr = 1:nAvgs
-            plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5);
-            hold on; 
-        end
-    else
-        for rr = 1:nAvgs
-            plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            hold on; 
-        end
+    for rr = 1:nAvgs
+        plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        hold on; 
     end
     axesNames = {'A'};
     TitleNames = {'A'};
@@ -153,16 +146,9 @@ if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref'))
     hold(axesHandles.A, 'on');
     hold(axesHandles.B, 'on');  
     % Loop over all averages
-    if ~GUI
-        for rr = 1:nAvgs
-            plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5);
-            plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5);
-        end
-    else
-        for rr = 1:nAvgs
-            plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-        end
+    for rr = 1:nAvgs
+        plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
     end
     axesNames = {'A','B'};
     TitleNames = {'A','B'};
@@ -170,16 +156,9 @@ else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref'))
     axesHandles.A = gca();
     nAvgs = dataToPlot.averages;
     % Loop over all averages
-    if ~GUI
-        for rr = 1:nAvgs
-            plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5);
-            hold on; 
-        end
-    else
-        for rr = 1:nAvgs
-            plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            hold on; 
-        end
+    for rr = 1:nAvgs
+        plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        hold on; 
     end
     axesNames = {'A'};
     if strcmp(which, 'w')
@@ -202,20 +181,11 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
         hold(axesHandles.C, 'on');
         hold(axesHandles.D, 'on');  
         % Loop over all averages
-        if ~GUI
-            for rr = 1:nAvgs
-                plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5);
-                plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5);
-                plot(axesHandles.C,dataToPlot.ppm, dataToPlot.specs(:,rr,3) + rr*stag(3), 'k', 'LineWidth', 0.5);
-                plot(axesHandles.D,dataToPlot.ppm, dataToPlot.specs(:,rr,4) + rr*stag(4), 'k', 'LineWidth', 0.5);  
-            end
-        else
-            for rr = 1:nAvgs
-                plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-                plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-                plot(axesHandles.C,dataToPlot.ppm, dataToPlot.specs(:,rr,3) + rr*stag(3), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground); 
-                plot(axesHandles.D,dataToPlot.ppm, dataToPlot.specs(:,rr,4) + rr*stag(4), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            end
+        for rr = 1:nAvgs
+            plot(axesHandles.A,dataToPlot.ppm, real(dataToPlot.specs(:,rr,1) + rr*stag(1)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            plot(axesHandles.B,dataToPlot.ppm, real(dataToPlot.specs(:,rr,2) + rr*stag(2)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            plot(axesHandles.C,dataToPlot.ppm, real(dataToPlot.specs(:,rr,3) + rr*stag(3)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground); 
+            plot(axesHandles.D,dataToPlot.ppm, real(dataToPlot.specs(:,rr,4) + rr*stag(4)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
         end
         axesNames = {'A','B','C','D'};
         TitleNames = {'A','B','C','D'};
@@ -223,16 +193,9 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
         axesHandles.A = gca();
         nAvgs = dataToPlot.averages;
         % Loop over all averages
-        if ~GUI
-            for rr = 1:nAvgs
-                plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5);
-                hold on; 
-            end
-        else
-            for rr = 1:nAvgs
-                plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-                hold on; 
-            end
+        for rr = 1:nAvgs
+            plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr) + rr*stag), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            hold on; 
         end
         axesNames = {'A'}; 
         if strcmp(which, 'w')
@@ -251,16 +214,6 @@ for ax = 1 : length(axesNames)
     set(axesHandles.(axesNames{ax}), 'Units', 'normalized');
     % If no y caption, remove y axis
     if isempty(ylab)
-    if ~GUI
-        set(axesHandles.(axesNames{ax}), 'YColor', 'w');
-        set(axesHandles.(axesNames{ax}), 'XColor', 'k');
-        set(axesHandles.(axesNames{ax}), 'Color', 'w');
-        if ax == 1
-            title(axesHandles.(axesNames{ax}),[figTitle 'Subspectra ' TitleNames{ax}], 'Interpreter', 'none');
-        else
-            title(axesHandles.(axesNames{ax}),[' Subspectra ' TitleNames{ax}], 'Interpreter', 'none');
-        end
-    else
         set(axesHandles.(axesNames{ax}), 'YColor', MRSCont.colormap.Background);
         set(axesHandles.(axesNames{ax}),'YTickLabel',[])
         set(axesHandles.(axesNames{ax}),'YTick',[])
@@ -271,7 +224,6 @@ for ax = 1 : length(axesNames)
         else
             title(axesHandles.(axesNames{ax}),[' Subspectra ' TitleNames{ax}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
         end
-    end
     else
     set(axesHandles.(axesNames{ax}), 'YColor', 'k');
     end
