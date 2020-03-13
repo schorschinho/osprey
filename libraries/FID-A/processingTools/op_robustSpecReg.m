@@ -23,10 +23,12 @@
 %             averages.
 
 
-function [out, fs, phs, w, driftPre, driftPost] = op_robustSpecReg(in, seqType, echo)
-
-if nargin < 2
-    echo = 1;
+function [out, fs, phs, w, driftPre, driftPost] = op_robustSpecReg(in, seqType, echo, F0)
+if nargin <4
+    F0 = nan;
+    if nargin < 2
+        echo = 1;    
+    end
 end
 
 % Check whether data is coil-combined. If not, throw error.
@@ -197,9 +199,14 @@ for mm=1:numSubSpecs
     F0freq = F0freqRange(FrameMaxPos);
         
     % Starting values for optimization
-    f0 = F0freq * in.txfrq * 1e-6;
-    f0 = f0(alignOrd);
-    f0 = f0 - f0(1);
+    if isnan(F0) 
+        f0 = F0freq * in.txfrq * 1e-6;
+        f0 = f0(alignOrd);
+        f0 = f0 - f0(1);
+    else
+        f0 = F0(alignOrd);
+        f0 = f0 - f0(1);
+    end
     phi0 = zeros(size(f0));
     x0 = [f0(:) phi0(:)];
     
@@ -238,12 +245,12 @@ for mm=1:numSubSpecs
 
     % Prepare the frequency and phase corrections to be returned by this
     % function for further use
-    fs  = params(:,1);
-    phs = params(:,2);
+    fs(:,mm)  = params(:,1);
+    phs(:,mm) = params(:,2);
     
     % Apply frequency and phase corrections to raw data
     for jj = 1:size(flatdata,3)
-        fids(:,jj,mm) = DataToAlign(:,jj) .* ...
+        fids(:,jj,mm) = in.fids(:,jj,mm) .* ...
             exp(1i*params(jj,1)*2*pi*t') * exp(1i*pi/180*params(jj,2));
     end
 end
@@ -263,7 +270,7 @@ if in.dims.subSpecs == 0
     driftPost = op_measureDrift(out_temp);
 else
     numSubSpecs = in.sz(in.dims.subSpecs);
-    % Measure drift pre-alignment
+    % Measure drift post-alignment
     for mm = 1:numSubSpecs
         out_temp_sub = op_takesubspec(out_temp, mm);
         driftPost{mm} = op_measureDrift(out_temp_sub);

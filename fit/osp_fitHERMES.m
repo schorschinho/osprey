@@ -68,6 +68,8 @@ for kk = 1:MRSCont.nDatasets
         basisSetDiff1.fids = basisSetDiff1.fids(:,:,5);
         basisSetDiff1.specs = basisSetDiff1.specs(:,:,5);
         dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+        dataToFit.refShift   = fitParamsSum.refShift;
+        dataToFit.refFWHM   = fitParamsSum.refFWHM;
 
         % Call the fit function
         [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
