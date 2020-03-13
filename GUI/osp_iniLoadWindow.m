@@ -48,6 +48,10 @@ function osp_iniLoadWindow(gui)
             gui.layout.rawTab.TabWidth   = 115;
             gui.layout.rawTab.Selection  = 1;
             gui.layout.rawTabhandles = {'metabLoTab'};
+            if gui.controls.Number == 1
+                    gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;
+                    gui.layout.rawTab.TabEnables = {'on'};
+            end
             if gui.controls.Number == 2
                 if MRSCont.flags.hasRef
                     gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
