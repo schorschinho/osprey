@@ -36,10 +36,11 @@ function osp_iniOverviewWindow(gui)
         gui.layout.distrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.corrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.diceOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice ovelap'};
+        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice ovelap'};         
+        gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off'};      
         gui.layout.overviewTab.TabWidth   = 115;
         gui.layout.overviewTab.Selection  = 1;
-        gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off'};
+
 
 %%% 2. SPECS OVERVIEW %%% 
 %Overview Panel for all specs sorted by groups
@@ -222,6 +223,7 @@ function osp_iniOverviewWindow(gui)
         gui.Plot.distrOv.Children(3).Legend.Location = 'North';
 
  %%% 6. CORRELATION PLOTS %%%
+
         rmpath(genpath([gui.folder.spmversion filesep]));
         gui.layout.overviewTab.Selection  = 5;
         gui.Plot.corrOv = uix.VBox('Parent', gui.layout.corrOvTab,'BackgroundColor',gui.colormap.Background,'Padding', 5);
@@ -241,10 +243,10 @@ function osp_iniOverviewWindow(gui)
                                                 'String',MRSCont.quantify.metabs, 'Value', 1);
         gui.controls.pop_corrOvCorr = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                                'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                               'String',gui.overview.Names.Corr, 'Value', 1);
+                                               'String',gui.overview.Names.QM, 'Value', 3);                                 
         gui.controls.pop_whichcorrOvCorr = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                        'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                       'String',{'MRSCont.overview.corr','metabolites','QM'}, 'Value', 1);
+                                       'String',{'MRSCont.overview.corr','metabolites','QM'}, 'Value', 3);
        gui.upperBox.corrOv.upperButtons = uix.Panel('Parent', gui.upperBox.corrOv.box, ...
                                      'Padding', 5, 'Title', ['Save'],...
                                      'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -258,12 +260,13 @@ function osp_iniOverviewWindow(gui)
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 %osp_plotQuantifyTable is used to create a correlation plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},1);
+        [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Plot.corrOv);
         set(gui.Plot.corrOv,'Heights', [-0.07 -0.90 -0.03]);
         gui.Plot.corrOv.Children(3).Legend.Location = 'North';
         close( temp );
+
         gui.layout.overviewTab.Selection  = 2;
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end
