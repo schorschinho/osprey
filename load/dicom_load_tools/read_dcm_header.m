@@ -91,11 +91,13 @@ elseif (contains(DicomHeader.sequenceFileName,'eja_svs_mpress') || contains(Dico
     DicomHeader.seqorig = 'CMRR'; % Minnesota sequence
 elseif contains(DicomHeader.sequenceFileName,'svs_se')
     DicomHeader.seqtype = 'PRESS'; % PRESS
+    DicomHeader.seqorig = 'unknown'; % Unknwon
 elseif contains(DicomHeader.sequenceFileName,'eja_svs')
     DicomHeader.seqtype = 'PRESS'; % PRESS
-    DicomHeader.seqtype = 'CMRR'; % PRESS
+    DicomHeader.seqorig = 'CMRR'; % Minnesota sequence
 elseif contains(DicomHeader.sequenceFileName,'svs_slaser')
     DicomHeader.seqtype = 'sLASER'; % sLASER
+    DicomHeader.seqorig = 'unknown'; % Unknwon
 else
     DicomHeader.seqorig = DicomHeader.sequenceFileName;
     error(['Unknown sequence: ' DicomHeader.seqorig '. Please consult the Gannet team for support.'])

@@ -73,7 +73,7 @@ for kk = 1:length(files)
     elseif strcmpi(last3char,'RDA')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'RDA';
-    elseif strcmpi(last3char,'IMA') || strcmpi(last3char,'.DCM')
+    elseif strcmpi(last3char,'IMA') || strcmpi(last3char,'DCM')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'DICOM';
     elseif strcmpi(last4char,'.DAT')

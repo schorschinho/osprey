@@ -35,7 +35,9 @@ RF = in;
 
 % Create dummy array to hold FIDs
 fids = in.fids;
-if length(in.sz) == 2
+if length(in.sz) == 1
+    reshape_data = fids;
+elseif length(in.sz) == 2
     reshape_data = reshape(fids, [1 in.sz(1) in.sz(2)]);
 elseif length(in.sz) == 3
     reshape_data = reshape(fids, [1 in.sz(1) in.sz(2) in.sz(3)]);
@@ -81,7 +83,7 @@ fprintf(fid,'TM: 0.000000\r\n');
 fprintf(fid,'TI: 0.000000\r\n');
 fprintf(fid,'DwellTime: %i\r\n', in.dwelltime*1e6);
 fprintf(fid,'EchoNumber: 1\r\n');
-fprintf(fid,'NumberOfAverages: %4.6f\r\n', in.sz(2));
+fprintf(fid,'NumberOfAverages: %4.6f\r\n', in.averages);
 fprintf(fid,'MRFrequency: %4.6f\r\n', in.txfrq*1e-6);
 fprintf(fid,'MagneticFieldStrength: %4.6f\r\n', in.Bo);
 fprintf(fid,'NumOfPhaseEncodingSteps: 1\r\n');
