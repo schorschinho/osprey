@@ -295,11 +295,11 @@ if GUI
 else
     if exist('fit_mean', 'var')
         if ~group
-            plot(ppm, (zeros(1,length(ppm)) + max(maxshift)), 'Color','k', 'LineWidth', 1); % Maximum Data
-            plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean)))), 'Color','k', 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
-            plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), 'Color','k', 'LineWidth', 1); % Max Residue 
-            text(ppm(1)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color','k'); %Zeroline Residual text
-            text(ppm(1)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color','k'); %Max Residue text
+            plot(ppm, (zeros(1,length(ppm)) + max(maxshift)), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
+            plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean)))), 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
+            plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue 
+            text(ppm(1)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
+            text(ppm(1)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
         end
     end
     if exist('residual_mean', 'var')
@@ -308,19 +308,17 @@ else
         end
     end
     fill([ppm fliplr(ppm)], [data_yu+shift fliplr(data_yl)+shift], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow data 
-    plot(ppm,data_mean+shift ,'color','k', 'LineWidth', 2); % Data 
+    plot(ppm,data_mean+shift ,'color',cb(g,:), 'LineWidth', 2); % Data 
     if exist('fit_mean', 'var')
-        plot(ppm,fit_mean+shift ,'color', 'r', 'LineWidth', 1); %Fit
+        plot(ppm,fit_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %Fit
         if ~group
-            plot(ppm,residual_mean+shift+ max(maxshift +  abs(min(residual_mean))) ,'color', 'k', 'LineWidth', 1);  %Residual 
-            plot(ppm, (zeros(1,length(ppm))), 'Color','k'); % Zeroline
-            text(ppm(1)-0.05, 0, '0', 'FontSize', 10,'Color','k'); %Zeroline text  
+            plot(ppm,residual_mean+shift+ max(maxshift +  abs(min(residual_mean))) ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);  %Residual 
+            plot(ppm, (zeros(1,length(ppm))), 'Color',MRSCont.colormap.Foreground); % Zeroline
+            text(ppm(1)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text  
         end
     end    
     if exist('baseline_mean', 'var')
-        if ~group
-            plot(ppm,baseline_mean+shift ,'color', 'b', 'LineWidth', 1); %Baseline
-        end
+            plot(ppm,baseline_mean+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1); %Baseline
     end                                        
   
 end
@@ -332,14 +330,6 @@ set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
 % If no y caption, remove y axis
 if isempty(ylab)
-    if ~GUI
-        set(gca, 'YColor', 'w');
-        % Black axes, white background
-        set(gca, 'XColor', 'k');
-        set(gca, 'Color', 'w');
-        set(gcf, 'Color', 'w');
-        title(figTitle, 'Interpreter', 'Tex');
-    else
         set(gca, 'YColor', MRSCont.colormap.Background);
         set(gca,'YTickLabel',{});
         set(gca,'YTick',{});
@@ -348,9 +338,8 @@ if isempty(ylab)
         set(gca, 'Color', MRSCont.colormap.Background);
         set(gcf, 'Color', MRSCont.colormap.Background);
         title(figTitle, 'Interpreter', 'Tex', 'Color', MRSCont.colormap.Foreground);
-    end
 else
-    set(gca, 'YColor', 'k');
+    set(gca, 'YColor', MRSCont.colormap.Foreground);
 end
 
 box off;

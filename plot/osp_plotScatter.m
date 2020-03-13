@@ -154,7 +154,11 @@ for g = 1 : MRSCont.overview.NoGroups
     hold on
     [~, ~,~] = regression_line_ci(0.05,b,x_tmp,y_tmp,cb(g,:));
     [r,p] = corrcoef(x_tmp,y_tmp);
-    str{g} = ['r = ' num2str(r(1,2),'%3.3g') '\newline' 'p = ' num2str(p(1,2),'%3.3g')];
+    if length(r) > 1
+        str{g} = ['r = ' num2str(r(1,2),'%3.3g') '\newline' 'p = ' num2str(p(1,2),'%3.3g')];
+    else
+        str{g} = ['r = nan \newline' 'p = nan']; 
+    end
 end
 
 % Scatter plot and correlation including all datapoints
