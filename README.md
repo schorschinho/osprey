@@ -9,8 +9,11 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 - Fully-automated loading and pre-processing pipeline for optimal SNR, linewidth, phasing, and alignment
 - Integrated linear-combination modeling module
 - Full density-matrix simulated basis sets (using real pulses and sequence timings; including effects of localization and spectral editing) for many metabolites and common sequence implementations
+- Functions to create custom basis sets and import basis sets from LCModel or Tarquin
 - Integrated voxel co-registration and segmentation module (requires SPM12)
 - Quantification based on tissue fractions and (customizable) metabolite/tissue water relaxation times
+- GUI to display data, quality assessment, and quantitative results at each step of the analysis
+- Rich 'Overview' GUI panel for batched datasets to visualize distributions of metabolite estimates and mean +/- SD spectra
 
 ### Supported methods
 - Conventional MRS (STEAM, PRESS, semi-LASER, LASER)
@@ -18,9 +21,9 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 - Hadamard-encoded editing (HERMES, HERCULES)
 
 ### Supported sequence implementations
-- Philips (Johns Hopkins patches; Philips product sequences)
-- Siemens (Johns Hopkins patches; Siemens WIP sequences; CMRR sequences; Jamie Near sequence)
-- GE (Ralph Noeske sequence)
+- Philips (Philips product sequences; Johns Hopkins patches)
+- Siemens (Siemens product and WIP sequences; Johns Hopkins patches; CMRR sequences; Jamie Near sequence)
+- GE (GE product sequences; Ralph Noeske sequence)
 
 ### Supported file formats
 - Philips: SDAT/SPAR, DATA/LIST (coming soon), SIN/LAB/RAW (coming soon)
@@ -74,13 +77,11 @@ For any sort of questions, feedback, suggestions, or critique, please reach out 
 
 - [Georg Oeltzschner](mailto:goeltzs1@jhu.edu)
 - [Helge J. Zöllner](mailto:hzoelln2@jhu.edu)
-- [Muhammad G. Saleh](mailto:msaleh10@jhu.edu)
-- [Mark Mikkelsen](mailto:mmikkel5@jhu.edu)
 - [Richard A. E. Edden](mailto:raee2@jhu.edu)
 
-Should you publish material that made use of Osprey, please cite the following publications:
+Should you publish material that made use of Osprey, please cite the following publication:
 
-Oeltzschner G, Saleh MG, Rimbault D, Mikkelsen M, Chan KL, Puts NAJ, Edden RAE. Advanced Hadamard-encoded editing of seven low-concentration brain metabolites: Principles of HERCULES. NeuroImage 185:181-190 (2019)
+[G Oeltzschner, HJ Zöllner, SCN Hui, M Mikkelsen, MG Saleh, S Tapper, RAE Edden. Osprey: Open-Source Processing, Reconstruction  & Estimation of Magnetic Resonance Spectroscopy Data. bioRxiv 2020.](https://www.biorxiv.org/content/10.1101/2020.02.12.944207v1)
 
 ## Acknowledgements
 
