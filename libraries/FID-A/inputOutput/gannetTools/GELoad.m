@@ -357,11 +357,22 @@ fclose(fid);
 %              NEX=2/noadd=0, NEX=2/noadd=1, NEX=8/noadd=0, NEX=8/noadd=1
 % MM (171120): RTN edits to accomodate HERMES aquisitions; better looping
 %              over phase cycles
-if nechoes == 1
+
+if (nechoes == 1) 
     
     ShapeData = reshape(raw_data, [2 npoints totalframes nreceivers]);
-    WaterData = ShapeData(:,:,2:refframes+1,:);
-    FullData = ShapeData(:,:,refframes+2:end,:);
+    
+    if (dataframes + refframes) ~= nframes
+        mult = 1;
+        dataframes = dataframes * nex;
+        refframes = nframes - dataframes;
+    else
+        mult = 1/nex;
+    end
+    
+    
+    WaterData = ShapeData(:,:,2:refframes+1,:) * mult;
+    FullData = ShapeData(:,:,refframes+2:end,:) * mult;
     
     totalframes = totalframes - (refframes+1);
     waterframes = refframes;
