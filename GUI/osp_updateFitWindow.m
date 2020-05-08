@@ -36,11 +36,25 @@ function osp_updateFitWindow(gui)
         gui.layout.EmptyFitPlot = 0;
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
+        if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w') %Is not concateneted or is reference/water fit 
+            gui.fit.Style = gui.fit.Names{gui.fit.Selected};
+        else %Is concatenated and not water/reference
+            gui.fit.Style = 'conc';
+        end
+        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+        ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
+        ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+        if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
+            refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
+            refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM; 
+        end
+        iniph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
+        iniph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1;       
         if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
             StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
-                        '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ...
-                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(Selection){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.resBasisSet.(Selection){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM) ...
-                        ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected})];
+                        '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f') '°; ph1: ' num2str(ph1,'%1.2f') '°; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
+                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.basisSet.nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.basisSet.nMM) ...
+                        ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected}) '; inital ph0: ' num2str(iniph0,'%1.2f') '°; initial ph1: ' num2str(iniph1,'%1.2f') '°'];
         else if strcmp (Selection, 'ref') %Reference data?
         StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
@@ -51,14 +65,6 @@ function osp_updateFitWindow(gui)
         end
         set(gui.upperBox.fit.Info.Children(2).Children, 'String',sprintf(StatText))
         % Update amplitudes for the fit results panel based on the files in the MRSCont (Raw Amplitudes or Water-scaled if ref or water supplied)
-        if   ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w') %Is not concateneted or is reference/water fit 
-            gui.fit.Style = gui.fit.Names{gui.fit.Selected};
-            RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-        else %Is concatenated and not water/reference
-            gui.fit.Style = 'conc';
-            RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-        end
-        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
         if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
             if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit?
                 NameText = [''];
@@ -100,7 +106,7 @@ function osp_updateFitWindow(gui)
         end
 %%%3. VISUALIZATION PART OF THIS TAB %%%
         temp = figure( 'Visible', 'off' );
-        temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,Selection);
+        temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,Selection);
         ViewAxes = gca();
         delete(gui.Plot.fit.Children)
         set(ViewAxes.Children, 'Parent', gui.Plot.fit); %Update plot

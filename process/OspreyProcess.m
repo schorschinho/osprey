@@ -33,6 +33,9 @@ if ~MRSCont.flags.didLoadData
     error('Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.')
 end
 
+% Version check
+MRSCont.ver.CheckPro             = '100 Pro';
+
 % Post-process raw data depending on sequence type
 if MRSCont.flags.isUnEdited
     [MRSCont] = osp_processUnEdited(MRSCont);
@@ -47,7 +50,7 @@ else
     error('No flag set for sequence type!');
 end
 
-% Gather some more information from the processed data   y(isnan(y(1:end-1))) = [];
+% Gather some more information from the processed data;
 SubSpecNames = fieldnames(MRSCont.processed);
 NoSubSpec = length(fieldnames(MRSCont.processed));
 for ss = 1 : NoSubSpec
@@ -80,7 +83,14 @@ outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-save(fullfile(outputFolder, outputFile), 'MRSCont');
+
+if ~MRSCont.flags.isGUI
+    MRSCont.flags.isGUI = 0;
+    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    MRSCont.flags.isGUI = 1;
+else
+   save(fullfile(outputFolder, outputFile), 'MRSCont');
+end
 
 
 % Optional: write edited files to LCModel .RAW files

@@ -69,19 +69,19 @@ function osp_iniCoregWindow(gui)
     gui.Results.coreg = uix.VBox('Parent', gui.Plot.coreg,'BackgroundColor',gui.colormap.Background);
     temp = figure( 'Visible', 'off' );
     if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-        osp_plotCoreg(MRSCont, gui.controls.Selected, 1);
+        osp_plotCoreg(MRSCont, gui.controls.Selected);
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Results.coreg );
         colormap(gui.Results.coreg.Children,'gray')
         close( temp );
         temp = figure( 'Visible', 'off' );
-        osp_plotSegment(MRSCont, gui.controls.Selected, 1);
+        osp_plotSegment(MRSCont, gui.controls.Selected);
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Results.coreg );
         colormap(gui.Results.coreg.Children(1),'gray');
         close( temp );
     else % Only coreg has been run
-        osp_plotCoreg(MRSCont, gui.controls.Selected, 1);
+        osp_plotCoreg(MRSCont, gui.controls.Selected);
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Results.coreg );
         colormap(gui.Results.coreg.Children,'gray');

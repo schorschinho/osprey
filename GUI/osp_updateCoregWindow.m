@@ -39,37 +39,39 @@ function osp_updateCoregWindow(gui)
             delete( gui.Results.coreg.Children(1) ); %delete seg contents
             delete( gui.Results.coreg.Children(1) ); %delete coreg contents
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotCoreg(MRSCont, gui.controls.Selected, 1);
+            temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
             set( temp.Children, 'Parent', gui.Results.coreg);
             colormap(gui.Results.coreg.Children(1),'gray');
             close( temp );
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotSegment(MRSCont, gui.controls.Selected, 1);
-            set( temp.Children, 'Parent', gui.Results.coreg );
-            colormap(gui.Results.coreg.Children(1),'gray');
-            close( temp );
+            if gui.controls.Selected <= length(MRSCont.seg.tissue.fGM)
+                temp = osp_plotSegment(MRSCont, gui.controls.Selected);
+                set( temp.Children, 'Parent', gui.Results.coreg );
+                colormap(gui.Results.coreg.Children(1),'gray');
+                close( temp );
+            end
         else if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 1 %Did seg but has not been visualized yet (Initial run of segement button)
             delete( gui.Results.coreg.Children(1) );
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotCoreg(MRSCont, gui.controls.Selected, 1);
+            temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
             set( temp.Children, 'Parent', gui.Results.coreg);
             colormap(gui.Results.coreg.Children(1),'gray');
             close( temp );
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotSegment(MRSCont, gui.controls.Selected, 1);
+            temp = osp_plotSegment(MRSCont, gui.controls.Selected);
             set( temp.Children, 'Parent', gui.Results.coreg );
             colormap(gui.Results.coreg.Children(1),'gray');
             close( temp );
             else if length(gui.Results.coreg.Children) == 1 %Only coreg has been performed
                     temp = figure( 'Visible', 'off' );
-                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected, 1);
+                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
                     delete( gui.Results.coreg.Children(1) );
                     set( temp.Children, 'Parent', gui.Results.coreg );
                     colormap(gui.Results.coreg.Children,'gray')
                     close( temp );
                 else % Neither coreg nor segment has been performed
                     temp = figure( 'Visible', 'off' );
-                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected, 1);
+                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
                     set( temp.Children, 'Parent', gui.Results.coreg );
                     colormap(gui.Results.coreg.Children,'gray')
                     close( temp ); 

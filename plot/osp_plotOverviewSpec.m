@@ -1,5 +1,5 @@
-function out = osp_plotOverviewSpec(MRSCont, which,GUI, g, shift, xlab, ylab, figTitle)
-%% out = osp_plotOverviewSpec(MRSCont, which,GUI, g, shift, xlab, ylab, figTitle)
+function out = osp_plotOverviewSpec(MRSCont, which, g, shift, xlab, ylab, figTitle)
+%% out = osp_plotOverviewSpec(MRSCont, which, g, shift, xlab, ylab, figTitle)
 %   Creates a figure with all spectra or fits.
 %
 %   USAGE:
@@ -26,7 +26,6 @@ function out = osp_plotOverviewSpec(MRSCont, which,GUI, g, shift, xlab, ylab, fi
 %                               'Fit:sum'
 %                               'Fit:ref'
 %                               'Fit:w'
-%       GUI       = flag to decide whether plot is used in GUI
 %       g         = group index
 %       shift     = shift between groups
 %       xlab      = Label for the x-axis (optional.  Default = 'Frequency (ppm)');
@@ -53,23 +52,20 @@ cb(4,:) = temp;
 %%% 1. PARSE INPUT ARGUMENTS %%%
 fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
-if nargin<8
+if nargin<7
 ylab='';
-    if nargin<7
+    if nargin<6
         xlab='Frequency (ppm)';
-        if nargin<6
+        if nargin<5
             group = 0;
-            if nargin<5
+            if nargin<4
                 shift = 0.1;
-                if nargin<4
-                    g = 1;    
-                    if nargin<3
-                        GUI = 0;    
-                        if nargin < 2
-                            which = 'A';
-                            if nargin<1
-                                error('ERROR: no input Osprey container specified.  Aborting!!');
-                            end
+                if nargin<3
+                    g = 1;      
+                    if nargin < 2
+                        which = 'A';
+                        if nargin<1
+                            error('ERROR: no input Osprey container specified.  Aborting!!');
                         end
                     end
                 end
@@ -84,7 +80,7 @@ end
 shift = shift * (g-1);
 %Is spectrum?
 if (strcmp(which,'A') || strcmp(which,'B') || strcmp(which,'C') || strcmp(which,'D') || strcmp(which,'diff1') || strcmp(which,'diff2') || strcmp(which,'sum') || strcmp(which,'ref') || strcmp(which,'w'))
-    data = MRSCont.overview.(['sort_data_g' num2str(g)]).(which);
+    data = MRSCont.overview.sort_data.(['g_' num2str(g)]).(which);
     if nargin<8    
         if (~strcmp(which,'w') && ~strcmp(which,'ref'))
             figTitle = ['Individual specs: ' which]; 
@@ -100,10 +96,10 @@ else % Is fit?
         switch fitwhich
             case 'off'
                 fit = 'A';
-                data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
             case 'ref'
                 fit = fitwhich;
-                data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
         end
     end
     if MRSCont.flags.isMEGA %Is MEGA
@@ -111,17 +107,17 @@ else % Is fit?
             case {'diff1','sum'}
                 if strcmp(fitStyle,'Concatenated') %Is Concatenated?
                     fit = 'conc';
-                    data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fit '_' fitwhich]);
+                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
                 else
                     fit = 'diff1';
-                    data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fitwhich '_' fit]);            
+                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);            
                 end   
             case {'off'}
                     fit = 'A';
-                    data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fitwhich '_' fit]);                         
+                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);                         
             case {'ref','w'}
                 fit = fitwhich;
-                data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fit '_' fitwhich]);
+                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
         end
     end
     if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is Multiplexed
@@ -129,19 +125,19 @@ else % Is fit?
             case {'diff1','diff2','sum'}
                 if strcmp(fitStyle,'Concatenated') %Is Concatenated?
                     fit = 'conc';
-                    data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fit '_' fitwhich]);
+                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
                 else
                     fit = fitwhich;
-                    data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fit '_' fitwhich]);            
+                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);            
                 end           
             case {'ref','w'}
                 fit = fitwhich;
-                data = MRSCont.overview.(['sort_fit_g' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
         end
     end
     
     if nargin<8    
-        if (~strcmp(which,'w') && ~strcmp(which,'ref'))
+        if (~strcmp(fitwhich,'w') && ~strcmp(fitwhich,'ref'))
             figTitle = ['Individual fits: ' fit ' ' fitwhich]; 
             ppmRange = MRSCont.opts.fit.range;
         else
@@ -158,7 +154,11 @@ if length(which)>4
     if ~strcmp(which(1:4),'Fit:')
         maxshift_abs = max(abs(data{1}.specs));
         shift = maxshift_abs * shift;
-        out = op_plotspec(data,2,1,cb(g,:),shift,figTitle);
+        out = plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        hold on;
+        for kk = 2 : length(data) 
+            plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        end
     else
         maxshift_abs = max(abs(data{1}.fit));
         shift = maxshift_abs * shift;
@@ -169,18 +169,22 @@ if length(which)>4
         end
     end
 else
-    maxshift_abs = max(abs(data{1}.specs));
-    shift = maxshift_abs * shift;
-    out = op_plotspec(data,2,1,cb(g,:),shift,figTitle);
+        maxshift_abs = max(abs(data{1}.specs));
+        shift = maxshift_abs * shift;
+        out = plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        hold on;
+        for kk = 2 : length(data) 
+            plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        end
 end
 %%% 4. DESIGN FINETUNING %%%
 % Adapt common style for all axes
-set(gca, 'XDir', 'reverse', 'XLim', [ppmRange(1), ppmRange(end)]);
+set(gca, 'XDir', 'reverse', 'XLim', [ppmRange(1), ppmRange(end)], 'XMinorTick', 'On');
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
 % If no y caption, remove y axis
 if isempty(ylab)
-    if ~GUI
+    if ~MRSCont.flags.isGUI
         set(gca, 'YColor', 'w');
         % Black axes, white background
         set(gca, 'XColor', 'k');
@@ -207,7 +211,7 @@ ylabel(ylab, 'FontSize', 16);
 
 
 %%% 5. ADD OSPREY LOGO %%%
-if ~GUI
+if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out.Parent.Parent, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);

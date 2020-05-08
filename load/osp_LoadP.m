@@ -27,30 +27,42 @@ function [MRSCont] = osp_LoadP(MRSCont)
 % Close any remaining open figures
 close all;
 
-% Determine number of datasets
-MRSCont.nDatasets = length(MRSCont.files);
 
 %% Get the data (loop over all datasets)
 refLoadTime = tic;
 reverseStr = '';
+if MRSCont.flags.isGUI
+    progressbar = waitbar(0,'Start','Name','Osprey Load');
+    waitbar(0,progressbar,sprintf('Loaded raw data from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    % Read in the raw metabolite data. Since the GE P-file loader needs
-    % to know the number of sub-spectra (e.g. from spectral editing), the
-    % type of sequence needs to be differentiated here already.
-    if MRSCont.flags.isUnEdited
-        [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},1);
-    elseif MRSCont.flags.isMEGA
-        [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},2);
-    elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-        [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},4);
+    
+    if ((MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~isfield(MRSCont.ver, 'Load') || ~strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad))
+        % Read in the raw metabolite data. Since the GE P-file loader needs
+        % to know the number of sub-spectra (e.g. from spectral editing), the
+        % type of sequence needs to be differentiated here already.
+        if MRSCont.flags.isUnEdited
+            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},1);
+        elseif MRSCont.flags.isMEGA
+            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},2);
+        elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
+            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},4);
+        end
+        MRSCont.raw_uncomb{kk}      = raw;
+        MRSCont.raw_ref_uncomb{kk}  = raw_ref;
     end
-    MRSCont.raw_uncomb{kk}      = raw;
-    MRSCont.raw_ref_uncomb{kk}  = raw_ref;
+    if MRSCont.flags.isGUI        
+        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Loaded raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+    end
 end
 fprintf('... done.\n');
+if MRSCont.flags.isGUI 
+    waitbar(1,progressbar,'...done')
+    close(progressbar)
+end
 toc(refLoadTime);
 
 % Set flag

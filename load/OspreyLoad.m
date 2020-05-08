@@ -38,8 +38,14 @@ if ~isempty(MRSCont.files_w)
     MRSCont.flags.hasWater = 1;
 end
 
+% Version check
+MRSCont.ver.CheckLoad             = '100 Load';
+
 % Determine data types
 [MRSCont, retMsg] = osp_detDataType(MRSCont);
+
+% Determine number of datasets
+MRSCont.nDatasets = length(MRSCont.files);
 
 % Load raw data (call loaders depending on file type)
 switch MRSCont.vendor
@@ -104,6 +110,14 @@ outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-save(fullfile(outputFolder, outputFile), 'MRSCont');
+
+
+if ~MRSCont.flags.isGUI
+    MRSCont.flags.isGUI = 0;
+    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    MRSCont.flags.isGUI = 1;
+else
+   save(fullfile(outputFolder, outputFile), 'MRSCont');
+end
 
 end

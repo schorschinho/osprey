@@ -29,7 +29,7 @@ function osp_updatemeanOvWindow(gui)
         Selection = gui.controls.pop_meanOvPlot.String(gui.process.Selected);
         for g = 1 :  gui.overview.Number.Groups
             if gui.overview.Number.Groups > 1
-                temp = osp_plotMeanSpec(MRSCont, Selection{1},1,g,1/gui.overview.Number.Groups,1);
+                temp = osp_plotMeanSpec(MRSCont, Selection{1},g,1,1/gui.overview.Number.Groups);
                 ViewAxes = gca();
                 set(ViewAxes.Children,'Parent',gui.Plot.meanOv.Children(2))
                 if g < gui.overview.Number.Groups
@@ -43,6 +43,7 @@ function osp_updatemeanOvWindow(gui)
         end
         if (strcmp(Selection{1},'A') || strcmp(Selection{1},'B') || strcmp(Selection{1},'C') || strcmp(Selection{1},'D') || strcmp(Selection{1},'diff1') || strcmp(Selection{1},'diff2') || strcmp(Selection{1},'sum'))
             set(gui.Plot.meanOv.Children(2), 'XLim', ViewAxes.XLim)
+            set(gui.Plot.meanOv.Children(2), 'XMinorTick', 'On')
             set(gui.Plot.meanOv.Children(2).Title, 'String', ViewAxes.Title.String)
         else
             set(gui.Plot.meanOv.Children(2), 'XLim', ViewAxes.XLim)

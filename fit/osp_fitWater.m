@@ -29,8 +29,6 @@ function [MRSCont] = osp_fitWater(MRSCont, kk, fitWhich)
 %   HISTORY:
 %       2019-04-09: First version of the code.
 
-% Close any remaining open figures
-close all;
 
 % Find the basis set index corresponding to water
 basisSet            = MRSCont.fit.basisSet;

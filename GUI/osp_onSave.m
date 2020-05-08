@@ -35,7 +35,10 @@ function osp_onSave( ~, ~,gui)
     if ~exist(outputFolder,'dir')
         mkdir(outputFolder);
     end
+    MRSCont.flags.isGUI = 0;
     save(fullfile(outputFolder, outputFile), 'MRSCont');
+    MRSCont.flags.isGUI = 1;
     fprintf('... done.\n');
+    setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
     toc(refProcessTime);
 end % onExit

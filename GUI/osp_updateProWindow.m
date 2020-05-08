@@ -75,14 +75,15 @@ function osp_updateProWindow(gui)
         end
         set(gui.upperBox.pro.Info.Children, 'String',sprintf(StatText))
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
-        temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,1 ); %Create figure
+        temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection); %Create figure
         %Delete old content
         delete(gui.layout.proDrift.Children.Children)
         delete(gui.layout.proAlgn.Children.Children)
         delete(gui.layout.proPost.Children.Children)
         delete(gui.layout.proPre.Children.Children)
-        %Fill window with new content
+        %Fill window with new content        
         set( temp.Children(1).Children, 'Parent', gui.layout.proDrift.Children ); % Update drift plot
+        set( gui.layout.proDrift.Children,'Children',flipud(gui.layout.proDrift.Children.Children));
         set(  gui.layout.proDrift.Children, 'YLim', temp.Children(1).YLim);
         set( temp.Children(2).Children, 'Parent', gui.layout.proAlgn.Children ); % Update aligned and averaged plot
         set(  gui.layout.proAlgn.Children, 'XLim', temp.Children(2).XLim);

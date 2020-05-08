@@ -170,6 +170,9 @@ fitParams.freqShift = x(nBasisFcts+4:2*nBasisFcts+3);
 fitParams.beta_j    = x(2*nBasisFcts+4:end-(nMultiplex-1));
 fitParams.addFreqShift = x(end-(nMultiplex-2):end);
 fitParams.spl_pos   = spl_pos;
+fitParams.refShift = 0;
+fitParams.refFWHM = 0;
+fitParams.prelimParams = fitParams;
 
 end
 

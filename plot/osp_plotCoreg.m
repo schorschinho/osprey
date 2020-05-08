@@ -1,4 +1,4 @@
-function out = osp_plotCoreg(MRSCont, kk, GUI)
+function out = osp_plotCoreg(MRSCont, kk)
 %% out = osp_plotProcess(MRSCont, kk, GUI)
 %   Creates a figure showing coregistration between T1 image and MRS voxel
 %   stored in an Osprey data container
@@ -12,7 +12,6 @@ function out = osp_plotCoreg(MRSCont, kk, GUI)
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
-%       GUI      = flag to decide whether plot is used in GUI
 %
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2019-11-26)
@@ -28,13 +27,10 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 3
-    GUI = 0;
-    if nargin < 2
-        kk = 1;
-        if nargin<1
-            error('ERROR: no input Osprey container specified.  Aborting!!');
-        end
+if nargin < 2
+    kk = 1;
+    if nargin<1
+        error('ERROR: no input Osprey container specified.  Aborting!!');
     end
 end
 
@@ -69,7 +65,7 @@ three_plane_img(:,size_max*2+(1:size_max)) = image_center(img_c, size_max);
 
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
-if ~GUI
+if ~MRSCont.flags.isGUI
     out = figure;
     title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
     set(gcf, 'Color', 'w');
@@ -84,14 +80,14 @@ caxis([0 1])
 axis equal;
 axis tight;
 axis off;
-if ~GUI
+if ~MRSCont.flags.isGUI
     title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
 else
     title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
 %%% 5. ADD OSPREY LOGO %%%
-if ~GUI
+if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);

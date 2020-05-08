@@ -1,5 +1,5 @@
-function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GUI)
-%% [out_rain] = osp_plotRaincloud(MRSCont,which,metab,plots,tit,GUI)
+function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit)
+%% [out_rain] = osp_plotRaincloud(MRSCont,metab,plots,tit)
 % Creates raincloud plot from the quantification tables and the chosen quantifcation and metabolite
 % The figure contains raincloud plots with boxplots, as well as, mean
 % and sd of the indicated groups in the overview struct. If no groups are
@@ -14,12 +14,11 @@ function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GUI)
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
 %       model    = Fitting style 
-%       which    = Quantification
+%       quant    = Quantification
 %                   OPTIONS:    'tCr'
 %                               'rawWaterScaled'
 %       metab    = metabolite for analysis
 %       tit      = Title of the raincloud plot
-%       GUI      = flag if fiure is used in GUI
 %
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2019-11-14)
@@ -37,19 +36,53 @@ function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GUI)
 %   HISTORY:
 %       2019-11-12: First version of the code.
 
+%%% 1. PARSE INPUT ARGUMENTS %%%
+% Fall back to defaults if not provided
+
+if nargin<5
+    tit = '';
+    if nargin<4
+        metab = 'GABA';
+        if nargin<3
+            quant = 'tCr';
+            if nargin<2
+                model = '';
+                if MRSCont.flags.isUnEdited
+                    model = 'off';
+                end
+                if MRSCont.flags.isMEGA && strcmp(MRSCont.opts.fit.style,'Separate')
+                        model = 'diff1';
+                    else
+                        model = 'conc';
+                end
+                if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && strcmp(MRSCont.opts.fit.style,'Separate')
+                        model = 'diff1';
+                    else
+                        model = 'conc';
+                end
+                if strcmp(model,'')
+                    error('ERROR: unable to retrieve default model, please specify.  Aborting!!');
+                end
+                if nargin<1
+                    error('ERROR: no input Osprey container specified.  Aborting!!');
+                end
+            end
+        end
+    end
+end
 
 % Check that OspreyOverview has been run before
 if ~MRSCont.flags.didOverview
     error('Trying to create overview plots, but no overview data has been created. Run OspreyOverview first.')
 end
 
-%%% 1. CREATE COLORMAP %%%
+%%% 2. CREATE COLORMAP %%%
 [cb] = cbrewer('qual', 'Dark2', 12, 'pchip');
 temp = cb(3,:);
 cb(3,:) = cb(4,:);
 cb(4,:) = temp;
 
-%%% 2. EXTRACT METABOLITE CONCENTRATIONS%%%
+%%% 3. EXTRACT METABOLITE CONCENTRATIONS%%%
 if strcmp(quant,'AlphaCorrWaterScaled') || strcmp(quant,'AlphaCorrWaterScaledGroupNormed')
     idx_1  = 1;
     ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
@@ -76,7 +109,7 @@ end
 if strcmp(quant, 'AlphaCorrWaterScaledGroupNormed')
     ylab = [metab ' AlphaCorrWaterScaledGroupNormed  (i.u.)'];
 end
-%%% 3. CREATE RAINCLOUD PLOT %%%
+%%% 4. CREATE RAINCLOUD PLOT %%%
 % Generate a new figure and keep the handle memorized
 out_rain = figure('Color', 'w');
 hold on
@@ -119,7 +152,7 @@ cYlim = get(gca,'YLim');
 set(gca, 'YLim', [(minYlim - 0.05) 1.10]);
 
 % Black axes, white background
-if ~GUI
+if ~MRSCont.flags.isGUI
     set(gca, 'YColor', 'w');
     title([tit ': ' model ' ' metab],'FontSize',16);
 else
@@ -131,8 +164,8 @@ else
 end
 box off
 
-%%% 4. ADD OSPREY LOGO %%%
-if ~GUI
+%%% 5. ADD OSPREY LOGO %%%
+if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out_rain, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);

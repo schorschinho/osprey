@@ -33,7 +33,7 @@ function osp_updatedistrOvWindow(gui)
             else
                 metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
             end
-            [temp] = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',1);
+            [temp] = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');
             set( temp.Children(2).Children, 'Parent', gui.Plot.distrOv.Children(3) );
             set(  gui.Plot.distrOv.Children(3), 'XLabel', temp.Children(2).XLabel);
             set(  gui.Plot.distrOv.Children(3), 'YLim', temp.Children(2).YLim);

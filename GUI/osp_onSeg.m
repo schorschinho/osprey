@@ -50,7 +50,7 @@ function osp_onSeg( ~, ~ ,gui)
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    
     osp_iniCoregWindow(gui);       
     gui.layout.b_segm.Enable = 'off';
-    if MRSCont.flags.didQuantify %Rerun quantify
+    if MRSCont.flags.didQuantify && ~MRSCont.flags.speedUp %Rerun quantify
         MRSCont = OspreyQuantify(MRSCont);
         gui.quant.Number.Models = length(fieldnames(MRSCont.quantify.tables));
         gui.quant.Names.Model = fieldnames(MRSCont.quantify.tables);

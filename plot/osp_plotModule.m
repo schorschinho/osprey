@@ -20,13 +20,15 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
 %              kk       = Index for the kk-th dataset (optional. Default = 1)
 %              which    = String for the plot this can either indicate the
 %                           spectrum or the fit style/model
-%              OPTIONS: 'A' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
-%                       'B' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
-%                       'C' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
-%                       'D' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
-%                       'diff1' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
-%                       'diff2' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
-%                       'sum' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
+%              OPTIONS: 'mets' (OspreyLoad)
+%                       'A' (OspreyProcess,OspreySpecOverview,OspreyMeanOverview)
+%                       'B' (OspreyProcess,OspreySpecOverview,OspreyMeanOverview)
+%                       'C' (OspreyProcess,OspreySpecOverview,OspreyMeanOverview)
+%                       'D' (OspreyProcess,OspreySpecOverview,OspreyMeanOverview)
+%                       'off' (OspreyFit)            
+%                       'diff1' (OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
+%                       'diff2' (OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
+%                       'sum' (OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
 %                       'ref' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
 %                       'w' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
 %                        %%%%%%%%%%%%%%% For Unedited  or Seperate MEGA-PRESS %%%%%%%%%%%%%%%%%%%%%%%%        
@@ -77,6 +79,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', colormapfig.Background);
+    MRSCont.flags.isGUI = 1;
     switch Module
         case 'OspreyLoad'
             Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
@@ -157,7 +160,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
      %depends on the number of subspectra of the seuqence
             if strcmp(which,'mets') %Metabolite data/tab
                 outputFile      = [filename '_OspreyLoad_mets.eps'];
-                temp = osp_plotLoad(MRSCont, kk,'mets',1 );
+                temp = osp_plotLoad(MRSCont, kk,'mets' );
                 if MRSCont.flags.isUnEdited % One window for UnEdited
                     ViewAxes = gca();
                     set( ViewAxes, 'Parent', Plot );
@@ -194,12 +197,12 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
 
                 end
             else if strcmp(which,'ref') %ref data/tab
-                    temp = osp_plotLoad(MRSCont, kk,'ref',1 );
+                    temp = osp_plotLoad(MRSCont, kk,'ref' );
                     ViewAxes = gca();
                     set( ViewAxes, 'Parent', Plot );
                     outputFile      = [filename '_OspreyLoad_ref.eps'];
                 else %water data/tab has only one window all the time
-                    temp = osp_plotLoad(MRSCont, kk,'w',1 );
+                    temp = osp_plotLoad(MRSCont, kk,'w');
                     ViewAxes = gca();
                     set(ViewAxes, 'Parent', Plot );
                     outputFile      = [filename '_OspreyLoad_w.eps'];
@@ -282,7 +285,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
 
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
  %osp_plotProcess is used to visualize the processed spectra
-            temp = osp_plotProcess(MRSCont, kk,which,1 ); % Create figure
+            temp = osp_plotProcess(MRSCont, kk,which); % Create figure
             %Subplots are distributed here
                 proSpecs = uix.VBox('Parent', Plot, 'Padding', 5, 'BackgroundColor',colormapfig.Background);
                     proPre = uix.VBox('Parent', proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',colormapfig.Background);
@@ -304,6 +307,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             set(proPost.Children(1), 'OuterPosition', [0,0,1,1])
             set(proDrift.Children(1), 'Units', 'normalized')
             set(proDrift.Children(1), 'OuterPosition', [0,0,1,1])
+            set(proDrift.Children,'Children',flipud(proDrift.Children.Children));
             set(proAlgn.Children(1), 'Units', 'normalized')
             set(proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
             
@@ -400,7 +404,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
 %%%  5. VISUALIZATION PART OF THIS TAB %%%
 %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotFit(MRSCont, kk,Style,1,which);
+            temp = osp_plotFit(MRSCont, kk,Style,which);
             ViewAxes = gca();
             set(ViewAxes, 'Parent', Plot );
             close( temp );
@@ -433,19 +437,19 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             Results = uix.VBox('Parent', Plot,'BackgroundColor',colormapfig.Background);
             temp = figure( 'Visible', 'off' );
             if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-                osp_plotCoreg(MRSCont, kk, 1);
+                osp_plotCoreg(MRSCont, kk);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children,'gray');
                 close( temp );
                 temp = figure( 'Visible', 'off' );
-                osp_plotSegment(MRSCont, kk, 1);
+                osp_plotSegment(MRSCont, kk);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children(1),'gray');
                 close( temp );
             else % Only coreg has been run
-                osp_plotCoreg(MRSCont, kk, 1);
+                osp_plotCoreg(MRSCont, kk);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children,'gray');
@@ -469,7 +473,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview','Individual');
             outputFile  = [which '.eps']; 
             for g = 1 :  MRSCont.overview.NoGroups %Loop over groups
-                temp = osp_plotOverviewSpec(MRSCont, which,1, g, 0.1);
+                temp = osp_plotOverviewSpec(MRSCont, which, g, 0.1);
                 if g == 1
                     temp = get(temp,'Parent');
                     fig_hold = get(temp,'Parent');
@@ -500,7 +504,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                     outputFile  = [which '.eps'];                    
                     for g = 1 :  MRSCont.overview.NoGroups %Loop over groups
                         if gui.overview.Number.Groups > 1
-                            temp = osp_plotMeanSpec(MRSCont, which,1,g,0.1,1);
+                            temp = osp_plotMeanSpec(MRSCont, which,g,0.1,1);
                             if g == 1
                                 fig_hold = temp;
                             else
@@ -510,7 +514,9 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                                 close(temp);
                             end   
                         else
-                            fig_hold = osp_plotMeanSpec(MRSCont, which,0,g);
+                            MRSCont.flags.isGUI = 0;
+                            fig_hold = osp_plotMeanSpec(MRSCont, which,g);
+                            MRSCont.flags.isGUI = 1;
                         end
                     end
                     set(fig_hold.Children, 'Parent', Plot );                    
@@ -533,7 +539,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             if strcmp(split_which{2},'AlphaCorrWaterScaled') || strcmp(split_which{2},'AlphaCorrWaterScaledGroupNormed')
                 metab = 'GABA';
             end
-            fig_hold = osp_plotRaincloud(MRSCont,split_which{1},split_which{2},metab,'Raincloud plot',1);
+            fig_hold = osp_plotRaincloud(MRSCont,split_which{1},split_which{2},metab,'Raincloud plot');
             delete( fig_hold.Children(1));
             set( fig_hold.Children, 'Parent', Plot );
             set(out.Children.Children(1).Children,'Children',flipud(out.Children.Children(1).Children.Children));
@@ -558,18 +564,19 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             if strcmp(split_which{2},'AlphaCorrWaterScaled') || strcmp(split_which{2},'AlphaCorrWaterScaledGroupNormed')
                 metab = 'GABA';
             end
+            MRSCont.flags.isGUI = 0;
             split_corr = strsplit(corr,'-');
             if strcmp(split_corr{1},'corr')
-                fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.overview.corr.Meas{str2num(split_corr{2})},MRSCont.overview.corr.Names{str2num(split_corr{2})},0);
+                fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.overview.corr.Meas{str2num(split_corr{2})},MRSCont.overview.corr.Names{str2num(split_corr{2})});
                 outputFile  = [metab '_' split_which{1} '_' split_which{2} '_'  MRSCont.overview.corr.Names{str2num(split_corr{2})} '.eps'];
             else if strcmp(split_corr{1},'metab')
-                fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.overview.corr.Names{str2num(split_corr{1})},metab,0);
+                fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.overview.corr.Names{str2num(split_corr{1})},metab);
                 outputFile  = [metab '_' split_which{1} '_' split_which{2} '_'  metab '.eps'];
                 else if strcmp(split_corr{1},'SNR')
-                        fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.QM.SNR.A','SNR Subspectrum A',0);
+                        fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.QM.SNR.A','SNR Subspectrum A');
                         outputFile  = [metab '_' split_which{1} '_' split_which{2} '_SNR.eps'];
                     else if  strcmp(split_corr{1},'FWHM')
-                        fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.QM.FWHM.A','FWHM (Hz)',0);
+                        fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.QM.FWHM.A','FWHM (Hz)');
                         outputFile  = [metab '_' split_which{1} '_' split_which{2} '_FWHM.eps'];
                         end
                     end

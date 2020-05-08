@@ -35,15 +35,15 @@ function osp_updatecorrOvWindow(gui)
                 metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
            end 
             if gui.overview.Selected.CorrChoice == 1
-                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},1);
+                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
             else if gui.overview.Selected.CorrChoice == 2
-                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab,1);
+                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab);
                 else
                     switch gui.overview.Selected.Corr
                         case 1
-                        temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
+                        temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
                         case 2
-                        temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
+                        temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
                     end
                 end
             end

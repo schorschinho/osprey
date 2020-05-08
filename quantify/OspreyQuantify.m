@@ -111,8 +111,6 @@ else if qtfyTiss == 1 && (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) &&
     end
 end
 
-% Close any remaining open figures
-close all;
 warning('off','all');
 
 % Set up saving location
@@ -134,6 +132,10 @@ MRSCont = addMetabComb(MRSCont, getResults);
 %% Loop over all datasets
 refProcessTime = tic;
 reverseStr = '';
+if MRSCont.flags.isGUI
+    progressbar = waitbar(0,'Start','Name','Osprey Quantify');
+    waitbar(0,progressbar,sprintf('Quantified dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
@@ -226,10 +228,15 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaled{kk} = AlphaCorrWaterScaled;
         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
     end
-
-
+    if MRSCont.flags.isGUI        
+        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Quantified dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
+    end
 end
 fprintf('... done.\n');
+if MRSCont.flags.isGUI 
+    waitbar(1,progressbar,'...done')
+    close(progressbar)
+end
 toc(refProcessTime);
 %% Create tables
 % Set up readable tables for each quantification.
@@ -261,7 +268,14 @@ outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-save(fullfile(outputFolder, outputFile), 'MRSCont');
+
+if ~MRSCont.flags.isGUI
+    MRSCont.flags.isGUI = 0;
+    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    MRSCont.flags.isGUI = 1;
+else
+   save(fullfile(outputFolder, outputFile), 'MRSCont');
+end
 
 end
 
@@ -311,6 +325,20 @@ for kk = 1:MRSCont.nDatasets
         for ll = 1:length(getResults)
             tCho = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
             MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCho) = tCho;
+        end
+    end
+    % tCr Cr+PCr
+    idx_1  = find(strcmp(MRSCont.quantify.metabs,'Cr'));
+    idx_2 = find(strcmp(MRSCont.quantify.metabs,'PCe'));
+    if  ~isempty(idx_1) && ~isempty(idx_2)
+        idx_3 = find(strcmp(MRSCont.quantify.metabs,'tCr'));
+        if isempty(idx_3)
+            MRSCont.quantify.metabs{length(MRSCont.quantify.metabs)+1} = 'tCr';
+        end
+        idx_tCr = find(strcmp(MRSCont.quantify.metabs,'tCr'));
+        for ll = 1:length(getResults)
+            tCr = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
+            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCr) = tCr;
         end
     end
     %Glc+Tau
