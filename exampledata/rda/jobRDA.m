@@ -100,7 +100,6 @@ opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
 % Choose the fitting algorithm
 opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
                                                 %           - 'AQSES' (planned)
-                                                %           - 'LCModel' (planned)
                                                 %           - 'TARQUIN' (planned)
 
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
