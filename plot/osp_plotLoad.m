@@ -1,4 +1,4 @@
-function out = osp_plotLoad(MRSCont, kk, which,GUI, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
+function out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %% out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %   Creates a figure showing raw data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *unprocessed*
@@ -19,7 +19,6 @@ function out = osp_plotLoad(MRSCont, kk, which,GUI, stag, ppmmin, ppmmax, xlab, 
 %                   OPTIONS:    'mets'
 %                               'ref'
 %                               'w'
-%       GUI      = flag to decide whether plot is used in GUI
 %       stag     = Numerical value representing the fraction of the maximum
 %                   by which individual averages should be plotted
 %                   vertically staggered (optional. Default - 0, i.e. no stagger)
@@ -42,7 +41,7 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin<10
+if nargin<9
     switch which
         case 'mets'
             [~,filen,ext] = fileparts(MRSCont.files{kk});
@@ -61,11 +60,11 @@ if nargin<10
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
-    if nargin<9
+    if nargin<8
         ylab='';
-        if nargin<8
+        if nargin<7
             xlab='Frequency (ppm)';
-            if nargin<7
+            if nargin<6
                 switch which
                     case 'mets'
                         ppmmax = 4.5;
@@ -74,7 +73,7 @@ if nargin<10
                     otherwise
                         error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                 end
-                if nargin<6
+                if nargin<5
                     switch which
                         case 'mets'
                             ppmmin = 0.2;
@@ -83,20 +82,17 @@ if nargin<10
                         otherwise
                             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                     end
-                    if nargin<5
+                    if nargin<4
                         stag = 0;
-                         if nargin<4
-                             GUI = 0;
-                            if nargin < 3
-                                which = 'mets';
-                                if nargin < 2
-                                    kk = 1;
-                                    if nargin<1
-                                        error('ERROR: no input Osprey container specified.  Aborting!!');
-                                    end
+                        if nargin < 3
+                            which = 'mets';
+                            if nargin < 2
+                                kk = 1;
+                                if nargin<1
+                                    error('ERROR: no input Osprey container specified.  Aborting!!');
                                 end
                             end
-                         end
+                        end
                     end
                 end
             end
@@ -208,7 +204,7 @@ end
 hold off;
 %%% 4. DESIGN FINETUNING %%%
 for ax = 1 : length(axesNames)
-    set(axesHandles.(axesNames{ax}), 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
+    set(axesHandles.(axesNames{ax}), 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'XMinorTick', 'On');
     set(axesHandles.(axesNames{ax}), 'LineWidth', 1, 'TickDir', 'out');
     set(axesHandles.(axesNames{ax}), 'FontSize', 16);
     set(axesHandles.(axesNames{ax}), 'Units', 'normalized');
@@ -232,13 +228,10 @@ for ax = 1 : length(axesNames)
     xlabel(axesHandles.(axesNames{ax}),xlab, 'FontSize', 16);
     ylabel(axesHandles.(axesNames{ax}),ylab, 'FontSize', 16);
 end
-if ~GUI
-    set(gcf, 'Color', 'w');
-else
-    set(gcf, 'Color', MRSCont.colormap.Background);
-end
+
+set(gcf, 'Color', MRSCont.colormap.Background);
 %%% 5. ADD OSPREY LOGO %%%
-if ~GUI
+if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);

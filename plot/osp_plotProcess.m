@@ -1,5 +1,5 @@
-function out = osp_plotProcess(MRSCont, kk, which, GUI, ppmmin, ppmmax)
-%% out = osp_plotProcess(MRSCont, kk, which, GUI, ppmmin, ppmmax)
+function out = osp_plotProcess(MRSCont, kk, which, ppmmin, ppmmax)
+%% out = osp_plotProcess(MRSCont, kk, which, ppmmin, ppmmax)
 %   Creates a figure showing processed data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *processed and
 %   averaged* data, i.e. after spectral alignment, averaging, water removal,
@@ -41,7 +41,7 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin<6
+if nargin<5
     switch which
         case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
             ppmmax = 4.5;
@@ -50,7 +50,7 @@ if nargin<6
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
-    if nargin<5
+    if nargin<4
         switch which
             case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
                 ppmmin = 0.2;
@@ -59,15 +59,12 @@ if nargin<6
             otherwise
                 error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
         end
-        if nargin < 4
-            GUI = 0;
-            if nargin < 3
-                which = 'A';
-                if nargin < 2
-                    kk = 1;
-                    if nargin<1
-                        error('ERROR: no input Osprey container specified.  Aborting!!');
-                    end
+        if nargin < 3
+            which = 'A';
+            if nargin < 2
+                kk = 1;
+                if nargin<1
+                    error('ERROR: no input Osprey container specified.  Aborting!!');
                 end
             end
         end
@@ -164,7 +161,7 @@ end
 
 %%% 3. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
-if ~GUI
+if ~MRSCont.flags.isGUI
     out = figure;
 else
     out = figure('Visible','off');
@@ -308,7 +305,7 @@ end
 hold(ax_raw, 'off');
 title(ax_raw, 'Pre-alignment', 'Color', colormap.Foreground);
 xlabel(ax_raw, 'Frequency (ppm)', 'Color', colormap.Foreground)
-if GUI
+if MRSCont.flags.isGUI
     set(ax_raw, 'YColor', colormap.Background);
     set(ax_raw,'YTickLabel',{})
     set(ax_raw,'YTick',{})
@@ -430,7 +427,7 @@ end
 hold(ax_aligned, 'off');
 title(ax_aligned, 'Post-alignment', 'Color', colormap.Foreground);
 xlabel(ax_aligned, 'Frequency (ppm)', 'Color', colormap.Foreground)
-if GUI
+if MRSCont.flags.isGUI
     set(ax_aligned, 'YColor', colormap.Background);
     set(ax_aligned,'YTickLabel',{})
     set(ax_aligned,'YTick',{})
@@ -455,7 +452,7 @@ end
 hold(ax_proc, 'off');
 title(ax_proc, 'Aligned and averaged', 'Color', colormap.Foreground);
 xlabel(ax_proc, 'Frequency (ppm)', 'Color', colormap.Foreground)
-if GUI
+if MRSCont.flags.isGUI
     set(ax_proc, 'YColor', colormap.Background);
     set(ax_proc,'YTickLabel',{})
     set(ax_proc,'YTick',{})
@@ -473,26 +470,27 @@ if isfield(MRSCont.QM.drift.pre, which)
             colors(dots,2) = colors(dots,2) + (1 - colors(dots,2)) * (1-weights(dots));
             colors(dots,3) = colors(dots,3) + (1 - colors(dots,3)) * (1-weights(dots));
         end
+        scatter(ax_drift, [1:length(crDriftPre)],crDriftPre',36,ones(length(crDriftPre),1).*colormap.LightAccent);
         scatter(ax_drift, [1:length(crDriftPost)],crDriftPost',36,colors,'filled','MarkerEdgeColor',colormap.Foreground);
 %          scatter(ax_drift, [1:length(crDriftPost)],crDriftPost',72.*ones(length(crDriftPre),1).*weights,ones(length(crDriftPre),1).*colormap.Foreground,'filled');
 %          scatter(ax_drift, [1:length(crDriftPost)],crDriftPost',72.*ones(length(crDriftPre),1).*weights,colors,'filled','MarkerEdgeColor',colormap.Foreground);        
-        scatter(ax_drift, [1:length(crDriftPre)],crDriftPre',36,ones(length(crDriftPre),1).*colormap.LightAccent);
+        
         text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end), 'Pre', 'Color', colormap.LightAccent);
         text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end), 'Post', 'Color', colormap.Foreground);
         set(ax_drift, 'YLim', [3.028-0.1 3.028+0.1]);
+        yticks([3.028-0.08 3.028-0.04 3.028 3.028+0.04 3.028+0.08]);
+        yticklabels({'2.94' '2.98' '3.02' '3.06' '3.10'});
         x = xlim;
         plot(ax_drift, [x(1) x(2)], [3.028 3.028],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
         plot(ax_drift, [x(1) x(2)], [3.028-0.04 3.028-0.04],'LineStyle', '--', 'Color', colormap.Foreground, 'LineWidth', 0.5);
         plot(ax_drift, [x(1) x(2)], [3.028+0.04 3.028+0.04],'LineStyle', '--', 'Color', colormap.Foreground, 'LineWidth', 0.5);
         hold(ax_drift, 'off');
     else 
-        axes(ax_drift);
         x = xlim;
         y = yLims;
         text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
     end
 else
-    axes(ax_drift);
     x = xlim;
     y = yLims;
     text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
@@ -507,11 +505,11 @@ end
 axs = {ax_raw, ax_aligned, ax_proc, ax_drift};
 for ll = 1:length(axs)
     gca = axs{ll};
-    set(gca, 'LineWidth', 1, 'TickDir', 'out');
+    set(gca, 'LineWidth', 1, 'TickDir', 'out', 'XMinorTick', 'On');
     set(gca, 'FontSize', 16);
 
     % Black axes, white background
-    if ~GUI
+    if ~MRSCont.flags.isGUI
         set(gca, 'XColor', 'k');
         set(gca, 'Color', 'w');
         % If no y caption, remove y axis
@@ -534,17 +532,13 @@ for ll = 1:length(axs)
 end
 
 gcf = out;
-    if ~GUI
-        set(gcf, 'Color', 'w');
-    else
-        set(gcf, 'Color', MRSCont.colormap.Background);        
-    end
+set(gcf, 'Color', MRSCont.colormap.Background);        
 box off;
 
 
 %%% 9. ADD OSPREY LOGO %%%
 % Add to the printout, but not if displayed in the GUI.
-if ~GUI
+if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     text(gca, 0, -0.1, [MRScont.ver.Osp ' ' MRSCont.ver.Pro],'Color', colormap.Foreground);

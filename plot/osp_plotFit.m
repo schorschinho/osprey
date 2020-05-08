@@ -1,4 +1,4 @@
-function out = osp_plotFit(MRSCont, kk, which, GUI, conc, stagFlag, xlab, ylab, figTitle)
+function out = osp_plotFit(MRSCont, kk, which, conc, stagFlag, xlab, ylab, figTitle)
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   Creates a figure showing data stored in an Osprey data container, as
 %   well as the fit to it, the baseline, the residual, and contributions
@@ -20,8 +20,7 @@ function out = osp_plotFit(MRSCont, kk, which, GUI, conc, stagFlag, xlab, ylab, 
 %                               'sum'
 %                               'ref'
 %                               'w'
-%       GUI       = flag to decide whether plot is used in GUI
-%       conc      = 
+%       conc      = flag if concatenate fitting was used
 %       stagFlag  = flag to decide whether basis functions should be plotted
 %                   vertically staggered or simply over one another
 %                   (optional)
@@ -49,30 +48,27 @@ end
 fitMethod   = MRSCont.opts.fit.method;
 fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
-if nargin<9    
+if nargin<8    
     [~,filen,ext] = fileparts(MRSCont.files{kk});
     if strcmp(which, 'conc')
         figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext]);
     else
         figTitle = sprintf([fitMethod ' ' fitStyle ' ' which ' fit plot:\n' filen ext]);
     end
-    if nargin<8
+    if nargin<7
         ylab='';
-        if nargin<7
+        if nargin<6
             xlab='Frequency (ppm)';
-            if nargin<6
+            if nargin<5
                 stagFlag = 1;
-                if nargin<5
-                    conc = 'diff1';
-                    if nargin<4
-                        GUI = 0;    
-                        if nargin < 3
-                            which = 'off';
-                            if nargin < 2
-                                kk = 1;
-                                if nargin<1
-                                    error('ERROR: no input Osprey container specified.  Aborting!!');
-                                end
+                if nargin<4
+                    conc = 'diff1';   
+                    if nargin < 3
+                        which = 'off';
+                        if nargin < 2
+                            kk = 1;
+                            if nargin<1
+                                error('ERROR: no input Osprey container specified.  Aborting!!');
                             end
                         end
                     end
@@ -95,6 +91,7 @@ else
     end
 end
 
+
 if strcmp(which, 'ref') || strcmp(which, 'w')
     fitRangePPM = MRSCont.opts.fit.rangeWater;
     basisSet    = MRSCont.fit.resBasisSet.(which).water{MRSCont.info.(which).unique_ndatapoint_indsort(kk)};
@@ -103,10 +100,10 @@ else if strcmp(which, 'conc')
         basisSet    = MRSCont.fit.resBasisSet.(which){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
     else if strcmp(which, 'off')
             fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet.(which){MRSCont.info.A.unique_ndatapoint_indsort(kk)};
+            basisSet    = MRSCont.fit.resBasisSet.(which){kk};
         else
             fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet.(which){MRSCont.info.(which).unique_ndatapoint_indsort(kk)};
+            basisSet    = MRSCont.fit.resBasisSet.(which){kk};
         end
     end
 end
@@ -140,15 +137,11 @@ switch fitMethod
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
         else
             % if metabolites, use the metabolite model
-            [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
-        end
-    case 'LCModel'
-        if strcmp(which, 'ref') || strcmp(which, 'w')
-            % if water, use the water model
-            [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
-        else
-            % if metabolites, use the metabolite model
-            [ModelOutput] = fit_LCModelParamsToModel(inputData, inputSettings, fitParams);
+            if strcmp(inputSettings.fitStyle,'Concatenated')
+                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
+            else
+                [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
+            end
         end
 end
 
@@ -253,12 +246,12 @@ end
 
 %%% 7. DESIGN FINETUNING %%%
 % Adapt common style for all axes
-set(gca, 'XDir', 'reverse', 'XLim', [fitRangePPM(1), fitRangePPM(end)]);
+set(gca, 'XDir', 'reverse', 'XLim', [fitRangePPM(1), fitRangePPM(end)], 'XMinorTick', 'On');
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
 % If no y caption, remove y axis
 if isempty(ylab)
-    if ~GUI
+    if ~MRSCont.flags.isGUI
         set(gca, 'YColor', 'w');
         % Black axes, white background
         set(gca, 'XColor', 'k');
@@ -285,7 +278,7 @@ ylabel(ylab, 'FontSize', 16);
 
 
 %%% 8. ADD OSPREY LOGO AND TIGHTEN FIGURE %%%
-if ~GUI
+if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);

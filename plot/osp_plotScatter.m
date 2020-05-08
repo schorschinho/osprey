@@ -1,5 +1,5 @@
-function [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDataName,GUI)
-%% [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDataName,GUI)
+function [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDataName)
+%% [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDataName)
 % Creates correlation figure of  the chosen quantifcation and metabolite
 % one figure contains a correlation analysis with subgroup correlations.
 % If no groups are defined the distribution of the whole dataset will be shown. If no
@@ -19,7 +19,6 @@ function [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDat
 %                               'rawWaterScaled'
 %       quant    = Quantification
 %       corrData = Data for correlation analysis
-%       GUI      = flag if fiure is used in GUI
 %
 %   AUTHOR:
 %       Helge Zoellner (Johns Hopkins University, 2019-11-14)
@@ -38,23 +37,21 @@ function [out_scat] = osp_plotScatter(MRSCont,model,quant,metab,corrData,corrDat
 %       2019-11-12: First version of the code.
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin<6
-    GUI = 0;
-    if nargin<5
-        corrDataName = 'correlation measure';
-        if nargin<4
-            error('No correlation data passed. Please add correlation data to the MRSCont.');
-            if nargin<3
-                metab = 'GABA';
-                if nargin<2
-                    which = 'tCr';
-                    if nargin<1
-                        error('ERROR: no input Osprey container specified.  Aborting!!');
-                    end
+
+if nargin<5
+    corrDataName = 'correlation measure';
+    if nargin<4
+        error('No correlation data passed. Please add correlation data to the MRSCont.');
+        if nargin<3
+            metab = 'GABA';
+            if nargin<2
+                which = 'tCr';
+                if nargin<1
+                    error('ERROR: no input Osprey container specified.  Aborting!!');
                 end
             end
         end
-   end
+    end
 end
 
 % Check that OspreyOverview has been run before
@@ -186,7 +183,7 @@ for an = 1 : length(str)
 end
 
 % Black axes, white background
-if ~GUI
+if ~MRSCont.flags.isGUI
     set(gca, 'YColor', 'w');
     title([corrDataName ' vs ' metab],'FontSize',16);
 else
@@ -199,7 +196,7 @@ xlabel(xlab,'FontSize',16);
 ylabel(ylab,'FontSize',16);
 
 %%% 5. ADD OSPREY LOGO %%%
-if ~GUI
+if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out_scat, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);

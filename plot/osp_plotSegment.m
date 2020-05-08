@@ -1,10 +1,10 @@
-function out = osp_plotSegment(MRSCont, kk, GUI)
-%% out = osp_plotSegment(MRSCont, kk, GUI)
+function out = osp_plotSegment(MRSCont, kk)
+%% out = osp_plotSegment(MRSCont, kk)
 %   Creates a figure showing output from the segemntation routine
 %   stored in an Osprey data container
 %
 %   USAGE:
-%       out = osp_plotSegment(MRSCont, kk, GUI)
+%       out = osp_plotSegment(MRSCont, kk)
 %
 %   OUTPUTS:
 %       out     = MATLAB figure handle
@@ -12,7 +12,6 @@ function out = osp_plotSegment(MRSCont, kk, GUI)
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
-%       GUI      = flag to decide whether plot is used in GUI
 %
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2019-11-26)
@@ -28,13 +27,10 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 3
-    GUI = 0;
-    if nargin < 2
-        kk = 1;
-        if nargin<1
-            error('ERROR: no input Osprey container specified.  Aborting!!');
-        end
+if nargin < 2
+    kk = 1;
+    if nargin<1
+        error('ERROR: no input Osprey container specified.  Aborting!!');
     end
 end
 
@@ -78,7 +74,7 @@ img_montage = [img_t+0.225*vox_t, img_t+0.3*vox_t_GM, img_t+0.225*vox_t_WM, img_
 
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
-if ~GUI
+if ~MRSCont.flags.isGUI
     out = figure;
     set(gcf, 'Color', 'w');
 else
@@ -94,7 +90,7 @@ caxis([0 1])
 axis equal;
 axis tight;
 axis off;
-if ~GUI
+if ~MRSCont.flags.isGUI
     title(['Segmentation: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
 else
     title(['Segmentation: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
@@ -111,7 +107,7 @@ tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fCSF(kk));
 text(3*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
 
 %%% 6. ADD OSPREY LOGO %%%
-if ~GUI
+if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
     imshow(I, map);
