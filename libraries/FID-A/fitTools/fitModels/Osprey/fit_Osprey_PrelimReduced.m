@@ -1,5 +1,5 @@
-function [fitParamsStep1] = fit_LCModel_PrelimReduced(dataToFit, basisSet, minKnotSpacingPPM, fitRangePPM)
-%% [fitParamsStep1] = fit_LCModel_PrelimReduced(dataToFit, basisSet, minKnotSpacingPPM, fitRangePPM)
+function [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, minKnotSpacingPPM, fitRangePPM)
+%% [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, minKnotSpacingPPM, fitRangePPM)
 %   Performs the first step of the LCModel preliminary analysis
 %   analogous to the LCModel algorithm. The algorithm is described in:
 %       S.W. Provencher, "Estimation of metabolite concentrations from
@@ -102,10 +102,10 @@ inputSettings.fitRangePPM   = fitRangePPM;
 inputSettings.lorentzLB     = lorentzLB;
 
 % Set the hard box constraints for the parameters
-lb_ph0          = -359; 
-ub_ph0          = +359; % Zero order phase shift [deg]
-lb_ph1          = -45; 
-ub_ph1          = +45;  % First order phase shift [deg/ppm]
+lb_ph0          = -15; 
+ub_ph0          = +15; % Zero order phase shift [deg]
+lb_ph1          = -10; 
+ub_ph1          = +10;  % First order phase shift [deg/ppm]
 lb_gaussLB      = 0; 
 ub_gaussLB      = sqrt(5000); % Gaussian dampening [Hz]
 lb_freqShift    = -5; 
@@ -124,14 +124,14 @@ opts.Display    = 'off';
 opts.TolFun     = 1e-6;
 opts.TolX       = 1e-6;
 opts.MaxIter    = 400;
-[x] = LevenbergMarquardt(@(x) fit_LCModel_PrelimReduced_Model(x, inputData, inputSettings),x0,lb,ub,opts);
+[x] = LevenbergMarquardt(@(x) fit_Osprey_PrelimReduced_Model(x, inputData, inputSettings),x0,lb,ub,opts);
 
 
 %%% 4. PERFORM FINAL COMPUTATION OF LINEAR PARAMETERS %%%
 % After the non-linear optimization is finished, we need to perform the
 % final evaluation of the linear parameters (i.e. the amplitudes and
 % baseline parameters).
-[fitParamsFinal] = fit_LCModel_PrelimReduced_finalLinear(x, inputData, inputSettings);
+[fitParamsFinal] = fit_Osprey_PrelimReduced_finalLinear(x, inputData, inputSettings);
 
 
 %%% 5. CREATE OUTPUT %%%
@@ -149,7 +149,7 @@ end
 %%%%%%%%%%%%%%% MODEL FUNCTION %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function F = fit_LCModel_PrelimReduced_Model(x, inputData, inputSettings)
+function F = fit_Osprey_PrelimReduced_Model(x, inputData, inputSettings)
 %   This function receives the current set of non-linear parameters during
 %   every iteration of the non-linear least-squares optimization. The
 %   parameters are applied to the basis set.
@@ -285,7 +285,7 @@ end
 %%%%%%%%%%%% FINAL LINEAR ITERATION %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [fitParamsFinal] = fit_LCModel_PrelimReduced_finalLinear(x, inputData, inputSettings)
+function [fitParamsFinal] = fit_Osprey_PrelimReduced_finalLinear(x, inputData, inputSettings)
 %   This function is applied after the final iteration of the non-linear
 %   solver has returned the final set of non-linear parameters.
 %

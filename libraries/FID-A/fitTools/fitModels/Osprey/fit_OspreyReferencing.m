@@ -1,5 +1,5 @@
-function [refShift, refFWHM] = fit_LCModelReferencing(dataToFit)
-%% [refShift, refFWHM] = fit_LCModelReferencing(dataToFit)
+function [refShift, refFWHM] = fit_OspreyReferencing(dataToFit)
+%% [refShift, refFWHM] = fit_OspreyReferencing(dataToFit)
 %   Calculates the reference shift and full-width half-maximum (FWHM) of a
 %   spectrum according to the LCModel algorithm. The algorithm is described in:
 %       S.W. Provencher, "Estimation of metabolite concentrations from
