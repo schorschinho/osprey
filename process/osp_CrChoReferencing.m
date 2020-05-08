@@ -57,17 +57,25 @@ newx = [1:1:(2*length(spec)-1)];
 
 % fit the center peak
 limits      = newx >= 0.94*length(spec) & newx <= 1.06*length(spec);
-[~,max_ind] = max(r(limits));
+[max_value,max_ind] = max(r(limits));
 tempx = newx(limits);
+tempr = r(limits);
+gtHalfMax=find(tempr >= 0.5 * max_value);
+HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
+if HWHM == 0
+    gtHalfMax=find(tempr >= 0.3 * max_value);
+    HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
+end
+
 nlinopts    = statset('nlinfit');
-nlinopts    = statset(nlinopts,'MaxIter',1e8,'MaxFunEvals',1e8,'TolX',1e-10,'TolFun',1e-10);
-LorentzModelInit = [1 1/pi tempx(max_ind) 0];
-[LorentzModelParam, ~] = nlinfit(newx(limits), real(r(limits)), @LorentzModel, LorentzModelInit, nlinopts);
+% nlinopts    = statset(nlinopts,'MaxIter',1e8,'MaxFunEvals',1e8,'TolX',1e-10,'TolFun',1e-10);
+LorentzModelInit = [1 HWHM tempx(max_ind) 0];
+LorentzModelParam = lsqcurvefit(@LorentzModel,LorentzModelInit,newx(limits),real(r(limits)),[1 0 tempx(1) -180],[1 2*HWHM tempx(end) 180],nlinopts);
+
 
 % Return FWHM and reference shift
 refFWHM     = 2 * LorentzModelParam(2) * abs(ppm(1)-ppm(2));
 refShift    = (LorentzModelParam(3) - length(newx)/2) * (ppm(1)-ppm(2)) * dataToFit.txfrq*1e-6;
-
 
 %%% embedded Lorentzian model function
 function Lorentz = LorentzModel(x,freq)
