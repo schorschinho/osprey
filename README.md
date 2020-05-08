@@ -42,7 +42,6 @@ required for full functionality:
 - Optimization
 - Signal Processing
 - Statistics and Machine Learning
-- Wavelet
 
 ### Installation
 
