@@ -53,7 +53,7 @@ function osp_updateLoadWindow(gui)
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
         temp = figure( 'Visible', 'off' );
         if gui.load.Selected == 1 %Is Metabolite data/tab?
-            temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',1 );
+            temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
             if MRSCont.flags.isUnEdited %Is UnEdited?
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)
@@ -86,14 +86,14 @@ function osp_updateLoadWindow(gui)
                 set(  gui.layout.multiDload.Children, 'XLim', temp.Children(4).XLim);
             end
         else if gui.load.Selected == 2 %Is Ref data/tab?
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',1 );
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)
                 set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
                 set(gui.Plot.data.Children(1).Children(1).Title, 'String', ViewAxes.Title.String)
                 set(gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
             else %Is water data/tab?
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',1 );
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)
                 set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));

@@ -30,7 +30,7 @@ function osp_iniProcessWindow(gui)
         gui.layout.tabs.TabEnables{2} = 'on';
         gui.layout.tabs.Selection  = 2;
         gui.layout.EmptyProPlot = 0;
-%%% 2. CREATING SUB TABS FOR THIS TAB %%%
+%%% 2. CREATING SUB TABS FOR THIS TAB %%% 
 % In this case one tab fo each subspec (A,B,C,D,ref,water)
         gui.layout.AProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
         gui.layout.proTab.TabWidth   = 90;
@@ -210,7 +210,7 @@ function osp_iniProcessWindow(gui)
 
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
  %osp_plotProcess is used to visualize the processed spectra
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{t},1 ); % Create figure
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{t}); % Create figure
             %Subplots are distributed here
                 gui.layout.proSpecs = uix.VBox('Parent', gui.Plot.pro, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     gui.layout.proPre = uix.VBox('Parent', gui.layout.proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
@@ -232,6 +232,7 @@ function osp_iniProcessWindow(gui)
             set(gui.layout.proPost.Children(1), 'OuterPosition', [0,0,1,1])
             set(gui.layout.proDrift.Children(1), 'Units', 'normalized')
             set(gui.layout.proDrift.Children(1), 'OuterPosition', [0,0,1,1])
+            set( gui.layout.proDrift.Children,'Children',flipud(gui.layout.proDrift.Children.Children));
             set(gui.layout.proAlgn.Children(1), 'Units', 'normalized')
             set(gui.layout.proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
         end

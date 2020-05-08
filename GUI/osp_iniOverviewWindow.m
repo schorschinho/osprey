@@ -74,7 +74,7 @@ function osp_iniOverviewWindow(gui)
 %op_plotspec is used to visualize the processed data
         gui.layout.shiftind = 0.2;
         for g = 1 :  gui.overview.Number.Groups %Loop over groups. Difterenc colors and shifts for different groups
-            temp = osp_plotOverviewSpec(MRSCont, gui.process.Names{gui.process.Selected},1, g, gui.layout.shiftind);
+            temp = osp_plotOverviewSpec(MRSCont, gui.process.Names{gui.process.Selected}, g, gui.layout.shiftind);
             if g == 1
                 ax=get(temp,'Parent');
                 figpl = get(ax,'Parent');
@@ -123,9 +123,9 @@ function osp_iniOverviewWindow(gui)
         gui.layout.shift = 0.5;
         temp = figure( 'Visible', 'off' );
         if gui.load.Selected ==1 %Metabolite data
-            temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(1)]).(gui.process.Names{2}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            temp = op_plotspec(MRSCont.overview.sort_data.(['g_' num2str(1)]).(gui.process.Names{2}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
         else %Water data?
-            temp = op_plotspec(MRSCont.overview.(['sort_data_g' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            temp = op_plotspec(MRSCont.overview.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
         end
         set(gca, 'YColor', MRSCont.colormap.Background);
         set(gca,'YTickLabel',{})
@@ -152,9 +152,30 @@ function osp_iniOverviewWindow(gui)
         gui.Plot.quantOv = uix.VBox('Parent', gui.layout.quantOvTab,'BackgroundColor',gui.colormap.Background,'Padding', 5);
 
 %Creates Popup menu to change between quantifications (tCr, waterScaled etc.)
-       tempFitNames = gui.layout.fitTab.TabTitles;
+       tempFitNames = cell(1);
+       if strcmp(MRSCont.opts.fit.style,'Concatenated')
+           tempFitNames{1} = 'conc';
+           if MRSCont.flags.hasRef
+               tempFitNames{2} = 'ref';
+           end
+           if MRSCont.flags.hasWater
+               if MRSCont.flags.hasRef
+                    tempFitNames{3} = 'w';
+               else
+                   tempFitNames{2} = 'w';
+               end               
+           end
+       else
+           tempFitNames = gui.layout.fitTab.TabTitles;
+       end
+       
        popMenuNames_Count = 0;
-       for i = 0 : gui.fit.Number-1
+       if strcmp(MRSCont.opts.fit.style,'Concatenated')
+            fitNumber = length(tempFitNames);
+       else
+            fitNumber = gui.fit.Number;
+       end
+       for i = 0 : fitNumber-1
            if ~strcmp(tempFitNames{i+1},'ref') && ~strcmp(tempFitNames{i+1},'w')
                gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(tempFitNames{i+1})));
                gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(tempFitNames{i+1}));
@@ -215,7 +236,7 @@ function osp_iniOverviewWindow(gui)
 
 %osp_plotQuantifyTable to create distribution overview as raincloud plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotRaincloud(MRSCont,gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},'Raincloud plot',1);
+        [temp] = osp_plotRaincloud(MRSCont,gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},'Raincloud plot');
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Plot.distrOv);
         close( temp );
@@ -260,7 +281,7 @@ function osp_iniOverviewWindow(gui)
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 %osp_plotQuantifyTable is used to create a correlation plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
+        [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Plot.corrOv);
         set(gui.Plot.corrOv,'Heights', [-0.07 -0.90 -0.03]);

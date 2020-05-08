@@ -4,7 +4,7 @@ function osp_onGit( ~, ~)
 %
 %
 %   USAGE:
-%       osp_onOsp( ~, ~ );
+%       osp_onGit( ~, ~ );
 %
 %
 %

@@ -128,7 +128,7 @@ function osp_iniLoadWindow(gui)
  %depends on the number of subspectra of the seuqence
         temp = figure( 'Visible', 'off' );
         if t == 1 %Metabolite data/tab
-            temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',1 );
+            temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
             if MRSCont.flags.isUnEdited % One window for UnEdited
                 ViewAxes = gca();
                 set( ViewAxes, 'Parent', gui.Plot.data );
@@ -165,11 +165,11 @@ function osp_iniLoadWindow(gui)
                 
             end
         else if t == 2 %ref data/tab
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',1 );
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
                 ViewAxes = gca();
                 set( ViewAxes, 'Parent', gui.Plot.data );
             else %water data/tab has only one window all the time
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',1 );
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', gui.Plot.data );
             end

@@ -27,9 +27,9 @@ function osp_onPrint( ~, ~ ,gui)
 %%% 1. GET DATA %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
     selectedTab = get(gui.layout.tabs, 'Selection');
-    screenSize      = get(0,'ScreenSize');
+    screenSize      = [1, 1, 1000, 900];
     canvasSize      = screenSize;
-    canvasSize(4)   = screenSize(4) * 0.6;
+    canvasSize(4)   = screenSize(4) * 0.7;
     canvasSize(3)   = canvasSize(4) * (11/8.5);
     canvasSize(2)   = (screenSize(4) - canvasSize(4))/2;
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
@@ -42,9 +42,9 @@ function osp_onPrint( ~, ~ ,gui)
             Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
         case 3
             Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
-        case '4'
+        case 4
             Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
-        case '5'
+        case 5
             Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
         otherwise
             Title = '';
@@ -105,7 +105,7 @@ function osp_onPrint( ~, ~ ,gui)
      %depends on the number of subspectra of the seuqence
             if gui.load.Selected == 1 %Metabolite data/tab
                 outputFile      = [filename '_OspreyLoad_mets.pdf'];
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',1 );
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
                 if MRSCont.flags.isUnEdited % One window for UnEdited
                     ViewAxes = gca();
                     set( ViewAxes, 'Parent', Plot );
@@ -142,12 +142,12 @@ function osp_onPrint( ~, ~ ,gui)
 
                 end
             else if gui.load.Selected == 2 %ref data/tab
-                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',1 );
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
                     ViewAxes = gca();
                     set( ViewAxes, 'Parent', Plot );
                     outputFile      = [filename '_OspreyLoad_ref.pdf'];
                 else %water data/tab has only one window all the time
-                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',1 );
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
                     ViewAxes = gca();
                     set(ViewAxes, 'Parent', Plot );
                     outputFile      = [filename '_OspreyLoad_w.pdf'];
@@ -217,7 +217,7 @@ function osp_onPrint( ~, ~ ,gui)
 
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
  %osp_plotProcess is used to visualize the processed spectra
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{t},1 ); % Create figure
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{t}); % Create figure
             %Subplots are distributed here
                 proSpecs = uix.VBox('Parent', Plot, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     proPre = uix.VBox('Parent', proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
@@ -249,12 +249,26 @@ function osp_onPrint( ~, ~ ,gui)
             Selection = gui.fit.Names{gui.fit.Selected};
             Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
             set(input_figure, 'Heights', [-0.12 -0.88]);
+            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w') %Is not concateneted or is reference/water fit 
+            gui.fit.Style = Selection;
+            else %Is concatenated and not water/reference
+                gui.fit.Style = 'conc';
+            end
+            if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
+            refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
+            refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM; 
+            end
+            RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+            ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
+            ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+            iniph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
+            iniph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1;        
             % Get parameter from file to fill the info panel
             if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
-                StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
-                        '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ...
+            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
+                        '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f') '°; ph1: ' num2str(ph1,'%1.2f') '°; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
                         ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(Selection){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.resBasisSet.(Selection){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM) ...
-                        ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected})];
+                        ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected}) '; inital ph0: ' num2str(iniph0,'%1.2f') '°; inital ph1: ' num2str(iniph1,'%1.2f') '°'];
             else if strcmp (Selection, 'ref') %Reference data?
             StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
@@ -271,13 +285,6 @@ function osp_onPrint( ~, ~ ,gui)
             Results = uix.Panel('Parent', Plot,...
                                        'Title', ['Raw Amplitudes'],'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,...
                                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(Selection, 'ref') || strcmp(Selection, 'w') %Is not concateneted or is reference/water fit 
-                gui.fit.Style = Selection;
-                RawAmpl = MRSCont.fit.results.(Selection).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-            else %Is concatenated and not water/reference
-                gui.fit.Style = 'conc';
-                RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-            end
             if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
                 if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
                     NameText = [''];
@@ -335,7 +342,7 @@ function osp_onPrint( ~, ~ ,gui)
 %%%  5. VISUALIZATION PART OF THIS TAB %%%
 %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,Selection);
+            temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,Selection);
             ViewAxes = gca();
             set(ViewAxes, 'Parent', Plot );
             close( temp );
@@ -369,19 +376,19 @@ function osp_onPrint( ~, ~ ,gui)
             Results = uix.VBox('Parent', Plot,'BackgroundColor',gui.colormap.Background);
             temp = figure( 'Visible', 'off' );
             if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-                osp_plotCoreg(MRSCont, gui.controls.Selected, 1);
+                osp_plotCoreg(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children,'gray')
                 close( temp );
                 temp = figure( 'Visible', 'off' );
-                osp_plotSegment(MRSCont, gui.controls.Selected, 1);
+                osp_plotSegment(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children(1),'gray');
                 close( temp );
             else % Only coreg has been run
-                osp_plotCoreg(MRSCont, gui.controls.Selected, 1);
+                osp_plotCoreg(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children,'gray');
@@ -410,7 +417,7 @@ function osp_onPrint( ~, ~ ,gui)
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview','Individual');
                     outputFile  = [Selection{1} '.pdf']; 
                     for g = 1 :  gui.overview.Number.Groups %Loop over groups
-                        temp = osp_plotOverviewSpec(MRSCont, Selection{1},1, g, gui.layout.shiftind);
+                        temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind);
                         if g == 1
                             temp = get(temp,'Parent');
                             fig_hold = get(temp,'Parent');
@@ -423,13 +430,14 @@ function osp_onPrint( ~, ~ ,gui)
 
                     end
                     set(fig_hold.Children, 'Parent', Plot );
+                    close(fig_hold);
                 case 2 %MeanOverview
                     Selection = gui.controls.pop_meanOvPlot.String(gui.process.Selected);
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Mean');
                     outputFile  = [Selection{1} '.pdf'];                    
                     for g = 1 :  gui.overview.Number.Groups
                         if gui.overview.Number.Groups > 1
-                            temp = osp_plotMeanSpec(MRSCont, Selection{1},0,g,1/gui.overview.Number.Groups,1);
+                            temp = osp_plotMeanSpec(MRSCont, Selection{1},g,1/gui.overview.Number.Groups);
                             delete(temp.Children(1))
                             if g == 1
                                 fig_hold = temp;
@@ -440,7 +448,7 @@ function osp_onPrint( ~, ~ ,gui)
                                 close(temp);
                             end   
                         else
-                            fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},0,g);
+                            fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},g);
                         end
                     end
                     set(fig_hold.Children, 'Parent', Plot );
@@ -455,7 +463,7 @@ function osp_onPrint( ~, ~ ,gui)
                     else
                         metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
                     end
-                    fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',1);
+                    fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');
                     delete( fig_hold.Children(1));
                     set( fig_hold.Children, 'Parent', Plot );
                     set(out.Children.Children(1).Children(1).Children,'Children',flipud(out.Children.Children(1).Children(1).Children.Children));
@@ -465,24 +473,25 @@ function osp_onPrint( ~, ~ ,gui)
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Correlation');
                     Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
                     split_Selection = strsplit(Selection,'-');
+                    MRSCont.flags.isGUI =0;
                     if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                         metab = 'GABA';
                     else
                         metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
                     end 
                     if gui.overview.Selected.CorrChoice == 1
-                        fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},0);
+                        fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
                         outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
                     else if gui.overview.Selected.CorrChoice == 2
-                        fig_hold = osp_plotScatter(MRSCont,split_Selection{1},gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab,0);
+                        fig_hold = osp_plotScatter(MRSCont,split_Selection{1},gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab);
                         outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  MRSCont.quantify.metabs{gui.overview.Selected.Metab} '.pdf'];
                         else
                             switch gui.overview.Selected.Corr
                                 case 1
-                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},0);
+                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
                                 outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
                                 case 2
-                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr},0);
+                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
                                 outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
                             end
                         end
@@ -490,8 +499,9 @@ function osp_onPrint( ~, ~ ,gui)
                     delete( fig_hold.Children(1));
                     delete( fig_hold.Children(1));
                     set(fig_hold.Children, 'Parent', Plot );
-                    set(out.Children.Children(1).Children,'Children',flipud(out.Children.Children(1).Children.Children));
+                    set(out.Children.Children.Children(1).Children,'Children',flipud(out.Children.Children.Children(1).Children.Children));
                     close(fig_hold);
+                    MRSCont.flags.isGUI =1;
                     end
             
     end    

@@ -28,7 +28,7 @@ function osp_updateSpecsOvWindow(gui)
 %%% 2. VISUALIZATION PART OF THIS TAB %%%
         Selection = gui.controls.pop_specsOvPlot.String(gui.process.Selected);
         for g = 1 :  gui.overview.Number.Groups %Loop over groups
-            temp = osp_plotOverviewSpec(MRSCont, Selection{1},1, g, gui.layout.shiftind);
+            temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind);
                 ax=get(temp,'Parent');
                 figpl = get(ax,'Parent');
                 copyobj(ax.Children, gui.Plot.specsOv.Children(2));
