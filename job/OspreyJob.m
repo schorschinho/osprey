@@ -18,7 +18,7 @@ function [MRSCont] = OspreyJob(jobFile,GUI)
 %
 %   INPUTS:
 %       jobFile     = File containing a correct Osprey job definition.
-%                     Accepted file formats are .m.
+%                     Accepted file formats are .m and .csv.
 %       GUI         = flag to decide whether plot is used in GUI
 %
 %   OUTPUTS:
@@ -139,11 +139,11 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Fitting range is set to [0.2 4.2] ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
         opts.fit.range = [0.2 4.2] ;
     end
-    if isfield(jobStruct,'lolim_range') && isfield(jobStruct,'uplim_range')
+    if isfield(jobStruct,'lolim_rangew') && isfield(jobStruct,'uplim_rangew')
         opts.fit.range = [jobStruct(1).lolim_range jobStruct(1).uplim_range];
     else
         fprintf('Fitting range is set to [0.2 4.2] ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.fit.range = [0.2 4.2] ;
+        opts.fit.range = [2.0 7.4] ;
     end
     if isfield(jobStruct,'KnotSpace')
         opts.fit.bLineKnotSpace = jobStruct(1).KnotSpace;
@@ -239,14 +239,14 @@ if length(isUnique) ~= 1
 end
 
 
-%%% 6. SET UP DEFAULT OSPREY COLORMAP %%%
+%%% 6. SET UP DEFAULT OSPREY COLORMAP AND GUI flag %%%
 % Default colormap
 colormap.Background     = [255/255 254/255 254/255];
 colormap.LightAccent    = [110/255 136/255 164/255];
 colormap.Foreground     = [11/255 71/255 111/255];
 colormap.Accent         = [11/255 71/255 111/255];
 MRSCont.colormap        = colormap;
-
+MRSCont.flags.isGUI     = GUI;
 
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didLoadJob    = 1;
@@ -259,6 +259,7 @@ MRSCont.ver.Job             = '100 job';
 [~,jobfilename,jobfileext]  = fileparts(jobFile);
 outputFile                  = strrep([jobfilename jobfileext], jobfileext, '.mat');
 MRSCont.outputFile          = outputFile;
+MRSCont.flags.speedUp        = 0;
 if ~GUI
     if exist(fullfile(outputFolder, outputFile), 'file') == 2
         fprintf('Your selected output folder ''%s'' already contains an Osprey output structure: \t%s.\n', outputFolder, outputFile);
@@ -268,15 +269,41 @@ if ~GUI
             askOverWriteJob = 'y';
         end
         if askOverWriteJob=='n' || askOverWriteJob=='N'
-             askloadMRSCont = input('Do you want to load the corresponding MRS Container (y/n)? [y]   ','s');
+             fprintf('You are about to load the job: \t%s.\nIf new files were added they will be attached, otherwise the MRS Container will just be loaded.\nIf you want to change analysis parameters on an exisiting set of files add the location of an existing MRS Container during the call.\n', jobFile);
+             askloadMRSCont = input('Do you want to load the corresponding MRS Container and attach new files (y/n)? [y]   ','s');
              if isempty(askloadMRSCont)
                 askloadMRSCont = 'y';
-             end
+             end 
              if askloadMRSCont=='n' || askloadMRSCont=='N'
                 disp('Aborted! No new job loaded.');
                 return;
                 else if askloadMRSCont=='y' || askloadMRSCont=='y'
+                        MRSContNew = MRSCont;
                         load(fullfile(outputFolder, outputFile));
+                        kk = 1;
+                        while (isempty(setdiff(MRSCont.files(kk),MRSContNew.files(kk))))
+                            kk = kk + 1;
+                            if kk > length(MRSCont.files)
+                                kk = kk - 1; 
+                                break
+                            end
+                        end
+                        if ~isempty(setdiff(MRSCont.files(kk),MRSContNew.files(kk)))
+                            error('The order of the input files must not change. Please append new files at the end of the list');
+                        end
+                        if length(MRSCont.files) ~= length(MRSContNew.files)
+                             MRSCont.files = MRSContNew.files;
+                            if isfield(MRSCont,'files_ref')
+                                MRSCont.files_ref = MRSContNew.files_ref;
+                            end
+                            if isfield(MRSCont,'files_w')
+                                MRSCont.files_w = MRSContNew.files_w;
+                            end
+                            if isfield(MRSCont,'files_ref')
+                                MRSCont.files_nii = MRSContNew.files_nii;
+                            end
+                        end
+                        MRSCont.flags.speedUp        = 1;
                     end
              end
         elseif askOverWriteJob=='y' || askOverWriteJob=='y'
@@ -292,14 +319,42 @@ else
                                       'Do you want to overwrite the existing job? \newline (Warning: This will delete all data in the data container!)'], ...
         'Load jobFile', 'Yes ','No', opts);
         if strcmp(askOverWriteJob, 'No')
-             askloadMRSCont = questdlg( 'Do you want to load the corresponding MRS Container?', ...
-        'Load MRS Container', 'Yes ','No','Yes');
+             askloadMRSCont = questdlg( ['You are about to load the job: ', strrep(outputFile,'.mat','.m') '\newline' ...
+                                         'If new files were added they will be attached, otherwise the MRS Container will just be loaded.\newline' ...
+                                         'If you want to change analysis parameters on an exisiting set of files add a existing MRS Container in the dialog\newline' ...
+                                         'Do you want to load the corresponding MRS Container and attach new files?'], ...
+                                          'Load MRS Container', 'Yes','No',opts);
 
              if strcmp(askloadMRSCont, 'No')
                 disp('Aborted! No new job loaded.');
                 return;
                 else if strcmp(askloadMRSCont, 'Yes')
+                        MRSContNew = MRSCont;
                         load(fullfile(outputFolder, outputFile));
+                        kk = 1;
+                        while (isempty(setdiff(MRSCont.files(kk),MRSContNew.files(kk))))
+                            kk = kk + 1;
+                            if kk > length(MRSCont.files)
+                                kk = kk - 1; 
+                                break
+                            end
+                        end
+                        if ~isempty(setdiff(MRSCont.files(kk),MRSContNew.files(kk)))
+                            error('The order of the input files must not change. Please append new files at the end of the list');
+                        end
+                        if length(MRSCont.files) ~= length(MRSContNew.files)
+                             MRSCont.files = MRSContNew.files;
+                            if isfield(MRSCont,'files_ref')
+                                MRSCont.files_ref = MRSContNew.files_ref;
+                            end
+                            if isfield(MRSCont,'files_w')
+                                MRSCont.files_w = MRSContNew.files_w;
+                            end
+                            if isfield(MRSCont,'files_ref')
+                                MRSCont.files_nii = MRSContNew.files_nii;
+                            end
+                        end
+                        MRSCont.flags.speedUp        = 1;
                     end
              end
         elseif strcmp(askOverWriteJob, 'Yes')
@@ -314,7 +369,10 @@ end
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-save(fullfile(outputFolder, outputFile), 'MRSCont');
+% Add a save dummy with the GUI flag turned off
+saveMRSCont = MRSCont;
+saveMRSCont.flags.isGUI = 0;
+save(fullfile(outputFolder, outputFile), 'saveMRSCont');
 
 % Close any remaining open figures
 close all;
