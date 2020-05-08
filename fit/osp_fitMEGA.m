@@ -28,6 +28,10 @@ function [MRSCont] = osp_fitMEGA(MRSCont)
 % Loop over all the datasets here
 metFitTime = tic;
 reverseStr = '';
+if MRSCont.flags.isGUI
+    progressbar = waitbar(0,'Start','Name','Osprey Fit');
+    waitbar(0,progressbar,sprintf('Fitted metabolite spectra from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
@@ -38,44 +42,44 @@ for kk = 1:MRSCont.nDatasets
     fitOpts     = MRSCont.opts.fit;
     fitModel    = fitOpts.method;
     fitStyle    = fitOpts.style;
-    
-    
+
+
     %%% 2. SEPARATE FIT %%%
     % For the separate (classic) MEGA fit, model the EDIT-OFF and DIFF
     % spectra separately.
     if strcmp(fitStyle, 'Separate')
-        
-        %%% 2a. FIT OFF-SPECTRUM
-        % Apply scaling factor to the data
-        dataToFit   = MRSCont.processed.A{kk};
-        basisSetOff = MRSCont.fit.basisSet;
-        basisSetOff.fids = basisSetOff.fids(:,:,1);
-        basisSetOff.specs = basisSetOff.specs(:,:,1);
-        dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+        if (~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))    
+            %%% 2a. FIT OFF-SPECTRUM
+            % Apply scaling factor to the data
+            dataToFit   = MRSCont.processed.A{kk};
+            basisSetOff = MRSCont.fit.basisSet;
+            basisSetOff.fids = basisSetOff.fids(:,:,1);
+            basisSetOff.specs = basisSetOff.specs(:,:,1);
+            dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
 
-        % Call the fit function
-        [fitParamsOff, resBasisSetOff] = fit_runFit(dataToFit, basisSetOff, fitModel, fitOpts);
-        
-        % Save back the basis set and fit parameters to MRSCont
-        MRSCont.fit.resBasisSet.off{kk}             = resBasisSetOff;
-        MRSCont.fit.results.off.fitParams{kk}   = fitParamsOff;
-        
-        
-        %%% 2b. FIT DIFF1-SPECTRUM
-        % Apply scaling factor to the data
-        dataToFit   = MRSCont.processed.diff1{kk};
-        basisSetDiff1 = MRSCont.fit.basisSet;
-        basisSetDiff1.fids = basisSetDiff1.fids(:,:,3);
-        basisSetDiff1.specs = basisSetDiff1.specs(:,:,3);
-        dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+            % Call the fit function
+            [fitParamsOff, resBasisSetOff] = fit_runFit(dataToFit, basisSetOff, fitModel, fitOpts);
 
-        % Call the fit function
-        [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
-        
-        % Save back the basis set and fit parameters to MRSCont
-        MRSCont.fit.resBasisSet.diff1{kk}           = resBasisSetDiff1;
-        MRSCont.fit.results.diff1.fitParams{kk} = fitParamsDiff1;
-        
+            % Save back the basis set and fit parameters to MRSCont
+            MRSCont.fit.resBasisSet.off{kk}             = resBasisSetOff;
+            MRSCont.fit.results.off.fitParams{kk}   = fitParamsOff;
+
+
+            %%% 2b. FIT DIFF1-SPECTRUM
+            % Apply scaling factor to the data
+            dataToFit   = MRSCont.processed.diff1{kk};
+            basisSetDiff1 = MRSCont.fit.basisSet;
+            basisSetDiff1.fids = basisSetDiff1.fids(:,:,3);
+            basisSetDiff1.specs = basisSetDiff1.specs(:,:,3);
+            dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+
+            % Call the fit function
+            [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
+
+            % Save back the basis set and fit parameters to MRSCont
+            MRSCont.fit.resBasisSet.diff1{kk}           = resBasisSetDiff1;
+            MRSCont.fit.results.diff1.fitParams{kk} = fitParamsDiff1;
+        end
     end
 
 
@@ -83,34 +87,39 @@ for kk = 1:MRSCont.nDatasets
     % For the concatenated MEGA fit, model the DIFF1 and SUM spectra
     % together.
     if strcmp(fitStyle, 'Concatenated')
-        
-        %%% 3a. FIT CONCATENATED SPECTRUM
-        % Select the difference and sum spectrum to put into the
-        % concatenated fit
-        dataToFit   = {MRSCont.processed.diff1{kk} MRSCont.processed.sum{kk}};
-        basisSetConc = MRSCont.fit.basisSet;
-        % Create the basis set with difference and sum basis functions
-        basisSetConc.fids(:,:,1) = basisSetConc.fids(:,:,3);
-        basisSetConc.specs(:,:,1) = basisSetConc.specs(:,:,3);
-        basisSetConc.fids(:,:,2) = basisSetConc.fids(:,:,4);
-        basisSetConc.specs(:,:,2) = basisSetConc.specs(:,:,4);
-        basisSetConc.fids(:,:,3:4) = [];
-        basisSetConc.specs(:,:,3:4) = [];
-        % Apply scaling factor to the data
-        for rr = 1:length(dataToFit)
-            dataToFit{rr}   = op_ampScale(dataToFit{rr}, 1/MRSCont.fit.scale{kk});
+        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.conc.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))            
+            %%% 3a. FIT CONCATENATED SPECTRUM
+            % Select the difference and sum spectrum to put into the
+            % concatenated fit
+            dataToFit   = {MRSCont.processed.diff1{kk} MRSCont.processed.sum{kk}};
+            basisSetConc = MRSCont.fit.basisSet;
+            % Create the basis set with difference and sum basis functions
+            basisSetConc.fids(:,:,1) = basisSetConc.fids(:,:,3);
+            basisSetConc.specs(:,:,1) = basisSetConc.specs(:,:,3);
+            basisSetConc.fids(:,:,2) = basisSetConc.fids(:,:,4);
+            basisSetConc.specs(:,:,2) = basisSetConc.specs(:,:,4);
+            basisSetConc.fids(:,:,3:4) = [];
+            basisSetConc.specs(:,:,3:4) = [];
+            % Apply scaling factor to the data
+            for rr = 1:length(dataToFit)
+                dataToFit{rr}   = op_ampScale(dataToFit{rr}, 1/MRSCont.fit.scale{kk});
+            end
+            % Call the multi-spectrum fit function
+            [fitParamsConc, resBasisSetConc] = fit_runFitMultiplex(dataToFit, basisSetConc, fitModel, fitOpts);
+
+            % Save back the basis set and fit parameters to MRSCont
+            MRSCont.fit.resBasisSet.conc{kk}           = resBasisSetConc;
+            MRSCont.fit.results.conc.fitParams{kk} = fitParamsConc;
         end
-        % Call the multi-spectrum fit function
-        [fitParamsConc, resBasisSetConc] = fit_runFitMultiplex(dataToFit, basisSetConc, fitModel, fitOpts);
-        
-        % Save back the basis set and fit parameters to MRSCont
-        MRSCont.fit.resBasisSet.conc{kk}           = resBasisSetConc;
-        MRSCont.fit.results.conc.fitParams{kk} = fitParamsConc;
-        
     end
-    
+     waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Fitted metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))            
     %% end time counter
     if isequal(kk, MRSCont.nDatasets)
+        if MRSCont.flags.isGUI        
+            waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Fitted metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
+            waitbar(1,progressbar,'...done')
+            close(progressbar)
+        end        
         fprintf('... done.\n');
         toc(metFitTime);
     end

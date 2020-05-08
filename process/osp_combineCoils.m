@@ -36,8 +36,6 @@ function [MRSCont] = osp_combineCoils(MRSCont,kk)
 %   HISTORY:
 %       2019-02-20: First version of the code.
 
-% Close any remaining open figures
-close all;
 
 %% Calculate coil combination weights
 if nargin<2

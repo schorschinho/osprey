@@ -69,9 +69,5 @@ switch target
         error('MEGA ON/OFF classifier does not recognize the input argument ''target''. Set to ''GABA'' or ''GSH''.');
 end
 
-%% Clean up
-
-% Close any remaining open figures
-close all;
 
 end

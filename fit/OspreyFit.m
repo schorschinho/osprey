@@ -39,8 +39,9 @@ if ~MRSCont.flags.didProcess
 end
 
 %% Load fit settings, prepare data and pass it on to the fitting algorithm
-% Close any remaining open figures
-close all;
+
+% Version check
+MRSCont.ver.CheckFit             = '100 Fit';
 
 % Initialise the fit - this step includes:
 % - Parse the correct basis set
@@ -68,12 +69,23 @@ end
 if MRSCont.flags.hasRef
     refFitTime = tic;
     reverseStr = '';
+    if MRSCont.flags.isGUI
+        progressbar = waitbar(0,'Start','Name','Osprey Fit');
+        waitbar(0,progressbar,sprintf('Fitted water reference from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+    end
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
         msg = sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
+        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
+            [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
+        end
+    end
+    if MRSCont.flags.isGUI        
+        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Fitted water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
+        waitbar(1,progressbar,'...done')
+        close(progressbar)
     end
     fprintf('... done.\n');
     toc(refFitTime);
@@ -83,12 +95,23 @@ end
 if MRSCont.flags.hasWater
     waterFitTime = tic;
     reverseStr = '';
+    if MRSCont.flags.isGUI
+        progressbar = waitbar(0,'Start','Name','Osprey Fit');
+        waitbar(0,progressbar,sprintf('Fitted short-TE water from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+    end    
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
         msg = sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
+        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
+            [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
+        end
+    end
+    if MRSCont.flags.isGUI        
+        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Fitted short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
+        waitbar(1,progressbar,'...done')
+        close(progressbar)
     end
     fprintf('... done.\n');
     toc(waterFitTime);
@@ -117,6 +140,13 @@ outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-save(fullfile(outputFolder, outputFile), 'MRSCont');
+
+if ~MRSCont.flags.isGUI
+    MRSCont.flags.isGUI = 0;
+    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    MRSCont.flags.isGUI = 1;
+else
+   save(fullfile(outputFolder, outputFile), 'MRSCont');
+end
 
 end
