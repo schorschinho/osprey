@@ -70,7 +70,9 @@ path.
 
 ## Contact, Feedback, Suggestions
 
-For any sort of questions, feedback, suggestions, or critique, please reach out to us via gabamrs@gmail.com. We also welcome your direct contributions to Osprey here in the GitHub repository.
+For any sort of questions, feedback, suggestions, or critique, please visit the [Osprey support forum](https://forum.mrshub.org/c/mrs-software/osprey/10) on the [MRSHub](https://www.mrshub.org).
+
+We also welcome your direct contributions to Osprey here in the GitHub repository.
 
 ## Developers
 
