@@ -18,8 +18,7 @@ copyright: Copyright &copy; 2019 - 2020 Georg Oeltzschner
 theme:
   logo: img/osprey.png
   favicon: img/osprey.png
-  name: null
-  custom_dir: material
+  name: material
   language: en
   palette:
     primary: black
