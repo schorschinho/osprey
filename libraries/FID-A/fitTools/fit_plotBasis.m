@@ -2,7 +2,7 @@
 % Georg Oeltzschner, Johns Hopkins University 2019.
 %
 % USAGE:
-% out = fit_plotBasis(basisSet, stagFlag, ppmmin, ppmmax, xlab, ylab, figTitle)
+% out = fit_plotBasis(basisSet, dim, stagFlag, ppmmin, ppmmax, xlab, ylab, figTitle)
 % 
 % DESCRIPTION:
 % Creates a figure showing all a basis functions in FID-A basis set struct

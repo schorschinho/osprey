@@ -6,7 +6,7 @@ The job file system ensures that all processing, modeling, and quantification st
 
 ## Example job file
 
-The following collapsible box contains the [example job file `jobSDAT.m`](https://github.com/schorschinho/osprey/blob/develop/exampledata/sdat/jobSDAT.m) defining a batched analysis of the two Philips PRESS (TE = 30 ms) datasets that are included in the `exampledata` directory of the [**Osprey** repository](https://github.com/schorschinho/osprey). You can click on the dropdown arrow on the right to take a look through the file, and then read on for a detailed description of each job file item.
+The following collapsible box contains the [example job file `jobSDAT.m`](https://github.com/schorschinho/osprey/blob/develop/exampledata/sdat/jobSDAT.m) defining a batched analysis of the two Philips PRESS (TE = 30 ms) datasets that are included in the `exampledata/sdat/` directory of the [**Osprey** repository](https://github.com/schorschinho/osprey). You can click on the dropdown arrow on the right to take a look through the file, and then read on for a detailed description of each job file item.
 
 ??? note "Example job file `jobSDAT.m`:"
     ```matlab

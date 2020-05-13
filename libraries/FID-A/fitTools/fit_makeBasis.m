@@ -233,7 +233,7 @@ if strcmp(sequence, 'MEGA')
                 % in the DIFF. Therefore loop over metabolite names.
                 % If MM09, then don't subtract the ON and OFF out; instead mimic
                 % the co-edited MM09 signal in the DIFF by just a simple OFF MM09.
-                MM09    = op_gaussianPeak(n,sw,Bo,centerFreq,0.10*hzppm,0.91,3*oneProtonArea/gaussianArea);
+                MM09    = op_gaussianPeak(n,sw,Bo,centerFreq,0.085*hzppm,0.915,3*oneProtonArea/gaussianArea);
                 MM09    = op_dccorr(MM09,'p');
                 if strcmp(buffer.name{rr}, 'MM09')
                     buffer.fids(:,rr,3)      = MM09.fids; % DIFF
@@ -247,9 +247,9 @@ if strcmp(sequence, 'MEGA')
                 % in the DIFF. Therefore loop over metabolite names.
                 % If one of those, then don't subtract the ON and OFF out; instead mimic
                 % the co-edited signal in the DIFF by just a simple OFF MM14 or MM12.
-                MM12     = op_gaussianPeak(n,sw,Bo,centerFreq,0.10*hzppm,1.21,2*oneProtonArea/gaussianArea);
+                MM12     = op_gaussianPeak(n,sw,Bo,centerFreq,0.07*hzppm,1.20,2*oneProtonArea/gaussianArea);
                 MM12     = op_dccorr(MM12,'p');
-                MM14     = op_gaussianPeak(n,sw,Bo,centerFreq,0.12*hzppm,1.43,2*oneProtonArea/gaussianArea);
+                MM14     = op_gaussianPeak(n,sw,Bo,centerFreq,0.095*hzppm,1.385,2*oneProtonArea/gaussianArea);
                 MM14     = op_dccorr(MM14,'p');
                 if strcmp(buffer.name{rr}, 'MM14')
                     buffer.fids(:,rr,3)      = MM14.fids; % DIFF
@@ -317,11 +317,11 @@ elseif strcmp(sequence, 'HERMES') || strcmp(sequence, 'HERCULES')
     
     % Now generate the DIFFs and the SUM.
     % Making sure to include co-edited MMs appropriately in the DIFF.
-    MM09    = op_gaussianPeak(n,sw,Bo,centerFreq,0.10*hzppm,0.91,3*oneProtonArea/gaussianArea);
+    MM09    = op_gaussianPeak(n,sw,Bo,centerFreq,0.085*hzppm,0.915,3*oneProtonArea/gaussianArea);
     MM09    = op_dccorr(MM09,'p');
-    MM12     = op_gaussianPeak(n,sw,Bo,centerFreq,0.10*hzppm,1.21,2*oneProtonArea/gaussianArea);
+    MM12     = op_gaussianPeak(n,sw,Bo,centerFreq,0.07*hzppm,1.20,2*oneProtonArea/gaussianArea);
     MM12     = op_dccorr(MM12,'p');
-    MM14     = op_gaussianPeak(n,sw,Bo,centerFreq,0.12*hzppm,1.43,2*oneProtonArea/gaussianArea);
+    MM14     = op_gaussianPeak(n,sw,Bo,centerFreq,0.095*hzppm,1.385,2*oneProtonArea/gaussianArea);
     MM14     = op_dccorr(MM14,'p');
     for rr = 1:length(buffer.name)
         if strcmp(buffer.name{rr}, 'MM09')
