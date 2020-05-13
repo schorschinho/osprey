@@ -1,0 +1,87 @@
+# Project information
+site_name: Osprey documentation
+site_description: The Official Documentation for Osprey
+site_author: Georg Oeltzschner
+site_url: https://schorschinho.github.io/osprey/
+
+# Repository
+repo_name: schorschinho/osprey
+repo_url: https://github.com/schorschinho/osprey
+
+# Copyright
+copyright: Copyright &copy; 2019 - 2020 Georg Oeltzschner
+
+# Configuration
+theme:
+  logo: img/osprey.png
+  favicon: img/osprey.png
+  name: material
+  language: en
+  palette:
+    primary: black
+    accent: deep orange
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+# Navigation
+nav:
+  - Home: index.md
+  - The Osprey Workflow: 02-osprey-workflow/01-structure-workflow.md
+  - Getting started:
+    - System requirements: 01-getting-started/01-system-requirements.md
+    - Installing Osprey: 01-getting-started/02-installing-osprey.md
+    - How to organize your raw data: 01-getting-started/03-organize-data.md
+  - Job files: 03-job-files/01-the-job-file.md
+  # - Running an Osprey analysis with the GUI:
+  #   - The job file: 03-run-analysis-gui/01-the-job-file.md
+  # - Running an Osprey analysis from the prompt:
+  #   - The job file: 04-run-analysis-prompt/01-the-job-file.md
+  #   - OspreyJob: 04-run-analysis-prompt/02-osprey-job.md
+  #   - OspreyLoad: 04-run-analysis-prompt/03-osprey-load.md
+  #   - OspreyProcess: 04-run-analysis-prompt/04-osprey-process.md
+  #   - OspreyFit: 04-run-analysis-prompt/05-osprey-fit.md
+  #   - OspreyCoReg: 04-run-analysis-prompt/06-osprey-coreg.md
+  #   - OspreySeg: 04-run-analysis-prompt/07-osprey-seg.md
+  #   - OspreyQuantify: 04-run-analysis-prompt/08-osprey-quantify.md
+
+# Extras
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/schorschinho
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/oeltzschner
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/georg-oeltzschner-6b4bb983/
+
+# Google Analytics
+# google_analytics:
+#   - UA-XXXXXXXX-X
+#   - auto
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed
+  - pymdownx.tilde
