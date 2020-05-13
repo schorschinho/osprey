@@ -71,8 +71,8 @@ dims_w.averages=3;
 dims_w.subSpecs=0;
 dims_w.extras=0;
 
-specs=fftshift(ifft(fids,[],dims.t),dims.t);
-specs_w=fftshift(ifft(fids_w,[],dims_w.t),dims_w.t);
+specs=fftshift(fft(fids,[],dims.t),dims.t);
+specs_w=fftshift(fft(fids_w,[],dims_w.t),dims_w.t);
 
 
 %Now get relevant scan parameters:*****************************
@@ -157,7 +157,7 @@ end
 
 %Calculate t and ppm arrays using the calculated parameters:
 f=(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)));
-ppm=-f/(Bo*42.577);
+ppm=f/(Bo*42.577);
 
 % GE data assumes the center frequency to be 4.68 ppm:
 centerFreq = 4.68;
@@ -188,7 +188,12 @@ out.te=GEhdr.TE;
 out.tr=GEhdr.TR;
 out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
-
+out.geometry = GEhdr.geometry;
+temp = out.geometry.size;
+out.geometry.size = [];
+out.geometry.size.dim1 = temp(1);
+out.geometry.size.dim2 = temp(2);
+out.geometry.size.dim3 = temp(3);
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;
@@ -231,7 +236,12 @@ out_w.te=GEhdr.TE;
 out_w.tr=GEhdr.TR;
 out_w.pointsToLeftshift=0;
 out_w.centerFreq = centerFreq;
-
+out_w.geometry = GEhdr.geometry;
+temp = out_w.geometry.size;
+out_w.geometry.size = [];
+out_w.geometry.size.dim1 = temp(1);
+out_w.geometry.size.dim2 = temp(2);
+out_w.geometry.size.dim3 = temp(3);
 %FILLING IN THE FLAGS
 out_w.flags.writtentostruct=1;
 out_w.flags.gotparams=1;

@@ -1,194 +1,258 @@
-% coreg_rda.m
+% coreg_p.m
 % Georg Oeltzschner, Johns Hopkins University 2019.
-% 
+%
 % USAGE:
-% [vol_mask] = coreg_rda(in, vol_image);
-% 
+% [vol_mask] = coreg_p(in, dcm_folder, maskFile);
+%
 % DESCRIPTION:
-% Creates a SPM volume containing a voxel mask with the same dimensions 
+% Creates a SPM volume containing a voxel mask with the same dimensions
 % as the SPM volume containing a structural image. The voxel mask will be
 % created with the geometry information stored in the FID-A structure "in".
-% This routine works for the Siemens RDA data type.
-% 
-% CREDITS:
-% The routine for correct determination of the phase and readout
-% directions of the MRS voxel is adapted from 
-% vox2ras_rsolveAA.m
-% (Dr. Rudolph Pienaar, Massachusetts General Hospital, Boston)
-%
+% This routine works for the GE P data type.
+
 % INPUTS:
 % in        = Input data structure.
-% vol_image	= SPM volume of the structural image that the voxel defined in
-%           the 'geometry' field of the input data structure 'in' is
-%           supposed to be co-registered to.
+% dcm_folder = Path to the folder containing DICOM images of the structural
+%           image that the voxel defined in the 'geometry' field of the
+%           input data structure 'in' is supposed to be co-registered to.
+% maskFile  = Filename under which the SPM volume of the co-registered
+%           voxel mask is supposed to be saved.
 %
 % OUTPUTS:
 % vol_mask  = SPM volume of the coregistered voxel mask.
 % T1_max    = maximum intensity of the image volume.
+% vol_image	= SPM volume of the structural image after DICOM conversion.
 
-function [vol_mask, T1_max] = coreg_p(in, vol_image)
+function [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(in, dcm_folder, maskFile)
 
 % Deactivate MATLAB warnings and load geometry parameters
 warning('off','MATLAB:nearlySingularMatrix');
 warning('off','MATLAB:qhullmx:InternalWarning');
 geom = in.geometry;
 
-%%% 1. PREPARE THE STRUCTURAL IMAGE
+%%% 1. PREPARE THE MRS VOXEL COORDINATES %%%
+% Convert from RAS to LPS
+VoxOffs  = geom.pos .* [-1 -1 1];
+tlhc_LPS = geom.rot.tlhc .* [-1 -1 1];
+trhc_LPS = geom.rot.trhc .* [-1 -1 1];
+brhc_LPS = geom.rot.brhc .* [-1 -1 1];
+
+e1_SVS_n = trhc_LPS - tlhc_LPS;
+e1_SVS_n = e1_SVS_n ./ norm(e1_SVS_n);
+e2_SVS_n = brhc_LPS - trhc_LPS;
+e2_SVS_n = e2_SVS_n ./ norm(e2_SVS_n);
+e3_SVS_n = -cross(e1_SVS_n, e2_SVS_n);
+
+[~,orientation_SVS] = max(abs(e3_SVS_n));
+
+if orientation_SVS == 3     % axial
+    e1_SVS_n2 = e1_SVS_n;
+    e2_SVS_n2 = e2_SVS_n;
+    e3_SVS_n2 = e3_SVS_n;
+elseif orientation_SVS == 2 % coronal
+    e1_SVS_n2 = e1_SVS_n;
+    e2_SVS_n2 = e3_SVS_n;
+    e3_SVS_n2 = e2_SVS_n;
+elseif orientation_SVS == 1 % sagittal
+    e1_SVS_n2 = e3_SVS_n;
+    e2_SVS_n2 = e1_SVS_n;
+    e3_SVS_n2 = e2_SVS_n;
+end
+
+angulations = get_euler(e1_SVS_n2, e2_SVS_n2, e3_SVS_n2);
+
+e1_SVS = geom.size.dim1 * e1_SVS_n2;
+e2_SVS = geom.size.dim2 * e2_SVS_n2;
+e3_SVS = geom.size.dim3 * e3_SVS_n2;
+
+% LPS gives center of voxel
+LPS_SVS_edge = VoxOffs - 0.5 * e1_SVS ...
+                        - 0.5 * e2_SVS ...
+                        - 0.5 * e3_SVS;
+
+
+%%% 2. PREPARE THE STRUCTURAL IMAGE
+% Read all DICOM files into one volume
+dcm_list = dir(dcm_folder);
+dcm_list = dcm_list(~ismember({dcm_list.name}, {'.','..','.DS_Store'}));
+hidden = logical(ones(1,length(dcm_list)));
+for jj = 1:length(dcm_list) 
+    if strcmp(dcm_list(jj).name(1),'.')
+        hidden(jj) = 0;
+    end
+end
+dcm_list = dcm_list(hidden);%delete hidden files 
+dcm_list = cellstr(char(dcm_list.name));
+dcm_list = dcm_list(cellfun(@isempty, strfind(dcm_list, '.nii'))); %#ok<*STRCLFH>
+dcm_list = dcm_list(cellfun(@isempty, strfind(dcm_list, '.mat')));
+for jj = 1:length(dcm_list)
+    dcm_list{jj} = [dcm_folder filesep dcm_list{jj}];
+end
+dcm_hdr = spm_dicom_headers(char(dcm_list));
+nii_file_dir = spm_dicom_convert_osp(dcm_hdr, 'all', 'flat', 'nii', fullfile(dcm_folder)); % create NIFTI file of T1 image
+nii_file = nii_file_dir.files{1};
 % Create SPM volume and read in the NIfTI file with the structural image.
-[T1,XYZ]    = spm_read_vols(vol_image);
-T1_max      = max(T1(:));
-%Shift imaging voxel coordinates by half an imaging voxel so that the XYZ matrix
-%tells us the x,y,z coordinates of the MIDDLE of that imaging voxel.
-[~,voxdim] = spm_get_bbox(vol_image,'fv');
-voxdim = abs(voxdim)';
-halfpixshift = -voxdim(1:3)/2;
-halfpixshift(3) = -halfpixshift(3);
-XYZ = XYZ + repmat(halfpixshift, [1 size(XYZ,2)]);
+vol_image = spm_vol(nii_file);
+[T1,~]  = spm_read_vols(vol_image);
+T1_max    = max(T1(:));
 
-
-%%% 2. GENERATE THE COORDINATES OF THE VOXEL CORNERS
-% Extract voxel position and rotation parameters
-NormSag         = geom.rot.NormSag;
-NormCor         = geom.rot.NormCor;
-NormTra         = geom.rot.NormTra;
-VoI_InPlaneRot  = geom.rot.VoI_InPlaneRot;
-% Correct voxel offsets by table position (if field exists)
-if isfield(geom.pos,'TablePosTra')
-    VoxOffs = [geom.pos.PosSag+geom.pos.TablePosSag geom.pos.PosCor+geom.pos.TablePosCor geom.pos.PosTra+geom.pos.TablePosTra];
-else
-    VoxOffs = [geom.pos.PosSag geom.pos.PosCor geom.pos.PosTra];
+slice_location = zeros(1,length(dcm_list));
+for jj = 1:length(dcm_list)
+    slice_location(jj) = dcm_hdr{jj}.SliceLocation;
 end
 
-% Parse direction cosines of the MRS voxel's normal vector and the rotation angle
-% around the normal vector
-% The direction cosine is the cosine of the angle between the normal
-% vector and the respective direction.
-% Example: If the normal vector points exactly along the FH direction, then: 
-% NormSag = cos(90) = 0, NormCor = cos(90) = 0, NormTra = cos(0) = 1.
-Norm = [-NormSag -NormCor NormTra];
-ROT = VoI_InPlaneRot;
-% Find largest element of normal vector of the voxel to determine primary
-% orientation. 
-% Example: if NormTra has the smallest out of the three Norm
-% values, the angle of the normal vector with the Tra direction (FH) is the
-% smallest, and the primary orientation is transversal.
-[~, maxdir] = max([abs(NormSag) abs(NormCor) abs(NormTra)]);
-switch maxdir
-    case 1
-        vox_orient = 's'; % 't' = transversal, 's' = sagittal', 'c' = coronal;
-    case 2
-        vox_orient = 'c'; % 't' = transversal, 's' = sagittal', 'c' = coronal;
-    case 3
-        vox_orient = 't'; % 't' = transversal, 's' = sagittal', 'c' = coronal;
-end
-    
-% Phase reference vector
-% Adapted from Rudolph Pienaar's "vox2ras_rsolveAA.m" and
-% Andre van der Kouwe's "autoaligncorrect.cpp"
-Phase	= zeros(3, 1);
-switch vox_orient
-    case 't'
-        % For transversal voxel orientation, the phase reference vector lies in
-        % the sagittal plane
-        Phase(1)	= 0;
-        Phase(2)	=  Norm(3)*sqrt(1/(Norm(2)*Norm(2)+Norm(3)*Norm(3)));
-        Phase(3)	= -Norm(2)*sqrt(1/(Norm(2)*Norm(2)+Norm(3)*Norm(3)));
-        VoxDims = [geom.size.VoI_PeFOV geom.size.VoI_RoFOV geom.size.VoIThickness];
-    case 'c'
-        % For coronal voxel orientation, the phase reference vector lies in
-        % the transversal plane
-        Phase(1)	=  Norm(2)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
-        Phase(2)	= -Norm(1)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
-        Phase(3)	= 0;
-        VoxDims = [geom.size.VoI_PeFOV geom.size.VoI_RoFOV geom.size.VoIThickness];
-    case 's'
-        % For sagittal voxel orientation, the phase reference vector lies in
-        % the transversal plane
-        Phase(1)	= -Norm(2)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
-        Phase(2)	=  Norm(1)*sqrt(1/(Norm(1)*Norm(1)+Norm(2)*Norm(2)));
-        Phase(3)	= 0;
-        VoxDims = [geom.size.VoI_PeFOV geom.size.VoI_RoFOV geom.size.VoIThickness];
+% Order slices according to slice position
+[~,order_index] = sort(slice_location);
+tmp = dcm_hdr;
+for jj = 1:length(dcm_list)
+    dcm_hdr{jj} = tmp{order_index(jj)};
 end
 
-% The readout reference vector is the cross product of Norm and Phase
-Readout = cross(Norm, Phase);
-M_R = zeros(4, 4);
-M_R(1:3, 1)	= Phase;
-M_R(1:3, 2)	= Readout;
-M_R(1:3, 3) = Norm;
+MRI_voxel_size = [dcm_hdr{1}.PixelSpacing(1) ...
+                  dcm_hdr{1}.PixelSpacing(2) ...
+                  dcm_hdr{1}.SpacingBetweenSlices];
 
-% Define matrix for rotation around in-plane rotation angle
-M3_Mu	= [	 cos(ROT)	sin(ROT)	0
-            -sin(ROT)	cos(ROT)	0
-            0           0           1];
-        
-M3_R	= M_R(1:3,1:3)	* M3_Mu;
-M_R(1:3,1:3)	= M3_R;
+MRI_dim = [dcm_hdr{1}.Rows ...
+           dcm_hdr{1}.Columns ...
+           dcm_hdr{1}.ImagesInAcquisition];
 
-% The MGH vox2ras matrix inverts the Readout column
-M_R		= M_R *   [ 1  0  0  0
-                    0 -1  0  0
-                    0  0  1  0
-                    0  0  0  1];
+e1_MRI_n = dcm_hdr{1}.ImageOrientationPatient(1:3);
+e2_MRI_n = dcm_hdr{1}.ImageOrientationPatient(4:6);
+e3_MRI_n = cross(e1_MRI_n, e2_MRI_n); % e3 vector is perpendicular to the slice orientation
 
-% Final rotation matrix
-rotmat = M_R(1:3,1:3);
+[~,orientation_MRI] = max(abs(e3_MRI_n));
+if orientation_MRI == 2 % coronal
+    e3_MRI_n = -e3_MRI_n;
+end
 
-% We need to flip ap and lr axes to match NIFTI convention
-VoxOffs(1) = -VoxOffs(1);
-VoxOffs(2) = -VoxOffs(2);
+if orientation_MRI == 3     % axial
+    e1_MRI_n2 = e1_MRI_n;
+    e2_MRI_n2 = e2_MRI_n;
+    e3_MRI_n2 = e3_MRI_n;
+    MRI_voxel_size = MRI_voxel_size([2 1 3]);
+    MRI_dim = MRI_dim([2 1 3]);
+elseif orientation_MRI == 2 % coronal
+    e1_MRI_n2 = e1_MRI_n;
+    e2_MRI_n2 = e3_MRI_n;
+    e3_MRI_n2 = e2_MRI_n;
+    MRI_voxel_size = MRI_voxel_size([2 3 1]);
+    MRI_dim = MRI_dim([2 3 1]);
+elseif orientation_MRI == 1 % sagittal
+    e1_MRI_n2 = e3_MRI_n;
+    e2_MRI_n2 = e1_MRI_n;
+    e3_MRI_n2 = e2_MRI_n;
+    MRI_voxel_size = MRI_voxel_size([3 2 1]);
+    MRI_dim = MRI_dim([3 2 1]);
+end
 
-% Define voxel coordinates before rotation and transition
-vox_ctr = ...
-    [VoxDims(1)/2 -VoxDims(2)/2  VoxDims(3)/2;
-    -VoxDims(1)/2 -VoxDims(2)/2  VoxDims(3)/2;
-    -VoxDims(1)/2  VoxDims(2)/2  VoxDims(3)/2;
-     VoxDims(1)/2  VoxDims(2)/2  VoxDims(3)/2;
-    -VoxDims(1)/2  VoxDims(2)/2 -VoxDims(3)/2;
-     VoxDims(1)/2  VoxDims(2)/2 -VoxDims(3)/2;
-     VoxDims(1)/2 -VoxDims(2)/2 -VoxDims(3)/2;
-    -VoxDims(1)/2 -VoxDims(2)/2 -VoxDims(3)/2];
+% LPS_edge gives location of the edge of the image volume
+LPS_MRI_center = dcm_hdr{1}.ImagePositionPatient;
+LPS_MRI_edge = LPS_MRI_center - 0.5 * MRI_voxel_size(1) * e1_MRI_n2 ...
+                              - 0.5 * MRI_voxel_size(2) * e2_MRI_n2 ...
+                              - 0.5 * MRI_voxel_size(3) * e3_MRI_n2;
 
-% Apply rotation as prescribed
-vox_rot = rotmat*vox_ctr.';
+% Create voxel mask
+E_MRI = [e1_MRI_n2 e2_MRI_n2 e3_MRI_n2];
+c_MRS = VoxOffs';
+c_MRI = E_MRI' * (c_MRS - LPS_MRI_edge);
+d_MRI = c_MRI ./ MRI_voxel_size';
+s_MRS = sqrt(sum([geom.size.dim1 .^2, geom.size.dim2 .^2, geom.size.dim3 .^2]))/2;
+d_MRS = s_MRS ./ MRI_voxel_size';
 
-% Shift rotated voxel by the center offset to its final position
-vox_ctr_coor = [VoxOffs(1) VoxOffs(2) VoxOffs(3)];
-vox_ctr_coor = repmat(vox_ctr_coor.', [1,8]);
-vox_corner = vox_rot + vox_ctr_coor;
+[Xm,Ym,Zm] = ndgrid(1:MRI_dim(1), 1:MRI_dim(2), 1:MRI_dim(3));
+X = LPS_MRI_center(1) + (Xm-1) * MRI_voxel_size(1) * e1_MRI_n2(1) + (Ym-1) * MRI_voxel_size(2) * e2_MRI_n2(1) + (Zm-1) * MRI_voxel_size(3) * e3_MRI_n2(1);
+Y = LPS_MRI_center(2) + (Xm-1) * MRI_voxel_size(1) * e1_MRI_n2(2) + (Ym-1) * MRI_voxel_size(2) * e2_MRI_n2(2) + (Zm-1) * MRI_voxel_size(3) * e3_MRI_n2(2);
+Z = LPS_MRI_center(3) + (Xm-1) * MRI_voxel_size(1) * e1_MRI_n2(3) + (Ym-1) * MRI_voxel_size(2) * e2_MRI_n2(3) + (Zm-1) * MRI_voxel_size(3) * e3_MRI_n2(3);
 
+P_1 = LPS_SVS_edge;
+P_2 = LPS_SVS_edge + e1_SVS; % L
+P_3 = LPS_SVS_edge + e2_SVS; % P
+P_4 = LPS_SVS_edge + e3_SVS; % S
+A = zeros(3,1);
+mask = zeros(MRI_dim);
 
-%%% 3. CREATE AND SAVE THE VOXEL MASK
-% Create a mask with all voxels that are inside the voxel
-mask = zeros(1,size(XYZ,2));
-sphere_radius = sqrt((VoxDims(1)/2)^2+(VoxDims(2)/2)^2+(VoxDims(3)/2)^2);
-distance2voxctr = sqrt(sum((XYZ-repmat([VoxOffs(1) VoxOffs(2) VoxOffs(3)].',[1 size(XYZ, 2)])).^2,1));
-sphere_mask(distance2voxctr <= sphere_radius) = 1;
-mask(sphere_mask == 1) = 1;
-XYZ_sphere = XYZ(:,sphere_mask == 1);
-tri = delaunayn([vox_corner.'; [VoxOffs(1) VoxOffs(2) VoxOffs(3)]]);
-tn = tsearchn([vox_corner.'; [VoxOffs(1) VoxOffs(2) VoxOffs(3)]], tri, XYZ_sphere.');
-isinside = ~isnan(tn);
-mask(sphere_mask==1) = isinside;
+for e1 = max(floor(d_MRI(1) - d_MRS(1)), 0) : min(ceil(d_MRI(1) + d_MRS(1)), size(mask,1))         % L
+    for e2 = max(floor(d_MRI(2) - d_MRS(2)), 0) : min(ceil(d_MRI(2) + d_MRS(2)), size(mask,2))     % P
+        for e3 = max(floor(d_MRI(3) - d_MRS(3)), 0) : min(ceil(d_MRI(3) + d_MRS(3)), size(mask,3)) % S
+            A(1) = X(e1,e2,e3);
+            A(2) = Y(e1,e2,e3);
+            A(3) = Z(e1,e2,e3);
+            % Distance of A to planes in SI direction
+            d_5 = e3_SVS_n2 * (A - P_1');
+            d_6 = -e3_SVS_n2 * (A - P_4');
+            if d_5 >= 0 && d_6 >= 0
+                % Distance of A to planes in AP direction
+                d_3 = e2_SVS_n2 * (A - P_1');
+                d_4 = -e2_SVS_n2 * (A - P_3');
+                if d_3 >= 0 && d_4 >= 0
+                    % Distance of A to planes in RL direction
+                    d_1 = e1_SVS_n2 * (A - P_1');
+                    d_2 = -e1_SVS_n2 * (A - P_2');
+                    if d_1 >= 0 && d_2 >= 0
+                        mask(e1,e2,e3) = 1;
+                    end
+                end
+            end
+        end
+    end
+end
 
-% Take over the voxel dimensions from the structural
-mask = reshape(mask, vol_image.dim);
+if orientation_MRI == 2     % coronal
+    mask = permute(mask, [3 1 2]);
+    mask = flip(mask,3);
+elseif orientation_MRI == 1 % sagittal
+    mask = permute(mask, [2 3 1]);
+end
+mask = flip(mask,2);
 
 % Fill in the SPM volume header information
-vol_mask.fname   = strrep(vol_image.fname,'.nii','_overlay.nii');
+vol_mask.fname   = maskFile;
 vol_mask.dim     = vol_image.dim;
 vol_mask.dt      = vol_image.dt;
 vol_mask.mat     = vol_image.mat;
-vol_mask.pinfo   = vol_image.pinfo;
-vol_mask.n       = vol_image.n;
 vol_mask.descrip = 'MRS_voxel_mask';
-vol_mask.private = vol_image.private;
 
 % Write the SPM volume to disk
-vol_mask = spm_write_plane(vol_mask,mask,':');
+vol_mask = spm_write_vol(vol_mask,mask);
+
+% Store voxel centre for output figure
+VoxOffs(1:2) = -VoxOffs(1:2);
+voxel_ctr = VoxOffs;
 
 % Reactivate MATLAB warnings
 warning('on','MATLAB:nearlySingularMatrix');
 warning('on','MATLAB:qhullmx:InternalWarning');
+
+end
+
+
+
+function euler_angles = get_euler(r1, r2, r3)
+
+r1(3) = -r1(3);
+r2(3) = -r2(3);
+r3(3) = -r3(3);
+
+if abs(r3(1)) ~= 1
+    theta1 = -asin(r3(1));
+    %theta2 = pi - theta1;
+    psi1 = atan2(r3(2)/cos(theta1), r3(3)/cos(theta1));
+    %psi2 = atan2(r3(2)/cos(theta2), r3(3)/cos(theta2));
+    phi1 = atan2(r2(1)/cos(theta1), r1(1)/cos(theta1));
+    %phi2 = atan2(r2(1)/cos(theta2), r1(1)/cos(theta2));
+else
+    phi1 = 0;
+    if r3(1) == -1
+        theta1 = pi/2;
+        psi1 = phi1 + atan2(r1(2), r1(3));
+    else
+        theta1 = -pi/2;
+        psi1 = -phi1 + atan2(-r1(2), -r1(3));
+    end
+end
+
+euler_angles(1) = round(-phi1*180/pi);
+euler_angles(2) = round(-psi1*180/pi);
+euler_angles(3) = round(theta1*180/pi);
 
 end

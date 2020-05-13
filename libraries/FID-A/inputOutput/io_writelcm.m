@@ -41,12 +41,15 @@ end
   dwelltime=in.dwelltime;
   
   % Calculate the voxel volume from certain fields
-  if isfield(in.geometry.size,'ap')
+  if isfield(in.geometry.size,'ap') % Philips 
       % Philips has names attached to the fields
       vol = in.geometry.size.ap * in.geometry.size.lr * in.geometry.size.cc;
-  elseif isfield(in.geometry.size,'VoIThickness')
+  elseif isfield(in.geometry.size,'VoIThickness') % Siemens
       % Siemens has other names attached to the fields
-      vol=in.geometry.size.VoI_RoFOV * in.geometry.size.VoI_PeFOV * in.geometry.size.VoIThickness;
+      vol = in.geometry.size.VoI_RoFOV * in.geometry.size.VoI_PeFOV * in.geometry.size.VoIThickness;
+  else %GE
+      % For GE data, there is currently no designation
+      vol = in.geometry.size.dim1 * in.geometry.size.dim2 * in.geometry.size.dim3;
   end
 % Nuc=0;
 % PatName='No Name';

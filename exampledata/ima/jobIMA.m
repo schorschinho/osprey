@@ -1,7 +1,7 @@
 %% jobIMA.m
-%   This function describes an LCGannet job defined in a MATLAB script.
+%   This function describes an Osprey job defined in a MATLAB script.
 %
-%   A valid LCGannet job contains four distinct classes of items:
+%   A valid Osprey job contains four distinct classes of items:
 %       1. basic information on the MRS sequence used
 %       2. several settings for data handling and modeling
 %       3. a list of MRS (and, optionally, structural imaging) data files 
@@ -13,7 +13,7 @@
 %   complex script that automatically determines file names from a given
 %   folder structure.
 %
-%   LCGannet distinguishes between four sets of data:
+%   Osprey distinguishes between four sets of data:
 %       - metabolite (water-suppressed) data
 %           (MANDATORY)
 %           Defined in cell array "files"
@@ -29,7 +29,8 @@
 %           Defined in cell array "files_w"
 %       - Structural image data used for co-registration and tissue class
 %           segmentation (usually a T1 MPRAGE). These files need to be
-%           provided in the NIfTI format (*.nii).
+%           provided in the NIfTI format (*.nii) or, for GE data, as a 
+%           folder containing DICOM Files (*.dcm).
 %           (OPTIONAL)
 %           Defined in cell array "files_nii"
 %
@@ -48,6 +49,12 @@
 %   individual file names, please specify folders. Metabolite data, water
 %   reference data, and water data need to be located in separate folders.
 %
+%   In the example script at hand the MATLAB functions strrep and which are
+%   used to generate a relative path, which allows you to run the examples
+%   on your machine directly. To set up your own Osprey job supply the
+%   specific locations as described above.
+% 
+%
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
 %       goeltzs1@jhmi.edu
@@ -61,10 +68,16 @@
 %%% 1. SPECIFY SEQUENCE INFORMATION %%%
 
 % Specify sequence type
-seqType = 'MEGA';           % OPTIONS:    - 'unedited' (default)
+seqType = 'MEGA';               % OPTIONS:    - 'unedited' (default)
                                 %             - 'MEGA'
                                 %             - 'HERMES'
                                 %             - 'HERCULES'
+                                
+% Specify editing targets
+editTarget = {'GABA'};          % OPTIONS:    - {'none'} (default if 'unedited')
+                                %             - {'GABA'}, {'GSH'}  (for 'MEGA')
+                                %             - {'GABA, 'GSH}, {'GABA, GSH, EtOH'} (for 'HERMES')
+                                %             - {'HERCULES1'}, {'HERCULES2'} (for 'HERCULES')
                                 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -86,14 +99,13 @@ opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                 
 % Choose the fitting algorithm
-opts.fit.method             = 'LCGannet';       % OPTIONS:  - 'LCGannet' (default)
+opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
                                                 %           - 'AQSES' (planned)
-                                                %           - 'LCModel' (planned)
                                                 %           - 'TARQUIN' (planned)
 
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
-% (only available for the LCGannet fitting method)
-opts.fit.style              = 'Concatenated';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
+% (only available for the Osprey fitting method)
+opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
                                                 %           - 'Separate' - will fit DIFF and OFF separately
 
 % Determine fitting range (in ppm) for the metabolite and water spectra
@@ -116,27 +128,44 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 % When using single-average Siemens RDA or DICOM files, specify their
 % folders instead of single files!
 
-% Specify metabolite data
+% Specify metabolite data folder
 % (MANDATORY)
-files       = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/sub-01/mrs/sub-01_mega-press-68/',...
-               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/sub-01/mrs/sub-01_mega-press-80/'};
+files       = {strrep(which('exampledata/ima/jobIMA.m'),...
+                'jobIMA.m',['sub-01' filesep 'mrs' filesep 'sub-01_mega-press-68' filesep]),...
+               strrep(which('exampledata/ima/jobIMA.m'),...
+               'jobIMA.m',['sub-01' filesep 'mrs' filesep 'sub-01_mega-press-80' filesep])};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
-files_ref   = {'/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/sub-01/mrs/sub-01_mega-press-68-ref/',...
-               '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/sub-01/mrs/sub-01_mega-press-80-ref/'};
+% Leave empty for GE P-files (.7) - these include water reference data by
+% default.
+files_ref   = {strrep(which('exampledata/ima/jobIMA.m'),...
+                'jobIMA.m',['sub-01' filesep 'mrs' filesep 'sub-01_mega-press-68-ref' filesep]),...
+               strrep(which('exampledata/ima/jobIMA.m'),...
+               'jobIMA.m',['sub-01' filesep 'mrs' filesep 'sub-01_mega-press-80-ref' filesep])};
 
-           
+% Specify water data for quantification (e.g. short-TE water scan)
+% (OPTIONAL)
+files_w     = {};        
+
+% Specify T1-weighted structural imaging data
+% (OPTIONAL)
+% Link to single NIfTI (*.nii) files for Siemens and Philips data
+% Link to DICOM (*.dcm) folders for GE data
+files_nii   = {};
            
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 4. SPECIFY OUTPUT FOLDER %%
-% The LCGannet data container will be saved as a *.mat file in the output
+% The Osprey data container will be saved as a *.mat file in the output
 % folder that you specify below. In addition, any exported files (for use
 % with jMRUI, TARQUIN, or LCModel) will be saved in sub-folders.
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = '/Users/Georg/Documents/MATLAB/LCGannet/exampledata/ima/derivatives';
+outputFolder = strrep(which('exampledata/twix/jobIMA.m'),'jobIMA.m','derivatives');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

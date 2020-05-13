@@ -13,14 +13,24 @@
 % operated on by the other functions in this MRS toolbox.
 % 
 % INPUTS:
-% filename   = filename of Siemens rda data to load.
+% pathname   = pathname of Siemens rda data to load. Can be folder or file,
+% which will autmatically be distinguished.
 %
 % OUTPUTS:
 % out        = Input dataset in FID-A structure format.
 
-function [out] = io_loadspec_rda(rda_filename)
+function [out] = io_loadspec_rda(pathname)
 
-fid = fopen(rda_filename);
+if isfile(pathname)
+    filesInFolder{1} = pathname;
+else
+    % Create list of complete filenames (incl. path) in the folder
+    dirFolder = dir(pathname);
+    filesInFolder = dirFolder(~[dirFolder.isdir]);
+    filesInFolder = strcat(pathname, {filesInFolder.name});     
+end
+
+fid = fopen(filesInFolder{1});
 
 head_start_text = '>>> Begin of header <<<';
 head_end_text   = '>>> End of header <<<';
@@ -135,8 +145,18 @@ out.geometry = geometry;
 % 
 % Siemens documentation suggests that the data should be in a double complex format (8bytes for real, and 8 for imaginary?)
 %
-
+fclose(fid);
 bytes_per_point = 16;
+
+% Preallocate array in which the FIDs are to be extracted.
+fids = zeros(length(filesInFolder),rda.VectorSize);
+% Collect all FIDs and sort them into fids array
+for kk = 1:length(filesInFolder)
+fid = fopen(filesInFolder{kk});
+tline = fgets(fid);
+while (isempty(strfind(tline , head_end_text)))   
+    tline = fgets(fid);    
+end
 complex_data = fread(fid , rda.CSIMatrix_Size(1) * rda.CSIMatrix_Size(1) *rda.CSIMatrix_Size(1) *rda.VectorSize * 2 , 'double');  
 %fread(fid , 1, 'double');  %This was a check to confirm that we had read all the data (it passed!)
 fclose(fid);
@@ -147,7 +167,8 @@ fclose(fid);
  hmm = reshape(complex_data,  2 , rda.VectorSize , rda.CSIMatrix_Size(1) ,  rda.CSIMatrix_Size(2) ,  rda.CSIMatrix_Size(3) );
  
  %Combine the real and imaginary into the complex matrix
- fids = complex(hmm(1,:,:,:,:),hmm(2,:,:,:,:));
+ fids(kk,:) = complex(hmm(1,:,:,:,:),hmm(2,:,:,:,:));
+end
  fids = fids';
  %Remove the redundant first element in the array
 % Time_domain_data = reshape(hmm_complex, rda.VectorSize , rda.CSIMatrix_Size(1) ,  rda.CSIMatrix_Size(2) ,  rda.CSIMatrix_Size(3));
@@ -157,17 +178,32 @@ fclose(fid);
 specs = fftshift(fft(fids,[],1),1);
 
 % make calculations for the output mrs structure
-sz = rda.VectorSize;
+sz = size(fids);
 dwelltime = rda.DwellTime/1000000;
 spectralwidth=1/dwelltime;
 txfrq = rda.MRFrequency*1000000;
 dims.t = 1;
 dims.subSpecs = 0;
+dims.coils = 0;
+dims.extras = 0;
+dims.averages = 2;
 Bo = rda.MagneticFieldStrength;
 rawAverages = rda.NumberOfAverages;
-averages = 1;
-subspecs =1;
-rawSubspecs = 'na';
+if length(filesInFolder) >= rawAverages
+   rawAverages = length(filesInFolder);
+   averages = rda.NumberOfAverages;
+   subspecs =  fix(rawAverages/averages);
+   rawSubspecs = rda.NumberOfAverages;
+else if length(filesInFolder) == 1
+    averages = 1;
+    subspecs =1;
+    rawSubspecs = 'na';
+    else
+    averages = 1;
+    subspecs = length(filesInFolder);
+    rawSubspecs = length(filesInFolder);
+    end
+end
 date = rda.StudyDate;
 seq = rda.SequenceDescription;
 TE = rda.TE;
@@ -177,8 +213,8 @@ pointsToLeftShift = 0;
 %Calculate t and ppm arrays using the calculated parameters:
 f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
 ppm=f/(Bo*42.577);
-% Siemens data assumes the center frequency to be 4.7 ppm:
-centerFreq = 4.7;
+% Siemens data assumes the center frequency to be 4.6082 ppm:
+centerFreq = 4.6082;
 ppm=ppm + centerFreq;
 
 t=[0:dwelltime:(sz(1)-1)*dwelltime];
@@ -203,7 +239,8 @@ out.seq=seq;
 out.te=TE;
 out.tr=TR;
 out.pointsToLeftshift=pointsToLeftShift;
-
+out.centerFreq = centerFreq;
+out.geometry = geometry;
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
@@ -213,7 +250,11 @@ out.flags.filtered=0;
 out.flags.zeropadded=0;
 out.flags.freqcorrected=0;
 out.flags.phasecorrected=0;
-out.flags.averaged=1;
+if out.averages == 1
+    out.flags.averaged=1;
+else
+    out.flags.averaged=0;
+end
 out.flags.addedrcvrs=1;
 out.flags.subtracted=0;
 out.flags.writtentotext=0;

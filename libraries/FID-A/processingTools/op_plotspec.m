@@ -2,7 +2,7 @@
 % Jamie Near, McGill University 2015.
 % 
 % USAGE:
-% out=op_plotspec(in,ppmmin,ppmmax,xlab,ylab,tit);
+% out=op_plotspec(in,norm,GUI,color,shift,tit,ppmmin,ppmmax,xlab,ylab)
 % 
 % DESCRIPTION:
 % Plot the MR spectrum in the frequency domain.  
@@ -23,26 +23,41 @@
 % OUTPUTS:
 % out    = Figure handle.
 
-function out=op_plotspec(in,ppmmin,ppmmax,xlab,ylab,tit)
+function out=op_plotspec(in,norm,GUI,color,shift,tit,ppmmin,ppmmax,xlab,ylab)
 
-if nargin<6
-    tit='';
-    if nargin<5
-        ylab='';
-        if nargin<4
-            xlab='Frequency (ppm)';
-            if nargin<3
-                ppmmax=5.2;
-                if nargin<2
-                    ppmmin=0.2;
-                    if nargin<1
-                        error('ERROR: no input spectrum specified.  Aborting!!');
+
+if nargin<10
+    ylab='';
+    if nargin<9
+        xlab='Frequency (ppm)';
+        if nargin<8
+            ppmmax=5.2;
+            if nargin<7
+                ppmmin=0.2;
+                 if nargin<6
+                        tit='';
+                    if nargin <5
+                        shift = 0;
+                        if nargin<4
+                            color=0;
+                            if nargin<3
+                                GUI=0;
+                                if nargin<2
+                                    norm=0; 
+                                    if nargin<1
+                                        error('ERROR: no input spectrum specified.  Aborting!!');
+                                    end
+                                end
+                            end
+                        end
                     end
-                end
+                 end
             end
         end
     end
 end
+
+
 
 
 if isstruct(in)
@@ -65,7 +80,7 @@ if isstruct(in)
     else
         dim=0;
     end
-    fignum=figure;
+    out=figure;
     if ~dim
         out=plot(in.ppm,real(squeeze(in.specs)));
     elseif dim==2
@@ -80,22 +95,6 @@ if isstruct(in)
     xlim([ppmmin ppmmax]);
     set(gca,'XDir','reverse');
     set(gca,'FontSize',16);
-    if isempty(ylab)
-        set(gca,'YColor','w');
-    else
-        set(gca,'YColor','k');
-    end
-    set(gca,'XColor','k');
-    set(gca,'Color','w');
-    set(gcf,'Color','w');
-    box off;
-    title(tit);
-    xlabel(xlab,'FontSize',20);
-    ylabel(ylab,'FontSize',20);
-    Fig1Ax1 = get(fignum, 'Children');
-    Fig1Ax1Line1 = get(Fig1Ax1, 'Children');
-    set(Fig1Ax1Line1, 'LineWidth', 1);
-    %set(Fig1Ax1Line1,'MarkerSize', 10);
 elseif iscell(in)
     if ndims(squeeze(in{1}.specs))>2
         disp('More than 1 dimension detected in addition to the frequency dimension.');
@@ -117,61 +116,172 @@ elseif iscell(in)
         dim=0;
     end
     figure;
-    if ~dim
-        out=plot(in{1}.ppm,real(in{1}.specs));
-    elseif dim==2
-        out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,:,1))));
-    elseif dim==3
-        out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,:,1))));
-    elseif dim==4
-        out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,:,1))));
-    elseif dim==5 
-        out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,1,:))));
-    end
-    ylabel('ARB UNITS');
-    disp('Multiple input spectra detected!! ')
-    stagger=input('Please enter the desired vertical spacing of the spectra in ARB UNITS:  ');
-    close;
-    fignum=figure;
-    hold
-    colours=distinguishable_colors(length(in));
-    for n=1:length(in)
+    if norm == 0
         if ~dim
-            out=plot(in{n}.ppm,real(in{n}.specs)+(n-1)*stagger,'Color',colours(n,:));
+            out=plot(in{1}.ppm,real(in{1}.specs));
         elseif dim==2
-            out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,:,1)))+(n-1)*stagger,'Color',colours(n,:));
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,:,1))));
         elseif dim==3
-            out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,:,1)))+(n-1)*stagger,'Color',colours(n,:));
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,:,1))));
         elseif dim==4
-            out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,:,1)))+(n-1)*stagger,'Color',colours(n,:));
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,:,1))));
         elseif dim==5 
-            out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,1,:)))+(n-1)*stagger,'Color',colours(n,:));
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,1,:))));
         end
-        xlim([ppmmin ppmmax]);
-        set(gca,'XDir','reverse');
-        set(gca,'FontSize',16);
-        if isempty(ylab)
-            set(gca,'YColor','w');
+        ylabel('ARB UNITS');
+        disp('Multiple input spectra detected!! ')
+        stagger=input('Please enter the desired vertical spacing of the spectra in ARB UNITS:  ');
+        close;
+        out=figure;
+        hold on;
+        if color == 0
+            colours=distinguishable_colors(length(in));
         else
-            set(gca,'YColor','k');
+            colours = ones(length(in),1) .* color;
+        end            
+        for n=1:length(in)
+            if ~dim
+                out=plot(in{n}.ppm,real(in{n}.specs)+(n-1)*stagger,'Color',colours(n,:));
+            elseif dim==2
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,:,1)))+(n-1)*stagger,'Color',colours(n,:));
+            elseif dim==3
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,:,1)))+(n-1)*stagger,'Color',colours(n,:));
+            elseif dim==4
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,:,1)))+(n-1)*stagger,'Color',colours(n,:));
+            elseif dim==5 
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,1,:)))+(n-1)*stagger,'Color',colours(n,:));
+            end
+            xlim([ppmmin ppmmax]);
+            set(gca,'XDir','reverse');
+            set(gca, 'LineWidth', 1, 'TickDir', 'out');
+            set(gca,'FontSize',16);
+            if isempty(ylab)
+                if ~GUI
+                    set(gca, 'YColor', 'w');
+                else
+                    set(gca, 'YColor', [71/255 71/255 71/255]);
+                    set(gca,'YTickLabel',{})
+                    set(gca,'YTick',{})
+                end
+            else
+                set(gca,'YColor','k');
+            end
+            set(gca,'XColor','k');
+            set(gca,'Color','w');
+            set(gcf,'Color','w');
+            box off;
+            title(tit);
+            xlabel(xlab,'FontSize',20);
+            ylabel(ylab,'FontSize',20);
+            Fig1Ax1 = get(out, 'Children');
+            Fig1Ax1Line1 = get(Fig1Ax1, 'Children');
+            set(Fig1Ax1Line1, 'LineWidth', 1);
         end
-        set(gca,'XColor','k');
-        set(gca,'Color','w');
-        set(gcf,'Color','w');
-        box off;
-        title(tit);
-        xlabel(xlab,'FontSize',20);
-        ylabel(ylab,'FontSize',20);
-        Fig1Ax1 = get(fignum, 'Children');
-        Fig1Ax1Line1 = get(Fig1Ax1, 'Children');
-        set(Fig1Ax1Line1, 'LineWidth', 1);
+    else if norm == 1
+        if ~dim
+            out=plot(in{1}.ppm,real(in{1}.specs)/max(real(in{1}.specs))+shift);
+        elseif dim==2
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,:,1)))/max(real(squeeze(in{1}.specs(:,:,1))))+shift);
+        elseif dim==3
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,:,1)))/max(real(squeeze(in{1}.specs(:,1,:,1))))+shift);
+        elseif dim==4
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,:,1)))/max(real(squeeze(in{1}.specs(:,1,1,:,1))))+shift);
+        elseif dim==5 
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,1,:)))/max(real(squeeze(in{1}.specs(:,1,1,1,:))))+shift);
+        end
+        if ~GUI
+            disp('Multiple input spectra detected!! Each spectrum is normalized to its maximum. ')
+        end
+        close;
+        out=figure;
+        hold on;
+        if color == 0
+            colours=distinguishable_colors(length(in));
+        else
+            colours = ones(length(in),1) .* color;
+        end   
+        for n=1:length(in)
+            if ~dim
+                out=plot(in{n}.ppm,real(in{n}.specs)/max(real(in{n}.specs))+shift,'Color',colours(n,:));
+            elseif dim==2
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,:,1)))/max(real(squeeze(in{n}.specs(:,:,1))))+shift,'Color',colours(n,:));
+            elseif dim==3
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,:,1)))/max(real(squeeze(in{n}.specs(:,1,:,1))))+shift,'Color',colours(n,:));
+            elseif dim==4
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,:,1)))/max(real(squeeze(in{n}.specs(:,1,1,:,1))))+shift,'Color',colours(n,:));
+            elseif dim==5 
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,1,:)))/max(real(squeeze(in{n}.specs(:,1,1,1,:))))+shift,'Color',colours(n,:));
+            end
+            xlim([ppmmin ppmmax]);
+            ylim([-0.5 1.5]);
+            set(gca,'XDir','reverse');
+            set(gca, 'LineWidth', 1, 'TickDir', 'out');
+            set(gca,'FontSize',16);
+        end
+   else
+        if ~dim
+            out=plot(in{1}.ppm,real(in{1}.specs)+shift);
+        elseif dim==2
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,:,1)))+shift);
+        elseif dim==3
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,:,1)))+shift);
+        elseif dim==4
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,:,1)))+shift);
+        elseif dim==5 
+            out=plot(in{1}.ppm,real(squeeze(in{1}.specs(:,1,1,1,:)))+shift);
+        end
+        if ~GUI
+            disp('Multiple input spectra detected!! But they are already normalized. ')
+        end
+        close;
+        out=figure;
+        hold on;
+        if color == 0
+            colours=distinguishable_colors(length(in));
+        else
+            colours = ones(length(in),1) .* color;
+        end   
+        for n=1:length(in)
+            if ~dim
+                out=plot(in{n}.ppm,real(in{n}.specs)+shift,'Color',colours(n,:));
+            elseif dim==2
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,:,1)))+shift,'Color',colours(n,:));
+            elseif dim==3
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,:,1)))+shift,'Color',colours(n,:));
+            elseif dim==4
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,:,1)))+shift,'Color',colours(n,:));
+            elseif dim==5 
+                out=plot(in{n}.ppm,real(squeeze(in{n}.specs(:,1,1,1,:)))+shift,'Color',colours(n,:));
+            end
+            xlim([ppmmin ppmmax]);
+%             ylim([-0.75 1.5]);
+            set(gca,'XDir','reverse');
+            set(gca, 'LineWidth', 1, 'TickDir', 'out');
+            set(gca,'FontSize',16);
+        end
+      end
     end
 else
     error('ERROR:  Input data format not recognized.  ABORTING!!');
 end
 
-
+if isempty(ylab)
+    if ~GUI
+        set(gca, 'YColor', 'w');
+        set(gca,'XColor','k');
+        set(gca,'Color','w');
+        set(gcf,'Color','w');
+        title(tit);
+    end
+else
+    set(gca,'YColor','k');
+end
+box off;
+xlabel(xlab,'FontSize',20);
+ylabel(ylab,'FontSize',20);
+Fig1Ax1 = get(out, 'Children');
+Fig1Ax1Line1 = get(Fig1Ax1, 'Children');
+set(Fig1Ax1Line1, 'LineWidth', 1);
         
     
     
-

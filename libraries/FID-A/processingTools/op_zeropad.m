@@ -19,14 +19,14 @@
 
 function out=op_zeropad(in,zpFactor);
 
-if in.flags.zeropadded
-    cont=input('WARNING:  Zero padding has already been performed!  Continue anyway?  (y or n)','s');
-    if cont=='y'
-        %continue;
-    else
-        error('STOPPING');
-    end
-end
+% if in.flags.zeropadded
+%     cont=input('WARNING:  Zero padding has already been performed!  Continue anyway?  (y or n)','s');
+%     if cont=='y'
+%         %continue;
+%     else
+%         error('STOPPING');
+%     end
+% end
 
 
 %calculate how many zeros to add

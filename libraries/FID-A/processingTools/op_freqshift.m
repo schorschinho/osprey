@@ -27,13 +27,21 @@ function out=op_freqshift(in,f);
 %     error('ERROR:  Can not operate on data with multiple Subspecs!  ABORTING!!');
 % end
 
-t=repmat(in.t',[1 in.sz(2:end)]);
 
-fids=in.fids.*exp(-1i*t*f*2*pi);
+if length(f) > 1
+    t=repmat(in.t',[1 in.sz(2:end)]);
+    t = t(:,1);
+    fids = in.fids;
+    for av = 1 : in.averages
+        fids(:,av)=in.fids(:,av).*exp(-1i*t*f(av)*2*pi);
+    end
+else
+    t=repmat(in.t',[1 in.sz(2:end)]);
+    fids=in.fids.*exp(-1i*t*f*2*pi);
+end
 
 %re-calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
-
 %plot(in1.ppm,combinedSpecs);
 
 %FILLING IN DATA STRUCTURES

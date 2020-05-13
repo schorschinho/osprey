@@ -30,7 +30,7 @@
 % vol_mask  = SPM volume of the coregistered voxel mask.
 % T1_max    = maximum intensity of the image volume.
 
-function [vol_mask, T1_max] = coreg_siemens(in, vol_image, maskFile)
+function [vol_mask, T1_max, voxel_ctr] = coreg_siemens(in, vol_image, maskFile)
 
 % Deactivate MATLAB warnings and load geometry parameters
 warning('off','MATLAB:nearlySingularMatrix');
@@ -183,13 +183,13 @@ vol_mask.fname   = maskFile;
 vol_mask.dim     = vol_image.dim;
 vol_mask.dt      = vol_image.dt;
 vol_mask.mat     = vol_image.mat;
-vol_mask.pinfo   = vol_image.pinfo;
-vol_mask.n       = vol_image.n;
 vol_mask.descrip = 'MRS_voxel_mask';
-vol_mask.private = vol_image.private;
 
 % Write the SPM volume to disk
 vol_mask = spm_write_vol(vol_mask,mask);
+
+% Store voxel centre for output figure
+voxel_ctr = [VoxOffs(1) VoxOffs(2) VoxOffs(3)];
 
 % Reactivate MATLAB warnings
 warning('on','MATLAB:nearlySingularMatrix');

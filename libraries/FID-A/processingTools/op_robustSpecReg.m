@@ -19,12 +19,16 @@
 % out       = Output following alignment of averages.
 % fs        = Vector of frequency shifts (in Hz) used for alignment.
 % phs       = Vector of phase shifts (in degrees) used for alignment.
+% w         = Vector of relative weights applied to the individual
+%             averages.
 
 
-function [out,fs,phs] = op_robustSpecReg(in, seqType, echo)
-
-if nargin < 2
-    echo = 1;
+function [out, fs, phs, w, driftPre, driftPost] = op_robustSpecReg(in, seqType, echo, F0)
+if nargin <4
+    F0 = nan;
+    if nargin < 2
+        echo = 1;    
+    end
 end
 
 % Check whether data is coil-combined. If not, throw error.
@@ -48,8 +52,15 @@ end
 % get aligned separately.
 if in.dims.subSpecs == 0
     numSubSpecs = 1;
+    % Measure drift pre-alignment
+    driftPre = op_measureDrift(in);
 else
     numSubSpecs = in.sz(in.dims.subSpecs);
+    % Measure drift pre-alignment
+    for mm = 1:numSubSpecs
+        in_sub = op_takesubspec(in, mm);
+        driftPre{mm} = op_measureDrift(in_sub);
+    end
 end
 
 % Pre-allocate memory.
@@ -67,6 +78,7 @@ t                 = in.t;
 input.dwelltime   = in.dwelltime;
 
 for mm=1:numSubSpecs
+
     %%% Automatic lipid/unstable residual water removal %%%
     freq        = in.ppm;
     waterLim = freq <= 4.68 + 0.25 & freq >= 4.68 - 0.25;
@@ -104,7 +116,7 @@ for mm=1:numSubSpecs
         reverseStr = '';
         
         % Loop over averages in the sub-spectrum
-        for jj = 1:in.averages
+        for jj = 1:in.sz(in.dims.averages)
             
             if echo
                 if lipid_flag && ~water_flag
@@ -187,9 +199,14 @@ for mm=1:numSubSpecs
     F0freq = F0freqRange(FrameMaxPos);
         
     % Starting values for optimization
-    f0 = F0freq * in.txfrq * 1e-6;
-    f0 = f0(alignOrd);
-    f0 = f0 - f0(1);
+    if isnan(F0) 
+        f0 = F0freq * in.txfrq * 1e-6;
+        f0 = f0(alignOrd);
+        f0 = f0 - f0(1);
+    else
+        f0 = F0(alignOrd);
+        f0 = f0 - f0(1);
+    end
     phi0 = zeros(size(f0));
     x0 = [f0(:) phi0(:)];
     
@@ -228,12 +245,12 @@ for mm=1:numSubSpecs
 
     % Prepare the frequency and phase corrections to be returned by this
     % function for further use
-    fs  = params(:,1);
-    phs = params(:,2);
+    fs(:,mm)  = params(:,1);
+    phs(:,mm) = params(:,2);
     
     % Apply frequency and phase corrections to raw data
     for jj = 1:size(flatdata,3)
-        fids(:,jj,mm) = DataToAlign(:,jj) .* ...
+        fids(:,jj,mm) = in.fids(:,jj,mm) .* ...
             exp(1i*params(jj,1)*2*pi*t') * exp(1i*pi/180*params(jj,2));
     end
 end
@@ -242,8 +259,26 @@ if echo
     fprintf('... done.\n');
 end
 
+%%% 2. CALCULATE THE DRIFT AFTER CORRECTIONS
+out_temp=in;
+out_temp.fids=fids;
+%re-calculate Specs using fft
+out_temp.specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
+% Measure drift post-alignment
+if in.dims.subSpecs == 0
+    numSubSpecs = 1;
+    driftPost = op_measureDrift(out_temp);
+else
+    numSubSpecs = in.sz(in.dims.subSpecs);
+    % Measure drift post-alignment
+    for mm = 1:numSubSpecs
+        out_temp_sub = op_takesubspec(out_temp, mm);
+        driftPost{mm} = op_measureDrift(out_temp_sub);
+    end
+end
 
-%%% 2. RE-RUN THE RANKING ALGORITHM TO DETERMINE WEIGHTS %%%
+
+%%% 3. RE-RUN THE RANKING ALGORITHM TO DETERMINE WEIGHTS %%%
 
 % Determine optimal iteration order by calculating a similarity metric (mean squared error)
 w = cell(1,numSubSpecs);

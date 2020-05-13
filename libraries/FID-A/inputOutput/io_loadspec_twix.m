@@ -65,17 +65,24 @@ isWIP859=~isempty(strfind(sequence,'edit_859')); %Is this WIP 859 (MEGA-PRESS)?
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isSiemens=~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'));    % or the Siemens STEAM sequence?
-isUniversal = ~isempty(strfind(sequence,'mgs_univ'));
+isUniversal = ~isempty(strfind(sequence,'univ'));
 
         
 %Make a pulse sequence identifier for the header (out.seq);
 if isSpecial
     seq = 'SPECIAL';
-elseif isjnMP || isWIP529 || isWIP859
-    seq = 'MEGAPRESS';
+elseif isUniversal
+    if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 1 
+        seq = 'HERMES';
+    else if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 2
+            seq = 'HERCULES';
+         else
+            seq = 'MEGAPRESS';
+        end
+    end 
 elseif isMinn
     seq = 'MEGAPRESS';
-elseif isUniversal
+elseif isjnMP || isWIP529 || isWIP859
     seq = 'MEGAPRESS';
 elseif isSiemens
     if ~isempty(strfind(sequence,'svs_st'))
@@ -84,7 +91,9 @@ elseif isSiemens
         seq = 'PRESS';
     end
 end
-
+if ~exist('seq')
+    seq = 'HERMES';
+end
 %If this is the SPECIAL sequence, it probably contains both inversion-on
 %and inversion-off subspectra on a single dimension, unless it is the VB
 %version of Jamie Near's SPECIAL sequence, in which case the subspecs are
@@ -345,6 +354,16 @@ elseif length(sqzDims)==2
 elseif length(sqzDims)==1
     fids=permute(fids,[dims.t]);
     dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0;
+end
+
+%Now reorder the fids for the Universal HERMES/HERCULES implementation 
+if strcmp(seq,'HERMES') || strcmp(seq,'HERCULES')
+    fids_A = fids(:,:,1:4:end);
+    fids_B = fids(:,:,2:4:end);
+    fids_C = fids(:,:,3:4:end);
+    fids_D = fids(:,:,4:4:end);
+    fids = cat(4,fids_A,fids_B,fids_C,fids_D);
+    dims.subSpecs=4;
 end
 
 %Now get the size of the data array:

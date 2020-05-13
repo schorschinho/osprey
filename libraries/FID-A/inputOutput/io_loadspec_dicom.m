@@ -19,6 +19,13 @@ function out=io_loadspec_dicom(folder);
 % Create list of complete filenames (incl. path) in the folder
 dirFolder = dir(folder);
 filesInFolder = dirFolder(~[dirFolder.isdir]);
+hidden = logical(ones(1,length(filesInFolder)));
+for jj = 1:length(filesInFolder) 
+    if strcmp(filesInFolder(jj).name(1),'.')
+        hidden(jj) = 0;
+    end
+end
+filesInFolder = filesInFolder(hidden);%delete hidden files 
 filesInFolder = strcat(folder, {filesInFolder.name});        
 
 % Get the header of the first file to make some decisions.
@@ -100,6 +107,15 @@ elseif strcmp(seqtype,'PRESS')
     else
         out.flags.averaged = 0;
     end
+elseif strcmp(seqtype,'sLASER')
+    % If the number of stored FIDs does not match the number of averages
+    % stored in the DICOM header, the data are averaged.
+    nominalAvgs = DicomHeader.nAverages;
+    if size(fids,2) ~= nominalAvgs
+        out.flags.averaged = 1;
+    else
+        out.flags.averaged = 0;
+    end
 end
 
 % Assign correct dimensions
@@ -107,7 +123,7 @@ sz=size(fids);
 Ncoils=1; % DICOM data are coil-combined on the scanner
 Naverages = sz(2);
 
-fids = squeeze(conj(fids));
+fids = (conj(fids));
 sz=size(fids);
 if ndims(fids)==4  %Default config when 4 dims are acquired
     dims.t=1;
@@ -116,15 +132,15 @@ if ndims(fids)==4  %Default config when 4 dims are acquired
     dims.subSpecs=4;
 elseif ndims(fids)<4  %To many permutations...ask user for dims.
     if Naverages == 1 && Ncoils == 1
-        if ndims(fids)>1
+        if ndims(fids)>2
             dims.t=1;
             dims.coils=0;
-            dims.averages=0;
-            dims.subSpecs=2;
+            dims.averages=2;
+            dims.subSpecs=3;
         else
             dims.t=1;
             dims.coils=0;
-            dims.averages=0;
+            dims.averages=2;
             dims.subSpecs=0;
         end
     elseif Naverages>1 && Ncoils==1
