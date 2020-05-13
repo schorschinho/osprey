@@ -1,0 +1,1060 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="The Official Documentation for Osprey">
+      
+      
+        <link rel="canonical" href="https://schorschinho.github.io/osprey/03-job-files/01-the-job-file/">
+      
+      
+        <meta name="author" content="Georg Oeltzschner">
+      
+      <link rel="shortcut icon" href="../../img/osprey.png">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.6">
+    
+    
+      
+        <title>Job files - Osprey documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b9ffd7b.min.css">
+      
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.b79bcd20.min.css">
+      
+      
+        
+        
+        <meta name="theme-color" content="">
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    <body dir="ltr" data-md-color-primary="black" data-md-color-accent="deep-orange">
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-osprey-job-file" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://schorschinho.github.io/osprey/" title="Osprey documentation" class="md-header-nav__button md-logo" aria-label="Osprey documentation">
+      
+  <img src="../../img/osprey.png" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Osprey documentation
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Job files
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/schorschinho/osprey/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    schorschinho/osprey
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://schorschinho.github.io/osprey/" title="Osprey documentation" class="md-nav__button md-logo" aria-label="Osprey documentation">
+      
+  <img src="../../img/osprey.png" alt="logo">
+
+    </a>
+    Osprey documentation
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/schorschinho/osprey/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    schorschinho/osprey
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../02-osprey-workflow/01-structure-workflow/" title="The Osprey Workflow" class="md-nav__link">
+      The Osprey Workflow
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Getting started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting started" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Getting started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../01-getting-started/01-system-requirements/" title="System requirements" class="md-nav__link">
+      System requirements
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../01-getting-started/02-installing-osprey/" title="Installing Osprey" class="md-nav__link">
+      Installing Osprey
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../01-getting-started/03-organize-data/" title="How to organize your raw data" class="md-nav__link">
+      How to organize your raw data
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Job files
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Job files" class="md-nav__link md-nav__link--active">
+      Job files
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example-job-file" class="md-nav__link">
+    Example job file
+  </a>
+  
+    <nav class="md-nav" aria-label="Example job file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-sequence-information" class="md-nav__link">
+    1. Sequence Information
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Sequence Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sequence-type" class="md-nav__link">
+    Sequence Type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-targets" class="md-nav__link">
+    Editing Targets
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-data-handling-and-modeling-options" class="md-nav__link">
+    2. Data handling and modeling options
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Data handling and modeling options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#saving-data-to-external-formats" class="md-nav__link">
+    Saving data to external formats
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#specifying-fitting-options" class="md-nav__link">
+    Specifying fitting options
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-specifying-mrs-data-and-structural-imaging-files" class="md-nav__link">
+    3. Specifying MRS data and structural imaging files
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Specifying MRS data and structural imaging files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metabolite-data" class="md-nav__link">
+    Metabolite data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lineshape-reference-data" class="md-nav__link">
+    Lineshape reference data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#short-te-water-data" class="md-nav__link">
+    Short-TE water data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structural-images" class="md-nav__link">
+    Structural images
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-specifying-the-output-folder" class="md-nav__link">
+    4. Specifying the output folder
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example-job-file" class="md-nav__link">
+    Example job file
+  </a>
+  
+    <nav class="md-nav" aria-label="Example job file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-sequence-information" class="md-nav__link">
+    1. Sequence Information
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Sequence Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sequence-type" class="md-nav__link">
+    Sequence Type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-targets" class="md-nav__link">
+    Editing Targets
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-data-handling-and-modeling-options" class="md-nav__link">
+    2. Data handling and modeling options
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Data handling and modeling options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#saving-data-to-external-formats" class="md-nav__link">
+    Saving data to external formats
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#specifying-fitting-options" class="md-nav__link">
+    Specifying fitting options
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-specifying-mrs-data-and-structural-imaging-files" class="md-nav__link">
+    3. Specifying MRS data and structural imaging files
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Specifying MRS data and structural imaging files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metabolite-data" class="md-nav__link">
+    Metabolite data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lineshape-reference-data" class="md-nav__link">
+    Lineshape reference data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#short-te-water-data" class="md-nav__link">
+    Short-TE water data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structural-images" class="md-nav__link">
+    Structural images
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-specifying-the-output-folder" class="md-nav__link">
+    4. Specifying the output folder
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/schorschinho/osprey/edit/master/docs/03-job-files/01-the-job-file.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="the-osprey-job-file">The Osprey job file<a class="headerlink" href="#the-osprey-job-file" title="Permanent link">&para;</a></h1>
+<p>Every <strong>Osprey</strong> analysis requires the user to provide a job file. The <strong>Osprey</strong> job file is the only direct point of contact between the user and the analysis. It contains paths to MRS data files and structural images, defines processing and modelling options, and determines whether (and where) output files are being saved.</p>
+<p>The job file system ensures that all processing, modeling, and quantification steps are performed in an operator-independent, reproducible way.</p>
+<h2 id="example-job-file">Example job file<a class="headerlink" href="#example-job-file" title="Permanent link">&para;</a></h2>
+<p>The following collapsible box contains the <a href="https://github.com/schorschinho/osprey/blob/develop/exampledata/sdat/jobSDAT.m">example job file <code>jobSDAT.m</code></a> defining a batched analysis of the two Philips PRESS (TE = 30 ms) datasets that are included in the <code>exampledata</code> directory of the <a href="https://github.com/schorschinho/osprey"><strong>Osprey</strong> repository</a>. You can click on the dropdown arrow on the right to take a look through the file, and then read on for a detailed description of each job file item.</p>
+<details class="note"><summary>Example job file <code>jobSDAT.m</code>:</summary><div class="highlight"><pre><span></span><code><span class="c">%% jobSDAT.m</span>
+<span class="c">%   This function describes an Osprey job defined in a MATLAB script.</span>
+<span class="c">%</span>
+<span class="c">%   A valid Osprey job contains four distinct classes of items:</span>
+<span class="c">%       1. basic information on the MRS sequence used</span>
+<span class="c">%       2. several settings for data handling and modeling</span>
+<span class="c">%       3. a list of MRS (and, optionally, structural imaging) data files</span>
+<span class="c">%          to be loaded</span>
+<span class="c">%       4. an output folder to store the results and exported files</span>
+<span class="c">%</span>
+<span class="c">%   The list of MRS and structural imaging files is provided in the form of</span>
+<span class="c">%   cell arrays. They can simply be provided explicitly, or from a more</span>
+<span class="c">%   complex script that automatically determines file names from a given</span>
+<span class="c">%   folder structure.</span>
+<span class="c">%</span>
+<span class="c">%   Osprey distinguishes between four sets of data:</span>
+<span class="c">%       - metabolite (water-suppressed) data</span>
+<span class="c">%           (MANDATORY)</span>
+<span class="c">%           Defined in cell array &quot;files&quot;</span>
+<span class="c">%       - water reference data acquired with the SAME sequence as the</span>
+<span class="c">%           metabolite data, just without water suppression RF pulses. This</span>
+<span class="c">%           data is used to determine complex coil combination</span>
+<span class="c">%           coefficients, and perform eddy current correction.</span>
+<span class="c">%           (OPTIONAL)</span>
+<span class="c">%           Defined in cell array &quot;files_ref&quot;</span>
+<span class="c">%       - additional water data used for water-scaled quantification,</span>
+<span class="c">%           usually from short-TE acquisitions due to reduced T2-weighting</span>
+<span class="c">%           (OPTIONAL)</span>
+<span class="c">%           Defined in cell array &quot;files_w&quot;</span>
+<span class="c">%       - Structural image data used for co-registration and tissue class</span>
+<span class="c">%           segmentation (usually a T1 MPRAGE). These files need to be</span>
+<span class="c">%           provided in the NIfTI format (*.nii) or, for GE data, as a</span>
+<span class="c">%           folder containing DICOM Files (*.dcm).</span>
+<span class="c">%           (OPTIONAL)</span>
+<span class="c">%           Defined in cell array &quot;files_nii&quot;</span>
+<span class="c">%</span>
+<span class="c">%   Files in the formats</span>
+<span class="c">%       - .7 (GE)</span>
+<span class="c">%       - .SDAT, .DATA/.LIST, .RAW/.SIN/.LAB (Philips)</span>
+<span class="c">%       - .DAT (Siemens)</span>
+<span class="c">%   usually contain all of the acquired data in a single file per scan. GE</span>
+<span class="c">%   systems store water reference data in the same .7 file, so there is no</span>
+<span class="c">%   need to specify it separately under files_ref.</span>
+<span class="c">%</span>
+<span class="c">%   Files in the formats</span>
+<span class="c">%       - .DCM (any)</span>
+<span class="c">%       - .IMA, .RDA (Siemens)</span>
+<span class="c">%   may contain separate files for each average. Instead of providing</span>
+<span class="c">%   individual file names, please specify folders. Metabolite data, water</span>
+<span class="c">%   reference data, and water data need to be located in separate folders.</span>
+<span class="c">%</span>
+<span class="c">%   In the example script at hand the MATLAB functions strrep and which are</span>
+<span class="c">%   used to generate a relative path, which allows you to run the examples</span>
+<span class="c">%   on your machine directly. To set up your own Osprey job supply the</span>
+<span class="c">%   specific locations as described above.</span>
+<span class="c">%</span>
+<span class="c">%   AUTHOR:</span>
+<span class="c">%       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)</span>
+<span class="c">%       goeltzs1@jhmi.edu</span>
+<span class="c">%   </span>
+<span class="c">%   HISTORY:</span>
+<span class="c">%       2019-07-15: First version of the code.</span>
+
+
+
+<span class="c">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="c">%%% 1. SPECIFY SEQUENCE INFORMATION %%%</span>
+
+<span class="c">% Specify sequence type</span>
+<span class="n">seqType</span> <span class="p">=</span> <span class="s">&#39;unedited&#39;</span><span class="p">;</span>           <span class="c">% OPTIONS:    - &#39;unedited&#39; (default)</span>
+                                <span class="c">%             - &#39;MEGA&#39;</span>
+                                <span class="c">%             - &#39;HERMES&#39;</span>
+                                <span class="c">%             - &#39;HERCULES&#39;</span>
+
+<span class="c">% Specify editing targets</span>
+<span class="n">editTarget</span> <span class="p">=</span> <span class="p">{</span><span class="s">&#39;none&#39;</span><span class="p">};</span>            <span class="c">% OPTIONS:    - {&#39;none&#39;} (default if &#39;unedited&#39;)</span>
+                                <span class="c">%             - {&#39;GABA&#39;}, {&#39;GSH&#39;}  (for &#39;MEGA&#39;)</span>
+                                <span class="c">%             - {&#39;GABA, &#39;GSH}, {&#39;GABA, GSH, EtOH&#39;} (for &#39;HERMES&#39;)</span>
+                                <span class="c">%             - {&#39;HERCULES1&#39;}, {&#39;HERCULES2&#39;} (for &#39;HERCULES&#39;)</span>
+
+<span class="c">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+
+
+
+<span class="c">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="c">%%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%</span>
+
+<span class="c">% Save LCModel-exportable files for each spectrum?</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">saveLCM</span>                <span class="p">=</span> <span class="mi">1</span><span class="p">;</span>                <span class="c">% OPTIONS:    - 0 (no, default)</span>
+                                                <span class="c">%             - 1 (yes)</span>
+<span class="c">% Save jMRUI-exportable files for each spectrum?</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">saveJMRUI</span>              <span class="p">=</span> <span class="mi">1</span><span class="p">;</span>                <span class="c">% OPTIONS:    - 0 (no, default)</span>
+                                                <span class="c">%             - 1 (yes)</span>
+
+<span class="c">% Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">saveVendor</span>             <span class="p">=</span> <span class="mi">1</span><span class="p">;</span>                <span class="c">% OPTIONS:    - 0 (no, default)</span>
+                                                <span class="c">%             - 1 (yes)</span>
+
+<span class="c">% Choose the fitting algorithm</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">method</span>             <span class="p">=</span> <span class="s">&#39;Osprey&#39;</span><span class="p">;</span>       <span class="c">% OPTIONS:    - &#39;Osprey&#39; (default)</span>
+                                                <span class="c">%           - &#39;AQSES&#39; (planned)</span>
+                                                <span class="c">%           - &#39;TARQUIN&#39; (planned)</span>
+
+<span class="c">% Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)</span>
+<span class="c">% (only available for the Osprey fitting method)</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">style</span>              <span class="p">=</span> <span class="s">&#39;Concatenated&#39;</span><span class="p">;</span>   <span class="c">% OPTIONS:  - &#39;Concatenated&#39; (default) - will fit DIFF and SUM simultaneously)</span>
+                                                <span class="c">%           - &#39;Separate&#39; - will fit DIFF and OFF separately</span>
+
+<span class="c">% Determine fitting range (in ppm) for the metabolite and water spectra</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">range</span>              <span class="p">=</span> <span class="p">[</span><span class="mf">0.2</span> <span class="mf">4.2</span><span class="p">];</span>        <span class="c">% [ppm] Default: [0.2 4.2]</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">rangeWater</span>         <span class="p">=</span> <span class="p">[</span><span class="mf">2.0</span> <span class="mf">7.4</span><span class="p">];</span>        <span class="c">% [ppm] Default: [2.0 7.4]</span>
+
+<span class="c">% Determine the baseline knot spacing (in ppm) for the metabolite spectra</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">bLineKnotSpace</span>     <span class="p">=</span> <span class="mf">0.4</span><span class="p">;</span>              <span class="c">% [ppm] Default: 0.4.</span>
+
+<span class="c">% Add macromolecule and lipid basis functions to the fit?</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">fitMM</span>              <span class="p">=</span> <span class="mi">1</span><span class="p">;</span>                <span class="c">% OPTIONS:    - 0 (no)</span>
+                                                <span class="c">%             - 1 (yes, default)</span>
+
+<span class="c">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+
+
+
+<span class="c">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="c">%%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%</span>
+<span class="c">% When using single-average Siemens RDA or DICOM files, specify their</span>
+<span class="c">% folders instead of single files!</span>
+
+<span class="c">% Specify metabolite data</span>
+<span class="c">% (MANDATORY)</span>
+<span class="n">files</span>       <span class="p">=</span> <span class="p">{</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat&#39;</span><span class="p">),</span><span class="c">...</span>
+               <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat&#39;</span><span class="p">)};</span>
+
+<span class="c">% Specify water reference data for eddy-current correction (same sequence as metabolite data!)</span>
+<span class="c">% (OPTIONAL)</span>
+<span class="c">% Leave empty for GE P-files (.7) - these include water reference data by</span>
+<span class="c">% default.</span>
+<span class="n">files_ref</span>   <span class="p">=</span> <span class="p">{</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat&#39;</span><span class="p">),</span><span class="c">...</span>
+               <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat&#39;</span><span class="p">)};</span>
+
+<span class="c">% Specify water data for quantification (e.g. short-TE water scan)</span>
+<span class="c">% (OPTIONAL)</span>
+<span class="n">files_w</span>     <span class="p">=</span> <span class="p">{</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat&#39;</span><span class="p">),</span><span class="c">...</span>
+               <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat&#39;</span><span class="p">)};</span>
+
+<span class="c">% Specify T1-weighted structural imaging data</span>
+<span class="c">% (OPTIONAL)</span>
+<span class="c">% Link to single NIfTI (*.nii) files for Siemens and Philips data</span>
+<span class="c">% Link to DICOM (*.dcm) folders for GE data</span>
+<span class="n">files_nii</span>   <span class="p">=</span> <span class="p">{</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-01/anat/sub-01_T1w.nii&#39;</span><span class="p">),</span><span class="c">...</span>
+               <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/anat/sub-02_T1w.nii&#39;</span><span class="p">)};</span>
+
+<span class="c">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+
+
+
+<span class="c">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="c">%%% 4. SPECIFY OUTPUT FOLDER %%</span>
+<span class="c">% The Osprey data container will be saved as a *.mat file in the output</span>
+<span class="c">% folder that you specify below. In addition, any exported files (for use</span>
+<span class="c">% with jMRUI, TARQUIN, or LCModel) will be saved in sub-folders.</span>
+
+<span class="c">% Specify output folder</span>
+<span class="c">% (MANDATORY)</span>
+<span class="n">outputFolder</span> <span class="p">=</span> <span class="n">strrep</span><span class="p">(</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/jobSDAT.m&#39;</span><span class="p">),</span><span class="s">&#39;jobSDAT.m&#39;</span><span class="p">,</span><span class="s">&#39;derivatives&#39;</span><span class="p">);</span>
+
+<span class="c">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+</code></pre></div>
+
+</details>
+<h3 id="1-sequence-information">1. Sequence Information<a class="headerlink" href="#1-sequence-information" title="Permanent link">&para;</a></h3>
+<p>In this section of the job file, you determine basic information on the type of sequence you used.</p>
+<h4 id="sequence-type">Sequence Type<a class="headerlink" href="#sequence-type" title="Permanent link">&para;</a></h4>
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>seqType</code> variable is a describes the sequence type, and is a required input in the form of a string.
+<code>seqType</code> determines whether the supplied datasets have been acquired with spectral editing experiments.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Specify sequence type</span>
+<span class="n">seqType</span> <span class="p">=</span> <span class="s">&#39;unedited&#39;</span><span class="p">;</span>           <span class="c">% OPTIONS:    - &#39;unedited&#39; (default)</span>
+                                <span class="c">%             - &#39;MEGA&#39;</span>
+                                <span class="c">%             - &#39;HERMES&#39;</span>
+                                <span class="c">%             - &#39;HERCULES&#39;</span>
+</code></pre></div>
+
+<h4 id="editing-targets">Editing Targets<a class="headerlink" href="#editing-targets" title="Permanent link">&para;</a></h4>
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>editTarget</code> variable describes the sequence type, and is a required input in the form of a cell array.
+<code>editTarget</code> determines the target spin system(s) of spectral editing experiments. If no spectral editing has been performed, enter <code>{'none'}</code>.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Specify editing targets</span>
+<span class="n">editTarget</span> <span class="p">=</span> <span class="p">{</span><span class="s">&#39;none&#39;</span><span class="p">};</span>          <span class="c">% OPTIONS:    - {&#39;none&#39;} (default if &#39;unedited&#39;)</span>
+                                <span class="c">%             - {&#39;GABA&#39;}, {&#39;GSH&#39;}  (for &#39;MEGA&#39;)</span>
+                                <span class="c">%             - {&#39;GABA, &#39;GSH}, {&#39;GABA, GSH, EtOH&#39;} (for &#39;HERMES&#39;)</span>
+                                <span class="c">%             - {&#39;HERCULES1&#39;}, {&#39;HERCULES2&#39;} (for &#39;HERCULES&#39;)</span>
+</code></pre></div>
+
+<h3 id="2-data-handling-and-modeling-options">2. Data handling and modeling options<a class="headerlink" href="#2-data-handling-and-modeling-options" title="Permanent link">&para;</a></h3>
+<p>In this section of the job file, you provide information on whether you would like to save the processed data in externally usable file formats (for example, if you want to interface your analysis with LCModel), and specify options for the modelling.</p>
+<h4 id="saving-data-to-external-formats">Saving data to external formats<a class="headerlink" href="#saving-data-to-external-formats" title="Permanent link">&para;</a></h4>
+<div class="admonition info">
+<p class="admonition-title">OPTIONAL</p>
+<p>The <code>opts.save</code> variable set determines whether <strong>Osprey</strong> saves the processed data in formats that can be interfaced with external analysis software.</p>
+<p>By setting <code>opts.saveLCM</code> to <code>1</code>, LCModel-readable <code>.RAW</code> files are produced.</p>
+<p>By setting <code>opts.saveJMRUI</code> to <code>1</code>, jMRUI/Tarquin-readable <code>.TXT</code> files are produced.</p>
+<p>By setting <code>opts.saveVendor</code> to <code>1</code>, single vendor-specific files are created, i.e. <code>.SDAT/.SPAR</code> files for Philips data, and <code>.RDA</code> files for Siemens data, regardless of the raw data format.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Save LCModel-exportable files for each spectrum?</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">saveLCM</span>                <span class="p">=</span> <span class="mi">1</span><span class="p">;</span>                <span class="c">% OPTIONS:    - 0 (no, default)</span>
+                                                <span class="c">%             - 1 (yes)</span>
+<span class="c">% Save jMRUI-exportable files for each spectrum?</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">saveJMRUI</span>              <span class="p">=</span> <span class="mi">1</span><span class="p">;</span>                <span class="c">% OPTIONS:    - 0 (no, default)</span>
+                                                <span class="c">%             - 1 (yes)</span>
+
+<span class="c">% Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">saveVendor</span>             <span class="p">=</span> <span class="mi">1</span><span class="p">;</span>                <span class="c">% OPTIONS:    - 0 (no, default)</span>
+                                                <span class="c">%             - 1 (yes)</span>
+</code></pre></div>
+
+<p>LCModel <code>.RAW</code> files can be loaded via the <code>Other</code> option in the LCModel file type selection menu.</p>
+<p>Please be aware that LCModel may prompt you to enter the number of FID data points (a positive integer number, e.g. <code>2048</code>), dwell time (in seconds, e.g. <code>0.0005</code>), and the static magnetic field strength in MHz (e.g. <code>123.26</code> for a Siemens 2.89 T magnet).</p>
+<p>When loading <code>.TXT</code> files with Tarquin, you will probably need to enter the echo time in seconds (e.g. <code>0.03</code> for a <code>TE = 30 ms</code> acquisition).</p>
+<p>The <code>opts.saveVendor</code> switch has been introduced to sidestep these problems with <code>.RAW</code> and <code>.TXT</code> files. LCModel, TARQUIN and jMRUI accept the <code>.SDAT/.SPAR</code> and <code>.RDA</code> file formats, and should be able to read the header information correctly.</p>
+<p>All exported third-party format files are stored in sub-directories of the output folder specified further down in the job file.</p>
+<h4 id="specifying-fitting-options">Specifying fitting options<a class="headerlink" href="#specifying-fitting-options" title="Permanent link">&para;</a></h4>
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>opts.fit.method</code> variable set determines the modelling algorithm used to fit the processed spectra.</p>
+<p>Currently, the only available option is the default <strong>Osprey</strong> model. We are planning to implement other algorithms in the future.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Choose the fitting algorithm</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">method</span>             <span class="p">=</span> <span class="s">&#39;Osprey&#39;</span><span class="p">;</span>       <span class="c">% OPTIONS:  - &#39;Osprey&#39; (default)</span>
+                                              <span class="c">%           - &#39;AQSES&#39; (planned)</span>
+                                              <span class="c">%           - &#39;TARQUIN&#39; (planned)</span>
+</code></pre></div>
+
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>opts.fit.style</code> variable set determines how difference-edited data are modeled.</p>
+<p>By setting <code>opts.fit.style</code> to <code>Concatenated</code>, the difference and sum spectra in MEGA, HERMES and HERCULES datasets will be modeled simultaneously, i.e. with common metabolite amplitude parameters across these spectra.</p>
+<p>By setting <code>opts.fit.style</code> to <code>Separate</code>, the difference and edit-OFF spectra in MEGA, HERMES and HERCULES datasets will be modeled independently. In this case, the creatine reference signal will be determined from the edit-OFF spectrum.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)</span>
+<span class="c">% (only available for the Osprey fitting method)</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">style</span>              <span class="p">=</span> <span class="s">&#39;Concatenated&#39;</span><span class="p">;</span>   <span class="c">% OPTIONS:  - &#39;Concatenated&#39; (default) - will fit DIFF and SUM simultaneously)</span>
+                                                <span class="c">%           - &#39;Separate&#39; - will fit DIFF and OFF separately</span>
+</code></pre></div>
+
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>opts.fit.range</code> and  <code>opts.fit.rangeWater</code> variables determine the fitting range (in ppm) of the metabolite and water spectra, respectively.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Determine fitting range (in ppm) for the metabolite and water spectra</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">range</span>              <span class="p">=</span> <span class="p">[</span><span class="mf">0.2</span> <span class="mf">4.2</span><span class="p">];</span>        <span class="c">% [ppm] Default: [0.2 4.2]</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">rangeWater</span>         <span class="p">=</span> <span class="p">[</span><span class="mf">2.0</span> <span class="mf">7.4</span><span class="p">];</span>        <span class="c">% [ppm] Default: [2.0 7.4]</span>
+</code></pre></div>
+
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>opts.fit.bLineKnotSpace</code> variable determines the spacing (in ppm) between two adjacent knots of the cubic B-spline baseline. This parameter is equivalent to the <code>DKNTMN</code> parameter in LCModel.</p>
+<p>Higher values correspond to a stiffer baseline, while lower values will produce a larger number of spline knots, allowing for greater flexibility of the baseline.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Determine the baseline knot spacing (in ppm) for the metabolite spectra</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">bLineKnotSpace</span>     <span class="p">=</span> <span class="mf">0.4</span><span class="p">;</span>              <span class="c">% [ppm] Default: 0.4.</span>
+</code></pre></div>
+
+<p>Choosing lower values for the <code>bLineKnotSpace</code> variable will improve the fit quality at the expense of overparametrization of the model. LCModel uses a default knot spacing of <code>DKNTMN = 0.15</code>, i.e. 0.15 ppm, which likely allows too much flexibility. In the absence of baseline regularization in the current stage of the <strong>Osprey</strong> model development, we chose to restrict baseline flexibility by opting for a default value of 0.4 ppm.</p>
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>opts.fit.fitMM</code> variable determines whether simulated Gaussian signals representing broad macromolecular and lipid signals are included in the basis set.</p>
+<p>By default, <strong>Osprey</strong> includes these basis functions. If you want to use an experimentally measured MM/lipid basis function, or operate at long echo times where the MM and lipid resonances have decayed, you can set <code>opts.fit.fitMM = 0</code> to exclude them.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Add macromolecule and lipid basis functions to the fit?</span>
+<span class="n">opts</span><span class="p">.</span><span class="n">fit</span><span class="p">.</span><span class="n">fitMM</span>              <span class="p">=</span> <span class="mi">1</span><span class="p">;</span>                <span class="c">% OPTIONS:    - 0 (no)</span>
+                                                <span class="c">%             - 1 (yes, default)</span>
+</code></pre></div>
+
+<h3 id="3-specifying-mrs-data-and-structural-imaging-files">3. Specifying MRS data and structural imaging files<a class="headerlink" href="#3-specifying-mrs-data-and-structural-imaging-files" title="Permanent link">&para;</a></h3>
+<p>In this section of the job file, you specify the full paths to the MRS data and structural imaging files that you would like to process and analyze.</p>
+<p><strong>Osprey</strong> is designed for the batch analysis of multiple datasets in one session. Each dataset corresponds to an element of a cell array. The cell arrays for metabolite data, water reference data, short-TE water data, and structural imaging files need to have the same number of elements. For example, if you have MRS data from two voxels in the same subject, you need to enter the path to the <code>.NII</code> structural twice into the <code>files_nii</code> cell array.</p>
+<p>At the current stage of implementation, you can only analyze one type of sequence per job file, i.e. if you have MEGA-PRESS and PRESS data for each subject, you will have to design two separate job files for MEGA-PRESS and PRESS data.</p>
+<h4 id="metabolite-data">Metabolite data<a class="headerlink" href="#metabolite-data" title="Permanent link">&para;</a></h4>
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>files</code> variable is defined as a cell array of full paths to the raw MRS data files containing your metabolite (water-suppressed) data.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Specify metabolite data</span>
+<span class="c">% (MANDATORY)</span>
+<span class="n">files</span>       <span class="p">=</span> <span class="p">{</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat&#39;</span><span class="p">),</span><span class="c">...</span>
+               <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat&#39;</span><span class="p">)};</span>
+</code></pre></div>
+
+<p>In the job files in the <code>example</code> folder of the <strong>Osprey</strong> repository, the <code>which</code> function ensures that the paths are correctly defined regardless of where you put your <strong>Osprey</strong> folder. When designing your own job file, you will have to provide the full paths to your raw data.</p>
+<p>Instead of writing out the full paths explicitly, you can also create a procedure that is tailored to your local file organization, as long as you end up with a <code>files</code> cell array containing an element for each file you want to analyze.</p>
+<div class="admonition warning">
+<p class="admonition-title">Single-average DICOM and Siemens RDA datasets</p>
+<p>MRS raw data can be exported in DICOM and Siemens RDA format, where each average is saved as a separate <code>.DCM</code> or <code>.RDA</code> file. In this case, you have to enter the full path to the <strong>folder</strong> containing all single-average files belong to <strong>one acquisition</strong>.</p>
+<p>Please refer to the <a href="/01-getting-started/03-organize-data/">data organization chapter</a> of this documentation for best practices on creating a useful folder structure for your raw data.</p>
+</div>
+<h4 id="lineshape-reference-data">Lineshape reference data<a class="headerlink" href="#lineshape-reference-data" title="Permanent link">&para;</a></h4>
+<div class="admonition info">
+<p class="admonition-title">OPTIONAL</p>
+<p>The <code>files_ref</code> variable is defined as a cell array of full paths to the raw MRS data files to your lineshape (water-unsuppressed) reference data.</p>
+<p>These are an optional input, acquired with the same sequence as the metabolite data, but without water suppression, and used to perform eddy-current correction of the metabolite data.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Specify water reference data for eddy-current correction (same sequence as metabolite data!)</span>
+<span class="c">% (OPTIONAL)</span>
+<span class="c">% Leave empty for GE P-files (.7) - these include water reference data by</span>
+<span class="c">% default.</span>
+<span class="n">files_ref</span>   <span class="p">=</span> <span class="p">{</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat&#39;</span><span class="p">),</span><span class="c">...</span>
+               <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat&#39;</span><span class="p">)};</span>
+</code></pre></div>
+
+<p>If only lineshape reference data are provided, this signal is also used to calculate water-scaled concentration estimates.</p>
+<h4 id="short-te-water-data">Short-TE water data<a class="headerlink" href="#short-te-water-data" title="Permanent link">&para;</a></h4>
+<div class="admonition info">
+<p class="admonition-title">OPTIONAL</p>
+<p>The <code>files_w</code> variable is defined as a cell array of full paths to the raw MRS data files to short-TE water data.</p>
+<p>These are another optional input, and can be used to derive water-scaled concentration estimates (while lineshape reference data are only used for eddy-current correction). Using short-TE water as the concentration reference standard reduces T2-weighting of the water reference signal (and associated correction errors) compared to long-TE water data.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Specify water data for quantification (e.g. short-TE water scan)</span>
+<span class="c">% (OPTIONAL)</span>
+<span class="n">files_w</span>     <span class="p">=</span> <span class="p">{</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat&#39;</span><span class="p">),</span><span class="c">...</span>
+               <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat&#39;</span><span class="p">)};</span>
+</code></pre></div>
+
+<h4 id="structural-images">Structural images<a class="headerlink" href="#structural-images" title="Permanent link">&para;</a></h4>
+<div class="admonition info">
+<p class="admonition-title">OPTIONAL</p>
+<p>The <code>files_nii</code> variable is defined as a cell array of full paths to T1-weighted structural images used for co-registration and segmentation purposes.</p>
+<p><strong>Osprey</strong> requires NIfTI (<code>.nii</code>) files to be supplied. For GE files, you may also provide the full path to a directory containing the DICOM folders corresponding to the T1 acquisition.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Specify T1-weighted structural imaging data</span>
+<span class="c">% (OPTIONAL)</span>
+<span class="c">% Link to single NIfTI (.nii) files for Siemens and Philips data</span>
+<span class="c">% Link to DICOM (.dcm) folders for GE data</span>
+<span class="n">files_nii</span>   <span class="p">=</span> <span class="p">{</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-01/anat/sub-01_T1w.nii&#39;</span><span class="p">),</span><span class="c">...</span>
+               <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/anat/sub-02_T1w.nii&#39;</span><span class="p">)};</span>
+</code></pre></div>
+
+<p><strong>Osprey</strong> uses <strong>SPM12</strong> functions to load and process structural images. Please refer to the <a href="/01-getting-started/02-installing-osprey/">installation instructions</a> for information on how to set up SPM12.</p>
+<h3 id="4-specifying-the-output-folder">4. Specifying the output folder<a class="headerlink" href="#4-specifying-the-output-folder" title="Permanent link">&para;</a></h3>
+<p>In this section of the job file, you specify the full paths to an output folder where the <strong>Osprey</strong> data container is saved in <code>.mat</code> format. In addition, any exported files (for use with jMRUI, TARQUIN, or LCModel) will be saved in separate sub-folders of the output folder.</p>
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>The <code>outputFolder</code> variable specifies a full path to the output folder.</p>
+<p>If the output folder does not exist yet, it will be created.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="c">% Specify output folder</span>
+<span class="c">% (MANDATORY)</span>
+<span class="n">outputFolder</span> <span class="p">=</span> <span class="n">strrep</span><span class="p">(</span><span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/jobSDAT.m&#39;</span><span class="p">),</span><span class="s">&#39;jobSDAT.m&#39;</span><span class="p">,</span><span class="s">&#39;derivatives&#39;</span><span class="p">);</span>
+</code></pre></div>
+
+<p>In the job files in the <code>example</code> folder of the <strong>Osprey</strong> repository, the <code>which</code> and <code>strrep</code> functions ensures that an output folder <code>derivatives</code> in the folder where the job file <code>jobSDAT</code> resides. When designing your own job file, you will have to provide the full path to your desired output folder.</p>
+<p>Note that <strong>Osprey</strong> detects if the output folder already exists and contains data from a previous analysis. In this case, you will be prompted whether you would like to overwrite the existing output.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../../01-getting-started/03-organize-data/" title="How to organize your raw data" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                How to organize your raw data
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; 2019 - 2020 Georg Oeltzschner
+          </div>
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+        
+        
+      
+      <a href="https://github.com/schorschinho" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://twitter.com/oeltzschner" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://www.linkedin.com/in/georg-oeltzschner-6b4bb983/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/vendor.a0c4167b.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fb26dd1d.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "../..",
+          features: [],
+          search: Object.assign({
+            worker: "../../assets/javascripts/worker/search.37585f48.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

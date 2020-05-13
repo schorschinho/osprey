@@ -3,6 +3,8 @@ site_name: Osprey documentation
 site_description: The Official Documentation for Osprey
 site_author: Georg Oeltzschner
 site_url: https://schorschinho.github.io/osprey/
+site_dir: docs
+docs_dir: docs_source
 
 # Repository
 repo_name: schorschinho/osprey
