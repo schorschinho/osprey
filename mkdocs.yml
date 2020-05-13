@@ -9,6 +9,7 @@ docs_dir: docs_source
 # Repository
 repo_name: schorschinho/osprey
 repo_url: https://github.com/schorschinho/osprey
+edit_uri: ""
 
 # Copyright
 copyright: Copyright &copy; 2019 - 2020 Georg Oeltzschner
@@ -17,7 +18,8 @@ copyright: Copyright &copy; 2019 - 2020 Georg Oeltzschner
 theme:
   logo: img/osprey.png
   favicon: img/osprey.png
-  name: material
+  name: null
+  custom_dir: material
   language: en
   palette:
     primary: black
