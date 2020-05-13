@@ -36,6 +36,7 @@ nav:
     - Installing Osprey: 01-getting-started/02-installing-osprey.md
     - How to organize your raw data: 01-getting-started/03-organize-data.md
   - Job files: 03-job-files/01-the-job-file.md
+  - Osprey GUI Tutorial: 04-osprey-gui-tutorial/01-osprey-gui-tutorial.md
   # - Running an Osprey analysis with the GUI:
   #   - The job file: 03-run-analysis-gui/01-the-job-file.md
   # - Running an Osprey analysis from the prompt:
