@@ -4,7 +4,7 @@ Get the latest **Osprey** code from our [GitHub repository](https://github.com/s
 
   - Clone the repository, or download and extract the contents of the .ZIP file to a directory on your drive.
 
-    <img src="/img/02-installing-osprey-download-clone.png" alt="Downloading Osprey" width="300"/>
+    <img src="../../img/02-installing-osprey-download-clone.png" alt="Downloading Osprey" width="300"/>
 
   - Add the entire `osprey` directory (with subfolders) to your MATLAB path.
   - Make sure to regularly check the repository for updates, as we frequently commit new features, bug fixes, and improved functions.
@@ -13,7 +13,7 @@ To perform voxel co-registration and tissue segmentation, download **SPM12** [fr
 
   - Extract the downloaded archive so that the `spm12` folder is on the same directory level as the `osprey` folder:
 
-      ![Installing SPM12](/img/02-installing-osprey-spm-folder.png "Installing SPM12")
+      ![Installing SPM12](../../img/02-installing-osprey-spm-folder.png "Installing SPM12")
 
   - Add the `spm12` folder to your MATLAB path, but **without** subfolders - during testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail.
 

@@ -4,7 +4,7 @@
 
 Osprey consists of seven separate modules –  Job, Load, Proc, Fit, Coreg, Seg, and Quant, all of which are sequentially called in a graphical user interface. Alternatively, users can conduct the entire workflow from the MATLAB command prompt.
 
-![Osprey Workflow Chart](/img/osprey-workflow-chart.png "Osprey Workflow Chart")
+![Osprey Workflow Chart](../img/osprey-workflow-chart.png "Osprey Workflow Chart")
 *The Osprey workflow.*
 
 Some input will need to be provided by the user in the form of a *job*.
