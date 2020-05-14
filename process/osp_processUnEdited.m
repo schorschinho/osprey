@@ -49,7 +49,23 @@ for kk = 1:MRSCont.nDatasets
         %%% 1. GET RAW DATA %%%
         raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
 
-
+        %%% 1B. GET MM DATA %%%
+        % If there are reference scans, load them here to allow eddy-current
+        % correction of the raw data.
+        if MRSCont.flags.hasMM
+            raw_mm                         = MRSCont.raw_mm{kk};              % Get the kk-th dataset
+            if raw_mm.averages > 1 && raw_mm.flags.averaged == 0
+                [raw_mm,~,~]               = op_alignAverages(raw_mm, 1, 'n');
+                raw_mm                     = op_averaging(raw_mm);            % Average
+            else
+                raw_mm.flags.averaged  = 1;
+                raw_mm.dims.averages   = 0;
+            end
+            [raw_mm,~]                     = op_ppmref(raw_mm,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
+            MRSCont.processed.mm{kk}       = raw_mm;                          % Save back to MRSCont container
+        end
+        
+        
         %%% 2. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
         % If there are reference scans, load them here to allow eddy-current
         % correction of the raw data.
@@ -63,6 +79,9 @@ for kk = 1:MRSCont.nDatasets
                 raw_ref.dims.averages   = 0;
             end
             [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
+            if MRSCont.flags.hasMM
+                [raw_mm,~]                   = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
+            end
             [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
         end
