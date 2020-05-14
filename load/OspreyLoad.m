@@ -31,13 +31,15 @@ function [MRSCont] = OspreyLoad(MRSCont)
 if ~isempty(MRSCont.files)
     MRSCont.flags.hasFiles = 1;
 end
+if ~isempty(MRSCont.files_mm)       %re_mm adding functionality to load MM data
+    MRSCont.flags.hasMM = 1;        %re_mm 
+end                                 %re_mm
 if ~isempty(MRSCont.files_ref)
     MRSCont.flags.hasRef = 1;
 end
 if ~isempty(MRSCont.files_w)
     MRSCont.flags.hasWater = 1;
 end
-
 % Version check
 MRSCont.ver.CheckLoad             = '100 Load';
 

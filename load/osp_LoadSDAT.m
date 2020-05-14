@@ -28,6 +28,16 @@ function [MRSCont] = osp_LoadSDAT(MRSCont)
 close all;
 warning('off','all');
 
+if MRSCont.flags.hasMM %re_mm adding functionality to load MM data
+    if ((length(MRSCont.files_mm) == 1) && (MRSCont.nDatasets>1))   %re_mm seems like specificy one MM file for a batch is also an option to plan to accomodate
+        for kk=2:MRSCont.nDatasets %re_mm 
+            MRSCont.files_mm{kk} = MRSCont.files_mm{1}; % re_mm allowable to specify one MM file for the whole batch
+        end %re_mm 
+    end   %re_mm 
+    if ((length(MRSCont.files_mm) ~= MRSCont.nDatasets) )   %re_mm 
+        error('Number of specified MM files does not match number of specified metabolite files.');   %re_mm 
+    end   %re_mm 
+end   %re_mm 
 if MRSCont.flags.hasRef
     if length(MRSCont.files_ref) ~= MRSCont.nDatasets
         error('Number of specified reference files does not match number of specified metabolite files.');
@@ -63,7 +73,42 @@ for kk = 1:MRSCont.nDatasets
             raw         = io_loadspec_sdat(MRSCont.files{kk},4);
         end
         MRSCont.raw{kk}      = raw;
-
+        
+        % Read in the raw MM data. re_mm
+        if MRSCont.flags.hasMM %re_mm
+            if MRSCont.flags.isUnEdited %re_mm
+                raw_mm = io_loadspec_sdat(MRSCont.files_mm{kk},1); %re_mm
+                [raw_mm] = op_rmempty(raw_mm); %re_mm
+            elseif MRSCont.flags.isMEGA %re_mm
+                raw_mm = io_loadspec_sdat(MRSCont.files_mm{kk},2); %re_mm
+                if raw_mm.subspecs > 1 %re_mm
+                    raw_mm_A               = op_takesubspec(raw_mm,1); %re_mm
+                    [raw_mm_A]             = op_rmempty(raw_mm_A);            % Remove empty linesv
+                    raw_mm_B               = op_takesubspec(raw_mm,2); %re_mm
+                    [raw_mm_B]             = op_rmempty(raw_mm_B);            % Remove empty lines %re_mm
+                    raw_mm                 = op_concatAverages(raw_mm_A,raw_mm_B); %re_mm
+                else %re_mm
+                    [raw_mm] = op_rmempty(raw_mm); %re_mm
+                end %re_mm
+            elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES %re_mm
+                raw_mm = io_loadspec_sdat(MRSCont.files_mm{kk},1); %re_mm
+                if raw_mm.subspecs > 1 %re_mm
+                    raw_mm_A               = op_takesubspec(raw_mm,1); %re_mm
+                    [raw_mm_A]             = op_rmempty(raw_mm_A);            % Remove empty lines %re_mm
+                    raw_mm_B               = op_takesubspec(raw_mm,2); %re_mm
+                    [raw_mm_B]             = op_rmempty(raw_mm_B);            % Remove empty lines %re_mm
+                    raw_mm_C               = op_takesubspec(raw_mm,3); %re_mm
+                    [raw_mm_C]             = op_rmempty(raw_mm_C);            % Remove empty lines %re_mm
+                    raw_mm_D               = op_takesubspec(raw_mm,4); %re_mm
+                    [raw_mm_D]             = op_rmempty(raw_mm_D);            % Remove empty lines %re_mm
+                    raw_mm                 = op_concatAverages(raw_mm_A,raw_mm_B,raw_mm_C,raw_mm_D);   %re_mm
+                else %re_mm
+                    [raw_mm] = op_rmempty(raw_mm);  %re_mm
+                end %re_mm
+            end
+            MRSCont.raw_mm{kk}  = raw_mm;
+        end %re_mm      
+    
         % Read in the raw reference data.
         if MRSCont.flags.hasRef
             if MRSCont.flags.isUnEdited
