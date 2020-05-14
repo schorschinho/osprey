@@ -31,6 +31,7 @@ function [MRSCont] = OspreyJob(jobFile,GUI)
 %   HISTORY:
 %       2019-07-15: First version of the code.
 
+
 % Close any remaining open figures and parse input arguments
 close all;
 warning('off','all');
@@ -77,6 +78,9 @@ if strcmp(jobFileFormat,'csv')
     else
         error('Invalid job file! A job file needs to contain at least metabolite data in the field ''files''.');
     end
+    if isfield(jobStruct, 'files_mm')  %re_mm Adding functionality for MM
+        files_mm = {jobStruct.files_mm};   %re_mm
+    end %re_mm
     if isfield(jobStruct, 'files_ref')
         files_ref = {jobStruct.files_ref};
     end
@@ -198,7 +202,10 @@ if exist('files','var')
 else
     error('Invalid job file! A job file needs to contain at least metabolite data in the field ''files''.');
 end
-if exist('files_ref','var')
+if exist('files_mm','var')   %re_mm Adding functionality for MM
+    MRSCont.files_mm = files_mm;   %re_mm
+end   %re_mm
+    if exist('files_ref','var')
     MRSCont.files_ref = files_ref;
 end
 if exist('files_w','var')
