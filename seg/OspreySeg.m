@@ -37,7 +37,8 @@ end
 warning('off','all');
 
 % Version check
-MRSCont.ver.CheckSeg             = '100 Seg';
+MRSCont.ver.CheckSeg             = '1.0.0 Seg';
+[~] = osp_Toolbox_Check ('OspreySeg',MRSCont.flags.isGUI);
 
 % Set up SPM for batch processing
 spm('defaults','fmri');
@@ -178,7 +179,7 @@ writetable(MRSCont.seg.tables,[saveDestination  filesep 'TissueFractions.csv']);
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didSeg           = 1;
-MRSCont.ver.Seg             = '100 Seg';
+MRSCont.ver.Seg             = '1.0.0 Seg';
 
 % Save the output structure to the output folder
 % Determine output folder

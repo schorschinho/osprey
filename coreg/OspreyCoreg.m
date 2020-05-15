@@ -36,8 +36,9 @@ if ~MRSCont.flags.didLoadData
     error('Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.')
 end
 
-% Version check
-MRSCont.ver.CheckCoreg            = '100 Coreg';
+% Version and toolbox check
+MRSCont.ver.CheckCoreg            = '1.0.0 Coreg';
+[~] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
 
 warning('off','all');
 
@@ -132,7 +133,7 @@ toc(refProcessTime);
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didCoreg           = 1;
-MRSCont.ver.Coreg            = '100 Coreg';
+MRSCont.ver.Coreg            = '1.0.0 Coreg';
 
 % Save the output structure to the output folder
 % Determine output folder

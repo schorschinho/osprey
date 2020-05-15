@@ -100,6 +100,9 @@ else % Is fit?
             case 'ref'
                 fit = fitwhich;
                 data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+            case 'w'
+                fit = fitwhich;
+                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);                
         end
     end
     if MRSCont.flags.isMEGA %Is MEGA
@@ -136,7 +139,7 @@ else % Is fit?
         end
     end
     
-    if nargin<8    
+    if nargin<7    
         if (~strcmp(fitwhich,'w') && ~strcmp(fitwhich,'ref'))
             figTitle = ['Individual fits: ' fit ' ' fitwhich]; 
             ppmRange = MRSCont.opts.fit.range;
