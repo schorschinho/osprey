@@ -38,9 +38,7 @@ Osprey requires [MATLAB](https://www.mathworks.com/products/matlab.html) and
 has been tested on version 2017a and newer. The following toolboxes are
 required for full functionality:
 
-- Image processing
 - Optimization
-- Signal Processing
 - Statistics and Machine Learning
 
 ### Installation
