@@ -86,14 +86,14 @@ editTarget = {'GABA'};          % OPTIONS:    - {'none'} (default if 'unedited')
 %%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%
 
 % Save LCModel-exportable files for each spectrum?
-opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
+opts.saveLCM                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 % Save jMRUI-exportable files for each spectrum?
-opts.saveJMRUI              = 1;                % OPTIONS:    - 0 (no, default)
+opts.saveJMRUI              = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
-opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
+opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Choose the fitting algorithm
