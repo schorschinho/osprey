@@ -602,7 +602,7 @@ end
 %%% 7. CLEAN UP AND SAVE %%%
 % Set exit flags and version
 MRSCont.flags.didOverview          = 1;
-MRSCont.ver.Over             = '100 Overview';
+MRSCont.ver.Over             = '1.0.0 Overview';
 
 % Save the output structure to the output folder
 % Determine output folder

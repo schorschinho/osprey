@@ -251,8 +251,8 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didLoadJob    = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = '100 Osprey';
-MRSCont.ver.Job             = '100 job';
+MRSCont.ver.Osp             = '1.0.0 Osprey';
+MRSCont.ver.Job             = '1.0.0 job';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

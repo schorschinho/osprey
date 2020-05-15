@@ -33,8 +33,12 @@ if ~MRSCont.flags.didLoadData
     error('Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.')
 end
 
-% Version check
-MRSCont.ver.CheckPro             = '100 Pro';
+% Version and Toolbox check
+MRSCont.ver.CheckPro             = '1.0.0 Pro';
+
+[~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
+MRSCont.flags.isToolChecked = 1;
+    
 
 % Post-process raw data depending on sequence type
 if MRSCont.flags.isUnEdited
@@ -74,7 +78,7 @@ end
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess           = 1;
-MRSCont.ver.Pro             = '100 Pro';
+MRSCont.ver.Pro             = '1.0.0 Pro';
 MRSCont.processed                  = orderfields(MRSCont.processed);
 % Save the output structure to the output folder
 % Determine output folder

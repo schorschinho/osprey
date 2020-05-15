@@ -39,7 +39,7 @@ if ~isempty(MRSCont.files_w)
 end
 
 % Version check
-MRSCont.ver.CheckLoad             = '100 Load';
+MRSCont.ver.CheckLoad             = '1.0.0 Load';
 
 % Determine data types
 [MRSCont, retMsg] = osp_detDataType(MRSCont);
@@ -101,7 +101,7 @@ end
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didLoadData           = 1;
-MRSCont.ver.Load             = '100 Load';
+MRSCont.ver.Load             = '1.0.0 Load';
 
 % Save the output structure to the output folder
 % Determine output folder
