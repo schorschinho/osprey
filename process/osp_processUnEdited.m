@@ -88,7 +88,15 @@ for kk = 1:MRSCont.nDatasets
 
 
         %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
-        if raw.averages > 1 && raw.flags.averaged == 0
+        if raw.averages > 1 && raw.flags.averaged == 0 
+            % Automate determination whether the Cr peak has positive polarity.
+            % For water suppression methods like MOIST, the residual water may
+            % actually have negative polarity, but end up positive in the data, so
+            % that the spectrum needs to be flipped.
+            % Determine the polarity of the respective peak: if the absolute of the
+            % maximum minus the absolute of the minimum is positive, the polarity
+            % of the respective peak is positive; if the absolute of the maximum
+            % minus the absolute of the minimum is negative, the polarity is negative.
             temp_A = op_averaging(raw);
             raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
             polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
@@ -96,23 +104,31 @@ for kk = 1:MRSCont.nDatasets
             if polResidCr < 0        
                 temp_rawA = op_ampScale(temp_rawA,-1);
             end
+            % We will use a freqeuncy cross-correlation approach on the
+            % Choline and Creatine singlets to generate a robust inital
+            % frequency guess for the robust spectral registration. This is
+            % esapacially useful for data with heavy freqeuncy drift. The
+            % transients are averaged into packages inclduing 10% of the
+            % averages of the whole spectra and referenced afterwards. For
+            % these packages the same inital frequency guess is forwarded
+            % to op_robustSpecReg.
             temp_proc = temp_rawA;
             temp_spec   = temp_proc;
-            for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1))
-                fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1));
+            for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) % 10% packaging
+                fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1)); 
                 specs = temp_proc.specs(:,av:av+(round(temp_rawA.averages*0.1)-1));
-                temp_spec.fids = mean(fids,2);
-                temp_spec.specs = mean(specs,2);
-                [refShift, ~] = osp_CrChoReferencing(temp_spec);
-                refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift;
+                temp_spec.fids = mean(fids,2); % store average fid
+                temp_spec.specs = mean(specs,2); % store average spectra
+                [refShift, ~] = osp_CrChoReferencing(temp_spec); % determine frequency shift
+                refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift; %save inital frequency guess 
             end
-            if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0
-                fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-                specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-                temp_spec.fids = mean(fids,2);
-                temp_spec.specs = mean(specs,2);
-                [refShift, ~] = osp_CrChoReferencing(temp_spec);
-                refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift;
+            if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0 % remaining averages if data isn't a multiple of 10.
+                fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end); 
+                specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end); 
+                temp_spec.fids = mean(fids,2); % store average fid 
+                temp_spec.specs = mean(specs,2); % store average spectra
+                [refShift, ~] = osp_CrChoReferencing(temp_spec);% determine frequency shift
+                refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift; %save inital frequency guess 
             end
             [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0,refShift_ind_ini); % Align and average
             raw.specReg.fs              = fs; % save align parameters

@@ -140,8 +140,7 @@ files_ref   = {which('exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {which('exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat'),...
-               which('exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat')};
+files_w     = {};
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
