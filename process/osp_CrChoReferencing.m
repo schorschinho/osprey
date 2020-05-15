@@ -46,8 +46,8 @@ y(d) = 1;
 y(f) = 1;
 
 % Plot cross-correlation function, normalize it to its maximum
-r = xcorr(powerspec,y)';
-r2 = xcorr(real(spec),y)';
+r = crosscorr(powerspec,y)';
+r2 = crosscorr(real(spec),y)';
 r = r./(max(r));
 r2 = r2./(max(r2));
 % Set up Lorentzian fit to the central peak of the cross-correlation
