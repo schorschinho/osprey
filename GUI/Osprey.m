@@ -1,26 +1,11 @@
-function  OspreyStartUp
-%% OspreyStartUp(MRSCont)
-%   This function creates a one-in-all figure with visualizations of the
-%   processed data (spectra in the frequency domain), voxel coregistration
-%   and segmentation, and quantification tables.
-%
-%   The figure contains several tabs, not all of which may be available at
-%   all times:
-%       - Data
-%       - Processed
-%       - Coregistration and segmentation
-%       - Fit
-%       - Quantification
-%       - Overview
-%
-%   As an example, if coregistration and segmentation have not been
-%   performed, the respective tab will be grayed out.
+function  Osprey
+%% Osprey
+%   This creates the inital Osprey window. Here you pick exsisitng
+%   jobFiles or MRS container to be loaded into the OspreyGui.
 %
 %   USAGE:
-%       OspreyGUI(MRSCont);
+%       Osprey;
 %
-%   INPUTS:
-%       MRSCont     = Osprey MRS data container.
 %
 %   AUTHORS:
 %       Helge Zoellner (Johns Hopkins University, 2019-11-07)
@@ -30,22 +15,24 @@ function  OspreyStartUp
 %
 %   HISTORY:
 %       2019-07-11: First version of the code.
-
-    %Here we set up the color layout
-    %default colormap
-    gui.colormap.Background = [255/255 254/255 254/255];
-    gui.colormap.LightAccent = [110/255 136/255 164/255];
-    gui.colormap.Foreground = [11/255 71/255 111/255];
-    gui.colormap.Accent = [11/255 71/255 111/255];
-    [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
-    allFolders      = strsplit(settingsFolder, filesep);
-    ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
-    logoFcn = @()imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
-    logoBanner = uiw.utility.loadIcon(logoFcn);
-    % Here the intro banner is created
-    gui.d = uiw.dialog.About('Name', 'Osprey','Version','0.0.1','Date', 'October 6, 2019',...
-    'Timeout', 3,'CustomText', 'Osprey is provided by Johns Hopkins University.',...
-    'ContactInfo', 'gabamrs@gmail.com','LogoCData', logoBanner);
+%% Check for available add-ons
+  [~] = osp_Toolbox_Check ('OspreyGUI',0);
+%% Set up Layout
+%Here we set up the color layout
+%default colormap
+gui.colormap.Background = [255/255 254/255 254/255];
+gui.colormap.LightAccent = [110/255 136/255 164/255];
+gui.colormap.Foreground = [11/255 71/255 111/255];
+gui.colormap.Accent = [11/255 71/255 111/255];
+[settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
+allFolders      = strsplit(settingsFolder, filesep);
+ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
+logoFcn = @()imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
+logoBanner = uiw.utility.loadIcon(logoFcn);
+% Here the intro banner is created
+gui.d = uiw.dialog.About('Name', 'Osprey','Version','0.0.1','Date', 'October 6, 2019',...
+'Timeout', 3,'CustomText', 'Osprey is provided by Johns Hopkins University.',...
+'ContactInfo', 'gabamrs@gmail.com','LogoCData', logoBanner);
 %% Create the StartUp Menu
 gui.out = 0;
 gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBar', 'none', ...
@@ -128,7 +115,8 @@ function loadJob(gui)
     end
     gui.data.MRSCont.colormap = gui.colormap;
     gui.data.MRSCont.colormapidx = idx;
-    OspreyGUIapp(gui.data.MRSCont);
+    gui.data.MRSCont.flags.isToolChecked = 1;
+    OspreyGUI(gui.data.MRSCont);
     delete(gui.window);
 end
 
@@ -156,7 +144,8 @@ function loadMRSCont(gui)
             gui.colormap.Accent = [217/255 224/255 33/255];
     end
     gui.data.MRSCont.colormap = gui.colormap;
-    OspreyGUIapp(gui.data.MRSCont);
+    gui.data.MRSCont.flags.isToolChecked = 1;
+    OspreyGUI(gui.data.MRSCont);
     delete(gui.window);
 end
 

@@ -40,8 +40,9 @@ end
 
 %% Load fit settings, prepare data and pass it on to the fitting algorithm
 
-% Version check
-MRSCont.ver.CheckFit             = '100 Fit';
+% Version and toolbox check
+MRSCont.ver.CheckFit             = '1.0.0 Fit';
+[~] = osp_Toolbox_Check ('OspreyFit',MRSCont.flags.isGUI);
 
 % Initialise the fit - this step includes:
 % - Parse the correct basis set
@@ -120,7 +121,7 @@ end
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didFit           = 1;
-MRSCont.ver.Fit            = '100 Fit';
+MRSCont.ver.Fit            = '1.0.0 Fit';
 
 % Delete redundant resBasiset entries
 % FitNames = fieldnames(MRSCont.fit.results);

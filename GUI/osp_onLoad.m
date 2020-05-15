@@ -46,7 +46,9 @@ function [gui] = osp_onLoad( ~, ~ ,gui)
     osp_iniLoadWindow(gui);
     gui.layout.b_load.Enable = 'off';
     gui.layout.b_proc.Enable = 'on';
-    gui.layout.b_coreg.Enable = 'on';
+    if MRSCont.flags.hasSPM == 1
+        gui.layout.b_coreg.Enable = 'on';
+    end
     gui.layout.ListBox.Enable = 'on';
 
 end % onLoad
