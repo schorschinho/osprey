@@ -1,11 +1,11 @@
-function A = pad(B, newSize, paddedWith)
+function A = op_pad(B, newSize, paddedWith)
 % Matlab function to pad an array to a desired new size
 %
 % By:	Christopher C. Wilcox, PhD
 %		Naval Research Laboratory
 %		Date: Mar 14, 2011
 % 
-% Usage:	A = pad(B, newSize, [paddedWith]);
+% Usage:	A = op_pad(B, newSize, [paddedWith]);
 %	Input:
 %   - B is the input array
 %   - newSize is a 2 element vector, [rows, cols], of the desired padded array
