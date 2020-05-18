@@ -36,13 +36,16 @@ warning('off','all');
 refProcessTime = tic;
 reverseStr = '';
 if MRSCont.flags.isGUI
-    progressbar = waitbar(0,'Start','Name','Osprey Process');
-    waitbar(0,progressbar,sprintf('Processed data from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+    progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    if MRSCont.flags.isGUI        
+        set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+        drawnow
+    end
     
     if ((MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~isfield(MRSCont.ver, 'Pro') || ~strcmp(MRSCont.ver.Pro,MRSCont.ver.CheckPro))
 
@@ -228,17 +231,13 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.QM.FWHM.w(kk)   = FWHM_Hz./MRSCont.processed.w{kk}.txfrq*1e6; % convert to ppm
         end
     end
-
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Processed data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-    end
 end
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    close(progressbar)
+time = toc(refProcessTime);
+if MRSCont.flags.isGUI        
+    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+    pause(1);
 end
-toc(refProcessTime);
 
 
 %%% 9. SET FLAGS %%%

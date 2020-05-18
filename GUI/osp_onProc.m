@@ -25,9 +25,10 @@ function osp_onProc( ~, ~ ,gui)
 %   HISTORY:
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
-    MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class  
+    MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class 
+    gui.layout.tabs.TabEnables{2} = 'on';
     gui.layout.tabs.Selection  = 2;
-    [gui] = osp_processingWindow(gui);
+    [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
     % User wants to process the data
 %%% 2. CALL OPSREYPROCESS %%%    
     MRSCont = OspreyProcess(MRSCont);

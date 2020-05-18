@@ -81,17 +81,20 @@ NoFit = length(FitNames);
 
 %%% 3. INTERPOLATION & NORMALIZATION %%%
 % Processed data
-refProcessTime = tic;
+OverviewTime = tic;
 reverseStr = '';
 if MRSCont.flags.isGUI
-    progressbar = waitbar(0,'Start','Name','Osprey Overview');
-    waitbar(0,progressbar,sprintf('Gathered spectra from subspectrum %d out of %d total subspectra...\n', 0, NoSubSpec))
+    progressText = MRSCont.flags.inProgress;
 end
 MRSCont.overview.all_data = MRSCont.processed;
 for ss = 1 : NoSubSpec
     msg = sprintf('Gathering spectra from subspectrum %d out of %d total subspectra...\n', ss, NoSubSpec);
     fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));    
+    reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    if MRSCont.flags.isGUI && isfield(progressText,'String')          
+        set(progressText,'String' ,sprintf('Gathering spectra from subspectrum %d out of %d total subspectra...\n', ss, NoSubSpec));
+        drawnow
+    end    
     for kk = 1 : MRSCont.nDatasets
         if MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1) < MRSCont.info.(SubSpecNames{ss}).max_ndatapoint
             ppmRangeData        = MRSCont.processed.(SubSpecNames{ss}){1,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind}.ppm';
@@ -109,9 +112,6 @@ for ss = 1 : NoSubSpec
             end
 
         end
-    end
-    if MRSCont.flags.isGUI        
-        waitbar(ss/NoSubSpec,progressbar,sprintf('Gathered spectra from subspectrum %d out of %d total subspectra...\n', ss, NoSubSpec))
     end
 end
 
@@ -144,10 +144,9 @@ end
 end
 
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    pause(1)
-    waitbar(0,progressbar,sprintf('Gathered fit models from fit %d out of %d total fits...\n', 0, NoFit))
+if MRSCont.flags.isGUI && isfield(progressText,'String')         
+    set(progressText,'String' ,sprintf('... done.'));
+    pause(1);
 end
 reverseStr = '';
 % Fits
@@ -155,6 +154,10 @@ for sf = 1 : NoFit
     msg = sprintf('Gathering fit models from fit %d out of %d total fits...\n', sf, NoFit);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg)); 
+    if MRSCont.flags.isGUI && isfield(progressText,'String')         
+        set(progressText,'String' ,sprintf('Gathering fit models from fit %d out of %d total fits...\n', sf, NoFit));
+        drawnow
+    end     
     for kk = 1 : MRSCont.nDatasets
         switch MRSCont.opts.fit.method
         case 'Osprey'
@@ -243,15 +246,11 @@ for sf = 1 : NoFit
         end
         end        
     end
-    if MRSCont.flags.isGUI        
-        waitbar(sf/NoFit,progressbar,sprintf('Gathered fit models from fit %d out of %d total fits...\n', sf, NoFit))
-    end
 end
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    pause(1)
-    waitbar(0,progressbar,sprintf('Interpolated fit models from fit %d out of %d total fits...\n', 0, NoFit))
+if MRSCont.flags.isGUI  && isfield(progressText,'String')        
+    set(progressText,'String' ,sprintf('... done.'));
+    pause(1);
 end
 reverseStr = '';
 
@@ -267,6 +266,10 @@ for sf = 1 : NoFit
     msg = sprintf('Interpolating fit models from fit %d out of %d total fits...\n', sf, NoFit);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));     
+    if MRSCont.flags.isGUI && isfield(progressText,'String')        
+        set(progressText,'String' ,sprintf('Interpolating fit models from fit %d out of %d total fits...\n', sf, NoFit));
+        drawnow
+    end     
     for kk = 1 : MRSCont.nDatasets
         if length(MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit) < max_point_fit.([FitNames{sf} '_' dataPlotNames{sf}])
                     ppmRangeData        = MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,max_ind_fit.([FitNames{sf} '_' dataPlotNames{sf}])}.ppm';
@@ -287,9 +290,6 @@ for sf = 1 : NoFit
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm = ppmRangeData';
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res = MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data-MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit;
         end
-    end
-    if MRSCont.flags.isGUI        
-        waitbar(sf/NoFit,progressbar,sprintf('Interpolated fit models from fit %d out of %d total fits...\n', sf, NoFit))
     end
 end
 
@@ -327,17 +327,20 @@ for sf = 1 : NoFit
 end
 
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    pause(1)
-    waitbar(0,progressbar,sprintf('Scaled data from dataset %d out of %d total datasetss...\n', 0, MRSCont.nDatasets))
+if MRSCont.flags.isGUI  && isfield(progressText,'String')        
+    set(progressText,'String' ,sprintf('... done.'));
+    pause(1);
 end
 reverseStr = '';
 
 for kk = 1 : MRSCont.nDatasets
     msg = sprintf('Scaling data from dataset %d out of %d total datasetss...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));       
+    reverseStr = repmat(sprintf('\b'), 1, length(msg));  
+    if MRSCont.flags.isGUI && isfield(progressText,'String')         
+        set(progressText,'String' ,sprintf('Scaling data from dataset %d out of %d total datasetss...\n', kk, MRSCont.nDatasets));
+        drawnow
+    end    
     if isfield(MRSCont, 'quantify')
         if MRSCont.flags.isUnEdited            
             if MRSCont.flags.hasRef
@@ -447,15 +450,11 @@ for kk = 1 : MRSCont.nDatasets
     else
         error('This script works only on fully processed data. Run the whole Osprey pipeline first. Seg/Coreg is not needed')
     end
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Scaled data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-    end
 end
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    pause(1)
-    close(progressbar);
+if MRSCont.flags.isGUI  && isfield(progressText,'String')        
+    set(progressText,'String' ,sprintf('... done.'));
+    pause(1);
 end
 
 %%% 4. SORTING DATA  %%%
@@ -479,11 +478,19 @@ for g = 1 : MRSCont.overview.NoGroups
     MRSCont.overview.groupNames{g} = ['Group ' num2str(g)];
 end
 
+%Exclude datasets
+if isfield(MRSCont, 'exclude')
+    if~isempty(MRSCont.exclude)
+        MRSCont.overview.groups(MRSCont.exclude) = [];
+    end
+end
+
+
 for ss = 1 : NoSubSpec
     for g = 1 : MRSCont.overview.NoGroups
         MRSCont.overview.sort_data.(['g_' num2str(g)]).(SubSpecNames{ss}) = MRSCont.overview.all_data.(SubSpecNames{ss})(1,MRSCont.overview.groups == g);
     end
-    MRSCont.overview.sort_data.GMean.(SubSpecNames{ss}) = MRSCont.overview.all_data.(SubSpecNames{ss})(1,:);
+    MRSCont.overview.sort_data.GMean.(SubSpecNames{ss}) = MRSCont.overview.all_data.(SubSpecNames{ss})(1,MRSCont.overview.groups > 0);
 end
 
 for sf = 1 : NoFit
@@ -493,9 +500,22 @@ for sf = 1 : NoFit
     MRSCont.overview.sort_fit.GMean.([FitNames{sf} '_' dataPlotNames{sf}]) = MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}])(1,:);
 end
 
+%%% 5. READ CORRELATION DATA INTO THE STRUCT %%%
+if MRSCont.flags.hasStatfile
+    for cor = 1 : length(name)
+        MRSCont.overview.corr.Names{cor} = name{cor};
+    end
+    for cor = 1 : length(name)
+        MRSCont.overview.corr.Meas{cor} = statCSV{:,cor};
+        if isfield(MRSCont, 'exclude')
+            if~isempty(MRSCont.exclude)
+                MRSCont.overview.corr.Meas{cor}(MRSCont.exclude) = [];
+            end
+        end
+    end
+end
 
-
-%%% 5. CALCULATE MEAN AND SD SPECTRA FOR VISUALIZATION %%%
+%%% 6. CALCULATE MEAN AND SD SPECTRA FOR VISUALIZATION %%%
 %Data
 for ss = 1 : NoSubSpec
     names = fields(MRSCont.overview.sort_data);
@@ -589,15 +609,6 @@ for sf = 1 : NoFit
     end
 end
 
-%%% 6. READ CORRELATION DATA INTO THE STRUCT %%%
-if MRSCont.flags.hasStatfile
-    for cor = 1 : length(name)
-        MRSCont.overview.corr.Names{cor} = name{cor};
-    end
-    for cor = 1 : length(name)
-        MRSCont.overview.corr.Meas{cor} = statCSV{:,cor};
-    end
-end
 
 %%% 7. CLEAN UP AND SAVE %%%
 % Set exit flags and version
@@ -609,12 +620,18 @@ MRSCont.ver.Over             = '1.0.0 Overview';
 outputFolder    = MRSCont.outputFolder;
 outputFile      = MRSCont.outputFile;
 
-if ~MRSCont.flags.isGUI
+if MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
-%     save(fullfile(outputFolder, outputFile), 'MRSCont');
+    save(fullfile(outputFolder, outputFile), 'MRSCont');
     MRSCont.flags.isGUI = 1;
 else
-%    save(fullfile(outputFolder, outputFile), 'MRSCont');
+   save(fullfile(outputFolder, outputFile), 'MRSCont');
+end
+
+time = toc(OverviewTime);
+if MRSCont.flags.isGUI  && isfield(progressText,'String')          
+    set(progressText,'String' ,sprintf('\n Elapsed time %f seconds',time));
+    pause(1);
 end
 
 end

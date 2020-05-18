@@ -28,11 +28,21 @@ function osp_updatequantOvWindow(gui)
         split_Selection = strsplit(Selection,'-');
 %This function updates the quantification table overview tab
         if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
-                QuantTextOv = cell(MRSCont.nDatasets+1,1);
-                QuantTextOv(1,:) = {'GABA'};
-                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
+            if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
+                exclude = length(MRSCont.exclude);
+            else
+                exclude = 0;
+            end
+            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,1);
+            QuantTextOv(1,:) = {'GABA'};
+            QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
         else
-            QuantTextOv = cell(MRSCont.nDatasets+1,gui.quant.Number.Metabs);
+            if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
+                exclude = length(MRSCont.exclude);
+            else
+                exclude = 0;
+            end            
+            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,gui.quant.Number.Metabs);
             QuantTextOv(1,:) = MRSCont.quantify.metabs;
             QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
         end

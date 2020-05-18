@@ -49,16 +49,19 @@ if ~exist(saveDestination,'dir')
 end
 
 %% Loop over all datasets
-refProcessTime = tic;
+refCoregTime = tic;
 reverseStr = '';
 if MRSCont.flags.isGUI
-    progressbar = waitbar(0,'Start','Name','Osprey Coregister');
-    waitbar(0,progressbar,sprintf('Coregistered voxel from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+    progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    if MRSCont.flags.isGUI        
+        set(progressText,'String' ,sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+        drawnow
+    end
     if ((MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~isfield(MRSCont.ver, 'Coreg') || ~strcmp(MRSCont.ver.Coreg,MRSCont.ver.CheckCoreg))
 
         % Get the input file name
@@ -119,16 +122,13 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.T1_max{kk}    = T1_max;
         MRSCont.coreg.voxel_ctr{kk} = voxel_ctr;
     end
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Coregistered voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-    end
 end
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    close(progressbar)
+time = toc(refCoregTime);
+if MRSCont.flags.isGUI        
+    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+    pause(1);
 end
-toc(refProcessTime);
 
 %% Clean up and save
 % Set exit flags and version
@@ -143,7 +143,7 @@ if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
 
-if ~MRSCont.flags.isGUI
+if MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
     save(fullfile(outputFolder, outputFile), 'MRSCont');
     MRSCont.flags.isGUI = 1;

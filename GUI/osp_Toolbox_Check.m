@@ -48,7 +48,7 @@ if isfile(fullfile(ospFolder,'GUI','SPMpath.mat'))
 else
     spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
     spmversion = spmversion{1};
-    SPMpath = gui.folder.spmversion;
+    SPMpath = spmversion;
     save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
 end
 % Check if SPM12 is installed
@@ -67,23 +67,23 @@ available(find(cellfun(@(a)~isempty(a)&&a<1,enabled)), :) = [];
 %%% 2. CHECK AVAILABILTY %%%
 switch Module
     case 'OspreyGUI'
-        ModuleString = 'fully run Osprey';
+        ModuleString = 'fully run \bfOsprey';
         neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
         neededSpecific = {'Widgets Toolbox', 'GUI Layout Toolbox'};
     case 'OspreyProcess'
-        ModuleString = 'run OspreyProcess';
+        ModuleString = 'run \bfOspreyProcess';
         neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
         neededSpecific = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox'}; 
     case 'OspreyFit'
-        ModuleString = 'run OspreyFit';
+        ModuleString = 'run \bfOspreyFit';
         neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
         neededSpecific = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox'};
     case 'OspreyCoreg'
-        ModuleString = 'run OspreyCoreg';
+        ModuleString = 'run \bfOspreyCoreg';
         neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
         neededSpecific = {'SPM12'};
     case 'OspreySeg'
-        ModuleString = 'run OspreySeg';
+        ModuleString = 'run \bfOspreySeg';
         neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
         neededSpecific = {'SPM12'};        
     otherwise
@@ -101,21 +101,21 @@ if ~ToolChecked
     if ~isempty(missing) || ~isempty(missingSpecific)
         opts.Interpreter = 'tex';
         opts.WindowStyle = 'modal';
-        warning{1} = ['The following toolboxes are missing to ' ModuleString ':'];
+        warning{1} = ['The following toolboxes are missing to ' ModuleString '\rm:'];
         for i = 1 : length(missing)
-            warning{i+1} = missing{i};
+            warning{i+1} = ['\bf' missing{i} '\rm'];
         end
-        warning_count = warning_count +i + 1;
-        warning{warning_count} = ['Please install them to ' ModuleString];
+        warning_count = warning_count +length(missing) + 1;
+        warning{warning_count} = ['Please install them to ' ModuleString '\rm'];
         warning_count = warning_count + 1;
         if ~isempty(missingSpecific)
             warning{warning_count} = ['The following toolboxes are missing to run ' Module ':']; 
             warningc = ['Please install and include the following toolboxes to use ' Module ':'];
             for i = 1 : length(missingSpecific)
-                warning{warning_count + i} = missingSpecific{i};
+                warning{warning_count + i} = ['\bf' missingSpecific{i} '\rm'];
                 warningc = [warningc ' ' missingSpecific{i}];
             end
-            warning{warning_count + i + 1} = ['Please install them to use ' Module];
+            warning{warning_count + length(missingSpecific) + 1} = ['Please install them to use \bf' Module '\rm'];
             warndlg(warning,'Missing Toolboxes',opts);
             error(warningc);
         end    
