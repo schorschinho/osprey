@@ -56,9 +56,11 @@ if isempty(spmversion)
     hasSPM = 0;
 elseif strcmpi(spmversion(end-3:end),'spm8')
     available{end+1} = 'SPM8';
+    enabled{end+1} = 0;
     hasSPM = 0;
 else
     available{end+1} = 'SPM12';
+    enabled{end+1} = 1;
     hasSPM = 1;
 end 
 
