@@ -146,7 +146,11 @@ files_ref   = {strrep(which('exampledata/ima/jobIMA.m'),...
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {};        
+files_w     = {};  
+
+% Specify metabolite-nulled data for quantification
+% (OPTIONAL)
+files_mm     = {};  
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)

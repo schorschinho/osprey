@@ -27,8 +27,11 @@ function [MRSCont, retMsg] = osp_detDataType(MRSCont)
 %   HISTORY:
 %       2019-02-19: First version of the code.
 
-% Concatenate all data including water and reference scans
+% Concatenate all data including MM, water and reference scans
 files = MRSCont.files;
+if isfield(MRSCont, 'files_mm')
+    files = [files MRSCont.files_mm];
+end
 if isfield(MRSCont, 'files_ref')
     files = [files MRSCont.files_ref];
 end
