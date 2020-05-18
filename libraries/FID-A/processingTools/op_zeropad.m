@@ -17,7 +17,7 @@
 % OUTPUTS:
 % out        = Output dataset following zeropadding.
 %
-% Modified by Helge Zöllner: Replace MATLAB padarray function with free pad function 
+% Modified by Helge ZÃ¶llner: Replace MATLAB padarray function with free pad function 
 
 function out=op_zeropad(in,zpFactor);
 

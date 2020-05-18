@@ -13,7 +13,7 @@ function [hasSPM] = osp_Toolbox_Check (Module,ToolChecked)
 %                              OspreyFit
 %                              OspreyCoreg
 %                              OspreySeg
-%      ToolChecked = Flag wether Toolboxes have been checked before. 
+%      ToolChecked = Flag whether Toolboxes have been checked before. 
 %
 %   OUTPUTS:
 %       hasSPM     = SPM flag.
