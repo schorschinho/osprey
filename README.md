@@ -1,5 +1,9 @@
 # Osprey
 
+<img src="graphics/osprey.png" alt="Osprey" width="200"/>
+
+[Osprey Documentation](https://schorschinho.github.io/osprey)
+
 Osprey is an all-in-one software suite for state-of-the art processing and
 quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 

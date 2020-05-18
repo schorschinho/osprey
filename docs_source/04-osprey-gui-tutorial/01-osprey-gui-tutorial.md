@@ -12,7 +12,7 @@ We will learn how to start the GUI, select the job file, load the raw data, proc
 At the MATLAB prompt, enter
 
 ```matlab
->> OspreyStartUp
+>> Osprey
 ```
 
 This will initiate the **Osprey** GUI application and the underlying processing modules. Once the startup is complete, you will see the **Osprey** startup menu box:
