@@ -144,6 +144,10 @@ files_ref   = {which('exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRES
 files_w     = {which('exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat'),...
                which('exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat')};
 
+% Specify metabolite-nulled data for quantification
+% (OPTIONAL)
+files_mm     = {};           
+
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
