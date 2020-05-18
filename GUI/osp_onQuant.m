@@ -27,10 +27,9 @@ function osp_onQuant( ~, ~ ,gui)
 %%% 1. INITIALIZE %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
     gui.layout.tabs.Selection  = 5;
-    [gui] = osp_processingWindow(gui);
+    [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYQUANTIFY %%%    
-    MRSCont = OspreyQuantify(MRSCont);
-    delete(gui.layout.dummy);  
+    MRSCont = OspreyQuantify(MRSCont); 
     gui.quant.Number.Model = length(fieldnames(MRSCont.quantify.tables));
     gui.quant.Names.Model = fieldnames(MRSCont.quantify.tables);
     gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1})));
@@ -39,9 +38,10 @@ function osp_onQuant( ~, ~ ,gui)
     gui.overview.Selected.Metab = find(strcmp(MRSCont.quantify.metabs, 'tNAA'));
     gui.quant.idx.GABA = find(strcmp(MRSCont.quantify.metabs, 'GABA'));
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
-%%% 3. INITIALIZE QUANTIFY OUTPUT WINDOW %%%    
-    osp_iniQuantifyWindow(gui);
+%%% 3. INITIALIZE QUANTIFY OUTPUT WINDOW %%% 
     MRSCont = OspreyOverview(MRSCont);
+    delete(gui.layout.dummy); 
+    osp_iniQuantifyWindow(gui);
     gui.overview.NAAnormed = 1;
     gui.overview.Number.Groups = MRSCont.overview.NoGroups;
     [gui.colormap.cb] = cbrewer('qual', 'Dark2', 12, 'pchip');

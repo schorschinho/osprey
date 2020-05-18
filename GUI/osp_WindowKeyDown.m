@@ -30,7 +30,7 @@ function osp_WindowKeyDown(~,EventData,gui)
     % 31 downarrow
 % Get MRSCont from hidden class container
     MRSCont = getappdata(gui.figure,'MRSCont');    
-    if strcmp(EventData.Key, 'uparrow')
+    if strcmp(EventData.Key, 'uparrow') % scrolling up
         OldValue = get( gui.layout.ListBox,'value');
         gui.controls.KeyPress = 1;
         if OldValue == 1
@@ -39,7 +39,7 @@ function osp_WindowKeyDown(~,EventData,gui)
             set(gui.layout.ListBox, 'value', OldValue-1 );
         end
     end
-    if strcmp(EventData.Key, 'downarrow')
+    if strcmp(EventData.Key, 'downarrow') % scrolling down
         OldValue = get( gui.layout.ListBox,'value');
         gui.controls.KeyPress = 1;
         if OldValue == MRSCont.nDatasets
@@ -48,4 +48,77 @@ function osp_WindowKeyDown(~,EventData,gui)
             set(gui.layout.ListBox, 'value', OldValue+1 );
         end
     end
+    if strcmp(EventData.Key, 'leftarrow') % excluding spectrum from OspreyQuantify and OspreyOverview
+        Idx = get( gui.layout.ListBox,'value');
+        gui.controls.KeyPress = 1;
+        if ~strcmp(gui.layout.RedFileList{Idx}(1),'<')
+            gui.layout.RedFileList{Idx} = ['<HTML><s>' gui.layout.RedFileList{Idx} '</HTML></s>'];
+            set(gui.layout.ListBox,'String',gui.layout.RedFileList)
+        end
+        if ~isfield(MRSCont,'exclude')
+            MRSCont.exclude = Idx;
+            if MRSCont.flags.didQuantify
+                gui.controls.waitbar = waitbar(0,'Start','Name','Exclude spectra');
+                waitbar(0,gui.controls.waitbar,'Exclude spectra')
+                MRSCont.flags.didQuantify =0;
+                MRSCont.flags.didOverview =0;
+                MRSCont = rmfield(MRSCont,'quantify');
+                MRSCont = rmfield(MRSCont,'overview');
+                waitbar(0.33,gui.controls.waitbar,'Call OspreyQuantify')
+                MRSCont = OspreyQuantify(MRSCont);
+                waitbar(0.66,gui.controls.waitbar,'Call OspreyOverview')
+                MRSCont = OspreyOverview(MRSCont);
+                waitbar(1,gui.controls.waitbar,'Finished');
+                pause(1);
+                close(gui.controls.waitbar);
+            end
+        else if ~ismember(Idx, MRSCont.exclude)
+            MRSCont.exclude = [MRSCont.exclude Idx];
+            if MRSCont.flags.didQuantify
+                gui.controls.waitbar = waitbar(0,'Start','Name','Exclude spectra');
+                waitbar(0,gui.controls.waitbar,'Exclude spectra')
+                MRSCont.flags.didQuantify =0;
+                MRSCont.flags.didOverview =0;
+                MRSCont = rmfield(MRSCont,'quantify');
+                MRSCont = rmfield(MRSCont,'overview');
+                waitbar(0.33,gui.controls.waitbar,'Call OspreyQuantify')
+                MRSCont = OspreyQuantify(MRSCont);
+                waitbar(0.66,gui.controls.waitbar,'Call OspreyOverview')
+                MRSCont = OspreyOverview(MRSCont);
+                waitbar(1,gui.controls.waitbar,'Finished');
+                pause(1);
+                close(gui.controls.waitbar);                
+            end
+            end
+
+        end
+    end
+    if strcmp(EventData.Key, 'rightarrow') % Adding an excluded spectrum from OspreyQuantify and OspreyOverview
+        Idx = get( gui.layout.ListBox,'value');
+        gui.controls.KeyPress = 1;
+        if strcmp(gui.layout.RedFileList{Idx}(1),'<')
+            tempTxt = gui.layout.RedFileList{Idx};
+            tempTxt = strrep(tempTxt,'<HTML><s>','');
+            tempTxt = strrep(tempTxt,'</HTML></s>','');
+            gui.layout.RedFileList{Idx} = tempTxt;
+            set(gui.layout.ListBox,'String',gui.layout.RedFileList);
+            MRSCont.exclude(MRSCont.exclude == Idx) = [];
+            if MRSCont.flags.didQuantify
+                gui.controls.waitbar = waitbar(0,'Start','Name','Include spectra');
+                waitbar(0,gui.controls.waitbar,'Include spectra')
+                MRSCont.flags.didQuantify =0;
+                MRSCont.flags.didOverview =0;
+                MRSCont = rmfield(MRSCont,'quantify');
+                MRSCont = rmfield(MRSCont,'overview');
+                waitbar(0.33,gui.controls.waitbar,'Call OspreyQuantify')
+                MRSCont = OspreyQuantify(MRSCont);
+                waitbar(0.66,gui.controls.waitbar,'Call OspreyOverview')
+                MRSCont = OspreyOverview(MRSCont);
+                waitbar(1,gui.controls.waitbar,'Finished');
+                pause(1);
+                close(gui.controls.waitbar);                
+            end
+        end
+    end
+    setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

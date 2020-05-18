@@ -84,6 +84,10 @@ for kk = 1:MRSCont.nDatasets
             raw_w   = io_loadspec_rda(MRSCont.files_w{kk});
             MRSCont.raw_w{kk}    = raw_w;
         end
+        if MRSCont.flags.hasMM
+            raw_mm   = io_loadspec_rda(MRSCont.files_mm{kk});
+            MRSCont.raw_mm{kk}    = raw_mm;
+        end        
     end
 end
 fprintf('... done.\n');

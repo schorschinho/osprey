@@ -74,7 +74,7 @@ for kk = 1:MRSCont.nDatasets
             raw_w                       = op_leftshift(raw_w,raw_w.pointsToLeftshift);
             MRSCont.raw_w_uncomb{kk}    = raw_w;
         end
-        if MRSCont.flags.hasWater
+        if MRSCont.flags.hasMM
             raw_mm                       = io_loadspec_twix(MRSCont.files_mm{kk});
             raw_mm                       = op_leftshift(raw_mm,raw_mm.pointsToLeftshift);
             MRSCont.raw_mm_uncomb{kk}    = raw_mm;

@@ -27,7 +27,7 @@ function osp_onFit( ~, ~ ,gui)
 %%% 1. DELETE OLD PLOTS %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class  
     gui.layout.tabs.Selection  = 3;
-    [gui] = osp_processingWindow(gui);
+    [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYFIT %%%
     MRSCont = OspreyFit(MRSCont);
     delete(gui.layout.dummy);    

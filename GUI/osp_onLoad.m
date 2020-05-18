@@ -27,7 +27,7 @@ function [gui] = osp_onLoad( ~, ~ ,gui)
 %%% 1. INITIALIZE DATA %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
     gui.layout.tabs.Selection  = 1;
-    gui = osp_processingWindow(gui);
+    [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYLOAD %%%
     MRSCont = OspreyLoad(MRSCont);
     delete(gui.layout.dummy);
