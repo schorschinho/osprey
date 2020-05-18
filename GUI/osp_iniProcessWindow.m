@@ -27,7 +27,6 @@ function osp_iniProcessWindow(gui)
 %%% 1. GET HANDLES %%%
 %This functions creates the inital process window    
         MRSCont = getappdata(gui.figure,'MRSCont');   % Get MRSCont from hidden container in gui class
-        gui.layout.tabs.TabEnables{2} = 'on';
         gui.layout.tabs.Selection  = 2;
         gui.layout.EmptyProPlot = 0;
 %%% 2. CREATING SUB TABS FOR THIS TAB %%% 

@@ -35,10 +35,7 @@ end
 
 % Version and Toolbox check
 MRSCont.ver.CheckPro             = '1.0.0 Pro';
-
 [~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
-MRSCont.flags.isToolChecked = 1;
-    
 
 % Post-process raw data depending on sequence type
 if MRSCont.flags.isUnEdited
@@ -88,7 +85,7 @@ if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
 
-if ~MRSCont.flags.isGUI
+if MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
     save(fullfile(outputFolder, outputFile), 'MRSCont');
     MRSCont.flags.isGUI = 1;

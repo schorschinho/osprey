@@ -41,7 +41,7 @@ function osp_onCoreg( ~, ~ ,gui)
     end
     gui.layout.tabs.Selection  = 4;
 %%% 2. CALL OSPREYCOREG %%%    
-    [gui] = osp_processingWindow(gui);   
+    [gui,MRSCont] = osp_processingWindow(gui,MRSCont);  
     addpath(genpath([gui.folder.spmversion filesep]));
     MRSCont = OspreyCoreg(MRSCont);    
     rmpath(genpath([gui.folder.spmversion filesep]));

@@ -17,7 +17,7 @@
 % OUTPUTS:
 % out        = Output dataset following zeropadding.
 %
-% Modified by Helge Zöllner: Replace MATLAB padarray function with free pad function 
+% Modified by Helge ZÃ¶llner: Replace MATLAB padarray function with free pad function 
 
 function out=op_zeropad(in,zpFactor);
 
@@ -32,7 +32,7 @@ function out=op_zeropad(in,zpFactor);
 
 
 %Add zeros using pad function from FileExchange;
-fids=pad(in.fids,in.sz(1)*zpFactor,'zero');
+fids=op_pad(in.fids,in.sz(1)*zpFactor,'zero');
 
 %Calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);

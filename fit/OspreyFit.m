@@ -65,57 +65,57 @@ else
 end
 
 %% Perform water reference and short-TE water fit
-
+if MRSCont.flags.isGUI
+    progressText = MRSCont.flags.inProgress;
+end
 % If water reference exists, fit it
 if MRSCont.flags.hasRef
     refFitTime = tic;
     reverseStr = '';
-    if MRSCont.flags.isGUI
-        progressbar = waitbar(0,'Start','Name','Osprey Fit');
-        waitbar(0,progressbar,sprintf('Fitted water reference from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
-    end
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
         msg = sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        if MRSCont.flags.isGUI        
+            set(progressText,'String' ,sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+            drawnow
+        end
         if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
             [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
         end
     end
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Fitted water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-        waitbar(1,progressbar,'...done')
-        close(progressbar)
-    end
     fprintf('... done.\n');
-    toc(refFitTime);
+    time = toc(refFitTime);
+    if MRSCont.flags.isGUI        
+        set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+        pause(1);
+    end
 end
 
 % If short TE water reference exists, fit it
 if MRSCont.flags.hasWater
     waterFitTime = tic;
-    reverseStr = '';
-    if MRSCont.flags.isGUI
-        progressbar = waitbar(0,'Start','Name','Osprey Fit');
-        waitbar(0,progressbar,sprintf('Fitted short-TE water from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
-    end    
+    reverseStr = '';   
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
         msg = sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        if MRSCont.flags.isGUI        
+            set(progressText,'String' ,sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+            drawnow
+        end
         if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
             [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
         end
     end
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Fitted short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-        waitbar(1,progressbar,'...done')
-        close(progressbar)
-    end
     fprintf('... done.\n');
-    toc(waterFitTime);
+    time = toc(waterFitTime);
+    if MRSCont.flags.isGUI        
+        set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+        pause(1);
+    end
 end
 
 %% Clean up and save
@@ -142,7 +142,7 @@ if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
 
-if ~MRSCont.flags.isGUI
+if MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
     save(fullfile(outputFolder, outputFile), 'MRSCont');
     MRSCont.flags.isGUI = 1;

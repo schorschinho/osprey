@@ -114,7 +114,7 @@ if ~exist(outputFolder,'dir')
 end
 
 
-if ~MRSCont.flags.isGUI
+if  MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
     save(fullfile(outputFolder, outputFile), 'MRSCont');
     MRSCont.flags.isGUI = 1;
