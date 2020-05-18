@@ -15,7 +15,7 @@ You can check your current MATLAB version and the available toolboxes with the f
 ```matlab
 >> ver
 ```
-``` hl_lines="7 8 9 11 13 15 16 19"
+``` hl_lines="7 8 9 13 16 19"
 -----------------------------------------------------------------------------------------------------
 MATLAB Version: 9.4.0.949201 (R2018a) Update 6
 MATLAB License Number: 703789
