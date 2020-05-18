@@ -59,8 +59,10 @@ end
 % Set default fields
 MRSCont.ospFolder           = ospFolder;
 MRSCont.files               = {};
+MRSCont.files_mm            = {};
 MRSCont.files_ref           = {};
 MRSCont.files_w             = {};
+MRSCont.flags.hasMM         = 0;
 MRSCont.flags.hasRef        = 0;
 MRSCont.flags.hasWater      = 0;
 % Set default flags

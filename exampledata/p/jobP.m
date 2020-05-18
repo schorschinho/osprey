@@ -141,6 +141,10 @@ files_ref   = {};
 % (OPTIONAL)
 files_w     = {};
 
+% Specify metabolite-nulled data for quantification
+% (OPTIONAL)
+files_mm     = {};  
+
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
