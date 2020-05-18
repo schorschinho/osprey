@@ -32,7 +32,7 @@ function out=op_zeropad(in,zpFactor);
 
 
 %Add zeros using pad function from FileExchange;
-fids=pad(in.fids,in.sz(1)*zpFactor,'zero');
+fids=op_pad(in.fids,in.sz(1)*zpFactor,'zero');
 
 %Calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
