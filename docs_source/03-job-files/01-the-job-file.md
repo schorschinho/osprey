@@ -329,7 +329,14 @@ files       = {which('exampledata/sdat/sub-01/mrs/sub-01_press/sub-01_PRESS_35_a
                which('exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat')};
 ```
 
-In the job files in the `example` folder of the **Osprey** repository, the `which` function ensures that the paths are correctly defined regardless of where you put your **Osprey** folder. When designing your own job file, you will have to provide the full paths to your raw data.
+In the job files in the `exampledata` folder of the **Osprey** repository, the `which` function ensures that the paths are correctly defined regardless of where you put your **Osprey** folder. When designing your own job file, you will have to provide the full paths to your raw data, e.g.:
+
+```matlab
+% Specify metabolite data
+% (MANDATORY)
+files       = {'/Users/Georg/Documents/MRSData/study-01/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat',...
+               '/Users/Georg/Documents/MRSData/study-01/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat',};
+```
 
 Instead of writing out the full paths explicitly, you can also create a procedure that is tailored to your local file organization, as long as you end up with a `files` cell array containing an element for each file you want to analyze.
 
