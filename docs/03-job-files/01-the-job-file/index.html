@@ -900,7 +900,13 @@
                <span class="n">which</span><span class="p">(</span><span class="s">&#39;exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat&#39;</span><span class="p">)};</span>
 </code></pre></div>
 
-<p>In the job files in the <code>example</code> folder of the <strong>Osprey</strong> repository, the <code>which</code> function ensures that the paths are correctly defined regardless of where you put your <strong>Osprey</strong> folder. When designing your own job file, you will have to provide the full paths to your raw data.</p>
+<p>In the job files in the <code>exampledata</code> folder of the <strong>Osprey</strong> repository, the <code>which</code> function ensures that the paths are correctly defined regardless of where you put your <strong>Osprey</strong> folder. When designing your own job file, you will have to provide the full paths to your raw data, e.g.:</p>
+<div class="highlight"><pre><span></span><code><span class="c">% Specify metabolite data</span>
+<span class="c">% (MANDATORY)</span>
+<span class="n">files</span>       <span class="p">=</span> <span class="p">{</span><span class="s">&#39;/Users/Georg/Documents/MRSData/study-01/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat&#39;</span><span class="p">,</span><span class="c">...</span>
+               <span class="s">&#39;/Users/Georg/Documents/MRSData/study-01/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat&#39;</span><span class="p">,};</span>
+</code></pre></div>
+
 <p>Instead of writing out the full paths explicitly, you can also create a procedure that is tailored to your local file organization, as long as you end up with a <code>files</code> cell array containing an element for each file you want to analyze.</p>
 <div class="admonition warning">
 <p class="admonition-title">Single-average DICOM and Siemens RDA datasets</p>
