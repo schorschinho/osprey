@@ -243,6 +243,27 @@ LCModel `.RAW` files can be loaded via the `Other` option in the LCModel file ty
 
 Please be aware that LCModel may prompt you to enter the number of FID data points (a positive integer number, e.g. `2048`), dwell time (in seconds, e.g. `0.0005`), and the static magnetic field strength in MHz (e.g. `123.26` for a Siemens 2.89 T magnet).
 
+In addition to the `.RAW` files, Osprey also creates the corresponding  `.CONTROL` files. These files can be used for LCModel batch processing.
+
+```
+for file in /storage/LCModelControlFiles/*;
+do /usr/local/.lcmodel/bin/lcmodel < $file;
+done 
+```
+
+!!! info "MANDATORY"
+    To create working `.CONTROL` files you have to specify the following mandatory variables in the `osp_lcmcontrol_params()` function located in the process folder: `key`, `FILBAS`, `FOLDER`, and `DOECC`. 
+    
+```
+key = 0; %Your LCM key goes here
+FILBAS = '/storage/myBasisSet_30ms_PRESS.BASIS'; % Location of .BASIS file used in LCModel
+FOLDER = '/storage/LCMoutput'; %Output folder (Create this on your linux machine first)
+DOECC= 'F'; % No eddy current correction in LCModel as this is already performed in Osprey.
+```
+    
+!!! info "OPTIONAL"
+    The other parameters are optional and are described in the `osp_lcmcontrol_params()` function.
+
 When loading `.TXT` files with Tarquin, you will probably need to enter the echo time in seconds (e.g. `0.03` for a `TE = 30 ms` acquisition).
 
 The `opts.saveVendor` switch has been introduced to sidestep these problems with `.RAW` and `.TXT` files. LCModel, TARQUIN and jMRUI accept the `.SDAT/.SPAR` and `.RDA` file formats, and should be able to read the header information correctly.
