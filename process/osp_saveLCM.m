@@ -49,8 +49,8 @@ if ~exist(fullfile(saveDestination,'metabs'),'dir')
     end        
 end
 
-%%% 1Export files
-osp_LCMcontrol;
+%%% 1 Export files
+LCMparam = osp_lcmcontrol_params(MRSCont.flags.isMEGA);
 % Loop over all datasets
 for kk = 1:MRSCont.nDatasets
     
