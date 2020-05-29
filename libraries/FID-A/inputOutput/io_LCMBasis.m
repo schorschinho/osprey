@@ -6,8 +6,14 @@
 % 
 % DESCRIPTION:
 % Generates a basis set in FID-A structure. The code reads the LCM
-% .BASIS-file and generates a Osprey compatible basis set.
-% 
+% .BASIS-file and generates a Osprey compatible basis set. The output 
+% BASIS file will be saved into the 'fit/basisset/user' folder. Next, you have
+% to compare the field names of your BASIS file with the list in the fit_createMetabList()
+% function ('libraries/FID-A/fitTools') and change them accordingly. Store 
+% the updated  BASIS variable from your workspace. Afterwards,you have to change
+% the path to your basisset file in the osp_fitInitialise() function in the '/fit' folder.
+%
+%
 % INPUTS:
 % folder    = folder containing *.mat files representing FID-A structures
 % addMMFlag = Flag to decide whether MM and lipid basis functions should be
@@ -29,6 +35,11 @@
 % BASIS     = Simulated basis set in FID-A structure format. 
 
 function [BASIS] = io_LCMBasis(LCMBasisSet, addMMFlag, sequence, editTarget)
+%Get Osprey folder
+[settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
+allFolders      = strsplit(settingsFolder, filesep);
+ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
+
 
 % Parse input arguments
 if nargin < 4
@@ -177,8 +188,11 @@ structorder = {'spectralwidth', 'dwelltime', 'n', 'linewidth', ...
 
 BASIS = orderfields(BASIS, structorder);
 
+if ~exist(fullfile(ospFolder,'fit','basissets','user'),'dir')
+    mkdir(fullfile(ospFolder,'fit','basissets','user'));
+end
 % Save as *.mat file
-save(['BASIS' save_str '.mat'], 'BASIS');
+save(fullfile(ospFolder,'fit','basissets','user',['BASIS' save_str '.mat']), 'BASIS');
 
 end
 
