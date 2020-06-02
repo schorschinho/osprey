@@ -32,10 +32,14 @@ function [hasSPM] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %%
 %%% 1. GET SPMPATH AND TOOLBOXES%%%
-
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
-enabled = table2cell(addons(:,3));
+lic = strcmp({'Enabled'}, addons.Properties.VariableNames);
+if ~isempty(lic)
+    enabled = table2cell(addons(:,lic==1));
+else
+    enabled = table2cell(addons(:,1));
+end
 
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
 allFolders      = strsplit(settingsFolder, filesep);
@@ -56,15 +60,17 @@ if isempty(spmversion)
     hasSPM = 0;
 elseif strcmpi(spmversion(end-3:end),'spm8')
     available{end+1} = 'SPM8';
-    enabled{end+1} = 0;
+    enabled{end+1} = false;
     hasSPM = 0;
 else
     available{end+1} = 'SPM12';
-    enabled{end+1} = 1;
+    enabled{end+1} = true;
     hasSPM = 1;
 end 
 
-available(find(cellfun(@(a)~isempty(a)&&a<1,enabled)), :) = [];
+if ~isempty(lic)
+    available(find(cellfun(@(a)~isempty(a)&&a<1,enabled)), :) = [];
+end
 
 %%% 2. CHECK AVAILABILTY %%%
 switch Module
