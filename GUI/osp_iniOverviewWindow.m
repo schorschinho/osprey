@@ -27,17 +27,17 @@ function osp_iniOverviewWindow(gui)
 %%% 1. GET HANDLES %%%
 %This function creates the inital overview window
         MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
-        gui.layout.tabs.TabEnables{6} = 'on';
-        gui.layout.tabs.Selection  = 6;
+        gui.layout.tabs.TabEnables{6} = 'on';  
+        gui.layout.tabs.Selection  = 6;  
 % Creating subtabs
         gui.layout.specsOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.meanOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.quantOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.distrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.corrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.diceOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice ovelap'};         
-        gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off'};      
+        gui.layout.diceOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);  
+        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice ovelap'};    
+        gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off'};   
         gui.layout.overviewTab.TabWidth   = 115;
         gui.layout.overviewTab.Selection  = 1;
 
@@ -48,11 +48,15 @@ function osp_iniOverviewWindow(gui)
             'Parent', gui.layout.specsOvTab, ...
             'BackgroundColor',gui.colormap.Background,'Padding', 5);
 
-%Creates popup menu for the processed Subspectra (A,B,C,D,ref,water)
+%Creates popup menu for the processed Subspectra (A,B,C,D,mm,ref,water) .... re_mm
        tempFitNames = gui.layout.fitTab.TabTitles;
        for i = 1 : gui.fit.Number
            tempFitNames{i} = strcat('Fit: ',tempFitNames{i}); 
        end
+       if MRSCont.flags.hasMM
+           tempFitNames{gui.fit.Number+1} = 'MM_clean';
+       end
+       
        gui.upperBox.specsOv.box = uix.HBox('Parent', gui.Plot.specsOv,'BackgroundColor',gui.colormap.Background, 'Spacing',5);
        gui.controls.specsOvPlot = uix.Panel('Parent', gui.upperBox.specsOv.box,'Title', 'Individual spectra or fit', ...
                                             'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
@@ -176,7 +180,7 @@ function osp_iniOverviewWindow(gui)
             fitNumber = gui.fit.Number;
        end
        for i = 0 : fitNumber-1
-           if ~strcmp(tempFitNames{i+1},'ref') && ~strcmp(tempFitNames{i+1},'w')
+           if ~strcmp(tempFitNames{i+1},'ref') && ~strcmp(tempFitNames{i+1},'w') && ~strcmp(tempFitNames{i+1},'mm')
                gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(tempFitNames{i+1})));
                gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(tempFitNames{i+1}));
                for j = 1 : gui.quant.Number.Quants

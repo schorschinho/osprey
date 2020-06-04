@@ -33,11 +33,30 @@ function osp_updateLoadWindow(gui)
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
         if gui.load.Selected == 1 %Is metabolite data?
-            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
+            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-        else if gui.load.Selected == 2 %Is water or ref data?
+        else
+            if MRSCont.flags.hasMM   %re_mm
+               if gui.load.Selected == 2 %re_mm
+                    StatText = ['MM Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.spectralwidth) ' Hz'...   %re_mm
+                         '\nraw subspecs: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...   %re_mm
+                         num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];   %re_mm
+            end  %re_mm  
+               if gui.load.Selected == 3 %Is water or ref data?    %re_mm
+            StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth) ' Hz'...   %re_mm
+                         '\nraw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
+                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...   %re_mm
+                         num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];   %re_mm
+            else   %re_mm
+                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.spectralwidth) ' Hz'...   %re_mm
+                         '\nraw subspecs: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.averages)...   %re_mm
+                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...   %re_mm
+                         num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];   %re_mm
+            end   %re_mm
+            else    %re_mm
+            if gui.load.Selected == 2 %Is water or ref data?
             StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth) ' Hz'...
                          '\nraw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
@@ -48,6 +67,8 @@ function osp_updateLoadWindow(gui)
                          '; Sz: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
             end
+            end    %re_mm
+            
         end
         set(gui.InfoText.data, 'String',sprintf(StatText))
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
@@ -85,7 +106,34 @@ function osp_updateLoadWindow(gui)
                 set( temp.Children(4).Children, 'Parent', gui.layout.multiAload.Children ); % Update pre alignment plot
                 set(  gui.layout.multiDload.Children, 'XLim', temp.Children(4).XLim);
             end
-        else if gui.load.Selected == 2 %Is Ref data/tab?
+        else
+                if MRSCont.flags.hasMM %re_mm
+                if gui.load.Selected == 2 %ref data/tab  %re_mm
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm');
+                ViewAxes = gca();
+                delete(gui.Plot.data.Children(1).Children(1).Children)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
+                set(  gui.Plot.data.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
+                set(  gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
+                end %re_mm
+                if gui.load.Selected == 3 %ref data/tab %re_mm
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
+                ViewAxes = gca();
+                delete(gui.Plot.data.Children(1).Children(1).Children)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
+                set(gui.Plot.data.Children(1).Children(1).Title, 'String', ViewAxes.Title.String);
+                set(gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim);
+                end %re_mm
+                if gui.load.Selected == 4 %ref data/tab %re_mm
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
+                ViewAxes = gca();
+                delete(gui.Plot.data.Children(1).Children(1).Children)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
+                set(  gui.Plot.data.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
+                set(  gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
+                end
+                        else %re_mm
+            if gui.load.Selected == 2 %Is Ref data/tab?
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)
@@ -100,6 +148,7 @@ function osp_updateLoadWindow(gui)
                 set(  gui.Plot.data.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
                 set(  gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
             end
+                        end 
         end
         % Get rid of the Load figure
         close( temp );    
