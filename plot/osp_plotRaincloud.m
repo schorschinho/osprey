@@ -25,7 +25,7 @@ function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit)
 %       hzoelln2@jhmi.edu
 %
 %   CREDITS:    
-%       This code uses a modified version of the raincloud plots by David
+%       This code uses a modified version of the raincloud plots by Davide
 %       Poggiali
 %       https://github.com/RainCloudPlots/RainCloudPlots
 %       DOI: 10.12688/wellcomeopenres.15191.1

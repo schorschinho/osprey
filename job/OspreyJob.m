@@ -258,8 +258,8 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didLoadJob    = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = '100 Osprey';
-MRSCont.ver.Job             = '100 job';
+MRSCont.ver.Osp             = '1.0.0 Osprey';
+MRSCont.ver.Job             = '1.0.0 job';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
@@ -271,7 +271,7 @@ if ~GUI
     if exist(fullfile(outputFolder, outputFile), 'file') == 2
         fprintf('Your selected output folder ''%s'' already contains an Osprey output structure: \t%s.\n', outputFolder, outputFile);
         fprintf('You are about to load the job: \t%s.\n', jobFile);
-        askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container!)   [y]   ','s');
+        askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container! You can load the existing container by typing n)   [y]   ','s');
         if isempty(askOverWriteJob)
             askOverWriteJob = 'y';
         end
@@ -313,23 +313,35 @@ if ~GUI
                         MRSCont.flags.speedUp        = 1;
                     end
              end
-        elseif askOverWriteJob=='y' || askOverWriteJob=='y'
+        elseif askOverWriteJob=='y' || askOverWriteJob=='Y'
             disp('Continue with loading new job, overwriting existing job.');
+            delete(fullfile(outputFolder, 'LogFile.txt'));
+            fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w');
+            fprintf(fileID,'Timestamp %s\n', datestr(now,'HH:MM:SS.FFF'));
+            fprintf(fileID, [MRSCont.ver.Osp '  ' MRSCont.ver.Job]);
+            fclose(fileID);
         end
+    else
+        fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w');
+        fprintf(fileID,'Timestamp %s\n', datestr(now,'HH:MM:SS.FFF'));
+        fprintf(fileID, [MRSCont.ver.Osp '  ' MRSCont.ver.Job]);
+            fclose(fileID);
     end
 else
     opts.Interpreter = 'tex';
     opts.Default = 'Yes';
     if exist(fullfile(outputFolder, outputFile), 'file') == 2
-        askOverWriteJob = questdlg(['Your selected output folder already contains an Osprey output structure: ' outputFile '\newline' ...
-                                      'You are about to load the job: ', strrep(outputFile,'.mat','.m') '\newline' ...
-                                      'Do you want to overwrite the existing job? \newline (Warning: This will delete all data in the data container!)'], ...
+        askOverWriteJob = questdlg({['Your selected output folder already contains an Osprey output structure: \bf' outputFile], ...
+                                      ['\rmYou are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
+                                      '\rmDo you want to overwrite the existing job?',...
+                                      '(Warning\rm: This will delete all data in the data container!)',...
+                                      'You can load the existing MRS container by clicking No'}, ...
         'Load jobFile', 'Yes ','No', opts);
         if strcmp(askOverWriteJob, 'No')
-             askloadMRSCont = questdlg( ['You are about to load the job: ', strrep(outputFile,'.mat','.m') '\newline' ...
-                                         'If new files were added they will be attached, otherwise the MRS Container will just be loaded.\newline' ...
-                                         'If you want to change analysis parameters on an exisiting set of files add a existing MRS Container in the dialog\newline' ...
-                                         'Do you want to load the corresponding MRS Container and attach new files?'], ...
+             askloadMRSCont = questdlg( {['You are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
+                                         '\rmIf new files were added they will be attached, otherwise the MRS Container will just be loaded.', ...
+                                         '\rmIf you want to change analysis parameters on an exisiting set of files add a existing MRS Container in the dialog', ...
+                                         '\rmDo you want to load the corresponding MRS Container and attach new files?'}, ...
                                           'Load MRS Container', 'Yes','No',opts);
 
              if strcmp(askloadMRSCont, 'No')
@@ -379,6 +391,7 @@ end
 % Add a save dummy with the GUI flag turned off
 saveMRSCont = MRSCont;
 saveMRSCont.flags.isGUI = 0;
+MRSCont.flags.isToolChecked = 0;
 save(fullfile(outputFolder, outputFile), 'saveMRSCont');
 
 % Close any remaining open figures

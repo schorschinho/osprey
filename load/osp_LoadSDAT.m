@@ -53,13 +53,15 @@ end
 refLoadTime = tic;
 reverseStr = '';
 if MRSCont.flags.isGUI
-    progressbar = waitbar(0,'Start','Name','Osprey Load');
-    waitbar(0,progressbar,sprintf('Loaded raw data from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+    progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    if MRSCont.flags.isGUI        
+        set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+    end    
     if ((MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~isfield(MRSCont.ver, 'Load') || ~strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad))
 
         % Read in the raw metabolite data. Since the Philips SDAT loader needs
@@ -148,16 +150,13 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.raw_w{kk}    = raw_w;
         end
     end
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Loaded raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-    end
 end
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    close(progressbar)
+time = toc(refLoadTime);
+if MRSCont.flags.isGUI        
+    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+    pause(1);
 end
-toc(refLoadTime);
 
 % Set flag
 MRSCont.flags.coilsCombined     = 1;

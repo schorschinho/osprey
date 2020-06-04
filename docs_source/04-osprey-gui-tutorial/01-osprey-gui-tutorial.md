@@ -12,7 +12,7 @@ We will learn how to start the GUI, select the job file, load the raw data, proc
 At the MATLAB prompt, enter
 
 ```matlab
->> OspreyStartUp
+>> Osprey
 ```
 
 This will initiate the **Osprey** GUI application and the underlying processing modules. Once the startup is complete, you will see the **Osprey** startup menu box:
@@ -42,7 +42,7 @@ In the bottom left corner, you see a list of datasets included in the job file d
 
 Click the `Load data` button to initiate the loading process of the raw MRS data. **Osprey** will now extract the raw FIDs and header data (and perform coil combination, if applicable) by running the `OspreyLoad` module in the background. For larger files (with separate FIDs for each coil), this process may take a few seconds per dataset. You can monitor the progress through the wait bar.
 
-Once the loading process is complete, you can see the coil-combined, but un-aligned and un-averaged data. You can select the dataset you wish to be displayed by clicking on the entry in the dataset list in the bottom left corner:
+Once the loading process is complete, you can see the coil-combined, but un-aligned and un-averaged data. You can select the dataset you wish to be displayed by clicking on the entry in the dataset list in the bottom left corner, and you can easily scroll through the different datasets using the <kbd>⬆</kbd> and <kbd>⬇</kbd> keys on your keyboard.
 
 <table>
   <tr>
@@ -217,3 +217,11 @@ By clicking on the tabs at the bottom of the window, you can cycle through the f
     By default, the `Correlation` tab is set to display the correlation of tNAA/tCr to SNR.
 
 <img src="../../img/04-overview-correlation.png" alt="Osprey GUI - Overview Correlation"/>
+
+!!! info
+    We are incredibly grateful for the fantastic [raincloud plot tools](https://github.com/RainCloudPlots/RainCloudPlots) developed by Micah Allen, Davide Poggiali, Kirstie Whitaker, Tom Rhys Marshall, and Rogier Kievit. Should you make use of the OspreyOverview raincloud plots, please consider citing their original publications:
+
+    >    * Allen M, Poggiali D, Whitaker K et al. Raincloud plots: a multi-platform tool for robust data
+    > visualization [version 1; peer review: 2 approved].
+    > Wellcome Open Res 2019, 4:63. DOI: 10.12688/wellcomeopenres.15191.1
+    >    * Allen M, Poggiali D, Whitaker K, Marshall TR, Kievit R. (2018) RainCloudPlots tutorials and codebase (Version v1.1). Zenodo. http://doi.org/10.5281/zenodo.3368186

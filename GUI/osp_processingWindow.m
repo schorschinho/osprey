@@ -1,16 +1,18 @@
-function gui = osp_processingWindow(gui)
+function [gui, MRSCont] = osp_processingWindow(gui,MRSCont)
 %% osp_processingWindow
-%This functions creates a dummy tab with '...' and 'In progress...' in case any Osprey function is running
-% after a button click
+%This functions finds the handle to update the window in progress
 %
 %
 %   USAGE:
 %       osp_processingWindow(gui);
 %
 %   INPUT:  
-%           gui      = gui class containing all handles and the MRSCont             
+%           gui      = gui class containing all handles and the MRSCont
+%           MRSCont      = MRS container
 %
-%
+%   OUTPUT:
+%           gui      = gui class containing all handles and the MRSCont
+%           MRSCont      = MRS container
 %   AUTHORS:
 %       Dr. Helge Zoellner (Johns Hopkins University, 2020-01-16)
 %       hzoelln2@jhmi.edu
@@ -59,5 +61,6 @@ function gui = osp_processingWindow(gui)
                                           'FontSize', 16, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
                                           'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
     end
-    set(gui.layout.dummyTxt, 'String', sprintf('In progress...'));        
+    set(gui.layout.dummyTxt, 'String', sprintf('In progress...'));  
+    MRSCont.flags.inProgress = gui.layout.dummyTxt;
 end

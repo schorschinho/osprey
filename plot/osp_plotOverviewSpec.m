@@ -107,6 +107,7 @@ else % Is fit?
             case {'ref','w','mm'}
                 fit = fitwhich;
                 data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+
             case {'lean'}
                 fit = fitwhich;
                 data = MRSCont.overview.all_models.mm_mm;
@@ -146,7 +147,7 @@ else % Is fit?
         end
     end
     
-    if nargin<8    
+    if nargin<7    
         if (~strcmp(fitwhich,'w') && ~strcmp(fitwhich,'ref'))
             figTitle = ['Individual fits: ' fit ' ' fitwhich]; 
             ppmRange = MRSCont.opts.fit.range;

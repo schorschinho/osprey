@@ -30,13 +30,16 @@ function [MRSCont] = osp_fitUnEdited(MRSCont)
 metFitTime = tic;
 reverseStr = '';
 if MRSCont.flags.isGUI
-    progressbar = waitbar(0,'Start','Name','Osprey Fit');
-    waitbar(0,progressbar,sprintf('Fitted metabolite spectra from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+    progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    if MRSCont.flags.isGUI        
+            set(progressText,'String' ,sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+            drawnow
+    end
     
     if (~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
         % Apply scaling factor to the data
@@ -92,19 +95,14 @@ for kk = 1:MRSCont.nDatasets
         end                                         % re_mm
     end
 
-    
-    if MRSCont.flags.isGUI    
-     waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Fitted metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-    end
     % end time counter
     if isequal(kk, MRSCont.nDatasets)
-        if MRSCont.flags.isGUI        
-            waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Fitted metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-            waitbar(1,progressbar,'...done')
-            close(progressbar)
-        end
         fprintf('... done.\n');
-        toc(metFitTime);
+        time = toc(metFitTime);
+        if MRSCont.flags.isGUI        
+            set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+            pause(1);
+        end
     end
 end
 

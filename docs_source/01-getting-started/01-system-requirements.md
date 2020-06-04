@@ -4,9 +4,7 @@
 has been tested on version 2017a and newer. The following toolboxes are
 required for full functionality:
 
-  - Image Processing
   - Optimization
-  - Signal Processing
   - Statistics and Machine Learning
 
 !!! info
@@ -17,7 +15,7 @@ You can check your current MATLAB version and the available toolboxes with the f
 ```matlab
 >> ver
 ```
-``` hl_lines="7 8 9 11 13 15 16 19"
+``` hl_lines="7 8 9 13 16 19"
 -----------------------------------------------------------------------------------------------------
 MATLAB Version: 9.4.0.949201 (R2018a) Update 6
 MATLAB License Number: 703789
@@ -38,3 +36,6 @@ Symbolic Math Toolbox                                 Version 8.1         (R2018
 Wavelet Toolbox                                       Version 5.0         (R2018a)
 Widgets Toolbox                                       Version 1.3.330     (R2019a)
 ```
+
+!!! info
+    The available toolboxes (including SPM) are checked at the initial call of the Osprey GUI, and missing toolboxes are reported back to the user.

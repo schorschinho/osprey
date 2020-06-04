@@ -40,7 +40,7 @@ function osp_onSeg( ~, ~ ,gui)
         end
     end
     gui.layout.tabs.Selection  = 4;
-    [gui] = osp_processingWindow(gui);
+    [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
     addpath(genpath([gui.folder.spmversion filesep]));
 %%% 2. CALL OSPREYSEG %%%    
     MRSCont = OspreySeg(MRSCont);

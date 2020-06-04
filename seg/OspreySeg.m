@@ -37,7 +37,8 @@ end
 warning('off','all');
 
 % Version check
-MRSCont.ver.CheckSeg             = '100 Seg';
+MRSCont.ver.CheckSeg             = '1.0.0 Seg';
+[~] = osp_Toolbox_Check ('OspreySeg',MRSCont.flags.isGUI);
 
 % Set up SPM for batch processing
 spm('defaults','fmri');
@@ -50,16 +51,19 @@ if ~exist(saveDestination,'dir')
 end
 
 %% Loop over all datasets
-refProcessTime = tic;
+refSegTime = tic;
 reverseStr = '';
 if MRSCont.flags.isGUI
-    progressbar = waitbar(0,'Start','Name','Osprey Segment');
-    waitbar(0,progressbar,sprintf('Segmented structural image from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+    progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    if MRSCont.flags.isGUI        
+        set(progressText,'String' ,sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+        drawnow
+    end    
     
     if ((MRSCont.flags.didSeg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'seg') && (kk > length(MRSCont.seg.tissue.fGM))) || ~isfield(MRSCont.ver, 'Seg') || ~strcmp(MRSCont.ver.Seg,MRSCont.ver.CheckSeg))
 
@@ -158,16 +162,13 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.seg.tissue.fWM(kk)  = fWM;
         MRSCont.seg.tissue.fCSF(kk) = fCSF;
     end 
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Segmented structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-    end
 end
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    close(progressbar)
+time = toc(refSegTime);
+if MRSCont.flags.isGUI        
+    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+    pause(1);
 end
-toc(refProcessTime);
 %% Create table and csv file
 tissueTypes = {'fGM','fWM','fCSF'};
 tissue = horzcat(MRSCont.seg.tissue.fGM',MRSCont.seg.tissue.fWM',MRSCont.seg.tissue.fCSF');
@@ -178,7 +179,7 @@ writetable(MRSCont.seg.tables,[saveDestination  filesep 'TissueFractions.csv']);
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didSeg           = 1;
-MRSCont.ver.Seg             = '100 Seg';
+MRSCont.ver.Seg             = '1.0.0 Seg';
 
 % Save the output structure to the output folder
 % Determine output folder
@@ -188,7 +189,7 @@ if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
 
-if ~MRSCont.flags.isGUI
+if MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
     save(fullfile(outputFolder, outputFile), 'MRSCont');
     MRSCont.flags.isGUI = 1;

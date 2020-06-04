@@ -130,17 +130,19 @@ MRSCont = addMetabComb(MRSCont, getResults);
 
 
 %% Loop over all datasets
-refProcessTime = tic;
+QuantifyTime = tic;
 reverseStr = '';
 if MRSCont.flags.isGUI
-    progressbar = waitbar(0,'Start','Name','Osprey Quantify');
-    waitbar(0,progressbar,sprintf('Quantified dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+    progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-
+    if MRSCont.flags.isGUI  && isfield(progressText,'String')      
+        set(progressText,'String' ,sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+        drawnow
+    end
 
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
     metsName = MRSCont.quantify.metabs; % just for the names
@@ -228,16 +230,13 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaled{kk} = AlphaCorrWaterScaled;
         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
     end
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Quantified dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-    end
 end
 fprintf('... done.\n');
-if MRSCont.flags.isGUI 
-    waitbar(1,progressbar,'...done')
-    close(progressbar)
+time = toc(QuantifyTime);
+if MRSCont.flags.isGUI && isfield(progressText,'String')      
+    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+    pause(1);
 end
-toc(refProcessTime);
 %% Create tables
 % Set up readable tables for each quantification.
 if qtfyCr
@@ -634,6 +633,11 @@ function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
                 conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
             end
             % Save back to Osprey data container
+            if isfield(MRSCont, 'exclude')
+                if~isempty(MRSCont.exclude)
+                    conc(MRSCont.exclude,:) = [];
+                end
+            end
             MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
         end
     else
@@ -647,6 +651,11 @@ function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
                 conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
             end
             % Save back to Osprey data container
+            if isfield(MRSCont, 'exclude')
+                if~isempty(MRSCont.exclude)
+                    conc(MRSCont.exclude,:) = [];
+                end
+            end
             MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
         end
     end

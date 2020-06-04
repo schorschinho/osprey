@@ -79,14 +79,22 @@ nameraw = [name '_LCM_' subspec];
 % subject)
 if strcmpi(MRSCont.vendor, 'GE')
     [path_ref,filename_ref,~]   = fileparts(MRSCont.files{kk});
-else
+    path_ref_split          = regexp(path_ref,filesep,'split');
+    if length(path_ref_split) > 2
+        name_ref = [path_ref_split{end-1} '_' path_ref_split{end} '_' filename_ref];
+    end
+else if MRSCont.flags.hasRef
     [path_ref,filename_ref,~]   = fileparts(MRSCont.files_ref{kk});
-end
-path_ref_split          = regexp(path_ref,filesep,'split');
-if length(path_ref_split) > 2
-    name_ref = [path_ref_split{end-1} '_' path_ref_split{end} '_' filename_ref];
+    path_ref_split          = regexp(path_ref,filesep,'split');
+    if length(path_ref_split) > 2
+        name_ref = [path_ref_split{end-1} '_' path_ref_split{end} '_' filename_ref];
+    end
+    end
 end
 
+if ~exist('name_ref','var')
+    LCMparam.DOWS = 'F';
+end
 
 %write to txt file
 fid=fopen(fullfile(saveDestination,[nameraw '.control']),'w+');
@@ -98,10 +106,14 @@ fprintf(fid,'\n HZPPPM =%2.6e, DELTAT=%2.6e, NUNFIL=%i',MRSCont.processed.(which
 fprintf(fid,'\n FILBAS = ''%s''', LCMparam.FILBAS);
 fprintf(fid,'\n DKNTMN = %5.2f',LCMparam.DKNTMN);
 fprintf(fid,'\n DOWS = %s',LCMparam.DOWS);
-fprintf(fid,'\n FILH2O = ''%s''', [LCMparam.FOLDER '/ref/' name_ref '_LCM_REF.RAW']);
-fprintf(fid,'\n ATTH2O = %5.2f',LCMparam.ATTH2O);
+if exist('name_ref','var')
+    fprintf(fid,'\n FILH2O = ''%s''', [LCMparam.FOLDER '/ref/' name_ref '_LCM_REF.RAW']);
+    fprintf(fid,'\n ATTH2O = %5.2f',LCMparam.ATTH2O);
+end    
 fprintf(fid,'\n ATTMET = %5.5f',LCMparam.ATTMET);
-fprintf(fid,'\n WCONC = %5.1f',LCMparam.WCONC);
+if exist('name_ref','var')
+    fprintf(fid,'\n WCONC = %5.1f',LCMparam.WCONC);
+end
 fprintf(fid,'\n NEACH = %i',LCMparam.NEACH);
 fprintf(fid,'\n WDLINE(6) = %5.1f',LCMparam.WDLINE);
 fprintf(fid,'\n PPMST = %5.2f',MRSCont.opts.fit.range(2));

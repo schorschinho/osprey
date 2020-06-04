@@ -23,6 +23,8 @@ Should you publish material that made use of Osprey, please cite the following p
 
 ## Acknowledgements
 
+This work has been supported by NIH grants R01EB016089, P41EB15909, R01EB023963, and K99AG062230.
+
 We wish to thank the following individuals for their contributions to the
 development of Osprey and shared processing code:
 
@@ -33,4 +35,9 @@ development of Osprey and shared processing code:
 - Philipp Ehses (German Center for Neurodegenerative Diseases, Bonn)
 - Wouter Potters (UMC Amsterdam)
 
-This work has been supported by NIH grants R01EB016089, P41EB15909, R01EB023963, and K99AG062230.
+We are particularly grateful for the incredible [raincloud plot tools](https://github.com/RainCloudPlots/RainCloudPlots) developed by Micah Allen, Davide Poggiali, Kirstie Whitaker, Tom Rhys Marshall, and Rogier Kievit. Should you make use of the OspreyOverview raincloud plots, please consider citing their original publications:
+
+>    * Allen M, Poggiali D, Whitaker K et al. Raincloud plots: a multi-platform tool for robust data
+> visualization [version 1; peer review: 2 approved].
+> Wellcome Open Res 2019, 4:63. DOI: 10.12688/wellcomeopenres.15191.1
+>    * Allen M, Poggiali D, Whitaker K, Marshall TR, Kievit R. (2018) RainCloudPlots tutorials and codebase (Version v1.1). Zenodo. http://doi.org/10.5281/zenodo.3368186

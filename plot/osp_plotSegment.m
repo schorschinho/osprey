@@ -81,10 +81,10 @@ else
     out = figure('Visible','off');
 end
 imagesc(img_montage);
-text(floor(size(vox_t,2)/2), 15, 'Voxel', 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
-text(floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'GM', 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
-text(2*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'WM', 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
-text(3*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'CSF', 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(floor(size(vox_t,2)/2), 15, 'Voxel', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'GM', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(2*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'WM', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(3*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'CSF', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 colormap('gray');
 caxis([0 1])
 axis equal;
@@ -98,13 +98,13 @@ end
 
 
 %%% 5. ADD TISSUE COMPOSITION %%%
-text(floor(size(vox_t,2)/2), size(img_montage,1)-15, 'voxel fraction', 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(floor(size(vox_t,2)/2), size(img_montage,1)-15, 'voxel fraction', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fGM(kk));
-text(floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fWM(kk));
-text(2*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(2*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fCSF(kk));
-text(3*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', [1 1 1], 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(3*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 
 %%% 6. ADD OSPREY LOGO %%%
 if ~MRSCont.flags.isGUI
