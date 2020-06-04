@@ -85,7 +85,7 @@ function osp_updateFitWindow(gui)
                 if MRSCont.flags.hasRef
                     RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                 else
-                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                 end
                 NameText = [''];
                 RawAmplText = [''];

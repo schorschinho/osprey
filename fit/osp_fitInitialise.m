@@ -27,6 +27,9 @@ if MRSCont.flags.isUnEdited
     switch MRSCont.vendor
         case 'Philips'
             MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/philips/press' te '/basis_philips_press' te '.mat']); 
+            if ~exist(MRSCont.opts.fit.basisSetFile) %re_mm
+                 MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/philips/press' '35' '/basis_philips_press' '35' '.mat']);  %re_mm
+            end %re_mm
         case 'GE'
             MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/ge/press' te '/basis_ge_press' te '.mat']); 
         case 'Siemens'
@@ -68,6 +71,7 @@ end
 % Clear existing basis set
 MRSCont.fit.basisSet = [];
 % Load the specified basis set
+
 basisSet = load(MRSCont.opts.fit.basisSetFile);
 basisSet = basisSet.BASIS;
 

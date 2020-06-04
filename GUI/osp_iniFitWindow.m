@@ -58,7 +58,7 @@ function osp_iniFitWindow(gui)
             [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.1);
             set(gui.controls.b_save_fitTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-            set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint});
+            set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint,gui});
             set(gui.upperBox.fit.box, 'Width', [-0.9 -0.1]);                                 
             % Creates layout for plotting and data control
             gui.Plot.fit = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
@@ -124,7 +124,7 @@ function osp_iniFitWindow(gui)
                     if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                         RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                     else
-                        RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                        RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                     end
                     NameText = [''];
                     RawAmplText = [''];
