@@ -103,6 +103,14 @@ N_s                 = round(convolutionRange/PPMINC);
 if mod(N_s,2) == 0
     N_s = N_s - 1; % make odd number
 end
+if N_s == 0
+    N_s=1;
+end
+
+if N_s < 0
+    N_s=-N_s;
+end
+
 lineShape = zeros(N_s,1);
 lineShape(ceil(N_s/2)) = 1;
 
@@ -580,15 +588,15 @@ fitParamsFinal.lineShape    = x(3*nBasisFcts+4+size(splineArray,2):end);
 fitParamsFinal.beta_j       = ampl(size(A,2)+1:end);
 
 % % Plot (comment out if not debugging)
-% figure(99)
-% plot(data); hold;
-% plot(AB*ampl);
-% plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
-% for rr = 1:(nMets+nMM)
-%     plot(ampl(rr)*A(:,rr));
-% end
-% title('Preliminary Analysis with full basis set (unregularized)');
-% hold;
+figure(99)
+plot(data); hold;
+plot(AB*ampl);
+plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
+for rr = 1:(nMets+nMM)
+    plot(ampl(rr)*A(:,rr));
+end
+title('Preliminary Analysis with full basis set (unregularized)');
+hold;
 
 
 end 

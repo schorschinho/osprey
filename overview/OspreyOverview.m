@@ -210,30 +210,52 @@ for sf = 1 : NoFit
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm      =  ModelOutput.ppm;
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res      = ModelOutput.residual;
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = ModelOutput.data;
-                    for n = 1 : MRSCont.fit.basisSet.nMets + MRSCont.fit.basisSet.nMM
-                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.(['fit' MRSCont.fit.basisSet.name{n}])  = ModelOutput.indivMets(:,n);                    
+                    
+                    
+                     if strcmp(FitNames{sf}, 'mm') %re_mm
+                         for n = 1 : 4 + MRSCont.fit.basisSet.nMM
+                            MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.(['fit' MRSCont.fit.basisSet.name{n}])  = ModelOutput.indivMets(:,n);                    
+                        end
+                        idx_NAA  = 4;
+                        idx_Cr  = 1;
+                        idx_CrCH2  = 2;
+                        if ~isempty(idx_CrCH2)
+                            MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_CrCH2);
+                        else
+                            MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr) ;
+                        end
+                    if MRSCont.opts.fit.fitMM == 1
+                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittMM  = sum(ModelOutput.indivMets(:,5:end),2);   
+                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitNAA  = sum(ModelOutput.indivMets(:,4),2);
+                        
                     end
-                    idx_NAA  = find(strcmp(basisSet.name,'NAA'));
-                    idx_NAAG  = find(strcmp(basisSet.name,'NAAG'));
-                    MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittNAA  = ModelOutput.indivMets(:,idx_NAA) + ModelOutput.indivMets(:,idx_NAAG);
-                    idx_Cr  = find(strcmp(basisSet.name,'Cr'));
-                    idx_PCr  = find(strcmp(basisSet.name,'PCr'));
-                    idx_CrCH2  = find(strcmp(basisSet.name,'CrCH2'));
-                    if ~isempty(idx_CrCH2)
-                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_PCr)+ ModelOutput.indivMets(:,idx_CrCH2);
-                    else
-                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_PCr);
-                    end
-                    idx_1  = find(strcmp(basisSet.name,'GPC'));
-                    idx_2  = find(strcmp(basisSet.name,'PCh'));
-                    MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCho  = ModelOutput.indivMets(:,idx_1) + ModelOutput.indivMets(:,idx_2);
-                    idx_1  = find(strcmp(basisSet.name,'Glu'));
-                    idx_2  = find(strcmp(basisSet.name,'Gln'));
-                    MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitGlx  = ModelOutput.indivMets(:,idx_1) + ModelOutput.indivMets(:,idx_2);
+                    %section to write out MM_clean spectra
+                    MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.MM_clean = ModelOutput.data -sum(ModelOutput.indivMets(:,1:4),2);
+                     else%re_mm
+                        for n = 1 : MRSCont.fit.basisSet.nMets + MRSCont.fit.basisSet.nMM
+                            MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.(['fit' MRSCont.fit.basisSet.name{n}])  = ModelOutput.indivMets(:,n);                    
+                        end
+                        idx_NAA  = find(strcmp(basisSet.name,'NAA'));
+                        idx_NAAG  = find(strcmp(basisSet.name,'NAAG'));
+                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittNAA  = ModelOutput.indivMets(:,idx_NAA) + ModelOutput.indivMets(:,idx_NAAG);
+                        idx_Cr  = find(strcmp(basisSet.name,'Cr'));
+                        idx_PCr  = find(strcmp(basisSet.name,'PCr'));
+                        idx_CrCH2  = find(strcmp(basisSet.name,'CrCH2'));
+                        if ~isempty(idx_CrCH2)
+                            MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_PCr)+ ModelOutput.indivMets(:,idx_CrCH2);
+                        else
+                            MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_PCr);
+                        end
+                        idx_1  = find(strcmp(basisSet.name,'GPC'));
+                        idx_2  = find(strcmp(basisSet.name,'PCh'));
+                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCho  = ModelOutput.indivMets(:,idx_1) + ModelOutput.indivMets(:,idx_2);
+                        idx_1  = find(strcmp(basisSet.name,'Glu'));
+                        idx_2  = find(strcmp(basisSet.name,'Gln'));
+                        MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitGlx  = ModelOutput.indivMets(:,idx_1) + ModelOutput.indivMets(:,idx_2);
                     if MRSCont.opts.fit.fitMM == 1
                         MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittMM  = sum(ModelOutput.indivMets(:,MRSCont.fit.basisSet.nMets+1:end),2);                    
                     end
-                    
+                     end %re_mm
                 else
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit      = nan;
                     MRSCont.overview.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.baseline      = nan;
@@ -332,7 +354,7 @@ if MRSCont.flags.isGUI  && isfield(progressText,'String')
     pause(1);
 end
 reverseStr = '';
-
+%%% 3. SCALING DATA  %%%
 for kk = 1 : MRSCont.nDatasets
     msg = sprintf('Scaling data from dataset %d out of %d total datasetss...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
@@ -343,6 +365,13 @@ for kk = 1 : MRSCont.nDatasets
     end    
     if isfield(MRSCont, 'quantify')
         if MRSCont.flags.isUnEdited            
+            if MRSCont.flags.hasMM %re_mm
+                MRSCont.overview.all_data.mm{1,kk}.specs =  MRSCont.overview.all_data.mm{1,kk}.specs/MRSCont.fit.scale{kk}; %re_mm
+                MRSCont.overview.all_models.mm_mm{1,kk}.fit =  MRSCont.overview.all_models.mm_mm{1,kk}.fit/MRSCont.fit.scale{kk};
+                MRSCont.overview.all_models.mm_mm{1,kk}.MM_clean =  MRSCont.overview.all_models.mm_mm{1,kk}.MM_clean/MRSCont.fit.scale{kk};
+                MRSCont.overview.all_models.mm_mm{1,kk}.fitNAA =  MRSCont.overview.all_models.mm_mm{1,kk}.fitNAA/MRSCont.fit.scale{kk};
+                MRSCont.overview.all_models.mm_mm{1,kk}.fittCr =  MRSCont.overview.all_models.mm_mm{1,kk}.fittCr/MRSCont.fit.scale{kk};
+            end %re_mm
             if MRSCont.flags.hasRef
                 MRSCont.overview.all_data.ref{1,kk}.specs =  MRSCont.overview.all_data.ref{1,kk}.specs/MRSCont.fit.scale{kk};
                 MRSCont.overview.all_models.ref_ref{1,kk}.fit =  MRSCont.overview.all_models.ref_ref{1,kk}.fit/MRSCont.fit.scale{kk};
@@ -516,7 +545,7 @@ if MRSCont.flags.hasStatfile
 end
 
 %%% 6. CALCULATE MEAN AND SD SPECTRA FOR VISUALIZATION %%%
-%Data
+
 for ss = 1 : NoSubSpec
     names = fields(MRSCont.overview.sort_data);
     for g = 1 : length(names)

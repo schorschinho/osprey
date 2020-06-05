@@ -36,14 +36,29 @@ function osp_iniProcessWindow(gui)
         gui.layout.proTabhandles = {'AProTab'};
 % Set up tabs with regard to the sequence type
         if MRSCont.flags.isUnEdited %Is UnEdited?
-            if (MRSCont.flags.hasRef && MRSCont.flags.hasWater) %Has water and reference (This should actually not happen with UnEdited data...) 
+        if (MRSCont.flags.hasRef && MRSCont.flags.hasWater && MRSCont.flags.hasMM ) %Has all%re_mm
+                gui.layout.mmProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
+                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
+                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
+                gui.layout.proTab.TabTitles  = {'A', 'MM','ref','w'};%re_mm
+                gui.layout.proTab.TabEnables = {'on', 'on','on','on'};%re_mm
+                gui.layout.proTabhandles = {'AProTab','mmProTab', 'refProTab', 'wProTab'}; % Create 4 Tabs %re_mm
+                gui.process.SNR = {'tNAA','water','water','water'};%re_mm
+        elseif (~MRSCont.flags.hasRef && MRSCont.flags.hasWater && MRSCont.flags.hasMM ) %Has all%re_mm
+                gui.layout.mmProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
+                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
+                gui.layout.proTab.TabTitles  = {'A', 'MM','w'};%re_mm
+                gui.layout.proTab.TabEnables = {'on', 'on','on'};%re_mm
+                gui.layout.proTabhandles = {'AProTab','mmProTab', 'wProTab'}; % Create 4 Tabs %re_mm
+                gui.process.SNR = {'tNAA','water','water','water'};%re_mm
+        elseif (MRSCont.flags.hasRef && MRSCont.flags.hasWater && ~MRSCont.flags.hasMM) %Has water and reference (This should actually not happen with UnEdited data...) 
                 gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.proTab.TabTitles  = {'A','ref','w'};
                 gui.layout.proTab.TabEnables = {'on', 'on','on'};
                 gui.layout.proTabhandles = {'AProTab', 'refProTab', 'wProTab'}; % Create 3 Tabs
                 gui.process.SNR = {'tNAA','water','water'};
-            elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater) %Only metabolite data                
+            elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater && ~MRSCont.flags.hasMM) %Only metabolite data                
                 gui.layout.proTab.TabTitles  = {'A'};
                 gui.layout.proTab.TabEnables = {'on'};
                 gui.layout.proTabhandles = {'AProTab'}; % Create 1 Tab
@@ -197,9 +212,11 @@ function osp_iniProcessWindow(gui)
                         num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
                         ' ppm / Hz'];
                 else
+                    if ~strcmp(gui.process.Names{t},'mm') %re
                     StatText = ['Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
                                 num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
                                 ' ppm / Hz'];
+                    end %re
                 end
             end
             gui.InfoText.pro  = uicontrol('Parent',gui.upperBox.pro.Info,'style','text',...
