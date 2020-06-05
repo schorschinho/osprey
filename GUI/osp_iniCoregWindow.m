@@ -47,7 +47,7 @@ function osp_iniCoregWindow(gui)
     [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
     [img2] = imresize(img, 0.1);
     set(gui.controls.b_save_coregTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-    set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint});
+    set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
     set(gui.upperBox.coreg.box, 'Width', [-0.9 -0.1]);                       
     % Creates layout for plotting and data control
     gui.Plot.coreg = uix.HBox('Parent', gui.layout.coregTab,'BackgroundColor',gui.colormap.Background);

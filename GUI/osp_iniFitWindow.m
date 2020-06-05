@@ -58,7 +58,7 @@ function osp_iniFitWindow(gui)
             [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.1);
             set(gui.controls.b_save_fitTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-            set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint});
+            set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint,gui});
             set(gui.upperBox.fit.box, 'Width', [-0.9 -0.1]);                                 
             % Creates layout for plotting and data control
             gui.Plot.fit = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
@@ -80,7 +80,7 @@ function osp_iniFitWindow(gui)
             if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
                 StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t},...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f'),...
-                        '°; ph1: ' num2str(ph1,'%1.2f') '°; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
+                        'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
                         ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.basisSet.nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.basisSet.nMM) ...
                         ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected})];
             else if strcmp (Selection, 'ref') %Reference data?
@@ -112,7 +112,7 @@ function osp_iniFitWindow(gui)
                    NameText = ['Water: ' ];
                    RawAmplText = [num2str(RawAmpl,'%1.2e')];
                 end
-                set(gui.fitResults, 'Title', ['Raw Amplitudes']);
+                set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
                     gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                     gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
                     'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
@@ -125,7 +125,7 @@ function osp_iniFitWindow(gui)
                     if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                         RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                     else
-                        RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                        RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                     end
                     NameText = [''];
                     RawAmplText = [''];

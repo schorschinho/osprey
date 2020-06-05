@@ -27,16 +27,24 @@ function osp_pop_distrOvQuant_Call(src,~,gui)
         idx=(src.Value);
         src.Value=idx;
         gui.quant.Selected.Quant = idx;
+        metab = get(gui.controls.pop_distrOvMetab, 'Value');
         Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
-        split_Selection = strsplit(Selection,'-');        
-        if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
-           set(gui.controls.pop_distrOvMetab, 'String', {'GABA'});
-           set(gui.controls.pop_distrOvMetab, 'Value', gui.quant.idx.GABA);
-           set(gui.controls.pop_distrOvMetab, 'Enable', 'off');
+        if ~strcmp(Selection,'Quality')    
+            split_Selection = strsplit(Selection,'-');        
+            if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
+               set(gui.controls.pop_distrOvMetab, 'String', {'GABA'});
+               set(gui.controls.pop_distrOvMetab, 'Value', gui.quant.idx.GABA);
+               set(gui.controls.pop_distrOvMetab, 'Enable', 'off');
+            else
+               set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.metabs);
+               set(gui.controls.pop_distrOvMetab, 'Value', metab);
+               set(gui.controls.pop_distrOvMetab, 'Enable', 'on');
+            end
         else
-           set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.metabs);
-           set(gui.controls.pop_distrOvMetab, 'Value', gui.quant.idx.GABA);
-           set(gui.controls.pop_distrOvMetab, 'Enable', 'on');
+               gui.overview.Selected.Metab = 1;
+               set(gui.controls.pop_distrOvMetab, 'String', {'SNR','FWHM','freqShift'});
+               set(gui.controls.pop_distrOvMetab, 'Value', 1);
+               set(gui.controls.pop_distrOvMetab, 'Enable', 'on');            
         end
         osp_updatedistrOvWindow(gui);
 end % pop_distrOvQuant_Call

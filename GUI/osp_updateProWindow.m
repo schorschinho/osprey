@@ -58,7 +58,7 @@ function osp_updateProWindow(gui)
         Selection = gui.process.Names{t};
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-        if ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
+        if ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') && ~strcmp (Selection, 'mm') %Metabolite data?
             StatText = ['Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
                         num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
                         ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
@@ -67,13 +67,16 @@ function osp_updateProWindow(gui)
         StatText = ['Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
                     num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
                     ' ppm / Hz'];
-            else
+            else if ~strcmp (Selection, 'mm') % re_mm
                 StatText = ['Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
                             num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
                             ' ppm / Hz'];
+                end
             end
         end
-        set(gui.upperBox.pro.Info.Children, 'String',sprintf(StatText))
+        if ~strcmp (Selection, 'mm') % re_mm
+            set(gui.upperBox.pro.Info.Children, 'String',sprintf(StatText));
+        end
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
         temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection); %Create figure
         %Delete old content

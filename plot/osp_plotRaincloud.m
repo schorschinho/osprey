@@ -82,13 +82,20 @@ temp = cb(3,:);
 cb(3,:) = cb(4,:);
 cb(4,:) = temp;
 
-%%% 3. EXTRACT METABOLITE CONCENTRATIONS%%%
-if strcmp(quant,'AlphaCorrWaterScaled') || strcmp(quant,'AlphaCorrWaterScaledGroupNormed')
-    idx_1  = 1;
-    ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
+%%% 3. EXTRACT METABOLITE CONCENTRATIONS OR QM%%%
+if ~strcmp(quant,'Quality')
+    if strcmp(quant,'AlphaCorrWaterScaled') || strcmp(quant,'AlphaCorrWaterScaledGroupNormed')
+        idx_1  = 1;
+        ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
+    else
+        idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
+        ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
+    end
 else
-    idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
-    ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
+   quality = {'SNR','FWHM','freqShift'};
+   idx_1  = find(strcmp(quality,metab));
+   ConcData = MRSCont.QM.tables {:,idx_1};
+   quality_Names = {'SNR','FWHM (ppm)','freqShift (Hz)'};
 end
 
 if strcmp(quant, 'tCr')
@@ -108,6 +115,9 @@ if strcmp(quant, 'AlphaCorrWaterScaled')
 end
 if strcmp(quant, 'AlphaCorrWaterScaledGroupNormed')
     ylab = [metab ' AlphaCorrWaterScaledGroupNormed  (i.u.)'];
+end
+if strcmp(quant, 'Quality')
+    ylab = [quality_Names{idx_1}];
 end
 %%% 4. CREATE RAINCLOUD PLOT %%%
 % Generate a new figure and keep the handle memorized

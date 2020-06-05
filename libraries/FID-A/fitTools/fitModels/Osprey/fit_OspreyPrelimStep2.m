@@ -103,6 +103,14 @@ N_s                 = round(convolutionRange/PPMINC);
 if mod(N_s,2) == 0
     N_s = N_s - 1; % make odd number
 end
+if N_s == 0
+    N_s=1;
+end
+
+if N_s < 0
+    N_s=-N_s;
+end
+
 lineShape = zeros(N_s,1);
 lineShape(ceil(N_s/2)) = 1;
 

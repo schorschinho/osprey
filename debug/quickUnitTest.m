@@ -50,6 +50,7 @@ function [results,rt] = quickUnitTest
 % Rename jobFile
     jobMEGAPRESSstr = which('debug/jobMEGAPRESSquickDebug.m');
     movefile(jobMEGAPRESSstr, jobTestStr);
+    addpath(which('debug/jobTesting.m'));
     
 % Run unit test      
     results{2} = runtests('unitTestOspreyConsole.m');
@@ -66,6 +67,7 @@ function [results,rt] = quickUnitTest
 % % Rename jobFile
 %     jobHERMESstr = which('debug/jobHERMESquickDebug.m');
 %     movefile(jobHERMESstr, jobTestStr);
+%     addpath(which('debug/jobTesting.m'));
 %     
 % % Run unit test      
 %     results{3} = runtests('unitTestOspreyConsole.m');

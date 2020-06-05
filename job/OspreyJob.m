@@ -1,4 +1,4 @@
-function [MRSCont] = OspreyJob(jobFile,GUI)
+function [MRSCont] = OspreyJob(jobFile,GUI,debug)
 %% [MRSCont] = OspreyJob(jobFile)
 %   This function loads the Osprey job defined in jobFile.
 %   The job can be submitted in the following formats:
@@ -35,8 +35,11 @@ function [MRSCont] = OspreyJob(jobFile,GUI)
 % Close any remaining open figures and parse input arguments
 close all;
 warning('off','all');
-if nargin<2
-    GUI = 0;
+if nargin < 3
+    debug = '00';
+    if nargin<2
+        GUI = 0;
+    end
 end
 
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
@@ -102,65 +105,72 @@ if strcmp(jobFileFormat,'csv')
         seqType = 'unedited';
     end
     if isfield(jobStruct,'editTarget')
-        opts.editTarget = jobStruct(1).editTarget;
+        MRSCont.opts.editTarget = jobStruct(1).editTarget;
     else
         fprintf('Editing target is set to none (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.editTarget = 'unedited';
+        MRSCont.opts.editTarget = 'unedited';
+    end
+    if isfield(jobStruct,'savePDF')
+        MRSCont.opts.savePDF = jobStruct(1).savePDF;
+    else
+        fprintf('PDF-output will not be stored (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.savePDF = 0;
     end
     if isfield(jobStruct,'saveLCM')
-        opts.saveLCM = jobStruct(1).saveLCM;
+        MRSCont.opts.saveLCM = jobStruct(1).saveLCM;
     else
         fprintf('LCModel-readable files will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.saveLCM = 1;
+        MRSCont.opts.saveLCM = 1;
     end
     if isfield(jobStruct,'saveJMRUI')
-        opts.saveJMRUI = jobStruct(1).saveJMRUI;
+        MRSCont.opts.saveJMRUI = jobStruct(1).saveJMRUI;
     else
         fprintf('jMRUI-readable files will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.saveJMRUI = 1;
+        MRSCont.opts.saveJMRUI = 1;
     end
     if isfield(jobStruct,'saveVendor')
-        opts.saveVendor = jobStruct(1).saveVendor;
+        MRSCont.opts.saveVendor = jobStruct(1).saveVendor;
     else
         fprintf('Vendor-specific files (SDAT/SPAR, RDA, P) will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.saveVendor = 1;
+        MRSCont.opts.saveVendor = 1;
     end
     if isfield(jobStruct,'method')
-        opts.fit.method = jobStruct(1).method;
+        MRSCont.opts.fit.method = jobStruct(1).method;
     else
         fprintf('Fitting algorithm is set to Osprey (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.fit.method = 'Osprey';
+        MRSCont.opts.fit.method = 'Osprey';
     end
     if isfield(jobStruct,'method')
-        opts.fit.style = jobStruct(1).style;
+        MRSCont.opts.fit.style = jobStruct(1).style;
     else
         fprintf('Fitting style is set to Concatenated (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.fit.style = 'Concatenated';
+        MRSCont.opts.fit.style = 'Concatenated';
     end
     if isfield(jobStruct,'lolim_range') && isfield(jobStruct,'uplim_range')
         opts.fit.range = [jobStruct(1).lolim_range jobStruct(1).uplim_range];
     else
         fprintf('Fitting range is set to [0.2 4.2] ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.fit.range = [0.2 4.2] ;
+        MRSCont.opts.fit.range = [0.2 4.2] ;
     end
     if isfield(jobStruct,'lolim_rangew') && isfield(jobStruct,'uplim_rangew')
-        opts.fit.range = [jobStruct(1).lolim_range jobStruct(1).uplim_range];
+        MRSCont.opts.fit.range = [jobStruct(1).lolim_range jobStruct(1).uplim_range];
     else
         fprintf('Fitting range is set to [0.2 4.2] ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.fit.range = [2.0 7.4] ;
+        MRSCont.opts.fit.range = [2.0 7.4] ;
     end
     if isfield(jobStruct,'KnotSpace')
-        opts.fit.bLineKnotSpace = jobStruct(1).KnotSpace;
+        MRSCont.opts.fit.bLineKnotSpace = jobStruct(1).KnotSpace;
     else
         fprintf('Baseline knot spacing is set to 0.4 ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.fit.bLineKnotSpace = 0.4;
+        MRSCont.opts.fit.bLineKnotSpace = 0.4;
     end
     if isfield(jobStruct,'fitMM')
-        opts.fit.fitMM = jobStruct(1).fitMM;
+        MRSCont.opts.fit.fitMM = jobStruct(1).fitMM;
     else
         fprintf('Adding macromolecule and lipid basis functions to the fit (default). Please indicate otherwise in the csv-file or the GUI \n');
-        opts.fit.fitMM = 1;
+        MRSCont.opts.fit.fitMM = 1;
     end
+
 end
 
 
@@ -168,27 +178,37 @@ end
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
-        opts.editTarget             = 'none';
+        MRSCont.opts.editTarget             = {'none'};
+        MRSCont.opts.fit.style = opts.fit.style; 
         if strcmp(opts.fit.style, 'Concatenated')
             fprintf('Fitting style was changed to Separate, because this is unedited data. Please indicate otherwise in the csv-file or the GUI \n');
-            opts.fit.style = 'Separate';
+            MRSCont.opts.fit.style = 'Separate';
         end        
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
-        opts.editTarget             = editTarget;
+        MRSCont.opts.editTarget             = editTarget;
+        MRSCont.opts.fit.style = opts.fit.style;        
     case 'HERMES'
         MRSCont.flags.isHERMES      = 1;
-        opts.editTarget             = editTarget;
+        MRSCont.opts.editTarget             = editTarget;
+        MRSCont.opts.fit.style = opts.fit.style;
     case 'HERCULES'
         MRSCont.flags.isHERCULES    = 1;
-        opts.editTarget             = editTarget;
+        MRSCont.opts.editTarget             = editTarget;
+        MRSCont.opts.fit.style = opts.fit.style;
     otherwise
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
-MRSCont.opts = opts;
+
+
+
 if exist('file_stat','var')
-    MRSCont.file_stat = file_stat;
-    MRSCont.flags.hasStatfile = 1;
+    if ~isempty(file_stat)
+        MRSCont.file_stat = file_stat;
+        MRSCont.flags.hasStatfile = 1;
+    else
+        MRSCont.flags.hasStatfile = 0;
+    end
 else
     MRSCont.flags.hasStatfile = 0;
 end
@@ -221,7 +241,7 @@ else
 end
 
 % Check that each array has an identical number of entries
-fieldNames = {'files', 'files_ref', 'files_w', 'files_nii'};
+fieldNames = {'files', 'files_ref', 'files_w','files_mm', 'files_nii'};
 ctr = 0;
 for kk = 1:length(fieldNames)
     if isfield(MRSCont, fieldNames{kk})
@@ -263,21 +283,37 @@ MRSCont.ver.Job             = '1.0.0 job';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
+% Determine output folder
+if ~exist(outputFolder,'dir')
+    mkdir(outputFolder);
+end
 [~,jobfilename,jobfileext]  = fileparts(jobFile);
 outputFile                  = strrep([jobfilename jobfileext], jobfileext, '.mat');
 MRSCont.outputFile          = outputFile;
 MRSCont.flags.speedUp        = 0;
 if ~GUI
     if exist(fullfile(outputFolder, outputFile), 'file') == 2
-        fprintf('Your selected output folder ''%s'' already contains an Osprey output structure: \t%s.\n', outputFolder, outputFile);
-        fprintf('You are about to load the job: \t%s.\n', jobFile);
-        askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container! You can load the existing container by typing n)   [y]   ','s');
+        switch debug
+            case '00'
+                fprintf('Your selected output folder ''%s'' already contains an Osprey output structure: \t%s.\n', outputFolder, outputFile);
+                fprintf('You are about to load the job: \t%s.\n', jobFile);
+                askOverWriteJob = input('Do you want to overwrite the existing job (y/n)? (Warning: This will delete all data in the data container! You can load the existing container by typing n)   [y]   ','s');
+            case '11'
+                askOverWriteJob = 'y';
+            case '01'
+                askOverWriteJob = 'n';
+        end
         if isempty(askOverWriteJob)
             askOverWriteJob = 'y';
         end
         if askOverWriteJob=='n' || askOverWriteJob=='N'
-             fprintf('You are about to load the job: \t%s.\nIf new files were added they will be attached, otherwise the MRS Container will just be loaded.\nIf you want to change analysis parameters on an exisiting set of files add the location of an existing MRS Container during the call.\n', jobFile);
-             askloadMRSCont = input('Do you want to load the corresponding MRS Container and attach new files (y/n)? [y]   ','s');
+            switch debug
+                case '00'
+                     fprintf('You are about to load the job: \t%s.\nIf new files were added they will be attached, otherwise the MRS Container will just be loaded.\nIf you want to change analysis parameters on an exisiting set of files add the location of an existing MRS Container during the call.\n', jobFile);
+                     askloadMRSCont = input('Do you want to load the corresponding MRS Container and attach new files (y/n)? [y]   ','s');
+                case '01'
+                askloadMRSCont = 'y';
+            end    
              if isempty(askloadMRSCont)
                 askloadMRSCont = 'y';
              end 
@@ -315,34 +351,45 @@ if ~GUI
              end
         elseif askOverWriteJob=='y' || askOverWriteJob=='Y'
             disp('Continue with loading new job, overwriting existing job.');
-            delete(fullfile(outputFolder, 'LogFile.txt'));
-            fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w');
-            fprintf(fileID,'Timestamp %s\n', datestr(now,'HH:MM:SS.FFF'));
-            fprintf(fileID, [MRSCont.ver.Osp '  ' MRSCont.ver.Job]);
+            fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
+            fprintf(fileID,[jobFile '\n']);
+            fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
             fclose(fileID);
         end
     else
-        fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w');
-        fprintf(fileID,'Timestamp %s\n', datestr(now,'HH:MM:SS.FFF'));
-        fprintf(fileID, [MRSCont.ver.Osp '  ' MRSCont.ver.Job]);
-            fclose(fileID);
+        fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
+        fprintf(fileID,[jobFile '\n']);
+        fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+        fclose(fileID);
     end
 else
     opts.Interpreter = 'tex';
     opts.Default = 'Yes';
     if exist(fullfile(outputFolder, outputFile), 'file') == 2
-        askOverWriteJob = questdlg({['Your selected output folder already contains an Osprey output structure: \bf' outputFile], ...
-                                      ['\rmYou are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
-                                      '\rmDo you want to overwrite the existing job?',...
-                                      '(Warning\rm: This will delete all data in the data container!)',...
-                                      'You can load the existing MRS container by clicking No'}, ...
-        'Load jobFile', 'Yes ','No', opts);
+        switch debug
+            case '00'
+                askOverWriteJob = questdlg({['Your selected output folder already contains an Osprey output structure: \bf' outputFile], ...
+                                              ['\rmYou are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
+                                              '\rmDo you want to overwrite the existing job?',...
+                                              '(Warning\rm: This will delete all data in the data container!)',...
+                                              'You can load the existing MRS container by clicking No'}, ...
+                'Load jobFile', 'Yes','No', opts);
+            case '11'
+                askOverWriteJob = 'Yes';
+            case '01'
+                askOverWriteJob = 'No';
+        end
         if strcmp(askOverWriteJob, 'No')
-             askloadMRSCont = questdlg( {['You are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
-                                         '\rmIf new files were added they will be attached, otherwise the MRS Container will just be loaded.', ...
-                                         '\rmIf you want to change analysis parameters on an exisiting set of files add a existing MRS Container in the dialog', ...
-                                         '\rmDo you want to load the corresponding MRS Container and attach new files?'}, ...
-                                          'Load MRS Container', 'Yes','No',opts);
+            switch debug
+                case '00'
+                 askloadMRSCont = questdlg( {['You are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
+                                             '\rmIf new files were added they will be attached, otherwise the MRS Container will just be loaded.', ...
+                                             '\rmIf you want to change analysis parameters on an exisiting set of files add a existing MRS Container in the dialog', ...
+                                             '\rmDo you want to load the corresponding MRS Container and attach new files?'}, ...
+                                              'Load MRS Container', 'Yes','No',opts);
+                case '01'
+                    askloadMRSCont = 'Yes';
+            end 
 
              if strcmp(askloadMRSCont, 'No')
                 disp('Aborted! No new job loaded.');
@@ -376,23 +423,28 @@ else
                         MRSCont.flags.speedUp        = 1;
                     end
              end
-        elseif strcmp(askOverWriteJob, 'Yes')
-            disp('Continue with loading new job, overwriting existing job.');
+            elseif strcmp(askOverWriteJob, 'Yes')
+                disp('Continue with loading new job, overwriting existing job.');
+                fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
+                fprintf(fileID,[jobFile '\n']);
+                fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+                fclose(fileID);
         end
-    
+    else
+    fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
+    fprintf(fileID,[jobFile '\n']);
+    fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+    fclose(fileID);
     end
 end
 
 %%% 8. SAVE THE OUTPUT STRUCTURE TO THE OUTPUT FOLDER %%%
-% Determine output folder
-if ~exist(outputFolder,'dir')
-    mkdir(outputFolder);
-end
 % Add a save dummy with the GUI flag turned off
 saveMRSCont = MRSCont;
-saveMRSCont.flags.isGUI = 0;
+MRSCont.flags.isGUI = 0;
 MRSCont.flags.isToolChecked = 0;
-save(fullfile(outputFolder, outputFile), 'saveMRSCont');
+save(fullfile(outputFolder, outputFile), 'MRSCont');
+MRSCont = saveMRSCont;
 
 % Close any remaining open figures
 close all;

@@ -46,10 +46,12 @@ reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
+fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    fprintf(fileID,[reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
@@ -206,44 +208,44 @@ for kk = 1:MRSCont.nDatasets
         % Remove water and correct back to baseline.
         % The spectra sometimes become NaNs after filtering with too many
         % components. Loop over decreasing numbers of components here.
-        [raw_A_temp,~,~]           = op_removeWater(raw_A,[4.6 4.8],20,0.75*length(raw_A.fids),0); % Remove the residual water
+        [raw_A_temp,~,~]           = op_removeWater(raw_A,[4.5 4.9],20,0.75*length(raw_A.fids),0); % Remove the residual water
         if isnan(real(raw_A_temp.fids))
             rr = 30;
             while isnan(real(raw_A_temp.fids))
-                [raw_A_temp,~,~]   = op_removeWater(raw_A,[4.6 4.8],rr,0.75*length(raw_A.fids),0); % Remove the residual water
+                [raw_A_temp,~,~]   = op_removeWater(raw_A,[4.5 4.9],rr,0.75*length(raw_A.fids),0); % Remove the residual water
                 rr = rr-1;
             end
         end
         raw_A   = raw_A_temp;
         raw_A   = op_fddccorr(raw_A,100);                                 % Correct back to baseline
 
-        [raw_B_temp,~,~]           = op_removeWater(raw_B,[4.6 4.8],20,0.75*length(raw_B.fids),0); % Remove the residual water
+        [raw_B_temp,~,~]           = op_removeWater(raw_B,[4.5 4.9],20,0.75*length(raw_B.fids),0); % Remove the residual water
         if isnan(real(raw_B_temp.fids))
            rr = 30;
            while isnan(real(raw_B_temp.fids))
-               [raw_B_temp,~,~]    = op_removeWater(raw_B,[4.6 4.8],rr,0.75*length(raw_B.fids),0); % Remove the residual water
+               [raw_B_temp,~,~]    = op_removeWater(raw_B,[4.5 4.9],rr,0.75*length(raw_B.fids),0); % Remove the residual water
                 rr = rr-1;
            end
         end
         raw_B   = raw_B_temp;
         raw_B   = op_fddccorr(raw_B,100);                                 % Correct back to baseline
 
-        [diff1_temp,~,~]           = op_removeWater(diff1,[4.6 4.8],20,0.75*length(diff1.fids),0); % Remove the residual water
+        [diff1_temp,~,~]           = op_removeWater(diff1,[4.5 4.9],20,0.75*length(diff1.fids),0); % Remove the residual water
         if isnan(real(diff1_temp.fids))
             rr = 30;
             while isnan(real(diff1_temp.fids))
-                [diff1_temp,~,~]   = op_removeWater(diff1,[4.6 4.8],rr,0.75*length(diff1.fids),0); % Remove the residual water
+                [diff1_temp,~,~]   = op_removeWater(diff1,[4.5 4.9],rr,0.75*length(diff1.fids),0); % Remove the residual water
                 rr = rr-1;
             end
         end
         diff1   = diff1_temp;
         diff1   = op_fddccorr(diff1,100);                                 % Correct back to baseline
 
-        [sum_temp,~,~]           = op_removeWater(sum,[4.6 4.8],20,0.75*length(sum.fids),0); % Remove the residual water
+        [sum_temp,~,~]           = op_removeWater(sum,[4.5 4.9],20,0.75*length(sum.fids),0); % Remove the residual water
         if isnan(real(sum_temp.fids))
             rr = 30;
             while isnan(real(sum_temp.fids))
-                [sum_temp,~,~]   = op_removeWater(sum,[4.6 4.8],rr,0.75*length(sum.fids),0); % Remove the residual water
+                [sum_temp,~,~]   = op_removeWater(sum,[4.5 4.9],rr,0.75*length(sum.fids),0); % Remove the residual water
                 rr = rr-1;
             end
         end
@@ -346,14 +348,15 @@ if MRSCont.flags.isGUI
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fclose(fileID);
 
 %%% 11. SET FLAGS %%%
 MRSCont.flags.avgsAligned   = 1;
 MRSCont.flags.averaged      = 1;
 MRSCont.flags.ECCed         = 1;
 MRSCont.flags.waterRemoved  = 1;
-
+MRSCont.runtime.Proc = time;
 % Close any remaining open figures
 close all;
 

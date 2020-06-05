@@ -40,8 +40,13 @@ end
 if ~isempty(MRSCont.files_w)
     MRSCont.flags.hasWater = 1;
 end
-% Version check
-MRSCont.ver.CheckLoad             = '1.0.0 Load';
+
+% Version check and updating log file
+MRSCont.ver.CheckLoad        = '1.0.0 Load';
+outputFolder = MRSCont.outputFolder;
+fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckLoad '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+fclose(fileID);
 
 % Determine data types
 [MRSCont, retMsg] = osp_detDataType(MRSCont);
@@ -60,7 +65,9 @@ switch MRSCont.vendor
             case 'DICOM'
                 [MRSCont] = osp_LoadDICOM(MRSCont);
             otherwise
-                error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(fileID,msg);
+                error(msg);
         end
     case 'Philips'
         switch MRSCont.datatype
@@ -73,17 +80,23 @@ switch MRSCont.vendor
                 error('Support for Philips RAW/LAB/SIN files coming soon!');
                 %[MRSCont] = osp_LoadRAW(MRSCont);
             otherwise
-                error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(fileID,msg);
+                error(msg);
         end
     case 'GE'
         switch MRSCont.datatype
             case 'P'
                 [MRSCont] = osp_LoadP(MRSCont);
             otherwise
-                error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(fileID,msg);
+                error(msg);
         end
     otherwise
-        error('Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+        msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+        fprintf(fileID,msg);
+        error(msg);
 end
 
 % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
@@ -96,7 +109,9 @@ if ~MRSCont.flags.isPRIAM
         end
     end
 elseif MRSCont.flags.isPRIAM
-    error('Coming soon!');
+    msg = 'Coming soon!';
+    fprintf(fileID,msg);
+    error(msg);
     %[MRSCont] = osp_senseRecon(MRSCont);
 end
 
@@ -104,6 +119,7 @@ end
 % Set exit flags and version
 MRSCont.flags.didLoadData           = 1;
 MRSCont.ver.Load             = '1.0.0 Load';
+
 
 % Save the output structure to the output folder
 % Determine output folder
@@ -114,6 +130,23 @@ if ~exist(outputFolder,'dir')
 end
 
 
+% Optional: Create all pdf figures
+if MRSCont.opts.savePDF
+    for kk = 1 : MRSCont.nDatasets
+        osp_plotModule(MRSCont, 'OspreyLoad', kk, 'mets');
+        if MRSCont.flags.hasRef
+            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'ref');
+        end
+        if MRSCont.flags.hasWater
+            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'w');
+        end
+        if MRSCont.flags.hasMM
+            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'mm');
+        end
+    end
+end
+
+% Gather some more information from the processed data;
 if  MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
     save(fullfile(outputFolder, outputFile), 'MRSCont');

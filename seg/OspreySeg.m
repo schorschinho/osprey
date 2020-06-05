@@ -29,15 +29,20 @@ function [MRSCont] = OspreySeg(MRSCont)
 %   HISTORY:
 %       2019-08-21: First version of the code.
 
+outputFolder = MRSCont.outputFolder;
+fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 % Check that OspreyCoreg has been run before
 if ~MRSCont.flags.didCoreg
-    error('Trying to segment data, but voxel masks have not been created yet. Run OspreyCoreg first.')
+    msg = 'Trying to segment data, but voxel masks have not been created yet. Run OspreyCoreg first.';
+    fprintf(fileID,msg);
+    error(msg);
 end
 
 warning('off','all');
 
-% Version check
+% Version, toolbox check and updating log file
 MRSCont.ver.CheckSeg             = '1.0.0 Seg';
+fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckSeg '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 [~] = osp_Toolbox_Check ('OspreySeg',MRSCont.flags.isGUI);
 
 % Set up SPM for batch processing
@@ -60,6 +65,7 @@ for kk = 1:MRSCont.nDatasets
     msg = sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    fprintf(fileID, [reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
@@ -84,7 +90,9 @@ for kk = 1:MRSCont.nDatasets
                 niftiList = dir([MRSCont.files_nii{kk} filesep 's*.nii']);
                 niftiFile = fullfile(MRSCont.files_nii{kk}, niftiList.name);
             otherwise
-                error('Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+                msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(fileID,msg);
+                error(msg);                  
         end
 
 
@@ -169,6 +177,9 @@ if MRSCont.flags.isGUI
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+MRSCont.runtime.Seg = time;
+fclose(fileID); %close log file
 %% Create table and csv file
 tissueTypes = {'fGM','fWM','fCSF'};
 tissue = horzcat(MRSCont.seg.tissue.fGM',MRSCont.seg.tissue.fWM',MRSCont.seg.tissue.fCSF');
@@ -187,6 +198,13 @@ outputFolder    = MRSCont.outputFolder;
 outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
+end
+
+% Optional:  Create all pdf figures
+if MRSCont.opts.savePDF
+    for kk = 1 : MRSCont.nDatasets
+            osp_plotModule(MRSCont, 'OspreySeg', kk);
+    end
 end
 
 if MRSCont.flags.isGUI

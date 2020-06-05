@@ -37,7 +37,7 @@ function osp_updatecorrOvWindow(gui)
             if gui.overview.Selected.CorrChoice == 1
                 temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
             else if gui.overview.Selected.CorrChoice == 2
-                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab);
+                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.quantify.metabs{gui.overview.Selected.Corr},MRSCont.quantify.metabs{gui.overview.Selected.Corr});
                 else
                     switch gui.overview.Selected.Corr
                         case 1

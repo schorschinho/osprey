@@ -1,4 +1,4 @@
-function out = osp_plotProcess(MRSCont, kk, which, ppmmin, ppmmax)
+function out = osp_plotProcess(MRSCont, kk, which_spec, ppmmin, ppmmax)
 %% out = osp_plotProcess(MRSCont, kk, which, ppmmin, ppmmax)
 %   Creates a figure showing processed data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *processed and
@@ -42,8 +42,8 @@ end
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
 if nargin<5
-    switch which
-        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
+    switch which_spec
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum','mm'}
             ppmmax = 4.5;
         case {'ref', 'w'}
             ppmmax = 2*4.68;
@@ -51,16 +51,16 @@ if nargin<5
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
     if nargin<4
-        switch which
+        switch which_spec
             case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
                 ppmmin = 0.2;
-            case {'ref', 'w'}
+            case {'ref', 'w','mm'}
                 ppmmin = 0;
             otherwise
                 error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
         end
         if nargin < 3
-            which = 'A';
+            which_spec = 'A';
             if nargin < 2
                 kk = 1;
                 if nargin<1
@@ -84,10 +84,10 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract raw and processed spectra in the plot range
-switch which
+switch which_spec
     case {'A', 'B', 'C', 'D'}
         raw            = MRSCont.raw{kk};
-        procDataToPlot = MRSCont.processed.(which){kk};
+        procDataToPlot = MRSCont.processed.(which_spec){kk};
         
         % Get sub-spectra, depending on whether they are stored as such
         if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
@@ -119,11 +119,11 @@ switch which
                 raw_A = raw;                                        % Get all averages
         end
         
-        eval(['rawDataToPlot = raw_' which ';']);
+        eval(['rawDataToPlot = raw_' which_spec ';']);
         rawDataToScale = raw_A;                                     % This is used to get consistent yLims
     case {'diff1', 'diff2', 'sum'}
         rawDataToPlot  = MRSCont.raw{kk};
-        procDataToPlot = MRSCont.processed.(which){kk};
+        procDataToPlot = MRSCont.processed.(which_spec){kk};
         if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
                 temp_spec = cat(3,rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(1)),rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(2)),...
                                 rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(3)),rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(4)));
@@ -145,6 +145,10 @@ switch which
                 end
         end
         rawDataToScale = rawDataToPlot;                                      % This is used to get consistent yLims
+    case 'mm' %re_mm
+        rawDataToPlot  = MRSCont.raw_mm{kk}; %re_mm
+        procDataToPlot = MRSCont.processed.mm{kk}; %re_mm
+        rawDataToScale = rawDataToPlot;               %re_mm                        % This is used to get consistent yLims
     case 'ref'
         rawDataToPlot  = MRSCont.raw_ref{kk};
         procDataToPlot = MRSCont.processed.ref{kk};
@@ -178,7 +182,7 @@ ax_drift    = subplot(2, 2, 2);
 % Generate global yLimits
 applyDataToScale = rawDataToScale;
 t = rawDataToScale.t;
-switch which
+switch which_spec
     case {'A', 'B', 'C', 'D'} 
         fs = procDataToPlot.specReg.fs;
         phs = procDataToPlot.specReg.phs;
@@ -200,17 +204,17 @@ switch which
         end
 end
 
-if isfield(MRSCont.QM.freqShift, which)
-    switch which
+if isfield(MRSCont.QM.freqShift, which_spec)
+    switch which_spec
         case {'A', 'B', 'C', 'D'} 
-            refShift = -repmat(MRSCont.QM.freqShift.(which)(kk), size(fs));
+            refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(kk), size(fs));
             fs = fs - refShift;
             for jj = 1:size(applyDataToScale.fids,2)
                 applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
                     exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
             end
         case {'diff1', 'diff2', 'sum'}
-            refShift = -repmat(MRSCont.QM.freqShift.(which)(kk), size(fs{1}));
+            refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(kk), size(fs{1}));
             for ss = 1 : length(fs)
                 fs{ss} = fs{ss} - refShift;
                 for jj = 1:size(applyDataToScale.fids,2)
@@ -226,7 +230,7 @@ applyDataToScale.specs = fftshift(fft(applyDataToScale.fids,[],rawDataToScale.di
 plotRangeScale = op_freqrange(applyDataToScale, ppmmin, ppmmax);
 yLims= [ min(min(real(plotRangeScale.specs(:,:)))) max(max(real(plotRangeScale.specs(:,:))))];
 yLimsAbs = (abs(yLims(1)) +  abs(yLims(2)));
-if strcmp(which, 'diff1') || strcmp(which, 'diff2') || strcmp(which, 'sum')
+if strcmp(which_spec, 'diff1') || strcmp(which_spec, 'diff2') || strcmp(which_spec, 'sum')
     if MRSCont.flags.isMEGA
         yLims = [yLims(1) - (yLimsAbs*0.1) (2*yLims(2)) + (yLimsAbs*0.1)];
     else
@@ -250,7 +254,7 @@ if MRSCont.flags.isUnEdited
 end
 
 if MRSCont.flags.isMEGA 
-  if ~strcmp(which, 'w') && ~strcmp(which, 'ref') && ~strcmp(which, 'A') && ~strcmp(which, 'B')
+  if ~strcmp(which_spec, 'w') && ~strcmp(which_spec, 'ref') && ~strcmp(which_spec, 'A') && ~strcmp(which_spec, 'B')
     stag = [0,0.5] .* yLimsAbs;
     stagText = stag + (0.25.* yLimsAbs);
     for rr = 1:nAvgsRaw
@@ -273,7 +277,7 @@ if MRSCont.flags.isMEGA
 end
 
 if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-    if ~strcmp(which, 'w') && ~strcmp(which, 'ref') && ~strcmp(which, 'A') && ~strcmp(which, 'B') && ~strcmp(which, 'C') && ~strcmp(which, 'D')
+    if ~strcmp(which_spec, 'w') && ~strcmp(which_spec, 'ref') && ~strcmp(which_spec, 'A') && ~strcmp(which_spec, 'B') && ~strcmp(which_spec, 'C') && ~strcmp(which_spec, 'D')
         stag = [0,0.5,1,1.5] .* yLimsAbs;
         stagText = stag + (0.25.* yLimsAbs);
         for rr = 1:nAvgsRaw
@@ -297,7 +301,7 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
     end    
 end
 
-if ~(strcmp(which,'w') || strcmp(which,'ref'))
+if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
         plot(ax_raw, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
         plot(ax_raw, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
         plot(ax_raw, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);       
@@ -316,11 +320,11 @@ end
 % Apply stored corrections to calculate the spectra to display
 applyDataToPlot = rawDataToPlot;
 t = rawDataToPlot.t;
-switch which
+switch which_spec
     case {'A', 'B', 'C', 'D'} 
         fs = procDataToPlot.specReg.fs;
         phs = procDataToPlot.specReg.phs;
-        weights = MRSCont.processed.(which){kk}.specReg.weights;
+        weights = MRSCont.processed.(which_spec){kk}.specReg.weights;
     case {'diff1', 'diff2', 'sum'}
         if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
                 fs{1} = proc_A.specReg.fs;
@@ -331,27 +335,27 @@ switch which
                 phs{3} = proc_C.specReg.phs;
                 fs{4} = proc_D.specReg.fs;
                 phs{4} = proc_D.specReg.phs;
-                weights = MRSCont.processed.(which){kk}.specReg.weights;
+                weights = MRSCont.processed.(which_spec){kk}.specReg.weights;
         else
                 fs{1} = proc_A.specReg.fs;
                 phs{1} = proc_A.specReg.phs;
                 fs{2} = proc_B.specReg.fs;
                 phs{2} = proc_B.specReg.phs;
-                weights = MRSCont.processed.(which){kk}.specReg.weights;
+                weights = MRSCont.processed.(which_spec){kk}.specReg.weights;
         end
 end
 
-if isfield(MRSCont.QM.freqShift, which)
-    switch which
+if isfield(MRSCont.QM.freqShift, which_spec)
+    switch which_spec
         case {'A', 'B', 'C', 'D'} 
-            refShift = -repmat(MRSCont.QM.freqShift.(which)(kk), size(fs));
+            refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(kk), size(fs));
             fs = fs - refShift;
             for jj = 1:size(applyDataToPlot.fids,2)
                 applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
                     exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
             end
         case {'diff1', 'diff2', 'sum'}
-            refShift = -repmat(MRSCont.QM.freqShift.(which)(kk), size(fs{1}));
+            refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(kk), size(fs{1}));
             for ss = 1 : length(fs)
                 fs{ss} = fs{ss} - refShift;
                 for jj = 1:size(applyDataToPlot.fids,2)
@@ -374,7 +378,7 @@ if MRSCont.flags.isUnEdited
 end
 
 if MRSCont.flags.isMEGA
-    if ~strcmp(which, 'w') && ~strcmp(which, 'ref') && ~strcmp(which, 'A') && ~strcmp(which, 'B')
+    if ~strcmp(which_spec, 'w') && ~strcmp(which_spec, 'ref') && ~strcmp(which_spec, 'A') && ~strcmp(which_spec, 'B')
         stag = [0,0.5,1,1.5] .* yLimsAbs;
         stagText = stag + (0.25.* yLimsAbs);
         for rr = 1:nAvgsRaw
@@ -394,7 +398,7 @@ end
 
 
 if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-    if ~strcmp(which, 'w') && ~strcmp(which, 'ref') && ~strcmp(which, 'A') && ~strcmp(which, 'B') && ~strcmp(which, 'C') && ~strcmp(which, 'D')
+    if ~strcmp(which_spec, 'w') && ~strcmp(which_spec, 'ref') && ~strcmp(which_spec, 'A') && ~strcmp(which_spec, 'B') && ~strcmp(which_spec, 'C') && ~strcmp(which_spec, 'D')
         stag = [0,0.5,1,1.5] .* yLimsAbs;
         stagText = stag + (0.25.* yLimsAbs);
         for rr = 1:nAvgsRaw
@@ -411,7 +415,7 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
     else
         for rr = 1:nAvgsRaw
             plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
-            if ~strcmp(which, 'w') && ~strcmp(which, 'ref')
+            if ~strcmp(which_spec, 'w') && ~strcmp(which_spec, 'ref')
                 plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormap.Foreground);           
             end
         end
@@ -419,7 +423,7 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
     end
 end
 
-if ~(strcmp(which,'w') || strcmp(which,'ref'))
+if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
     plot(ax_aligned, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
     plot(ax_aligned, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
     plot(ax_aligned, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);        
@@ -438,13 +442,13 @@ end
 % Add the data and plot
 hold(ax_proc, 'on');
 plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs)/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
-if strcmp(which,'diff2')
+if strcmp(which_spec,'diff2')
     y = [-1.2, 1.2];
 else
     y = [-0.2, 1.2];
 end
 set(ax_proc, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
-if ~(strcmp(which,'w') || strcmp(which,'ref'))
+if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
     plot(ax_proc, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
     plot(ax_proc, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
     plot(ax_proc, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);          
@@ -459,10 +463,10 @@ if MRSCont.flags.isGUI
 end
 
 %%% 7. GENERATE DRIFT PLOT %%%
-if isfield(MRSCont.QM.drift.pre, which)
-    if length(MRSCont.QM.drift.pre.(which){kk}) > 1
-        crDriftPre = MRSCont.QM.drift.pre.(which){kk} + MRSCont.QM.freqShift.(which)(kk)/applyDataToPlot.txfrq*1e6;
-        crDriftPost = MRSCont.QM.drift.post.(which){kk} + MRSCont.QM.freqShift.(which)(kk)/applyDataToPlot.txfrq*1e6;
+if isfield(MRSCont.QM.drift.pre, which_spec)
+    if length(MRSCont.QM.drift.pre.(which_spec){kk}) > 1
+        crDriftPre = MRSCont.QM.drift.pre.(which_spec){kk} + MRSCont.QM.freqShift.(which_spec)(kk)/applyDataToPlot.txfrq*1e6;
+        crDriftPost = MRSCont.QM.drift.post.(which_spec){kk} + MRSCont.QM.freqShift.(which_spec)(kk)/applyDataToPlot.txfrq*1e6;
         hold(ax_drift, 'on');
         colors = ones(length(crDriftPre),1).*colormap.Foreground;
         for dots = 1 : length(crDriftPre)

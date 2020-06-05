@@ -26,14 +26,22 @@ function osp_updatedistrOvWindow(gui)
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         delete(gui.Plot.distrOv.Children(3).Children)
         Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
+%%% 2. VISUALIZATION PART OF THIS TAB %%%        
+        if ~strcmp(Selection,'Quality')    
         split_Selection = strsplit(Selection,'-');
-%%% 2. VISUALIZATION PART OF THIS TAB %%%
             if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                 metab = 'GABA';
             else
                 metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
             end
-            [temp] = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');
+            [temp] = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');            
+        else
+            quality = {'SNR','FWHM','freqShift'};
+            [temp] = osp_plotRaincloud(MRSCont,'Quality','Quality',quality{gui.overview.Selected.Metab},'Raincloud plot');  
+            split_Selection{1}=quality{gui.overview.Selected.Metab};
+            metab = '';
+        end
+
             set( temp.Children(2).Children, 'Parent', gui.Plot.distrOv.Children(3) );
             set(  gui.Plot.distrOv.Children(3), 'XLabel', temp.Children(2).XLabel);
             set(  gui.Plot.distrOv.Children(3), 'YLim', temp.Children(2).YLim);

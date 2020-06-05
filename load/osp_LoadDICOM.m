@@ -28,19 +28,26 @@ function [MRSCont] = osp_LoadDICOM(MRSCont)
 % Close any remaining open figures
 close all;
 warning('off','all');
+fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 if MRSCont.flags.hasMM
     if length(MRSCont.files_mm) ~= MRSCont.nDatasets
-        error('Number of specified metabolite-nulled files does not match number of specified metabolite files.');
+        msg = 'Number of specified metabolite-nulled files does not match number of specified metabolite files.';
+        fprintf(fileID,msg);
+        error(msg);
     end
 end
 if MRSCont.flags.hasRef
     if length(MRSCont.files_ref) ~= MRSCont.nDatasets
-        error('Number of specified reference files does not match number of specified metabolite files.');
+        msg = 'Number of specified reference files does not match number of specified metabolite files.';
+        fprintf(fileID,msg);
+        error(msg);
     end
 end
 if MRSCont.flags.hasWater
     if length(MRSCont.files_w) ~= MRSCont.nDatasets
-        error('Number of specified water files does not match number of specified metabolite files.');
+        msg = 'Number of specified water files does not match number of specified metabolite files.';
+        fprintf(fileID,msg);
+        error(msg);
     end
 end
 
@@ -53,6 +60,7 @@ end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
+    fprintf(fileID,[reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
@@ -97,8 +105,9 @@ if MRSCont.flags.isGUI
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fclose(fileID);
 % Set flag
 MRSCont.flags.coilsCombined     = 1;
-
+MRSCont.runtime.Load = time;
 end
