@@ -38,10 +38,12 @@ reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
+fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    fprintf(fileID,[reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
@@ -166,11 +168,11 @@ for kk = 1:MRSCont.nDatasets
 
 
         %%% 5. REMOVE RESIDUAL WATER %%%
-        [raw_temp,~,~]   = op_removeWater(raw,[4.6 4.8],20,0.75*length(raw.fids),0); % Remove the residual water
+        [raw_temp,~,~]   = op_removeWater(raw,[4.5 4.9],20,0.75*length(raw.fids),0); % Remove the residual water
         if isnan(real(raw_temp.fids))
             rr = 30;
             while isnan(real(raw_temp.fids))
-                [raw_temp,~,~]   = op_removeWater(raw,[4.6 4.8],rr,0.75*length(raw.fids),0); % Remove the residual water
+                [raw_temp,~,~]   = op_removeWater(raw,[4.5 4.9],rr,0.75*length(raw.fids),0); % Remove the residual water
                 rr = rr-1;
             end
         end
@@ -219,7 +221,11 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.QM.freqShift.A(kk)  = refShift;
         MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre - 3.02);
         MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost - 3.02);
-
+        if MRSCont.flags.hasMM
+            MRSCont.QM.SNR.mm(kk)    = op_getSNR(MRSCont.processed.mm{kk},0.7,1.1); % water amplitude over noise floor
+            FWHM_Hz                 = op_getLW(MRSCont.processed.mm{kk},0.7,1.1); % in Hz
+            MRSCont.QM.FWHM.mm(kk)   = FWHM_Hz./MRSCont.processed.mm{kk}.txfrq*1e6; % convert to ppm
+        end
         if MRSCont.flags.hasRef
             MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor
             FWHM_Hz                 = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
@@ -230,6 +236,8 @@ for kk = 1:MRSCont.nDatasets
             FWHM_Hz                 = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
             MRSCont.QM.FWHM.w(kk)   = FWHM_Hz./MRSCont.processed.w{kk}.txfrq*1e6; % convert to ppm
         end
+        
+        
     end
 end
 fprintf('... done.\n');
@@ -238,14 +246,15 @@ if MRSCont.flags.isGUI
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fclose(fileID);
 
 %%% 9. SET FLAGS %%%
 MRSCont.flags.avgsAligned       = 1;
 MRSCont.flags.averaged          = 1;
 MRSCont.flags.ECCed             = 1;
 MRSCont.flags.waterRemoved      = 1;
-
+MRSCont.runtime.Proc = time;
 % Close any remaining open figures
 close all;
 

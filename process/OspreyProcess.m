@@ -18,8 +18,8 @@ function [MRSCont] = OspreyProcess(MRSCont)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-19)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -28,13 +28,18 @@ function [MRSCont] = OspreyProcess(MRSCont)
 %   HISTORY:
 %       2019-02-19: First version of the code.
 
+outputFolder = MRSCont.outputFolder;
+fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 % Check that OspreyLoad has been run before
 if ~MRSCont.flags.didLoadData
-    error('Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.')
+    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
+    fprintf(fileID,msg);
+    error(msg);
 end
 
-% Version and Toolbox check
-MRSCont.ver.CheckPro             = '1.0.0 Pro';
+% Version, toolbox check and updating log file
+MRSCont.ver.CheckPro        = '1.0.0 Pro';
+fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckPro '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 [~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
 % Post-process raw data depending on sequence type
@@ -48,7 +53,9 @@ elseif MRSCont.flags.isHERCULES
     % For now, process HERCULES like HERMES data
     [MRSCont] = osp_processHERCULES(MRSCont);
 else
-    error('No flag set for sequence type!');
+    msg = 'No flag set for sequence type!';
+    fprintf(fileID,msg);
+    error(msg);
 end
 
 % Gather some more information from the processed data;
@@ -75,11 +82,11 @@ end
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess           = 1;
-MRSCont.ver.Pro             = '1.0.0 Pro';
 MRSCont.processed                  = orderfields(MRSCont.processed);
+MRSCont.ver.Pro             = '1.0.0 Pro';
+fclose(fileID);
 % Save the output structure to the output folder
 % Determine output folder
-outputFolder    = MRSCont.outputFolder;
 outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
@@ -93,6 +100,39 @@ else
    save(fullfile(outputFolder, outputFile), 'MRSCont');
 end
 
+% Store data quality measures in csv file
+if MRSCont.flags.isUnEdited
+    names = {'NAA_SNR','NAA_FWHM','freqShift'};
+    subspec = {'A'};
+elseif MRSCont.flags.isMEGA
+    names = {'NAA_SNR','NAA_FWHM','freqShift'};
+    subspec = {'sum'};
+elseif MRSCont.flags.isHERMES
+    names = {'NAA_SNR','NAA_FWHM','freqShift'};
+    subspec = {'sum'};
+elseif MRSCont.flags.isHERCULES
+    % For now, process HERCULES like HERMES data
+    names = {'NAA_SNR','NAA_FWHM','freqShift'};
+    subspec = {'sum'};
+else
+    msg = 'No flag set for sequence type!';
+    fprintf(fileID,msg);
+    error(msg);
+end
+
+QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
+MRSCont.QM.tables = array2table(QM,'VariableNames',names);
+writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
+
+% Optional:  Create all pdf figures
+if MRSCont.opts.savePDF
+    Names = fieldnames(MRSCont.processed);
+    for kk = 1 : MRSCont.nDatasets
+        for ss = 1 : length(Names)
+            osp_plotModule(MRSCont, 'OspreyProcess', kk, Names{ss});
+        end
+    end
+end
 
 % Optional: write edited files to LCModel .RAW files
 if MRSCont.opts.saveLCM
@@ -100,7 +140,7 @@ if MRSCont.opts.saveLCM
 end
 
 % Optional: write edited files to jMRUI .txt files
-if MRSCont.opts.saveJMRUI
+if MRSCont.opts.savejMRUI
     [MRSCont] = osp_saveJMRUI(MRSCont);
 end
 

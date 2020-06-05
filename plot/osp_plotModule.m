@@ -31,7 +31,9 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
 %                       'sum' (OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
 %                       'ref' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
 %                       'w' (OspreyLoad,OspreyProcess,OspreyFit,OspreySpecOverview,OspreyMeanOverview)
-%                        %%%%%%%%%%%%%%% For Unedited  or Seperate MEGA-PRESS %%%%%%%%%%%%%%%%%%%%%%%%        
+%                       %%%%%%%%%%%%%%% For Unedited %%%%%%%%%%%%%%%%%%%%%%%%        
+%                       'off-tCr' 'off-rawWaterScaled' 'off-CSFWaterScaled' 'off-TissCorrWaterScaled' (OspreyRaincloudOverview,OspreyScatterOverview)
+%                        %%%%%%%%%%%%%%% Seperate MEGA-PRESS %%%%%%%%%%%%%%%%%%%%%%%%        
 %                       'A-tCr' 'A-rawWaterScaled' 'A-CSFWaterScaled' 'A-TissCorrWaterScaled' (OspreyRaincloudOverview,OspreyScatterOverview) 
 %                        %%%%%%%%%%%%%%% Seperate MEGA-PRESS/HERMES/HERCULES %%%%%%%%%%%%%%%%%%%%%%%%                   
 %                       'diff1-tCr' 'diff1-rawWaterScaled' 'diff1-CSFWaterScaled' 'diff1-TissCorrWaterScaled' (OspreyRaincloudOverview,OspreyScatterOverview) 
@@ -73,7 +75,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
     
     screenSize      = get(0,'ScreenSize');
     canvasSize      = screenSize;
-    canvasSize(4)   = screenSize(4) * 0.6;
+    canvasSize(4)   = screenSize(4) * 0.7;
     canvasSize(3)   = canvasSize(4) * (11/8.5);
     canvasSize(2)   = (screenSize(4) - canvasSize(4))/2;
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
@@ -159,7 +161,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
      %osp_plotLoad is used to visualize the raw data. Number of subplots
      %depends on the number of subspectra of the seuqence
             if strcmp(which,'mets') %Metabolite data/tab
-                outputFile      = [filename '_OspreyLoad_mets.eps'];
+                outputFile      = [filename '_OspreyLoad_mets.pdf'];
                 temp = osp_plotLoad(MRSCont, kk,'mets' );
                 if MRSCont.flags.isUnEdited % One window for UnEdited
                     ViewAxes = gca();
@@ -200,12 +202,12 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                     temp = osp_plotLoad(MRSCont, kk,'ref' );
                     ViewAxes = gca();
                     set( ViewAxes, 'Parent', Plot );
-                    outputFile      = [filename '_OspreyLoad_ref.eps'];
+                    outputFile      = [filename '_OspreyLoad_ref.pdf'];
                 else %water data/tab has only one window all the time
                     temp = osp_plotLoad(MRSCont, kk,'w');
                     ViewAxes = gca();
                     set(ViewAxes, 'Parent', Plot );
-                    outputFile      = [filename '_OspreyLoad_w.eps'];
+                    outputFile      = [filename '_OspreyLoad_w.pdf'];
                 end
             end
             set(input_figure, 'Heights', [-0.1 -0.9]);
@@ -311,7 +313,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             set(proAlgn.Children(1), 'Units', 'normalized')
             set(proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
             
-            outputFile      = [filename '_OspreyProcess_' which '.eps'];
+            outputFile      = [filename '_OspreyProcess_' which '.pdf'];
         case 'OspreyFit' %Fit
              outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyFit');
             [~,filename,~]  = fileparts(MRSCont.files{kk});
@@ -412,7 +414,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             set(Plot,'Widths', [-0.16 -0.84]);
             set(Plot.Children(2), 'Units', 'normalized');
             set(Plot.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
-            outputFile      = [filename '_OspreyFit_' Style '_' which '.eps'];
+            outputFile      = [filename '_OspreyFit_' Style '_' which '.pdf'];
         case {'OspreyCoreg','OspreySeg'} %Coreg/Seg
             outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyCoregSeg');
             [~,filename,~]  = fileparts(MRSCont.files{kk});
@@ -455,7 +457,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                 colormap(Results.Children,'gray');
                 close( temp );
             end
-            outputFile      = [filename '_OspreyCoregSeg.eps'];
+            outputFile      = [filename '_OspreyCoregSeg.pdf'];
         case 'OspreySpecOverview' %SpecOverview
             set(Info,'Title', 'Descriptive Information');
             groupString = '';
@@ -471,7 +473,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
             set(input_figure, 'Heights', [-0.1 -0.9]);    
             outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview','Individual');
-            outputFile  = [which '.eps']; 
+            outputFile  = [which '.pdf']; 
             for g = 1 :  MRSCont.overview.NoGroups %Loop over groups
                 temp = osp_plotOverviewSpec(MRSCont, which, g, 0.1);
                 if g == 1
@@ -501,9 +503,9 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                 Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
                 set(input_figure, 'Heights', [-0.1 -0.9]);                
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Mean');
-                    outputFile  = [which '.eps'];                    
+                    outputFile  = [which '.pdf'];                    
                     for g = 1 :  MRSCont.overview.NoGroups %Loop over groups
-                        if gui.overview.Number.Groups > 1
+                        if MRSCont.overview.NoGroups > 1
                             temp = osp_plotMeanSpec(MRSCont, which,g,0.1,1);
                             if g == 1
                                 fig_hold = temp;
@@ -514,12 +516,14 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                                 close(temp);
                             end   
                         else
-                            MRSCont.flags.isGUI = 0;
                             fig_hold = osp_plotMeanSpec(MRSCont, which,g);
-                            MRSCont.flags.isGUI = 1;
                         end
                     end
-                    set(fig_hold.Children, 'Parent', Plot );                    
+                    set(fig_hold.Children,'Children',flipud(fig_hold.Children.Children));
+                    set(fig_hold.Children, 'Parent', Plot );
+                    close(fig_hold);
+
+                    
         case 'OspreyRaincloudOverview' %Raincloud plot
             set(Info,'Title', 'Descriptive Information');
                 groupString = '';
@@ -541,10 +545,10 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             end
             fig_hold = osp_plotRaincloud(MRSCont,split_which{1},split_which{2},metab,'Raincloud plot');
             delete( fig_hold.Children(1));
-            set( fig_hold.Children, 'Parent', Plot );
-            set(out.Children.Children(1).Children,'Children',flipud(out.Children.Children(1).Children.Children));
+            set(fig_hold.Children,'Children',flipud(fig_hold.Children.Children));
+            set( fig_hold.Children, 'Parent', Plot );            
             close(fig_hold);
-            outputFile  = [metab '_' split_which{1} '_' split_which{2} '.eps'];  
+            outputFile  = [metab '_' split_which{1} '_' split_which{2} '.pdf'];  
         case 'OspreyScatterOverview' %Correlation plot
             set(Info,'Title', 'Descriptive Information');
                 groupString = '';
@@ -568,34 +572,42 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             split_corr = strsplit(corr,'-');
             if strcmp(split_corr{1},'corr')
                 fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.overview.corr.Meas{str2num(split_corr{2})},MRSCont.overview.corr.Names{str2num(split_corr{2})});
-                outputFile  = [metab '_' split_which{1} '_' split_which{2} '_'  MRSCont.overview.corr.Names{str2num(split_corr{2})} '.eps'];
+                outputFile  = [metab '_' split_which{1} '_' split_which{2} '_'  MRSCont.overview.corr.Names{str2num(split_corr{2})} '.pdf'];
             else if strcmp(split_corr{1},'metab')
                 fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.overview.corr.Names{str2num(split_corr{1})},metab);
-                outputFile  = [metab '_' split_which{1} '_' split_which{2} '_'  metab '.eps'];
+                outputFile  = [metab '_' split_which{1} '_' split_which{2} '_'  metab '.pdf'];
                 else if strcmp(split_corr{1},'SNR')
                         fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.QM.SNR.A','SNR Subspectrum A');
-                        outputFile  = [metab '_' split_which{1} '_' split_which{2} '_SNR.eps'];
+                        outputFile  = [metab '_' split_which{1} '_' split_which{2} '_SNR.pdf'];
                     else if  strcmp(split_corr{1},'FWHM')
                         fig_hold = osp_plotScatter(MRSCont,split_which{1},split_which{2},metab,MRSCont.QM.FWHM.A','FWHM (Hz)');
-                        outputFile  = [metab '_' split_which{1} '_' split_which{2} '_FWHM.eps'];
+                        outputFile  = [metab '_' split_which{1} '_' split_which{2} '_FWHM.pdf'];
                         end
                     end
                 end
             end
+            
             delete( fig_hold.Children(1));
             delete( fig_hold.Children(1));
+            set(fig_hold.Children,'Children',flipud(fig_hold.Children.Children));
             set(fig_hold.Children, 'Parent', Plot );
-            set(out.Children.Children(1).Children,'Children',flipud(out.Children.Children(1).Children.Children));
             close(fig_hold);
             
     end    
     set(out,'Renderer','painters','Menu','none','Toolbar','none');
-%% Clean up and save
 
+%% Clean up and save
 % Save the figure to the output folder
 % Determine output folder
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-saveas(out,fullfile(outputFolder,outputFile),'epsc');
+fig_pos = out.PaperPosition;
+out.PaperSize = [fig_pos(3) fig_pos(4)];
+
+% print(fig,'-dpdf','-painters','-r600','-bestfit',strcat(plot_path,plot_name));
+
+% print(out,fullfile(outputFolder,outputFile),'-dpdf') % then print it
+ saveas(out,fullfile(outputFolder,outputFile),'pdf');
+close(out);
 end

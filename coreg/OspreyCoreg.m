@@ -31,13 +31,18 @@ function [MRSCont] = OspreyCoreg(MRSCont)
 %   HISTORY:
 %       2019-06-28: First version of the code.
 
+outputFolder = MRSCont.outputFolder;
+fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 % Check that OspreyLoad has been run before
 if ~MRSCont.flags.didLoadData
-    error('Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.')
+    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
+    fprintf(fileID,msg);
+    error(msg);
 end
 
-% Version and toolbox check
-MRSCont.ver.CheckCoreg            = '1.0.0 Coreg';
+% Version, toolbox check and updating log file
+MRSCont.ver.CheckCoreg       = '1.0.0 Coreg';
+fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckCoreg '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 [~] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
 
 warning('off','all');
@@ -58,6 +63,7 @@ for kk = 1:MRSCont.nDatasets
     msg = sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    fprintf(fileID,[reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
@@ -88,7 +94,9 @@ for kk = 1:MRSCont.nDatasets
                     case 'DICOM'
                         [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
                     otherwise
-                        error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+                        msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                        fprintf(fileID,msg);
+                        error(msg);
                 end
             case 'Philips'
                 % Load the *.nii file provided in the job file
@@ -97,11 +105,17 @@ for kk = 1:MRSCont.nDatasets
                     case 'SDAT'
                         [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
                     case 'DATA'
-                        error('Philips DATA files do not contain voxel geometry information.');
+                        msg = 'Philips DATA files do not contain voxel geometry information.';
+                        fprintf(fileID,msg);
+                        error(msg);                        
                     case 'RAW'
-                        error('Philips RAW files do not contain voxel geometry information.');
+                        msg = 'Philips RAW files do not contain voxel geometry information.';
+                        fprintf(fileID,msg);
+                        error(msg);                        
                     otherwise
-                        error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+                        msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                        fprintf(fileID,msg);
+                        error(msg);                        
                 end
             case 'GE'
                 switch MRSCont.datatype
@@ -110,10 +124,14 @@ for kk = 1:MRSCont.nDatasets
                         dcm_folder = MRSCont.files_nii{kk};
                         [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
                     otherwise
-                        error('Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+                         msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                        fprintf(fileID,msg);
+                        error(msg);                      
                 end
             otherwise
-                error('Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).');
+                msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(fileID,msg);
+                error(msg);                
         end
 
         % Save back the image and voxel mask volumes to MRSCont
@@ -129,7 +147,9 @@ if MRSCont.flags.isGUI
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+MRSCont.runtime.Coreg = time;
+fclose(fileID); %close log file
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didCoreg           = 1;
@@ -141,6 +161,13 @@ outputFolder    = MRSCont.outputFolder;
 outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
+end
+
+% Optional:  Create all pdf figures
+if MRSCont.opts.savePDF
+    for kk = 1 : MRSCont.nDatasets
+            osp_plotModule(MRSCont, 'OspreyCoreg', kk);
+    end
 end
 
 if MRSCont.flags.isGUI

@@ -64,7 +64,7 @@ ylab='';
             if nargin<4
                 shift = 0.1;
                 if nargin<3
-                    g = 1;      
+                    g = 1;
                     if nargin < 2
                         which_spec = 'A';
                         if nargin<1
@@ -80,20 +80,20 @@ end
  if strcmp(which_spec,'MM') %re_mm
     which_spec = 'mm'; %re_mm
  end %re_mm
- 
+
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract normalized spectra and fits
 shift = shift * (g-1);
 %Is spectrum?
 
 if (strcmp(which_spec,'A') || strcmp(which_spec,'B') || strcmp(which_spec,'C') || strcmp(which_spec,'D') || strcmp(which_spec,'diff1') || strcmp(which_spec,'diff2') || strcmp(which_spec,'sum') ||strcmp(which_spec,'mm') ||  strcmp(which_spec,'ref') || strcmp(which_spec,'w'))
-    data = MRSCont.overview.sort_data.(['g_' num2str(g)]).(which_spec);
-    if nargin<8    
+    data = MRSCont.overview.Osprey.sort_data.(['g_' num2str(g)]).(which_spec);
+    if nargin<8
         if (~strcmp(which_spec,'w') && ~strcmp(which_spec,'ref'))
-            figTitle = ['Individual specs: ' which_spec]; 
+            figTitle = ['Individual specs: ' which_spec];
             ppmRange = MRSCont.opts.fit.range;
         else
-           figTitle = ['Individual specs: ' which_spec]; 
+           figTitle = ['Individual specs: ' which_spec];
            ppmRange = MRSCont.opts.fit.rangeWater;
         end
     end
@@ -103,14 +103,14 @@ else % Is fit?
         switch fitwhich
             case 'off'
                 fit = 'A';
-                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
             case {'ref','w','mm'}
                 fit = fitwhich;
-                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
 
             case {'lean'}
                 fit = fitwhich;
-                data = MRSCont.overview.all_models.mm_mm;
+                data = MRSCont.overview.Osprey.all_models.mm_mm;
         end
     end
     if MRSCont.flags.isMEGA %Is MEGA
@@ -118,17 +118,17 @@ else % Is fit?
             case {'diff1','sum'}
                 if strcmp(fitStyle,'Concatenated') %Is Concatenated?
                     fit = 'conc';
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
+                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
                 else
                     fit = 'diff1';
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);            
-                end   
+                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                end
             case {'off'}
                     fit = 'A';
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);                         
+                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
             case {'ref','w','mm'}
                 fit = fitwhich;
-                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
+                data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
         end
     end
     if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is Multiplexed
@@ -136,39 +136,39 @@ else % Is fit?
             case {'diff1','diff2','sum'}
                 if strcmp(fitStyle,'Concatenated') %Is Concatenated?
                     fit = 'conc';
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
+                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
                 else
                     fit = fitwhich;
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);            
-                end           
+                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
+                end
             case {'ref','w'}
                 fit = fitwhich;
-                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
         end
     end
-    
-    if nargin<7    
+
+    if nargin<7
         if (~strcmp(fitwhich,'w') && ~strcmp(fitwhich,'ref'))
-            figTitle = ['Individual fits: ' fit ' ' fitwhich]; 
+            figTitle = ['Individual fits: ' fit ' ' fitwhich];
             ppmRange = MRSCont.opts.fit.range;
         else
-           figTitle = ['Individual fits: ' fit ' ' fitwhich]; 
+           figTitle = ['Individual fits: ' fit ' ' fitwhich];
            ppmRange = MRSCont.opts.fit.rangeWater;
         end
     end
 end
-            
+
 
 
 %%% 3. PLOT DATA %%%
 if length(which_spec)>4
     if ~strcmp(which_spec(1:4),'MM_c') %re_mm
-    if ~strcmp(which_spec(1:4),'Fit:') 
+    if ~strcmp(which_spec(1:4),'Fit:')
         maxshift_abs = max(abs(data{1}.specs));
         shift = maxshift_abs * shift;
         out = plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
         hold on;
-        for kk = 2 : length(data) 
+        for kk = 2 : length(data)
             plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
         end
     else
@@ -176,7 +176,7 @@ if length(which_spec)>4
         shift = maxshift_abs * shift;
         out = plot(data{1}.ppm,data{1}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
         hold on;
-        for kk = 2 : length(data) 
+        for kk = 2 : length(data)
             plot(data{kk}.ppm,data{kk}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
         end
     end
@@ -185,7 +185,7 @@ if length(which_spec)>4
         shift = maxshift_abs * shift;
         out = plot(data{1}.ppm,data{1}.MM_clean+shift ,'color', cb(g,:), 'LineWidth', 1); %data
         hold on;
-        for kk = 2 : length(data) 
+        for kk = 2 : length(data)
             plot(data{kk}.ppm,data{kk}.MM_clean+shift ,'color', cb(g,:), 'LineWidth', 1); %data
         end
     end %re_mm
@@ -194,7 +194,7 @@ else
         shift = maxshift_abs * shift;
         out = plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
         hold on;
-        for kk = 2 : length(data) 
+        for kk = 2 : length(data)
             plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
         end
 end
@@ -240,5 +240,3 @@ if ~MRSCont.flags.isGUI
 end
 
 end
-
-   
