@@ -37,9 +37,11 @@ if ~MRSCont.flags.didLoadData
     error(msg);
 end
 
+
 % Version, toolbox check and updating log file
 MRSCont.ver.CheckPro        = '1.0.0 Pro';
 fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckPro '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+
 [~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
 % Post-process raw data depending on sequence type
