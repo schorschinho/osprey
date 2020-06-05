@@ -588,14 +588,14 @@ fitParamsFinal.lineShape    = x(3*nBasisFcts+4+size(splineArray,2):end);
 fitParamsFinal.beta_j       = ampl(size(A,2)+1:end);
 
 % Plot (comment out if not debugging)
-figure(99)
-plot(data); hold;
-plot(AB*ampl);
-plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
-for rr = 1:(nMets+nMM)
-    plot(ampl(rr)*A(:,rr));
-end
-title('Preliminary Analysis with full basis set (unregularized)');
+% figure(99)
+% plot(data); hold;
+% plot(AB*ampl);
+% plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
+% for rr = 1:(nMets+nMM)
+%     plot(ampl(rr)*A(:,rr));
+% end
+% title('Preliminary Analysis with full basis set (unregularized)');
 % hold;
 
 

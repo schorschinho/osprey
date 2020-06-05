@@ -28,28 +28,36 @@ function [MRSCont] = OspreyFit(MRSCont)
 %   HISTORY:
 %       2019-02-24: First version of the code.
 
+outputFolder = MRSCont.outputFolder;
+fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 % Check that OspreyLoad has been run before
 if ~MRSCont.flags.didLoadData
-    error('Trying to fit data, but raw data has not been loaded yet. Run OspreyLoad first.')
+    msg = 'Trying to fit data, but raw data has not been loaded yet. Run OspreyLoad first.';
+    fprintf(fileID,msg);
+    error(msg);
 end
 
 % Check that OspreyProcess has been run before
 if ~MRSCont.flags.didProcess
-    error('Trying to fit data, but loaded data has not been process yet. Run OspreyProcess first.')
+    msg = 'Trying to fit data, but loaded data has not been process yet. Run OspreyProcess first.';
+    fprintf(fileID,msg);
+    error(msg);
 end
 
 %% Load fit settings, prepare data and pass it on to the fitting algorithm
 
-% Version and toolbox check
-MRSCont.ver.CheckFit             = '1.0.0 Fit';
+% Version, toolbox check and updating log file
+MRSCont.ver.CheckFit       = '1.0.0 Fit';
+fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckFit '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 [~] = osp_Toolbox_Check ('OspreyFit',MRSCont.flags.isGUI);
+MRSCont.runtime.Fit = 0;
 
 % Initialise the fit - this step includes:
 % - Parse the correct basis set
 % - Apply settings on which metabolites/MM/lipids to include in the fit
 % - Check for inconsistencies between basis set and data
 [MRSCont] = osp_fitInitialise(MRSCont);
-
+MRSCont.opts.fit.outputFolder = outputFolder;
 % Call the fit functions (depending on sequence type)
 if MRSCont.flags.isUnEdited
     [MRSCont] = osp_fitUnEdited(MRSCont);
@@ -61,13 +69,16 @@ elseif MRSCont.flags.isHERCULES
     % For now, fit HERCULES like HERMES data
     [MRSCont] = osp_fitHERCULES(MRSCont);
 else
-    error('No flag set for sequence type!');
+    msg = 'No flag set for sequence type!';
+    fprintf(fileID,msg);
+    error(msg);
 end
 
 %% Perform water reference and short-TE water fit
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
+fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 % If water reference exists, fit it
 if MRSCont.flags.hasRef
     refFitTime = tic;
@@ -77,8 +88,9 @@ if MRSCont.flags.hasRef
         msg = sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        fprintf(fileID,[reverseStr, msg]);
         if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+            set(progressText,'String' ,sprintf('Fitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
             drawnow
         end
         if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
@@ -86,11 +98,15 @@ if MRSCont.flags.hasRef
         end
     end
     fprintf('... done.\n');
+    fprintf(fileID,'... done.\n');
     time = toc(refFitTime);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
         pause(1);
     end
+    fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+    MRSCont.runtime.FitRef = time;
+    MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
 end
 
 % If short TE water reference exists, fit it
@@ -102,8 +118,9 @@ if MRSCont.flags.hasWater
         msg = sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        fprintf(fileID,[reverseStr, msg]);
         if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+            set(progressText,'String' ,sprintf('Fitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
             drawnow
         end
         if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
@@ -111,18 +128,23 @@ if MRSCont.flags.hasWater
         end
     end
     fprintf('... done.\n');
+    fprintf(fileID,'... done.\n');
     time = toc(waterFitTime);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
         pause(1);
     end
+    fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+    MRSCont.runtime.FitWater = time;
+    MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
 end
-
+MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
+fprintf(fileID,'Full fit time %f seconds\n',MRSCont.runtime.Fit);
+fclose(fileID); %close log file
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didFit           = 1;
 MRSCont.ver.Fit            = '1.0.0 Fit';
-
 % Delete redundant resBasiset entries
 % FitNames = fieldnames(MRSCont.fit.results);
 % NoFit = length(fieldnames(MRSCont.fit.results));
@@ -140,6 +162,43 @@ outputFolder    = MRSCont.outputFolder;
 outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
+end
+
+% Optional:  Create all pdf figures
+if MRSCont.opts.savePDF
+    if strcmp(MRSCont.opts.fit.style, 'Concatenated')
+    temp = fieldnames(MRSCont.fit.results);
+    if MRSCont.flags.isUnEdited
+        Names = fieldnames(MRSCont.fit.results);
+    end
+    if MRSCont.flags.isMEGA
+        Names = {'diff1','sum'};
+        if length(temp) == 2
+            Names{3} = temp{2};
+        else if length(temp) == 3
+            Names{3} = temp{2};
+            Names{4} = temp{3};
+            end
+        end
+    end
+    if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+        Names = {'diff1','diff2','sum'};
+        if length(temp) == 2
+            Names{4} = temp{2};
+        else if length(temp) == 3
+            Names{4} = temp{2};
+            Names{5} = temp{3};
+            end
+        end
+    end
+    else
+        Names = fieldnames(MRSCont.fit.results);  
+    end
+    for kk = 1 : MRSCont.nDatasets
+        for ss = 1 : length(Names)
+            osp_plotModule(MRSCont, 'OspreyFit', kk, Names{ss});
+        end
+    end
 end
 
 if MRSCont.flags.isGUI
