@@ -24,15 +24,15 @@
 
 !--------------------------------------------------------------------
 
-examination_name : MultiSite_S02
+examination_name : 
 
 scan_id : HERMES GSH/Lac 120
 
-scan_date : 2016.08.05 11:09:44
+scan_date : 
 
-patient_name : S02
+patient_name : 
 
-patient_birth_date : 1987.07.15
+patient_birth_date : 
 
 patient_position : "head_first"
 

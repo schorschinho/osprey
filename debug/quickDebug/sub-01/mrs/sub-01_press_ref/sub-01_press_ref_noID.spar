@@ -24,15 +24,15 @@
 
 !--------------------------------------------------------------------
 
-examination_name : MultiSite_S02
+examination_name : 
 
 scan_id : PRESS PAR 35
 
-scan_date : 2016.08.05 11:09:44
+scan_date : 
 
-patient_name : S02
+patient_name : 
 
-patient_birth_date : 1987.07.15
+patient_birth_date : 
 
 patient_position : "head_first"
 
@@ -42,7 +42,7 @@ samples : 2048
 
 rows : 1
 
-synthesizer_frequency : 127750690
+synthesizer_frequency : 127750896
 
 offset_frequency : 0
 
@@ -72,15 +72,15 @@ lr_size : 30
 
 cc_size : 30
 
-ap_off_center : 30.43144035
+ap_off_center : 45.03344727
 
-lr_off_center : -6.688963413
+lr_off_center : 0
 
-cc_off_center : 33.86956406
+cc_off_center : 37.66220856
 
 ap_angulation : 0
 
-lr_angulation : -4.505627632
+lr_angulation : -4.347770214
 
 cc_angulation : 0
 

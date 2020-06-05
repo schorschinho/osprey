@@ -24,15 +24,15 @@
 
 !--------------------------------------------------------------------
 
-examination_name : 43564536
+examination_name : 
 
 scan_id : GABA PAR 68
 
-scan_date : 2016.07.28 11:04:38
+scan_date : 
 
-patient_name : GEorg
+patient_name : 
 
-patient_birth_date : 1984.11.05
+patient_birth_date : 
 
 patient_position : "head_first"
 
@@ -50,7 +50,7 @@ sample_frequency : 2000
 
 echo_nr : 1
 
-mix_number : 1
+mix_number : 2
 
 nucleus : 1H
 

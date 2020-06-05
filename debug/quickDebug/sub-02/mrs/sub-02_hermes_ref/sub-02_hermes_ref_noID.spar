@@ -24,15 +24,15 @@
 
 !--------------------------------------------------------------------
 
-examination_name : MultiSite_S02
+examination_name : 
 
-scan_id : GABA PAR 68
+scan_id : HERMES GSH/Lac 120
 
-scan_date : 2016.08.05 11:09:44
+scan_date : 
 
-patient_name : S02
+patient_name : 
 
-patient_birth_date : 1987.07.15
+patient_birth_date : 
 
 patient_position : "head_first"
 
@@ -42,7 +42,7 @@ samples : 2048
 
 rows : 320
 
-synthesizer_frequency : 127750696
+synthesizer_frequency : 127750695
 
 offset_frequency : 0
 
@@ -56,7 +56,7 @@ nucleus : 1H
 
 t0_mu1_direction : 0
 
-echo_time : 68
+echo_time : 120
 
 repetition_time : 2000
 
@@ -66,11 +66,11 @@ volume_selection_enable : "yes"
 
 volumes : 1
 
-ap_size : 30
+ap_size : 36
 
-lr_size : 30
+lr_size : 36
 
-cc_size : 30
+cc_size : 36
 
 ap_off_center : 30.43144035
 
@@ -198,7 +198,7 @@ echo_acquisition : ECHO
 
 TSI_factor : 0
 
-spectrum_echo_time : 68
+spectrum_echo_time : 120
 
 spectrum_inversion_time : 0
 

@@ -24,15 +24,15 @@
 
 !--------------------------------------------------------------------
 
-examination_name : MultiSite_S02
+examination_name : 
 
-scan_id : PRESS PAR 35
+scan_id : HERMES GSH/Lac 120
 
-scan_date : 2016.08.05 11:09:44
+scan_date : 
 
-patient_name : S02
+patient_name : 
 
-patient_birth_date : 1987.07.15
+patient_birth_date : 
 
 patient_position : "head_first"
 
@@ -40,9 +40,9 @@ patient_orientation : "supine"
 
 samples : 2048
 
-rows : 1
+rows : 320
 
-synthesizer_frequency : 127750690
+synthesizer_frequency : 127750919
 
 offset_frequency : 0
 
@@ -50,17 +50,17 @@ sample_frequency : 2000
 
 echo_nr : 1
 
-mix_number : 1
+mix_number : 2
 
 nucleus : 1H
 
 t0_mu1_direction : 0
 
-echo_time : 35
+echo_time : 120
 
 repetition_time : 2000
 
-averages : 64    
+averages : 1     
 
 volume_selection_enable : "yes"
 
@@ -72,15 +72,15 @@ lr_size : 30
 
 cc_size : 30
 
-ap_off_center : 30.43144035
+ap_off_center : 45.03344727
 
-lr_off_center : -6.688963413
+lr_off_center : 0
 
-cc_off_center : 33.86956406
+cc_off_center : 37.66220856
 
 ap_angulation : 0
 
-lr_angulation : -4.505627632
+lr_angulation : -4.347770214
 
 cc_angulation : 0
 
@@ -128,11 +128,11 @@ spec_col_extension :[sec]
 
 !-----------------
 
-spec_num_row : 1
+spec_num_row : 320
 
 spec_row_lower_val : 1
 
-spec_row_upper_val : 1
+spec_row_upper_val : 320
 
 spec_row_extension :[index]
 
@@ -198,7 +198,7 @@ echo_acquisition : ECHO
 
 TSI_factor : 0
 
-spectrum_echo_time : 35
+spectrum_echo_time : 120
 
 spectrum_inversion_time : 0
 

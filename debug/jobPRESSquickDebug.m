@@ -128,15 +128,15 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {which('debug/quickDebug/sub-01/mrs/sub-01_press/sub-01_press_act.sdat'),...
-               which('debug/quickDebug/sub-02/mrs/sub-02_press/sub-02_press_act.sdat')};
+files       = {which('debug/quickDebug/sub-01/mrs/sub-01_press/sub-01_press_act_noID.sdat'),...
+               which('debug/quickDebug/sub-02/mrs/sub-02_press/sub-02_press_act_noID.sdat')};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {which('debug/quickDebug/sub-01/mrs/sub-01_press_ref/sub-01_press_ref.sdat'),...
-               which('debug/quickDebug/sub-02/mrs/sub-02_press_ref/sub-02_press_ref.sdat')};
+files_ref   = {which('debug/quickDebug/sub-01/mrs/sub-01_press_ref/sub-01_press_ref_noID.sdat'),...
+               which('debug/quickDebug/sub-02/mrs/sub-02_press_ref/sub-02_press_ref_noID.sdat')};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
