@@ -142,10 +142,7 @@ files_ref   = {which('exampledata/sdat/sub-01/mrs/sub-01_megapress-ref/sub-01_me
 % (OPTIONAL)
 files_w     = {which('exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat'),...
                which('exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat')};
-           
-% Specify metabolite-nulled data for quantification
-% (OPTIONAL)
-files_mm     = {};             
+                      
            
 % Specify metabolite-nulled data for quantification
 % (OPTIONAL)

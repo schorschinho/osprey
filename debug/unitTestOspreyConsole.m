@@ -33,6 +33,7 @@ end
 
 %Test OspreyJob
 function testOspreyJob(~)
+
     dir = strrep(which('debug/jobTesting.m'),'jobTesting.m','derivatives');
     if ~isempty(dir)
         delete(fullfile(dir,'jobTesting.mat'));
