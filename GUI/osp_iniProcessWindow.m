@@ -27,6 +27,7 @@ function osp_iniProcessWindow(gui)
 %%% 1. GET HANDLES %%%
 %This functions creates the inital process window    
         MRSCont = getappdata(gui.figure,'MRSCont');   % Get MRSCont from hidden container in gui class
+        gui.layout.tabs.TabEnables{2} = 'on';
         gui.layout.tabs.Selection  = 2;
         gui.layout.EmptyProPlot = 0;
 %%% 2. CREATING SUB TABS FOR THIS TAB %%% 
@@ -51,6 +52,13 @@ function osp_iniProcessWindow(gui)
                 gui.layout.proTab.TabEnables = {'on', 'on','on'};%re_mm
                 gui.layout.proTabhandles = {'AProTab','mmProTab', 'wProTab'}; % Create 4 Tabs %re_mm
                 gui.process.SNR = {'tNAA','water','water','water'};%re_mm
+        elseif (MRSCont.flags.hasRef && ~MRSCont.flags.hasWater && MRSCont.flags.hasMM ) %Has all%re_mm
+                gui.layout.mmProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
+                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
+                gui.layout.proTab.TabTitles  = {'A', 'MM','w'};%re_mm
+                gui.layout.proTab.TabEnables = {'on', 'on','on'};%re_mm
+                gui.layout.proTabhandles = {'AProTab','mmProTab', 'refProTab'}; % Create 4 Tabs %re_mm
+                gui.process.SNR = {'tNAA','water','water','water'};%re_mm        
         elseif (MRSCont.flags.hasRef && MRSCont.flags.hasWater && ~MRSCont.flags.hasMM) %Has water and reference (This should actually not happen with UnEdited data...) 
                 gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -195,7 +203,7 @@ function osp_iniProcessWindow(gui)
             [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.1);
             set(gui.controls.b_save_proTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-            set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint});
+            set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
             set(gui.upperBox.pro.box, 'Width', [-0.9 -0.1]);            
             % Creates layout for plotting and data control
             gui.Plot.pro = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}), ...

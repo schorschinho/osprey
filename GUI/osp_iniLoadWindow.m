@@ -114,7 +114,7 @@ function osp_iniLoadWindow(gui)
             [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.10);
             set(gui.controls.b_save_RawTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-            set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint});
+            set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
             set(gui.upperBox.data.box, 'Width', [-0.9 -0.1]);
             % Grid for Plot and Data control sliders
             if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) % HBox for HERMES/HERCULES

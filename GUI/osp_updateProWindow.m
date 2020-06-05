@@ -71,11 +71,12 @@ function osp_updateProWindow(gui)
                 StatText = ['Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
                             num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
                             ' ppm / Hz'];
+                end
             end
-            end
-            if ~strcmp (Selection, 'mm') % re_mm
+        end
+        if ~strcmp (Selection, 'mm') % re_mm
             set(gui.upperBox.pro.Info.Children, 'String',sprintf(StatText));
-            end
+        end
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
         temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection); %Create figure
         %Delete old content

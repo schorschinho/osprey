@@ -25,26 +25,29 @@ function osp_updatequantOvWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
-        split_Selection = strsplit(Selection,'-');
-%This function updates the quantification table overview tab
-        if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
-            if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
-                exclude = length(MRSCont.exclude);
+        if ~strcmp(Selection,'Quality') 
+            split_Selection = strsplit(Selection,'-');
+    %This function updates the quantification table overview tab
+            if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
+                if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
+                    exclude = length(MRSCont.exclude);
+                else
+                    exclude = 0;
+                end
+                QuantTextOv = cell(MRSCont.nDatasets+1-exclude,1);
+                QuantTextOv(1,:) = {'GABA'};
+                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
             else
-                exclude = 0;
+                if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
+                    exclude = length(MRSCont.exclude);
+                else
+                    exclude = 0;
+                end            
+                QuantTextOv = cell(MRSCont.nDatasets+1-exclude,gui.quant.Number.Metabs);
+                QuantTextOv(1,:) = MRSCont.quantify.metabs;
+                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
             end
-            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,1);
-            QuantTextOv(1,:) = {'GABA'};
-            QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
         else
-            if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
-                exclude = length(MRSCont.exclude);
-            else
-                exclude = 0;
-            end            
-            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,gui.quant.Number.Metabs);
-            QuantTextOv(1,:) = MRSCont.quantify.metabs;
-            QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
         end
         temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv);
         set( temp, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);

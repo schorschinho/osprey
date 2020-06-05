@@ -127,9 +127,13 @@ function osp_iniOverviewWindow(gui)
         gui.layout.shift = 0.5;
         temp = figure( 'Visible', 'off' );
         if gui.load.Selected ==1 %Metabolite data
-            temp = op_plotspec(MRSCont.overview.sort_data.(['g_' num2str(1)]).(gui.process.Names{2}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            if length(gui.process.Names)>1
+                temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{2}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            else
+                temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            end
         else %Water data?
-            temp = op_plotspec(MRSCont.overview.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
         end
         set(gca, 'YColor', MRSCont.colormap.Background);
         set(gca,'YTickLabel',{})
@@ -189,6 +193,7 @@ function osp_iniOverviewWindow(gui)
                end
            end
        end
+       gui.quant.popMenuNames{popMenuNames_Count+1} = 'Quality';
         gui.controls.quantOvPlot = uix.Panel('Parent', gui.Plot.quantOv,'Title', 'Actual Quantification', ...
                                             'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
@@ -268,7 +273,7 @@ function osp_iniOverviewWindow(gui)
                                                 'String',MRSCont.quantify.metabs, 'Value', 1);
         gui.controls.pop_corrOvCorr = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                                'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                               'String',gui.overview.Names.QM, 'Value', 3);                                 
+                                               'String',gui.overview.Names.QM, 'Value', 1);                                 
         gui.controls.pop_whichcorrOvCorr = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                        'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                        'String',{'MRSCont.overview.corr','metabolites','QM'}, 'Value', 3);

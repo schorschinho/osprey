@@ -71,7 +71,12 @@ classdef OspreyGUI < handle
             gui.folder.ospFolder       = strjoin(gui.folder.allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
             
         % Toolbox check
-            MRSCont.flags.hasSPM = osp_Toolbox_Check ('OspreyGUI',MRSCont.flags.isToolChecked);
+            if isfield(MRSCont.flags,'isToolChecked')
+                MRSCont.flags.hasSPM = osp_Toolbox_Check ('OspreyGUI',MRSCont.flags.isToolChecked);
+            else
+                MRSCont.flags.hasSPM = osp_Toolbox_Check ('OspreyGUI',0);
+                MRSCont.flags.isToolChecked = 1;
+            end
             if MRSCont.flags.hasSPM
                 load(fullfile(gui.folder.ospFolder,'GUI','SPMpath.mat'),'SPMpath')
                 gui.folder.spmversion = SPMpath;
@@ -185,16 +190,23 @@ classdef OspreyGUI < handle
                 gui.colormap.cb(3,:) = gui.colormap.cb(4,:);
                 gui.colormap.cb(4,:) = temp;
                 if isfield(MRSCont.overview, 'corr')
-                    gui.overview.Names.Corr = MRSCont.overview.corr.Names{1};
+                    gui.overview.Names.Corr = MRSCont.overview.corr.Names;
                     gui.overview.CorrMeas = MRSCont.overview.corr.Meas;
                 end
                 gui.overview.Selected.Corr = 1;
-                gui.overview.Selected.CorrChoice = 1;
+                gui.overview.Selected.CorrChoice = 3;
                 gui.overview.Names.QM = {'SNR','FWHM (ppm)'};
             end
             gui.waitbar.overall = MRSCont.flags.didLoadData+MRSCont.flags.didProcess+MRSCont.flags.didFit+MRSCont.flags.didCoreg+MRSCont.flags.didSeg+MRSCont.flags.didQuantify+MRSCont.flags.didOverview;
             gui.waitbar.step = 1/ gui.waitbar.overall;
+            
+            %Version check and updating log file
             MRSCont.flags.isGUI = 1;
+            MRSCont.ver.GUI             = '1.0.0 GUI';
+            outputFolder = MRSCont.outputFolder;
+            fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+            fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.GUI '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+            fclose(fileID);
         %% Create the overall figure
             gui.figure = figure('Name', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on','Menu', 'none',...
                                 'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
@@ -251,6 +263,7 @@ classdef OspreyGUI < handle
                 gui.layout.b_load.Enable = 'off';                
             end
             set(gui.layout.b_load,'Callback',{@osp_onLoad,gui}, 'TooltipString', 'Call OspreyLoad');
+            set(gui.layout.b_load,'Tag','Load');
         % Process button
             gui.layout.b_proc = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Process data','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_proc,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
