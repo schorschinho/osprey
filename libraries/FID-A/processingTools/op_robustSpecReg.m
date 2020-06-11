@@ -3,7 +3,7 @@
 % Mark Mikkelsen, Johns Hopkins University 2019.
 %
 % USAGE:
-% [out,fs,phs] = op_robustSpecReg(in);
+% [out,fs,phs] = op_robustSpecReg(in, seqType, echo, F0, noAlign);
 %
 % DESCRIPTION:
 % Perform robust spectral registration in the time domain to correct frequency and
@@ -21,13 +21,20 @@
 % phs       = Vector of phase shifts (in degrees) used for alignment.
 % w         = Vector of relative weights applied to the individual
 %             averages.
+% F0        = Inital frequency shift guess by cross-correlation (optional)
+% noALign   = Flag for switching SpecReg off, while still using the
+%             weighted  averaging
 
 
-function [out, fs, phs, w, driftPre, driftPost] = op_robustSpecReg(in, seqType, echo, F0)
-if nargin <4
-    F0 = nan;
-    if nargin < 2
-        echo = 1;    
+function [out, fs, phs, w, driftPre, driftPost] = op_robustSpecReg(in, seqType, echo, F0, noAlign)
+
+if nargin <5
+    noAlign = 0;
+    if nargin <4
+        F0 = nan;
+        if nargin < 2
+            echo = 1;    
+        end
     end
 end
 
@@ -78,175 +85,177 @@ t                 = in.t;
 input.dwelltime   = in.dwelltime;
 
 for mm=1:numSubSpecs
+   
+        %%% Automatic lipid/unstable residual water removal %%%
+        freq        = in.ppm;
+        waterLim = freq <= 4.68 + 0.25 & freq >= 4.68 - 0.25;
+        lipidLim = freq <= 1.85 & freq >= 0;
+        noiseLim = freq <= 11 & freq >= 10;
 
-    %%% Automatic lipid/unstable residual water removal %%%
-    freq        = in.ppm;
-    waterLim = freq <= 4.68 + 0.25 & freq >= 4.68 - 0.25;
-    lipidLim = freq <= 1.85 & freq >= 0;
-    noiseLim = freq <= 11 & freq >= 10;
-    
-    % Create a lipid-to-noise criterion from the mean unaligned data
-    S = mean(in.specs(:,:,mm), 2);
-    r = std(S(lipidLim)) / std(S(noiseLim));
-    r_threshold = 40;
-    % Create a 'how unstable is the residual water signal?' criterion from
-    % the mean unaligned data
-    q = sum(abs(in.specs(waterLim,:,mm))) * abs(freq(1) - freq(2));
-    q = q / max(q);
-    q = sum(q < 0.5) / length(q);
-    q_threshold = 0.1;
-    
-    % If significant lipid signal and/or unstable residual water signal is
-    % present, run the Whittaker filtering in the frequency domain.
-    lipid_flag = 0;
-    water_flag = 0;
-    if r > r_threshold || q > q_threshold
-        % Extract the frequency-domain sub-spectrum
-        spec = in.specs(:,:,mm);
-        
-        % Is there excessive lipid?
-        if r > r_threshold
-            lipid_flag = 1;
-        end
-        % Is there unstable residual water?
-        if q > q_threshold
-            water_flag = 1;
-        end
-        
-        reverseStr = '';
-        
-        % Loop over averages in the sub-spectrum
-        for jj = 1:in.sz(in.dims.averages)
-            
-            if echo
-                if lipid_flag && ~water_flag
-                    msg = sprintf('\nLipid contamination detected. Applying lipid filter to transient: %d\n', jj);
-                elseif ~lipid_flag && water_flag
-                    msg = sprintf('\nUnstable residual water detected. Applying residual water filter to transient: %d\n', jj);
-                elseif lipid_flag && water_flag
-                    msg = sprintf('\nLipid contamination and unstable residual water detected. Applying lipid and residual water filters to transient: %d\n', jj);
+        % Create a lipid-to-noise criterion from the mean unaligned data
+        S = mean(in.specs(:,:,mm), 2);
+        r = std(S(lipidLim)) / std(S(noiseLim));
+        r_threshold = 40;
+        % Create a 'how unstable is the residual water signal?' criterion from
+        % the mean unaligned data
+        q = sum(abs(in.specs(waterLim,:,mm))) * abs(freq(1) - freq(2));
+        q = q / max(q);
+        q = sum(q < 0.5) / length(q);
+        q_threshold = 0.1;
+
+        % If significant lipid signal and/or unstable residual water signal is
+        % present, run the Whittaker filtering in the frequency domain.
+        lipid_flag = 0;
+        water_flag = 0;
+        if r > r_threshold || q > q_threshold
+            % Extract the frequency-domain sub-spectrum
+            spec = in.specs(:,:,mm);
+
+            % Is there excessive lipid?
+            if r > r_threshold
+                lipid_flag = 1;
+            end
+            % Is there unstable residual water?
+            if q > q_threshold
+                water_flag = 1;
+            end
+
+            reverseStr = '';
+
+            % Loop over averages in the sub-spectrum
+            for jj = 1:in.sz(in.dims.averages)
+
+                if echo
+                    if lipid_flag && ~water_flag
+                        msg = sprintf('\nLipid contamination detected. Applying lipid filter to transient: %d\n', jj);
+                    elseif ~lipid_flag && water_flag
+                        msg = sprintf('\nUnstable residual water detected. Applying residual water filter to transient: %d\n', jj);
+                    elseif lipid_flag && water_flag
+                        msg = sprintf('\nLipid contamination and unstable residual water detected. Applying lipid and residual water filters to transient: %d\n', jj);
+                    end
+                    fprintf([reverseStr, msg]);
+                    reverseStr = repmat(sprintf('\b'), 1, length(msg));
                 end
+
+                DataToAlign(:,jj) = SignalFilter(spec(:,jj), lipid_flag, water_flag, in);
+
+            end
+
+            if ishandle(77)
+                close(77);
+            end
+
+        else
+
+            DataToAlign = in.fids(:,:,mm);
+
+        end
+
+        % Use first n points of time-domain data, where n is the last point where abs(diff(mean(SNR))) > 0.5
+        signal = abs(DataToAlign);
+        noise = 2*std(signal(ceil(0.75*size(signal,1)):end,:));
+        SNR = signal ./ repmat(noise, [size(DataToAlign,1) 1]);
+        SNR = abs(diff(mean(SNR,2)));
+        SNR = SNR(t <= 0.2);
+        tMax = find(SNR > 0.5,1,'last');
+        if isempty(tMax) || tMax < find(t <= 0.1,1,'last')
+            tMax = find(t <= 0.1,1,'last');
+        end
+
+        % Determine optimal iteration order by calculating a similarity metric (mean squared error)
+        D = zeros(size(DataToAlign,2));
+        for jj = 1:size(DataToAlign,2)
+            for kk = 1:size(DataToAlign,2)
+                tmp = sum((real(DataToAlign(1:tMax,jj)) - real(DataToAlign(1:tMax,kk))).^2) / tMax;
+                if tmp == 0
+                    D(jj,kk) = NaN;
+                else
+                    D(jj,kk) = tmp;
+                end
+            end
+        end
+        d = nanmedian(D);
+        [~,alignOrd] = sort(d);
+
+        % Turn complex-valued problem into real-valued problem
+        clear flatdata
+        flatdata(:,1,:) = real(DataToAlign(1:tMax,:));
+        flatdata(:,2,:) = imag(DataToAlign(1:tMax,:));
+        % Set initial reference transient based on similarity index
+        flattarget = squeeze(flatdata(:,:,alignOrd(1)));
+        target = flattarget(:);
+        % Scalar to normalize transients (reduces optimization time)
+        a = max(abs(target));
+
+        % Pre-allocate memory
+        if runCount == 0
+            params = zeros(size(flatdata,3),2);
+            MSE    = zeros(1,size(flatdata,3));
+        end
+        w = zeros(1,size(flatdata,3));
+        m = zeros(length(target),size(flatdata,3));
+
+        % Frame-by-frame determination of frequency of residual water and Cr (if HERMES or GSH editing)
+        if strcmp(seqType, 'HERMES') || strcmp(seqType, 'HERCULES')
+            F0freqRange = freq - 3.02 >= -0.15 & freq - 3.02 <= 0.15;
+        else
+            F0freqRange = freq - 4.68 >= -0.2 & freq - 4.68 <= 0.2;
+        end
+        [~,FrameMaxPos] = max(abs(real(in.specs(F0freqRange,:))),[],1);
+        F0freqRange = freq(F0freqRange);
+        F0freq = F0freqRange(FrameMaxPos);
+
+        % Starting values for optimization
+        if isnan(F0) 
+            f0 = F0freq * in.txfrq * 1e-6;
+            f0 = f0(alignOrd);
+            f0 = f0 - f0(1);
+        else
+            f0 = F0(alignOrd);
+            f0 = f0 - f0(1);
+        end
+        phi0 = zeros(size(f0));
+        x0 = [f0(:) phi0(:)];
+
+    if noAlign == 0
+        % Determine frequency and phase offsets by spectral registration
+        time = 0:input.dwelltime:(length(target)/2 - 1)*input.dwelltime;
+        iter = 1;
+        reverseStr = '';
+        for jj = alignOrd
+
+            if echo
+                msg = sprintf('\nRobust spectral registration - Iteration: %d', iter);
                 fprintf([reverseStr, msg]);
                 reverseStr = repmat(sprintf('\b'), 1, length(msg));
             end
-            
-            DataToAlign(:,jj) = SignalFilter(spec(:,jj), lipid_flag, water_flag, in);
-            
-        end
-        
-        if ishandle(77)
-            close(77);
-        end
-        
-    else
-        
-        DataToAlign = in.fids(:,:,mm);
-        
-    end
-    
-    % Use first n points of time-domain data, where n is the last point where abs(diff(mean(SNR))) > 0.5
-    signal = abs(DataToAlign);
-    noise = 2*std(signal(ceil(0.75*size(signal,1)):end,:));
-    SNR = signal ./ repmat(noise, [size(DataToAlign,1) 1]);
-    SNR = abs(diff(mean(SNR,2)));
-    SNR = SNR(t <= 0.2);
-    tMax = find(SNR > 0.5,1,'last');
-    if isempty(tMax) || tMax < find(t <= 0.1,1,'last')
-        tMax = find(t <= 0.1,1,'last');
-    end
-    
-    % Determine optimal iteration order by calculating a similarity metric (mean squared error)
-    D = zeros(size(DataToAlign,2));
-    for jj = 1:size(DataToAlign,2)
-        for kk = 1:size(DataToAlign,2)
-            tmp = sum((real(DataToAlign(1:tMax,jj)) - real(DataToAlign(1:tMax,kk))).^2) / tMax;
-            if tmp == 0
-                D(jj,kk) = NaN;
-            else
-                D(jj,kk) = tmp;
-            end
-        end
-    end
-    d = nanmedian(D);
-    [~,alignOrd] = sort(d);
-    
-    % Turn complex-valued problem into real-valued problem
-    clear flatdata
-    flatdata(:,1,:) = real(DataToAlign(1:tMax,:));
-    flatdata(:,2,:) = imag(DataToAlign(1:tMax,:));
-    % Set initial reference transient based on similarity index
-    flattarget = squeeze(flatdata(:,:,alignOrd(1)));
-    target = flattarget(:);
-    % Scalar to normalize transients (reduces optimization time)
-    a = max(abs(target));
-    
-    % Pre-allocate memory
-    if runCount == 0
-        params = zeros(size(flatdata,3),2);
-        MSE    = zeros(1,size(flatdata,3));
-    end
-    w = zeros(1,size(flatdata,3));
-    m = zeros(length(target),size(flatdata,3));
-    
-    % Frame-by-frame determination of frequency of residual water and Cr (if HERMES or GSH editing)
-    if strcmp(seqType, 'HERMES') || strcmp(seqType, 'HERCULES')
-        F0freqRange = freq - 3.02 >= -0.15 & freq - 3.02 <= 0.15;
-    else
-        F0freqRange = freq - 4.68 >= -0.2 & freq - 4.68 <= 0.2;
-    end
-    [~,FrameMaxPos] = max(abs(real(in.specs(F0freqRange,:))),[],1);
-    F0freqRange = freq(F0freqRange);
-    F0freq = F0freqRange(FrameMaxPos);
-        
-    % Starting values for optimization
-    if isnan(F0) 
-        f0 = F0freq * in.txfrq * 1e-6;
-        f0 = f0(alignOrd);
-        f0 = f0 - f0(1);
-    else
-        f0 = F0(alignOrd);
-        f0 = f0 - f0(1);
-    end
-    phi0 = zeros(size(f0));
-    x0 = [f0(:) phi0(:)];
-    
-    % Determine frequency and phase offsets by spectral registration
-    time = 0:input.dwelltime:(length(target)/2 - 1)*input.dwelltime;
-    iter = 1;
-    reverseStr = '';
-    for jj = alignOrd
-        
-        if echo
-            msg = sprintf('\nRobust spectral registration - Iteration: %d', iter);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        end
-        
-        transient = squeeze(flatdata(:,:,jj));
-        
-        fun = @(x) SpecReg(transient(:)/a, target/a, time, x);
-        params(jj,:) = lsqnonlin(fun, x0(iter,:), [], [], lsqnonlinopts);
-        
-        f   = params(jj,1);
-        phi = params(jj,2);
-        m_c = complex(flatdata(:,1,jj), flatdata(:,2,jj));
-        m_c = m_c .* exp(1i*pi*(time'*f*2+phi/180));
-        m(:,jj) = [real(m_c); imag(m_c)];
-        resid = target - m(:,jj);
-        MSE(jj) = sum(resid.^2) / (length(resid) - 2);
-        
-        % Update reference
-        w(jj) = 0.5*corr(target, m(:,jj)).^2;
-        target = (1 - w(jj))*target + w(jj)*m(:,jj);
-        
-        iter = iter + 1;
-        
-    end
 
-    % Prepare the frequency and phase corrections to be returned by this
-    % function for further use
-    fs(:,mm)  = params(:,1);
-    phs(:,mm) = params(:,2);
+            transient = squeeze(flatdata(:,:,jj));
+
+            fun = @(x) SpecReg(transient(:)/a, target/a, time, x);
+            params(jj,:) = lsqnonlin(fun, x0(iter,:), [], [], lsqnonlinopts);
+
+            f   = params(jj,1);
+            phi = params(jj,2);
+            m_c = complex(flatdata(:,1,jj), flatdata(:,2,jj));
+            m_c = m_c .* exp(1i*pi*(time'*f*2+phi/180));
+            m(:,jj) = [real(m_c); imag(m_c)];
+            resid = target - m(:,jj);
+            MSE(jj) = sum(resid.^2) / (length(resid) - 2);
+
+            % Update reference
+            w(jj) = 0.5*corr(target, m(:,jj)).^2;
+            target = (1 - w(jj))*target + w(jj)*m(:,jj);
+
+            iter = iter + 1;
+
+        end
+
+        % Prepare the frequency and phase corrections to be returned by this
+        % function for further use
+        fs(:,mm)  = params(:,1);
+        phs(:,mm) = params(:,2);
+    end
     
     % Apply frequency and phase corrections to raw data
     for jj = 1:size(flatdata,3)
