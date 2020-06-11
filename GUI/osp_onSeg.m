@@ -41,10 +41,8 @@ function osp_onSeg( ~, ~ ,gui)
     end
     gui.layout.tabs.Selection  = 4;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
-    addpath(genpath([gui.folder.spmversion filesep]));
 %%% 2. CALL OSPREYSEG %%%    
     MRSCont = OspreySeg(MRSCont);
-    rmpath(genpath([gui.folder.spmversion filesep]));
     delete(gui.layout.dummy);
     setappdata(gui.figure,'MRSCont',MRSCont);   % Write MRSCont into hidden container in gui class 
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    

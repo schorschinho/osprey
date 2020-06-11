@@ -40,22 +40,6 @@ SSX = (N-1)*var(x);
 SE_Y = SE_y_cond_x*(ones(size(X))*(1/N + (mean(x)^2)/SSX) + (X.^2 - 2*mean(x)*X)/SSX);
 
 
-[settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
-allFolders      = strsplit(settingsFolder, filesep);
-ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
-
-if isfile(fullfile(ospFolder,'GUI','SPMpath.mat'))
-    load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
-    spmversion = SPMpath;
-else
-    spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
-    spmversion = spmversion{1};
-    SPMpath = spmversion;
-    save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
-end
-
-rmpath(genpath([spmversion filesep]));
-
 Yoff = (2*finv(1-alpha,2,N-2)*SE_Y).^0.5;
 
 

@@ -42,9 +42,7 @@ function osp_onCoreg( ~, ~ ,gui)
     gui.layout.tabs.Selection  = 4;
 %%% 2. CALL OSPREYCOREG %%%    
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);  
-    addpath(genpath([gui.folder.spmversion filesep]));
     MRSCont = OspreyCoreg(MRSCont);    
-    rmpath(genpath([gui.folder.spmversion filesep]));
     delete(gui.layout.dummy);
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    
