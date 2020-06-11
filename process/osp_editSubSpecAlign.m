@@ -98,6 +98,24 @@ freqLim(2,:) = or(tmp(1,:), tmp(2,:));
 f0 = (maxFreq(1) - maxFreq(2)) * inA.txfrq*1e-6;
 x0(2,:) = [f0 0];
 
+% In case the water peak is not well-behaved and has several peaks we are
+% possibly detecting several peaks. This will lead to unreasonable shifts
+% between the sub-spectra. In this case, we use the Choline peak.
+if (abs(x0(1,1)) > 10)
+    switch seqType
+        case 'MEGA'
+            freqLim(1,:) = freq <= 3.22+0.13 & freq >= 3.22-0.13;
+            [~,i] = max([abs(real(inA.specs(freqLim(1,:)))) abs(real(inB.specs(freqLim(1,:))))]);
+            freq2 = freq(freqLim(1,:));
+            maxFreq = freq2(i);
+            for jj = 1:2
+                tmp(jj,:) = freq <= maxFreq(jj)+0.13 & freq >= maxFreq(jj)-0.13;
+            end
+            freqLim(1,:) = or(tmp(1,:), tmp(2,:));
+            f0 = (maxFreq(1) - maxFreq(2)) * inA.txfrq*1e-6;
+            x0(1,:) = [f0 0];
+    end
+end
 
 % Optimization options
 lsqnonlinopts = optimoptions(@lsqnonlin);
