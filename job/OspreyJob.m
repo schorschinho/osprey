@@ -173,6 +173,12 @@ if strcmp(jobFileFormat,'csv')
 
 end
 
+if exist('opts','var')
+    names = fields(opts);
+    for f = 1 : length(names)
+        MRSCont.opts.(names{f}) = opts.(names{f});
+    end
+end
 
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
 switch seqType
@@ -199,8 +205,6 @@ switch seqType
     otherwise
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
-
-
 
 if exist('file_stat','var')
     if ~isempty(file_stat)

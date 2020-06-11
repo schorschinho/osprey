@@ -46,10 +46,17 @@ allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
  
 % SPM
-if isfile(fullfile(ospFolder,'GUI','SPMpath.mat'))
+if isfile(fullfile(ospFolder,'GUI','SPMpath.mat')) % Load path to SPM
     load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
-    spmversion = SPMpath;
-else
+    if exist(SPMpath, 'dir')
+        spmversion = SPMpath;
+    else  %This isn't the right SPM path (maybe it was copied from another machine)
+        spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
+        spmversion = spmversion{1};
+        SPMpath = spmversion;
+        save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
+    end
+else %Set path to SPM
     spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
     spmversion = spmversion{1};
     SPMpath = spmversion;
@@ -66,6 +73,7 @@ else
     available{end+1} = 'SPM12';
     enabled{end+1} = true;
     hasSPM = 1;
+    rmpath(genpath([spmversion filesep 'fieldtrip']));
 end 
 
 if ~isempty(lic)

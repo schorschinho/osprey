@@ -400,7 +400,7 @@ classdef OspreyGUI < handle
                 set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
             end
             waitbar(gui.waitbar.step*5,gui.controls.waitbar,'Loading your quantification results');
-            if MRSCont.flags.didQuantify && ~MRSCont.flags.speedUp % Has data been quantified?
+            if MRSCont.flags.didQuantify
                 osp_iniQuantifyWindow(gui);
             end
             waitbar(gui.waitbar.step*7,gui.controls.waitbar,'Loading your overview');
