@@ -27,7 +27,6 @@ function osp_iniCoregWindow(gui)
 %%% 1. GET HANDLES %%%
 % This function creates the inital coreg/seg window
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
-    addpath(genpath([gui.folder.spmversion filesep])); % Add SPM path
     gui.layout.tabs.TabEnables{4} = 'on';
     gui.layout.tabs.Selection  = 4;
     gui.layout.EmptyQuantPlot = 0;
@@ -87,7 +86,5 @@ function osp_iniCoregWindow(gui)
         colormap(gui.Results.coreg.Children,'gray');
         close( temp );
     end
-
-    rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path to avoid crash due to stupid naming conventions in SPM with internal gamma function
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end
