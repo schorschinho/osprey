@@ -123,6 +123,7 @@ if ~isempty(progressText)
 end
 [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
 
+% [J,Jfd,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);
 
 %%% 5. CREATE OUTPUT %%%
 % Return fit parameters
@@ -130,6 +131,7 @@ fitParams = fitParamsStep2;
 fitParams.refShift = refShift;
 fitParams.refFWHM = refFWHM;
 fitParams.prelimParams = fitParamsStep1;
+% fitParams.CRLB = CRLB;
 end
 
 
