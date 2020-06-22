@@ -66,8 +66,7 @@ for kk = 1:MRSCont.nDatasets
                 raw_mm.flags.averaged  = 1; %re_mm
                 raw_mm.dims.averages   = 0; %re_mm
             end
-            [raw_mm,~]                     = op_ppmref(raw_mm,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm  %re_mm
-            MRSCont.processed.mm{kk}       = raw_mm;                          % Save back to MRSCont container  %re_mm
+            [raw_mm,~]                     = op_ppmref(raw_mm,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm  %re_mm            
         end  %re_mm
         
         
@@ -83,9 +82,27 @@ for kk = 1:MRSCont.nDatasets
                 raw_ref.flags.averaged  = 1;
                 raw_ref.dims.averages   = 0;
             end
+            temp_raw_ref = raw_ref;
+            temp_raw = raw;
             [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
-            if MRSCont.flags.hasMM
-                [raw_mm,~]                   = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
+             
+            temp_raw_NAA=op_freqrange(temp_raw,1.8,2.2);
+            raw_NAA=op_freqrange(raw,1.8,2.2);
+            
+            %Find the ppm of the maximum peak magnitude within the given range:
+            temp_ppmindex_NAA=find(abs(temp_raw_NAA.specs(:,1))==max(abs(temp_raw_NAA.specs(:,1))));
+            ppmindex_NAA=find(abs(raw_NAA.specs(:,1))==max(abs(raw_NAA.specs(:,1))));
+
+            %now do automatic zero-order phase correction (Use Creatine Peak):
+            temp_ph0_NAA=-phase(temp_raw_NAA.specs(temp_ppmindex_NAA,1))*180/pi;
+            ph0_NAA=-phase(raw_NAA.specs(ppmindex_NAA,1))*180/pi;
+            
+            if 2*abs(temp_ph0_NAA) > abs(ph0_NAA)
+                if MRSCont.flags.hasMM
+                    [raw_mm,~]                   = op_eccKlose(raw_mm, temp_raw_ref);        % Klose eddy current correction
+                end
+            else
+                raw = temp_raw;
             end
             [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
@@ -178,13 +195,32 @@ for kk = 1:MRSCont.nDatasets
         end
         raw     = raw_temp;
         raw     = op_fddccorr(raw,100);                                     % Correct back to baseline
-
+        
+        if MRSCont.flags.hasMM %re_mm
+            [raw_temp_mm,~,~]   = op_removeWater(raw_mm,[4.5 4.9],20,0.75*length(raw.fids),0); % Remove the residual water
+            if isnan(real(raw_temp_mm.fids))
+                rr = 30;
+                while isnan(real(raw_temp_mm.fids))
+                    [raw_temp_mm,~,~]   = op_removeWater(raw_mm,[4.5 4.9],rr,0.75*length(raw.fids),0); % Remove the residual water
+                    rr = rr-1;
+                end
+            end
+            raw_mm     = raw_temp_mm;
+            raw_mm     = op_fddccorr(raw_mm,100);                                     % Correct back to baseline
+        end
 
         %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
         %%% DATA
         [refShift, ~] = osp_CrChoReferencing(raw);
-        [raw]             = op_freqshift(raw,-refShift);            % Reference to NAA @ 2.008 ppm         
+        [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation     
+        
+        if MRSCont.flags.hasMM %re_mm
+            [refShift, ~] = fit_OspreyReferencingMM(raw_mm);
+            [raw_mm]             = op_freqshift(raw_mm,-refShift);            % Reference spectra by cross-correlation
+            MRSCont.processed.mm{kk}       = raw_mm;                          % Save back to MRSCont container  %re_mm
+        end
 
+        
         % Save back to MRSCont container
         if strcmp(MRSCont.vendor,'Siemens')
             % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum

@@ -23,7 +23,7 @@ function  Osprey
 gui.colormap.Background = [255/255 254/255 254/255];
 gui.colormap.LightAccent = [110/255 136/255 164/255];
 gui.colormap.Foreground = [11/255 71/255 111/255];
-gui.colormap.Accent = [11/255 71/255 111/255];
+gui.colormap.Accent = [254/255 186/255 47/255];
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
@@ -99,7 +99,7 @@ function loadJob(gui)
             gui.colormap.Background = [255/255 254/255 254/255];
             gui.colormap.LightAccent = [110/255 136/255 164/255];
             gui.colormap.Foreground = [11/255 71/255 111/255];
-            gui.colormap.Accent = [11/255 71/255 111/255];
+            gui.colormap.Accent = [254/255 186/255 47/255];
         case 2    
             %Bluemode colormap
             gui.colormap.Background = [110/255 136/255 164/255];
@@ -129,7 +129,7 @@ function loadMRSCont(gui)
             gui.colormap.Background = [255/255 254/255 254/255];
             gui.colormap.LightAccent = [110/255 136/255 164/255];
             gui.colormap.Foreground = [11/255 71/255 111/255];
-            gui.colormap.Accent = [11/255 71/255 111/255];
+            gui.colormap.Accent = [254/255 186/255 47/255];
         case 2    
             %Bluemode colormap
             gui.colormap.Background = [110/255 136/255 164/255];

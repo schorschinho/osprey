@@ -36,6 +36,7 @@ end
 basisSet.specs(:,1)=-basisSet.specs(:,1);
 basisSet.specs(:,2)=-basisSet.specs(:,2);
 basisSet.specs(:,4)=-basisSet.specs(:,4);
+basisSet.specs(:,5)=-basisSet.specs(:,5);
 %%% 1. SELECT THE MODEL %%%
 switch fitModel
     case 'Osprey'

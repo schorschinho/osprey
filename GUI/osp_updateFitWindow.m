@@ -112,6 +112,7 @@ function osp_updateFitWindow(gui)
         delete(gui.Plot.fit.Children)
         set(ViewAxes.Children, 'Parent', gui.Plot.fit); %Update plot
         set(gui.Plot.fit.Title, 'String', ViewAxes.Title.String) %Update title
+        set(gui.Plot.fit,'Children',flipud(gui.Plot.fit.Children));
         set(gui.Plot.fit, 'XLim', ViewAxes.XLim) % Update Xlim
         set(gui.Plot.fit, 'YLim', ViewAxes.YLim) % Update Ylim
         set(gui.Plot.fit, 'Units', 'normalized');
