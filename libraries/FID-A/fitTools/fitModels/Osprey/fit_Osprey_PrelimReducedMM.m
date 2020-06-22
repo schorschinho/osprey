@@ -55,9 +55,9 @@ scalingT2 = sqrt(dataToFit.txfrq*1e-6 / 85.15); % scaling factor to account for 
 metabList.Cr    = 1;
 metabList.NAA   = 1;
 metabList.CrCH2   = 1;
-nMets = numel(fieldnames(metabList));
 fitMM = 0;
 reducedBasisSet     = fit_selectMetabs(basisSet, metabList, fitMM);
+nMets = length(reducedBasisSet.name);
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
 [splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.2);
