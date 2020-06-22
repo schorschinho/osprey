@@ -36,7 +36,7 @@ function osp_updateSpecsOvWindow(gui)
                 close( figpl );
         end
         switch Selection{1}
-            case {'A','B','C','D','diff1','diff2','sum'}        
+            case {'A','B','C','D','diff1','diff2','sum','MM','MM_clean'}        
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
             case {'ref','w','Fit:ref','Fit:w'}
