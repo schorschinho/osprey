@@ -104,10 +104,27 @@ if MRSCont.flags.isUnEdited
             residual_sd = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['sd_res_' fit '_' which_spec]);
             ppm = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['ppm_fit_' fit '_' which_spec]);
         case {'mm'}
-            name = 'mm';
-            data_mean = MRSCont.overview.Osprey.sort_data.(['g_' num2str(g)]).(['mean_' which_spec]);
-            data_sd = MRSCont.overview.Osprey.sort_data.(['g_' num2str(g)]).(['sd_' which_spec]);
-            ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);
+%             name = 'mm';
+%             data_mean = MRSCont.overview.Osprey.sort_data.(['g_' num2str(g)]).(['mean_' which_spec]);
+%             data_sd = MRSCont.overview.Osprey.sort_data.(['g_' num2str(g)]).(['sd_' which_spec]);
+%             ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);
+            
+            fit = 'mm';
+            fit_mean = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['mean_' fit '_' which_spec]);
+            fit_sd = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['sd_' fit '_' which_spec]);
+            data_mean = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['mean_data_' fit '_' which_spec]);
+            data_sd = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['sd_data_' fit '_' which_spec]);
+            baseline_mean = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['mean_baseline_' fit '_' which_spec]);
+            baseline_sd = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['sd_baseline_' fit '_' which_spec]);
+            residual_mean = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['mean_res_' fit '_' which_spec]);
+            residual_sd = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['sd_res_' fit '_' which_spec]);
+            ppm = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['ppm_fit_' fit '_' which_spec]);
+            MM_clean_mean = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['mean_MM_clean_' fit '_' which_spec]);
+            MM_clean_sd = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['sd_MM_clean_' fit '_' which_spec]);
+            if MRSCont.opts.fit.fitMM
+                MM_mean = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['mean_fittMM_' fit '_' which_spec]);
+                MM_sd = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).(['sd_fittMM_' fit '_' which_spec]);
+            end
     end
 end
 if MRSCont.flags.isMEGA
@@ -256,6 +273,10 @@ if exist('residual_mean', 'var')
     residual_yu = residual_mean + residual_sd;
     residual_yl = residual_mean - residual_sd;
 end
+if exist('MM_clean_sd', 'var')
+    MM_clean_yu = MM_clean_mean + MM_clean_sd;
+    MM_clean_yl = MM_clean_mean - MM_clean_sd;
+end
 if exist('MM_mean', 'var')
     MM_yu = MM_mean + MM_sd;
     MM_yl = MM_mean - MM_sd;
@@ -297,6 +318,11 @@ if MRSCont.flags.isGUI
     end
 
     plot(ppm,data_mean+shift ,'color',cb(g,:), 'LineWidth', 2); % Data
+    
+    if strcmp(which_spec,'mm') % re_mm 
+        fill([ppm fliplr(ppm)], [MM_clean_yu+maxshift_abs*1.2 fliplr(MM_clean_yl)+maxshift_abs*1.2], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow cleaned MM data
+        plot(ppm,MM_clean_mean+maxshift_abs*1.2 ,'color',[1 0 0.1], 'LineWidth', 2); % Data cleaned for MM data       
+    end
 
 
     if exist('fit_mean', 'var')
@@ -342,6 +368,11 @@ else
     end
     if exist('MM_mean', 'var')
         plot(ppm,MM_mean+baseline_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %MM Baseline
+    end
+    
+    if strcmp(which_spec,'mm') % re_mm 
+        fill([ppm fliplr(ppm)], [MM_clean_yu+maxshift_abs*1.2 fliplr(MM_clean_yl)+maxshift_abs*1.2], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow cleaned MM data
+        plot(ppm,MM_clean_mean+maxshift_abs*1.2 ,'color',[1 0 0.1], 'LineWidth', 2); % Data cleaned for MM data       
     end
 
 end
