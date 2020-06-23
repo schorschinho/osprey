@@ -405,10 +405,12 @@ for kk = 1 : MRSCont.nDatasets
         if MRSCont.flags.isUnEdited 
             if MRSCont.flags.hasMM %re_mm
                 MRSCont.overview.Osprey.all_data.mm{1,kk}.specs =  MRSCont.overview.Osprey.all_data.mm{1,kk}.specs/MRSCont.fit.scale{kk}; %re_mm
-                MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.fit =  MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.fit/MRSCont.fit.scale{kk};
-                MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.MM_clean =  MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.MM_clean/MRSCont.fit.scale{kk};
-                MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.fitNAA =  MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.fitNAA;
-                MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.fittCr =  MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.fittCr;
+                names = fields(MRSCont.overview.Osprey.all_models.mm_mm{1,kk});
+                for f = 1 : length(names)
+                     if ~strcmp(names{f},'ppm')
+                        MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.(names{f})= MRSCont.overview.Osprey.all_models.mm_mm{1,kk}.(names{f})/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                     end
+                end
             end %re_mm
             if MRSCont.flags.hasRef
                 MRSCont.overview.Osprey.all_data.ref{1,kk}.specs =  MRSCont.overview.Osprey.all_data.ref{1,kk}.specs/MRSCont.fit.scale{kk};

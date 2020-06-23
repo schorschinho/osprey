@@ -302,9 +302,13 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
 end
 
 if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
-        plot(ax_raw, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
-        plot(ax_raw, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
-        plot(ax_raw, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);       
+    plot(ax_raw, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
+    plot(ax_raw, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
+    if ~strcmp(which_spec, 'mm')
+        plot(ax_raw, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5); 
+    else
+        plot(ax_raw, [3.9 3.9], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+    end        
 end
 hold(ax_raw, 'off');
 title(ax_raw, 'Pre-alignment', 'Color', colormap.Foreground);
@@ -426,7 +430,11 @@ end
 if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
     plot(ax_aligned, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
     plot(ax_aligned, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
-    plot(ax_aligned, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);        
+    if ~strcmp(which_spec, 'mm')
+        plot(ax_aligned, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5); 
+    else
+        plot(ax_aligned, [3.9 3.9], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+    end    
 end
 hold(ax_aligned, 'off');
 title(ax_aligned, 'Post-alignment', 'Color', colormap.Foreground);
@@ -451,7 +459,11 @@ set(ax_proc, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
 if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
     plot(ax_proc, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
     plot(ax_proc, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
-    plot(ax_proc, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);          
+    if ~strcmp(which_spec, 'mm')
+        plot(ax_proc, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5); 
+    else
+        plot(ax_proc, [3.9 3.9], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+    end
 end
 hold(ax_proc, 'off');
 title(ax_proc, 'Aligned and averaged', 'Color', colormap.Foreground);
