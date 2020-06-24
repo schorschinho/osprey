@@ -76,8 +76,7 @@ completeFit = A * ampl + baseline;
 
 %Computation of the Jacobian
 % The size is MxN with M (number of estimated parameters) and N (number of
-% points). The parameters are (ampl, freqShift, lorentzLB, gaussLB, lineshape
-% ,ph0 and ph1). In this case M = 7 * nMets + 6 * nMM.
+% points).
 
 %Store the indices of the different partial derivatives 
 ph0Col = 1;
