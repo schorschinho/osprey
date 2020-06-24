@@ -64,7 +64,7 @@ for kk = 1:MRSCont.nDatasets
             dataToFit_mm   = MRSCont.processed.mm{kk};
             dataToFit_mm   = op_ampScale(dataToFit_mm, 1/MRSCont.fit.scale{kk});
             %add some info from the metabolite fit
-            %dataToFit_mm.refShift  = fitParams.refShift; %%%%%%%%%%%% here
+            dataToFit_mm.lineShape  = fitParams.lineShape;
             dataToFit_mm.refFWHM  = fitParams.refFWHM;
             % Extract fit options
             fitOpts_mm    = MRSCont.opts.fit;

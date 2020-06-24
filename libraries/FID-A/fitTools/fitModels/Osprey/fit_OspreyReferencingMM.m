@@ -30,7 +30,7 @@ function [refShift, refFWHM] = fit_OspreyReferencingMM(dataToFit)
 %
 
 % Calculate power spectrum to estimate reference shift and FWHM
-dataToFit=op_freqrange(dataToFit,1.85,4.2);
+dataToFit=op_freqrange(dataToFit,0.5,4.2);
 spec = dataToFit.specs;
 ppm  = dataToFit.ppm;
 realspec = real(spec);

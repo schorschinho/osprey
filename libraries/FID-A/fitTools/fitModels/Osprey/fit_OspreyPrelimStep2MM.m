@@ -117,6 +117,9 @@ lineShape(ceil(N_s/2)) = 1;
 % Normalize
 lineShape = lineShape/sum(lineShape);
 
+% lineShape = dataToFit.lineShape; %If we want to superimpose fixed
+% constraints use this HZ
+
 % Concatenate all initial guesses together into one large x0 vector.
 x0          = [ph0; ph1; gaussLB; lorentzLB; freqShift; ampl; lineShape];
 
@@ -179,6 +182,16 @@ lb_ampl             = -Inf * ones(nMets+nMM+size(splineArray,2),1);
 ub_ampl             = +Inf * ones(nMets+nMM+size(splineArray,2),1); % Amplitude for metabolite and spline basis functions
 lb_lineShape        = -Inf * ones(size(lineShape));
 ub_lineShape        = +Inf * ones(size(lineShape)); % Lineshape coefficients
+
+% for ls = 1 : length(lineShape) % Almost hard constraints to the lineshape model
+%     if lineShape(ls) < 0
+%         lb_lineShape(ls) = lineShape(ls) * 1.001;
+%         ub_lineShape(ls) = lineShape(ls) * 0.999;
+%     else
+%         lb_lineShape(ls) = lineShape(ls) * 0.999;
+%         ub_lineShape(ls) = lineShape(ls) * 1.001;        
+%     end
+% end
 
 % Concatenate together into LB/UB vectors
 lb = [lb_ph0; lb_ph1; lb_gaussLB; lb_lorentzLB_mets; lb_lorentzLB_MM; lb_freqShift_mets; lb_freqShift_MM; lb_ampl; lb_lineShape];
