@@ -215,8 +215,8 @@ for kk = 1:MRSCont.nDatasets
         [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation     
         
         if MRSCont.flags.hasMM %re_mm
-            [refShift, ~] = fit_OspreyReferencingMM(raw_mm);
-            [raw_mm]             = op_freqshift(raw_mm,-refShift);            % Reference spectra by cross-correlation
+            [refShift_mm, ~] = fit_OspreyReferencingMM(raw_mm);
+            [raw_mm]             = op_freqshift(raw_mm,-refShift_mm);            % Reference spectra by cross-correlation
             MRSCont.processed.mm{kk}       = raw_mm;                          % Save back to MRSCont container  %re_mm
         end
 
