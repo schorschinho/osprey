@@ -50,90 +50,6 @@ basisSet.fids = ifft(fftshift(basisSet.specs,1),[],1);
 [npoints,~] = size(basisSet.fids); %number of points and number of basis functions
 t = basisSet.t;
 
-%Computation of the Jacobian
-% The size is MxN with M (number of estimated parameters) and N (number of
-% points). The parameters are (ampl, freqShift, lorentzLB, gaussLB, lineshape
-% ,ph0 and ph1). In this case M = 7 * nMets + 6 * nMM.
-
-J = zeros(npoints,7 * nMets + 6 * nMM);
-Jfd = zeros(npoints,7 * nMets + 6 * nMM);
-
-%Store the indices of the diferent partial derivatives 
-amplCol = 1:nMets+nMM;
-freqShiftCol = nMets+nMM+1 : 2*(nMets+nMM);
-lorentzLBCol = 2*(nMets+nMM)+1 : 3*(nMets+nMM);
-gaussLBCol = 3*(nMets+nMM)+1 : 4*(nMets+nMM);
-lineshapeCol = 4*(nMets+nMM)+1 : (4*(nMets+nMM) + nMets);
-ph0Col = ones(1,nMets+nMM)*lineshapeCol(end) + 1;
-ph1Col = ones(1,nMets+nMM)*lineshapeCol(end) + 2;
-
-% derivative  wrt amplitude 
-for ii=1:nBasisFcts
-    col = amplCol(ii);
-    J(:,col) = J(:,col)+basisSet.fids(:,ii);
-    Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
-    Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same')*ampl(ii);
-end
-
-%derivative wrt freqShift
-for ii=1:nBasisFcts
-    col = freqShiftCol(ii);
-    J(:,col) = J(:,col)+j*basisSet.fids(:,ii)*ampl(ii).*t';
-    Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
-    Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same');
-end
-
-%derivative wrt lorentzLB
-for ii = 1:nBasisFcts
-    col = lorentzLBCol(ii);
-    J(:,col) = J(:,col)-basisSet.fids(:,ii)*ampl(ii).*t';
-    Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
-    Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same');    
-end
-
-%derivative wrt gaussLB
-for ii = 1:nBasisFcts
-    col = gaussLBCol(ii);
-    J(:,col) = J(:,col)-basisSet.fids(:,ii)*ampl(ii).*(t.^2)';
-    Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
-    Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same');    
-end
-
-%derivative wrt lineshape S (not sure how to handle these)
-for ii = 1:nBasisFcts
-    col = lineshapeCol(ii);
-    J(:,col) = J(:,col)+0;
-    Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
-    Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same');    
-end
-
-%derivative wrt ph0
-for ii = 1:nBasisFcts
-    col = ph0Col(ii);
-    J(:,col) = J(:,col)+j*basisSet.fids(:,ii)*ampl(ii);
-    Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
-    Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same');    
-end
-
-%derivative wrt ph1
-for ii = 1:nBasisFcts
-    col = ph1Col(ii);
-    J(:,col) = J(:,col)+j*basisSet.fids(:,ii)*ampl(ii);
-    Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
-    Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same');    
-end
-
-
-% Convolve the lineshape with the metabolite basis functions only
-% (NOT the macromolecules or lipids or baseline splines).
-A = basisSet.specs;
-for kk = 1:nMets
-    A(:,kk) = conv(A(:,kk), lineShape, 'same');
-end
-
-
-% Select fit range
-dataToFit   = op_freqrange(dataToFit,fitRangePPM(1),fitRangePPM(2));
 % Create an array of normalized cubic baseline spline basis functions.
 [splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
 if length(fitParams.beta_j)>size(splineArray,2)
@@ -146,9 +62,160 @@ B = B  * exp(1i*ph0);
 B = B .* exp(1i*ph1*multiplier);
 % B = [real(B)];
 
+% Convolve the lineshape with the metabolite basis functions only
+% (NOT the macromolecules or lipids or baseline splines).
+A = basisSet.specs;
+for kk = 1:nMets
+    A(:,kk) = conv(A(:,kk), lineShape, 'same');
+end
+
 % Calculate the final baseline
 baseline    = B * beta_j;
 completeFit = A * ampl + baseline;
+
+
+%Computation of the Jacobian
+% The size is MxN with M (number of estimated parameters) and N (number of
+% points).
+
+%Store the indices of the different partial derivatives 
+ph0Col = 1;
+ph1Col = 2;
+gaussLBCol = 3 * ones(1,nMets + nMM);
+lorentzLBCol = gaussLBCol(end) + 1 : (gaussLBCol(1) + nMets + nMM);
+freqShiftCol = lorentzLBCol(end) + 1 : (lorentzLBCol(end) + nMets + nMM);
+AmplCol = freqShiftCol(end) + 1 : (freqShiftCol(end) + nMets + nMM);
+SplineAmplCol = AmplCol(end) + 1 : (AmplCol(end) + size(splineArray,2));
+lineshapeCol = SplineAmplCol(end)+1 : SplineAmplCol(end) + length(lineShape);
+
+nparams = 3 + length(lorentzLBCol) + length(freqShiftCol) + length(AmplCol) + length(SplineAmplCol) + length(lineshapeCol);
+
+J = zeros(npoints,nparams);
+Jfd = zeros(npoints,nparams);
+
+
+%derivative wrt ph0
+% for ii = 1:nMets
+%     col = ph0Col(ii);
+%     J(:,col) = J(:,col)+j*basisSet.fids(:,ii)*ampl(ii);
+%     Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
+%     Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same') + B * beta_j;    
+% end
+Jfd(:,1) = j * completeFit;
+
+%derivative wrt ph1
+% for ii = 1:nBasisFcts
+%     col = ph1Col(ii);
+%     J(:,col) = J(:,col)+j*basisSet.fids(:,ii)*ampl(ii);
+%     Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
+%     Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same') + B * beta_j;    
+% end
+Jfd(:,2) = j * completeFit;
+
+%derivative wrt gaussLB
+for ii = 1:nBasisFcts
+    if ii <= nMets % Sum up derivarives of all metabolite functions first
+        col = gaussLBCol(ii);
+        J(:,col) = J(:,col)-basisSet.fids(:,ii).*(t.^2)';
+        Jfd(:,col) = Jfd(:,col) +  conv(fftshift(fft(-basisSet.fids(:,ii).*(t.^2)',[],1),1), lineShape, 'same')*ampl(ii); 
+    else  % No convolution is applied to the MM functions
+        J(:,col) = J(:,col)-basisSet.fids(:,ii).*(t.^2)';
+        Jfd(:,col) = Jfd(:,col) +  fftshift(fft(-basisSet.fids(:,ii).*(t.^2)',[],1),1)*ampl(ii);             
+    end
+end
+
+
+%derivative wrt lorentzLB
+for ii = 1:nBasisFcts
+    if ii <= nMets % Sum up derivarives of all metabolite functions first
+        col = lorentzLBCol(ii);
+        J(:,col) = J(:,col)-basisSet.fids(:,ii).*t';
+        Jfd(:,col) = Jfd(:,col) +  conv(fftshift(fft(J(:,col),[],1),1), lineShape, 'same')*ampl(ii);  
+    else % No convolution is applied to the MM functions
+        col = lorentzLBCol(ii);
+        J(:,col) = J(:,col)-basisSet.fids(:,ii).*t';
+        Jfd(:,col) = Jfd(:,col) +  fftshift(fft(J(:,col),[],1),1)*ampl(ii);         
+    end
+end
+
+%derivative wrt freqShift
+for ii=1:nBasisFcts
+    if ii <= nMets  % Sum up derivarives of all metabolite functions first
+        col = freqShiftCol(ii);
+        J(:,col) = J(:,col)+j*basisSet.fids(:,ii).*t';
+        Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
+        Jfd(:,col) = Jfd(:,col) +  conv(fftshift(fft(J(:,col),[],1),1), lineShape, 'same')*ampl(ii);  
+    else % No convolution is applied to the MM functions
+        col = freqShiftCol(ii);
+        J(:,col) = J(:,col)+j*basisSet.fids(:,ii).*t';
+        Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
+        Jfd(:,col) = Jfd(:,col) + fftshift(fft(J(:,col),[],1),1)*ampl(ii);          
+    end
+end
+
+% derivative  wrt basis set  amplitudes 
+for ii=1:nBasisFcts
+    if ii <= nMets
+        col = AmplCol(ii);
+        J(:,col) = basisSet.fids(:,ii);
+        Jfd(:,col) = conv(fftshift(fft(J(:,col),[],1),1), lineShape, 'same');
+    else
+        col = AmplCol(ii);
+        J(:,col) = basisSet.fids(:,ii);
+        Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);    
+    end
+end
+
+
+% derivative wrt spline amplitudes
+for ii=1:length(SplineAmplCol)
+    col = SplineAmplCol(ii);
+    Jfd(:,col) = Jfd(:,col)+B(:,ii);
+end
+
+
+%derivative wrt lineshape 
+% We will do a discrete convolution of S'*M by using the Toeplitz matrix
+% form of the partial derivative of the lineshape vector S and M beeing 
+% the metabolite basis functions. This is allowed as convolutions are 
+% commutative and (M*S)' = M'*S = M*S' -> (M*S)' = S'*M.
+
+%We need to create S' as a Toeplitz matrix. The derivatives will
+%essantially be ones on the diagonal (first lineshape coeff) or the upper off
+%diagonal (all other lineshape coeff). 
+
+nLineShape = length(lineShape);
+nPoints = length(basisSet.fids(:,1));
+
+%Set up the first rows of each partial derivative
+Toep1row = zeros(nLineShape,nPoints);
+for ii = 1 : nLineShape
+    Toep1row(ii,ii) = 1; 
+end
+
+%We will set it up as a 3D vector with the partial derivatives in the third dimensions and the
+%Toeplitz matrix spanning the first two dimensions.
+ToepLineShape = zeros(nPoints,nPoints,nLineShape);
+for ii = 1 : nLineShape
+    if ii <= 1
+        ToepLineShape(:,:,ii) = toeplitz(Toep1row(ii,:));
+    else
+        ToepLineShape(:,:,ii) = tril(toeplitz(Toep1row(ii,:))); % extract lower triangle of the Toeplitz matrix
+    end
+end
+
+for ii=1:nLineShape % Loop over the lineshape derivatives
+    col = lineshapeCol(ii);
+    for kk = 1 : nMets % Convolute all basis functions to create the full model function
+        J(:,col) = J(:,col)+basisSet.fids(:,kk);
+        Jfd(:,col) = Jfd(:,col) + (ToepLineShape(:,:,ii) * fftshift(fft(basisSet.fids(:,kk),[],1),1));
+    end
+        
+end
+
+
+% Select fit range
+dataToFit   = op_freqrange(dataToFit,fitRangePPM(1),fitRangePPM(2));
 
 
 % Calculate the residual
@@ -161,7 +228,7 @@ dataToFit   = op_freqshift(dataToFit, -refShift);
 sigma   = std(real(dataToFit.specs)-real(completeFit));
 
 %calculate the fisher matrix
-fisher = (1./(sigma^2)) * real(Jfd(:,1:nBasisFcts).'*Jfd(:,1:nBasisFcts));
+fisher = (1./(sigma^2)) * real(Jfd.'*Jfd);
 
 % Get non zero values from the fisher matrix
 non_zero_values = find(sum(fisher,1)~=0);
@@ -180,7 +247,8 @@ end
 
 %Calculate relativ error of the amplitude estimates
 for ii = 1:nBasisFcts
-   relative_CRLB(ii) = 100./(ampl(ii)/CRLB(ii,ii));
+    col = AmplCol(ii);
+   relative_CRLB(ii) = 100./(ampl(ii)/CRLB(col,col));
 end
 
 %Relative CRLBs in percent
