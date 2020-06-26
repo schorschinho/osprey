@@ -110,7 +110,7 @@ Jfd(:,1) = j * completeFit;
 %     Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
 %     Jfd(:,col) = conv(Jfd(:,col), lineShape, 'same') + B * beta_j;    
 % end
-Jfd(:,2) = j * completeFit;
+Jfd(:,2) = j *  completeFit .* multiplier;
 
 %derivative wrt gaussLB
 for ii = 1:nBasisFcts
@@ -142,13 +142,11 @@ end
 for ii=1:nBasisFcts
     if ii <= nMets  % Sum up derivarives of all metabolite functions first
         col = freqShiftCol(ii);
-        J(:,col) = J(:,col)+j*basisSet.fids(:,ii).*t';
-        Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
+        J(:,col) = J(:,col)-j*basisSet.fids(:,ii).*t';
         Jfd(:,col) = Jfd(:,col) +  conv(fftshift(fft(J(:,col),[],1),1), lineShape, 'same')*ampl(ii);  
     else % No convolution is applied to the MM functions
         col = freqShiftCol(ii);
-        J(:,col) = J(:,col)+j*basisSet.fids(:,ii).*t';
-        Jfd(:,col) = fftshift(fft(J(:,col),[],1),1);
+        J(:,col) = J(:,col)-j*basisSet.fids(:,ii).*t';
         Jfd(:,col) = Jfd(:,col) + fftshift(fft(J(:,col),[],1),1)*ampl(ii);          
     end
 end
@@ -208,7 +206,7 @@ for ii=1:nLineShape % Loop over the lineshape derivatives
     col = lineshapeCol(ii);
     for kk = 1 : nMets % Convolute all basis functions to create the full model function
         J(:,col) = J(:,col)+basisSet.fids(:,kk);
-        Jfd(:,col) = Jfd(:,col) + (ToepLineShape(:,:,ii) * fftshift(fft(basisSet.fids(:,kk),[],1),1));
+        Jfd(:,col) = Jfd(:,col) + ampl(ii)*(ToepLineShape(:,:,ii) * fftshift(fft(basisSet.fids(:,kk),[],1),1));
     end
         
 end
@@ -230,21 +228,22 @@ sigma   = std(real(dataToFit.specs)-real(completeFit));
 %calculate the fisher matrix
 fisher = (1./(sigma^2)) * real(Jfd.'*Jfd);
 
-% Get non zero values from the fisher matrix
-non_zero_values = find(sum(fisher,1)~=0);
-non_zero_fisher = fisher(non_zero_values,non_zero_values);
+% % Get non zero values from the fisher matrix
+% non_zero_values = find(sum(fisher,1)~=0);
+% non_zero_fisher = fisher(non_zero_values,non_zero_values);
+% 
+% %Calculate the invers fisher matrix
+% non_zero_CRLB   = sqrt(inv(non_zero_fisher));
+% 
+% %Fill the non zero CRLBs back into the matrix
+% CRLB = zeros(nBasisFcts);
+% for ii = 1:length(non_zero_values)
+%     for jj = 1:length(non_zero_values)
+%         CRLB(non_zero_values(jj),non_zero_values(ii)) = non_zero_CRLB(jj,ii);
+%     end
+% end
 
-%Calculate the invers fisher matrix
-non_zero_CRLB   = sqrt(inv(non_zero_fisher));
-
-%Fill the non zero CRLBs back into the matrix
-CRLB = zeros(nBasisFcts);
-for ii = 1:length(non_zero_values)
-    for jj = 1:length(non_zero_values)
-        CRLB(non_zero_values(jj),non_zero_values(ii)) = non_zero_CRLB(jj,ii);
-    end
-end
-
+ CRLB   = sqrt(pinv(fisher));
 %Calculate relativ error of the amplitude estimates
 for ii = 1:nBasisFcts
     col = AmplCol(ii);
