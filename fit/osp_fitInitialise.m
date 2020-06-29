@@ -48,7 +48,6 @@ if MRSCont.flags.isUnEdited
 elseif MRSCont.flags.isMEGA
     switch MRSCont.vendor
         case 'Philips'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/philips/mega/' seq '_' editTarget te '/basis_philips_megapress_' editTarget te '.mat']);
         case 'GE'
             MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/ge/mega/' seq '_' editTarget te '/basis_ge_megapress_' editTarget te '.mat']);
         case 'Siemens'
