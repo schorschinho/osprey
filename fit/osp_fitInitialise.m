@@ -29,6 +29,9 @@ seq = seq(~ismember(seq, char([10 13]))); % remove return or carriage return
 if strcmp(MRSCont.vendor,'GE') % Still need to find a way to destinguish GE sequences
     seq = 'press';
 end
+if contains(seq,'gaba_par')
+    seq = 'press';
+end
 if contains(seq,'press')
     seq = 'press';
 end
@@ -46,19 +49,21 @@ if MRSCont.flags.isUnEdited
             MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/siemens/unedited/' seq '/' te '/basis_siemens_' seq te '.mat']); 
     end
 elseif MRSCont.flags.isMEGA
+    editTarget = lower(MRSCont.opts.editTarget{1});  
     switch MRSCont.vendor
         case 'Philips'
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/philips/mega/' seq '/' editTarget te '/basis_philips_megapress_' editTarget te '.mat']);
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/ge/mega/' seq '_' editTarget te '/basis_ge_megapress_' editTarget te '.mat']);
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/ge/mega/' seq '/' editTarget te '/basis_ge_megapress_' editTarget te '.mat']);
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/siemens/mega/' seq '_' editTarget te '/basis_siemens_megapress_' editTarget te '.mat']);
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/siemens/mega/' seq '/' editTarget te '/basis_siemens_megapress_' editTarget te '.mat']);
     end
 elseif MRSCont.flags.isHERMES
     switch MRSCont.vendor
         case 'Philips'
             MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hermes/basis_siemens_hermes.mat');
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/GE/HERMES/BASIS_noMM.mat');
+            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hermes/basis_siemens_hermes.mat');
         case 'Siemens'
             MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hermes/basis_siemens_hermes.mat');
     end
@@ -67,7 +72,7 @@ elseif MRSCont.flags.isHERCULES
         case 'Philips'
             MRSCont.opts.fit.basisSetFile        = which('fit/basissets/philips/hercules-press/basis_philips_hercules-press.mat');
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/GE/HERCULES/BASIS.mat');
+            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/philips/hercules-press/basis_philips_hercules-press.mat');
         case 'Siemens'
             MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hercules-press/basis_siemens_hercules-press.mat');
     end
@@ -75,11 +80,21 @@ end
 
 % Clear existing basis set
 MRSCont.fit.basisSet = [];
-% Load the specified basis set
 
+% Check if automated basis set pick worked, otherwise the basis set from
+% the user folder is loaded.
+if isempty(MRSCont.opts.fit.basisSetFile)
+    addpath( which('fit/basissets'));
+    MRSCont.opts.fit.basisSetFile = which('fit/basissets/user/BASIS_MM.mat');
+    if isempty(MRSCont.opts.fit.basisSetFile)
+        error('There is no appropriate basis set to model your data. Please supply a sufficient basis set in Osprey .mat format in the fit/basissets/user/BASIS_MM.mat file! ');
+    end
+end
+
+% Load the specified basis set or the user basis set file
 basisSet = load(MRSCont.opts.fit.basisSetFile);
 basisSet = basisSet.BASIS;
-
+    
 % Generate the list of basis functions that are supposed to be included in
 % the basis set
 % To do: Interface with interactive user input
@@ -106,6 +121,7 @@ basisSet = fit_selectMetabs(basisSet, metabList, fitMM);
 for kk = 1:MRSCont.nDatasets
     MRSCont.fit.scale{kk} = max(real(MRSCont.processed.A{kk}.specs)) / max(max(max(real(basisSet.specs))));
 end
+
 
 % Save the modified basis set
 MRSCont.fit.basisSet = basisSet;
