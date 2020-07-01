@@ -36,7 +36,7 @@ function osp_onSave( ~, ~,gui)
         mkdir(outputFolder);
     end
     MRSCont.flags.isGUI = 0;
-    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
     MRSCont.flags.isGUI = 1;
     fprintf('... done.\n');
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class

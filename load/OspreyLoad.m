@@ -149,10 +149,10 @@ end
 % Gather some more information from the processed data;
 if  MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
-    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
     MRSCont.flags.isGUI = 1;
 else
-   save(fullfile(outputFolder, outputFile), 'MRSCont');
+   save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
 end
 
 end

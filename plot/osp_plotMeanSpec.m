@@ -305,7 +305,7 @@ if MRSCont.flags.isGUI
         if ~group
             plot(ppm,residual_mean+shift+ max(maxshift +  abs(min(residual_mean))) ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);  %Residual
         else
-            plot(ppm,residual_mean+shift ,'color', cb(g,:), 'LineWidth', 1);  %Residual
+            plot(ppm,residual_mean+shift-maxshift_abs*0.1 ,'color', cb(g,:), 'LineWidth', 1);  %Residual
         end
     end
 
