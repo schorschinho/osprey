@@ -84,6 +84,9 @@ classdef OspreyGUI < handle
        % Load selected colormap     
             gui.colormap = MRSCont.colormap;
             
+        % Set GM plot to on
+        gui.controls.GM = 1;
+            
         %Setting up inital values for the gui control variables
         %Global controls
             gui.controls.Selected = 1;
@@ -415,11 +418,15 @@ classdef OspreyGUI < handle
                 set(gui.controls.pop_corrOvQuant,'callback',{@osp_pop_corrOvQuant_Call,gui});
                 set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui});
                 set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
-                set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
+                set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});                
+                set(gui.controls.check_specsOvPlot,'callback',{@osp_check_specsOvPlot_Call,gui});
+                set(gui.controls.check_meanOvPlot,'callback',{@osp_check_meanOvPlot_Call,gui});
+                set(gui.controls.check_distrOv,'callback',{@osp_check_distrOv_Call,gui});         
                 set(gui.controls.b_save_specOvTab,'Callback',{@osp_onPrint,gui});
                 set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
                 set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
                 set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
+                
             end
             gui.layout.tabs.Selection  = 1;
             if ~MRSCont.flags.didLoadData %Turn of Listbox if data has not been loaded    

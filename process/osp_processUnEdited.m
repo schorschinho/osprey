@@ -257,6 +257,7 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.QM.freqShift.A(kk)  = refShift;
         MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre - 3.02);
         MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost - 3.02);
+        MRSCont.QM.res_water_amp.A(kk) = sum(MRSCont.processed.A{kk}.watersupp.amp);
         if MRSCont.flags.hasMM
             MRSCont.QM.SNR.mm(kk)    = op_getSNR(MRSCont.processed.mm{kk},0.7,1.1); % water amplitude over noise floor
             FWHM_Hz                 = op_getLW(MRSCont.processed.mm{kk},0.7,1.1); % in Hz
