@@ -27,13 +27,22 @@ function osp_updateSpecsOvWindow(gui)
         delete(gui.Plot.specsOv.Children(2).Children)
 %%% 2. VISUALIZATION PART OF THIS TAB %%%
         Selection = gui.controls.pop_specsOvPlot.String(gui.process.Selected);
-        for g = 1 :  gui.overview.Number.Groups %Loop over groups
-            temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind);
-                ax=get(temp,'Parent');
-                figpl = get(ax,'Parent');
-                copyobj(ax.Children, gui.Plot.specsOv.Children(2));
-                % Get rid of the Load figure
-                close( figpl );
+        if gui.controls.GM == 0
+            for g = 1 :  gui.overview.Number.Groups %Loop over groups
+                temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind);
+                    ax=get(temp,'Parent');
+                    figpl = get(ax,'Parent');
+                    copyobj(ax.Children, gui.Plot.specsOv.Children(2));
+                    % Get rid of the Load figure
+                    close( figpl );
+            end
+        else
+           temp = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind);
+            ax=get(temp,'Parent');
+            figpl = get(ax,'Parent');
+            copyobj(ax.Children, gui.Plot.specsOv.Children(2));
+            % Get rid of the Load figure
+            close( figpl );           
         end
         switch Selection{1}
             case {'A','B','C','D','diff1','diff2','sum','MM','MM_clean'}        

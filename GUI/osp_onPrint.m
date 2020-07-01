@@ -416,41 +416,52 @@ function osp_onPrint( ~, ~ ,gui)
                 case 1 %SpecOverview
                     Selection = gui.controls.pop_specsOvPlot.String(gui.process.Selected);
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview','Individual');
-                    outputFile  = [Selection{1} '.pdf']; 
-                    for g = 1 :  gui.overview.Number.Groups %Loop over groups
-                        temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind);
-                        if g == 1
-                            temp = get(temp,'Parent');
-                            fig_hold = get(temp,'Parent');
-                        else
-                            ax=get(temp,'Parent');
-                            copyobj(ax.Children, fig_hold.Children(1));
-                            close_fig= get(ax,'Parent');
-                            close(close_fig);
-                        end
+                    if gui.controls.GM == 0
+                        outputFile  = [Selection{1} '.pdf']; 
+                        for g = 1 :  gui.overview.Number.Groups %Loop over groups
+                            temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind);
+                            if g == 1
+                                temp = get(temp,'Parent');
+                                fig_hold = get(temp,'Parent');
+                            else
+                                ax=get(temp,'Parent');
+                                copyobj(ax.Children, fig_hold.Children(1));
+                                set(fig_hold.Children, 'Parent', Plot );
+                                close_fig= get(ax,'Parent');
+                            end
 
-                    end
-                    set(fig_hold.Children, 'Parent', Plot );
+                        end
+                    else
+                        outputFile  = [Selection{1} 'Grand_mean.pdf']; 
+                       temp = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind);
+                       temp = get(temp,'Parent');
+                       fig_hold = get(temp,'Parent'); 
+                       set(fig_hold.Children, 'Parent', Plot );
+                    end                   
                     close(fig_hold);
                 case 2 %MeanOverview
                     Selection = gui.controls.pop_meanOvPlot.String(gui.process.Selected);
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Mean');
-                    outputFile  = [Selection{1} '.pdf'];                    
-                    for g = 1 :  gui.overview.Number.Groups
-                        if gui.overview.Number.Groups > 1
-                            temp = osp_plotMeanSpec(MRSCont, Selection{1},g,1/gui.overview.Number.Groups);
-                            delete(temp.Children(1))
-                            if g == 1
-                                fig_hold = temp;
+                    if gui.controls.GM == 0
+                        outputFile  = [Selection{1} '.pdf'];
+                        for g = 1 :  gui.overview.Number.Groups
+                            if gui.overview.Number.Groups > 1
+                                temp = osp_plotMeanSpec(MRSCont, Selection{1},g,1,1/gui.overview.Number.Groups);
+                                if g == 1
+                                    fig_hold = temp;
+                                else
+                                    ax=get(temp,'Children');
+                                    lines=get(ax,'Children');
+                                    copyobj(lines, fig_hold.Children(1));
+                                    close(temp);
+                                end   
                             else
-                                ax=get(temp,'Children');
-                                lines=get(ax,'Children');
-                                copyobj(lines, fig_hold.Children(1));
-                                close(temp);
-                            end   
-                        else
-                            fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},g);
+                                fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},g);
+                            end
                         end
+                    else
+                        outputFile  = [Selection{1} 'Grand_mean.pdf'];
+                        fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1);
                     end
                     set(fig_hold.Children, 'Parent', Plot );
                     close(fig_hold);
@@ -465,10 +476,18 @@ function osp_onPrint( ~, ~ ,gui)
                         else
                             metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
                         end
-                        fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');
+                        if ~gui.controls.GM
+                            fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');
+                        else
+                            fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',1);
+                        end
                     else
                        quality = {'SNR','FWHM','freqShift'};
-                        fig_hold = osp_plotRaincloud(MRSCont,'Quality','Quality',quality{gui.overview.Selected.Metab},'Raincloud plot');  
+                       if ~gui.controls.GM
+                            fig_hold = osp_plotRaincloud(MRSCont,'Quality','Quality',quality{gui.overview.Selected.Metab},'Raincloud plot');  
+                       else
+                            fig_hold = osp_plotRaincloud(MRSCont,'Quality','Quality',quality{gui.overview.Selected.Metab},'Raincloud plot',1); 
+                       end
                         split_Selection{2}=quality{gui.overview.Selected.Metab};
                         split_Selection{1}='Quality';
                         metab = 'Spectral';                        
@@ -477,7 +496,11 @@ function osp_onPrint( ~, ~ ,gui)
                     set( fig_hold.Children, 'Parent', Plot );
                     set(out.Children.Children(1).Children(1).Children,'Children',flipud(out.Children.Children(1).Children(1).Children.Children));
                     close(fig_hold);
-                    outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '.pdf'];  
+                    if ~gui.controls.GM
+                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '.pdf'];  
+                    else
+                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} 'Grand_mean.pdf'];  
+                    end
                 case 5 %Correlation plot
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Correlation');
                     Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};

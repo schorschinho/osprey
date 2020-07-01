@@ -83,11 +83,19 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract normalized spectra and fits
-shift = shift * (g-1);
+if isnumeric(g)
+    shift = shift * (g-1);
+    GroupString = ['g_' num2str(g)];
+else
+    g = 1;
+    GroupString = 'GMean';
+    shift = 0;
+end
+
 %Is spectrum?
 
 if (strcmp(which_spec,'A') || strcmp(which_spec,'B') || strcmp(which_spec,'C') || strcmp(which_spec,'D') || strcmp(which_spec,'diff1') || strcmp(which_spec,'diff2') || strcmp(which_spec,'sum') ||strcmp(which_spec,'mm') ||  strcmp(which_spec,'ref') || strcmp(which_spec,'w'))
-    data = MRSCont.overview.Osprey.sort_data.(['g_' num2str(g)]).(which_spec);
+    data = MRSCont.overview.Osprey.sort_data.(GroupString).(which_spec);
     if nargin<8
         if (~strcmp(which_spec,'w') && ~strcmp(which_spec,'ref'))
             figTitle = ['Individual specs: ' which_spec];
@@ -103,10 +111,10 @@ else % Is fit?
         switch fitwhich
             case 'off'
                 fit = 'A';
-                data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
             case {'ref','w','mm'}
                 fit = fitwhich;
-                data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
 
             case {'lean'}
                 fit = fitwhich;
@@ -118,17 +126,17 @@ else % Is fit?
             case {'diff1','sum'}
                 if strcmp(fitStyle,'Concatenated') %Is Concatenated?
                     fit = 'conc';
-                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
+                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fit '_' fitwhich]);
                 else
                     fit = 'diff1';
-                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
                 end
             case {'off'}
                     fit = 'A';
-                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
             case {'ref','w','mm'}
                 fit = fitwhich;
-                data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
+                data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fit '_' fitwhich]);
         end
     end
     if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is Multiplexed
@@ -136,14 +144,14 @@ else % Is fit?
             case {'diff1','diff2','sum'}
                 if strcmp(fitStyle,'Concatenated') %Is Concatenated?
                     fit = 'conc';
-                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
+                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fit '_' fitwhich]);
                 else
                     fit = fitwhich;
-                    data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
+                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fit '_' fitwhich]);
                 end
             case {'ref','w'}
                 fit = fitwhich;
-                data = MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
         end
     end
 
