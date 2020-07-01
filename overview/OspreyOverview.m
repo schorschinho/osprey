@@ -185,7 +185,7 @@ for sf = 1 : NoFit %Loop over all fits
         if strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w') % Water model 
             % if water, use the water model
             fitRangePPM = MRSCont.opts.fit.rangeWater;
-            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{MRSCont.info.(FitNames{sf}).unique_ndatapoint_indsort(kk)};
+            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{kk};
             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
             % Get the fit parameters
             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
@@ -203,7 +203,7 @@ for sf = 1 : NoFit %Loop over all fits
             MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res      = ModelOutput.residual;
         else % if metabolite or MM data, use the metabolite model           
             fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){MRSCont.info.A.unique_ndatapoint_indsort(kk)};
+            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
             % Get the fit parameters
             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
@@ -439,38 +439,38 @@ for kk = 1 : MRSCont.nDatasets
                     MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.res= MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.res/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
                     MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.data= MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.data/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
                     MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.data= MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.data/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_data.A{1,kk}.specs= MRSCont.overview.Osprey.all_data.A{1,kk}.specs/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr))/MRSCont.fit.scale{kk};
-                    MRSCont.overview.Osprey.all_data.B{1,kk}.specs= MRSCont.overview.Osprey.all_data.B{1,kk}.specs/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr))/MRSCont.fit.scale{kk};
-                    MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs= MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr))/MRSCont.fit.scale{kk};
-                    MRSCont.overview.Osprey.all_data.sum{1,kk}.specs= MRSCont.overview.Osprey.all_data.sum{1,kk}.specs/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr))/MRSCont.fit.scale{kk};
+                    MRSCont.overview.Osprey.all_data.A{1,kk}.specs= MRSCont.overview.Osprey.all_data.A{1,kk}.specs/MRSCont.fit.scale{kk};
+                    MRSCont.overview.Osprey.all_data.B{1,kk}.specs= MRSCont.overview.Osprey.all_data.B{1,kk}.specs/MRSCont.fit.scale{kk};
+                    MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs= MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs/MRSCont.fit.scale{kk};
+                    MRSCont.overview.Osprey.all_data.sum{1,kk}.specs= MRSCont.overview.Osprey.all_data.sum{1,kk}.specs/MRSCont.fit.scale{kk};
                     if MRSCont.flags.hasRef
-                        MRSCont.overview.Osprey.all_data.ref{1,kk}.specs =  MRSCont.overview.Osprey.all_data.ref{1,kk}.specs/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr))/MRSCont.fit.scale{kk};
-                        MRSCont.overview.Osprey.all_models.ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.all_models.ref_ref{1,kk}.fit/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
+                        MRSCont.overview.Osprey.all_data.ref{1,kk}.specs =  MRSCont.overview.Osprey.all_data.ref{1,kk}.specs/MRSCont.fit.scale{kk};
+                        MRSCont.overview.Osprey.all_models.ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.all_models.ref_ref{1,kk}.fit;
                     end
                     if MRSCont.flags.hasWater
-                        MRSCont.overview.Osprey.all_data.w{1,kk}.specs =  MRSCont.overview.Osprey.all_data.w{1,kk}.specs/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr))/MRSCont.fit.scale{kk};
-                        MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit =  MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
+                        MRSCont.overview.Osprey.all_data.w{1,kk}.specs =  MRSCont.overview.Osprey.all_data.w{1,kk}.specs/MRSCont.fit.scale{kk};
+                        MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit =  MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit;
                     end
                 else
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.fit= MRSCont.overview.Osprey.all_models.off_A{1,kk}.fit/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
-                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.fit= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.fit/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.baseline= MRSCont.overview.Osprey.all_models.off_A{1,kk}.baseline/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
-                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.baseline= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.baseline/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.res= MRSCont.overview.Osprey.all_models.off_A{1,kk}.res/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
-                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.res= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.res/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.data= MRSCont.overview.Osprey.all_models.off_A{1,kk}.data/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
-                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.data= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.data/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
-                    MRSCont.overview.Osprey.all_data.A{1,kk}.specs= MRSCont.overview.Osprey.all_data.A{1,kk}.specs/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG))/MRSCont.fit.scale{kk};
-                    MRSCont.overview.Osprey.all_data.B{1,kk}.specs= MRSCont.overview.Osprey.all_data.B{1,kk}.specs/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG))/MRSCont.fit.scale{kk};
-                    MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs= MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG))/MRSCont.fit.scale{kk};
-                    MRSCont.overview.Osprey.all_data.sum{1,kk}.specs= MRSCont.overview.Osprey.all_data.sum{1,kk}.specs/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG))/MRSCont.fit.scale{kk};
+                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.fit= MRSCont.overview.Osprey.all_models.off_A{1,kk}.fit/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.fit= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.fit/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.baseline= MRSCont.overview.Osprey.all_models.off_A{1,kk}.baseline/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.baseline= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.baseline/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.res= MRSCont.overview.Osprey.all_models.off_A{1,kk}.res/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.res= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.res/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.data= MRSCont.overview.Osprey.all_models.off_A{1,kk}.data/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.data= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.data/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_data.A{1,kk}.specs= MRSCont.overview.Osprey.all_data.A{1,kk}.specs/MRSCont.fit.scale{kk};
+                    MRSCont.overview.Osprey.all_data.B{1,kk}.specs= MRSCont.overview.Osprey.all_data.B{1,kk}.specs/MRSCont.fit.scale{kk};
+                    MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs= MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs/MRSCont.fit.scale{kk};
+                    MRSCont.overview.Osprey.all_data.sum{1,kk}.specs= MRSCont.overview.Osprey.all_data.sum{1,kk}.specs/MRSCont.fit.scale{kk};
                     if MRSCont.flags.hasRef
-                        MRSCont.overview.Osprey.all_data.ref{1,kk}.specs =  MRSCont.overview.Osprey.all_data.ref{1,kk}.specs/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG))/MRSCont.fit.scale{kk};
-                        MRSCont.overview.Osprey.all_models.ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.all_models.ref_ref{1,kk}.fit/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
+                        MRSCont.overview.Osprey.all_data.ref{1,kk}.specs =  MRSCont.overview.Osprey.all_data.ref{1,kk}.specs/MRSCont.fit.scale{kk};
+                        MRSCont.overview.Osprey.all_models.ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.all_models.ref_ref{1,kk}.fit;
                     end
                     if MRSCont.flags.hasWater
-                        MRSCont.overview.Osprey.all_data.w{1,kk}.specs =  MRSCont.overview.Osprey.all_data.w{1,kk}.specs/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG))/MRSCont.fit.scale{kk};
-                        MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit =  MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit/(MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAA)+ MRSCont.fit.results.diff1.fitParams{1,kk}.ampl(idx_NAAG));
+                        MRSCont.overview.Osprey.all_data.w{1,kk}.specs =  MRSCont.overview.Osprey.all_data.w{1,kk}.specs/MRSCont.fit.scale{kk};
+                        MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit =  MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit;
                     end
                 end
         end
@@ -815,10 +815,10 @@ end
 
 if MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
-    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
     MRSCont.flags.isGUI = 1;
 else
-   save(fullfile(outputFolder, outputFile), 'MRSCont');
+   save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
 end
 
 if MRSCont.flags.isGUI  && isfield(progressText,'String')

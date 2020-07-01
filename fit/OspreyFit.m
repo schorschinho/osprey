@@ -141,6 +141,49 @@ end
 MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
 fprintf(fileID,'Full fit time %f seconds\n',MRSCont.runtime.Fit);
 fclose(fileID); %close log file
+
+%% Store  and print some QM parameters
+[MRSCont]=osp_fit_Quality(MRSCont);
+
+% Store data quality measures in csv file
+if MRSCont.flags.isUnEdited
+    relResA = MRSCont.QM.relAmpl.A';
+    MRSCont.QM.tables.relResA = relResA;
+elseif MRSCont.flags.isMEGA
+    if strcmp( MRSCont.opts.fit.style, 'Separate')
+        relResA = MRSCont.QM.relAmpl.A';
+        relResdiff1 = MRSCont.QM.relAmpl.diff1';
+        MRSCont.QM.tables.relResA = relResA;
+        MRSCont.QM.tables.relResdiff1 = relResdiff1;
+    else
+        relRessum = MRSCont.QM.relAmpl.sum';
+        relResdiff1 = MRSCont.QM.relAmpl.diff1';
+        MRSCont.QM.tables.relRessum = relRessum;
+        MRSCont.QM.tables.relResdiff1 = relResdiff1;        
+    end        
+elseif MRSCont.flags.isHERMES
+        relRessum = MRSCont.QM.relAmpl.sum';
+        relResdiff1 = MRSCont.QM.relAmpl.diff1';
+        relResdiff2 = MRSCont.QM.relAmpl.diff2';
+        MRSCont.QM.tables.relRessum = relRessum;
+        MRSCont.QM.tables.relResdiff1 = relResdiff1; 
+        MRSCont.QM.tables.relResdiff2 = relResdiff2;
+elseif MRSCont.flags.isHERCULES
+    % For now, process HERCULES like HERMES data
+        relRessum = MRSCont.QM.relAmpl.sum';
+        relResdiff1 = MRSCont.QM.relAmpl.diff1';
+        relResdiff2 = MRSCont.QM.relAmpl.diff2';
+        MRSCont.QM.tables.relRessum = relRessum;
+        MRSCont.QM.tables.relResdiff1 = relResdiff1; 
+        MRSCont.QM.tables.relResdiff2 = relResdiff2;    
+else
+    msg = 'No flag set for sequence type!';
+    fprintf(fileID,msg);
+    error(msg);
+end
+
+writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
+
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didFit           = 1;
@@ -203,10 +246,10 @@ end
 
 if MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
-    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
     MRSCont.flags.isGUI = 1;
 else
-   save(fullfile(outputFolder, outputFile), 'MRSCont');
+   save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
 end
 
 end

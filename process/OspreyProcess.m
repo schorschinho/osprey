@@ -94,35 +94,43 @@ if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
 
-if MRSCont.flags.isGUI
-    MRSCont.flags.isGUI = 0;
-    save(fullfile(outputFolder, outputFile), 'MRSCont');
-    MRSCont.flags.isGUI = 1;
-else
-   save(fullfile(outputFolder, outputFile), 'MRSCont');
-end
-
 % Store data quality measures in csv file
 if MRSCont.flags.isUnEdited
-    names = {'NAA_SNR','NAA_FWHM','freqShift'};
+    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'A'};
+    if MRSCont.flags.hasRef
+        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
+    end
 elseif MRSCont.flags.isMEGA
-    names = {'NAA_SNR','NAA_FWHM','freqShift'};
+    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'sum'};
+    if MRSCont.flags.hasRef
+        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
+    end
 elseif MRSCont.flags.isHERMES
-    names = {'NAA_SNR','NAA_FWHM','freqShift'};
+    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'sum'};
+    if MRSCont.flags.hasRef
+        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
+    end    
 elseif MRSCont.flags.isHERCULES
     % For now, process HERCULES like HERMES data
-    names = {'NAA_SNR','NAA_FWHM','freqShift'};
+    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'sum'};
+    if MRSCont.flags.hasRef
+        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
+    end    
 else
     msg = 'No flag set for sequence type!';
     fprintf(fileID,msg);
     error(msg);
 end
 
-QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
+if ~MRSCont.flags.hasRef
+    QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
+else
+    QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.FWHM.ref',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
+end
 MRSCont.QM.tables = array2table(QM,'VariableNames',names);
 writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
 
@@ -154,5 +162,12 @@ if MRSCont.opts.saveVendor
     [MRSCont] = osp_saveVendor(MRSCont);
 end
 
+if MRSCont.flags.isGUI
+    MRSCont.flags.isGUI = 0;
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+    MRSCont.flags.isGUI = 1;
+else
+   save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+end
 
 end
