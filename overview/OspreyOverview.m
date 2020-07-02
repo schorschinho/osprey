@@ -550,7 +550,8 @@ if MRSCont.flags.hasStatfile % Has stat csv file
         MRSCont.overview.NoGroups = max(MRSCont.overview.groups);
     end
     if  ~strcmp(name,'subject') % No subject names stored in the container
-        if ~strcmp(subject{1},subject{2}) % ADd names according to BIDS with subfolder
+        
+        if length(subject)>1 && ~strcmp(subject{1},subject{2}) % ADd names according to BIDS with subfolder
             if ~strcmp(name,'subject')
                 statCSV.subject = subject';
             end
@@ -566,7 +567,7 @@ else % No csv file supplied
     MRSCont.overview.groups = ones(MRSCont.nDatasets,1); %Create a single group
     MRSCont.overview.NoGroups = max(MRSCont.overview.groups);
     statCSV = array2table(MRSCont.overview.groups,'VariableNames',{'group'});
-    if ~strcmp(subject{1},subject{2}) %Add names to the csv file
+    if length(subject)>1 && ~strcmp(subject{1},subject{2}) %Add names to the csv file
         statCSV.subject = subject';
     else
         statCSV.subject = MRSCont.files';
