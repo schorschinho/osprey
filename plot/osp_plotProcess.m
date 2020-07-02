@@ -452,8 +452,11 @@ hold(ax_proc, 'on');
 plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs)/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
 if strcmp(which_spec,'diff2')
     y = [-1.2, 1.2];
-else
+else if strcmp(which_spec,'diff1')
+    y = [-1, 1.2];        
+    else
     y = [-0.2, 1.2];
+    end
 end
 set(ax_proc, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
 if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
