@@ -172,10 +172,11 @@ for kk = 1:MRSCont.nDatasets
     %         % have been accidentally acquired with the water suppression switched
     %         % on for the water reference scan. In that case, don't do ECC, but
     %         % rather leave it to the phase correction in step 5.
-    %         if strcmp(MRSCont.vendor,'Siemens') && kk >= 37 && kk <= 42
-    %         else
-                [raw_A,~]               = op_eccKlose(raw_A, raw_ref);
-                [raw_B,raw_ref]         = op_eccKlose(raw_B, raw_ref);        % Klose eddy current correction
+%             if strcmp(MRSCont.vendor,'Siemens') && kk >= 53 && kk <= 58
+%             else 
+               [raw_A,~]               = op_eccKlose(raw_A, raw_ref);
+               [raw_B,raw_ref]         = op_eccKlose(raw_B, raw_ref);        % Klose eddy current correction
+%            end
     %         end
 
             [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
@@ -235,6 +236,8 @@ for kk = 1:MRSCont.nDatasets
 
         %%% 5. BUILD SUM AND DIFF SPECTRA %%%
         % Correct the frequency axis so that Cr appears at 3.027 ppm
+        [raw_A,~]       = op_phaseCrCho(raw_A, 1);
+        [raw_B,~]       = op_phaseCrCho(raw_B, 1);
         temp_spec   = op_addScans(raw_A,raw_B);  
         [refShift_SubSpecAlign, ~] = osp_CrChoReferencing(temp_spec);
         % Apply initial referencing shift

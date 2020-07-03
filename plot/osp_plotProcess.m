@@ -142,6 +142,9 @@ switch which_spec
                     temp_spec = rawDataToPlot.specs(:,:,1);
                     rawDataToPlot.specs(:,:,1) = rawDataToPlot.specs(:,:,2);
                     rawDataToPlot.specs(:,:,2) = temp_spec;
+                    temp_fids = rawDataToPlot.fids(:,:,1);
+                    rawDataToPlot.fids(:,:,1) = rawDataToPlot.fids(:,:,2);
+                    rawDataToPlot.fids(:,:,2) = temp_fids;
                 end
         end
         rawDataToScale = rawDataToPlot;                                      % This is used to get consistent yLims

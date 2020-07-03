@@ -60,8 +60,10 @@ isSpecial=~isempty(strfind(sequence,'rm_special')) ||...  %Is this Ralf Mekle's 
 isjnSpecial=~isempty(strfind(sequence,'jn_svs_special'));  %or Jamie Near's SPECIAL sequence?
 isjnMP=~isempty(strfind(sequence,'jn_MEGA_GABA')); %Is this Jamie Near's MEGA-PRESS sequence?
 isjnseq=~isempty(strfind(sequence,'jn_')); %Is this another one of Jamie Near's sequences?
-isWIP529=~isempty(strfind(sequence,'edit_529')); %Is this WIP 529 (MEGA-PRESS)?
-isWIP859=~isempty(strfind(sequence,'edit_859')); %Is this WIP 859 (MEGA-PRESS)?
+isWIP529=~isempty(strfind(sequence,'edit_529'))||...%Is this WIP 529 (MEGA-PRESS)?
+            (~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'edit_859'))); 
+isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
+isTLFrei=~isempty(strfind(sequence,'md_svs_edit')); %Is Thomas Lange's MEGA-PRESS sequence
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isSiemens=~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'));    % or the Siemens STEAM sequence?
@@ -82,7 +84,7 @@ elseif isUniversal
     end 
 elseif isMinn
     seq = 'MEGAPRESS';
-elseif isjnMP || isWIP529 || isWIP859
+elseif isjnMP || isWIP529 || isWIP859 || isTLFrei
     seq = 'MEGAPRESS';
 elseif isSiemens
     if ~isempty(strfind(sequence,'svs_st'))
