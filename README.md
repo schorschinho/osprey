@@ -70,7 +70,7 @@ Download both toolboxes in the MATLAB toolbox format (.mltbx). You can
 double-click to install. MATLAB will automatically add the toolboxes to its
 path.
 
-Make sure to FID-A or Gannet from your MATLAB path.
+Make sure to remove FID-A and Gannet from your MATLAB path.
 
 ## Contact, Feedback, Suggestions
 
