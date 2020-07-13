@@ -60,8 +60,8 @@ isSpecial=~isempty(strfind(sequence,'rm_special')) ||...  %Is this Ralf Mekle's 
 isjnSpecial=~isempty(strfind(sequence,'jn_svs_special'));  %or Jamie Near's SPECIAL sequence?
 isjnMP=~isempty(strfind(sequence,'jn_MEGA_GABA')); %Is this Jamie Near's MEGA-PRESS sequence?
 isjnseq=~isempty(strfind(sequence,'jn_')); %Is this another one of Jamie Near's sequences?
-isWIP529=~isempty(strfind(sequence,'edit_529'))||...%Is this WIP 529 (MEGA-PRESS)?
-            (~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'edit_859'))); 
+isWIP529=~isempty(strfind(sequence,'edit_529'));%Is this WIP 529 (MEGA-PRESS)?
+ismodWIP=(~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'edit_859'))); %Modified WIP
 isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
 isTLFrei=~isempty(strfind(sequence,'md_svs_edit')); %Is Thomas Lange's MEGA-PRESS sequence
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
@@ -76,7 +76,7 @@ if isSpecial
 elseif isUniversal
     if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 1 
         seq = 'HERMES';
-    else if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 2
+    else if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 2 || twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 3
             seq = 'HERCULES';
          else
             seq = 'MEGAPRESS';
@@ -84,7 +84,7 @@ elseif isUniversal
     end 
 elseif isMinn
     seq = 'MEGAPRESS';
-elseif isjnMP || isWIP529 || isWIP859 || isTLFrei
+elseif isjnMP || isWIP529 || isWIP859 || isTLFrei || ismodWIP
     seq = 'MEGAPRESS';
 elseif isSiemens
     if ~isempty(strfind(sequence,'svs_st'))
@@ -274,7 +274,7 @@ if ~isempty(dimsToIndex)
         else
             dims.subSpecs=find(strcmp(sqzDims,'Ida'));
         end
-    elseif isWIP529 || isMinn
+    elseif isWIP529 || isMinn || ismodWIP
         dims.subSpecs=find(strcmp(sqzDims,'Eco'));
     elseif isWIP859
         dims.subSpecs=find(strcmp(sqzDims,'Ide'));
