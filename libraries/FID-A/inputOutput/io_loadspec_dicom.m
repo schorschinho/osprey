@@ -111,7 +111,7 @@ elseif strcmp(seqtype,'sLASER')
     % If the number of stored FIDs does not match the number of averages
     % stored in the DICOM header, the data are averaged.
     nominalAvgs = DicomHeader.nAverages;
-    if size(fids,2) ~= nominalAvgs
+    if (size(fids,2) ~= nominalAvgs) && (size(fids,2) == 1)
         out.flags.averaged = 1;
     else
         out.flags.averaged = 0;

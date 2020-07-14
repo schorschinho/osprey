@@ -456,7 +456,7 @@ plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs)/max(real(procDataTo
 if strcmp(which_spec,'diff2')
     y = [-1.2, 1.2];
 else if strcmp(which_spec,'diff1')
-    y = [-1, 1.2];        
+    y = [-2, 1.2];        
     else
     y = [-0.2, 1.2];
     end
