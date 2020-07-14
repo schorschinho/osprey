@@ -334,7 +334,7 @@ for sf = 1 : NoFit % loop over all fits
                     end
                     MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
                     MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
-                    if ~strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'ref_ref') || strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'w_w')
+                    if ~(strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'ref_ref') || strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'w_w'))
                          MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.baseline = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.baseline(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
                          names = fields(MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk});
                          for f = 6 : length(names)
@@ -423,7 +423,7 @@ for kk = 1 : MRSCont.nDatasets
             names = fields(MRSCont.overview.Osprey.all_models.off_A{1,kk});
              for f = 1 : length(names)
                  if ~strcmp(names{f},'ppm')
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.(names{f})= MRSCont.overview.Osprey.all_models.off_A{1,kk}.(names{f})/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.(names{f})= MRSCont.overview.Osprey.all_models.off_A{1,kk}.(names{f});
                  end
              end
             MRSCont.overview.Osprey.all_data.A{1,kk}.specs= MRSCont.overview.Osprey.all_data.A{1,kk}.specs/MRSCont.fit.scale{kk};
@@ -431,14 +431,18 @@ for kk = 1 : MRSCont.nDatasets
 
         if MRSCont.flags.isMEGA
                 if isfield(MRSCont.overview.Osprey.all_models, 'conc_diff1')
-                    MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.fit= MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.fit/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.fit= MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.fit/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.baseline= MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.baseline/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.baseline= MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.baseline/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.res= MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.res/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.res= MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.res/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.data= MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.data/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.data= MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.data/(MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.conc.fitParams{1,kk}.ampl(idx_Cr));
+                    names = fields(MRSCont.overview.Osprey.all_models.conc_diff1{1,kk});
+                     for f = 1 : length(names)
+                         if ~strcmp(names{f},'ppm')
+                            MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.(names{f})= MRSCont.overview.Osprey.all_models.conc_diff1{1,kk}.(names{f});
+                         end
+                     end
+                      names = fields(MRSCont.overview.Osprey.all_models.conc_sum{1,kk});
+                     for f = 1 : length(names)
+                         if ~strcmp(names{f},'ppm')
+                            MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.(names{f})= MRSCont.overview.Osprey.all_models.conc_sum{1,kk}.(names{f});
+                         end
+                     end
                     MRSCont.overview.Osprey.all_data.A{1,kk}.specs= MRSCont.overview.Osprey.all_data.A{1,kk}.specs/MRSCont.fit.scale{kk};
                     MRSCont.overview.Osprey.all_data.B{1,kk}.specs= MRSCont.overview.Osprey.all_data.B{1,kk}.specs/MRSCont.fit.scale{kk};
                     MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs= MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs/MRSCont.fit.scale{kk};
@@ -452,14 +456,18 @@ for kk = 1 : MRSCont.nDatasets
                         MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit =  MRSCont.overview.Osprey.all_models.w_w{1,kk}.fit;
                     end
                 else
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.fit= MRSCont.overview.Osprey.all_models.off_A{1,kk}.fit/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.fit= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.fit/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.baseline= MRSCont.overview.Osprey.all_models.off_A{1,kk}.baseline/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.baseline= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.baseline/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.res= MRSCont.overview.Osprey.all_models.off_A{1,kk}.res/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.res= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.res/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.off_A{1,kk}.data= MRSCont.overview.Osprey.all_models.off_A{1,kk}.data/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
-                    MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.data= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.data/(MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_PCr)+ MRSCont.fit.results.off.fitParams{1,kk}.ampl(idx_Cr));
+                    names = fields(MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk});
+                     for f = 1 : length(names)
+                         if ~strcmp(names{f},'ppm')
+                            MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.(names{f})= MRSCont.overview.Osprey.all_models.diff1_diff1{1,kk}.(names{f});
+                         end
+                     end
+                      names = fields(MRSCont.overview.Osprey.all_models.off_A{1,kk});
+                     for f = 1 : length(names)
+                         if ~strcmp(names{f},'ppm')
+                            MRSCont.overview.Osprey.all_models.off_A{1,kk}.(names{f})= MRSCont.overview.Osprey.all_models.off_A{1,kk}.(names{f});
+                         end
+                     end
                     MRSCont.overview.Osprey.all_data.A{1,kk}.specs= MRSCont.overview.Osprey.all_data.A{1,kk}.specs/MRSCont.fit.scale{kk};
                     MRSCont.overview.Osprey.all_data.B{1,kk}.specs= MRSCont.overview.Osprey.all_data.B{1,kk}.specs/MRSCont.fit.scale{kk};
                     MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs= MRSCont.overview.Osprey.all_data.diff1{1,kk}.specs/MRSCont.fit.scale{kk};
@@ -703,7 +711,11 @@ for sf = 1 : NoFit %Loop over fits
                     ppmindex=find(MRSCont.overview.Osprey.sort_fit.(names{g}).mean_data_off_A(MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A>1.9 & MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A<2.1)==max(MRSCont.overview.Osprey.sort_fit.(names{g}).mean_data_off_A(MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A>1.9 & MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A<2.1)));
                     ppmrange=MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A(MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A>1.9 & MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A<2.1);
                     ppmmax=ppmrange(ppmindex);
-                    refShift=(ppmmax-2.013);
+                    if length(ppmmax) > 1
+                        refShift = 0;
+                    else
+                        refShift=(ppmmax-2.013);
+                    end
                 end
             end
             if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)

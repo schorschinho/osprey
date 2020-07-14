@@ -56,10 +56,24 @@ while isempty(badelt_index);
 end
 dwelltime=str2num(line(badelt_index+8:end-2));
 spectralwidth=1/dwelltime;
-
 fileEnd=false;
 
 while ~feof(fid)
+     %look for a center frequency
+    ppmsep_index=findstr(line,'PPMSEP =');    
+    while isempty(ppmsep_index);
+        line=fgets(fid);
+        ppmsep_index=findstr(line,'PPMSEP =');
+        
+        if findstr(line,'METABO =')
+            break
+        end
+        
+    end
+    if ~isempty(ppmsep_index)
+        centerFreq=str2num(line(ppmsep_index+8:end-2));
+    end
+    
     %Look for the metabolite name
     metab_index=findstr(line,'METABO =');
     while isempty(metab_index);
@@ -71,6 +85,7 @@ while ~feof(fid)
     else
         metabName=line(metab_index+10:end-3);
     end
+
     
     hdrEnd_index=findstr(line,'$END');
     while isempty(hdrEnd_index);
@@ -102,7 +117,7 @@ while ~feof(fid)
         nmused_index=findstr(line,'$NMUSED');
     end
     specs=RF(1:2:end) + 1i*RF(2:2:end);
-    specs=fftshift(conj(specs),1);
+    specs=flipud(fftshift(conj(specs),1));
     vectorsize=length(specs);
     sz=[vectorsize 1];
     if mod(vectorsize,2)==0
@@ -113,7 +128,7 @@ while ~feof(fid)
         fids=ifft(circshift(ifftshift(specs,1),1),[],1);
     end
     f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
-    ppm=-f/(Bo*42.577);
+    ppm=f/(Bo*42.577);
     ppm=ppm+4.68;
     t=[dwelltime:dwelltime:vectorsize*dwelltime];
     txfrq=hzpppm*1e6;
@@ -131,6 +146,9 @@ while ~feof(fid)
     eval(['out.' metabName '.ppm=ppm;']);
     eval(['out.' metabName '.t=t;']);
     eval(['out.' metabName '.txfrq=txfrq;']);
+    if ~isempty(ppmsep_index)
+            eval(['out.' metabName '.centerFreq=centerFreq;']);
+    end
     eval(['out.' metabName '.date=date;']);
     eval(['out.' metabName '.seq='''';']);
     eval(['out.' metabName '.sim='''';']);
