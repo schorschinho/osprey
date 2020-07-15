@@ -27,16 +27,32 @@ function osp_iniLoadWindow(gui)
 %%% 1. GET HANDLES %%%
 % This function creates the initial load window
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
+        if MRSCont.flags.hasMM %Get variables regarding Subspectra %re_mm
+            gui.controls.Number = gui.controls.Number + 1;%re_mm
+            gui.load.Names.Spec{2} = 'MM';%re_mm
+        end  %re_mm
         if MRSCont.flags.hasRef %Get variables regarding Subspectra
             gui.controls.Number = gui.controls.Number + 1;
+            if MRSCont.flags.hasMM%re_mm
+                gui.load.Names.Spec{3} = 'reference';%re_mm
+            else%re_mm
             gui.load.Names.Spec{2} = 'reference';
+            end%re_mm
         if MRSCont.flags.hasWater
             gui.controls.Number = gui.controls.Number + 1;
+            if MRSCont.flags.hasMM%re_mm
+                gui.load.Names.Spec{4} = 'water';%re_mm
+            else%re_mm
             gui.load.Names.Spec{3} = 'water';
+            end%re_mm
         end
         else if MRSCont.flags.hasWater
             gui.controls.Number = gui.controls.Number + 1;
-            gui.load.Names.Spec{2} = 'water';
+            if MRSCont.flags.hasMM%re_mm
+                gui.load.Names.Spec{3} = 'water';%re_mm
+            else%re_mm
+                gui.load.Names.Spec{2} = 'water';
+            end%re_mm
             end
         end
         gui.layout.tabs.TabEnables{1} = 'on';
@@ -73,6 +89,14 @@ function osp_iniLoadWindow(gui)
                 gui.layout.rawTab.TabEnables = {'on', 'on','on'};
                 gui.layout.rawTabhandles = {'metabLoTab', 'refLoTab', 'wLoTab'};
             end
+            if gui.controls.Number == 4 %re_mm
+                gui.layout.mmLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background);%re_mm
+                gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background);%re_mm
+                gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);%re_mm
+                gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;%re_mm
+                gui.layout.rawTab.TabEnables = {'on', 'on','on','on'};%re_mm
+                gui.layout.rawTabhandles = {'metabLoTab', 'mmLoTab', 'refLoTab', 'wLoTab'};%re_mm
+            end%re_mm
  %%% 3. FILLING INFO PANEL FOR THIS TAB %%%
  % All the information from the Raw data is read out here
         for t = gui.controls.Number : -1 : 1 % Loop over subspectra & tabs
@@ -90,7 +114,7 @@ function osp_iniLoadWindow(gui)
             [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.10);
             set(gui.controls.b_save_RawTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-            set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint});
+            set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
             set(gui.upperBox.data.box, 'Width', [-0.9 -0.1]);
             % Grid for Plot and Data control sliders
             if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) % HBox for HERMES/HERCULES
@@ -164,15 +188,38 @@ function osp_iniLoadWindow(gui)
                 set(gui.layout.multiAload.Children(1), 'OuterPosition', [0,0,1,1])
                 
             end
-        else if t == 2 %ref data/tab
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
-                ViewAxes = gca();
-                set( ViewAxes, 'Parent', gui.Plot.data );
-            else %water data/tab has only one window all the time
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
-                ViewAxes = gca();
-                set(ViewAxes, 'Parent', gui.Plot.data );
-            end
+        else
+            if MRSCont.flags.hasMM %re_mm
+                if t == 2 %ref data/tab %re_mm
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm'); %re_mm
+                    ViewAxes = gca(); %re_mm
+                    set( ViewAxes, 'Parent', gui.Plot.data ); %re_mm
+                end %re_mm
+                if t == 3 %ref data/tab %re_mm
+                    if MRSCont.flags.hasRef%re_mm
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref'); %re_mm
+                    else%re_mm
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w'); %re_mm
+                    end%re_mm
+                    ViewAxes = gca(); %re_mm
+                    set( ViewAxes, 'Parent', gui.Plot.data ); %re_mm
+                end %re_mm
+                if t == 4 %ref data/tab %re_mm
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w'); %re_mm
+                    ViewAxes = gca(); %re_mm
+                    set( ViewAxes, 'Parent', gui.Plot.data ); %re_mm
+                end %re_mm
+            else %re_mm
+                if t == 2 %ref data/tab
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
+                    ViewAxes = gca();
+                    set( ViewAxes, 'Parent', gui.Plot.data );
+                else %water data/tab has only one window all the time
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
+                    ViewAxes = gca();
+                    set(ViewAxes, 'Parent', gui.Plot.data );
+                end
+            end %re_mm
         end
 
         % Get rid of the Load figure

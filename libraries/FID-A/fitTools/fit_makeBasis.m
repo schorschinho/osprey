@@ -33,10 +33,17 @@
 function [BASIS] = fit_makeBasis(folder, addMMFlag, sequence, editTarget)
 
 % Parse input arguments
-if nargin < 3
-    addMMFlag = 1;
-    if nargin < 2
-        sequence = 'unedited';
+if nargin < 4
+    if strcmp(sequence, 'MEGA')
+        editTarget = 'GABA';
+    else
+        editTarget = 'none';
+    end
+    if nargin < 3
+        addMMFlag = 1;
+        if nargin < 2
+            sequence = 'unedited';
+        end
     end
 end
 

@@ -52,12 +52,32 @@ if nargin < 4
     end
 end
 
+
+     
+
+
 % Load LCMBasisSet
 [Read]=io_readlcmraw_basis(LCMBasisSet);
+disp('We are going to rename your basis set accroding to the Osprey naming convention now.\n')
+Osp_names = ['Ala ','Asc ','Asp ', 'bHB ','bHG ', 'Cit ', 'Cr ', 'CrCH2 ', 'EtOH ', 'GABA \n',...
+             'GPC ', 'GSH ', 'Glc ', 'Gln ', 'Glu ', 'Gly ', 'H2O ', 'Ins ', 'Lac ', 'NAA ', 'NAAG \n', ...
+             'PCh ', 'PCr ', 'PE ', 'Phenyl ', 'Scyllo ', 'Ser ', 'Tau ', 'Tyros \n',...
+             'MM09 ', 'MM12  ', 'MM14 ', 'MM17 ', 'MM20 ', 'Lip09 ', 'Lip13 ', 'Lip20 '];
 filenames = fieldnames(Read);
-nMets     = length(fieldnames(Read));
+for mm = 1 : length(fieldnames(Read))
+     disp(['The name in your basis set is: ' filenames{mm}]);
+     prompt = ['Type the name of the matching metabolite from the list or press return if no matchin metabolite is in the list: \n' Osp_names '\n'];
+    name = input(prompt,'s');    
+    if ~isempty(name)
+        cRead.(name) = Read.(filenames{mm});
+        ind = findstr(Osp_names,name);
+        Osp_names(ind:(ind+length(name))) = [];
+    end
+end
+filenames = fieldnames(cRead);
+nMets     = length(fieldnames(cRead));
 
-temp = Read.(filenames{1});
+temp = cRead.(filenames{1});
 BASIS.spectralwidth=temp.spectralwidth;
 BASIS.dwelltime=1/temp.spectralwidth;
 BASIS.n=temp.n;
@@ -66,7 +86,7 @@ BASIS.Bo=temp.Bo;
 BASIS.seq{1}=sequence;
 BASIS.te=temp.te;
 if isfield(temp, 'centerFreq')
-    BASIS.centerFreq           = BASIS.centerFreq;
+    BASIS.centerFreq           = temp.centerFreq;
 else
     BASIS.centerFreq           = 4.68;
 end
@@ -89,7 +109,7 @@ BASIS.flags.isISIS=0;
     
 % Loop over all *.mat filenames, load their data, store in a buffer
 for kk = 1:nMets
-    temp = Read.(filenames{kk});
+    temp = cRead.(filenames{kk});
     temp.ppm = temp.ppm - (4.68 - BASIS.centerFreq);
     temp.centerFreq = BASIS.centerFreq;
     temp            = op_dccorr(temp,'p');
@@ -130,30 +150,30 @@ if addMMFlag
     
     % Now we know the scaling factor to generate MM/lipid signals with the
     % correct relative scaling with respect to the CH3 signal
-    MM09            = op_gaussianPeak(n,sw,Bo,4.68,0.14*hzppm,0,3*oneProtonArea/gaussianArea);
-    MM09            = op_freqshift(MM09,-0.91*hzppm);
+    MM09            = op_gaussianPeak(n,sw,Bo,centerFreq,0.14*hzppm,0.91,3*oneProtonArea/gaussianArea);
+%     MM09            = op_freqshift(MM09,-0.91*hzppm);
     MMBase.MM09     = op_dccorr(MM09,'p');
-    MM12            = op_gaussianPeak(n,sw,Bo,4.68,0.15*hzppm,1.21,2*oneProtonArea/gaussianArea);
+    MM12            = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,1.21,2*oneProtonArea/gaussianArea);
     MMBase.MM12     = op_dccorr(MM12,'p');
-    MM14            = op_gaussianPeak(n,sw,Bo,4.68,0.17*hzppm,1.43,2*oneProtonArea/gaussianArea);
+    MM14            = op_gaussianPeak(n,sw,Bo,centerFreq,0.17*hzppm,1.43,2*oneProtonArea/gaussianArea);
     MMBase.MM14     = op_dccorr(MM14,'p');
-    MM17            = op_gaussianPeak(n,sw,Bo,4.68,0.15*hzppm,1.67,2*oneProtonArea/gaussianArea);
+    MM17            = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,1.67,2*oneProtonArea/gaussianArea);
     MMBase.MM17     = op_dccorr(MM17,'p');
-    MM20a           = op_gaussianPeak(n,sw,Bo,4.68,0.15*hzppm,2.08,1.33*oneProtonArea/gaussianArea);
-    MM20b           = op_gaussianPeak(n,sw,Bo,4.68,0.2*hzppm,2.25,0.33*oneProtonArea/gaussianArea);
-    MM20c           = op_gaussianPeak(n,sw,Bo,4.68,0.15*hzppm,1.95,0.33*oneProtonArea/gaussianArea);
-    MM20d           = op_gaussianPeak(n,sw,Bo,4.68,0.2*hzppm,3.0,0.4*oneProtonArea/gaussianArea);
+    MM20a           = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,2.08,1.33*oneProtonArea/gaussianArea);
+    MM20b           = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm,2.25,0.33*oneProtonArea/gaussianArea);
+    MM20c           = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,1.95,0.33*oneProtonArea/gaussianArea);
+    MM20d           = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm,3.0,0.4*oneProtonArea/gaussianArea);
     MM20            = op_addScans(MM20a,MM20b); MM20 = op_addScans(MM20,MM20c); MM20 = op_addScans(MM20,MM20d);
     MMBase.MM20     = op_dccorr(MM20,'p');
-    Lip09           = op_gaussianPeak(n,sw,Bo,4.68,0.14*hzppm,0.89,3*oneProtonArea/gaussianArea);
+    Lip09           = op_gaussianPeak(n,sw,Bo,centerFreq,0.14*hzppm,0.89,3*oneProtonArea/gaussianArea);
     MMBase.Lip09    = op_dccorr(Lip09,'p');
-    Lip13a          = op_gaussianPeak(n,sw,Bo,4.68,0.15*hzppm,1.28,2*oneProtonArea/gaussianArea);
-    Lip13b          = op_gaussianPeak(n,sw,Bo,4.68,0.89*hzppm,1.28,2*oneProtonArea/gaussianArea);
+    Lip13a          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,1.28,2*oneProtonArea/gaussianArea);
+    Lip13b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.89*hzppm,1.28,2*oneProtonArea/gaussianArea);
     Lip13           = op_addScans(Lip13a,Lip13b);
     MMBase.Lip13    = op_dccorr(Lip13,'p');
-    Lip20a          = op_gaussianPeak(n,sw,Bo,4.68,0.15*hzppm,2.04,1.33*oneProtonArea/gaussianArea);
-    Lip20b          = op_gaussianPeak(n,sw,Bo,4.68,0.15*hzppm,2.25,0.67*oneProtonArea/gaussianArea);
-    Lip20c          = op_gaussianPeak(n,sw,Bo,4.68,0.2*hzppm,2.8,0.87*oneProtonArea/gaussianArea);
+    Lip20a          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,2.04,1.33*oneProtonArea/gaussianArea);
+    Lip20b          = op_gaussianPeak(n,sw,Bo,centerFreq,0.15*hzppm,2.25,0.67*oneProtonArea/gaussianArea);
+    Lip20c          = op_gaussianPeak(n,sw,Bo,centerFreq,0.2*hzppm,2.8,0.87*oneProtonArea/gaussianArea);
     Lip20           = op_addScans(Lip20a,Lip20b); Lip20 = op_addScans(Lip20,Lip20c);
     MMBase.Lip20    = op_dccorr(Lip20,'p');
     MMLips = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
@@ -173,6 +193,7 @@ else
     BASIS.nMM               = 0;
     save_str = '_noMM';
 end
+
 
 BASIS.sz                = size(BASIS.fids);
 

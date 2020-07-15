@@ -31,12 +31,14 @@ reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
+fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    fprintf(fileID,[reverseStr, msg]);
     if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
+            set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
             drawnow
     end
     
@@ -51,7 +53,7 @@ for kk = 1:MRSCont.nDatasets
     % For the separate (classic) MEGA fit, model the EDIT-OFF and DIFF
     % spectra separately.
     if strcmp(fitStyle, 'Separate')
-        if (~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))    
+        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))    
             %%% 2a. FIT OFF-SPECTRUM
             % Apply scaling factor to the data
             dataToFit   = MRSCont.processed.A{kk};
@@ -117,12 +119,14 @@ for kk = 1:MRSCont.nDatasets
     end           
     %% end time counter
     if isequal(kk, MRSCont.nDatasets)       
-        fprintf('... done.\n');
+        fprintf('... done.\n');       
         time = toc(metFitTime);
         if MRSCont.flags.isGUI        
             set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
             pause(1);
         end
+        fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+        MRSCont.runtime.FitMet = time;        
     end
 end
 

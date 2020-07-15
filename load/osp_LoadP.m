@@ -34,9 +34,11 @@ reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
+fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
+    fprintf(fileID,[reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
@@ -63,8 +65,9 @@ if MRSCont.flags.isGUI
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fclose(fileID);
 % Set flag
 MRSCont.flags.coilsCombined     = 0;
-
+MRSCont.runtime.Load = time;
 end

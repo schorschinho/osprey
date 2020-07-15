@@ -124,6 +124,8 @@ fid_water = (amp(water).*exp(1i*ph(water)))'*exp((-alpha(water) + (1i*w(water)))
 fid_ws = fid-fid_water;
 spec_ws=fftshift(fft(fid_ws',[],1),1);
 
+%create water signal to be stored
+spec_water=fftshift(fft(fid_water',[],1),1);
 
 % plot the results
 if plot_bool ==1
@@ -155,6 +157,8 @@ end
 out = in;
 out.fids = fid_ws';
 out.specs = spec_ws;
+out.watersupp.fids_water = fid_water';
+out.watersupp.specs_water = spec_water;
 out.watersupp.damp = alpha(water);
 out.watersupp.freq = w(water);
 out.watersupp.phase = ph(water);

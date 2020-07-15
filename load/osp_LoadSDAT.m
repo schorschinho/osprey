@@ -27,7 +27,7 @@ function [MRSCont] = osp_LoadSDAT(MRSCont)
 % Close any remaining open figures
 close all;
 warning('off','all');
-
+fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 if MRSCont.flags.hasMM %re_mm adding functionality to load MM data
     if ((length(MRSCont.files_mm) == 1) && (MRSCont.nDatasets>1))   %re_mm seems like specificy one MM file for a batch is also an option to plan to accomodate
         for kk=2:MRSCont.nDatasets %re_mm 
@@ -35,17 +35,23 @@ if MRSCont.flags.hasMM %re_mm adding functionality to load MM data
         end %re_mm 
     end   %re_mm 
     if ((length(MRSCont.files_mm) ~= MRSCont.nDatasets) )   %re_mm 
-        error('Number of specified MM files does not match number of specified metabolite files.');   %re_mm 
+        msg = 'Number of specified MM files does not match number of specified metabolite files.'; %re_mm 
+        fprintf(fileID,msg);
+        error(msg);
     end   %re_mm 
 end   %re_mm 
 if MRSCont.flags.hasRef
     if length(MRSCont.files_ref) ~= MRSCont.nDatasets
-        error('Number of specified reference files does not match number of specified metabolite files.');
+        msg = 'Number of specified reference files does not match number of specified metabolite files.'; %re_mm 
+        fprintf(fileID,msg);
+        error(msg);
     end
 end
 if MRSCont.flags.hasWater
     if length(MRSCont.files_w) ~= MRSCont.nDatasets
-        error('Number of specified water files does not match number of specified metabolite files.');
+        msg = 'Number of specified water files does not match number of specified metabolite files.'; %re_mm 
+        fprintf(fileID,msg);
+        error(msg);
     end
 end
 
@@ -55,10 +61,12 @@ reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
+fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    fprintf(fileID,[reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
     end    
@@ -157,8 +165,9 @@ if MRSCont.flags.isGUI
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fclose(fileID);
 % Set flag
 MRSCont.flags.coilsCombined     = 1;
-
+MRSCont.runtime.Load = time;
 end

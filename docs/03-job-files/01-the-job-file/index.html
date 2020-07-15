@@ -829,6 +829,26 @@
 
 <p>LCModel <code>.RAW</code> files can be loaded via the <code>Other</code> option in the LCModel file type selection menu.</p>
 <p>Please be aware that LCModel may prompt you to enter the number of FID data points (a positive integer number, e.g. <code>2048</code>), dwell time (in seconds, e.g. <code>0.0005</code>), and the static magnetic field strength in MHz (e.g. <code>123.26</code> for a Siemens 2.89 T magnet).</p>
+<p>In addition to the <code>.RAW</code> files, Osprey also creates the corresponding  <code>.CONTROL</code> files. These files can be used for LCModel batch processing.</p>
+<div class="highlight"><pre><span></span><code>for file in /storage/LCModelControlFiles/*;
+do /usr/local/.lcmodel/bin/lcmodel &lt; $file;
+done 
+</code></pre></div>
+
+<div class="admonition info">
+<p class="admonition-title">MANDATORY</p>
+<p>To create working <code>.CONTROL</code> files you have to specify the following mandatory variables in the <code>osp_lcmcontrol_params()</code> function located in the process folder: <code>key</code>, <code>FILBAS</code>, <code>FOLDER</code>, and <code>DOECC</code>. </p>
+</div>
+<div class="highlight"><pre><span></span><code>key = 0; %Your LCM key goes here
+FILBAS = &#39;/storage/myBasisSet_30ms_PRESS.BASIS&#39;; % Location of .BASIS file used in LCModel
+FOLDER = &#39;/storage/LCMoutput&#39;; %Output folder (Create this on your linux machine first)
+DOECC= &#39;F&#39;; % No eddy current correction in LCModel as this is already performed in Osprey.
+</code></pre></div>
+
+<div class="admonition info">
+<p class="admonition-title">OPTIONAL</p>
+<p>The other parameters are optional and are described in the <code>osp_lcmcontrol_params()</code> function.</p>
+</div>
 <p>When loading <code>.TXT</code> files with Tarquin, you will probably need to enter the echo time in seconds (e.g. <code>0.03</code> for a <code>TE = 30 ms</code> acquisition).</p>
 <p>The <code>opts.saveVendor</code> switch has been introduced to sidestep these problems with <code>.RAW</code> and <code>.TXT</code> files. LCModel, TARQUIN and jMRUI accept the <code>.SDAT/.SPAR</code> and <code>.RDA</code> file formats, and should be able to read the header information correctly.</p>
 <p>All exported third-party format files are stored in sub-directories of the output folder specified further down in the job file.</p>

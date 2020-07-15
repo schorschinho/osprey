@@ -1,4 +1,4 @@
-function out = osp_plotFit(MRSCont, kk, which, conc, stagFlag, xlab, ylab, figTitle)
+function out = osp_plotFit(MRSCont, kk, which_spec, conc, stagFlag, xlab, ylab, figTitle)
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   Creates a figure showing data stored in an Osprey data container, as
 %   well as the fit to it, the baseline, the residual, and contributions
@@ -20,6 +20,7 @@ function out = osp_plotFit(MRSCont, kk, which, conc, stagFlag, xlab, ylab, figTi
 %                               'sum'
 %                               'ref'
 %                               'w'
+%                                 'mm' re_mm
 %       conc      = flag if concatenate fitting was used
 %       stagFlag  = flag to decide whether basis functions should be plotted
 %                   vertically staggered or simply over one another
@@ -50,10 +51,10 @@ fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
 if nargin<8    
     [~,filen,ext] = fileparts(MRSCont.files{kk});
-    if strcmp(which, 'conc')
+    if strcmp(which_spec, 'conc')
         figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext]);
     else
-        figTitle = sprintf([fitMethod ' ' fitStyle ' ' which ' fit plot:\n' filen ext]);
+        figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext]);
     end
     if nargin<7
         ylab='';
@@ -64,7 +65,7 @@ if nargin<8
                 if nargin<4
                     conc = 'diff1';   
                     if nargin < 3
-                        which = 'off';
+                        which_spec = 'off';
                         if nargin < 2
                             kk = 1;
                             if nargin<1
@@ -81,38 +82,45 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract processed spectra and fit parameters
-if  strcmp(which, 'conc')
+if  strcmp(which_spec, 'conc')
     dataToPlot  = MRSCont.processed.(conc){kk};
 else
-    if strcmp(which, 'off')
+    if strcmp(which_spec, 'off')
         dataToPlot  = MRSCont.processed.A{kk};
     else
-        dataToPlot  = MRSCont.processed.(which){kk};
+        dataToPlot  = MRSCont.processed.(which_spec){kk};
     end
 end
 
 
-if strcmp(which, 'ref') || strcmp(which, 'w')
+if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
     fitRangePPM = MRSCont.opts.fit.rangeWater;
-    basisSet    = MRSCont.fit.resBasisSet.(which).water{MRSCont.info.(which).unique_ndatapoint_indsort(kk)};
-else if strcmp(which, 'conc')
+    basisSet    = MRSCont.fit.resBasisSet.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
+else if strcmp(which_spec, 'conc')
         fitRangePPM = MRSCont.opts.fit.range;
-        basisSet    = MRSCont.fit.resBasisSet.(which){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
-    else if strcmp(which, 'off')
+        basisSet    = MRSCont.fit.resBasisSet.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
+    else if strcmp(which_spec, 'off')
             fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet.(which){kk};
+            basisSet    = MRSCont.fit.resBasisSet.(which_spec){kk};
         else
             fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet.(which){kk};
+            basisSet    = MRSCont.fit.resBasisSet.(which_spec){kk};
         end
     end
 end
 
+
+
 % Get the fit parameters
-fitParams   = MRSCont.fit.results.(which).fitParams{kk};
+
+
+fitParams   = MRSCont.fit.results.(which_spec).fitParams{kk};
 % Pack up into structs to feed into the reconstruction functions
 inputData.dataToFit                 = dataToPlot;
 inputData.basisSet                  = basisSet;
+if (length(fitParams.ampl) == 3) 
+    inputData.basisSet_mm                  = MRSCont.fit.basisSet_mm;
+end
 inputSettings.scale                 = MRSCont.fit.scale{kk};
 inputSettings.fitRangePPM           = fitRangePPM;
 inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
@@ -132,7 +140,7 @@ switch fitMethod
     % Depending on whether metabolite or water data are to be
     % displayed, create the plots via different models
     case 'Osprey'
-        if strcmp(which, 'ref') || strcmp(which, 'w')
+        if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
             % if water, use the water model
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
         else
@@ -145,10 +153,18 @@ switch fitMethod
         end
 end
 
+%re_mm
+%For MM, prepare a 'clean' MM spectrum that has metabolite signals pulled
+%out.
+if (strcmp(which_spec, 'mm'))
+   Met_corr_spectrum  = sum(ModelOutput.indivMets(:,1:4),2);
+end
+
+
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 canvasSize  = get(0,'defaultfigureposition');
-if stagFlag && ~(strcmp(which, 'ref') || strcmp(which, 'w'))
+if stagFlag && ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
     canvasSize(4) = canvasSize(4) * 1.8;
 end
 out = figure('Position', canvasSize);
@@ -167,7 +183,7 @@ fit         = ModelOutput.completeFit;
 residual    = ModelOutput.residual;
 
 % If water, don't get baseline and individual fits
-if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
+if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
     baseline    = ModelOutput.baseline;
     indivPlots  = ModelOutput.indivMets;
 end
@@ -187,19 +203,23 @@ plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/
 plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
 plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue 
 
+if (strcmp(which_spec, 'mm'))
+   plot(ppm, (dataToPlot + stagData-Met_corr_spectrum)/maxPlot, 'Color',[1 0 0.1]); % Data
+end
+
 text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
 text(fitRangePPM(1), (0 + max(dataToPlot) + stagData)/maxPlot-0.05, num2str(max(dataToPlot),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); % Maximum Data Text
 text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
 text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot +0.05, num2str(abs(max(dataToPlot - fit)),'%1.2e'), 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
 
-if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
+if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
     plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', MRSCont.colormap.LightAccent);
 end
 
 
 %%% 6. PLOT BASIS FUNCTIONS %%%
 % Plot separate metabolite basis functions only if not water
-if ~(strcmp(which, 'ref') || strcmp(which, 'w'))
+if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
     if stagFlag
         % Staggered plots will be in all black and separated by the mean of the
         % maximum across all spectra

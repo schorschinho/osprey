@@ -34,10 +34,18 @@ function [MRSCont] = OspreyQuantify(MRSCont)
 %       2019-10-09: First version of the code.
 %       2019-10-22: HZ added tables.
 
+outputFolder = MRSCont.outputFolder;
+fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 % Check that OspreyFit has been run before
 if ~MRSCont.flags.didFit
-    error('Trying to quantify data, but data have not been modelled yet. Run OspreyFit first.')
+    msg = 'Trying to quantify data, but data have not been modelled yet. Run OspreyFit first.';
+    fprintf(fileID,msg);
+    error(msg);    
 end
+
+% Version check and updating log file
+MRSCont.ver.Quant             = '1.0.0 Quant';
+fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Quant '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 
 
 %%% 0. CHECK WHICH QUANTIFICATIONS CAN BE DONE %%%
@@ -139,6 +147,7 @@ for kk = 1:MRSCont.nDatasets
     msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    fprintf(fileID, [reverseStr, msg]);
     if MRSCont.flags.isGUI  && isfield(progressText,'String')      
         set(progressText,'String' ,sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
@@ -147,7 +156,6 @@ for kk = 1:MRSCont.nDatasets
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
     metsName = MRSCont.quantify.metabs; % just for the names
     amplMets = MRSCont.quantify.amplMets{kk};
-    amplWater = MRSCont.fit.results.(waterType).fitParams{kk}.ampl;
 
 
     %%% 2. GET CREATINE RATIOS %%%
@@ -167,7 +175,7 @@ for kk = 1:MRSCont.nDatasets
 
     %%% 3. GET WATER-SCALED, TISSUE-UNCORRECTED RATIOS %%%
     if qtfyH2O
-
+        amplWater = MRSCont.fit.results.(waterType).fitParams{kk}.ampl;
         % Get repetition times
         metsTR  = MRSCont.processed.A{kk}.tr * 1e-3;
         waterTR = MRSCont.processed.(waterType){kk}.tr * 1e-3;
@@ -237,6 +245,9 @@ if MRSCont.flags.isGUI && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+MRSCont.runtime.Quantify = time;
+fclose(fileID); %close log file
 %% Create tables
 % Set up readable tables for each quantification.
 if qtfyCr
@@ -268,12 +279,12 @@ if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
 
-if ~MRSCont.flags.isGUI
+if MRSCont.flags.isGUI
     MRSCont.flags.isGUI = 0;
-    save(fullfile(outputFolder, outputFile), 'MRSCont');
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
     MRSCont.flags.isGUI = 1;
 else
-   save(fullfile(outputFolder, outputFile), 'MRSCont');
+   save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
 end
 
 end

@@ -32,20 +32,31 @@ function [hasSPM] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %%
 %%% 1. GET SPMPATH AND TOOLBOXES%%%
-
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
-enabled = table2cell(addons(:,3));
+lic = strcmp({'Enabled'}, addons.Properties.VariableNames);
+if ~isempty(lic)
+    enabled = table2cell(addons(:,lic==1));
+else
+    enabled = table2cell(addons(:,1));
+end
 
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
  
 % SPM
-if isfile(fullfile(ospFolder,'GUI','SPMpath.mat'))
+if isfile(fullfile(ospFolder,'GUI','SPMpath.mat')) % Load path to SPM
     load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
-    spmversion = SPMpath;
-else
+    if exist(SPMpath, 'dir')
+        spmversion = SPMpath;
+    else  %This isn't the right SPM path (maybe it was copied from another machine)
+        spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
+        spmversion = spmversion{1};
+        SPMpath = spmversion;
+        save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
+    end
+else %Set path to SPM
     spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
     spmversion = spmversion{1};
     SPMpath = spmversion;
@@ -56,23 +67,18 @@ if isempty(spmversion)
     hasSPM = 0;
 elseif strcmpi(spmversion(end-3:end),'spm8')
     available{end+1} = 'SPM8';
-    enabled{end+1} = 0;
+    enabled{end+1} = false;
     hasSPM = 0;
 else
     available{end+1} = 'SPM12';
-    enabled{end+1} = 1;
+    enabled{end+1} = true;
     hasSPM = 1;
+    rmpath(genpath([spmversion filesep 'external' filesep 'fieldtrip']));
 end 
 
-% Parse which toolboxes are available
-isAvailableIndex = cellfun(@(a)~isempty(a),enabled);
-if enabled{end} == 1
-    isAvailableIndex(end) = 1;
-elseif enabled{end} == 0
-    isAvailableIndex(end) = 0;
-else
+if ~isempty(lic)
+    available(find(cellfun(@(a)~isempty(a)&&a<1,enabled)), :) = [];
 end
-available(find(~isAvailableIndex), :) = [];
 
 %%% 2. CHECK AVAILABILTY %%%
 switch Module

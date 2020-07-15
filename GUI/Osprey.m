@@ -23,14 +23,14 @@ function  Osprey
 gui.colormap.Background = [255/255 254/255 254/255];
 gui.colormap.LightAccent = [110/255 136/255 164/255];
 gui.colormap.Foreground = [11/255 71/255 111/255];
-gui.colormap.Accent = [11/255 71/255 111/255];
+gui.colormap.Accent = [254/255 186/255 47/255];
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
 logoFcn = @()imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
 logoBanner = uiw.utility.loadIcon(logoFcn);
 % Here the intro banner is created
-gui.d = uiw.dialog.About('Name', 'Osprey','Version','0.0.1','Date', 'October 6, 2019',...
+gui.d = uiw.dialog.About('Name', 'Osprey','Version','1.0.0','Date', 'October 6, 2019',...
 'Timeout', 3,'CustomText', 'Osprey is provided by Johns Hopkins University.',...
 'ContactInfo', 'gabamrs@gmail.com','LogoCData', logoBanner);
 %% Create the StartUp Menu
@@ -99,7 +99,7 @@ function loadJob(gui)
             gui.colormap.Background = [255/255 254/255 254/255];
             gui.colormap.LightAccent = [110/255 136/255 164/255];
             gui.colormap.Foreground = [11/255 71/255 111/255];
-            gui.colormap.Accent = [11/255 71/255 111/255];
+            gui.colormap.Accent = [254/255 186/255 47/255];
         case 2    
             %Bluemode colormap
             gui.colormap.Background = [110/255 136/255 164/255];
@@ -129,7 +129,7 @@ function loadMRSCont(gui)
             gui.colormap.Background = [255/255 254/255 254/255];
             gui.colormap.LightAccent = [110/255 136/255 164/255];
             gui.colormap.Foreground = [11/255 71/255 111/255];
-            gui.colormap.Accent = [11/255 71/255 111/255];
+            gui.colormap.Accent = [254/255 186/255 47/255];
         case 2    
             %Bluemode colormap
             gui.colormap.Background = [110/255 136/255 164/255];

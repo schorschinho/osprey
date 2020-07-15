@@ -41,6 +41,7 @@ try
 catch
    progressText = [];
 end
+fileID = fopen(fullfile(fitOpts.outputFolder, 'LogFile.txt'),'a+');
 
 dataToFit               = op_zeropad(dataToFit, 2);
 % Resample basis set to match data resolution and frequency range
@@ -59,13 +60,10 @@ minKnotSpacingPPM       = fitOpts.bLineKnotSpace; % this is the DKNTMN parameter
 % landmark delta functions for NAA, Cr, Cho.
 if ~isfield(dataToFit,'refShift') %NO referenceing so far
     disp('Running initial referencing...');
+    fprintf(fileID,'Running initial referencing...\n');
     if ~isempty(progressText) 
         String = get(progressText,'String');
-        try
-            set(progressText,'String' ,sprintf([String(2,:) '\nRunning initial referencing...']));
-        catch
-            set(progressText,'String' ,sprintf([String(1,:) '\nRunning initial referencing...']));
-        end
+            set(progressText,'String' ,sprintf([String(1,:) '\nRunning initial referencing...\n']));
         drawnow
     end
     [refShift, refFWHM] = fit_OspreyReferencing(dataToFit);
@@ -73,13 +71,10 @@ if ~isfield(dataToFit,'refShift') %NO referenceing so far
     dataToFitRef = op_freqshift(dataToFit, -refShift);
 else %Referencing was performed on another Subspec
     disp('Initial was performed on another Subspec...');
+    fprintf(fileID,'Initial was performed on another Subspec...\n');
     if ~isempty(progressText) 
         String = get(progressText,'String');
-        try
-            set(progressText,'String' ,sprintf([String(2,:) '\nRunning initial referencing...']));
-        catch
-            set(progressText,'String' ,sprintf([String(1,:) '\nRunning initial referencing...']));
-        end
+        set(progressText,'String' ,sprintf([String(1,:) '\nInitial was performed on another Subspec...\n']));
         drawnow
     end    
     refShift = dataToFit.refShift;
@@ -106,9 +101,10 @@ end
 % (Worth exploring in future versions by passing the starting values for
 % the phase corrections as arguments.)
 disp('Running preliminary analysis with reduced basis set...');
+fprintf(fileID,'Running preliminary analysis with reduced basis set...\n');
 if ~isempty(progressText) 
     String = get(progressText,'String');
-    set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...']));
+    set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
     drawnow
 end
 [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
@@ -119,13 +115,15 @@ end
 % with the full LCModel (except for baseline regularization) to obtain
 % the final optimal starting values.
 disp('Running final preliminary analysis step with full basis set...');
+fprintf(fileID,'Running final preliminary analysis step with full basis set...\n');
 if ~isempty(progressText) 
     String = get(progressText,'String');
-    set(progressText,'String' ,sprintf([String(1,:)  '\nRunning final preliminary analysis step with full basis set...']));
+    set(progressText,'String' ,sprintf([String(1,:)  '\nRunning final preliminary analysis step with full basis set...\n']));
     drawnow
 end
 [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
 
+% [J,Jfd,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);
 
 %%% 5. CREATE OUTPUT %%%
 % Return fit parameters
@@ -133,6 +131,7 @@ fitParams = fitParamsStep2;
 fitParams.refShift = refShift;
 fitParams.refFWHM = refFWHM;
 fitParams.prelimParams = fitParamsStep1;
+% fitParams.CRLB = CRLB;
 end
 
 

@@ -26,20 +26,40 @@ function osp_updatedistrOvWindow(gui)
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         delete(gui.Plot.distrOv.Children(3).Children)
         Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
+%%% 2. VISUALIZATION PART OF THIS TAB %%%        
+        if ~strcmp(Selection,'Quality')    
         split_Selection = strsplit(Selection,'-');
-%%% 2. VISUALIZATION PART OF THIS TAB %%%
             if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                 metab = 'GABA';
             else
                 metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
             end
-            [temp] = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');
+            if ~gui.controls.GM
+                [temp] = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot'); 
+            else
+                [temp] = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',1);                
+            end
+        else
+            quality = {'SNR','FWHM','freqShift'};
+            if ~gui.controls.GM
+                [temp] = osp_plotRaincloud(MRSCont,'Quality','Quality',quality{gui.overview.Selected.Metab},'Raincloud plot');  
+            else
+                [temp] = osp_plotRaincloud(MRSCont,'Quality','Quality',quality{gui.overview.Selected.Metab},'Raincloud plot',1);  
+            end
+            split_Selection{1}=quality{gui.overview.Selected.Metab};
+            metab = '';
+        end
+
             set( temp.Children(2).Children, 'Parent', gui.Plot.distrOv.Children(3) );
             set(  gui.Plot.distrOv.Children(3), 'XLabel', temp.Children(2).XLabel);
             set(  gui.Plot.distrOv.Children(3), 'YLim', temp.Children(2).YLim);
             close(temp);
             set(gui.Plot.distrOv,'Heights', [-0.07 -0.90 -0.03]);
-            gui.Plot.distrOv.Children(3).Legend.Location = 'North'; % Update legend
+            if ~gui.controls.GM
+                gui.Plot.distrOv.Children(3).Legend.Location = 'North'; % Update legend
+            else
+                gui.Plot.distrOv.Children(3).Legend.Location = 'North'; % Update legend
+            end
             set(gui.Plot.distrOv.Children(3).Title, 'String', ['Raincloud plot: ' split_Selection{1} ' ' metab]) %Update title
         setappdata(gui.figure,'MRSCont',MRSCont); %Write  MRSCont into hidden container in gui class            
 end

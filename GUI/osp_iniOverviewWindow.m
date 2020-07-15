@@ -27,17 +27,17 @@ function osp_iniOverviewWindow(gui)
 %%% 1. GET HANDLES %%%
 %This function creates the initial overview window
         MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
-        gui.layout.tabs.TabEnables{6} = 'on';
-        gui.layout.tabs.Selection  = 6;
+        gui.layout.tabs.TabEnables{6} = 'on';  
+        gui.layout.tabs.Selection  = 6;  
 % Creating subtabs
         gui.layout.specsOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.meanOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.quantOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.distrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.corrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.diceOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice overlap'};         
-        gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off'};      
+        gui.layout.diceOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);  
+        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice overlap'};    
+        gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off'};   
         gui.layout.overviewTab.TabWidth   = 115;
         gui.layout.overviewTab.Selection  = 1;
 
@@ -48,18 +48,26 @@ function osp_iniOverviewWindow(gui)
             'Parent', gui.layout.specsOvTab, ...
             'BackgroundColor',gui.colormap.Background,'Padding', 5);
 
-%Creates popup menu for the processed Subspectra (A,B,C,D,ref,water)
+%Creates popup menu for the processed Subspectra (A,B,C,D,mm,ref,water) .... re_mm
        tempFitNames = gui.layout.fitTab.TabTitles;
        for i = 1 : gui.fit.Number
            tempFitNames{i} = strcat('Fit: ',tempFitNames{i}); 
        end
+       if MRSCont.flags.hasMM
+           tempFitNames{gui.fit.Number+1} = 'MM_clean';
+       end
+       
        gui.upperBox.specsOv.box = uix.HBox('Parent', gui.Plot.specsOv,'BackgroundColor',gui.colormap.Background, 'Spacing',5);
        gui.controls.specsOvPlot = uix.Panel('Parent', gui.upperBox.specsOv.box,'Title', 'Individual spectra or fit', ...
                                             'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-       gui.controls.pop_specsOvPlot = uicontrol('Parent',gui.controls.specsOvPlot,'style','popupmenu',...
+       gui.controls.specsOv = uix.HBox('Parent', gui.controls.specsOvPlot,...
+                                       'Padding', 5, 'Spacing', 10,'BackgroundColor',gui.colormap.Background);
+       gui.controls.pop_specsOvPlot = uicontrol('Parent',gui.controls.specsOv,'style','popupmenu',...
                                                 'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                                 'String',[gui.layout.proTab.TabTitles;tempFitNames], 'Value', 1);
+       gui.controls.check_specsOvPlot = uicontrol('Parent',gui.controls.specsOv,'Style','checkbox','BackgroundColor',gui.colormap.Background,'String','Gand Mean', ...
+                                                    'Value',gui.controls.GM,'Position',[0 0 1 1],'FontName', 'Arial');
        gui.upperBox.specsOv.upperButtons = uix.Panel('Parent', gui.upperBox.specsOv.box, ...
                                      'Padding', 5, 'Title', ['Save'],...
                                      'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -69,7 +77,8 @@ function osp_iniOverviewWindow(gui)
        [img2] = imresize(img, 0.05);
        set(gui.controls.b_save_specOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
        set(gui.controls.b_save_specOvTab,'Callback',{@osp_onPrint,gui});
-       set(gui.upperBox.specsOv.box, 'Width', [-0.9 -0.1])                                            
+       set(gui.upperBox.specsOv.box, 'Width', [-0.9 -0.1])  
+       set(gui.controls.specsOv, 'Width', [-0.85 -0.15])
 
 %op_plotspec is used to visualize the processed data
         gui.layout.shiftind = 0.2;
@@ -106,9 +115,13 @@ function osp_iniOverviewWindow(gui)
        gui.controls.meanOvPlot = uix.Panel('Parent', gui.upperBox.meanOv.box,'Title', 'Actual spectrum', ...
                                           'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                           'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-       gui.controls.pop_meanOvPlot = uicontrol('Parent',gui.controls.meanOvPlot,'style','popupmenu',...
+       gui.controls.meanOv = uix.HBox('Parent', gui.controls.meanOvPlot,...
+                                       'Padding', 5, 'Spacing', 10,'BackgroundColor',gui.colormap.Background);                               
+       gui.controls.pop_meanOvPlot = uicontrol('Parent',gui.controls.meanOv,'style','popupmenu',...
                                               'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                               'String',gui.layout.proTab.TabTitles, 'Value', 1);
+       gui.controls.check_meanOvPlot = uicontrol('Parent',gui.controls.meanOv,'Style','checkbox','BackgroundColor',gui.colormap.Background,'String','Gand Mean', ...
+                                                    'Value',gui.controls.GM,'Position',[0 0 1 1],'FontName', 'Arial');                                          
        gui.upperBox.meanOv.upperButtons = uix.Panel('Parent', gui.upperBox.meanOv.box, ...
                                      'Padding', 5, 'Title', ['Save'],...
                                      'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -119,13 +132,18 @@ function osp_iniOverviewWindow(gui)
        set(gui.controls.b_save_meanOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
        set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
        set(gui.upperBox.meanOv.box, 'Width', [-0.9 -0.1])  
+       set(gui.controls.meanOv, 'Width', [-0.85 -0.15])
 %op_plotspec is used for a dummy plot which is update later
         gui.layout.shift = 0.5;
         temp = figure( 'Visible', 'off' );
         if gui.load.Selected ==1 %Metabolite data
-            temp = op_plotspec(MRSCont.overview.sort_data.(['g_' num2str(1)]).(gui.process.Names{2}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            if length(gui.process.Names)>1
+                temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{2}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            else
+                temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            end
         else %Water data?
-            temp = op_plotspec(MRSCont.overview.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
         end
         set(gca, 'YColor', MRSCont.colormap.Background);
         set(gca,'YTickLabel',{})
@@ -176,7 +194,7 @@ function osp_iniOverviewWindow(gui)
             fitNumber = gui.fit.Number;
        end
        for i = 0 : fitNumber-1
-           if ~strcmp(tempFitNames{i+1},'ref') && ~strcmp(tempFitNames{i+1},'w')
+           if ~strcmp(tempFitNames{i+1},'ref') && ~strcmp(tempFitNames{i+1},'w') && ~strcmp(tempFitNames{i+1},'mm')
                gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(tempFitNames{i+1})));
                gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(tempFitNames{i+1}));
                for j = 1 : gui.quant.Number.Quants
@@ -185,6 +203,7 @@ function osp_iniOverviewWindow(gui)
                end
            end
        end
+       gui.quant.popMenuNames{popMenuNames_Count+1} = 'Quality';
         gui.controls.quantOvPlot = uix.Panel('Parent', gui.Plot.quantOv,'Title', 'Actual Quantification', ...
                                             'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
@@ -223,6 +242,8 @@ function osp_iniOverviewWindow(gui)
         gui.controls.pop_distrOvMetab = uicontrol('Parent',gui.controls.distrOv,'style','popupmenu',...
                                                  'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                                  'String',MRSCont.quantify.metabs, 'Value', 1);
+       gui.controls.check_distrOv = uicontrol('Parent',gui.controls.distrOv,'Style','checkbox','BackgroundColor',gui.colormap.Background,'String','Gand Mean', ...
+                                                    'Value',gui.controls.GM,'Position',[0 0 1 1],'FontName', 'Arial');                                         
        gui.upperBox.distrOv.upperButtons = uix.Panel('Parent', gui.upperBox.distrOv.box, ...
                                      'Padding', 5, 'Title', ['Save'],...
                                      'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -242,6 +263,7 @@ function osp_iniOverviewWindow(gui)
         close( temp );
         set(gui.Plot.distrOv,'Heights', [-0.07 -0.90 -0.03]);
         gui.Plot.distrOv.Children(3).Legend.Location = 'North';
+        set(gui.controls.distrOv, 'Width', [-0.42 -0.42 -0.15])
 
  %%% 6. CORRELATION PLOTS %%%
 
@@ -264,10 +286,10 @@ function osp_iniOverviewWindow(gui)
                                                 'String',MRSCont.quantify.metabs, 'Value', 1);
         gui.controls.pop_corrOvCorr = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                                'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                               'String',gui.overview.Names.QM, 'Value', 3);                                 
+                                               'String',gui.overview.Names.QM, 'Value', 1);                                 
         gui.controls.pop_whichcorrOvCorr = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                        'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                       'String',{'MRSCont.overview.corr','metabolites','QM'}, 'Value', 3);
+                                       'String',{'MRSCont.overview.corr','metabolites','QM'}, 'Value', 3);                      
        gui.upperBox.corrOv.upperButtons = uix.Panel('Parent', gui.upperBox.corrOv.box, ...
                                      'Padding', 5, 'Title', ['Save'],...
                                      'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...

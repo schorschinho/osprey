@@ -27,7 +27,6 @@ function osp_iniCoregWindow(gui)
 %%% 1. GET HANDLES %%%
 % This function creates the initial coreg/seg window
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
-    addpath(genpath([gui.folder.spmversion filesep])); % Add SPM path
     gui.layout.tabs.TabEnables{4} = 'on';
     gui.layout.tabs.Selection  = 4;
     gui.layout.EmptyQuantPlot = 0;
@@ -47,7 +46,7 @@ function osp_iniCoregWindow(gui)
     [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
     [img2] = imresize(img, 0.1);
     set(gui.controls.b_save_coregTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-    set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint});
+    set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
     set(gui.upperBox.coreg.box, 'Width', [-0.9 -0.1]);                       
     % Creates layout for plotting and data control
     gui.Plot.coreg = uix.HBox('Parent', gui.layout.coregTab,'BackgroundColor',gui.colormap.Background);
@@ -87,7 +86,5 @@ function osp_iniCoregWindow(gui)
         colormap(gui.Results.coreg.Children,'gray');
         close( temp );
     end
-
-    rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path to avoid crash due to stupid naming conventions in SPM with internal gamma function
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

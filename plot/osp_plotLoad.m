@@ -17,6 +17,7 @@ function out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab
 %       kk       = Index for the kk-th dataset
 %       which    = String for the spectrum to fit
 %                   OPTIONS:    'mets'
+%                                       'mm'
 %                               'ref'
 %                               'w'
 %       stag     = Numerical value representing the fraction of the maximum
@@ -46,6 +47,9 @@ if nargin<9
         case 'mets'
             [~,filen,ext] = fileparts(MRSCont.files{kk});
             figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n']);
+        case 'mm'% re_mm
+                [~,filen,ext] = fileparts(MRSCont.files_mm{kk});% re_mm
+                figTitle = sprintf(['Load MM data plot: ' filen ext '\n']);% re_mm
         case 'ref'
             if ~strcmp(MRSCont.datatype,'P')
                 [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
@@ -68,6 +72,8 @@ if nargin<9
                 switch which
                     case 'mets'
                         ppmmax = 4.5;
+                      case 'mm' %re_mm
+                        ppmmax = 4.6;   %re_mm
                     case {'ref', 'w'}
                         ppmmax = 2*4.68;
                     otherwise
@@ -77,6 +83,8 @@ if nargin<9
                     switch which
                         case 'mets'
                             ppmmin = 0.2;
+                            case 'mm' %re_mm
+                        ppmmin = 0.0;   %re_mm
                         case {'ref', 'w'}
                             ppmmin = 0;
                         otherwise
@@ -106,6 +114,8 @@ end
 switch which
     case 'mets'
         dataToPlot  = op_freqrange(MRSCont.raw{kk}, ppmmin, ppmmax);
+    case 'mm' %re_mm
+        dataToPlot  = op_freqrange(MRSCont.raw_mm{kk}, ppmmin, ppmmax);   %re_mm
     case 'ref'
         dataToPlot  = op_freqrange(MRSCont.raw_ref{kk}, ppmmin, ppmmax);
     case 'w'
