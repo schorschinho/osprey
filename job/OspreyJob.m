@@ -107,6 +107,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Editing target is set to none (default). Please indicate otherwise in the csv-file or the GUI \n');
         opts.editTarget = 'unedited';
     end
+    if isfield(jobStruct,'dataScenario')
+        dataScenario = jobStruct(1).dataScenario;
+    else
+        fprintf('Data scenario is set to ''invivo'' (default). Please indicate otherwise in the csv-file or the GUI \n');
+        dataScenario = 'invivo';
+    end
     if isfield(jobStruct,'saveLCM')
         opts.saveLCM = jobStruct(1).saveLCM;
     else
@@ -125,13 +131,19 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Vendor-specific files (SDAT/SPAR, RDA, P) will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         opts.saveVendor = 1;
     end
+    if isfield(jobStruct,'includeMetabs')
+        opts.fit.includeMetabs = jobStruct(1).includeMetabs;
+    else
+        fprintf('Included metabolites is set to default (default). Please indicate otherwise in the csv-file or the GUI \n');
+        opts.fit.includeMetabs = {'default'};
+    end
     if isfield(jobStruct,'method')
         opts.fit.method = jobStruct(1).method;
     else
         fprintf('Fitting algorithm is set to Osprey (default). Please indicate otherwise in the csv-file or the GUI \n');
         opts.fit.method = 'Osprey';
     end
-    if isfield(jobStruct,'method')
+    if isfield(jobStruct,'style')
         opts.fit.style = jobStruct(1).style;
     else
         fprintf('Fitting style is set to Concatenated (default). Please indicate otherwise in the csv-file or the GUI \n');
@@ -165,6 +177,7 @@ end
 
 
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
+% Parse the sequence type entry
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
@@ -185,6 +198,26 @@ switch seqType
     otherwise
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
+
+% Parse the data scenario entry
+if exist('dataScenario','var')
+    switch dataScenario
+        case 'invivo'
+            MRSCont.flags.isPhantom = 0;
+        case 'phantom'
+            MRSCont.flags.isPhantom = 1;
+            % If phantom data are used, override some default fit options
+            opts.fit.bLineKnotSpace = 1.0;
+            opts.fit.fitMM          = 0;
+        otherwise
+            MRSCont.flags.isPhantom = 0;
+            warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
+    end
+else
+    MRSCont.flags.isPhantom = 0;
+    warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
+end
+
 MRSCont.opts = opts;
 if exist('file_stat','var')
     MRSCont.file_stat = file_stat;
@@ -205,7 +238,7 @@ end
 if exist('files_mm','var')   %re_mm Adding functionality for MM
     MRSCont.files_mm = files_mm;   %re_mm
 end   %re_mm
-    if exist('files_ref','var')
+if exist('files_ref','var')
     MRSCont.files_ref = files_ref;
 end
 if exist('files_w','var')
@@ -325,24 +358,24 @@ if ~GUI
         fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w');
         fprintf(fileID,'Timestamp %s\n', datestr(now,'HH:MM:SS.FFF'));
         fprintf(fileID, [MRSCont.ver.Osp '  ' MRSCont.ver.Job]);
-            fclose(fileID);
+        fclose(fileID);
     end
 else
     opts.Interpreter = 'tex';
     opts.Default = 'Yes';
     if exist(fullfile(outputFolder, outputFile), 'file') == 2
         askOverWriteJob = questdlg({['Your selected output folder already contains an Osprey output structure: \bf' outputFile], ...
-                                      ['\rmYou are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
-                                      '\rmDo you want to overwrite the existing job?',...
-                                      '(Warning\rm: This will delete all data in the data container!)',...
-                                      'You can load the existing MRS container by clicking No'}, ...
+                                    ['\rmYou are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
+                                     '\rmDo you want to overwrite the existing job?',...
+                                     '(Warning\rm: This will delete all data in the data container!)',...
+                                     'You can load the existing MRS container by clicking No'}, ...
         'Load jobFile', 'Yes ','No', opts);
         if strcmp(askOverWriteJob, 'No')
-             askloadMRSCont = questdlg( {['You are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
-                                         '\rmIf new files were added they will be attached, otherwise the MRS Container will just be loaded.', ...
-                                         '\rmIf you want to change analysis parameters on an exisiting set of files add a existing MRS Container in the dialog', ...
-                                         '\rmDo you want to load the corresponding MRS Container and attach new files?'}, ...
-                                          'Load MRS Container', 'Yes','No',opts);
+            askloadMRSCont = questdlg({['You are about to load the job: \bf', strrep(outputFile,'.mat','.m')], ...
+                                        '\rmIf new files were added they will be attached, otherwise the MRS Container will just be loaded.', ...
+                                        '\rmIf you want to change analysis parameters on an exisiting set of files add a existing MRS Container in the dialog', ...
+                                        '\rmDo you want to load the corresponding MRS Container and attach new files?'}, ...
+                                        'Load MRS Container', 'Yes','No',opts);
 
              if strcmp(askloadMRSCont, 'No')
                 disp('Aborted! No new job loaded.');

@@ -29,6 +29,7 @@ MRSCont.flags.isPRIAM       = 0;
 MRSCont.opts.saveLCM                = 0;
 MRSCont.opts.savejMRUI              = 0;
 MRSCont.opts.saveVendor             = 0;
+MRSCont.opts.fit.includeMetabs      = {'default'};      % Options: 'default', 'full', custom set       
 MRSCont.opts.fit.method             = 'Osprey';         % Options: 'Osprey' (default), 'AQSES' (planned), 'LCModel' (planned), 'TARQUIN' (planned)
 MRSCont.opts.fit.range              = [0.2 4.2];        % Default: [0.2 4.2]
 MRSCont.opts.fit.rangeWater         = [2.0 7.4];        % Default: [2.0 7.4]

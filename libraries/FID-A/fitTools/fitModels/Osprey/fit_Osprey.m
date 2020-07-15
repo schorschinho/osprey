@@ -111,7 +111,7 @@ if ~isempty(progressText)
     set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...']));
     drawnow
 end
-[fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM);
+[fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
 
 
 %%% 4. FINAL PRELIMINARY ANALYSIS STEP 2 %%%

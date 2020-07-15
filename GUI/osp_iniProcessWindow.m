@@ -1,6 +1,6 @@
 function osp_iniProcessWindow(gui)
 %% osp_iniProcessWindow
-%   This function creates the inital processed window in the gui.
+%   This function creates the initial processed window in the gui.
 %
 %
 %   USAGE:
@@ -25,7 +25,7 @@ function osp_iniProcessWindow(gui)
 %   HISTORY:
 %       2020-01-16: First version of the code.
 %%% 1. GET HANDLES %%%
-%This functions creates the inital process window    
+%This functions creates the initial process window    
         MRSCont = getappdata(gui.figure,'MRSCont');   % Get MRSCont from hidden container in gui class
         gui.layout.tabs.Selection  = 2;
         gui.layout.EmptyProPlot = 0;
@@ -40,7 +40,7 @@ function osp_iniProcessWindow(gui)
                 gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.proTab.TabTitles  = {'A','ref','w'};
-                gui.layout.proTab.TabEnables = {'on', 'on','on'};
+                gui.layout.proTab.TabEnables = {'on','on','on'};
                 gui.layout.proTabhandles = {'AProTab', 'refProTab', 'wProTab'}; % Create 3 Tabs
                 gui.process.SNR = {'tNAA','water','water'};
             elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater) %Only metabolite data                

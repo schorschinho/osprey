@@ -64,7 +64,15 @@ else
     hasSPM = 1;
 end 
 
-available(find(cellfun(@(a)~isempty(a)&&a<1,enabled)), :) = [];
+% Parse which toolboxes are available
+isAvailableIndex = cellfun(@(a)~isempty(a),enabled);
+if enabled{end} == 1
+    isAvailableIndex(end) = 1;
+elseif enabled{end} == 0
+    isAvailableIndex(end) = 0;
+else
+end
+available(find(~isAvailableIndex), :) = [];
 
 %%% 2. CHECK AVAILABILTY %%%
 switch Module

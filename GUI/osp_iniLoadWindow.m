@@ -1,6 +1,6 @@
 function osp_iniLoadWindow(gui) 
 %% osp_iniLoadWindow
-%   This function creates the inital load window in the gui.
+%   This function creates the initial load window in the gui.
 %
 %
 %   USAGE:

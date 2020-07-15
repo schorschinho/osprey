@@ -17,47 +17,42 @@
 % INPUTS:
 % NONE
 
-function metabList = fit_createMetabList
+function metabList = fit_createMetabList(includeMetabs)
 
-% Select metabolites to include in basis set
-metabList.Ala      = 0;
-metabList.Asc      = 1;
-metabList.Asp      = 1;
-metabList.bHB      = 0;
-metabList.bHG      = 0;
-metabList.Cit      = 0;
-metabList.Cr       = 1;
-metabList.CrCH2    = 1;
-metabList.EtOH     = 0;
-metabList.GABA     = 1;
-metabList.GPC      = 1;
-metabList.GSH      = 1;
-metabList.Glc      = 0;
-metabList.Gln      = 1;
-metabList.Glu      = 1;
-metabList.Gly      = 0;
-metabList.H2O      = 1;
-metabList.Ins      = 1;
-metabList.Lac      = 1;
-metabList.NAA      = 1;
-metabList.NAAG     = 1;
-metabList.PCh      = 1;
-metabList.PCr      = 1;
-metabList.PE       = 1;
-metabList.Phenyl   = 0;
-metabList.Scyllo   = 1;
-metabList.Ser      = 0;
-metabList.Tau      = 1;
-metabList.Tyros    = 0;
+% Define the set of available metabolites
+all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','CrCH2','EtOH','GABA','GPC','GSH','Glc','Gln' ...
+    ,'Glu','Gly','H2O','Ins','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
+    ,'Scyllo','Ser','Tau','Tyros','MM09','MM12','MM14','MM17','MM20' ...
+    ,'Lip09','Lip13','Lip20'};
+for rr = 1:length(all_mets)
+    metabList.(all_mets{rr}) = 0;
+end
 
-% Select MM/lipid basis functions to include
-metabList.MM09     = 1;
-metabList.MM12     = 1;
-metabList.MM14     = 1;
-metabList.MM17     = 1;
-metabList.MM20     = 1;
-metabList.Lip09    = 1;
-metabList.Lip13    = 1;
-metabList.Lip20    = 1;
+% Select metabolites to include in basis set depending on user input
+% If 'default' or 'full' are input, fill appropriately...
+if length(includeMetabs) == 1
+    if strcmpi(includeMetabs{1}, 'default')
+        % Define the default set
+        defaultMets = {'Asc','Asp','Cr','CrCH2' ...
+                     ,'GABA','GPC','GSH','Gln','Glu' ...
+                     ,'H2O','Ins','Lac','NAA','NAAG','PCh','PCr','PE' ...
+                     ,'Scyllo','Tau','Tyros','MM09' ...
+                     ,'MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
+                 
+        for ll = 1:length(defaultMets)
+            metabList.(defaultMets{ll}) = 1;
+        end
+    elseif strcmpi(includeMetabs{1}, 'full')
+        % Define the full set
+        for ll = 1:length(all_mets)
+            metabList.(all_mets{ll}) = 1;
+        end
+    end
+else
+    % ... otherwise, if a list of metabolite names is provided, use it.
+    for ll = 1:length(includeMetabs)
+        metabList.(includeMetabs{ll}) = 1;
+    end
+end
 
 end
