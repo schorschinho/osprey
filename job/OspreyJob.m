@@ -227,8 +227,8 @@ if exist('dataScenario','var')
         case 'phantom'
             MRSCont.flags.isPhantom = 1;
             % If phantom data are used, override some default fit options
-            opts.fit.bLineKnotSpace = 1.0;
-            opts.fit.fitMM          = 0;
+            MRSCont.opts.fit.bLineKnotSpace = 1.0;
+            MRSCont.opts.fit.fitMM          = 0;
         otherwise
             MRSCont.flags.isPhantom = 0;
             warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
@@ -237,8 +237,6 @@ else
     MRSCont.flags.isPhantom = 0;
     warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
 end
-
-MRSCont.opts = opts;
 
 if exist('file_stat','var')
     if ~isempty(file_stat)

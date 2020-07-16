@@ -133,7 +133,7 @@ if ext
     basisSet = fit_sortBasisSet(basisSet);
 else  
     % To do: Interface with interactive user input
-    metabList = fit_createMetabList;
+    metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
     % Collect MMfit flag from the options determined in the job file
     fitMM = MRSCont.opts.fit.fitMM;
     % Create the modified basis set

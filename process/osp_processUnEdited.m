@@ -136,6 +136,9 @@ for kk = 1:MRSCont.nDatasets
             % data may have linewidth lower than the simulated basis set
             % data.
             raw = op_filter(raw, 2);
+            if MRSCont.flags.hasRef
+                raw_ref = op_filter(raw_ref, 2);
+            end
         end
         
         %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
@@ -264,6 +267,12 @@ for kk = 1:MRSCont.nDatasets
             end
             [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
             [raw_w,~]                       = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
+            
+            % Apply some linebroadening, if phantom data
+            if MRSCont.flags.isPhantom
+                raw_w = op_filter(raw_w, 2);    
+            end
+            
             MRSCont.processed.w{kk}         = raw_w; % Save back to MRSCont container
         end
 
