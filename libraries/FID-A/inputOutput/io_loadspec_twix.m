@@ -76,10 +76,10 @@ if isSpecial
 elseif isUniversal
     if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 1 
         seq = 'HERMES';
-    else if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 2 || twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 3
-            seq = 'HERCULES';
-         else
+    else if isempty(twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8})
             seq = 'MEGAPRESS';
+        else
+            seq = 'HERCULES';
         end
     end 
 elseif isMinn
@@ -356,6 +356,14 @@ elseif length(sqzDims)==2
 elseif length(sqzDims)==1
     fids=permute(fids,[dims.t]);
     dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0;
+end
+
+%Now reorder the fids for the Universal MEGA implementation 
+if strcmp(seq,'MEGAPRESS') && isUniversal
+    fids_A = fids(:,:,1:2:end);
+    fids_B = fids(:,:,2:2:end);
+    fids = cat(4,fids_A,fids_B);
+    dims.subSpecs=4;
 end
 
 %Now reorder the fids for the Universal HERMES/HERCULES implementation 
