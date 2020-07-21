@@ -117,16 +117,10 @@ for kk = 1:MRSCont.nDatasets
         if raw.averages > 1 && raw.flags.averaged == 0
     %         raw_A   = op_robustSpecReg(raw_A, 'MEGA', 0);
     %         raw_B   = op_robustSpecReg(raw_B, 'MEGA', 0);
-            temp_raw = raw;
             [raw, fs, phs, weights, driftPre, driftPost]   = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini);
             raw.specReg.fs              = fs; % save align parameters
             raw.specReg.phs             = phs; % save align parameters
             raw.specReg.weights         = weights; % save align parameters
-            temp_raw   = op_takeaverages(temp_raw,1:2:raw.averages);
-            raw.fids(:,1,1) = temp_raw.fids(:,1);
-            raw.fids(:,1,2) = temp_raw.fids(:,2);
-            raw.specs(:,1,1) = temp_raw.specs(:,1);
-            raw.specs(:,1,2) = temp_raw.specs(:,2);
         else
             raw.flags.averaged  = 1;
             raw.dims.averages   = 0;
