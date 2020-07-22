@@ -98,33 +98,6 @@ end
 % Load the specified basis set or the user basis set file
 basisSet = load(MRSCont.opts.fit.basisSetFile);
 basisSet = basisSet.BASIS;
-
-idx_H2O          = find(strcmp(basisSet.name,'H2O'));
-if isempty(idx_H2O)
-    WaterbasisSetFile        = which(['fit/basissets/philips/unedited/' seq '/' te '/basis_philips_' seq te '.mat']); 
-    if isempty(WaterbasisSetFile)
-        WaterbasisSetFile        = which(['fit/basissets/philips/unedited/press/' te '/basis_philips_press' te '.mat']);
-    end
-    if isempty(WaterbasisSetFile)
-        WaterbasisSetFile        = which(['fit/basissets/philips/unedited/press/30/basis_philips_press30.mat']);
-    end
-    if isempty(MRSCont.opts.fit.basisSetFile)
-        error('There is no appropriate water basis set to model your data. Please supply a sufficient basis set in Osprey .mat format in the fit/basissets/user/BASIS_MM.mat file! ');
-    end
-    basisSetWater = load(WaterbasisSetFile);
-    basisSetWater = basisSetWater.BASIS;
-    basisSet.name{basisSet.nMets+basisSet.nMM+1} = 'H2O';
-    idx_H2O = find(strcmp(basisSetWater.name,'H2O'));
-    basisSet.fids(:,basisSet.nMets+basisSet.nMM+1) = basisSetWater.fids(:,idx_H2O) .* basisSetWater.scale ./ basisSet.scale;
-    basisSet.specs(:,basisSet.nMets+basisSet.nMM+1) = basisSetWater.specs(:,idx_H2O) .* basisSetWater.scale ./ basisSet.scale;
-    basisSet.sz = size(basisSet.fids);
-    basisSet.nMets = basisSet.nMets + 1;
-    [~,maxH2Oind] = max(real(basisSet.specs(:,basisSet.nMets+basisSet.nMM)));
-    ppmmaxH2O = basisSet.ppm(maxH2Oind);
-    frqshift=(ppmmaxH2O-4.65)*basisSet.Bo*42.577;
-    basisSet.fids(:,basisSet.nMets+basisSet.nMM)=basisSet.fids(:,basisSet.nMets+basisSet.nMM).*exp(-1i*basisSet.t*frqshift*2*pi)';
-    basisSet.specs(:,basisSet.nMets+basisSet.nMM)=fftshift(fft(basisSet.fids(:,basisSet.nMets+basisSet.nMM),[],1),1);
-end
     
 % Generate the list of basis functions that are supposed to be included in
 % the basis set

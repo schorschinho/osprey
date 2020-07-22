@@ -128,25 +128,42 @@ BASIS.dims.extras=0;
 BASIS.nMets = nMets;
 BASIS.sz=[temp.sz(1) BASIS.nMets];
 
+n = BASIS.n;
+sw = BASIS.spectralwidth;
+Bo = BASIS.Bo;
+centerFreq = BASIS.centerFreq;
+% The amplitude and FWHM values are determined as for the LCModel and
+% TARQUIN algorithms (see Wilson et al., MRM 2011).
+hzppm = Bo*42.577;
+
+% To scale the amplitudes correctly, we first need to determine the
+% area of the 3.027 ppm CH3 signal of creatine
+[CrArea] = detCrArea(BASIS);
+oneProtonArea = CrArea/3;
+
+% Next, we determine the area of a Gaussian singlet with nominal area 1
+testGaussian    = op_gaussianPeak(n,sw,Bo,4.68,0.1*hzppm,0,1);
+testGaussian    = op_dccorr(testGaussian,'p');
+gaussianArea    = sum(real(testGaussian.specs));
+
+% Find the creatine basis function
+idx_H2O          = find(strcmp(BASIS.name,'H2O'));
+if isempty(idx_H2O)
+    H2O            = op_lorentzianPeak(n,sw,Bo,centerFreq,0.01*hzppm,4.68,2*oneProtonArea/gaussianArea);
+    H2O     = op_dccorr(H2O,'p');
+    BASIS.name{nMets+1}       = 'H2O';
+    BASIS.fids(:,nMets+1)   = H2O.fids;
+    BASIS.specs(:,nMets+1)  = H2O.specs;
+    nMets = nMets+1;
+    BASIS.nMets = nMets;
+    BASIS.sz=[temp.sz(1) BASIS.nMets];
+end
+
+
+
 % If chosen, add MM
 if addMMFlag
-    n = BASIS.n;
-    sw = BASIS.spectralwidth;
-    Bo = BASIS.Bo;
-    centerFreq = BASIS.centerFreq;
-    % The amplitude and FWHM values are determined as for the LCModel and
-    % TARQUIN algorithms (see Wilson et al., MRM 2011).
-    hzppm = Bo*42.577;
-    
-    % To scale the amplitudes correctly, we first need to determine the
-    % area of the 3.027 ppm CH3 signal of creatine
-    [CrArea] = detCrArea(BASIS);
-    oneProtonArea = CrArea/3;
-    
-    % Next, we determine the area of a Gaussian singlet with nominal area 1
-    testGaussian    = op_gaussianPeak(n,sw,Bo,4.68,0.1*hzppm,0,1);
-    testGaussian    = op_dccorr(testGaussian,'p');
-    gaussianArea    = sum(real(testGaussian.specs));
+
     
     % Now we know the scaling factor to generate MM/lipid signals with the
     % correct relative scaling with respect to the CH3 signal
