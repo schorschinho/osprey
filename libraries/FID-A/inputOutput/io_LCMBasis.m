@@ -141,15 +141,15 @@ hzppm = Bo*42.577;
 [CrArea] = detCrArea(BASIS);
 oneProtonArea = CrArea/3;
 
-% Next, we determine the area of a Gaussian singlet with nominal area 1
-testGaussian    = op_gaussianPeak(n,sw,Bo,4.68,0.1*hzppm,0,1);
-testGaussian    = op_dccorr(testGaussian,'p');
-gaussianArea    = sum(real(testGaussian.specs));
+% Next, we determine the area of a Lorentzian singlet with nominal area 1
+testLorentzian    = op_lorentzianPeak(n,sw,Bo,4.68,0.1*hzppm,0,1);
+testLorentzian    = op_dccorr(testLorentzian,'p');
+lorentzianArea    = sum(real(testLorentzian.specs));
 
 % Find the creatine basis function
 idx_H2O          = find(strcmp(BASIS.name,'H2O'));
 if isempty(idx_H2O)
-    H2O            = op_lorentzianPeak(n,sw,Bo,centerFreq,0.01*hzppm,4.68,2*oneProtonArea/gaussianArea);
+    H2O            = op_lorentzianPeak(n,sw,Bo,centerFreq,0.01*hzppm,4.68,2*oneProtonArea/lorentzianArea);
     H2O     = op_dccorr(H2O,'p');
     BASIS.name{nMets+1}       = 'H2O';
     BASIS.fids(:,nMets+1)   = H2O.fids;
@@ -163,7 +163,10 @@ end
 
 % If chosen, add MM
 if addMMFlag
-
+    % Next, we determine the area of a Gaussian singlet with nominal area 1
+    testGaussian    = op_gaussianPeak(n,sw,Bo,4.68,0.1*hzppm,0,1);
+    testGaussian    = op_dccorr(testGaussian,'p');
+    gaussianArea    = sum(real(testGaussian.specs));
     
     % Now we know the scaling factor to generate MM/lipid signals with the
     % correct relative scaling with respect to the CH3 signal
