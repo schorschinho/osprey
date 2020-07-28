@@ -1,5 +1,5 @@
-function [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, minKnotSpacingPPM, fitRangePPM)
-%% [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, minKnotSpacingPPM, fitRangePPM)
+function [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, fitRangePPM)
+%% [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, fitRangePPM)
 %   Performs the first step of the LCModel preliminary analysis
 %   analogous to the LCModel algorithm. The algorithm is described in:
 %       S.W. Provencher, "Estimation of metabolite concentrations from
@@ -18,8 +18,6 @@ function [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, minKno
 %   Input:
 %       dataToFit       = FID-A data structure
 %       basisSet        = FID-A basis set container
-%       minKnotSpacing  = Scalar: minimum baseline knot spacing 
-%                         (this is the DKNTMN parameter in LCModel)
 %       fitRangePPM     = 2-element vector: fit range [ppm]
 %                         (this is the range over which the difference 
 %                         between spectrum and model is minimized)
@@ -55,7 +53,7 @@ scalingT2 = sqrt(dataToFit.txfrq*1e-6 / 85.15); % scaling factor to account for 
 metabList.Cr    = 1;
 metabList.Glu   = 1;
 metabList.Ins   = 1;
-metabList.GPC   = 1;
+metabList.PCh   = 1;
 metabList.NAA   = 1;
 nMets = numel(fieldnames(metabList));
 fitMM = 0;
@@ -68,7 +66,7 @@ nSplines            = size(splineArray,2);
 
 %%% 2. SET AND GET STARTING VALUES %%%
 % Set the starting values for all parameters.
-ph0   = 0; % zero-order phase correction [deg]
+ph0  = 0; % zero-order phase correction [deg]
 ph1  = 0; % first-order phase correction [deg/ppm]
 gaussLB     = 0.04 * dataToFit.txfrq*1e-6; % Common Gaussian dampening [Hz]
 lorentzLB   = exT2 * scalingT2; % Common Lorentzian dampening [Hz]

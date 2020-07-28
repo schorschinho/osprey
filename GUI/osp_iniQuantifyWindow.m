@@ -1,6 +1,6 @@
 function osp_iniQuantifyWindow(gui)
 %% osp_iniQuantifyWindow
-%   This function creates the inital quantify window in the gui.
+%   This function creates the initial quantify window in the gui.
 %
 %
 %   USAGE:

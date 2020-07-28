@@ -116,6 +116,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('PDF-output will not be stored (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.savePDF = 0;
     end
+    if isfield(jobStruct,'dataScenario')
+        dataScenario = jobStruct(1).dataScenario;
+    else
+        fprintf('Data scenario is set to ''invivo'' (default). Please indicate otherwise in the csv-file or the GUI \n');
+        dataScenario = 'invivo';
+    end
     if isfield(jobStruct,'saveLCM')
         MRSCont.opts.saveLCM = jobStruct(1).saveLCM;
     else
@@ -134,14 +140,20 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Vendor-specific files (SDAT/SPAR, RDA, P) will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.saveVendor = 1;
     end
+    if isfield(jobStruct,'includeMetabs')
+        opts.fit.includeMetabs = jobStruct(1).includeMetabs;
+    else
+        fprintf('Included metabolites is set to default (default). Please indicate otherwise in the csv-file or the GUI \n');
+        opts.fit.includeMetabs = {'default'};
+    end
     if isfield(jobStruct,'method')
         MRSCont.opts.fit.method = jobStruct(1).method;
     else
         fprintf('Fitting algorithm is set to Osprey (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.method = 'Osprey';
     end
-    if isfield(jobStruct,'method')
-        MRSCont.opts.fit.style = jobStruct(1).style;
+    if isfield(jobStruct,'style')
+        opts.fit.style = jobStruct(1).style;
     else
         fprintf('Fitting style is set to Concatenated (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.style = 'Concatenated';
@@ -181,6 +193,7 @@ if exist('opts','var')
 end
 
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
+% Parse the sequence type entry
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
@@ -206,6 +219,25 @@ switch seqType
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
 
+% Parse the data scenario entry
+if exist('dataScenario','var')
+    switch dataScenario
+        case 'invivo'
+            MRSCont.flags.isPhantom = 0;
+        case 'phantom'
+            MRSCont.flags.isPhantom = 1;
+            % If phantom data are used, override some default fit options
+            MRSCont.opts.fit.bLineKnotSpace = 1.0;
+            MRSCont.opts.fit.fitMM          = 0;
+        otherwise
+            MRSCont.flags.isPhantom = 0;
+            warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
+    end
+else
+    MRSCont.flags.isPhantom = 0;
+    warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
+end
+
 if exist('file_stat','var')
     if ~isempty(file_stat)
         MRSCont.file_stat = file_stat;
@@ -229,7 +261,7 @@ end
 if exist('files_mm','var')   %re_mm Adding functionality for MM
     MRSCont.files_mm = files_mm;   %re_mm
 end   %re_mm
-    if exist('files_ref','var')
+if exist('files_ref','var')
     MRSCont.files_ref = files_ref;
 end
 if exist('files_w','var')

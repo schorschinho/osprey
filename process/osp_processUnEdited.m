@@ -37,6 +37,8 @@ refProcessTime = tic;
 reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+    progressbar = waitbar(0,'Start','Name','Osprey Process');
+    waitbar(0,progressbar,sprintf('Processed data from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
 end
 fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
@@ -104,21 +106,51 @@ for kk = 1:MRSCont.nDatasets
             else
                 raw = temp_raw;
             end
+            [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
             [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
         end
 
+        %%% 2a. PHANTOM-SPECIFIC PRE-PROCESSING %%%
+        % If this is phantom data (assuming room temperature), we want to
+        % perform a few specific pre-processing steps.
+        if MRSCont.flags.isPhantom
+            % First, we undo phase cycling by dividing by the first data
+            % point (this is mainly experimental at this point, but has
+            % proved beneficial for phase-cycled GE data).
+%             for rr = 1:raw.rawAverages
+%                 phi = repelem(conj(raw.fids(1,rr))./abs(raw.fids(1,rr)),size(raw.fids,1));
+%                 raw.fids(:,rr) = raw.fids(:,rr) .* phi';
+%                 raw.specs = fftshift(fft(raw.fids,[],1));
+%             end
+            
+            % Next, shift the entire metabolite spectrum by 0.15 ppm.
+            % This doesn't have to be completely accurate, since additional
+            % referencing steps are performed in the later stages of
+            % post-processing and modelling, but we want the prominent singlets
+            % to appear within 0.1 ppm of their expected in-vivo positions.
+            phantomShiftPPM = 0.15 * raw.txfrq*1e-6;
+            raw = op_freqshift(raw, -phantomShiftPPM);
 
+            % Finally, apply some linebroadening. High-quality in-vitro
+            % data may have linewidth lower than the simulated basis set
+            % data.
+            raw = op_filter(raw, 2);
+            if MRSCont.flags.hasRef
+                raw_ref = op_filter(raw_ref, 2);
+            end
+        end
+        
         %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
-        if raw.averages > 1 && raw.flags.averaged == 0 
-            % Automate determination whether the Cr peak has positive polarity.
-            % For water suppression methods like MOIST, the residual water may
-            % actually have negative polarity, but end up positive in the data, so
-            % that the spectrum needs to be flipped.
-            % Determine the polarity of the respective peak: if the absolute of the
-            % maximum minus the absolute of the minimum is positive, the polarity
-            % of the respective peak is positive; if the absolute of the maximum
-            % minus the absolute of the minimum is negative, the polarity is negative.
+        % Automate determination whether the Cr peak has positive polarity.
+        % For water suppression methods like MOIST, the residual water may
+        % actually have negative polarity, but end up positive in the data, so
+        % that the spectrum needs to be flipped.
+        % Determine the polarity of the respective peak: if the absolute of the
+        % maximum minus the absolute of the minimum is positive, the polarity
+        % of the respective peak is positive; if the absolute of the maximum
+        % minus the absolute of the minimum is negative, the polarity is negative.
+        if raw.averages > 1 && raw.flags.averaged == 0
             temp_A = op_averaging(raw);
             raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
             polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
@@ -126,13 +158,13 @@ for kk = 1:MRSCont.nDatasets
             if polResidCr < 0        
                 temp_rawA = op_ampScale(temp_rawA,-1);
             end
-            % We will use a freqeuncy cross-correlation approach on the
-            % Choline and Creatine singlets to generate a robust inital
+            % We will use a frequency cross-correlation approach on the
+            % Choline and Creatine singlets to generate a robust initial
             % frequency guess for the robust spectral registration. This is
-            % esapacially useful for data with heavy freqeuncy drift. The
-            % transients are averaged into packages inclduing 10% of the
+            % especially useful for data with heavy frequency drift. The
+            % transients are averaged into bins including 10% of the
             % averages of the whole spectra and referenced afterwards. For
-            % these packages the same inital frequency guess is forwarded
+            % these packages the same initial frequency guess is forwarded
             % to op_robustSpecReg.
             temp_proc = temp_rawA;
             temp_spec   = temp_proc;
@@ -142,15 +174,15 @@ for kk = 1:MRSCont.nDatasets
                 temp_spec.fids = mean(fids,2); % store average fid
                 temp_spec.specs = mean(specs,2); % store average spectra
                 [refShift, ~] = osp_CrChoReferencing(temp_spec); % determine frequency shift
-                refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift; %save inital frequency guess 
+                refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift; %save initial frequency guess
             end
             if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0 % remaining averages if data isn't a multiple of 10.
-                fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end); 
-                specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end); 
-                temp_spec.fids = mean(fids,2); % store average fid 
+                fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
+                specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
+                temp_spec.fids = mean(fids,2); % store average fid
                 temp_spec.specs = mean(specs,2); % store average spectra
-                [refShift, ~] = osp_CrChoReferencing(temp_spec);% determine frequency shift
-                refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift; %save inital frequency guess 
+                [refShift, ~] = osp_CrChoReferencing(temp_spec); % determine frequency shift
+                refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift; %save initial frequency guess
             end
             [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0,refShift_ind_ini); % Align and average
             raw.specReg.fs              = fs; % save align parameters
@@ -185,28 +217,20 @@ for kk = 1:MRSCont.nDatasets
 
 
         %%% 5. REMOVE RESIDUAL WATER %%%
-        [raw_temp,~,~]   = op_removeWater(raw,[4.5 4.9],20,0.75*length(raw.fids),0); % Remove the residual water
-        if isnan(real(raw_temp.fids))
-            rr = 30;
-            while isnan(real(raw_temp.fids))
-                [raw_temp,~,~]   = op_removeWater(raw,[4.5 4.9],rr,0.75*length(raw.fids),0); % Remove the residual water
-                rr = rr-1;
-            end
+        % Define different water removal frequency ranges, depending on
+        % whether this is phantom data
+        if MRSCont.flags.isPhantom
+            waterRemovalFreqRange = [4.5 5];
+            fracFID = 0.2;
+        else
+            waterRemovalFreqRange = [4.5 4.9];
+            fracFID = 0.75;
         end
-        raw     = raw_temp;
-        raw     = op_fddccorr(raw,100);                                     % Correct back to baseline
+        % Apply iterative water filter
+        raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
         
         if MRSCont.flags.hasMM %re_mm
-            [raw_temp_mm,~,~]   = op_removeWater(raw_mm,[4.5 4.9],20,0.75*length(raw.fids),0); % Remove the residual water
-            if isnan(real(raw_temp_mm.fids))
-                rr = 30;
-                while isnan(real(raw_temp_mm.fids))
-                    [raw_temp_mm,~,~]   = op_removeWater(raw_mm,[4.5 4.9],rr,0.75*length(raw.fids),0); % Remove the residual water
-                    rr = rr-1;
-                end
-            end
-            raw_mm     = raw_temp_mm;
-            raw_mm     = op_fddccorr(raw_mm,100);                                     % Correct back to baseline
+            raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
         end
 
         %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
@@ -243,6 +267,12 @@ for kk = 1:MRSCont.nDatasets
             end
             [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
             [raw_w,~]                       = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
+            
+            % Apply some linebroadening, if phantom data
+            if MRSCont.flags.isPhantom
+                raw_w = op_filter(raw_w, 2);    
+            end
+            
             MRSCont.processed.w{kk}         = raw_w; % Save back to MRSCont container
         end
 
@@ -275,6 +305,10 @@ for kk = 1:MRSCont.nDatasets
         end
         
         
+    end
+
+    if MRSCont.flags.isGUI        
+        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Processed data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
     end
 end
 fprintf('... done.\n');
