@@ -565,6 +565,7 @@ for kk = 1 : MRSCont.nDatasets
     end
 end
 fprintf('... done.\n');
+fprintf(fileID,'... done.\n');
 if MRSCont.flags.isGUI  && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.'));
     pause(1);
@@ -679,6 +680,7 @@ for ss = 1 : NoSubSpec %loop over subspectra
                 tempSubSpec(kk,:) = MRSCont.overview.Osprey.sort_data.(names{g}).(SubSpecNames{ss}){1,kk}.specs;
             catch
                 tempSubSpec(kk,:) = ones(1,MRSCont.overview.Osprey.all_data.(SubSpecNames{1}){1,1}.sz(1)) *nan;
+            end
         end
         %Calculate mean and SD
         MRSCont.overview.Osprey.sort_data.(names{g}).(['mean_' SubSpecNames{ss}]) = nanmean(real(tempSubSpec),1);

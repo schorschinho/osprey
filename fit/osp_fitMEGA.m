@@ -77,6 +77,12 @@ for kk = 1:MRSCont.nDatasets
             basisSetDiff1.fids = basisSetDiff1.fids(:,:,3);
             basisSetDiff1.specs = basisSetDiff1.specs(:,:,3);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+            dataToFit.refShift   = fitParamsOff.refShift;
+            dataToFit.refFWHM   = fitParamsOff.refFWHM;
+            
+            if ~strcmp(fitOpts.coMM3, 'none')
+                [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,fitOpts);
+            end
 
             % Call the fit function
             [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
@@ -105,6 +111,16 @@ for kk = 1:MRSCont.nDatasets
             basisSetConc.specs(:,:,2) = basisSetConc.specs(:,:,4);
             basisSetConc.fids(:,:,3:4) = [];
             basisSetConc.specs(:,:,3:4) = [];
+            
+            if ~strcmp(fitOpts.coMM3, 'none')
+                basisSetDiff1 = MRSCont.fit.basisSet;
+                basisSetDiff1.fids = basisSetDiff1.fids(:,:,3);
+                basisSetDiff1.specs = basisSetDiff1.specs(:,:,3);
+                [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,fitOpts);
+                basisSetConc.fids(:,:,1) = basisSetDiff1.fids(:,:);
+                basisSetConc.specs(:,:,1) = basisSetDiff1.specs(:,:);
+            end
+            
             % Apply scaling factor to the data
             for rr = 1:length(dataToFit)
                 dataToFit{rr}   = op_ampScale(dataToFit{rr}, 1/MRSCont.fit.scale{kk});

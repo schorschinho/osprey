@@ -492,13 +492,11 @@ if isfield(MRSCont.QM.drift.pre, which_spec)
             colors(dots,2) = colors(dots,2) + (1 - colors(dots,2)) * (1-weights(dots));
             colors(dots,3) = colors(dots,3) + (1 - colors(dots,3)) * (1-weights(dots));
         end
-        scatter(ax_drift, [1:length(crDriftPre)],crDriftPre',36,ones(length(crDriftPre),1).*colormap.LightAccent);
-        scatter(ax_drift, [1:length(crDriftPost)],crDriftPost',36,colors,'filled','MarkerEdgeColor',colormap.Foreground);
-%          scatter(ax_drift, [1:length(crDriftPost)],crDriftPost',72.*ones(length(crDriftPre),1).*weights,ones(length(crDriftPre),1).*colormap.Foreground,'filled');
-%          scatter(ax_drift, [1:length(crDriftPost)],crDriftPost',72.*ones(length(crDriftPre),1).*weights,colors,'filled','MarkerEdgeColor',colormap.Foreground);        
+        scatter(ax_drift, [1:length(crDriftPre)],crDriftPre'-(MRSCont.QM.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6),36,ones(length(crDriftPre),1).*colormap.LightAccent);
+        scatter(ax_drift, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormap.Foreground);    
         
-        text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end), 'Pre', 'Color', colormap.LightAccent);
-        text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end), 'Post', 'Color', colormap.Foreground);
+        text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end)-(MRSCont.QM.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6), 'Pre', 'Color', colormap.LightAccent);
+        text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end)-(MRSCont.QM.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6), 'Post', 'Color', colormap.Foreground);
         set(ax_drift, 'YLim', [3.028-0.1 3.028+0.1]);
         yticks([3.028-0.08 3.028-0.04 3.028 3.028+0.04 3.028+0.08]);
         yticklabels({'2.94' '2.98' '3.02' '3.06' '3.10'});
