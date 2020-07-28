@@ -257,27 +257,63 @@ for sf = 1 : NoFit %Loop over all fits
                     % tNAA = NAA + NAAG
                     idx_NAA  = find(strcmp(basisSet.name,'NAA'));
                     idx_NAAG  = find(strcmp(basisSet.name,'NAAG'));
-                    MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittNAA  = ModelOutput.indivMets(:,idx_NAA) + ModelOutput.indivMets(:,idx_NAAG);
+                    if isempty(idx_NAA) && isempty(idx_NAAG)
+                        % do nothing
+                    elseif isempty(idx_NAA) && ~isempty(idx_NAAG)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittNAA  = ModelOutput.indivMets(:,idx_NAAG);
+                    elseif ~isempty(idx_NAA) && isempty(idx_NAAG)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittNAA  = ModelOutput.indivMets(:,idx_NAA);
+                    elseif ~isempty(idx_NAA) && ~isempty(idx_NAAG)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittNAA  = ModelOutput.indivMets(:,idx_NAA) + ModelOutput.indivMets(:,idx_NAAG);
+                    end
+                    
                     
                     % tCr = Cr + tCr - CrCH2
                     idx_Cr  = find(strcmp(basisSet.name,'Cr'));
                     idx_PCr  = find(strcmp(basisSet.name,'PCr'));
-                    idx_CrCH2  = find(strcmp(basisSet.name,'CrCH2'));
-                    if ~isempty(idx_CrCH2)
-                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_PCr)+ ModelOutput.indivMets(:,idx_CrCH2);
-                    else
+                    if isempty(idx_Cr) && isempty(idx_PCr)
+                        % do nothing
+                    elseif isempty(idx_Cr) && ~isempty(idx_PCr)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_PCr);
+                    elseif ~isempty(idx_Cr) && isempty(idx_PCr)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr);
+                    elseif ~isempty(idx_Cr) && ~isempty(idx_PCr)
                         MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_PCr);
                     end
                     
-                    % tCho = GPC + PCh
-                    idx_1  = find(strcmp(basisSet.name,'GPC'));
-                    idx_2  = find(strcmp(basisSet.name,'PCh'));
-                    MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCho  = ModelOutput.indivMets(:,idx_1) + ModelOutput.indivMets(:,idx_2);
+                    % if present, add CrCH2 model
+                    idx_CrCH2  = find(strcmp(basisSet.name,'CrCH2'));
+                    if ~isempty(idx_CrCH2)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr  = MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCr + ModelOutput.indivMets(:,idx_CrCH2);
+                    else
+                        % do nothing
+                    end
                     
+                    % tCho = GPC + PCh
+                    idx_GPC  = find(strcmp(basisSet.name,'GPC'));
+                    idx_PCh  = find(strcmp(basisSet.name,'PCh'));
+                    if isempty(idx_GPC) && isempty(idx_PCh)
+                        % do nothing
+                    elseif isempty(idx_GPC) && ~isempty(idx_PCh)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCho  = ModelOutput.indivMets(:,idx_PCh);
+                    elseif ~isempty(idx_GPC) && isempty(idx_PCh)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCho  = ModelOutput.indivMets(:,idx_GPC);
+                    elseif ~isempty(idx_GPC) && ~isempty(idx_PCh)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittCho  = ModelOutput.indivMets(:,idx_GPC) + ModelOutput.indivMets(:,idx_PCh);
+                    end
+
                     % Glx = Glu + Gln
-                    idx_1  = find(strcmp(basisSet.name,'Glu'));
-                    idx_2  = find(strcmp(basisSet.name,'Gln'));
-                    MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitGlx  = ModelOutput.indivMets(:,idx_1) + ModelOutput.indivMets(:,idx_2);
+                    idx_Glu  = find(strcmp(basisSet.name,'Glu'));
+                    idx_Gln  = find(strcmp(basisSet.name,'Gln'));
+                    if isempty(idx_Glu) && isempty(idx_Gln)
+                        % do nothing
+                    elseif isempty(idx_Glu) && ~isempty(idx_Gln)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitGlx  = ModelOutput.indivMets(:,idx_Gln);
+                    elseif ~isempty(idx_Glu) && isempty(idx_Gln)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitGlx  = ModelOutput.indivMets(:,idx_Glu);
+                    elseif ~isempty(idx_Glu) && ~isempty(idx_Gln)
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitGlx  = ModelOutput.indivMets(:,idx_Glu) + ModelOutput.indivMets(:,idx_Gln);
+                    end
                     
                     % tMM = all MM functions
                     if MRSCont.opts.fit.fitMM == 1
@@ -639,7 +675,10 @@ for ss = 1 : NoSubSpec %loop over subspectra
     for g = 1 : length(names) % loop over groups
         tempSubSpec = zeros(length(MRSCont.overview.Osprey.sort_data.(names{g}).(SubSpecNames{ss})),MRSCont.overview.Osprey.all_data.(SubSpecNames{1}){1,1}.sz(1));
         for kk = 1 : length(MRSCont.overview.Osprey.sort_data.(names{g}).(SubSpecNames{ss})) % Loop over datasets to generate a matrix
-          tempSubSpec(kk,:) = MRSCont.overview.Osprey.sort_data.(names{g}).(SubSpecNames{ss}){1,kk}.specs;
+            try
+                tempSubSpec(kk,:) = MRSCont.overview.Osprey.sort_data.(names{g}).(SubSpecNames{ss}){1,kk}.specs;
+            catch
+                tempSubSpec(kk,:) = ones(1,MRSCont.overview.Osprey.all_data.(SubSpecNames{1}){1,1}.sz(1)) *nan;
         end
         %Calculate mean and SD
         MRSCont.overview.Osprey.sort_data.(names{g}).(['mean_' SubSpecNames{ss}]) = nanmean(real(tempSubSpec),1);

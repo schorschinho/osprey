@@ -1,6 +1,6 @@
 function osp_iniOverviewWindow(gui)
 %% osp_iniOverviewWindow
-%   This function creates the inital overview window in the gui.
+%   This function creates the initial overview window in the gui.
 %
 %
 %   USAGE:
@@ -25,7 +25,7 @@ function osp_iniOverviewWindow(gui)
 %   HISTORY:
 %       2020-01-16: First version of the code.
 %%% 1. GET HANDLES %%%
-%This function creates the inital overview window
+%This function creates the initial overview window
         MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
         gui.layout.tabs.TabEnables{6} = 'on';  
         gui.layout.tabs.Selection  = 6;  
@@ -36,7 +36,7 @@ function osp_iniOverviewWindow(gui)
         gui.layout.distrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.corrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
         gui.layout.diceOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);  
-        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice ovelap'};    
+        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice overlap'};    
         gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off'};   
         gui.layout.overviewTab.TabWidth   = 115;
         gui.layout.overviewTab.Selection  = 1;

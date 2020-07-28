@@ -107,7 +107,7 @@ if ~isempty(progressText)
     set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
     drawnow
 end
-[fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM);
+[fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
 
 
 %%% 4. FINAL PRELIMINARY ANALYSIS STEP 2 %%%
@@ -121,7 +121,19 @@ if ~isempty(progressText)
     set(progressText,'String' ,sprintf([String(1,:)  '\nRunning final preliminary analysis step with full basis set...\n']));
     drawnow
 end
-[fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
+
+if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift')
+    switch fitOpts.coMM3
+        case 'BSpline'
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,10,0);
+        case '3to2MMsoft'
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0,1);
+        otherwise
+            [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
+    end             
+else
+    [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);    
+end
 
 % [J,Jfd,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);
 

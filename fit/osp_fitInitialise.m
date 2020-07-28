@@ -106,25 +106,12 @@ if ext
     basisSet = fit_sortBasisSet(basisSet);
 else  
     % To do: Interface with interactive user input
-    metabList = fit_createMetabList;
+    metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
     % Collect MMfit flag from the options determined in the job file
     fitMM = MRSCont.opts.fit.fitMM;
     % Create the modified basis set
     basisSet = fit_selectMetabs(basisSet, metabList, fitMM);
 end
-
-% % Check that basis set and data have the same frequency axis orientation,
-% % and flip it if necessary. For real-life MRS data, Osprey data structures
-% % should always have the frequency axis running from high ppm to low ppm
-% % values.
-% polarityPPMData  = issorted(MRSCont.processed.A{1}.ppm, 'ascend');
-% polarityPPMBasis = issorted(basisSet.ppm, 'ascend');
-% if polarityPPMData == 1 && polarityPPMBasis == 0
-%     % invert ppm axis
-%     basisSet.ppm = wrev(basisSet.ppm);
-%     % re-scale and fft FIDs
-%     basisSet.specs = fftshift(ifft(conj(basisSet.fids),[],1),1) .* length(basisSet.ppm);
-% end
 
 % Determine the scaling factor between data and basis set for each dataset
 for kk = 1:MRSCont.nDatasets

@@ -296,7 +296,7 @@ function MRSCont = addMetabComb(MRSCont, getResults)
 %% Loop over all datasets
 for kk = 1:MRSCont.nDatasets
     % tNAA NAA+NAAG
-    idx_1  = find(strcmp(MRSCont.quantify.metabs,'NAA'));
+    idx_1 = find(strcmp(MRSCont.quantify.metabs,'NAA'));
     idx_2 = find(strcmp(MRSCont.quantify.metabs,'NAAG'));
     if  ~isempty(idx_1) && ~isempty(idx_2)
         idx_3 = find(strcmp(MRSCont.quantify.metabs,'tNAA'));
@@ -310,7 +310,7 @@ for kk = 1:MRSCont.nDatasets
         end
     end
     % Glx Glu+Gln
-    idx_1  = find(strcmp(MRSCont.quantify.metabs,'Glu'));
+    idx_1 = find(strcmp(MRSCont.quantify.metabs,'Glu'));
     idx_2 = find(strcmp(MRSCont.quantify.metabs,'Gln'));
     if  ~isempty(idx_1) && ~isempty(idx_2)
         idx_3 = find(strcmp(MRSCont.quantify.metabs,'Glx'));
@@ -324,7 +324,7 @@ for kk = 1:MRSCont.nDatasets
         end
     end
     % tCho GPC+PCh
-    idx_1  = find(strcmp(MRSCont.quantify.metabs,'GPC'));
+    idx_1 = find(strcmp(MRSCont.quantify.metabs,'GPC'));
     idx_2 = find(strcmp(MRSCont.quantify.metabs,'PCh'));
     if  ~isempty(idx_1) && ~isempty(idx_2)
         idx_3 = find(strcmp(MRSCont.quantify.metabs,'tCho'));
@@ -338,8 +338,8 @@ for kk = 1:MRSCont.nDatasets
         end
     end
     % tCr Cr+PCr
-    idx_1  = find(strcmp(MRSCont.quantify.metabs,'Cr'));
-    idx_2 = find(strcmp(MRSCont.quantify.metabs,'PCe'));
+    idx_1 = find(strcmp(MRSCont.quantify.metabs,'Cr'));
+    idx_2 = find(strcmp(MRSCont.quantify.metabs,'PCr'));
     if  ~isempty(idx_1) && ~isempty(idx_2)
         idx_3 = find(strcmp(MRSCont.quantify.metabs,'tCr'));
         if isempty(idx_3)
@@ -352,7 +352,7 @@ for kk = 1:MRSCont.nDatasets
         end
     end
     %Glc+Tau
-    idx_1  = find(strcmp(MRSCont.quantify.metabs,'Glc'));
+    idx_1 = find(strcmp(MRSCont.quantify.metabs,'Glc'));
     idx_2 = find(strcmp(MRSCont.quantify.metabs,'Tau'));
     if  ~isempty(idx_1) && ~isempty(idx_2)
         idx_3 = find(strcmp(MRSCont.quantify.metabs,'GlcTau'));
@@ -377,7 +377,15 @@ function tCrRatios = quantCr(metsName, amplMets, getResults)
 idx_Cr  = find(strcmp(metsName,'Cr'));
 idx_PCr = find(strcmp(metsName,'PCr'));
 for ll = 1:length(getResults)
-    tCr.(getResults{ll}) = amplMets.(getResults{ll})(idx_Cr) + amplMets.(getResults{ll})(idx_PCr);
+    if isempty(idx_Cr) && isempty(idx_PCr)
+        error('Error in OspreyQuantify: Creatine ratios cannot be calculated because neither Cr nor PCr are included in the basis set.')
+    elseif isempty(idx_Cr) && ~isempty(idx_PCr)
+        tCr.(getResults{ll}) = amplMets.(getResults{ll})(idx_PCr);
+    elseif ~isempty(idx_Cr) && isempty(idx_PCr)
+        tCr.(getResults{ll}) = amplMets.(getResults{ll})(idx_Cr);
+    elseif ~isempty(idx_Cr) && ~isempty(idx_PCr)   
+        tCr.(getResults{ll}) = amplMets.(getResults{ll})(idx_Cr) + amplMets.(getResults{ll})(idx_PCr);
+    end
 end
 % If separate fit of sub-spectra has been performed, normalize to 'off' or
 % 'sum'

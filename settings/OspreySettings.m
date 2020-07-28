@@ -30,12 +30,15 @@ MRSCont.opts.savePDF                = 0;
 MRSCont.opts.saveLCM                = 0;
 MRSCont.opts.savejMRUI              = 0;
 MRSCont.opts.saveVendor             = 0;
+MRSCont.opts.fit.includeMetabs      = {'default'};      % Options: 'default', 'full', custom set       
 MRSCont.opts.fit.method             = 'Osprey';         % Options: 'Osprey' (default), 'AQSES' (planned), 'LCModel' (planned), 'TARQUIN' (planned)
 MRSCont.opts.fit.range              = [0.2 4.2];        % Default: [0.2 4.2]
 MRSCont.opts.fit.rangeWater         = [2.0 7.4];        % Default: [2.0 7.4]
 MRSCont.opts.fit.style              = 'Concatenated';   % Options: 'Concatenated' (default - will fit DIFF and SUM simultaneously), 'Separate' (will fit DIFF and OFF separately)
 MRSCont.opts.fit.bLineKnotSpace     = 0.4;              % Baseline spline knot spacing [ppm]. Default: 0.4.
 MRSCont.opts.fit.fitMM              = 1;                % Add MM and lipid basis functions to basis set? Default: 1.
+MRSCont.opts.fit.coMM3              = 'none';                % Add co-edited MM3 peak model for GABA editing? Default: none.
+MRSCont.opts.fit.FWHMcoMM3              = 14;                % FWHM [Hz] of the co-edited peak Default: 14 Hz.
 
 %%% 2. FIND AND SET PATHS %%%
 % Osprey

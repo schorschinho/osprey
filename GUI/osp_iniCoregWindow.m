@@ -1,6 +1,6 @@
 function osp_iniCoregWindow(gui)
 %% osp_iniCoregWindow
-%   This function creates the inital coregistration window in the gui.
+%   This function creates the initial coregistration window in the gui.
 %
 %
 %   USAGE:
@@ -25,7 +25,7 @@ function osp_iniCoregWindow(gui)
 %   HISTORY:
 %       2020-01-16: First version of the code.
 %%% 1. GET HANDLES %%%
-% This function creates the inital coreg/seg window
+% This function creates the initial coreg/seg window
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
     gui.layout.tabs.TabEnables{4} = 'on';
     gui.layout.tabs.Selection  = 4;

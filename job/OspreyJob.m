@@ -116,6 +116,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('PDF-output will not be stored (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.savePDF = 0;
     end
+    if isfield(jobStruct,'dataScenario')
+        dataScenario = jobStruct(1).dataScenario;
+    else
+        fprintf('Data scenario is set to ''invivo'' (default). Please indicate otherwise in the csv-file or the GUI \n');
+        dataScenario = 'invivo';
+    end
     if isfield(jobStruct,'saveLCM')
         MRSCont.opts.saveLCM = jobStruct(1).saveLCM;
     else
@@ -134,14 +140,20 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Vendor-specific files (SDAT/SPAR, RDA, P) will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.saveVendor = 1;
     end
+    if isfield(jobStruct,'includeMetabs')
+        opts.fit.includeMetabs = jobStruct(1).includeMetabs;
+    else
+        fprintf('Included metabolites is set to default (default). Please indicate otherwise in the csv-file or the GUI \n');
+        opts.fit.includeMetabs = {'default'};
+    end
     if isfield(jobStruct,'method')
         MRSCont.opts.fit.method = jobStruct(1).method;
     else
         fprintf('Fitting algorithm is set to Osprey (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.method = 'Osprey';
     end
-    if isfield(jobStruct,'method')
-        MRSCont.opts.fit.style = jobStruct(1).style;
+    if isfield(jobStruct,'style')
+        opts.fit.style = jobStruct(1).style;
     else
         fprintf('Fitting style is set to Concatenated (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.style = 'Concatenated';
@@ -176,11 +188,19 @@ end
 if exist('opts','var')
     names = fields(opts);
     for f = 1 : length(names)
-        MRSCont.opts.(names{f}) = opts.(names{f});
+        if ~strcmp(names{f},'fit')
+            MRSCont.opts.(names{f}) = opts.(names{f});
+        else
+        	names_fit = fields(opts.(names{f}));
+            for nf = 1 : length(names_fit)
+                MRSCont.opts.fit.(names_fit{nf}) = opts.fit.(names_fit{nf}); 
+            end
+        end
     end
 end
 
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
+% Parse the sequence type entry
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
@@ -193,7 +213,14 @@ switch seqType
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
         MRSCont.opts.editTarget             = editTarget;
-        MRSCont.opts.fit.style = opts.fit.style;        
+        MRSCont.opts.fit.style = opts.fit.style;
+        if isfield(opts.fit, 'coMM3')
+            MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
+            MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
+        else
+            MRSCont.opts.fit.coMM3 = 'none';
+            MRSCont.opts.fit.FWHMcoMM3 = 14;
+        end
     case 'HERMES'
         MRSCont.flags.isHERMES      = 1;
         MRSCont.opts.editTarget             = editTarget;
@@ -204,6 +231,25 @@ switch seqType
         MRSCont.opts.fit.style = opts.fit.style;
     otherwise
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
+end
+
+% Parse the data scenario entry
+if exist('dataScenario','var')
+    switch dataScenario
+        case 'invivo'
+            MRSCont.flags.isPhantom = 0;
+        case 'phantom'
+            MRSCont.flags.isPhantom = 1;
+            % If phantom data are used, override some default fit options
+            MRSCont.opts.fit.bLineKnotSpace = 1.0;
+            MRSCont.opts.fit.fitMM          = 0;
+        otherwise
+            MRSCont.flags.isPhantom = 0;
+            warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
+    end
+else
+    MRSCont.flags.isPhantom = 0;
+    warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
 end
 
 if exist('file_stat','var')
@@ -229,7 +275,7 @@ end
 if exist('files_mm','var')   %re_mm Adding functionality for MM
     MRSCont.files_mm = files_mm;   %re_mm
 end   %re_mm
-    if exist('files_ref','var')
+if exist('files_ref','var')
     MRSCont.files_ref = files_ref;
 end
 if exist('files_w','var')

@@ -42,8 +42,8 @@ classdef OspreyGUI < handle
         controls % gui control handles
         waitbar % waitbar values
         load % OspreyLoad infos
-        process %  OpsreyProcess infos
-        fit % OpsreyFit infos
+        process %  OspreyProcess infos
+        fit % OspreyFit infos
         quant % OspreyQuant infos
         overview % OspreyOverview infos
         figure % figure handle
