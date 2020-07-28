@@ -188,7 +188,14 @@ end
 if exist('opts','var')
     names = fields(opts);
     for f = 1 : length(names)
-        MRSCont.opts.(names{f}) = opts.(names{f});
+        if ~strcmp(names{f},'fit')
+            MRSCont.opts.(names{f}) = opts.(names{f});
+        else
+        	names_fit = fields(opts.(names{f}));
+            for nf = 1 : length(names_fit)
+                MRSCont.opts.fit.(names_fit{nf}) = opts.fit.(names_fit{nf}); 
+            end
+        end
     end
 end
 
@@ -206,7 +213,14 @@ switch seqType
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
         MRSCont.opts.editTarget             = editTarget;
-        MRSCont.opts.fit.style = opts.fit.style;        
+        MRSCont.opts.fit.style = opts.fit.style;
+        if isfield(opts.fit, 'coMM3')
+            MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
+            MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
+        else
+            MRSCont.opts.fit.coMM3 = 'none';
+            MRSCont.opts.fit.FWHMcoMM3 = 14;
+        end
     case 'HERMES'
         MRSCont.flags.isHERMES      = 1;
         MRSCont.opts.editTarget             = editTarget;

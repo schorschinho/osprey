@@ -143,7 +143,8 @@ for kk = 1:MRSCont.nDatasets
             [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERMES', 0, refShift_ind_ini);                    
             [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERMES', 0, refShift_ind_ini);     
         end
-
+        
+               
 
         %%% 2. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
         % If there are reference scans, perform the same operations
@@ -178,6 +179,42 @@ for kk = 1:MRSCont.nDatasets
 
             [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}   = raw_ref;                          % Save back to MRSCont container
+        end
+        
+        %%% 2a. PHANTOM-SPECIFIC PRE-PROCESSING %%%
+        % If this is phantom data (assuming room temperature), we want to
+        % perform a few specific pre-processing steps.
+        if MRSCont.flags.isPhantom
+            % First, we undo phase cycling by dividing by the first data
+            % point (this is mainly experimental at this point, but has
+            % proved beneficial for phase-cycled GE data).
+%             for rr = 1:raw.rawAverages
+%                 phi = repelem(conj(raw.fids(1,rr))./abs(raw.fids(1,rr)),size(raw.fids,1));
+%                 raw.fids(:,rr) = raw.fids(:,rr) .* phi';
+%                 raw.specs = fftshift(fft(raw.fids,[],1));
+%             end
+            
+            % Next, shift the entire metabolite spectrum by 0.15 ppm.
+            % This doesn't have to be completely accurate, since additional
+            % referencing steps are performed in the later stages of
+            % post-processing and modelling, but we want the prominent singlets
+            % to appear within 0.1 ppm of their expected in-vivo positions.
+            phantomShiftPPM = 0.15 * raw_A.txfrq*1e-6;
+            raw_A = op_freqshift(raw_A, -phantomShiftPPM);
+            raw_B = op_freqshift(raw_B, -phantomShiftPPM);
+            raw_C = op_freqshift(raw_C, -phantomShiftPPM);
+            raw_D = op_freqshift(raw_D, -phantomShiftPPM);
+
+            % Finally, apply some linebroadening. High-quality in-vitro
+            % data may have linewidth lower than the simulated basis set
+            % data.
+            raw_A = op_filter(raw_A, 2);
+            raw_B = op_filter(raw_B, 2);
+            raw_C = op_filter(raw_C, 2);
+            raw_D = op_filter(raw_D, 2);
+            if MRSCont.flags.hasRef
+                raw_ref = op_filter(raw_ref, 2);
+            end
         end
 
 
