@@ -47,8 +47,8 @@ switch target
         tempA = op_freqrange(inA, 1.7, 2.3);
         tempB = op_freqrange(inB, 1.7, 2.3);
 
-        specA = abs(tempA.specs);
-        specB = abs(tempB.specs);
+        specA = abs(real(tempA.specs));
+        specB = abs(real(tempB.specs));
         
         max_diffAB = max(specA - specB);
         max_diffBA = max(specB - specA);
