@@ -21,12 +21,18 @@ function [MRSCont] = osp_fitInitialise(MRSCont)
 
 % Find the right basis set (provided as *.mat file in Osprey basis set
 % format)
-% Extract TE and sequence from first dataset
+% Extract TE, B0, and sequence from first dataset
 te = num2str(MRSCont.raw{1}.te);
+Bo = MRSCont.raw{1}.Bo;  
+if (Bo >= 2.8 && Bo < 3.1)
+        Bo = '3T';
+else
+        Bo = '7T';
+end
 seq = lower(MRSCont.raw{1}.seq);
 seq = seq(~ismember(seq, char([10 13]))); % remove return or carriage return
 
-ext = 0;
+ext = 0; % Set external flag to zero
 
 if strcmp(MRSCont.vendor,'GE') % Still need to find a way to destinguish GE sequences
     seq = 'press';
@@ -44,39 +50,39 @@ end
 if MRSCont.flags.isUnEdited
     switch MRSCont.vendor
         case 'Philips'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/philips/unedited/' seq '/' te '/basis_philips_' seq te '.mat']); 
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/unedited/' seq '/' te '/basis_philips_' seq te '.mat']); 
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/ge/unedited/' seq '/' te '/basis_ge_' seq te '.mat']); 
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/unedited/' seq '/' te '/basis_ge_' seq te '.mat']); 
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/siemens/unedited/' seq '/' te '/basis_siemens_' seq te '.mat']); 
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/unedited/' seq '/' te '/basis_siemens_' seq te '.mat']); 
     end
 elseif MRSCont.flags.isMEGA
     editTarget = lower(MRSCont.opts.editTarget{1});  
     switch MRSCont.vendor
         case 'Philips'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/philips/mega/' seq '/' editTarget te '/basis_philips_megapress_' editTarget te '.mat']);
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/mega/' seq '/' editTarget te '/basis_philips_megapress_' editTarget te '.mat']);
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/ge/mega/' seq '/' editTarget te '/basis_ge_megapress_' editTarget te '.mat']);
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/mega/' seq '/' editTarget te '/basis_ge_megapress_' editTarget te '.mat']);
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/siemens/mega/' seq '/' editTarget te '/basis_siemens_megapress_' editTarget te '.mat']);
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/mega/' seq '/' editTarget te '/basis_siemens_megapress_' editTarget te '.mat']);
     end
 elseif MRSCont.flags.isHERMES
     switch MRSCont.vendor
         case 'Philips'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hermes/basis_siemens_hermes.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/hermes/basis_siemens_hermes.mat']);
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hermes/basis_siemens_hermes.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/hermes/basis_siemens_hermes.mat']);
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hermes/basis_siemens_hermes.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/hermes/basis_siemens_hermes.mat']);
     end
 elseif MRSCont.flags.isHERCULES
     switch MRSCont.vendor
         case 'Philips'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/philips/hercules-press/basis_philips_hercules-press.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/philips/hercules-press/basis_philips_hercules-press.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
         case 'Siemens'
-            MRSCont.opts.fit.basisSetFile        = which('fit/basissets/siemens/hercules-press/basis_siemens_hercules-press.mat');
+            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/hercules-press/basis_siemens_hercules-press.mat']);
     end
 end
 
