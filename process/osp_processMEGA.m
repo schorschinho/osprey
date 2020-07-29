@@ -299,54 +299,25 @@ for kk = 1:MRSCont.nDatasets
         diff1.specReg.fs = fs;
         diff1.specReg.phs = phs;
         diff1.specReg.weights = weights;
+        
         %%% 6. REMOVE RESIDUAL WATER %%%
         % Remove water and correct back to baseline.
         % The spectra sometimes become NaNs after filtering with too many
-        % components. Loop over decreasing numbers of components here.
-        [raw_A_temp,~,~]           = op_removeWater(raw_A,[4.5 4.9],20,0.75*length(raw_A.fids),0); % Remove the residual water
-        if isnan(real(raw_A_temp.fids))
-            rr = 30;
-            while isnan(real(raw_A_temp.fids))
-                [raw_A_temp,~,~]   = op_removeWater(raw_A,[4.5 4.9],rr,0.75*length(raw_A.fids),0); % Remove the residual water
-                rr = rr-1;
-            end
+        % components. Loop over decreasing numbers of components here.        
+        % Define different water removal frequency ranges, depending on
+        % whether this is phantom data
+        if MRSCont.flags.isPhantom
+            waterRemovalFreqRange = [4.5 5];
+            fracFID = 0.2;
+        else
+            waterRemovalFreqRange = [4.5 4.9];
+            fracFID = 0.75;
         end
-        raw_A   = raw_A_temp;
-        raw_A   = op_fddccorr(raw_A,100);                                 % Correct back to baseline
-
-        [raw_B_temp,~,~]           = op_removeWater(raw_B,[4.5 4.9],20,0.75*length(raw_B.fids),0); % Remove the residual water
-        if isnan(real(raw_B_temp.fids))
-           rr = 30;
-           while isnan(real(raw_B_temp.fids))
-               [raw_B_temp,~,~]    = op_removeWater(raw_B,[4.5 4.9],rr,0.75*length(raw_B.fids),0); % Remove the residual water
-                rr = rr-1;
-           end
-        end
-        raw_B   = raw_B_temp;
-        raw_B   = op_fddccorr(raw_B,100);                                 % Correct back to baseline
-
-        [diff1_temp,~,~]           = op_removeWater(diff1,[4.5 4.9],20,0.75*length(diff1.fids),0); % Remove the residual water
-        if isnan(real(diff1_temp.fids))
-            rr = 30;
-            while isnan(real(diff1_temp.fids))
-                [diff1_temp,~,~]   = op_removeWater(diff1,[4.5 4.9],rr,0.75*length(diff1.fids),0); % Remove the residual water
-                rr = rr-1;
-            end
-        end
-        diff1   = diff1_temp;
-        diff1   = op_fddccorr(diff1,100);                                 % Correct back to baseline
-
-        [sum_temp,~,~]           = op_removeWater(Sum,[4.5 4.9],20,0.75*length(Sum.fids),0); % Remove the residual water
-        if isnan(real(sum_temp.fids))
-            rr = 30;
-            while isnan(real(sum_temp.fids))
-                [sum_temp,~,~]   = op_removeWater(Sum,[4.5 4.9],rr,0.75*length(Sum.fids),0); % Remove the residual water
-                rr = rr-1;
-            end
-        end
-        Sum     = sum_temp;
-        Sum     = op_fddccorr(Sum,100);
-
+        % Apply iterative water filter
+        raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+        raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+        diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+        Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
         % Reference resulting data correctly and consistently
