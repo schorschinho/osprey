@@ -245,11 +245,11 @@ end
 %   derivative check
 if strcmp(DerivativeCheck,'on') && Jacobian_method==4
     option_Jacobian_check=option_Jacobian;
-    option_Jacobian_check.Jacobian_method=3;
+    option_Jacobian_check.Jacobian_method=1;
     J_check=eval_Jacobian(@(x)objx(x,extra_arguments),yGuess,fval,option_Jacobian_check);
     dh=D_unbnd2bnd(yGuess,lb,ub);
     err=bsxfun(@times,(J-J_check),1./dh);
-    relerr=err./bsxfun(@plus,abs(transformback(yGuess)),abs(transformback(yGuess)'))/2;
+    relerr=err./bsxfun(@plus,abs(transformback(yGuess)),abs(transformback(yGuess)))'/2;
     disp(horzcat('Derivative check gives largest error with ',...
         num2str(max(err(:))),' and largest relative error with ',num2str(max(relerr(:)))))
 end
