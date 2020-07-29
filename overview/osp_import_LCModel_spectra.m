@@ -36,6 +36,7 @@ for i = 1 : files
                         if strcmp(d1(i,1).name(end), 'd')
                             if ~exist('metab')
                                 [ data, indivMetabs, ppm_x, info ] = mrs_readLcmodelCOORD( fullfile(PathName,d1(i,1).name) );
+                                [ inital ] = mrs_readLcmodelPRINT( strrep(fullfile(PathName,d1(i,1).name),'.coord','.print') );
                                 dataNames = info.metabolites;
                                 idx_1  = find(strcmp(dataNames,'-CrCH2'));
                                 if ~isempty(idx_1)
@@ -119,7 +120,6 @@ for i = 1 : files
                                 end
                                 idx_1  = find(strcmp(dataNames,'Cr'));
                                 idx_2  = find(strcmp(dataNames,'PCr'));
-                                idx_3  = find(strcmp(dataNames,'CrCH2'));
                                 if ~isempty(idx_1) && ~isempty(idx_2)
                                     MRSCont.overview.LCModel.all_models.(name){1,j}.fittCr  = MRSCont.overview.LCModel.all_models.(name){1,j}.(['fit' dataNames{idx_1}]) + MRSCont.overview.LCModel.all_models.(name){1,j}.(['fit' dataNames{idx_2}]);
                                 else if ~isempty(idx_1)
@@ -128,9 +128,6 @@ for i = 1 : files
                                         MRSCont.overview.LCModel.all_models.(name){1,j}.fittCr  = MRSCont.overview.LCModel.all_models.(name){1,j}.(['fit' dataNames{idx_2}]);
                                         end
                                     end
-                                end
-                                if ~isempty(idx_3)
-                                    MRSCont.overview.LCModel.all_models.(name){1,j}.fittCr = MRSCont.overview.LCModel.all_models.(name){1,j}.fittCr + MRSCont.overview.LCModel.all_models.(name){1,j}.(['fit' dataNames{idx_3}]);
                                 end
                                 idx_1  = find(strcmp(dataNames,'GPC'));
                                 idx_2  = find(strcmp(dataNames,'PCh'));
@@ -180,6 +177,9 @@ for i = 1 : files
                                 refShift=(ppmmax-2.013);
                                 MRSCont.overview.LCModel.all_models.(name){1,j}.ph0 = info.ph0;
                                 MRSCont.overview.LCModel.all_models.(name){1,j}.ph1 = info.ph1;
+                                MRSCont.overview.LCModel.all_models.(name){1,j}.iniph0 = inital.iniph0;
+                                MRSCont.overview.LCModel.all_models.(name){1,j}.iniph1 = inital.iniph1;
+                                MRSCont.overview.LCModel.all_models.(name){1,j}.iniFWHM = inital.iniFWHM;
                                  MRSCont.overview.LCModel.all_models.(name){1,j}.ppm = MRSCont.overview.LCModel.all_models.(name){1,j}.ppm - refShift;
                                 j = j + 1;
                             end
@@ -198,7 +198,7 @@ for kk = 1 : MRSCont.nDatasets
     modelNames = fields(data);
     Cr_height = max(data.data(data.ppm>2.9 & data.ppm<3.1));
     for n = 1 : length(modelNames)
-        if ~strcmp('ppm',modelNames{n}) && ~strcmp('ph0',modelNames{n}) && ~strcmp('ph1',modelNames{n})
+        if ~strcmp('ppm',modelNames{n}) && ~strcmp('ph0',modelNames{n}) && ~strcmp('ph1',modelNames{n}) && ~strcmp('iniFWHM',modelNames{n}) && ~strcmp('iniph0',modelNames{n}) && ~strcmp('iniph1',modelNames{n})
             MRSCont.overview.LCModel.all_models.(name){1,kk}.(modelNames{n})  = MRSCont.overview.LCModel.all_models.(name){1,kk}.(modelNames{n})/Cr_height;
         end
     end    
