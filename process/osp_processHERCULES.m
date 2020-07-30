@@ -36,8 +36,11 @@ warning('off','all');
 
 % Parse input arguments
 if nargin < 2
+    if (strcmp(MRSCont.opts.editTarget{1},'HERCULES1')||strcmp(MRSCont.opts.editTarget{1},'HERCULES2'))
+        MRSCont.opts.editTarget = {'GABA','GSH'};
+    end
     target1 = MRSCont.opts.editTarget{1}; 
-    target2 = MRSCont.opts.editTarget{2};  
+    target2 = MRSCont.opts.editTarget{2};     
 end
 %% Loop over all datasets
 refProcessTime = tic;
