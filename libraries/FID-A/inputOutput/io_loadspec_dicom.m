@@ -74,7 +74,7 @@ end
 
 % Now make some decisions depending on sequence type, and the observed
 % number of stored FIDs compared to the nominal number of acquisitions:
-if strcmp(seqtype,'MEGA')
+if contains(seqtype,'MEGA')
     % If the number of stored FIDs does not match twice the number of averages
     % stored in the DICOM header, the MEGA-PRESS data are averaged and
     % will (except for CMRR sequences) have the DIFF spectrum saved as well.
@@ -116,6 +116,20 @@ elseif strcmp(seqtype,'sLASER')
     else
         out.flags.averaged = 0;
     end
+elseif strcmp(seqtype,'HERMES')
+
+    out.flags.averaged = 0; 
+    % Currently, the DICOM recon of the universal sequence is flawed.
+    % Kick out empty lines here and see if data can be reconstructed.    
+    if strcmp(seqorig, 'Universal') && out.flags.averaged == 0
+        fids(:,size(fids,2)/2+1:end) = [];
+    end
+    fids_A = fids(:,1:4:end);
+    fids_B = fids(:,2:4:end);
+    fids_C = fids(:,3:4:end);
+    fids_D = fids(:,4:4:end);
+    fids = cat(3,fids_A,fids_B,fids_C,fids_D);
+    dims.subSpecs=3;
 end
 
 % Assign correct dimensions
