@@ -60,6 +60,7 @@ for kk = 1:MRSCont.nDatasets
     if ((MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~isfield(MRSCont.ver, 'Pro') || ~strcmp(MRSCont.ver.Pro,MRSCont.ver.CheckPro))    
         %%% 1. GET RAW DATA %%%
         raw         = MRSCont.raw{kk};                                          % Get the kk-th dataset
+ 
         % Get sub-spectra, depending on whether they are stored as such
         if raw.subspecs == 2
 
@@ -71,7 +72,8 @@ for kk = 1:MRSCont.nDatasets
             raw_A   = op_takeaverages(raw,1:2:raw.averages);    % Get first subspectrum
             raw_B   = op_takeaverages(raw,2:2:raw.averages);    % Get second subspectrum
         end
-
+        
+        if raw.averages > 1 && raw.flags.averaged == 0
         temp_A = op_averaging(raw_A);
         raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
         % Determine the polarity of the respective peak: if the absolute of the
@@ -114,7 +116,7 @@ for kk = 1:MRSCont.nDatasets
         % This can obviously only be done, if the spectra have not been 
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
         % generally, not be used).
-        if raw.averages > 1 && raw.flags.averaged == 0
+        
     %         raw_A   = op_robustSpecReg(raw_A, 'MEGA', 0);
     %         raw_B   = op_robustSpecReg(raw_B, 'MEGA', 0);
             [raw, fs, phs, weights, driftPre, driftPost]   = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini);
