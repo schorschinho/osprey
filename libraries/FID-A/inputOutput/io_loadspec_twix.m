@@ -83,7 +83,11 @@ elseif isUniversal
         end
     end 
 elseif isMinn
-    seq = 'MEGAPRESS';
+    if ~isempty(strfind(sequence,'mslaser'))
+        seq = 'MEGASLASER';        
+    else
+        seq = 'MEGAPRESS';
+    end
 elseif isjnMP || isWIP529 || isWIP859 || isTLFrei || ismodWIP
     seq = 'MEGAPRESS';
 elseif isSiemens
@@ -450,7 +454,11 @@ if isWIP529 || isWIP859
 elseif isSiemens
     leftshift = twix_obj.image.freeParam(1);
 elseif isMinn
-    leftshift = twix_obj.image.iceParam(5,1);
+    try
+        leftshift = twix_obj.image.iceParam(5,1);
+    catch
+        leftshift = twix_obj.image.freeParam(1);
+    end       
 else
     leftshift = twix_obj.image.freeParam(1);
 end

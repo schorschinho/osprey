@@ -80,6 +80,9 @@ if contains(DicomHeader.sequenceFileName,'svs_edit')
     DicomHeader.seqtype = 'MEGA';
     if contains(DicomHeader.sequenceFileName,'univ') %#ok<STRIFCND>
         DicomHeader.seqorig = 'Universal'; % Universal sequence
+        if (dcmHeader.sWipMemBlock.alFree7 == 1)
+            DicomHeader.seqtype = 'HERMES';
+        end
     else
         DicomHeader.seqorig = 'WIP'; % Siemens WIP
     end
@@ -87,7 +90,11 @@ elseif contains(DicomHeader.sequenceFileName,'jn_')
     DicomHeader.seqtype = 'MEGA';
     DicomHeader.seqorig = 'JN'; % Jamie Near's sequence
 elseif (contains(DicomHeader.sequenceFileName,'eja_svs_mpress') || contains(DicomHeader.sequenceFileName,'eja_svs_mslaser'))
-    DicomHeader.seqtype = 'MEGA';
+   if contains(DicomHeader.sequenceFileName,'eja_svs_mpress')
+        DicomHeader.seqtype = 'MEGA_PRESS';
+   else
+        DicomHeader.seqtype = 'MEGA_SLASER';
+   end
     DicomHeader.seqorig = 'CMRR'; % Minnesota sequence
 elseif contains(DicomHeader.sequenceFileName,'svs_se')
     DicomHeader.seqtype = 'PRESS'; % PRESS
