@@ -77,7 +77,7 @@ fclose(fid);
 DicomHeader.sequenceFileName     = dcmHeader.tSequenceFileName; % Full sequence name
 % Determine the origin of the sequence
 if contains(DicomHeader.sequenceFileName,'svs_edit')
-    DicomHeader.seqtype = 'MEGA';
+    DicomHeader.seqtype = 'MEGA_PRESS';
     if contains(DicomHeader.sequenceFileName,'univ') %#ok<STRIFCND>
         DicomHeader.seqorig = 'Universal'; % Universal sequence
         if (dcmHeader.sWipMemBlock.alFree7 == 1)

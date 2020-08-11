@@ -76,7 +76,7 @@ for kk = 1:MRSCont.nDatasets
             raw_D   = op_takeaverages(raw,4:4:raw.averages);    % Get fourth subspectrum
         end
 
-
+        if raw.averages > 1 && raw.flags.averaged == 0
         temp_A = op_averaging(raw_A);
         raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
         % Determine the polarity of the respective peak: if the absolute of the
@@ -136,12 +136,21 @@ for kk = 1:MRSCont.nDatasets
         % Perform robust spectral correction with weighted averaging.
         % This can obviously only be done, if the spectra have not been 
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
-        % generally, not be used).
-        if ~raw.flags.averaged       
+        % generally, not be used).    
             [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERMES', 0,refShift_ind_ini);
             [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERMES', 0, refShift_ind_ini);                  
             [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERMES', 0, refShift_ind_ini);                    
-            [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERMES', 0, refShift_ind_ini);     
+            [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERMES', 0, refShift_ind_ini);   
+        else
+            raw.flags.averaged  = 1;
+            raw.dims.averages   = 0;
+            raw.specReg.fs              = zeros(1,2); % save align parameters
+            raw.specReg.phs             = zeros(1,2); % save align parameters
+            raw.specReg.weights{1}         = ones(1,1); % save align parameters
+            raw.specReg.weights{2}         = ones(1,1); % save align parameters
+            driftPre{1} = 0;
+            driftPre{2} = 0;
+            driftPost = driftPre;
         end
 
 
