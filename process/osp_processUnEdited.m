@@ -184,7 +184,11 @@ for kk = 1:MRSCont.nDatasets
                 [refShift, ~] = osp_CrChoReferencing(temp_spec); % determine frequency shift
                 refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift; %save initial frequency guess
             end
-            [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0,refShift_ind_ini); % Align and average
+            if ~MRSCont.flags.isPhantom
+                [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0,refShift_ind_ini); % Align and average
+            else
+                [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0,refShift_ind_ini,0,0.5,4.2); % Align and average
+            end
             raw.specReg.fs              = fs; % save align parameters
             raw.specReg.phs             = phs; % save align parameters
             raw.specReg.weights         = weights{1}(1,:)'; % save align parameters);

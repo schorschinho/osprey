@@ -116,13 +116,25 @@ for kk = 1:MRSCont.nDatasets
         % This can obviously only be done, if the spectra have not been 
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
         % generally, not be used).
-        
-    %         raw_A   = op_robustSpecReg(raw_A, 'MEGA', 0);
-    %         raw_B   = op_robustSpecReg(raw_B, 'MEGA', 0);
-            [raw, fs, phs, weights, driftPre, driftPost]   = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini);
+            if ~MRSCont.flags.isPhantom
+                [raw, fs, phs, weights, driftPre, driftPost]   = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini);
+            else
+                % Next, shift the entire metabolite spectrum by 0.15 ppm.
+            % This doesn't have to be completely accurate, since additional
+            % referencing steps are performed in the later stages of
+            % post-processing and modelling, but we want the prominent singlets
+            % to appear within 0.1 ppm of their expected in-vivo positions.
+            phantomShiftPPM = 0.15 * raw.txfrq*1e-6;
+            raw = op_freqshift(raw, -phantomShiftPPM);
+            % Finally, apply some linebroadening. High-quality in-vitro
+            % data may have linewidth lower than the simulated basis set
+            % data.
+            raw = op_filter(raw, 2);
+            [raw, fs, phs, weights, driftPre, driftPost]   = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,0.5,4.2);
+            end
             raw.specReg.fs              = fs; % save align parameters
             raw.specReg.phs             = phs; % save align parameters
-            raw.specReg.weights         = weights; % save align parameters
+            raw.specReg.weights         = weights; % save align parameters            
         else
             raw.flags.averaged  = 1;
             raw.dims.averages   = 0;
@@ -193,22 +205,7 @@ for kk = 1:MRSCont.nDatasets
 %                 phi = repelem(conj(raw.fids(1,rr))./abs(raw.fids(1,rr)),size(raw.fids,1));
 %                 raw.fids(:,rr) = raw.fids(:,rr) .* phi';
 %                 raw.specs = fftshift(fft(raw.fids,[],1));
-%             end
-            
-            % Next, shift the entire metabolite spectrum by 0.15 ppm.
-            % This doesn't have to be completely accurate, since additional
-            % referencing steps are performed in the later stages of
-            % post-processing and modelling, but we want the prominent singlets
-            % to appear within 0.1 ppm of their expected in-vivo positions.
-            phantomShiftPPM = 0.15 * raw_A.txfrq*1e-6;
-            raw_A = op_freqshift(raw_A, -phantomShiftPPM);
-            raw_B = op_freqshift(raw_B, -phantomShiftPPM);
-
-            % Finally, apply some linebroadening. High-quality in-vitro
-            % data may have linewidth lower than the simulated basis set
-            % data.
-            raw_A = op_filter(raw_A, 2);
-            raw_B = op_filter(raw_B, 2);
+%             end            
             if MRSCont.flags.hasRef
                 raw_ref = op_filter(raw_ref, 2);
             end
