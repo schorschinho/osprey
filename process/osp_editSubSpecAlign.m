@@ -4,7 +4,7 @@ function [varargout] = osp_editSubSpecAlign(varargin)
 %   subtraction artefacts.
 %
 %   USAGE:
-%       [outA, outB, outC, outD] = osp_editSubSpecAlign(inA, inB, inC, inD, target);
+%       [outA, outB, outC, outD] = osp_editSubSpecAlign(inA, inB, inC, inD, target,unstableWater);
 %
 %   INPUTS:
 %       inA        = Input data structure with sub-spectrum A.
@@ -13,6 +13,8 @@ function [varargout] = osp_editSubSpecAlign(varargin)
 %       inD        = Input data structure with sub-spectrum D. (optional)
 %       target     = String. Can be 'GABA' or 'GSH'. (necessary if only two
 %                    inputs inA and inB are provided)
+%       unstableWater = Flag for unstable residual water. This ignores
+%                       water for the optimization and uses Choline instead
 %
 %   OUTPUTS:
 %       outA       = Output following alignment of averages.
@@ -36,19 +38,36 @@ function [varargout] = osp_editSubSpecAlign(varargin)
 %       2019-08-15: First version of the code.
 
 % Determine whether there are 2 (MEGA) or 4 (HERMES/HERCULES) inputs
-if nargin == 4
+if nargin == 5
     seqType = 'HERMES';
     inA     = varargin{1};
     inB     = varargin{2};
     inC     = varargin{3};
     inD     = varargin{4};
-elseif nargin == 3
+    unstableWater = varargin{5};
+elseif nargin == 4 && isstruct(varargin{4})
+    seqType = 'HERMES';
+    inA     = varargin{1};
+    inB     = varargin{2};
+    inC     = varargin{3};
+    inD     = varargin{4};
+    unstableWater = 0;
+elseif nargin == 4 && ~isstruct(varargin{4})
     seqType = 'MEGA';
     inA     = varargin{1};
     inB     = varargin{2};
     target  = varargin{3};
+    unstableWater = varargin{4};
+elseif nargin == 3 && ischar(varargin{3})
+    seqType = 'MEGA';
+    inA     = varargin{1};
+    inB     = varargin{2};
+    target  = varargin{3};
+    unstableWater = 0;
+elseif nargin == 3 && ~ischar(varargin{3})
+    error('Error in osp_editSubSpecAlign! For MEGA data, provide 2 sub-spectra, the name of the editing target, and the optional unstable water flag.');
 elseif nargin == 2
-    error('Error in osp_editSubSpecAlign! For MEGA data, provide 2 sub-spectra and the name of the editing target.');
+    error('Error in osp_editSubSpecAlign! For MEGA data, provide 2 sub-spectra, the name of the editing target, and the optional unstable water flag.');
 else
     error('Error in osp_editSubSpecAlign! Needs to have either 2 (for MEGA) or 4 (for HERMES/HERCULES) sub-spectra provided');
 end
@@ -101,20 +120,19 @@ x0(2,:) = [f0 0];
 % In case the water peak is not well-behaved and has several peaks we are
 % possibly detecting several peaks. This will lead to unreasonable shifts
 % between the sub-spectra. In this case, we use the Choline peak.
-if (abs(x0(1,1)) > 10)
-    switch seqType
-        case 'MEGA'
-            freqLim(1,:) = freq <= 3.22+0.13 & freq >= 3.22-0.13;
-            [~,i] = max([abs(real(inA.specs(freqLim(1,:)))) abs(real(inB.specs(freqLim(1,:))))]);
-            freq2 = freq(freqLim(1,:));
-            maxFreq = freq2(i);
-            for jj = 1:2
-                tmp(jj,:) = freq <= maxFreq(jj)+0.13 & freq >= maxFreq(jj)-0.13;
-            end
-            freqLim(1,:) = or(tmp(1,:), tmp(2,:));
-            f0 = (maxFreq(1) - maxFreq(2)) * inA.txfrq*1e-6;
-            x0(1,:) = [f0 0];
+if unstableWater
+
+    freqLim(1,:) = freq <= 3.22+0.09 & freq >= 3.22-0.09;
+    [~,i] = max([abs(real(inA.specs(freqLim(1,:)))) abs(real(inB.specs(freqLim(1,:))))]);
+    freq2 = freq(freqLim(1,:));
+    maxFreq = freq2(i);
+    for jj = 1:2
+        tmp(jj,:) = freq <= maxFreq(jj)+0.08 & freq >= maxFreq(jj)-0.08;
     end
+    freqLim(1,:) = or(tmp(1,:), tmp(2,:));
+    f0 = (maxFreq(1) - maxFreq(2)) * inA.txfrq*1e-6;
+    x0(1,:) = [f0 0];
+
 end
 
 % Optimization options
@@ -210,7 +228,16 @@ elseif strcmp(seqType, 'MEGA')
             param(1,:) = lsqnonlin(fun, x0(1,:), [], [], lsqnonlinopts);
     
         case 'GSH'
-            % For GSH-edited data, align the GABA-ON spectrum using the
+            % For GSH-edited data, align the GSH-ON spectrum using the
+            % NAA peak.
+            % Determine normalization factor so that normalized spectra are entered
+            % into the optimization
+            a = max(max([abs(real(inA.specs)) abs(real(inB.specs))]));
+            fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inB, 1/a), freqLim(2,:), t, x);
+            param(1,:) = lsqnonlin(fun, x0(2,:), [], [], lsqnonlinopts);
+            
+        case 'Lac'
+            % For Lac-edited data, align the Lac-ON spectrum using the
             % NAA peak.
             % Determine normalization factor so that normalized spectra are entered
             % into the optimization

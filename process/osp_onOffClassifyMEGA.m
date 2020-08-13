@@ -84,6 +84,27 @@ switch target
             outB = inA;
             switchOrder = 1;
         end
+    case 'Lac'
+        % Determine which of the differences has an upright water peak
+        tempA = op_freqrange(inA, 3.8, 4);
+        tempB = op_freqrange(inB, 3.8, 4);
+
+        specA = abs(tempA.specs);
+        specB = abs(tempB.specs);
+        
+        max_diffAB = max(specA - specB);
+        max_diffBA = max(specB - specA);
+        
+        
+        if max_diffAB < max_diffBA
+            outA = inB;
+            outB = inA;
+            switchOrder = 1;
+        else
+            outA = inA;
+            outB = inB;
+            switchOrder = 0;
+        end    
     otherwise
         error('MEGA ON/OFF classifier does not recognize the input argument ''target''. Set to ''GABA'' or ''GSH''.');
 end

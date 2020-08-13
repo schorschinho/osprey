@@ -139,11 +139,47 @@ for kk = 1:MRSCont.nDatasets
         % Perform robust spectral correction with weighted averaging.
         % This can obviously only be done, if the spectra have not been 
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
-        % generally, not be used).      
-            [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERMES', 0,refShift_ind_ini);
-            [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERMES', 0, refShift_ind_ini);                  
-            [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERMES', 0, refShift_ind_ini);                    
-            [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERMES', 0, refShift_ind_ini);
+        % generally, not be used). For phantom scans the registration
+        % window is restricted to a certain frequency window.
+        if ~MRSCont.flags.isPhantom
+            [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
+            [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
+            [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERCULES', 0, refShift_ind_ini);                    
+            [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERCULES', 0, refShift_ind_ini);
+        else
+            [~, ~, ~, ~, commuteOrder] = osp_onOffClassifyHERMES(temp_rawA, temp_rawB, temp_rawC, temp_rawD);
+            temp.raw_A = raw_A;
+            temp.raw_B = raw_B;
+            temp.raw_C = raw_C;
+            temp.raw_D = raw_D;
+            inputVars = {'raw_A', 'raw_B', 'raw_C', 'raw_D'};
+            eval(['raw_A = temp.' inputVars{commuteOrder(1)} ';']);
+            eval(['raw_B = temp.' inputVars{commuteOrder(2)} ';']);
+            eval(['raw_C = temp.' inputVars{commuteOrder(3)} ';']);
+            eval(['raw_D = temp.' inputVars{commuteOrder(4)} ';']);
+            % Next, shift the entire metabolite spectrum by 0.15 ppm.
+            % This doesn't have to be completely accurate, since additional
+            % referencing steps are performed in the later stages of
+            % post-processing and modelling, but we want the prominent singlets
+            % to appear within 0.1 ppm of their expected in-vivo positions.
+            phantomShiftPPM = 0.15 * raw_A.txfrq*1e-6;
+            raw_A = op_freqshift(raw_A, -phantomShiftPPM);
+            raw_B = op_freqshift(raw_B, -phantomShiftPPM);
+            raw_C = op_freqshift(raw_C, -phantomShiftPPM);
+            raw_D = op_freqshift(raw_D, -phantomShiftPPM);
+            % Finally, apply some linebroadening. High-quality in-vitro
+            % data may have linewidth lower than the simulated basis set
+            % data.
+            raw_A = op_filter(raw_A, 2);
+            raw_B = op_filter(raw_B, 2);
+            raw_C = op_filter(raw_C, 2);
+            raw_D = op_filter(raw_D, 2);
+            [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_SpecRegFreqRestrict(raw_A, 'HERCULES', 0,refShift_ind_ini,0,0.5,3.9);
+            [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_SpecRegFreqRestrict(raw_B, 'HERCULES', 0, refShift_ind_ini,0,0.5,3.8);                  
+            [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_SpecRegFreqRestrict(raw_C, 'HERCULES', 0, refShift_ind_ini,0,1.85,3.9);                    
+            [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_SpecRegFreqRestrict(raw_D, 'HERCULES', 0, refShift_ind_ini,0,1.85,3.8);
+        end
+            
             
         else
             raw.flags.averaged  = 1;
@@ -206,25 +242,9 @@ for kk = 1:MRSCont.nDatasets
 %                 raw.fids(:,rr) = raw.fids(:,rr) .* phi';
 %                 raw.specs = fftshift(fft(raw.fids,[],1));
 %             end
-            
-            % Next, shift the entire metabolite spectrum by 0.15 ppm.
-            % This doesn't have to be completely accurate, since additional
-            % referencing steps are performed in the later stages of
-            % post-processing and modelling, but we want the prominent singlets
-            % to appear within 0.1 ppm of their expected in-vivo positions.
-            phantomShiftPPM = 0.15 * raw_A.txfrq*1e-6;
-            raw_A = op_freqshift(raw_A, -phantomShiftPPM);
-            raw_B = op_freqshift(raw_B, -phantomShiftPPM);
-            raw_C = op_freqshift(raw_C, -phantomShiftPPM);
-            raw_D = op_freqshift(raw_D, -phantomShiftPPM);
-
             % Finally, apply some linebroadening. High-quality in-vitro
             % data may have linewidth lower than the simulated basis set
             % data.
-            raw_A = op_filter(raw_A, 2);
-            raw_B = op_filter(raw_B, 2);
-            raw_C = op_filter(raw_C, 2);
-            raw_D = op_filter(raw_D, 2);
             if MRSCont.flags.hasRef
                 raw_ref = op_filter(raw_ref, 2);
             end
