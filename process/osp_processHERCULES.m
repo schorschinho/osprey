@@ -142,10 +142,33 @@ for kk = 1:MRSCont.nDatasets
         % generally, not be used). For phantom scans the registration
         % window is restricted to a certain frequency window.
         if ~MRSCont.flags.isPhantom
-            [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
-            [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
-            [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERCULES', 0, refShift_ind_ini);                    
-            [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERCULES', 0, refShift_ind_ini);
+            switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                case 'RobSpecReg'
+                    [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
+                    [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
+                    [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERCULES', 0, refShift_ind_ini);                    
+                    [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERCULES', 0, refShift_ind_ini);
+                case 'RestrSpecReg'
+                    [~, ~, ~, ~, commuteOrder] = osp_onOffClassifyHERMES(temp_rawA, temp_rawB, temp_rawC, temp_rawD);
+                    temp.raw_A = raw_A;
+                    temp.raw_B = raw_B;
+                    temp.raw_C = raw_C;
+                    temp.raw_D = raw_D;
+                    inputVars = {'raw_A', 'raw_B', 'raw_C', 'raw_D'};
+                    eval(['raw_A = temp.' inputVars{commuteOrder(1)} ';']);
+                    eval(['raw_B = temp.' inputVars{commuteOrder(2)} ';']);
+                    eval(['raw_C = temp.' inputVars{commuteOrder(3)} ';']);
+                    eval(['raw_D = temp.' inputVars{commuteOrder(4)} ';']);
+                    [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_SpecRegFreqRestrict(raw_A, 'HERCULES', 0,refShift_ind_ini,0,0.5,3.9);
+                    [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_SpecRegFreqRestrict(raw_B, 'HERCULES', 0, refShift_ind_ini,0,0.5,3.8);                  
+                    [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_SpecRegFreqRestrict(raw_C, 'HERCULES', 0, refShift_ind_ini,0,1.85,3.9);                    
+                    [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_SpecRegFreqRestrict(raw_D, 'HERCULES', 0, refShift_ind_ini,0,1.85,3.8);
+                case 'none'
+                    [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_SpecRegFreqRestrict(raw_A, 'HERCULES', 0,refShift_ind_ini,1);
+                    [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_SpecRegFreqRestrict(raw_B, 'HERCULES', 0, refShift_ind_ini,1);                  
+                    [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_SpecRegFreqRestrict(raw_C, 'HERCULES', 0, refShift_ind_ini,1);                    
+                    [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_SpecRegFreqRestrict(raw_D, 'HERCULES', 0, refShift_ind_ini,1);   
+            end
         else
             [~, ~, ~, ~, commuteOrder] = osp_onOffClassifyHERMES(temp_rawA, temp_rawB, temp_rawC, temp_rawD);
             temp.raw_A = raw_A;

@@ -117,7 +117,14 @@ for kk = 1:MRSCont.nDatasets
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
         % generally, not be used).
             if ~MRSCont.flags.isPhantom
-                [raw, fs, phs, weights, driftPre, driftPost]   = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini);
+                switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                    case 'RobSpecReg'
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini); % Align and average
+                    case 'RestrSpecReg'
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,MRSCont.opts.fit.range(1),MRSCont.opts.fit.range(2)); % Align and average
+                    case 'none'
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,1); % Align and average   
+                end
             else
                 % Next, shift the entire metabolite spectrum by 0.15 ppm.
             % This doesn't have to be completely accurate, since additional
