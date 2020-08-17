@@ -122,6 +122,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Data scenario is set to ''invivo'' (default). Please indicate otherwise in the csv-file or the GUI \n');
         dataScenario = 'invivo';
     end
+    if isfield(jobStruct,'SpecReg')
+        MRSCont.opts.SpecReg = jobStruct(1).SpecReg;
+    else
+        fprintf('Spectral Registration is set to ''RobSpecReg'' (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.SpecReg = 'RobSpecReg';
+    end
     if isfield(jobStruct,'saveLCM')
         MRSCont.opts.saveLCM = jobStruct(1).saveLCM;
     else
@@ -250,6 +256,12 @@ if exist('dataScenario','var')
 else
     MRSCont.flags.isPhantom = 0;
     warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
+end
+
+% Parse spectral registration entry
+if ~isfield(MRSCont.opts,'SpecReg')
+    MRSCont.opts.SpecReg = 'RobSpecReg';
+    warning('Spectral registration must be ''RobSpecReg'', ''RestSpecReg'' or ''none''  in the job file, and has been set to ''RobSpecReg'' (default).');
 end
 
 if exist('file_stat','var')

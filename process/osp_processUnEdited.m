@@ -185,7 +185,14 @@ for kk = 1:MRSCont.nDatasets
                 refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift; %save initial frequency guess
             end
             if ~MRSCont.flags.isPhantom
-                [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0,refShift_ind_ini); % Align and average
+                switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                    case 'RobSpecReg'
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0,refShift_ind_ini); % Align and average
+                    case 'RestrSpecReg'
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0,refShift_ind_ini,0,MRSCont.opts.fit.range(1),MRSCont.opts.fit.range(2)); % Align and average
+                    case 'none'
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0,refShift_ind_ini,1); % Align and average   
+                end                        
             else
                 [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0,refShift_ind_ini,0,0.5,4.2); % Align and average
             end

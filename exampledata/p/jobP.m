@@ -84,6 +84,12 @@ editTarget = {'none'};          % OPTIONS:    - {'none'} (default if 'unedited')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%
+% Which spectral registration method should be used? Robust spectral
+% registration is default, a frequency restricted spectral registration
+% method is also availaible and is linked to the fit range. 
+opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (default)
+                                              %             - 'RestrSpecReg'
+                                              %             - 'none'                                             
 
 % Save LCModel-exportable files for each spectrum?
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
