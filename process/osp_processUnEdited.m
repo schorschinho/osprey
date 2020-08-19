@@ -290,9 +290,8 @@ for kk = 1:MRSCont.nDatasets
 
         %%% 8. QUALITY CONTROL PARAMETERS %%%
         % Calculate some spectral quality metrics here;
-        MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor
-        FWHM_Hz                 = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
-        MRSCont.QM.FWHM.A(kk)   = FWHM_Hz./MRSCont.processed.A{kk}.txfrq*1e6; % convert to ppm
+        MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor             
+        MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % LW in Hz
         MRSCont.QM.drift.pre.A{kk}  = driftPre;
         MRSCont.QM.drift.post.A{kk} = driftPost;
         MRSCont.QM.freqShift.A(kk)  = refShift;
@@ -301,18 +300,15 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.QM.res_water_amp.A(kk) = sum(MRSCont.processed.A{kk}.watersupp.amp);
         if MRSCont.flags.hasMM
             MRSCont.QM.SNR.mm(kk)    = op_getSNR(MRSCont.processed.mm{kk},0.7,1.1); % water amplitude over noise floor
-            FWHM_Hz                 = op_getLW(MRSCont.processed.mm{kk},0.7,1.1); % in Hz
-            MRSCont.QM.FWHM.mm(kk)   = FWHM_Hz./MRSCont.processed.mm{kk}.txfrq*1e6; % convert to ppm
+            MRSCont.QM.FWHM.mm(kk)   = op_getLW(MRSCont.processed.mm{kk},0.7,1.1); % LW in Hz
         end
         if MRSCont.flags.hasRef
             MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor
-            FWHM_Hz                 = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
-            MRSCont.QM.FWHM.ref(kk) = FWHM_Hz./MRSCont.processed.ref{kk}.txfrq*1e6; % convert to ppm
+            MRSCont.QM.FWHM.ref(kk) = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % LW in Hz
         end
         if MRSCont.flags.hasWater
-            MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor
-            FWHM_Hz                 = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
-            MRSCont.QM.FWHM.w(kk)   = FWHM_Hz./MRSCont.processed.w{kk}.txfrq*1e6; % convert to ppm
+            MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor           
+            MRSCont.QM.FWHM.w(kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % LW in Hz
         end
         
         

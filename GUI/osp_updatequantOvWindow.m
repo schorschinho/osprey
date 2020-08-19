@@ -48,9 +48,22 @@ function osp_updatequantOvWindow(gui)
                 QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
             end
         else
+            if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
+                exclude = length(MRSCont.exclude);
+            else
+                exclude = 0;
+            end  
+            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,6);
+            QuantTextOv(1,:) = MRSCont.QM.tables.Properties.VariableNames;
+            QuantTextOv(2:end,:) = table2cell(MRSCont.QM.tables(:,:));
         end
         temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv);
         set( temp, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         set( temp, 'Parent', gui.Results.quantOv );
-        set(gui.Results.quantOv, 'Title', ['Results: ' split_Selection{2}]);
+        if ~strcmp(Selection,'Quality') 
+            set(gui.Results.quantOv, 'Title', ['Results: ' split_Selection{2}]);
+        else
+            set(gui.Results.quantOv, 'Title', 'Results: Quality' );
+        end
+            
 end
