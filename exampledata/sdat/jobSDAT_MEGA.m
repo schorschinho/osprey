@@ -95,7 +95,7 @@ opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (defa
 opts.saveLCM                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 % Save jMRUI-exportable files for each spectrum?
-opts.saveJMRUI              = 0;                % OPTIONS:    - 0 (no, default)
+opts.savejMRUI              = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
@@ -134,7 +134,6 @@ opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
 % Add macromolecule and lipid basis functions to the fit? 
 opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

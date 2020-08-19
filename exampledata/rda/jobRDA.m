@@ -96,7 +96,7 @@ opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (defa
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 % Save jMRUI-exportable files for each spectrum?
-opts.saveJMRUI              = 1;                % OPTIONS:    - 0 (no, default)
+opts.savejMRUI              = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
