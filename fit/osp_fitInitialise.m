@@ -37,7 +37,7 @@ ext = 0; % Set external flag to zero
 if strcmp(MRSCont.vendor,'GE') % Still need to find a way to destinguish GE sequences
     seq = 'press';
 end
-if contains(seq,'gaba_par')
+if contains(seq,'gaba_par') || contains(seq,'gaba par')
     seq = 'press';
 end
 if contains(seq,'press')

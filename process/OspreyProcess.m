@@ -83,10 +83,11 @@ for ss = 1 : NoSubSpec
 end
 %% Clean up and save
 % Set exit flags and reorder fields
-MRSCont.flags.didProcess           = 1;
-MRSCont.processed                  = orderfields(MRSCont.processed);
-MRSCont.ver.Pro             = '1.0.0 Pro';
+MRSCont.flags.didProcess    = 1;
 fclose(fileID);
+[MRSCont]                   = osp_orderProcessFields(MRSCont);
+MRSCont.ver.Pro             = '1.0.0 Pro';
+
 % Save the output structure to the output folder
 % Determine output folder
 outputFile      = MRSCont.outputFile;
