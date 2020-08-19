@@ -139,7 +139,6 @@ classdef OspreyGUI < handle
             if MRSCont.flags.didProcess %Get variables regarding the processing
                 gui.process.Number = length(fieldnames(MRSCont.processed));
                 gui.process.Names = fieldnames(MRSCont.processed);
-                gui.process.Names = sort(gui.process.Names);
             end         
 
             if MRSCont.flags.didFit %Get variables regarding the fitting

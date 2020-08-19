@@ -44,21 +44,21 @@ function osp_iniProcessWindow(gui)
                 gui.layout.proTab.TabTitles  = {'A', 'MM','ref','w'};%re_mm
                 gui.layout.proTab.TabEnables = {'on', 'on','on','on'};%re_mm
                 gui.layout.proTabhandles = {'AProTab','mmProTab', 'refProTab', 'wProTab'}; % Create 4 Tabs %re_mm
-                gui.process.SNR = {'tNAA','water','water','water'};%re_mm
+                gui.process.SNR = {'tNAA','MM09','water','water'};%re_mm
         elseif (~MRSCont.flags.hasRef && MRSCont.flags.hasWater && MRSCont.flags.hasMM ) %Has all%re_mm
                 gui.layout.mmProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
                 gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
                 gui.layout.proTab.TabTitles  = {'A', 'MM','w'};%re_mm
                 gui.layout.proTab.TabEnables = {'on', 'on','on'};%re_mm
                 gui.layout.proTabhandles = {'AProTab','mmProTab', 'wProTab'}; % Create 4 Tabs %re_mm
-                gui.process.SNR = {'tNAA','water','water','water'};%re_mm
+                gui.process.SNR = {'tNAA','MM09','water'};%re_mm
         elseif (MRSCont.flags.hasRef && ~MRSCont.flags.hasWater && MRSCont.flags.hasMM ) %Has all%re_mm
                 gui.layout.mmProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
                 gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
                 gui.layout.proTab.TabTitles  = {'A', 'MM','w'};%re_mm
                 gui.layout.proTab.TabEnables = {'on', 'on','on'};%re_mm
                 gui.layout.proTabhandles = {'AProTab','mmProTab', 'refProTab'}; % Create 4 Tabs %re_mm
-                gui.process.SNR = {'tNAA','water','water','water'};%re_mm        
+                gui.process.SNR = {'tNAA','MM09','water'};%re_mm        
         elseif (MRSCont.flags.hasRef && MRSCont.flags.hasWater && ~MRSCont.flags.hasMM) %Has water and reference (This should actually not happen with UnEdited data...) 
                 gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -98,7 +98,7 @@ function osp_iniProcessWindow(gui)
                 gui.layout.proTab.TabTitles  = {'A','B','diff1','sum','ref','w'};
                 gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
                 gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab', 'wProTab'}; %Create 6 tabs
-                gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'water','tNAA','water'};
+                gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water','water'};
             elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater) %Only metabolites?
                 gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -116,7 +116,7 @@ function osp_iniProcessWindow(gui)
                     gui.layout.proTab.TabTitles  = {'A','B','diff1','sum','ref'};
                     gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab'}; %Create 5 tabs
-                    gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'water','tNAA'};
+                    gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water'};
                 end
                 if MRSCont.flags.hasWater %Has only water?
                     gui.layout.BProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -126,7 +126,7 @@ function osp_iniProcessWindow(gui)
                     gui.layout.proTab.TabTitles  = {'A','B','diff1','sum','w'};
                     gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'wProTab'}; %Create 5 tabs
-                    gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'water','tNAA'};
+                    gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water'};
                 end
             end
         end
@@ -143,7 +143,7 @@ function osp_iniProcessWindow(gui)
                 gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','ref','w'};
                 gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on', 'on', 'on', 'on'};
                 gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'diff1ProTab', 'diff2ProTab', 'sumProTab', 'refProTab', 'wProTab'}; %Create 9 tabs
-                gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'water','tNAA','water'};
+                gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water','water'};
             elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater) %Only metabs?
                 gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -224,6 +224,10 @@ function osp_iniProcessWindow(gui)
                     StatText = ['Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
                                 num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
                                 ' ppm / Hz'];
+                    else
+                        StatText = ['MM Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
+                                num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
+                                ' ppm / Hz'];
                     end %re
                 end
             end
@@ -256,7 +260,6 @@ function osp_iniProcessWindow(gui)
             set(gui.layout.proPost.Children(1), 'OuterPosition', [0,0,1,1])
             set(gui.layout.proDrift.Children(1), 'Units', 'normalized')
             set(gui.layout.proDrift.Children(1), 'OuterPosition', [0,0,1,1])
-            set( gui.layout.proDrift.Children,'Children',flipud(gui.layout.proDrift.Children.Children));
             set(gui.layout.proAlgn.Children(1), 'Units', 'normalized')
             set(gui.layout.proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
         end

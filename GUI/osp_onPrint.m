@@ -160,54 +160,24 @@ function osp_onPrint( ~, ~ ,gui)
         case 2 %Process Tab
             outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyProcess');
             [~,filename,~]  = fileparts(MRSCont.files{gui.controls.Selected});
-            Selection = gui.process.Names{gui.process.Selected};
-            
-            if (MRSCont.flags.isUnEdited)
-                t = gui.process.Selected;
-            end
-            if (MRSCont.flags.isMEGA) %Is Edited? Pick the right tab
-                if (gui.process.Selected == 1 || gui.process.Selected == 2 || gui.process.Selected == 3)
-                    t = gui.process.Selected;                   
-                else if gui.process.Selected == 4
-                        t = 5;                 
-                    else if MRSCont.flags.hasWater
-                        t = 6;
-                        else
-                        t = 4;
-                        end
-                    end
-                end
-            end
-            if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is Hadamard? Pick the right tab
-                if (gui.process.Selected == 1 || gui.process.Selected == 2 || gui.process.Selected == 3 || gui.process.Selected == 4 || gui.process.Selected == 5 || gui.process.Selected == 6)
-                    t = gui.process.Selected;                   
-                else if gui.process.Selected == 7
-                        t = 8;                 
-                    else if MRSCont.flags.hasWater
-                        t = 9;
-                        else
-                        t = 7;
-                        end
-                    end
-                end
-            end
+            Selection = gui.process.Names{gui.process.Selected};            
 
             Plot = uix.HBox('Parent', input_figure, ...
                 'Padding', 5,'BackgroundColor', gui.colormap.Background);
             set(input_figure, 'Heights', [-0.11 -0.89]);
             % Get parameter from file to fill the info panel
-            if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum') )
-                StatText = ['Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
-                            num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
-                            ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
-                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-            else if (strcmp(gui.process.Names{t},'ref') || strcmp(gui.process.Names{t},'mm'))
-            StatText = ['Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
-                        num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
+            if (strcmp(gui.process.Names{gui.process.Selected},'A') || strcmp(gui.process.Names{gui.process.Selected},'B') || strcmp(gui.process.Names{gui.process.Selected},'C') || strcmp(gui.process.Names{gui.process.Selected},'D') || strcmp(gui.process.Names{gui.process.Selected},'diff1') || strcmp(gui.process.Names{gui.process.Selected},'diff2') || strcmp(gui.process.Names{gui.process.Selected},'sum') )
+                StatText = ['Metabolite Data -> SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM: '...
+                            num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6))...
+                            ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6)...
+                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+            else if (strcmp(gui.process.Names{gui.process.Selected},'ref') || strcmp(gui.process.Names{gui.process.Selected},'mm'))
+            StatText = ['Reference Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM: '...
+                        num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6))...
                         ' ppm / Hz'];
                 else
-                    StatText = ['Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM: '...
-                                num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6))...
+                    StatText = ['Water Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM: '...
+                                num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6))...
                                 ' ppm / Hz'];
                 end
             end
@@ -217,7 +187,7 @@ function osp_onPrint( ~, ~ ,gui)
 
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
  %osp_plotProcess is used to visualize the processed spectra
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{t}); % Create figure
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{gui.process.Selected}); % Create figure
             %Subplots are distributed here
                 proSpecs = uix.VBox('Parent', Plot, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     proPre = uix.VBox('Parent', proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
@@ -249,7 +219,7 @@ function osp_onPrint( ~, ~ ,gui)
             Selection = gui.fit.Names{gui.fit.Selected};
             Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
             set(input_figure, 'Heights', [-0.12 -0.88]);
-            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w') %Is not concateneted or is reference/water fit 
+            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w') %Is not concateneted or is reference/water fit 
             gui.fit.Style = Selection;
             else %Is concatenated and not water/reference
                 gui.fit.Style = 'conc';
