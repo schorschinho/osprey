@@ -278,32 +278,40 @@ if nargin<8
 end
 
 %Calculate SD shadows
-data_yu = data_mean + data_sd;
-data_yl = data_mean - data_sd;
+if length(data_sd) > 1
+    data_yu = data_mean + data_sd;
+    data_yl = data_mean - data_sd;
+end
+    
 
 
-if exist('fit_mean', 'var')
+if exist('fit_mean', 'var') && length(fit_sd) > 1
     fit_yu = fit_mean + fit_sd;
     fit_yl = fit_mean - fit_sd;
 end
-if exist('baseline_mean', 'var')
+if exist('baseline_mean', 'var') && length(baseline_sd) > 1
     baseline_yu = baseline_mean + baseline_sd;
     baseline_yl = baseline_mean - baseline_sd;
 end
-if exist('residual_mean', 'var')
+if exist('residual_mean', 'var') && length(residual_sd) > 1
     residual_yu = residual_mean + residual_sd;
     residual_yl = residual_mean - residual_sd;
 end
-if exist('MM_clean_sd', 'var')
+if exist('MM_clean_sd', 'var') && length(MM_clean_sd) > 1
     MM_clean_yu = MM_clean_mean + MM_clean_sd;
     MM_clean_yl = MM_clean_mean - MM_clean_sd;
 end
-if exist('MM_mean', 'var')
+if exist('MM_mean', 'var') && length(MM_sd) > 1
     MM_yu = MM_mean + MM_sd;
     MM_yl = MM_mean - MM_sd;
 end
-maxshift = max(data_yu);
-maxshift_abs = max(abs(data_yu));
+if exist('data_yu', 'var')
+    maxshift = max(data_yu);
+    maxshift_abs = max(abs(data_yu));
+else
+    maxshift = max(data_mean);
+    maxshift_abs = max(abs(data_mean));    
+end
 shift = maxshift_abs * shift;
 %%% 3. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
@@ -315,11 +323,13 @@ hold on
 % baseline from the individual metabolite contributions
 if MRSCont.flags.isGUI
     if exist('residual_mean', 'var')
-        if ~group
+        if ~group && length(residual_sd) > 1
             fill([ppm fliplr(ppm)], [(residual_yu+shift+ max(maxshift +  abs(min(residual_mean)))) (fliplr(residual_yl)+shift+ max(maxshift +  abs(min(residual_mean))))], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow res
         end
     end
-    fill([ppm fliplr(ppm)], [data_yu+shift fliplr(data_yl)+shift], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow data
+    if exist('data_yu', 'var')
+        fill([ppm fliplr(ppm)], [data_yu+shift fliplr(data_yl)+shift], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow data
+    end
 
     if exist('fit_mean', 'var')
         plot(ppm,fit_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1.5); %Fit
@@ -341,7 +351,9 @@ if MRSCont.flags.isGUI
     plot(ppm,data_mean+shift ,'color',cb(g,:), 'LineWidth', 2); % Data
     
     if strcmp(which_spec,'mm') % re_mm 
-        fill([ppm fliplr(ppm)], [MM_clean_yu+maxshift_abs*1.2 fliplr(MM_clean_yl)+maxshift_abs*1.2], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow cleaned MM data
+        if exist('MM_clean_yu', 'var')
+            fill([ppm fliplr(ppm)], [MM_clean_yu+maxshift_abs*1.2 fliplr(MM_clean_yl)+maxshift_abs*1.2], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow cleaned MM data
+        end
         plot(ppm,MM_clean_mean+maxshift_abs*1.2 ,'color',[1 0 0.1], 'LineWidth', 2); % Data cleaned for MM data       
     end
 
@@ -368,11 +380,13 @@ else
         end
     end
     if exist('residual_mean', 'var')
-        if ~group
+        if ~group && length(residual_sd) > 1
             fill([ppm fliplr(ppm)], [(residual_yu+shift+ max(maxshift +  abs(min(residual_mean)))) (fliplr(residual_yl)+shift+ max(maxshift +  abs(min(residual_mean))))], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow res
         end
     end
-    fill([ppm fliplr(ppm)], [data_yu+shift fliplr(data_yl)+shift], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow data
+    if exist('data_yu', 'var')
+        fill([ppm fliplr(ppm)], [data_yu+shift fliplr(data_yl)+shift], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow data
+    end
     plot(ppm,data_mean+shift ,'color',cb(g,:), 'LineWidth', 2); % Data
     if exist('fit_mean', 'var')
         plot(ppm,fit_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %Fit
@@ -392,7 +406,9 @@ else
     end
     
     if strcmp(which_spec,'mm') % re_mm 
-        fill([ppm fliplr(ppm)], [MM_clean_yu+maxshift_abs*1.2 fliplr(MM_clean_yl)+maxshift_abs*1.2], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow cleaned MM data
+        if exist('MM_clean_yu', 'var')
+            fill([ppm fliplr(ppm)], [MM_clean_yu+maxshift_abs*1.2 fliplr(MM_clean_yl)+maxshift_abs*1.2], [0 0 0],'FaceAlpha',0.15, 'linestyle', 'none'); %SD Shadow cleaned MM data
+        end
         plot(ppm,MM_clean_mean+maxshift_abs*1.2 ,'color',[1 0 0.1], 'LineWidth', 2); % Data cleaned for MM data       
     end
 
