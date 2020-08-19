@@ -134,11 +134,11 @@ if strcmp(jobFileFormat,'csv')
         fprintf('LCModel-readable files will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.saveLCM = 1;
     end
-    if isfield(jobStruct,'saveJMRUI')
-        MRSCont.opts.saveJMRUI = jobStruct(1).saveJMRUI;
+    if isfield(jobStruct,'savejMRUI')
+        MRSCont.opts.savejMRUI = jobStruct(1).savejMRUI;
     else
         fprintf('jMRUI-readable files will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
-        MRSCont.opts.saveJMRUI = 1;
+        MRSCont.opts.savejMRUI = 1;
     end
     if isfield(jobStruct,'saveVendor')
         MRSCont.opts.saveVendor = jobStruct(1).saveVendor;
