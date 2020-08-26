@@ -4,7 +4,23 @@ Being a linear-combination modelling software, **Osprey** requires prior spectra
 
 Historically, basis functions were acquired experimentally from aqueous solutions, which was a laborious and often incredibly frustrating task. Fortunately, many free software solutions open up a world of simulating any NMR experiment, and can generate noise-free model spectra of most of the spin systems we could be interested in.
 
-In this chapter, you will learn how to generate an **Osprey** basis set from a set of synthetic spectra that have been simulated using the [FID-A software](https://github.com/CIC-methods/FID-A). Please refer to the example scripts in the repository for directions and how to do this. You can also ask for advice in the [Spectral Simulation](https://forum.mrshub.org/c/analysis-modeling/spectral-simulation/22) and [Basis Sets](https://forum.mrshub.org/c/analysis-modeling/basis-sets/23) categories of the [MRSHub forum](https://forum.mrshub.org).
+In this chapter, you will learn how to generate an **Osprey** basis set. You can either import an existing complete basis set in LCModel format (`.BASIS`), or you can compile an **Osprey** basis set from a set of synthetic spectra that have been simulated using the [FID-A software](https://github.com/CIC-methods/FID-A). Please refer to the example scripts in the repository for directions and how to do this. You can also ask for advice in the [Spectral Simulation](https://forum.mrshub.org/c/analysis-modeling/spectral-simulation/22) and [Basis Sets](https://forum.mrshub.org/c/analysis-modeling/basis-sets/23) categories of the [MRSHub forum](https://forum.mrshub.org).
+
+## io_LCMBasis
+
+If you have an existing LCModel basis set (`.BASIS`), you can import it into **Osprey**. Assuming the basis set is located at `/Users/Georg/LCModelBasissets/GE/press144`, you can execute the following command at the MATLAB prompt after you have run `OspreyJob`:
+
+```matlab
+>> file = '/Users/Georg/LCModelBasissets/GE/press144';
+```
+
+You can then call **Osprey**'s `io_LCMBasis` function to create a basis set:
+
+```matlab
+>> [BASIS] = io_LCMBasis(file, 1, 'unedited', 'none');
+```
+
+Follow the instructions in the MATLAB prompt, and from then on, OspreyFit will automatically pick this basis set, but only if there is no internal existing **Osprey** basis set with matching parameters. We will soon provide the option to specify an individual basis set in the job file.
 
 ## fit_makeBasis
 

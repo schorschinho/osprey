@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url>
      <loc>https://schorschinho.github.io/osprey/</loc>
-     <lastmod>2020-05-29</lastmod>
+     <lastmod>2020-08-26</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://schorschinho.github.io/osprey/02-osprey-workflow/01-structure-workflow/</loc>
-     <lastmod>2020-05-29</lastmod>
+     <lastmod>2020-08-26</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://schorschinho.github.io/osprey/01-getting-started/01-system-requirements/</loc>
-     <lastmod>2020-05-29</lastmod>
+     <lastmod>2020-08-26</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://schorschinho.github.io/osprey/01-getting-started/02-installing-osprey/</loc>
-     <lastmod>2020-05-29</lastmod>
+     <lastmod>2020-08-26</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://schorschinho.github.io/osprey/01-getting-started/03-organize-data/</loc>
-     <lastmod>2020-05-29</lastmod>
+     <lastmod>2020-08-26</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://schorschinho.github.io/osprey/03-job-files/01-the-job-file/</loc>
-     <lastmod>2020-05-29</lastmod>
+     <lastmod>2020-08-26</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://schorschinho.github.io/osprey/04-osprey-gui-tutorial/01-osprey-gui-tutorial/</loc>
-     <lastmod>2020-05-29</lastmod>
+     <lastmod>2020-08-26</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://schorschinho.github.io/osprey/05-tools-helpers/01-basis-set-tools/</loc>
+     <lastmod>2020-08-26</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>
