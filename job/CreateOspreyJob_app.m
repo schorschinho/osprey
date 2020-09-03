@@ -1,5 +1,19 @@
 classdef CreateOspreyJob_app < matlab.apps.AppBase
-
+%%  CreateOspreyJob_app
+%   This app creates a windwo to interactivley create an OspreyJob.m file.
+%   You can specify fit options, spectra, anatomical images, and included
+%   metabolites during this process. It is called from the Osprey GUI
+%   window.
+%
+%   AUTHOR:
+%       Dr. Peter Van Schuerbeek (UZ Brussel (VUB), 2020-09-03)
+%
+%   CREDITS:
+%       The inital code is was created and kindly shared by Dr. Peter Van
+%       Schuerbeek. We adapted this version based on his contribution.
+%
+%   HISTORY:
+%       2020-09-03: First version of the code.
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure                        matlab.ui.Figure
@@ -334,7 +348,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             app.MRSDataText.Value = filelist;
             
-            if file_exten=='.7'
+            if strcmp(file_exten,'.7')
                 app.H2OReferenceButton.Enable = 'Off';
             else
                 app.H2OReferenceButton.Enable = 'On';
@@ -455,7 +469,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.Position = [100 100 564 882];
-            app.UIFigure.Name = 'MATLAB App';
+            app.UIFigure.Name = 'Interactive OspreyJob.m Creator';
 
             % Create SpecifySequenceInformationPanel
             app.SpecifySequenceInformationPanel = uipanel(app.UIFigure);
