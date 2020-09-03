@@ -118,15 +118,23 @@ for kk = 1:MRSCont.nDatasets
                         error(msg);                        
                 end
             case 'GE'
-                switch MRSCont.datatype
-                    case 'P'
-                        % Load the DICOM folder provided in the job file
-                        dcm_folder = MRSCont.files_nii{kk};
-                        [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
-                    otherwise
-                         msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                        fprintf(fileID,msg);
-                        error(msg);                      
+                [~,~,file_exten]=fileparts(MRSCont.files_nii{kk});
+                if contains(file_exten,'.nii')
+                    % Load the *.nii file provided in the job file
+                    vol_image = spm_vol(MRSCont.files_nii{kk});
+                    
+                    [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{kk}, vol_image, maskFile);
+                else
+                    switch MRSCont.datatype
+                        case 'P'
+                            % Load the DICOM folder provided in the job file
+                            dcm_folder = MRSCont.files_nii{kk};
+                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
+                        otherwise
+                            msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                            fprintf(fileID,msg);
+                            error(msg);  
+                    end
                 end
             otherwise
                 msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
