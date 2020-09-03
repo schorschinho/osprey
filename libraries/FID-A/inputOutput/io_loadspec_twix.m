@@ -85,8 +85,11 @@ elseif isUniversal
 elseif isMinn
     if ~isempty(strfind(sequence,'mslaser'))
         seq = 'MEGASLASER';        
-    else
-        seq = 'MEGAPRESS';
+    else if ~isempty(strfind(sequence,'slaser'))
+            seq = 'SLASER';
+        else
+            seq = 'MEGAPRESS';
+        end
     end
 elseif isjnMP || isWIP529 || isWIP859 || isTLFrei || ismodWIP
     seq = 'MEGAPRESS';
