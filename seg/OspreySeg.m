@@ -29,6 +29,13 @@ function [MRSCont] = OspreySeg(MRSCont)
 %   HISTORY:
 %       2019-08-21: First version of the code.
 
+[settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
+allFolders      = strsplit(settingsFolder, filesep);
+ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
+
+load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
+addpath(SPMpath);
+
 outputFolder = MRSCont.outputFolder;
 fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 % Check that OspreyCoreg has been run before
