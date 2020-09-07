@@ -1,10 +1,10 @@
-function out = osp_plotCoreg(MRSCont, kk)
-%% out = osp_plotCoreg(MRSCont, kk)
-%   Creates a figure showing coregistration between T1 image and MRS voxel
-%   stored in an Osprey data container
+function out = osp_plotCoregSecond(MRSCont, kk)
+%% out = osp_plotCoregSecond(MRSCont, kk)
+%   Creates a figure showing coregistration between the second T1 image and the 
+%   MRS voxel stored in an Osprey data container
 %
 %   USAGE:
-%       out = osp_plotCoreg(MRSCont, kk, GUI)
+%       out = osp_plotCoregSecond(MRSCont, kk, GUI)
 %
 %   OUTPUTS:
 %       out     = MATLAB figure handle
@@ -37,10 +37,10 @@ end
 %%% 2. LOAD DATA TO PLOT %%%
 % Load T1 image, mask volume, T1 max value, and voxel center
 [~,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
-[~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
+[~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image_2nd{kk}.fname);
 
-Vimage=spm_vol(MRSCont.coreg.vol_image{kk}.fname);
-Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);
+Vimage=spm_vol(MRSCont.coreg.vol_image_2nd{kk}.fname);
+Vmask=spm_vol(MRSCont.coreg.vol_mask_2nd{kk}.fname);
 voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
 
 %%% 3. SET UP THREE PLANE IMAGE %%%
@@ -50,9 +50,9 @@ voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
 [img_t,img_c,img_s] = voxel2world_space(Vimage,voxel_ctr);
 [mask_t,mask_c,mask_s] = voxel2world_space(Vmask,voxel_ctr);
 
-img_t = flipud(img_t/MRSCont.coreg.T1_max{kk});
-img_c = flipud(img_c/MRSCont.coreg.T1_max{kk});
-img_s = flipud(img_s/MRSCont.coreg.T1_max{kk});
+img_t = flipud(img_t/MRSCont.coreg.T1_2nd_max{kk});
+img_c = flipud(img_c/MRSCont.coreg.T1_2nd_max{kk});
+img_s = flipud(img_s/MRSCont.coreg.T1_2nd_max{kk});
 
 img_t = img_t + 0.225*flipud(mask_t);
 img_c = img_c + 0.225*flipud(mask_c);
@@ -68,11 +68,11 @@ three_plane_img(:,size_max*2+(1:size_max)) = image_center(img_c, size_max);
 % Generate a new figure and keep the handle memorized
 if ~MRSCont.flags.isGUI
     out = figure;
-    title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
+    title(['Coregistration with secondary T1: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
     set(gcf, 'Color', 'w');
 else
     out = figure('Visible','off');
-    title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
+    title(['Coregistration with secondary T1: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
 imagesc(three_plane_img);
@@ -82,9 +82,9 @@ axis equal;
 axis tight;
 axis off;
 if ~MRSCont.flags.isGUI
-    title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
+    title(['Coregistration with secondary T1: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
 else
-    title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
+    title(['Coregistration with secondary T1: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
 %%% 5. ADD OSPREY LOGO %%%

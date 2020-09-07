@@ -66,9 +66,15 @@ MRSCont.files               = {};
 MRSCont.files_mm            = {};
 MRSCont.files_ref           = {};
 MRSCont.files_w             = {};
+MRSCont.files_nii           = {};
+MRSCont.files_nii2          = {};
+MRSCont.files_pet           = {};
 MRSCont.flags.hasMM         = 0;
 MRSCont.flags.hasRef        = 0;
 MRSCont.flags.hasWater      = 0;
+MRSCont.flags.hasT1         = 0;
+MRSCont.flags.hasSecondT1   = 0;
+MRSCont.flags.hasPET        = 0;
 % Set default flags
 MRSCont.flags.didLCMWrite   = 0;
 MRSCont.flags.didjMRUIWrite = 0;

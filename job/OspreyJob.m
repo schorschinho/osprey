@@ -93,6 +93,12 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_nii')
         files_nii = {jobStruct.files_nii};
     end
+    if isfield(jobStruct, 'files_nii2')
+        files_nii2 = {jobStruct.files_nii2};
+    end
+    if isfield(jobStruct, 'files_pet')
+        files_pet = {jobStruct.files_pet};
+    end
     if isfield(jobStruct, 'outputFolder')
         outputFolder = jobStruct(1).outputFolder;
     else
@@ -296,6 +302,12 @@ end
 if exist('files_nii','var')
     MRSCont.files_nii = files_nii;
 end
+if exist('files_nii2','var')
+    MRSCont.files_nii2 = files_nii2;
+end
+if exist('files_pet','var')
+    MRSCont.files_pet = files_pet;
+end
 if exist('outputFolder','var')
     MRSCont.outputFolder = outputFolder;
 else
@@ -303,7 +315,7 @@ else
 end
 
 % Check that each array has an identical number of entries
-fieldNames = {'files', 'files_ref', 'files_w','files_mm', 'files_nii'};
+fieldNames = {'files', 'files_ref', 'files_w', 'files_nii', 'files_nii2', 'files_pet'};
 ctr = 0;
 for kk = 1:length(fieldNames)
     if isfield(MRSCont, fieldNames{kk})
@@ -345,7 +357,7 @@ MRSCont.ver.Job             = '1.0.0 job';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
-% Determine output folder
+% If output folder doesn't exist, create it
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
@@ -404,8 +416,14 @@ if ~GUI
                             if isfield(MRSCont,'files_w')
                                 MRSCont.files_w = MRSContNew.files_w;
                             end
-                            if isfield(MRSCont,'files_ref')
+                            if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
+                            end
+                            if isfield(MRSCont,'files_nii2')
+                                MRSCont.files_nii2 = MRSContNew.files_nii2;
+                            end
+                            if isfield(MRSCont,'files_pet')
+                                MRSCont.files_pet = MRSContNew.files_pet;
                             end
                         end
                         MRSCont.flags.speedUp        = 1;
@@ -478,8 +496,14 @@ else
                             if isfield(MRSCont,'files_w')
                                 MRSCont.files_w = MRSContNew.files_w;
                             end
-                            if isfield(MRSCont,'files_ref')
+                            if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
+                            end
+                            if isfield(MRSCont,'files_nii2')
+                                MRSCont.files_nii2 = MRSContNew.files_nii2;
+                            end
+                            if isfield(MRSCont,'files_pet')
+                                MRSCont.files_pet = MRSContNew.files_pet;
                             end
                         end
                         MRSCont.flags.speedUp        = 1;

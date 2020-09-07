@@ -27,64 +27,145 @@ function osp_iniCoregWindow(gui)
 %%% 1. GET HANDLES %%%
 % This function creates the initial coreg/seg window
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
+    addpath(genpath([gui.folder.spmversion filesep])); % Add SPM path
+    % Get variables regarding secondary T1 and PET images
+    if MRSCont.flags.hasSecondT1
+        gui.controls.NumberImages = gui.controls.NumberImages + 1;
+        gui.load.Names.Images{2} = '2nd structural';
+        if MRSCont.flags.hasPET
+            gui.controls.NumberImages = gui.controls.NumberImages + 1;
+            gui.load.Names.Images{3} = 'PET';
+        end
+    else if MRSCont.flags.hasPET
+            gui.controls.NumberImages = gui.controls.NumberImages + 1;
+            gui.load.Names.Images{2} = 'PET';
+        end
+    end
+
     gui.layout.tabs.TabEnables{4} = 'on';
     gui.layout.tabs.Selection  = 4;
     gui.layout.EmptyQuantPlot = 0;
     
+    %%% 2. CREATING SUB TABS FOR THIS TAB %%%
+    % In this case one tab for each image (first structural, second
+    % structural, PET)
+    gui.layout.structuralLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background,'Spacing',5);
+    gui.layout.coregTab.TabWidth   = 115;
+    gui.layout.coregTab.Selection  = 1;
+    gui.layout.coregTabhandles = {'structuralLoTab'};
+    if gui.controls.NumberImages == 1
+        gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
+        gui.layout.coregTab.TabEnables = {'on'};
+    end
+    if gui.controls.NumberImages == 2
+        if MRSCont.flags.hasRef
+            gui.layout.secondstructuralLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background);
+            gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
+            gui.layout.coregTab.TabEnables = {'on', 'on'};
+            gui.layout.coregTabhandles = {'structuralLoTab', 'secondstructuralLoTab'};
+        end
+        if MRSCont.flags.hasWater
+            gui.layout.petLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background);
+            gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
+            gui.layout.coregTab.TabEnables = {'on', 'on'};
+            gui.layout.coregTabhandles = {'structuralLoTab', 'petLoTab'};
+        end
+    end
+    if gui.controls.NumberImages == 3
+        gui.layout.secondstructuralLoTab = uix.VBox('Parent', gui.layout.coregTab,  'BackgroundColor',gui.colormap.Background);
+        gui.layout.petLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background);
+        gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
+        gui.layout.coregTab.TabEnables = {'on', 'on','on'};
+        gui.layout.coregTabhandles = {'structuralLoTab', 'secondstructuralLoTab', 'petLoTab'};
+    end
+            
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-    gui.upperBox.coreg.box = uix.HBox('Parent', gui.layout.coregTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-    gui.upperBox.coreg.Info = uix.Panel('Parent', gui.upperBox.coreg.box, 'Padding', 5, ...
-                              'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
-                              'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
-                              'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-    gui.upperBox.coreg.upperButtons = uix.Panel('Parent', gui.upperBox.coreg.box, ...
-                                     'Padding', 5, 'Title', ['Save'],...
-                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
-                                     'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-    gui.controls.b_save_coregTab = uicontrol('Parent',gui.upperBox.coreg.upperButtons,'Style','PushButton');
-    [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
-    [img2] = imresize(img, 0.1);
-    set(gui.controls.b_save_coregTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-    set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
-    set(gui.upperBox.coreg.box, 'Width', [-0.9 -0.1]);                       
-    % Creates layout for plotting and data control
-    gui.Plot.coreg = uix.HBox('Parent', gui.layout.coregTab,'BackgroundColor',gui.colormap.Background);
-    set(gui.layout.coregTab, 'Heights', [-0.1 -0.9]);
-    % Get parameter from file to fill the info panel
+    for t = gui.controls.NumberImages : -1 : 1 % Loop over tabs
+        gui.upperBox.coreg.box = uix.HBox('Parent', gui.layout.(gui.layout.coregTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
+        gui.upperBox.coreg.Info = uix.Panel('Parent', gui.upperBox.coreg.box, 'Padding', 5, ...
+            'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
+            'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+            'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+        gui.upperBox.coreg.upperButtons = uix.Panel('Parent', gui.upperBox.coreg.box, ...
+            'Padding', 5, 'Title', ['Save'],...
+            'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+            'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+        gui.controls.b_save_coregTab = uicontrol('Parent',gui.upperBox.coreg.upperButtons,'Style','PushButton');
+        [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
+        [img2] = imresize(img, 0.1);
+        set(gui.controls.b_save_coregTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+        set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint});
+        set(gui.upperBox.coreg.box, 'Width', [-0.9 -0.1]);
+        % Creates layout for plotting and data control
+        gui.Plot.coreg = uix.HBox('Parent', gui.layout.(gui.layout.coregTabhandles{t}),'BackgroundColor',gui.colormap.Background);
+        set(gui.layout.(gui.layout.coregTabhandles{t}), 'Heights', [-0.1 -0.9]);
+        % Get parameter from file to fill the info panel
 
-    StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                 '\nraw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
-                 '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                 num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
+        StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth) ' Hz'...
+            '\nraw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
+            '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
+            num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
 
-   gui.InfoText.coreg  = uicontrol('Parent',gui.upperBox.coreg.Info,'style','text',...
-        'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
-    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        gui.InfoText.coreg  = uicontrol('Parent',gui.upperBox.coreg.Info,'style','text',...
+            'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+            'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
 
-%%% 2.VISUALIZATION PART OF THIS TAB %%%
-% In this case osp_plotCoreg or osp_plotSegment is used to visualize the
-% coregistration or the segmentation
-    gui.Results.coreg = uix.VBox('Parent', gui.Plot.coreg,'BackgroundColor',gui.colormap.Background);
-    temp = figure( 'Visible', 'off' );
-    if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-        osp_plotCoreg(MRSCont, gui.controls.Selected);
-        ViewAxes = gca();
-        set(ViewAxes, 'Parent', gui.Results.coreg );
-        colormap(gui.Results.coreg.Children,'gray')
-        close( temp );
+        %%% 2.VISUALIZATION PART OF THIS TAB %%%
+        % In this case osp_plotCoreg or osp_plotSegment is used to visualize the
+        % coregistration or the segmentation
         temp = figure( 'Visible', 'off' );
-        osp_plotSegment(MRSCont, gui.controls.Selected);
-        ViewAxes = gca();
-        set(ViewAxes, 'Parent', gui.Results.coreg );
-        colormap(gui.Results.coreg.Children(1),'gray');
-        close( temp );
-    else % Only coreg has been run
-        osp_plotCoreg(MRSCont, gui.controls.Selected);
-        ViewAxes = gca();
-        set(ViewAxes, 'Parent', gui.Results.coreg );
-        colormap(gui.Results.coreg.Children,'gray');
-        close( temp );
+        gui.Results.coreg = uix.VBox('Parent', gui.Plot.coreg,'BackgroundColor',gui.colormap.Background);
+        if t == 1 %First structural tab
+        
+        if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
+            osp_plotCoreg(MRSCont, gui.controls.Selected);
+            ViewAxes = gca();
+            set(ViewAxes, 'Parent', gui.Results.coreg );
+            colormap(gui.Results.coreg.Children,'gray')
+            close( temp );
+            temp = figure( 'Visible', 'off' );
+            osp_plotSegment(MRSCont, gui.controls.Selected);
+            ViewAxes = gca();
+            set(ViewAxes, 'Parent', gui.Results.coreg );
+            colormap(gui.Results.coreg.Children(1),'gray');
+            close( temp );
+        else % Only coreg has been run
+            osp_plotCoreg(MRSCont, gui.controls.Selected);
+            ViewAxes = gca();
+            set(ViewAxes, 'Parent', gui.Results.coreg );
+            colormap(gui.Results.coreg.Children,'gray');
+            close( temp );
+        end
+        elseif t == 2 % second structural tab
+            % If voxel has been registered to a second T1, add it here
+            if MRSCont.flags.hasSecondT1
+                temp = figure( 'Visible', 'off' );
+                osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+                ViewAxes = gca();
+                set(ViewAxes, 'Parent', gui.Results.coreg );
+                colormap(gui.Results.coreg.Children(1),'gray');
+                close( temp );
+            end
+        elseif t == 3 % PET tab
+            % If voxel has been registered to a OET image, add it here
+            if MRSCont.flags.hasPET
+                temp = figure( 'Visible', 'off' );
+                temp = osp_plotCoregPET(MRSCont, gui.controls.Selected);
+                set( temp.Children(2), 'Parent', gui.Results.coreg );
+                set( temp.Children(1), 'Parent', gui.Results.coreg );
+                set(gui.Results.coreg,'Heights', [-0.49 -0.49]);
+                set(gui.Results.coreg.Children(2), 'Units', 'normalized')
+                set(gui.Results.coreg.Children(2), 'OuterPosition', [0,0.5,1,0.5])
+                set(gui.Results.coreg.Children(1), 'Units', 'normalized')
+                set(gui.Results.coreg.Children(1), 'OuterPosition', [0,0,1,0.5])
+                colormap(gui.Results.coreg.Children(2),'gray');
+                close( temp );
+            end
+        end
+            
     end
+
+    rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path to avoid crash due to stupid naming conventions in SPM with internal gamma function
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

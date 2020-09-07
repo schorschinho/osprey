@@ -25,7 +25,11 @@ function osp_updateCoregWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         addpath(genpath([gui.folder.spmversion filesep])); % Add SPM  path
-        gui.controls.b_save_coregTab = gui.layout.coregTab.Children(2).Children(1).Children;
+        gui.upperBox.coreg.Info = gui.layout.(gui.layout.coregTabhandles{gui.coreg.Selected}).Children(2).Children(2);
+        gui.InfoText.coreg = gui.layout.(gui.layout.coregTabhandles{gui.coreg.Selected}).Children(2).Children(2).Children;
+        % Grid for Plot and Data control sliders
+        gui.Plot.coreg = gui.layout.(gui.layout.coregTabhandles{gui.coreg.Selected});
+        gui.controls.b_save_coregTab = gui.layout.(gui.layout.coregTabhandles{gui.coreg.Selected}).Children(2).Children(1).Children;
         gui.layout.EmptyProPlot = 0;
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
@@ -35,6 +39,7 @@ function osp_updateCoregWindow(gui)
                          num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
        set(gui.upperBox.coreg.Info.Children, 'String',sprintf(StatText))
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
+if gui.coreg.Selected == 1 %Is first structural tab?
         if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 2 %Did seg & has been visualized already
             delete( gui.Results.coreg.Children(1) ); %delete seg contents
             delete( gui.Results.coreg.Children(1) ); %delete coreg contents
@@ -50,7 +55,8 @@ function osp_updateCoregWindow(gui)
                 colormap(gui.Results.coreg.Children(1),'gray');
                 close( temp );
             end
-        else if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 1 %Did seg but has not been visualized yet (Initial run of segement button)
+        else
+            if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 1 %Did seg but has not been visualized yet (Initial run of segement button)
             delete( gui.Results.coreg.Children(1) );
             temp = figure( 'Visible', 'off' );
             temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
@@ -62,7 +68,16 @@ function osp_updateCoregWindow(gui)
             set( temp.Children, 'Parent', gui.Results.coreg );
             colormap(gui.Results.coreg.Children(1),'gray');
             close( temp );
-            else if length(gui.Results.coreg.Children) == 1 %Only coreg has been performed
+            else
+                if length(gui.Results.coreg.Children) == 2
+                    temp = figure( 'Visible', 'off' );
+                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
+                    delete( gui.Results.coreg.Children(1) );
+                    delete( gui.Results.coreg.Children(1) );
+                    set( temp.Children, 'Parent', gui.Results.coreg );
+                    colormap(gui.Results.coreg.Children,'gray')
+                    close( temp );
+                elseif length(gui.Results.coreg.Children) == 1 %Only coreg has been performed
                     temp = figure( 'Visible', 'off' );
                     temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
                     delete( gui.Results.coreg.Children(1) );
@@ -74,11 +89,42 @@ function osp_updateCoregWindow(gui)
                     temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
                     set( temp.Children, 'Parent', gui.Results.coreg );
                     colormap(gui.Results.coreg.Children,'gray')
-                    close( temp ); 
+                    close( temp );
                 end
             end
         end
-
+elseif gui.coreg.Selected == 2 %Is second structural tab?
+    delete( gui.Results.coreg.Children(1) );
+    temp = figure( 'Visible', 'off' );
+    temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+    set( temp.Children, 'Parent', gui.Results.coreg);
+    colormap(gui.Results.coreg.Children(1),'gray');
+    close( temp );
+    
+elseif gui.coreg.Selected == 3 %Is PET tab ?
+    
+    if length(gui.Results.coreg.Children) > 1
+        delete( gui.Results.coreg.Children(1) );
+    end
+    if length(gui.Results.coreg.Children) > 1
+        delete( gui.Results.coreg.Children(1) );
+    end
+    if length(gui.Results.coreg.Children) > 1
+        delete( gui.Results.coreg.Children(1) );
+    end
+    delete( gui.Results.coreg.Children(1) );
+    temp = figure( 'Visible', 'off' );
+    temp = osp_plotCoregPET(MRSCont, gui.controls.Selected);
+    set( temp.Children(2), 'Parent', gui.Results.coreg );
+    set( temp.Children(1), 'Parent', gui.Results.coreg );
+    set(gui.Results.coreg,'Heights', [-0.49 -0.49]);
+    set(gui.Results.coreg.Children(2), 'Units', 'normalized')
+    set(gui.Results.coreg.Children(2), 'OuterPosition', [0,0.5,1,0.5])
+    set(gui.Results.coreg.Children(1), 'Units', 'normalized')
+    set(gui.Results.coreg.Children(1), 'OuterPosition', [0,0,1,0.5])
+    colormap(gui.Results.coreg.Children(2),'gray');
+    close( temp );
+end
         rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path
         set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); %Write  MRSCont into hidden container in gui class

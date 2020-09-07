@@ -95,7 +95,6 @@ for kk = 1:MRSCont.nDatasets
                 error(msg);                  
         end
 
-
         % Get the input file name
         [T1dir, T1name, T1ext]  = fileparts(niftiFile);
         segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
@@ -171,6 +170,135 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.seg.tissue.fCSF(kk) = fCSF;
     end 
 end
+
+
+% If a pair of secondary images exists, start the process of
+% segmenting the second T1 here.
+% We will keep the segmented tissue maps in native space, so we don't have
+% to reslice them. We can then use the resliced voxel mask from the
+% OspreyCoreg to
+for kk = 1:MRSCont.nDatasets
+    if (MRSCont.flags.hasSecondT1 && MRSCont.flags.hasPET)
+        
+        %%% 4. CHECK WHETHER SEGMENTATION HAS BEEN RUN BEFORE %%%
+        % Get the file name of the second T1 from the SPM volume stored in
+        % the MRS container
+        [T1_2nd_dir, T1_2nd_name, T1_2nd_ext]  = fileparts(MRSCont.coreg.vol_image_2nd{kk}.fname);
+        segFileGM2nd               = fullfile(T1_2nd_dir, ['c1' T1_2nd_name T1_2nd_ext]);
+        % If a GM-segmented file doesn't exist, start the segmentation
+        if ~exist(segFileGM2nd,'file')
+            createSegJob(niftiFile2nd);
+        end
+        
+        
+        %%% 5. CREATE MASKED TISSUE MAPS %%%
+        % Define file names
+        segFileWM2nd   = fullfile(T1_2nd_dir, ['c2' T1_2nd_name T1_2nd_ext]);
+        segFileCSF2nd  = fullfile(T1_2nd_dir, ['c3' T1_2nd_name T1_2nd_ext]);
+        % Load volumes
+        GMvol2nd  = spm_vol(segFileGM2nd);
+        WMvol2nd  = spm_vol(segFileWM2nd);
+        CSFvol2nd = spm_vol(segFileCSF2nd);
+        % Get the filename of the resliced voxel mask from the SPM volume
+        % in the MRSCont container
+        vol_mask_2nd = MRSCont.coreg.vol_mask_2nd{kk};
+        [maskDir2nd, maskName2nd, maskExt2nd] = fileparts(vol_mask_2nd.fname);
+        
+        % Create and save masked tissue maps
+        % Get the input file name
+        [path,filename,~]   = fileparts(MRSCont.files{kk});
+        % For batch analysis, get the last two sub-folders (e.g. site and
+        % subject)
+        path_split          = regexp(path,filesep,'split');
+        if length(path_split) > 2
+            saveName = [path_split{end-1} '_' path_split{end} '_' filename];
+        end
+        % GM
+        vol_GMMask.fname    = fullfile(saveDestination, [saveName '_GM_2ndT1' maskExt2nd]);
+        vol_GMMask.descrip  = 'GMmasked_MRS_Voxel_Mask';
+        vol_GMMask.dim      = vol_mask_2nd.dim;
+        vol_GMMask.dt       = vol_mask_2nd.dt;
+        vol_GMMask.mat      = vol_mask_2nd.mat;
+        GM_voxmask_vol      = GMvol2nd.private.dat(:,:,:) .* vol_mask_2nd.private.dat(:,:,:);
+        vol_GMMask          = spm_write_vol(vol_GMMask, GM_voxmask_vol);
+
+        % WM
+        vol_WMMask.fname    = fullfile(saveDestination, [saveName '_WM_2ndT1' maskExt2nd]);
+        vol_WMMask.descrip  = 'WMmasked_MRS_Voxel_Mask';
+        vol_WMMask.dim      = vol_mask_2nd.dim;
+        vol_WMMask.dt       = vol_mask_2nd.dt;
+        vol_WMMask.mat      = vol_mask_2nd.mat;
+        WM_voxmask_vol      = WMvol2nd.private.dat(:,:,:) .* vol_mask_2nd.private.dat(:,:,:);
+        vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
+
+        % CSF
+        vol_CSFMask.fname   = fullfile(saveDestination, [saveName '_CSF_2ndT1' maskExt2nd]);
+        vol_CSFMask.descrip = 'CSFmasked_MRS_Voxel_Mask';
+        vol_CSFMask.dim     = vol_mask_2nd.dim;
+        vol_CSFMask.dt      = vol_mask_2nd.dt;
+        vol_CSFMask.mat     = vol_mask_2nd.mat;
+        CSF_voxmask_vol     = CSFvol2nd.private.dat(:,:,:) .* vol_mask_2nd.private.dat(:,:,:);
+        vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
+        
+        
+        
+        %%%%%%%% STOP HERE %%%%%%%%%%
+        
+        
+        %%% 6. DETERMINE PET IMAGE INTENSITY %%%
+        % Get the histogram of PET image intensities inside the voxel
+        % Get the input file name
+        [path,filename,~]   = fileparts(MRSCont.files{kk});
+        [maskDir, maskName, maskExt] = fileparts(vol_mask_2nd.fname);
+        % For batch analysis, get the last two sub-folders (e.g. site and
+        % subject)
+        path_split          = regexp(path,filesep,'split');
+        if length(path_split) > 2
+            saveName = [path_split{end-1} '_' path_split{end} '_' filename];
+        end
+        vol_PETMask.fname    = fullfile(saveDestination, [saveName '_PET' maskExt]);
+        vol_PETMask.descrip  = 'PETmasked_MRS_Voxel_Mask';
+        vol_PETMask.dim      = vol_mask_2nd.dim;
+        vol_PETMask.dt       = vol_mask_2nd.dt;
+        vol_PETMask.mat      = vol_mask_2nd.mat;
+        PET_voxmask_vol      = vol_image_pet.private.dat(:,:,:) .* vol_mask_2nd.private.dat(:,:,:);
+        vol_PETMask          = spm_write_vol(vol_PETMask, PET_voxmask_vol);
+        
+        % Get everything greater than zero
+        PETIntensityInVoxel = nonzeros(vol_PETMask.private.dat(:,:,:));
+        rawPETIntensitySum = sum(PETIntensityInVoxel);
+        
+        idx = PETIntensityInVoxel > 0.2;
+        PETIntensityInVoxel = PETIntensityInVoxel(idx);
+        nBins = round(sqrt(length(PETIntensityInVoxel)));           % Number of bins
+        [yIntensity, xIntensity] = hist(PETIntensityInVoxel,nBins);
+        
+        % Initial guesses
+        [maxIntensityInit, maxIndexInit] = max(yIntensity);
+        % Get starting values for linear baseline and offset
+        grad_points = (yIntensity(end) - yIntensity(1)) ./ abs(xIntensity(end) - xIntensity(1));
+        LinearInit = grad_points ./ abs(xIntensity(1) - xIntensity(2));
+        constInit = (yIntensity(end)+yIntensity(1))/2;
+        
+        % Set initials and run model
+        GaussModelInit = [maxIntensityInit -0.2 xIntensity(maxIndexInit) -LinearInit constInit];
+        nlinopts = statset('nlinfit');
+        nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck','off');
+        [GaussModelParams, residPlot] = nlinfit(xIntensity, yIntensity, @GaussModel, GaussModelInit, nlinopts); % re-run for residuals for output figure
+
+        
+        % Save all kinds of estimates
+        MRSCont.seg.pet.rawPETIntensitySum(kk) = rawPETIntensitySum;
+        MRSCont.seg.pet.histogram.xIntensity{kk} = xIntensity;
+        MRSCont.seg.pet.histogram.yIntensity{kk} = yIntensity;
+        MRSCont.seg.pet.histogram.fitParams{kk}  = GaussModelParams;
+        MRSCont.seg.pet.histogram.mostFrequentIntensity(kk)  = GaussModelParams(3);
+        MRSCont.seg.pet.histogram.distFWHM(kk)  = GaussModelParams(2);
+        
+    end
+end
+
+
 fprintf('... done.\n');
 time = toc(refSegTime);
 if MRSCont.flags.isGUI        
@@ -180,6 +308,8 @@ end
 fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
 MRSCont.runtime.Seg = time;
 fclose(fileID); %close log file
+
+
 %% Create table and csv file
 tissueTypes = {'fGM','fWM','fCSF'};
 tissue = horzcat(MRSCont.seg.tissue.fGM',MRSCont.seg.tissue.fWM',MRSCont.seg.tissue.fCSF');

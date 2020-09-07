@@ -44,6 +44,7 @@ classdef OspreyGUI < handle
         load % OspreyLoad infos
         process %  OspreyProcess infos
         fit % OspreyFit infos
+        coreg % OspreyCoreg infos
         quant % OspreyQuant infos
         overview % OspreyOverview infos
         figure % figure handle
@@ -91,16 +92,19 @@ classdef OspreyGUI < handle
         %Global controls
             gui.controls.Selected = 1;
             gui.controls.Number = 1;
+            gui.controls.NumberImages = 1;
             gui.controls.KeyPress = 0;
         %File selections for each sub function        
             gui.load.Selected = 1;
             gui.process.Selected = 1;
             gui.fit.Selected = 1;
+            gui.coreg.Selected = 1;
             gui.quant.Selected.Model = 1;
             gui.quant.Selected.Quant = 1;
             gui.overview.Selected.Metab = 1;
         %Names for each selection    
             gui.load.Names.Spec = {'metabolites'};
+            gui.load.Names.Images = {'structural'};
         %Inital number of datasets
         if isfield(MRSCont, 'nDatasets')
             gui.controls.nDatasets = MRSCont.nDatasets;
@@ -173,7 +177,10 @@ classdef OspreyGUI < handle
                     gui.fit.Number = length(fieldnames(MRSCont.fit.results));   
                 end
             end
-
+            
+            if MRSCont.flags.didCoreg %Get variables regarding the coregistration
+            end
+            
             if MRSCont.flags.didQuantify %Get variables regarding the quantification
                 gui.quant.Number.Model = length(fieldnames(MRSCont.quantify.tables));
                 gui.quant.Names.Model = fieldnames(MRSCont.quantify.tables);
@@ -362,7 +369,9 @@ classdef OspreyGUI < handle
             gui.layout.fitTab      = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
                                         'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);                        
-            gui.layout.coregTab    = uix.VBox('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background);
+            gui.layout.coregTab    = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
+                                            'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
+                                        'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
             gui.layout.quantifyTab = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
                                         'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
@@ -440,6 +449,7 @@ classdef OspreyGUI < handle
             set(gui.layout.rawTab, 'SelectionChangedFcn',{@osp_RawTabChangeFcn,gui});
             set(gui.layout.proTab,'SelectionChangedFcn',{@osp_ProTabChangeFcn,gui});
             set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});
+            set(gui.layout.coregTab, 'SelectionChangedFcn',{@osp_CoregTabChangeFcn,gui});
             set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});            
             set(gui.layout.ListBox,'Callback', {@osp_onListSelection,gui},'KeyPressFcn',{@osp_WindowKeyDown,gui}, 'KeyReleaseFcn', {@osp_WindowKeyUp,gui});     
         end                

@@ -47,6 +47,17 @@ outputFolder = MRSCont.outputFolder;
 fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckLoad '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 fclose(fileID);
+if ~isempty(MRSCont.files_nii)
+    MRSCont.flags.hasT1 = 1;
+end
+if ~isempty(MRSCont.files_nii2)
+    MRSCont.flags.hasSecondT1 = 1;
+end
+if ~isempty(MRSCont.files_pet)
+    MRSCont.flags.hasPET = 1;
+end
+% Version check
+MRSCont.ver.CheckLoad             = '1.0.0 Load';
 
 % Determine data types
 [MRSCont, retMsg] = osp_detDataType(MRSCont);
