@@ -41,7 +41,7 @@ gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBa
     % between width and height of standard US letter size (11x8.5 in).
     screenSize      = get(0,'ScreenSize');
     canvasSize      = screenSize;
-    canvasSize(4)   = 375;
+    canvasSize(4)   = 400;
     canvasSize(3)   = 250;
     canvasSize(2)   = (screenSize(4) - canvasSize(4))/2;
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
@@ -70,6 +70,10 @@ gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBa
             'BackgroundColor',gui.colormap.Background);
     set(gui.Buttons, 'ButtonSize', [300 60]);
     % Create Job
+    gui.CreateJob = uicontrol('Parent', gui.Buttons,'Style','PushButton','String','Create Job','ForegroundColor', gui.colormap.Foreground,...
+                               'TooltipString', 'Create a OspreyJob .m-file');
+    set(gui.CreateJob,'Units','Normalized','Position',[0.1 0.9 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+    set(gui.CreateJob,'Callback',{@onCreateJob});
     % JobFile input button
     gui.LoadJob = uicontrol('Parent', gui.Buttons,'Style','PushButton','String','Load Job file','ForegroundColor', gui.colormap.Foreground,...
                                'TooltipString', 'Load a Job (.m or .csv-file)');
@@ -146,7 +150,11 @@ function loadMRSCont(gui)
     delete(gui.window);
 end
 
-
+function onCreateJob( ~, ~) %Callback Create Job button
+    % User wants to quit out of the application
+    CreateOspreyJob_app
+    delete(gui.window);
+end % onCreateJob
 
 function onLoadJob( ~, ~) %Callback Load Job button
     % User wants to quit out of the application
