@@ -94,8 +94,15 @@ for kk = 1:MRSCont.nDatasets
                 % careful not to select potentially segmented files, so we'll
                 % pick the filename that starts with an s (there should only be
                 % one!).
-                niftiList = dir([MRSCont.files_nii{kk} filesep 's*.nii']);
-                niftiFile = fullfile(MRSCont.files_nii{kk}, niftiList.name);
+                [~,~,file_exten]=fileparts(MRSCont.files_nii{kk});
+                if contains(file_exten,'.nii')
+                    niftiFile = MRSCont.files_nii{kk};
+                    splniftiFile = split(niftiFile,',');
+                    niftiFile = splniftiFile{1};
+                else
+                    niftiList = dir([MRSCont.files_nii{kk} filesep 's*.nii']);
+                    niftiFile = fullfile(MRSCont.files_nii{kk}, niftiList.name);
+                end
             otherwise
                 msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                 fprintf(fileID,msg);
