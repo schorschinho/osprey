@@ -46,16 +46,17 @@ MRSCont.opts.fit.FWHMcoMM3              = 14;                % FWHM [Hz] of the 
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
 matlabFolder    = strjoin(allFolders(1:end-2), filesep); % parent-parent folder (usually MATLAB folder)
-curpath = path;
-if ~contains(curpath,ospFolder)
-    addpath(genpath(ospFolder));
-end
+addpath(genpath(ospFolder));
 
 % SPM
-spmpath = genpath([matlabFolder filesep 'spm12' filesep]);
-if ~contains(curpath,spmpath)
-    addpath(genpath([matlabFolder filesep 'spm12' filesep]));    % SPM path
+if isfile(fullfile(ospFolder,'GUI','SPMpath.mat'))
+    load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
+    spmpath = SPMpath;
+else    
+    spmpath = genpath([matlabFolder filesep 'spm12' filesep]);
 end
+addpath(spmpath);    % SPM path
+
 % Check if SPM12 is installed
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)
