@@ -405,7 +405,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             filelist = {};
             for i=1:ndata
-                filelist = {filelist{:} t1imfiles(i,:)};
+                splniftiFile = split(t1imfiles(i,:),',');
+                filelist = {filelist{:} splniftiFile{1}};
             end
             
             app.T1DataText.Value = filelist;
