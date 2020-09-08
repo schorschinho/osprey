@@ -16,6 +16,14 @@ function  Osprey
 %   HISTORY:
 %       2019-07-11: First version of the code.
 %% Check for available add-ons
+  [ospFFolder,~,~] = fileparts(which('Osprey.m'));
+  if ~isfile(fullfile(ospFFolder,'startpath.mat'))
+    curdir = cd(ospFFolder);
+    startpath = path;
+    save('startpath.mat','startpath')
+    cd(curdir)
+  end
+  
   [~] = osp_Toolbox_Check ('OspreyGUI',0);
 %% Set up Layout
 %Here we set up the color layout

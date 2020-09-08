@@ -26,5 +26,12 @@ function osp_onExit( ~, ~,gui)
 %       2020-01-16: First version of the code.
 %%% 1. CLOSE %%%
     % User wants to quit out of the application
+    [ospFFolder,~,~] = fileparts(which('Osprey.m'));
+    curdir = cd(ospFFolder);
+    load('startpath.mat')
+    path(startpath);
+    delete('startpath.mat')
+    cd(curdir)
+    
     delete( gui.figure );
 end % onExit

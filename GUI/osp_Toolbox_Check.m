@@ -32,6 +32,11 @@ function [hasSPM] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %%
 %%% 1. GET SPMPATH AND TOOLBOXES%%%
+global startpath
+if ~isempty(startpath)
+    startpath = path;
+end
+
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
 lic = strcmp({'Enabled'}, addons.Properties.VariableNames);
