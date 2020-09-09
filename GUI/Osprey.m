@@ -183,6 +183,13 @@ end % onLoadMRSCont
 
 function onExit( ~, ~ ) %Callback Exit button
     % User wants to quit out of the application
+    [ospFFolder,~,~] = fileparts(which('Osprey.m'));
+    curdir = cd(ospFFolder);
+    load('startpath.mat')
+    path(startpath);
+    delete('startpath.mat')
+    cd(curdir)
+            
     delete( gui.window );
 end % onExit
 end
