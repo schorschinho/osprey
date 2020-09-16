@@ -327,6 +327,10 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = app.NumberofdatasetsEditField.Value;
             
             mrsfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
+            
+            if isempty(mrsfiles)
+                return
+            end
 
             [~,file_basename,file_exten]=fileparts(mrsfiles(1,:));
             
@@ -366,6 +370,10 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             h2oreffiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
             
+            if isempty(h2oreffiles)
+                return
+            end
+            
             filelist = {};
             for i=1:ndata
                 filelist = {filelist{:} h2oreffiles(i,:)};
@@ -385,6 +393,10 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             h2ostefiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
             
+            if isempty(h2ostefiles)
+                return
+            end
+            
             filelist = {};
             for i=1:ndata
                 filelist = {filelist{:} h2ostefiles(i,:)};
@@ -401,6 +413,10 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = app.NumberofdatasetsEditField.Value;
             
             metnulfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
+            
+            if isempty(metnulfiles)
+                return
+            end
             
             filelist = {};
             for i=1:ndata
@@ -419,6 +435,10 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             t1imfiles = spm_select(ndata,'image',info,{},pwd,'.nii','1');
             
+            if isempty(t1imfiles)
+                return
+            end
+            
             filelist = {};
             for i=1:ndata
                 splniftiFile = split(t1imfiles(i,:),',');
@@ -433,6 +453,10 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         function OutputFolderButtonPushed(app, event)
             info = 'Please select the output folder';
             pathname=uigetdir('*.*',info);
+            
+            if ~pathname
+                return
+            end
             
             app.OutputFolderEditField.Value = pathname;
         end
