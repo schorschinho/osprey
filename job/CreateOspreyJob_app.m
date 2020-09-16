@@ -330,7 +330,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                                 'REFilter','\.sdat|\.raw|\.dat|\.rda|\.dcm|\.7', ...
                                 'NumFiles',ndata,'Prompt',info);
             
-            if ~mrsfiles
+            if ~iscell(mrsfiles)
                 return
             end
 
@@ -369,7 +369,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                                 'REFilter','\.sdat|\.raw|\.dat|\.rda|\.dcm|\.7', ...
                                 'NumFiles',ndata,'Prompt',info);
             
-            if ~h2oreffiles
+            if ~iscell(h2oreffiles)
                 return
             end
             
@@ -389,7 +389,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                                 'REFilter','\.sdat|\.raw|\.dat|\.rda|\.dcm|\.7', ...
                                 'NumFiles',ndata,'Prompt',info);
             
-            if ~h2ostefiles
+            if ~iscell(h2ostefiles)
                 return
             end
             
@@ -407,7 +407,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                                 'REFilter','\.sdat|\.raw|\.dat|\.rda|\.dcm|\.7', ...
                                 'NumFiles',ndata,'Prompt',info);
             
-            if ~metnulfiles
+            if ~iscell(metnulfiles)
                 return
             end
             
@@ -425,7 +425,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                                 'REFilter','\.nii|\.nii.gz', ...
                                 'NumFiles',ndata,'Prompt',info);
             
-            if ~t1imfiles
+            if ~iscell(t1imfiles)
                 return
             end
             
