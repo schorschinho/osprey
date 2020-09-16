@@ -475,6 +475,29 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
 
         % Button pushed function: RunJobButton
         function RunJobButtonPushed(app, event)
+            outputFolder = app.OutputFolderEditField.Value;
+
+            if isempty(outputFolder)
+                outputFolder = cd;
+            end
+
+            JobName = app.JobNameEditField.Value;
+
+            if isempty(JobName)
+                JobName = 'jobGUIcreated';
+            end
+
+            mfile = fullfile(outputFolder,[JobName '.m']);
+            
+            if exist(mfile)
+                qtext = ['The file ' mfile ' already exist. Do you want to overwrite it?'];
+                
+                answer = questdlg(qtext,'','Yes','No','No');
+                
+                if strcmp(answer,'No'); return; end
+
+            end
+            
             jobm = osp_create_job_file(app);
             
             delete(app.InteractiveOspreyJobmCreatorUIFigure)
