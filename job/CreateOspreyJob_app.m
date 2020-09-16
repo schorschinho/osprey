@@ -25,6 +25,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         BaselineknotspacingppmEditFieldLabel  matlab.ui.control.Label
         BaselineknotspacingppmEditField  matlab.ui.control.NumericEditField
         AddMMandLipbasisfunctionstofitCheckBox  matlab.ui.control.CheckBox
+        MRSProtocolDropDownLabel        matlab.ui.control.Label
+        MRSProtocolDropDown             matlab.ui.control.DropDown
         SelectedMetabolitesPanel        matlab.ui.container.Panel
         AlaCheckBox                     matlab.ui.control.CheckBox
         AscCheckBox                     matlab.ui.control.CheckBox
@@ -71,18 +73,20 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         T1DataniftiniiButton            matlab.ui.control.Button
         NumberofdatasetsEditFieldLabel  matlab.ui.control.Label
         NumberofdatasetsEditField       matlab.ui.control.NumericEditField
-        MRSDataText                     matlab.ui.control.TextArea
-        H2OShortTEText                  matlab.ui.control.TextArea
-        H2OReferenceText                matlab.ui.control.TextArea
-        MetaboliteNulledText            matlab.ui.control.TextArea
-        T1DataText                      matlab.ui.control.TextArea
+        MRSdataDropDown                 matlab.ui.control.DropDown
+        H2OReferenceDropDown            matlab.ui.control.DropDown
+        H2OShortTEDropDown              matlab.ui.control.DropDown
+        MetaboliteNulledDropDown        matlab.ui.control.DropDown
+        T1DataniftiniiDropDown          matlab.ui.control.DropDown
         SpecifyOutputFolderPanel        matlab.ui.container.Panel
         OutputFolderEditField           matlab.ui.control.EditField
         OutputFolderButton              matlab.ui.control.Button
         JobNameEditFieldLabel           matlab.ui.control.Label
         JobNameEditField                matlab.ui.control.EditField
-        CancelButton                    matlab.ui.control.Button
-        CreateJobFileButton             matlab.ui.control.Button
+        ExitButton                      matlab.ui.control.Button
+        RunJobButton                    matlab.ui.control.Button
+        LoadJobFileButton               matlab.ui.control.Button
+        LoadMRSContButton               matlab.ui.control.Button
     end
 
     % Callbacks that handle component events
@@ -331,18 +335,27 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                 filelist = {filelist{:} mrsfiles(i,:)};
             end
             
-            app.MRSDataText.Value = filelist;
+            app.MRSdataDropDown.Items = filelist;
+            app.MRSdataDropDown.Value = filelist{1};
             
             if file_exten=='.7'
                 app.H2OReferenceButton.Enable = 'Off';
+                app.H2OReferenceDropDown.Enable = 'Off';
+                app.H2OReferenceDropDown.Items = {};
+                app.H2OReferenceDropDown.Value = {};
             else
                 app.H2OReferenceButton.Enable = 'On';
+                app.H2OReferenceDropDown.Enable = 'On';
+                app.H2OReferenceDropDown.Items = {};
+                app.H2OReferenceDropDown.Value = {};
             end
             
             app.H2OShortTEButton.Enable = 'On';
+            app.H2OShortTEDropDown.Enable = 'On';
             app.MetaboliteNulledButton.Enable = 'On';
+            app.MetaboliteNulledDropDown.Enable = 'On';
             app.T1DataniftiniiButton.Enable = 'On';
-            app.NumberofdatasetsEditField.Enable = 'Off';
+            app.T1DataniftiniiDropDown.Enable = 'On';
         end
 
         % Button pushed function: H2OReferenceButton
@@ -358,7 +371,9 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                 filelist = {filelist{:} h2oreffiles(i,:)};
             end
             
-            app.H2OReferenceText.Value = filelist;
+            app.H2OReferenceDropDown.Items = filelist;
+            app.H2OReferenceDropDown.Value = filelist{1};
+            
         end
 
         % Button pushed function: H2OShortTEButton
@@ -375,7 +390,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                 filelist = {filelist{:} h2ostefiles(i,:)};
             end
             
-            app.H2OShortTEText.Value = filelist;
+            app.H2OShortTEDropDown.Items = filelist;
+            app.H2OShortTEDropDown.Value = filelist{1};
         end
 
         % Button pushed function: MetaboliteNulledButton
@@ -391,7 +407,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                 filelist = {filelist{:} metnulfiles(i,:)};
             end
             
-            app.MetaboliteNulledText.Value = filelist;
+            app.MetaboliteNulledDropDown.Items = filelist;
+            app.MetaboliteNulledDropDown.Value = filelist{1};
         end
 
         % Button pushed function: T1DataniftiniiButton
@@ -408,7 +425,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                 filelist = {filelist{:} splniftiFile{1}};
             end
             
-            app.T1DataText.Value = filelist;
+            app.T1DataniftiniiDropDown.Items = filelist;
+            app.T1DataniftiniiDropDown.Value = filelist{1};
         end
 
         % Button pushed function: OutputFolderButton
@@ -419,13 +437,20 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.OutputFolderEditField.Value = pathname;
         end
 
-        % Button pushed function: CancelButton
-        function CancelButtonPushed(app, event)
+        % Button pushed function: ExitButton
+        function ExitButtonPushed(app, event)
+            [ospFFolder,~,~] = fileparts(which('Osprey.m'));
+            curdir = cd(ospFFolder);
+            load('startpath.mat')
+            path(startpath);
+            delete('startpath.mat')
+            cd(curdir)
+            
             delete(app.InteractiveOspreyJobmCreatorUIFigure)
         end
 
-        % Button pushed function: CreateJobFileButton
-        function CreateJobFileButtonPushed(app, event)
+        % Button pushed function: RunJobButton
+        function RunJobButtonPushed(app, event)
             jobm = osp_create_job_file(app);
             
             delete(app.InteractiveOspreyJobmCreatorUIFigure)
@@ -444,6 +469,92 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             MRSCont.flags.isToolChecked = 1;
             OspreyGUI(MRSCont);
         end
+
+        % Button pushed function: LoadJobFileButton
+        function LoadJobFileButtonPushed(app, event)
+            info = 'Select Osprey job file (.m or .csv-file)';
+            [mfile,mpath] = uigetfile({'*.m','*.csv'},info);
+            
+            if ~mfile
+                return
+            end
+            
+            [~,~,file_exten]=fileparts(fullfile(mpath,mfile));
+            
+            switch file_exten
+                case '.m'
+                    osp_set_osppreyapp_parameters(mfile,mpath,app);
+                case '.csv'
+                    delete(app.InteractiveOspreyJobmCreatorUIFigure);
+                    
+                    gui.data.MRSCont = OspreyJob(fullfile(mpath,mfile),1);
+                    
+                    %Default colormap
+                    gui.colormap.Background = [255/255 254/255 254/255];
+                    gui.colormap.LightAccent = [110/255 136/255 164/255];
+                    gui.colormap.Foreground = [11/255 71/255 111/255];
+                    gui.colormap.Accent = [254/255 186/255 47/255];
+                    
+                    gui.data.MRSCont.colormap = gui.colormap;
+                    gui.data.MRSCont.colormapidx = 1;
+                    gui.data.MRSCont.flags.isToolChecked = 1;
+                    OspreyGUI(gui.data.MRSCont);
+            end
+            
+        end
+
+        % Button pushed function: LoadMRSContButton
+        function LoadMRSContButtonPushed(app, event)
+            info = 'Select Osprey MRSCont file (.mat-file)';
+            [mfile,mpath] = uigetfile('*.mat',info);
+            
+            if ~mfile
+                return
+            end
+            
+            delete(app.InteractiveOspreyJobmCreatorUIFigure);
+            
+            gui.data = load(fullfile(mpath,mfile), 'MRSCont');
+            
+            %Default colormap
+            gui.colormap.Background = [255/255 254/255 254/255];
+            gui.colormap.LightAccent = [110/255 136/255 164/255];
+            gui.colormap.Foreground = [11/255 71/255 111/255];
+            gui.colormap.Accent = [254/255 186/255 47/255];
+            
+            gui.data.MRSCont.colormap = gui.colormap;
+                    gui.data.MRSCont.colormapidx = 1;
+            gui.data.MRSCont.flags.isToolChecked = 1;
+            OspreyGUI(gui.data.MRSCont);
+        end
+
+        % Value changed function: NumberofdatasetsEditField
+        function NumberofdatasetsEditFieldValueChanged(app, event)
+            value = app.NumberofdatasetsEditField.Value;
+            
+            app.MRSdataDropDown.Items = {};
+            app.MRSdataDropDown.Value = {};
+            
+            app.H2OReferenceDropDown.Items = {};
+            app.H2OReferenceDropDown.Value = {};
+            app.H2OReferenceDropDown.Enable = 'Off';
+            app.H2OReferenceButton.Enable = 'Off';
+            
+            app.H2OShortTEDropDown.Items = {};
+            app.H2OShortTEDropDown.Value = {};
+            app.H2OShortTEDropDown.Enable = 'Off';
+            app.H2OShortTEButton.Enable = 'Off';
+            
+            app.MetaboliteNulledDropDown.Items = {};
+            app.MetaboliteNulledDropDown.Value = {};
+            app.MetaboliteNulledDropDown.Enable = 'Off';
+            app.MetaboliteNulledButton.Enable = 'Off';
+            
+            app.T1DataniftiniiDropDown.Items = {};
+            app.T1DataniftiniiDropDown.Value = {};
+            app.T1DataniftiniiDropDown.Enable = 'Off';
+            app.T1DataniftiniiButton.Enable = 'Off';
+        end
     end
 
     % Component initialization
@@ -456,7 +567,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.InteractiveOspreyJobmCreatorUIFigure = uifigure('Visible', 'off');
             app.InteractiveOspreyJobmCreatorUIFigure.Color = [1 1 1];
             app.InteractiveOspreyJobmCreatorUIFigure.Colormap = [0.2431 0.149 0.6588;0.2431 0.1529 0.6745;0.2471 0.1569 0.6863;0.2471 0.1608 0.698;0.251 0.1647 0.7059;0.251 0.1686 0.7176;0.2549 0.1725 0.7294;0.2549 0.1765 0.7412;0.2588 0.1804 0.749;0.2588 0.1843 0.7608;0.2627 0.1882 0.7725;0.2627 0.1922 0.7843;0.2627 0.1961 0.7922;0.2667 0.2 0.8039;0.2667 0.2039 0.8157;0.2706 0.2078 0.8235;0.2706 0.2157 0.8353;0.2706 0.2196 0.8431;0.2745 0.2235 0.851;0.2745 0.2275 0.8627;0.2745 0.2314 0.8706;0.2745 0.2392 0.8784;0.2784 0.2431 0.8824;0.2784 0.2471 0.8902;0.2784 0.2549 0.898;0.2784 0.2588 0.902;0.2784 0.2667 0.9098;0.2784 0.2706 0.9137;0.2784 0.2745 0.9216;0.2824 0.2824 0.9255;0.2824 0.2863 0.9294;0.2824 0.2941 0.9333;0.2824 0.298 0.9412;0.2824 0.3059 0.9451;0.2824 0.3098 0.949;0.2824 0.3137 0.9529;0.2824 0.3216 0.9569;0.2824 0.3255 0.9608;0.2824 0.3294 0.9647;0.2784 0.3373 0.9686;0.2784 0.3412 0.9686;0.2784 0.349 0.9725;0.2784 0.3529 0.9765;0.2784 0.3569 0.9804;0.2784 0.3647 0.9804;0.2745 0.3686 0.9843;0.2745 0.3765 0.9843;0.2745 0.3804 0.9882;0.2706 0.3843 0.9882;0.2706 0.3922 0.9922;0.2667 0.3961 0.9922;0.2627 0.4039 0.9922;0.2627 0.4078 0.9961;0.2588 0.4157 0.9961;0.2549 0.4196 0.9961;0.251 0.4275 0.9961;0.2471 0.4314 1;0.2431 0.4392 1;0.2353 0.4431 1;0.2314 0.451 1;0.2235 0.4549 1;0.2196 0.4627 0.9961;0.2118 0.4667 0.9961;0.2078 0.4745 0.9922;0.2 0.4784 0.9922;0.1961 0.4863 0.9882;0.1922 0.4902 0.9882;0.1882 0.498 0.9843;0.1843 0.502 0.9804;0.1843 0.5098 0.9804;0.1804 0.5137 0.9765;0.1804 0.5176 0.9725;0.1804 0.5255 0.9725;0.1804 0.5294 0.9686;0.1765 0.5333 0.9647;0.1765 0.5412 0.9608;0.1765 0.5451 0.9569;0.1765 0.549 0.9529;0.1765 0.5569 0.949;0.1725 0.5608 0.9451;0.1725 0.5647 0.9412;0.1686 0.5686 0.9373;0.1647 0.5765 0.9333;0.1608 0.5804 0.9294;0.1569 0.5843 0.9255;0.1529 0.5922 0.9216;0.1529 0.5961 0.9176;0.149 0.6 0.9137;0.149 0.6039 0.9098;0.1451 0.6078 0.9098;0.1451 0.6118 0.9059;0.1412 0.6196 0.902;0.1412 0.6235 0.898;0.1373 0.6275 0.898;0.1373 0.6314 0.8941;0.1333 0.6353 0.8941;0.1294 0.6392 0.8902;0.1255 0.6471 0.8902;0.1216 0.651 0.8863;0.1176 0.6549 0.8824;0.1137 0.6588 0.8824;0.1137 0.6627 0.8784;0.1098 0.6667 0.8745;0.1059 0.6706 0.8706;0.102 0.6745 0.8667;0.098 0.6784 0.8627;0.0902 0.6824 0.8549;0.0863 0.6863 0.851;0.0784 0.6902 0.8471;0.0706 0.6941 0.8392;0.0627 0.698 0.8353;0.0549 0.702 0.8314;0.0431 0.702 0.8235;0.0314 0.7059 0.8196;0.0235 0.7098 0.8118;0.0157 0.7137 0.8078;0.0078 0.7176 0.8;0.0039 0.7176 0.7922;0 0.7216 0.7882;0 0.7255 0.7804;0 0.7294 0.7765;0.0039 0.7294 0.7686;0.0078 0.7333 0.7608;0.0157 0.7333 0.7569;0.0235 0.7373 0.749;0.0353 0.7412 0.7412;0.051 0.7412 0.7373;0.0627 0.7451 0.7294;0.0784 0.7451 0.7216;0.0902 0.749 0.7137;0.102 0.7529 0.7098;0.1137 0.7529 0.702;0.1255 0.7569 0.6941;0.1373 0.7569 0.6863;0.1451 0.7608 0.6824;0.1529 0.7608 0.6745;0.1608 0.7647 0.6667;0.1686 0.7647 0.6588;0.1725 0.7686 0.651;0.1804 0.7686 0.6471;0.1843 0.7725 0.6392;0.1922 0.7725 0.6314;0.1961 0.7765 0.6235;0.2 0.7804 0.6157;0.2078 0.7804 0.6078;0.2118 0.7843 0.6;0.2196 0.7843 0.5882;0.2235 0.7882 0.5804;0.2314 0.7882 0.5725;0.2392 0.7922 0.5647;0.251 0.7922 0.5529;0.2588 0.7922 0.5451;0.2706 0.7961 0.5373;0.2824 0.7961 0.5255;0.2941 0.7961 0.5176;0.3059 0.8 0.5059;0.3176 0.8 0.498;0.3294 0.8 0.4863;0.3412 0.8 0.4784;0.3529 0.8 0.4667;0.3686 0.8039 0.4549;0.3804 0.8039 0.4471;0.3922 0.8039 0.4353;0.4039 0.8039 0.4235;0.4196 0.8039 0.4118;0.4314 0.8039 0.4;0.4471 0.8039 0.3922;0.4627 0.8 0.3804;0.4745 0.8 0.3686;0.4902 0.8 0.3569;0.5059 0.8 0.349;0.5176 0.8 0.3373;0.5333 0.7961 0.3255;0.5451 0.7961 0.3176;0.5608 0.7961 0.3059;0.5765 0.7922 0.2941;0.5882 0.7922 0.2824;0.6039 0.7882 0.2745;0.6157 0.7882 0.2627;0.6314 0.7843 0.251;0.6431 0.7843 0.2431;0.6549 0.7804 0.2314;0.6706 0.7804 0.2235;0.6824 0.7765 0.2157;0.698 0.7765 0.2078;0.7098 0.7725 0.2;0.7216 0.7686 0.1922;0.7333 0.7686 0.1843;0.7451 0.7647 0.1765;0.7608 0.7647 0.1725;0.7725 0.7608 0.1647;0.7843 0.7569 0.1608;0.7961 0.7569 0.1569;0.8078 0.7529 0.1529;0.8157 0.749 0.1529;0.8275 0.749 0.1529;0.8392 0.7451 0.1529;0.851 0.7451 0.1569;0.8588 0.7412 0.1569;0.8706 0.7373 0.1608;0.8824 0.7373 0.1647;0.8902 0.7373 0.1686;0.902 0.7333 0.1765;0.9098 0.7333 0.1804;0.9176 0.7294 0.1882;0.9255 0.7294 0.1961;0.9373 0.7294 0.2078;0.9451 0.7294 0.2157;0.9529 0.7294 0.2235;0.9608 0.7294 0.2314;0.9686 0.7294 0.2392;0.9765 0.7294 0.2431;0.9843 0.7333 0.2431;0.9882 0.7373 0.2431;0.9961 0.7412 0.2392;0.9961 0.7451 0.2353;0.9961 0.7529 0.2314;0.9961 0.7569 0.2275;0.9961 0.7608 0.2235;0.9961 0.7686 0.2196;0.9961 0.7725 0.2157;0.9961 0.7804 0.2078;0.9961 0.7843 0.2039;0.9961 0.7922 0.2;0.9922 0.7961 0.1961;0.9922 0.8039 0.1922;0.9922 0.8078 0.1922;0.9882 0.8157 0.1882;0.9843 0.8235 0.1843;0.9843 0.8275 0.1804;0.9804 0.8353 0.1804;0.9765 0.8392 0.1765;0.9765 0.8471 0.1725;0.9725 0.851 0.1686;0.9686 0.8588 0.1647;0.9686 0.8667 0.1647;0.9647 0.8706 0.1608;0.9647 0.8784 0.1569;0.9608 0.8824 0.1569;0.9608 0.8902 0.1529;0.9608 0.898 0.149;0.9608 0.902 0.149;0.9608 0.9098 0.1451;0.9608 0.9137 0.1412;0.9608 0.9216 0.1373;0.9608 0.9255 0.1333;0.9608 0.9333 0.1294;0.9647 0.9373 0.1255;0.9647 0.9451 0.1216;0.9647 0.949 0.1176;0.9686 0.9569 0.1098;0.9686 0.9608 0.1059;0.9725 0.9686 0.102;0.9725 0.9725 0.0941;0.9765 0.9765 0.0863;0.9765 0.9843 0.0824;1 1 1];
-            app.InteractiveOspreyJobmCreatorUIFigure.Position = [100 100 722 604];
+            app.InteractiveOspreyJobmCreatorUIFigure.Position = [100 100 722 636];
             app.InteractiveOspreyJobmCreatorUIFigure.Name = 'Interactive OspreyJob.m Creator';
 
             % Create SpecifySequenceInformationPanel
@@ -466,7 +577,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SpecifySequenceInformationPanel.BackgroundColor = [1 1 1];
             app.SpecifySequenceInformationPanel.FontWeight = 'bold';
             app.SpecifySequenceInformationPanel.FontSize = 15;
-            app.SpecifySequenceInformationPanel.Position = [8 492 350 102];
+            app.SpecifySequenceInformationPanel.Position = [8 524 350 102];
 
             % Create SequenceTypeDropDownLabel
             app.SequenceTypeDropDownLabel = uilabel(app.SpecifySequenceInformationPanel);
@@ -508,32 +619,31 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SpecifyDataHandlingandModelingOptionsPanel.BackgroundColor = [1 1 1];
             app.SpecifyDataHandlingandModelingOptionsPanel.FontWeight = 'bold';
             app.SpecifyDataHandlingandModelingOptionsPanel.FontSize = 15;
-            app.SpecifyDataHandlingandModelingOptionsPanel.Position = [8 165 350 313];
+            app.SpecifyDataHandlingandModelingOptionsPanel.Position = [8 167 350 343];
 
             % Create SaveLCMCheckBox
             app.SaveLCMCheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.SaveLCMCheckBox.Text = 'Save LCM';
             app.SaveLCMCheckBox.FontColor = [0.0392 0.2784 0.4392];
-            app.SaveLCMCheckBox.Position = [21 253 78 22];
+            app.SaveLCMCheckBox.Position = [21 283 78 22];
 
             % Create SaveJMRUICheckBox
             app.SaveJMRUICheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.SaveJMRUICheckBox.Text = 'Save JMRUI';
             app.SaveJMRUICheckBox.FontColor = [0.0392 0.2784 0.4392];
-            app.SaveJMRUICheckBox.Position = [124 253 89 22];
+            app.SaveJMRUICheckBox.Position = [124 283 89 22];
 
             % Create SaveVendorCheckBox
             app.SaveVendorCheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.SaveVendorCheckBox.Text = 'Save Vendor';
             app.SaveVendorCheckBox.FontColor = [0.0392 0.2784 0.4392];
-            app.SaveVendorCheckBox.Position = [238 253 90 22];
+            app.SaveVendorCheckBox.Position = [238 283 90 22];
 
             % Create FittingAlgorithmDropDownLabel
             app.FittingAlgorithmDropDownLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.FittingAlgorithmDropDownLabel.BackgroundColor = [1 1 1];
-            app.FittingAlgorithmDropDownLabel.HorizontalAlignment = 'right';
             app.FittingAlgorithmDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.FittingAlgorithmDropDownLabel.Position = [28 212 94 22];
+            app.FittingAlgorithmDropDownLabel.Position = [28 213 94 22];
             app.FittingAlgorithmDropDownLabel.Text = 'Fitting Algorithm';
 
             % Create FittingAlgorithmDropDown
@@ -541,15 +651,14 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.FittingAlgorithmDropDown.Items = {'Osprey', 'AQSES', 'TARQUIN'};
             app.FittingAlgorithmDropDown.FontColor = [0.0392 0.2784 0.4392];
             app.FittingAlgorithmDropDown.BackgroundColor = [1 1 1];
-            app.FittingAlgorithmDropDown.Position = [161 212 129 22];
+            app.FittingAlgorithmDropDown.Position = [161 213 129 22];
             app.FittingAlgorithmDropDown.Value = 'Osprey';
 
             % Create IncludedMetabolitesDropDownLabel
             app.IncludedMetabolitesDropDownLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.IncludedMetabolitesDropDownLabel.BackgroundColor = [1 1 1];
-            app.IncludedMetabolitesDropDownLabel.HorizontalAlignment = 'right';
             app.IncludedMetabolitesDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.IncludedMetabolitesDropDownLabel.Position = [28 179 118 22];
+            app.IncludedMetabolitesDropDownLabel.Position = [28 180 118 22];
             app.IncludedMetabolitesDropDownLabel.Text = 'Included Metabolites';
 
             % Create IncludedMetabolitesDropDown
@@ -558,16 +667,15 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.IncludedMetabolitesDropDown.ValueChangedFcn = createCallbackFcn(app, @IncludedMetabolitesDropDownValueChanged, true);
             app.IncludedMetabolitesDropDown.FontColor = [0.0392 0.2784 0.4392];
             app.IncludedMetabolitesDropDown.BackgroundColor = [1 1 1];
-            app.IncludedMetabolitesDropDown.Position = [161 179 129 22];
+            app.IncludedMetabolitesDropDown.Position = [161 180 129 22];
             app.IncludedMetabolitesDropDown.Value = 'default';
 
             % Create FittingStyleDropDownLabel
             app.FittingStyleDropDownLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.FittingStyleDropDownLabel.BackgroundColor = [1 1 1];
-            app.FittingStyleDropDownLabel.HorizontalAlignment = 'right';
             app.FittingStyleDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
             app.FittingStyleDropDownLabel.Enable = 'off';
-            app.FittingStyleDropDownLabel.Position = [28 145 69 22];
+            app.FittingStyleDropDownLabel.Position = [28 146 69 22];
             app.FittingStyleDropDownLabel.Text = 'Fitting Style';
 
             % Create FittingStyleDropDown
@@ -576,40 +684,37 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.FittingStyleDropDown.Enable = 'off';
             app.FittingStyleDropDown.FontColor = [0.0392 0.2784 0.4392];
             app.FittingStyleDropDown.BackgroundColor = [1 1 1];
-            app.FittingStyleDropDown.Position = [161 145 129 22];
+            app.FittingStyleDropDown.Position = [161 146 129 22];
             app.FittingStyleDropDown.Value = 'Concatenated';
 
             % Create MRSFitRangeppmEditFieldLabel
             app.MRSFitRangeppmEditFieldLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
-            app.MRSFitRangeppmEditFieldLabel.HorizontalAlignment = 'right';
             app.MRSFitRangeppmEditFieldLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.MRSFitRangeppmEditFieldLabel.Position = [28 112 121 22];
+            app.MRSFitRangeppmEditFieldLabel.Position = [28 113 121 22];
             app.MRSFitRangeppmEditFieldLabel.Text = 'MRS Fit Range (ppm)';
 
             % Create MRSFitRangeppmEditField
             app.MRSFitRangeppmEditField = uieditfield(app.SpecifyDataHandlingandModelingOptionsPanel, 'text');
             app.MRSFitRangeppmEditField.FontColor = [0.0392 0.2784 0.4392];
-            app.MRSFitRangeppmEditField.Position = [161 112 129 22];
+            app.MRSFitRangeppmEditField.Position = [161 113 129 22];
             app.MRSFitRangeppmEditField.Value = '0.2 4.2';
 
             % Create WaterFitRangeppmEditFieldLabel
             app.WaterFitRangeppmEditFieldLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
-            app.WaterFitRangeppmEditFieldLabel.HorizontalAlignment = 'right';
             app.WaterFitRangeppmEditFieldLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.WaterFitRangeppmEditFieldLabel.Position = [28 79 126 22];
+            app.WaterFitRangeppmEditFieldLabel.Position = [28 80 126 22];
             app.WaterFitRangeppmEditFieldLabel.Text = 'Water Fit Range (ppm)';
 
             % Create WaterFitRangeppmEditField
             app.WaterFitRangeppmEditField = uieditfield(app.SpecifyDataHandlingandModelingOptionsPanel, 'text');
             app.WaterFitRangeppmEditField.FontColor = [0.0392 0.2784 0.4392];
-            app.WaterFitRangeppmEditField.Position = [161 79 129 22];
+            app.WaterFitRangeppmEditField.Position = [161 80 129 22];
             app.WaterFitRangeppmEditField.Value = '2.0 7.4';
 
             % Create BaselineknotspacingppmEditFieldLabel
             app.BaselineknotspacingppmEditFieldLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
-            app.BaselineknotspacingppmEditFieldLabel.HorizontalAlignment = 'right';
             app.BaselineknotspacingppmEditFieldLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.BaselineknotspacingppmEditFieldLabel.Position = [28 46 158 22];
+            app.BaselineknotspacingppmEditFieldLabel.Position = [28 47 158 22];
             app.BaselineknotspacingppmEditFieldLabel.Text = 'Baseline knot spacing (ppm)';
 
             % Create BaselineknotspacingppmEditField
@@ -617,15 +722,30 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.BaselineknotspacingppmEditField.ValueDisplayFormat = '%11.1g';
             app.BaselineknotspacingppmEditField.HorizontalAlignment = 'left';
             app.BaselineknotspacingppmEditField.FontColor = [0.0392 0.2784 0.4392];
-            app.BaselineknotspacingppmEditField.Position = [201 46 89 22];
+            app.BaselineknotspacingppmEditField.Position = [201 47 89 22];
             app.BaselineknotspacingppmEditField.Value = 0.4;
 
             % Create AddMMandLipbasisfunctionstofitCheckBox
             app.AddMMandLipbasisfunctionstofitCheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.AddMMandLipbasisfunctionstofitCheckBox.Text = 'Add MM and Lip basis functions to fit';
             app.AddMMandLipbasisfunctionstofitCheckBox.FontColor = [0.0392 0.2784 0.4392];
-            app.AddMMandLipbasisfunctionstofitCheckBox.Position = [28 14 225 22];
+            app.AddMMandLipbasisfunctionstofitCheckBox.Position = [28 15 225 22];
             app.AddMMandLipbasisfunctionstofitCheckBox.Value = true;
+
+            % Create MRSProtocolDropDownLabel
+            app.MRSProtocolDropDownLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
+            app.MRSProtocolDropDownLabel.BackgroundColor = [1 1 1];
+            app.MRSProtocolDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
+            app.MRSProtocolDropDownLabel.Position = [28 248 85 22];
+            app.MRSProtocolDropDownLabel.Text = 'MRS Protocol';
+
+            % Create MRSProtocolDropDown
+            app.MRSProtocolDropDown = uidropdown(app.SpecifyDataHandlingandModelingOptionsPanel);
+            app.MRSProtocolDropDown.Items = {'Brain', 'Phantom'};
+            app.MRSProtocolDropDown.FontColor = [0.0392 0.2784 0.4392];
+            app.MRSProtocolDropDown.BackgroundColor = [1 1 1];
+            app.MRSProtocolDropDown.Position = [161 248 129 22];
+            app.MRSProtocolDropDown.Value = 'Brain';
 
             % Create SelectedMetabolitesPanel
             app.SelectedMetabolitesPanel = uipanel(app.InteractiveOspreyJobmCreatorUIFigure);
@@ -635,7 +755,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SelectedMetabolitesPanel.BackgroundColor = [1 1 1];
             app.SelectedMetabolitesPanel.FontWeight = 'bold';
             app.SelectedMetabolitesPanel.FontSize = 15;
-            app.SelectedMetabolitesPanel.Position = [8 10 707 146];
+            app.SelectedMetabolitesPanel.Position = [8 9 707 146];
 
             % Create AlaCheckBox
             app.AlaCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
@@ -930,7 +1050,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SpecifyMRSandStructuralImagingFilesPanel.BackgroundColor = [1 1 1];
             app.SpecifyMRSandStructuralImagingFilesPanel.FontWeight = 'bold';
             app.SpecifyMRSandStructuralImagingFilesPanel.FontSize = 15;
-            app.SpecifyMRSandStructuralImagingFilesPanel.Position = [365 345 350 249];
+            app.SpecifyMRSandStructuralImagingFilesPanel.Position = [365 377 350 249];
 
             % Create MRSDataButton
             app.MRSDataButton = uibutton(app.SpecifyMRSandStructuralImagingFilesPanel, 'push');
@@ -992,35 +1112,55 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.NumberofdatasetsEditField = uieditfield(app.SpecifyMRSandStructuralImagingFilesPanel, 'numeric');
             app.NumberofdatasetsEditField.Limits = [1 Inf];
             app.NumberofdatasetsEditField.ValueDisplayFormat = '%.0f';
+            app.NumberofdatasetsEditField.ValueChangedFcn = createCallbackFcn(app, @NumberofdatasetsEditFieldValueChanged, true);
             app.NumberofdatasetsEditField.HorizontalAlignment = 'center';
             app.NumberofdatasetsEditField.FontColor = [0.0392 0.2784 0.4392];
             app.NumberofdatasetsEditField.Position = [145 191 100 22];
             app.NumberofdatasetsEditField.Value = 1;
 
-            % Create MRSDataText
-            app.MRSDataText = uitextarea(app.SpecifyMRSandStructuralImagingFilesPanel);
-            app.MRSDataText.Editable = 'off';
-            app.MRSDataText.Position = [144 150 188 25];
+            % Create MRSdataDropDown
+            app.MRSdataDropDown = uidropdown(app.SpecifyMRSandStructuralImagingFilesPanel);
+            app.MRSdataDropDown.Items = {};
+            app.MRSdataDropDown.FontColor = [0.0392 0.2784 0.4392];
+            app.MRSdataDropDown.BackgroundColor = [1 1 1];
+            app.MRSdataDropDown.Position = [145 151 182 22];
+            app.MRSdataDropDown.Value = {};
 
-            % Create H2OShortTEText
-            app.H2OShortTEText = uitextarea(app.SpecifyMRSandStructuralImagingFilesPanel);
-            app.H2OShortTEText.Editable = 'off';
-            app.H2OShortTEText.Position = [144 83 188 25];
+            % Create H2OReferenceDropDown
+            app.H2OReferenceDropDown = uidropdown(app.SpecifyMRSandStructuralImagingFilesPanel);
+            app.H2OReferenceDropDown.Items = {};
+            app.H2OReferenceDropDown.Enable = 'off';
+            app.H2OReferenceDropDown.FontColor = [0.0392 0.2784 0.4392];
+            app.H2OReferenceDropDown.BackgroundColor = [1 1 1];
+            app.H2OReferenceDropDown.Position = [145 119 182 22];
+            app.H2OReferenceDropDown.Value = {};
 
-            % Create H2OReferenceText
-            app.H2OReferenceText = uitextarea(app.SpecifyMRSandStructuralImagingFilesPanel);
-            app.H2OReferenceText.Editable = 'off';
-            app.H2OReferenceText.Position = [144 118 188 25];
+            % Create H2OShortTEDropDown
+            app.H2OShortTEDropDown = uidropdown(app.SpecifyMRSandStructuralImagingFilesPanel);
+            app.H2OShortTEDropDown.Items = {};
+            app.H2OShortTEDropDown.Enable = 'off';
+            app.H2OShortTEDropDown.FontColor = [0.0392 0.2784 0.4392];
+            app.H2OShortTEDropDown.BackgroundColor = [1 1 1];
+            app.H2OShortTEDropDown.Position = [145 84 182 22];
+            app.H2OShortTEDropDown.Value = {};
 
-            % Create MetaboliteNulledText
-            app.MetaboliteNulledText = uitextarea(app.SpecifyMRSandStructuralImagingFilesPanel);
-            app.MetaboliteNulledText.Editable = 'off';
-            app.MetaboliteNulledText.Position = [144 51 188 25];
+            % Create MetaboliteNulledDropDown
+            app.MetaboliteNulledDropDown = uidropdown(app.SpecifyMRSandStructuralImagingFilesPanel);
+            app.MetaboliteNulledDropDown.Items = {};
+            app.MetaboliteNulledDropDown.Enable = 'off';
+            app.MetaboliteNulledDropDown.FontColor = [0.0392 0.2784 0.4392];
+            app.MetaboliteNulledDropDown.BackgroundColor = [1 1 1];
+            app.MetaboliteNulledDropDown.Position = [145 52 182 22];
+            app.MetaboliteNulledDropDown.Value = {};
 
-            % Create T1DataText
-            app.T1DataText = uitextarea(app.SpecifyMRSandStructuralImagingFilesPanel);
-            app.T1DataText.Editable = 'off';
-            app.T1DataText.Position = [144 17 188 25];
+            % Create T1DataniftiniiDropDown
+            app.T1DataniftiniiDropDown = uidropdown(app.SpecifyMRSandStructuralImagingFilesPanel);
+            app.T1DataniftiniiDropDown.Items = {};
+            app.T1DataniftiniiDropDown.Enable = 'off';
+            app.T1DataniftiniiDropDown.FontColor = [0.0392 0.2784 0.4392];
+            app.T1DataniftiniiDropDown.BackgroundColor = [1 1 1];
+            app.T1DataniftiniiDropDown.Position = [145 17 182 22];
+            app.T1DataniftiniiDropDown.Value = {};
 
             % Create SpecifyOutputFolderPanel
             app.SpecifyOutputFolderPanel = uipanel(app.InteractiveOspreyJobmCreatorUIFigure);
@@ -1029,7 +1169,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SpecifyOutputFolderPanel.BackgroundColor = [1 1 1];
             app.SpecifyOutputFolderPanel.FontWeight = 'bold';
             app.SpecifyOutputFolderPanel.FontSize = 15;
-            app.SpecifyOutputFolderPanel.Position = [365 225 350 107];
+            app.SpecifyOutputFolderPanel.Position = [365 257 350 107];
 
             % Create OutputFolderEditField
             app.OutputFolderEditField = uieditfield(app.SpecifyOutputFolderPanel, 'text');
@@ -1057,25 +1197,45 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.JobNameEditField.FontColor = [0.0392 0.2784 0.4392];
             app.JobNameEditField.Position = [144 12 183 22];
 
-            % Create CancelButton
-            app.CancelButton = uibutton(app.InteractiveOspreyJobmCreatorUIFigure, 'push');
-            app.CancelButton.ButtonPushedFcn = createCallbackFcn(app, @CancelButtonPushed, true);
-            app.CancelButton.BackgroundColor = [1 1 1];
-            app.CancelButton.FontSize = 15;
-            app.CancelButton.FontWeight = 'bold';
-            app.CancelButton.FontColor = [0.0392 0.2784 0.4392];
-            app.CancelButton.Position = [547 169 165 43];
-            app.CancelButton.Text = 'Cancel';
+            % Create ExitButton
+            app.ExitButton = uibutton(app.InteractiveOspreyJobmCreatorUIFigure, 'push');
+            app.ExitButton.ButtonPushedFcn = createCallbackFcn(app, @ExitButtonPushed, true);
+            app.ExitButton.BackgroundColor = [1 1 1];
+            app.ExitButton.FontSize = 15;
+            app.ExitButton.FontWeight = 'bold';
+            app.ExitButton.FontColor = [0.0392 0.2784 0.4392];
+            app.ExitButton.Position = [544 167 165 38];
+            app.ExitButton.Text = 'Exit';
 
-            % Create CreateJobFileButton
-            app.CreateJobFileButton = uibutton(app.InteractiveOspreyJobmCreatorUIFigure, 'push');
-            app.CreateJobFileButton.ButtonPushedFcn = createCallbackFcn(app, @CreateJobFileButtonPushed, true);
-            app.CreateJobFileButton.BackgroundColor = [1 1 1];
-            app.CreateJobFileButton.FontSize = 15;
-            app.CreateJobFileButton.FontWeight = 'bold';
-            app.CreateJobFileButton.FontColor = [0.0392 0.2784 0.4392];
-            app.CreateJobFileButton.Position = [365 169 168 43];
-            app.CreateJobFileButton.Text = 'Create JobFile';
+            % Create RunJobButton
+            app.RunJobButton = uibutton(app.InteractiveOspreyJobmCreatorUIFigure, 'push');
+            app.RunJobButton.ButtonPushedFcn = createCallbackFcn(app, @RunJobButtonPushed, true);
+            app.RunJobButton.BackgroundColor = [1 1 1];
+            app.RunJobButton.FontSize = 15;
+            app.RunJobButton.FontWeight = 'bold';
+            app.RunJobButton.FontColor = [0.0392 0.2784 0.4392];
+            app.RunJobButton.Position = [365 214 168 38];
+            app.RunJobButton.Text = 'Run Job';
+
+            % Create LoadJobFileButton
+            app.LoadJobFileButton = uibutton(app.InteractiveOspreyJobmCreatorUIFigure, 'push');
+            app.LoadJobFileButton.ButtonPushedFcn = createCallbackFcn(app, @LoadJobFileButtonPushed, true);
+            app.LoadJobFileButton.BackgroundColor = [1 1 1];
+            app.LoadJobFileButton.FontSize = 15;
+            app.LoadJobFileButton.FontWeight = 'bold';
+            app.LoadJobFileButton.FontColor = [0.0392 0.2784 0.4392];
+            app.LoadJobFileButton.Position = [543 214 169 38];
+            app.LoadJobFileButton.Text = 'Load JobFile';
+
+            % Create LoadMRSContButton
+            app.LoadMRSContButton = uibutton(app.InteractiveOspreyJobmCreatorUIFigure, 'push');
+            app.LoadMRSContButton.ButtonPushedFcn = createCallbackFcn(app, @LoadMRSContButtonPushed, true);
+            app.LoadMRSContButton.BackgroundColor = [1 1 1];
+            app.LoadMRSContButton.FontSize = 15;
+            app.LoadMRSContButton.FontWeight = 'bold';
+            app.LoadMRSContButton.FontColor = [0.0392 0.2784 0.4392];
+            app.LoadMRSContButton.Position = [366 167 167 38];
+            app.LoadMRSContButton.Text = 'Load MRSCont';
 
             % Show the figure after all components are created
             app.InteractiveOspreyJobmCreatorUIFigure.Visible = 'on';
