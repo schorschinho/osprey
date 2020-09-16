@@ -329,6 +329,21 @@ else
         app.H2OReferenceDropDown.Items = {};
         app.H2OReferenceDropDown.Value = {};
     end
+    
+    app.H2OShortTEDropDown.Items = {};
+    app.H2OShortTEDropDown.Value = {};
+    app.H2OShortTEDropDown.Enable = 'On';
+    app.H2OShortTEButton.Enable = 'On';
+            
+    app.MetaboliteNulledDropDown.Items = {};
+    app.MetaboliteNulledDropDown.Value = {};
+    app.MetaboliteNulledDropDown.Enable = 'On';
+    app.MetaboliteNulledButton.Enable = 'On';
+            
+    app.T1DataniftiniiDropDown.Items = {};
+    app.T1DataniftiniiDropDown.Value = {};
+    app.T1DataniftiniiDropDown.Enable = 'On';
+    app.T1DataniftiniiButton.Enable = 'On';
 end
 if isempty(files_ref)
     app.H2OReferenceDropDown.Items = {};
