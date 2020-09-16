@@ -324,6 +324,10 @@ classdef OspreyGUI < handle
             gui.layout.b_save = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Save MRSCont','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_save,'Units','Normalized','Position',[0.1 0 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
             set(gui.layout.b_save,'Callback',{@osp_onSave,gui}, 'TooltipString', 'Save MRSCont as .mat-file');
+        % New analysis button
+            gui.layout.b_exit = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','New analysis','ForegroundColor', gui.colormap.Foreground);
+            set(gui.layout.b_exit,'Units','Normalized','Position',[0.1 0 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_exit,'Callback',{@osp_onNewAnalysis,gui}, 'TooltipString', 'Start a new MRS analysis');
         % Exit button
             gui.layout.b_exit = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Exit','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_exit,'Units','Normalized','Position',[0.1 0 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');

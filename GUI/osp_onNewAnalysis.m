@@ -1,6 +1,6 @@
-function osp_onExit( ~, ~,gui)
-%% osp_onExit
-%   Callback function on exit button click. Closes gui.
+function osp_onNewAnalysis( ~, ~,gui)
+%% osp_onNewAnalysis
+%   Callback function on new analysis button click. Closes gui and start a new MRS analysis.
 %
 %
 %   USAGE:
@@ -13,8 +13,7 @@ function osp_onExit( ~, ~,gui)
 %
 %
 %   AUTHORS:
-%       Dr. Helge Zoellner (Johns Hopkins University, 2020-01-16)
-%       hzoelln2@jhmi.edu
+%       Dr. Peter Van Schuerbeek, UZ Brussel (VUB)
 %
 %   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
@@ -23,17 +22,11 @@ function osp_onExit( ~, ~,gui)
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %
 %   HISTORY:
-%       2020-01-16: First version of the code.
+%       2020-09-16: First version of the code.
 %%% 1. CLOSE %%%
     % User wants to quit out of the application
-    
-[ospFFolder,~,~] = fileparts(which('Osprey.m'));
-curdir = cd(ospFFolder);
-load('startpath.mat')
-path(startpath);
-delete('startpath.mat')
-cd(curdir)
-    
+            
 delete( gui.figure );
-        
-end % onExit
+            
+CreateOspreyJob_app;
+end
