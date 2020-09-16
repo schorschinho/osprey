@@ -326,21 +326,18 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             ndata = app.NumberofdatasetsEditField.Value;
             
-            mrsfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
+            mrsfiles = uipickfiles('FilterSpec',[pwd], ...
+                                'REFilter','\.sdat|\.raw|\.dat|\.rda|\.dcm|\.7', ...
+                                'NumFiles',ndata,'Prompt',info);
             
-            if isempty(mrsfiles)
+            if ~mrsfiles
                 return
             end
 
-            [~,file_basename,file_exten]=fileparts(mrsfiles(1,:));
+            [~,file_basename,file_exten]=fileparts(mrsfiles{1});
             
-            filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} mrsfiles(i,:)};
-            end
-            
-            app.MRSdataDropDown.Items = filelist;
-            app.MRSdataDropDown.Value = filelist{1};
+            app.MRSdataDropDown.Items = mrsfiles;
+            app.MRSdataDropDown.Value = mrsfiles{1};
             
             if file_exten=='.7'
                 app.H2OReferenceButton.Enable = 'Off';
@@ -368,19 +365,16 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             ndata = app.NumberofdatasetsEditField.Value;
             
-            h2oreffiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
+            h2oreffiles = uipickfiles('FilterSpec',[pwd], ...
+                                'REFilter','\.sdat|\.raw|\.dat|\.rda|\.dcm|\.7', ...
+                                'NumFiles',ndata,'Prompt',info);
             
-            if isempty(h2oreffiles)
+            if ~h2oreffiles
                 return
             end
             
-            filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} h2oreffiles(i,:)};
-            end
-            
-            app.H2OReferenceDropDown.Items = filelist;
-            app.H2OReferenceDropDown.Value = filelist{1};
+            app.H2OReferenceDropDown.Items = h2oreffiles;
+            app.H2OReferenceDropDown.Value = h2oreffiles{1};
             
         end
 
@@ -391,19 +385,16 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             ndata = app.NumberofdatasetsEditField.Value;
             
-            h2ostefiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
+            h2ostefiles = uipickfiles('FilterSpec',[pwd], ...
+                                'REFilter','\.sdat|\.raw|\.dat|\.rda|\.dcm|\.7', ...
+                                'NumFiles',ndata,'Prompt',info);
             
-            if isempty(h2ostefiles)
+            if ~h2ostefiles
                 return
             end
             
-            filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} h2ostefiles(i,:)};
-            end
-            
-            app.H2OShortTEDropDown.Items = filelist;
-            app.H2OShortTEDropDown.Value = filelist{1};
+            app.H2OShortTEDropDown.Items = h2ostefiles;
+            app.H2OShortTEDropDown.Value = h2ostefiles{1};
         end
 
         % Button pushed function: MetaboliteNulledButton
@@ -412,19 +403,16 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             ndata = app.NumberofdatasetsEditField.Value;
             
-            metnulfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
+            metnulfiles = uipickfiles('FilterSpec',[pwd], ...
+                                'REFilter','\.sdat|\.raw|\.dat|\.rda|\.dcm|\.7', ...
+                                'NumFiles',ndata,'Prompt',info);
             
-            if isempty(metnulfiles)
+            if ~metnulfiles
                 return
             end
             
-            filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} metnulfiles(i,:)};
-            end
-            
-            app.MetaboliteNulledDropDown.Items = filelist;
-            app.MetaboliteNulledDropDown.Value = filelist{1};
+            app.MetaboliteNulledDropDown.Items = metnulfiles;
+            app.MetaboliteNulledDropDown.Value = metnulfiles{1};
         end
 
         % Button pushed function: T1DataniftiniiButton
@@ -433,20 +421,16 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             ndata = app.NumberofdatasetsEditField.Value;
             
-            t1imfiles = spm_select(ndata,'image',info,{},pwd,'.nii','1');
+            t1imfiles = uipickfiles('FilterSpec',[pwd], ...
+                                'REFilter','\.nii|\.nii.gz', ...
+                                'NumFiles',ndata,'Prompt',info);
             
-            if isempty(t1imfiles)
+            if ~t1imfiles
                 return
             end
             
-            filelist = {};
-            for i=1:ndata
-                splniftiFile = split(t1imfiles(i,:),',');
-                filelist = {filelist{:} splniftiFile{1}};
-            end
-            
-            app.T1DataniftiniiDropDown.Items = filelist;
-            app.T1DataniftiniiDropDown.Value = filelist{1};
+            app.T1DataniftiniiDropDown.Items = t1imfiles;
+            app.T1DataniftiniiDropDown.Value = t1imfiles{1};
         end
 
         % Button pushed function: OutputFolderButton
