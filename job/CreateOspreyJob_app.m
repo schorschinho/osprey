@@ -772,7 +772,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
 
             % Create MRSProtocolDropDown
             app.MRSProtocolDropDown = uidropdown(app.SpecifyDataHandlingandModelingOptionsPanel);
-            app.MRSProtocolDropDown.Items = {'Brain', 'Phantom'};
+            app.MRSProtocolDropDown.Items = {'Brain', 'Braino phantom'};
             app.MRSProtocolDropDown.FontColor = [0.0392 0.2784 0.4392];
             app.MRSProtocolDropDown.BackgroundColor = [1 1 1];
             app.MRSProtocolDropDown.Position = [161 248 129 22];
