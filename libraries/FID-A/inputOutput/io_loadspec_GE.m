@@ -19,12 +19,15 @@
 % INPUTS:
 % filename   = filename of GE P file to be loaded.
 % subspecs   = number of subspectra in the data (from spectral editing, ISIS, etc.)
+% protocol   = specify wether the data was taken from the brain or from
+% GE's Braino phantom
+% 
 %
 % OUTPUTS:
 % out        = output water suppressed dataset in FID-A structure format.
 % out_w      = output water reference dataset in FID-A structure format. 
 
-function [out,out_w]=io_loadspec_GE(filename,subspecs)
+function [out,out_w]=io_loadspec_GE(filename,subspecs,protocol)
 
 %read in the data using the GELoad.m (adapted from GERead.m)
 [GEout,GEout_w,GEhdr]=GELoad(filename);
@@ -160,8 +163,17 @@ f=(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwi
 ppm=f/(Bo*42.577);
 
 % GE data assumes the center frequency to be 4.68 ppm:
-centerFreq = 4.68;
-ppm=ppm + centerFreq;
+switch protocol
+    case 'Brain'
+        centerFreq = 4.68;
+        ppm=ppm + centerFreq;
+    case 'Braino phantom'
+        centerFreq = 4.85;
+        ppm=ppm + centerFreq; 
+    otherwise
+        centerFreq = 4.65;
+        ppm=ppm + centerFreq;   
+end
 
 t=0:dwelltime:(sz(1)-1)*dwelltime;
 
