@@ -76,7 +76,11 @@ out.specs=specs;
 out.sz=sz;
 out.dims=dims;
 if ~out.flags.averaged
-    out.averages = out.sz(out.dims.averages);
+    try
+        out.averages = out.sz(out.dims.averages);
+    catch
+        out.averages = out.sz(2);
+    end
 end
 out.subspecs=1;
 
