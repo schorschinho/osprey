@@ -340,7 +340,7 @@ resBasisSet.specs = fftshift(fft(resBasisSet.fids,[],1),1);
 resBasisSet = op_freqrange(resBasisSet,fitRangePPM(1),fitRangePPM(end),size(splineArray,1));
 % Create a ppm vector around a pivot point (water)
 ppm_ax      = resBasisSet.ppm;
-pivotPoint  = 4.68;
+pivotPoint  = resBasisSet.centerFreq;%4.68;
 multiplier  = ppm_ax - pivotPoint;
 % Apply the linear phase correction
 for ii=1:nMets

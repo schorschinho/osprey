@@ -37,7 +37,7 @@ basisSet     = op_freqrange(basisSet,fitRangePPM(1),fitRangePPM(2));
 
 % Create a ppm vector around a pivot point (water)
 ppm_ax = basisSet.ppm;
-pivotPoint = 4.68;
+pivotPoint = basisSet.centerFreq;%4.68;
 multiplier = ppm_ax - pivotPoint;
 % Apply the linear phase correction
 for ii=1:nBasisFcts
