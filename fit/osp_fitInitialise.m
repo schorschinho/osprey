@@ -52,7 +52,16 @@ if MRSCont.flags.isUnEdited
         case 'Philips'
             MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/unedited/' seq '/' te '/basis_philips_' seq te '.mat']); 
         case 'GE'
-            MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/unedited/' seq '/' te '/basis_ge_' seq te '.mat']); 
+            if isfield(MRSCont.opts,'protocol')
+                switch lower(MRSCont.opts.protocol)
+                    case 'braino phantom'
+                        MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/unedited/' seq '/' te '/basis_ge_' seq te '_braino.mat']); 
+                    otherwise
+                        MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/unedited/' seq '/' te '/basis_ge_' seq te '.mat']); 
+                end
+            else
+                MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/unedited/' seq '/' te '/basis_ge_' seq te '.mat']); 
+            end
         case 'Siemens'
             MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/unedited/' seq '/' te '/basis_siemens_' seq te '.mat']); 
     end
@@ -103,6 +112,9 @@ end
 
 % Load the specified basis set or the user basis set file
 basisSet = load(MRSCont.opts.fit.basisSetFile);
+if isfield(MRSCont.opts.fit,'reffreq')
+    basisSet.BASIS.centerFreq = MRSCont.opts.fit.reffreq;
+end
 basisSet = basisSet.BASIS;
     
 % Generate the list of basis functions that are supposed to be included in
@@ -112,7 +124,11 @@ if ext
     basisSet = fit_sortBasisSet(basisSet);
 else  
     % To do: Interface with interactive user input
-    metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
+    if isfield(MRSCont.opts,'protocol')
+        metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs,MRSCont.opts.protocol);
+    else
+        metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
+    end
     % Collect MMfit flag from the options determined in the job file
     fitMM = MRSCont.opts.fit.fitMM;
     % Create the modified basis set
@@ -123,7 +139,6 @@ end
 for kk = 1:MRSCont.nDatasets
     MRSCont.fit.scale{kk} = max(real(MRSCont.processed.A{kk}.specs)) / max(max(max(real(basisSet.specs))));
 end
-
 
 % Save the modified basis set
 MRSCont.fit.basisSet = basisSet;
