@@ -49,11 +49,19 @@ for kk = 1:MRSCont.nDatasets
         % to know the number of sub-spectra (e.g. from spectral editing), the
         % type of sequence needs to be differentiated here already.
         if MRSCont.flags.isUnEdited
-            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},1,MRSCont.opts.protocol);
+            if isfield(MRSCont.opts.fit,'reffreq')
+                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},1,MRSCont.opts.fit.reffreq);
+            else
+                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},1);
+            end
         elseif MRSCont.flags.isMEGA
-            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},2,MRSCont.opts.protocol);
+            if isfield(MRSCont.opts.fit,'reffreq')
+                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},2,MRSCont.opts.fit.reffreq);
+            else
+                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},2);
+            end
         elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},4,MRSCont.opts.protocol);
+            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},4);
         end
         MRSCont.raw_uncomb{kk}      = raw;
         MRSCont.raw_ref_uncomb{kk}  = raw_ref;
