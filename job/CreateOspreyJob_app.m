@@ -27,6 +27,10 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         AddMMandLipbasisfunctionstofitCheckBox  matlab.ui.control.CheckBox
         MRSProtocolDropDownLabel        matlab.ui.control.Label
         MRSProtocolDropDown             matlab.ui.control.DropDown
+        SpectralregistrationDropDownLabel  matlab.ui.control.Label
+        SpectralregistrationDropDown    matlab.ui.control.DropDown
+        ReferencefrequencyppmEditFieldLabel  matlab.ui.control.Label
+        ReferencefrequencyppmEditField  matlab.ui.control.NumericEditField
         SelectedMetabolitesPanel        matlab.ui.container.Panel
         AlaCheckBox                     matlab.ui.control.CheckBox
         AscCheckBox                     matlab.ui.control.CheckBox
@@ -87,6 +91,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         RunJobButton                    matlab.ui.control.Button
         LoadJobFileButton               matlab.ui.control.Button
         LoadMRSContButton               matlab.ui.control.Button
+        Image                           matlab.ui.control.Image
+        TextArea                        matlab.ui.control.TextArea
     end
 
     % Callbacks that handle component events
@@ -126,198 +132,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
 
         % Value changed function: IncludedMetabolitesDropDown
         function IncludedMetabolitesDropDownValueChanged(app, event)
-            value = app.IncludedMetabolitesDropDown.Value;
-            
-            switch value
-                case 'default'
-                    app.AlaCheckBox.Value = false;
-                    app.AlaCheckBox.Enable = 'Off';
-                    app.AscCheckBox.Value = true;
-                    app.AscCheckBox.Enable = 'Off';
-                    app.AspCheckBox.Value = true;
-                    app.AspCheckBox.Enable = 'Off';
-                    app.bHBCheckBox.Value = false;
-                    app.bHBCheckBox.Enable = 'Off';
-                    app.bHGCheckBox.Value = false;
-                    app.bHGCheckBox.Enable = 'Off';
-                    app.CitCheckBox.Value = false;
-                    app.CitCheckBox.Enable = 'Off';
-                    app.CrCheckBox.Value = true;
-                    app.CrCheckBox.Enable = 'Off';
-                    app.CrCH2CheckBox.Value = true;
-                    app.CrCH2CheckBox.Enable = 'Off';
-                    app.EtOHCheckBox.Value = false;
-                    app.EtOHCheckBox.Enable = 'Off';
-                    app.GABACheckBox.Value = true;
-                    app.GABACheckBox.Enable = 'Off';
-                    app.GPCCheckBox.Value = true;
-                    app.GPCCheckBox.Enable = 'Off';
-                    app.GSHCheckBox.Value = true;
-                    app.GSHCheckBox.Enable = 'Off';
-                    app.GlcCheckBox.Value = false;
-                    app.GlcCheckBox.Enable = 'Off';
-                    app.GlnCheckBox.Value = true;
-                    app.GlnCheckBox.Enable = 'Off';
-                    app.GluCheckBox.Value = true;
-                    app.GluCheckBox.Enable = 'Off';
-                    app.GlyCheckBox.Value = false;
-                    app.GlyCheckBox.Enable = 'Off';
-                    app.H2OCheckBox.Value = true;
-                    app.H2OCheckBox.Enable = 'Off';
-                    app.InsCheckBox.Value = true;
-                    app.InsCheckBox.Enable = 'Off';
-                    app.LacCheckBox.Value = true;
-                    app.LacCheckBox.Enable = 'Off';
-                    app.NAACheckBox.Value = true;
-                    app.NAACheckBox.Enable = 'Off';
-                    app.NAAGCheckBox.Value = true;
-                    app.NAAGCheckBox.Enable = 'Off';
-                    app.PChCheckBox.Value = true;
-                    app.PChCheckBox.Enable = 'Off';
-                    app.PCrCheckBox.Value = true;
-                    app.PCrCheckBox.Enable = 'Off';
-                    app.PECheckBox.Value = true;
-                    app.PECheckBox.Enable = 'Off';
-                    app.PhenylCheckBox.Value = false;
-                    app.PhenylCheckBox.Enable = 'Off';
-                    app.ScylloCheckBox.Value = true;
-                    app.ScylloCheckBox.Enable = 'Off';
-                    app.SerCheckBox.Value = false;
-                    app.SerCheckBox.Enable = 'Off';
-                    app.TauCheckBox.Value = true;
-                    app.TauCheckBox.Enable = 'Off';
-                    app.TyrosCheckBox.Value = false;
-                    app.TyrosCheckBox.Enable = 'Off';
-                    app.MM09CheckBox.Value = true;
-                    app.MM09CheckBox.Enable = 'Off';
-                    app.MM12CheckBox.Value = true;
-                    app.MM12CheckBox.Enable = 'Off';
-                    app.MM14CheckBox.Value = true;
-                    app.MM14CheckBox.Enable = 'Off';
-                    app.MM17CheckBox.Value = true;
-                    app.MM17CheckBox.Enable = 'Off';
-                    app.MM20CheckBox.Value = true;
-                    app.MM20CheckBox.Enable = 'Off';
-                    app.Lip09CheckBox.Value = true;
-                    app.Lip09CheckBox.Enable = 'Off';
-                    app.Lip13CheckBox.Value = true;
-                    app.Lip13CheckBox.Enable = 'Off';
-                    app.Lip20CheckBox.Value = true;
-                    app.Lip20CheckBox.Enable = 'Off';
-                case 'full'
-                    app.AlaCheckBox.Value = true;
-                    app.AlaCheckBox.Enable = 'Off';
-                    app.AscCheckBox.Value = true;
-                    app.AscCheckBox.Enable = 'Off';
-                    app.AspCheckBox.Value = true;
-                    app.AspCheckBox.Enable = 'Off';
-                    app.bHBCheckBox.Value = true;
-                    app.bHBCheckBox.Enable = 'Off';
-                    app.bHGCheckBox.Value = true;
-                    app.bHGCheckBox.Enable = 'Off';
-                    app.CitCheckBox.Value = true;
-                    app.CitCheckBox.Enable = 'Off';
-                    app.CrCheckBox.Value = true;
-                    app.CrCheckBox.Enable = 'Off';
-                    app.CrCH2CheckBox.Value = true;
-                    app.CrCH2CheckBox.Enable = 'Off';
-                    app.EtOHCheckBox.Value = true;
-                    app.EtOHCheckBox.Enable = 'Off';
-                    app.GABACheckBox.Value = true;
-                    app.GABACheckBox.Enable = 'Off';
-                    app.GPCCheckBox.Value = true;
-                    app.GPCCheckBox.Enable = 'Off';
-                    app.GSHCheckBox.Value = true;
-                    app.GSHCheckBox.Enable = 'Off';
-                    app.GlcCheckBox.Value = true;
-                    app.GlcCheckBox.Enable = 'Off';
-                    app.GlnCheckBox.Value = true;
-                    app.GlnCheckBox.Enable = 'Off';
-                    app.GluCheckBox.Value = true;
-                    app.GluCheckBox.Enable = 'Off';
-                    app.GlyCheckBox.Value = true;
-                    app.GlyCheckBox.Enable = 'Off';
-                    app.H2OCheckBox.Value = true;
-                    app.H2OCheckBox.Enable = 'Off';
-                    app.InsCheckBox.Value = true;
-                    app.InsCheckBox.Enable = 'Off';
-                    app.LacCheckBox.Value = true;
-                    app.LacCheckBox.Enable = 'Off';
-                    app.NAACheckBox.Value = true;
-                    app.NAACheckBox.Enable = 'Off';
-                    app.NAAGCheckBox.Value = true;
-                    app.NAAGCheckBox.Enable = 'Off';
-                    app.PChCheckBox.Value = true;
-                    app.PChCheckBox.Enable = 'Off';
-                    app.PCrCheckBox.Value = true;
-                    app.PCrCheckBox.Enable = 'Off';
-                    app.PECheckBox.Value = true;
-                    app.PECheckBox.Enable = 'Off';
-                    app.PhenylCheckBox.Value = true;
-                    app.PhenylCheckBox.Enable = 'Off';
-                    app.ScylloCheckBox.Value = true;
-                    app.ScylloCheckBox.Enable = 'Off';
-                    app.SerCheckBox.Value = true;
-                    app.SerCheckBox.Enable = 'Off';
-                    app.TauCheckBox.Value = true;
-                    app.TauCheckBox.Enable = 'Off';
-                    app.TyrosCheckBox.Value = true;
-                    app.TyrosCheckBox.Enable = 'Off';
-                    app.MM09CheckBox.Value = true;
-                    app.MM09CheckBox.Enable = 'Off';
-                    app.MM12CheckBox.Value = true;
-                    app.MM12CheckBox.Enable = 'Off';
-                    app.MM14CheckBox.Value = true;
-                    app.MM14CheckBox.Enable = 'Off';
-                    app.MM17CheckBox.Value = true;
-                    app.MM17CheckBox.Enable = 'Off';
-                    app.MM20CheckBox.Value = true;
-                    app.MM20CheckBox.Enable = 'Off';
-                    app.Lip09CheckBox.Value = true;
-                    app.Lip09CheckBox.Enable = 'Off';
-                    app.Lip13CheckBox.Value = true;
-                    app.Lip13CheckBox.Enable = 'Off';
-                    app.Lip20CheckBox.Value = true;
-                    app.Lip20CheckBox.Enable = 'Off';
-                case 'custom'
-                    app.AlaCheckBox.Enable = 'On';
-                    app.AscCheckBox.Enable = 'On';
-                    app.AspCheckBox.Enable = 'On';
-                    app.bHBCheckBox.Enable = 'On';
-                    app.bHGCheckBox.Enable = 'On';
-                    app.CitCheckBox.Enable = 'On';
-                    app.CrCheckBox.Enable = 'Off';
-                    app.CrCH2CheckBox.Enable = 'On';
-                    app.EtOHCheckBox.Enable = 'On';
-                    app.GABACheckBox.Enable = 'On';
-                    app.GPCCheckBox.Enable = 'Off';
-                    app.GSHCheckBox.Enable = 'On';
-                    app.GlcCheckBox.Enable = 'On';
-                    app.GlnCheckBox.Enable = 'On';
-                    app.GluCheckBox.Enable = 'Off';
-                    app.GlyCheckBox.Enable = 'On';
-                    app.H2OCheckBox.Enable = 'On';
-                    app.InsCheckBox.Enable = 'Off';
-                    app.LacCheckBox.Enable = 'On';
-                    app.NAACheckBox.Enable = 'Off';
-                    app.NAAGCheckBox.Enable = 'On';
-                    app.PChCheckBox.Enable = 'On';
-                    app.PCrCheckBox.Enable = 'On';
-                    app.PECheckBox.Enable = 'On';
-                    app.PhenylCheckBox.Enable = 'On';
-                    app.ScylloCheckBox.Enable = 'On';
-                    app.SerCheckBox.Enable = 'On';
-                    app.TauCheckBox.Enable = 'On';
-                    app.TyrosCheckBox.Enable = 'On';
-                    app.MM09CheckBox.Enable = 'On';
-                    app.MM12CheckBox.Enable = 'On';
-                    app.MM14CheckBox.Enable = 'On';
-                    app.MM17CheckBox.Enable = 'On';
-                    app.MM20CheckBox.Enable = 'On';
-                    app.Lip09CheckBox.Enable = 'On';
-                    app.Lip13CheckBox.Enable = 'On';
-                    app.Lip20CheckBox.Enable = 'On';
-            end
+            osp_set_metabolites(app)
         end
 
         % Button pushed function: MRSDataButton
@@ -339,7 +154,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.MRSdataDropDown.Items = mrsfiles;
             app.MRSdataDropDown.Value = mrsfiles{1};
             
-            if file_exten=='.7'
+            if strcmp(file_exten,'.7')
                 app.H2OReferenceButton.Enable = 'Off';
                 app.H2OReferenceDropDown.Enable = 'Off';
                 app.H2OReferenceDropDown.Items = {};
@@ -586,6 +401,26 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.T1DataniftiniiDropDown.Enable = 'Off';
             app.T1DataniftiniiButton.Enable = 'Off';
         end
+
+        % Value changed function: MRSProtocolDropDown
+        function MRSProtocolDropDownValueChanged(app, event)
+            value = app.MRSProtocolDropDown.Value;
+            
+            switch lower(value)
+                case 'brain'
+                    app.SpectralregistrationDropDown.Value = 'Robust';
+                    app.ReferencefrequencyppmEditField.Value = 4.68;
+                    app.AddMMandLipbasisfunctionstofitCheckBox.Value = true;
+                    app.BaselineknotspacingppmEditField.Value = 0.4;
+                case 'braino phantom'
+                    app.SpectralregistrationDropDown.Value = 'Restricted';
+                    app.ReferencefrequencyppmEditField.Value = 4.83;
+                    app.AddMMandLipbasisfunctionstofitCheckBox.Value = false;
+                    app.BaselineknotspacingppmEditField.Value = 1.0;
+            end
+            
+            osp_set_metabolites(app)
+        end
     end
 
     % Component initialization
@@ -598,7 +433,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.InteractiveOspreyJobmCreatorUIFigure = uifigure('Visible', 'off');
             app.InteractiveOspreyJobmCreatorUIFigure.Color = [1 1 1];
             app.InteractiveOspreyJobmCreatorUIFigure.Colormap = [0.2431 0.149 0.6588;0.2431 0.1529 0.6745;0.2471 0.1569 0.6863;0.2471 0.1608 0.698;0.251 0.1647 0.7059;0.251 0.1686 0.7176;0.2549 0.1725 0.7294;0.2549 0.1765 0.7412;0.2588 0.1804 0.749;0.2588 0.1843 0.7608;0.2627 0.1882 0.7725;0.2627 0.1922 0.7843;0.2627 0.1961 0.7922;0.2667 0.2 0.8039;0.2667 0.2039 0.8157;0.2706 0.2078 0.8235;0.2706 0.2157 0.8353;0.2706 0.2196 0.8431;0.2745 0.2235 0.851;0.2745 0.2275 0.8627;0.2745 0.2314 0.8706;0.2745 0.2392 0.8784;0.2784 0.2431 0.8824;0.2784 0.2471 0.8902;0.2784 0.2549 0.898;0.2784 0.2588 0.902;0.2784 0.2667 0.9098;0.2784 0.2706 0.9137;0.2784 0.2745 0.9216;0.2824 0.2824 0.9255;0.2824 0.2863 0.9294;0.2824 0.2941 0.9333;0.2824 0.298 0.9412;0.2824 0.3059 0.9451;0.2824 0.3098 0.949;0.2824 0.3137 0.9529;0.2824 0.3216 0.9569;0.2824 0.3255 0.9608;0.2824 0.3294 0.9647;0.2784 0.3373 0.9686;0.2784 0.3412 0.9686;0.2784 0.349 0.9725;0.2784 0.3529 0.9765;0.2784 0.3569 0.9804;0.2784 0.3647 0.9804;0.2745 0.3686 0.9843;0.2745 0.3765 0.9843;0.2745 0.3804 0.9882;0.2706 0.3843 0.9882;0.2706 0.3922 0.9922;0.2667 0.3961 0.9922;0.2627 0.4039 0.9922;0.2627 0.4078 0.9961;0.2588 0.4157 0.9961;0.2549 0.4196 0.9961;0.251 0.4275 0.9961;0.2471 0.4314 1;0.2431 0.4392 1;0.2353 0.4431 1;0.2314 0.451 1;0.2235 0.4549 1;0.2196 0.4627 0.9961;0.2118 0.4667 0.9961;0.2078 0.4745 0.9922;0.2 0.4784 0.9922;0.1961 0.4863 0.9882;0.1922 0.4902 0.9882;0.1882 0.498 0.9843;0.1843 0.502 0.9804;0.1843 0.5098 0.9804;0.1804 0.5137 0.9765;0.1804 0.5176 0.9725;0.1804 0.5255 0.9725;0.1804 0.5294 0.9686;0.1765 0.5333 0.9647;0.1765 0.5412 0.9608;0.1765 0.5451 0.9569;0.1765 0.549 0.9529;0.1765 0.5569 0.949;0.1725 0.5608 0.9451;0.1725 0.5647 0.9412;0.1686 0.5686 0.9373;0.1647 0.5765 0.9333;0.1608 0.5804 0.9294;0.1569 0.5843 0.9255;0.1529 0.5922 0.9216;0.1529 0.5961 0.9176;0.149 0.6 0.9137;0.149 0.6039 0.9098;0.1451 0.6078 0.9098;0.1451 0.6118 0.9059;0.1412 0.6196 0.902;0.1412 0.6235 0.898;0.1373 0.6275 0.898;0.1373 0.6314 0.8941;0.1333 0.6353 0.8941;0.1294 0.6392 0.8902;0.1255 0.6471 0.8902;0.1216 0.651 0.8863;0.1176 0.6549 0.8824;0.1137 0.6588 0.8824;0.1137 0.6627 0.8784;0.1098 0.6667 0.8745;0.1059 0.6706 0.8706;0.102 0.6745 0.8667;0.098 0.6784 0.8627;0.0902 0.6824 0.8549;0.0863 0.6863 0.851;0.0784 0.6902 0.8471;0.0706 0.6941 0.8392;0.0627 0.698 0.8353;0.0549 0.702 0.8314;0.0431 0.702 0.8235;0.0314 0.7059 0.8196;0.0235 0.7098 0.8118;0.0157 0.7137 0.8078;0.0078 0.7176 0.8;0.0039 0.7176 0.7922;0 0.7216 0.7882;0 0.7255 0.7804;0 0.7294 0.7765;0.0039 0.7294 0.7686;0.0078 0.7333 0.7608;0.0157 0.7333 0.7569;0.0235 0.7373 0.749;0.0353 0.7412 0.7412;0.051 0.7412 0.7373;0.0627 0.7451 0.7294;0.0784 0.7451 0.7216;0.0902 0.749 0.7137;0.102 0.7529 0.7098;0.1137 0.7529 0.702;0.1255 0.7569 0.6941;0.1373 0.7569 0.6863;0.1451 0.7608 0.6824;0.1529 0.7608 0.6745;0.1608 0.7647 0.6667;0.1686 0.7647 0.6588;0.1725 0.7686 0.651;0.1804 0.7686 0.6471;0.1843 0.7725 0.6392;0.1922 0.7725 0.6314;0.1961 0.7765 0.6235;0.2 0.7804 0.6157;0.2078 0.7804 0.6078;0.2118 0.7843 0.6;0.2196 0.7843 0.5882;0.2235 0.7882 0.5804;0.2314 0.7882 0.5725;0.2392 0.7922 0.5647;0.251 0.7922 0.5529;0.2588 0.7922 0.5451;0.2706 0.7961 0.5373;0.2824 0.7961 0.5255;0.2941 0.7961 0.5176;0.3059 0.8 0.5059;0.3176 0.8 0.498;0.3294 0.8 0.4863;0.3412 0.8 0.4784;0.3529 0.8 0.4667;0.3686 0.8039 0.4549;0.3804 0.8039 0.4471;0.3922 0.8039 0.4353;0.4039 0.8039 0.4235;0.4196 0.8039 0.4118;0.4314 0.8039 0.4;0.4471 0.8039 0.3922;0.4627 0.8 0.3804;0.4745 0.8 0.3686;0.4902 0.8 0.3569;0.5059 0.8 0.349;0.5176 0.8 0.3373;0.5333 0.7961 0.3255;0.5451 0.7961 0.3176;0.5608 0.7961 0.3059;0.5765 0.7922 0.2941;0.5882 0.7922 0.2824;0.6039 0.7882 0.2745;0.6157 0.7882 0.2627;0.6314 0.7843 0.251;0.6431 0.7843 0.2431;0.6549 0.7804 0.2314;0.6706 0.7804 0.2235;0.6824 0.7765 0.2157;0.698 0.7765 0.2078;0.7098 0.7725 0.2;0.7216 0.7686 0.1922;0.7333 0.7686 0.1843;0.7451 0.7647 0.1765;0.7608 0.7647 0.1725;0.7725 0.7608 0.1647;0.7843 0.7569 0.1608;0.7961 0.7569 0.1569;0.8078 0.7529 0.1529;0.8157 0.749 0.1529;0.8275 0.749 0.1529;0.8392 0.7451 0.1529;0.851 0.7451 0.1569;0.8588 0.7412 0.1569;0.8706 0.7373 0.1608;0.8824 0.7373 0.1647;0.8902 0.7373 0.1686;0.902 0.7333 0.1765;0.9098 0.7333 0.1804;0.9176 0.7294 0.1882;0.9255 0.7294 0.1961;0.9373 0.7294 0.2078;0.9451 0.7294 0.2157;0.9529 0.7294 0.2235;0.9608 0.7294 0.2314;0.9686 0.7294 0.2392;0.9765 0.7294 0.2431;0.9843 0.7333 0.2431;0.9882 0.7373 0.2431;0.9961 0.7412 0.2392;0.9961 0.7451 0.2353;0.9961 0.7529 0.2314;0.9961 0.7569 0.2275;0.9961 0.7608 0.2235;0.9961 0.7686 0.2196;0.9961 0.7725 0.2157;0.9961 0.7804 0.2078;0.9961 0.7843 0.2039;0.9961 0.7922 0.2;0.9922 0.7961 0.1961;0.9922 0.8039 0.1922;0.9922 0.8078 0.1922;0.9882 0.8157 0.1882;0.9843 0.8235 0.1843;0.9843 0.8275 0.1804;0.9804 0.8353 0.1804;0.9765 0.8392 0.1765;0.9765 0.8471 0.1725;0.9725 0.851 0.1686;0.9686 0.8588 0.1647;0.9686 0.8667 0.1647;0.9647 0.8706 0.1608;0.9647 0.8784 0.1569;0.9608 0.8824 0.1569;0.9608 0.8902 0.1529;0.9608 0.898 0.149;0.9608 0.902 0.149;0.9608 0.9098 0.1451;0.9608 0.9137 0.1412;0.9608 0.9216 0.1373;0.9608 0.9255 0.1333;0.9608 0.9333 0.1294;0.9647 0.9373 0.1255;0.9647 0.9451 0.1216;0.9647 0.949 0.1176;0.9686 0.9569 0.1098;0.9686 0.9608 0.1059;0.9725 0.9686 0.102;0.9725 0.9725 0.0941;0.9765 0.9765 0.0863;0.9765 0.9843 0.0824;1 1 1];
-            app.InteractiveOspreyJobmCreatorUIFigure.Position = [100 100 722 636];
+            app.InteractiveOspreyJobmCreatorUIFigure.Position = [100 100 722 688];
             app.InteractiveOspreyJobmCreatorUIFigure.Name = 'Interactive OspreyJob.m Creator';
 
             % Create SpecifySequenceInformationPanel
@@ -608,7 +443,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SpecifySequenceInformationPanel.BackgroundColor = [1 1 1];
             app.SpecifySequenceInformationPanel.FontWeight = 'bold';
             app.SpecifySequenceInformationPanel.FontSize = 15;
-            app.SpecifySequenceInformationPanel.Position = [8 524 350 102];
+            app.SpecifySequenceInformationPanel.Position = [8 576 350 102];
 
             % Create SequenceTypeDropDownLabel
             app.SequenceTypeDropDownLabel = uilabel(app.SpecifySequenceInformationPanel);
@@ -650,31 +485,31 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SpecifyDataHandlingandModelingOptionsPanel.BackgroundColor = [1 1 1];
             app.SpecifyDataHandlingandModelingOptionsPanel.FontWeight = 'bold';
             app.SpecifyDataHandlingandModelingOptionsPanel.FontSize = 15;
-            app.SpecifyDataHandlingandModelingOptionsPanel.Position = [8 167 350 343];
+            app.SpecifyDataHandlingandModelingOptionsPanel.Position = [8 166 350 401];
 
             % Create SaveLCMCheckBox
             app.SaveLCMCheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.SaveLCMCheckBox.Text = 'Save LCM';
             app.SaveLCMCheckBox.FontColor = [0.0392 0.2784 0.4392];
-            app.SaveLCMCheckBox.Position = [21 283 78 22];
+            app.SaveLCMCheckBox.Position = [21 341 78 22];
 
             % Create SaveJMRUICheckBox
             app.SaveJMRUICheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.SaveJMRUICheckBox.Text = 'Save JMRUI';
             app.SaveJMRUICheckBox.FontColor = [0.0392 0.2784 0.4392];
-            app.SaveJMRUICheckBox.Position = [124 283 89 22];
+            app.SaveJMRUICheckBox.Position = [124 341 89 22];
 
             % Create SaveVendorCheckBox
             app.SaveVendorCheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.SaveVendorCheckBox.Text = 'Save Vendor';
             app.SaveVendorCheckBox.FontColor = [0.0392 0.2784 0.4392];
-            app.SaveVendorCheckBox.Position = [238 283 90 22];
+            app.SaveVendorCheckBox.Position = [238 341 90 22];
 
             % Create FittingAlgorithmDropDownLabel
             app.FittingAlgorithmDropDownLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.FittingAlgorithmDropDownLabel.BackgroundColor = [1 1 1];
             app.FittingAlgorithmDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.FittingAlgorithmDropDownLabel.Position = [28 213 94 22];
+            app.FittingAlgorithmDropDownLabel.Position = [28 242 94 22];
             app.FittingAlgorithmDropDownLabel.Text = 'Fitting Algorithm';
 
             % Create FittingAlgorithmDropDown
@@ -682,14 +517,14 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.FittingAlgorithmDropDown.Items = {'Osprey', 'AQSES', 'TARQUIN'};
             app.FittingAlgorithmDropDown.FontColor = [0.0392 0.2784 0.4392];
             app.FittingAlgorithmDropDown.BackgroundColor = [1 1 1];
-            app.FittingAlgorithmDropDown.Position = [161 213 129 22];
+            app.FittingAlgorithmDropDown.Position = [161 242 129 22];
             app.FittingAlgorithmDropDown.Value = 'Osprey';
 
             % Create IncludedMetabolitesDropDownLabel
             app.IncludedMetabolitesDropDownLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.IncludedMetabolitesDropDownLabel.BackgroundColor = [1 1 1];
             app.IncludedMetabolitesDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.IncludedMetabolitesDropDownLabel.Position = [28 180 118 22];
+            app.IncludedMetabolitesDropDownLabel.Position = [28 209 118 22];
             app.IncludedMetabolitesDropDownLabel.Text = 'Included Metabolites';
 
             % Create IncludedMetabolitesDropDown
@@ -698,7 +533,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.IncludedMetabolitesDropDown.ValueChangedFcn = createCallbackFcn(app, @IncludedMetabolitesDropDownValueChanged, true);
             app.IncludedMetabolitesDropDown.FontColor = [0.0392 0.2784 0.4392];
             app.IncludedMetabolitesDropDown.BackgroundColor = [1 1 1];
-            app.IncludedMetabolitesDropDown.Position = [161 180 129 22];
+            app.IncludedMetabolitesDropDown.Position = [161 209 129 22];
             app.IncludedMetabolitesDropDown.Value = 'default';
 
             % Create FittingStyleDropDownLabel
@@ -706,7 +541,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.FittingStyleDropDownLabel.BackgroundColor = [1 1 1];
             app.FittingStyleDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
             app.FittingStyleDropDownLabel.Enable = 'off';
-            app.FittingStyleDropDownLabel.Position = [28 146 69 22];
+            app.FittingStyleDropDownLabel.Position = [28 175 69 22];
             app.FittingStyleDropDownLabel.Text = 'Fitting Style';
 
             % Create FittingStyleDropDown
@@ -715,37 +550,37 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.FittingStyleDropDown.Enable = 'off';
             app.FittingStyleDropDown.FontColor = [0.0392 0.2784 0.4392];
             app.FittingStyleDropDown.BackgroundColor = [1 1 1];
-            app.FittingStyleDropDown.Position = [161 146 129 22];
+            app.FittingStyleDropDown.Position = [161 175 129 22];
             app.FittingStyleDropDown.Value = 'Concatenated';
 
             % Create MRSFitRangeppmEditFieldLabel
             app.MRSFitRangeppmEditFieldLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.MRSFitRangeppmEditFieldLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.MRSFitRangeppmEditFieldLabel.Position = [28 113 121 22];
+            app.MRSFitRangeppmEditFieldLabel.Position = [28 109 121 22];
             app.MRSFitRangeppmEditFieldLabel.Text = 'MRS Fit Range (ppm)';
 
             % Create MRSFitRangeppmEditField
             app.MRSFitRangeppmEditField = uieditfield(app.SpecifyDataHandlingandModelingOptionsPanel, 'text');
             app.MRSFitRangeppmEditField.FontColor = [0.0392 0.2784 0.4392];
-            app.MRSFitRangeppmEditField.Position = [161 113 129 22];
+            app.MRSFitRangeppmEditField.Position = [161 109 129 22];
             app.MRSFitRangeppmEditField.Value = '0.2 4.2';
 
             % Create WaterFitRangeppmEditFieldLabel
             app.WaterFitRangeppmEditFieldLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.WaterFitRangeppmEditFieldLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.WaterFitRangeppmEditFieldLabel.Position = [28 80 126 22];
+            app.WaterFitRangeppmEditFieldLabel.Position = [28 76 126 22];
             app.WaterFitRangeppmEditFieldLabel.Text = 'Water Fit Range (ppm)';
 
             % Create WaterFitRangeppmEditField
             app.WaterFitRangeppmEditField = uieditfield(app.SpecifyDataHandlingandModelingOptionsPanel, 'text');
             app.WaterFitRangeppmEditField.FontColor = [0.0392 0.2784 0.4392];
-            app.WaterFitRangeppmEditField.Position = [161 80 129 22];
+            app.WaterFitRangeppmEditField.Position = [161 76 129 22];
             app.WaterFitRangeppmEditField.Value = '2.0 7.4';
 
             % Create BaselineknotspacingppmEditFieldLabel
             app.BaselineknotspacingppmEditFieldLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.BaselineknotspacingppmEditFieldLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.BaselineknotspacingppmEditFieldLabel.Position = [28 47 158 22];
+            app.BaselineknotspacingppmEditFieldLabel.Position = [28 43 158 22];
             app.BaselineknotspacingppmEditFieldLabel.Text = 'Baseline knot spacing (ppm)';
 
             % Create BaselineknotspacingppmEditField
@@ -753,30 +588,61 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.BaselineknotspacingppmEditField.ValueDisplayFormat = '%11.1g';
             app.BaselineknotspacingppmEditField.HorizontalAlignment = 'left';
             app.BaselineknotspacingppmEditField.FontColor = [0.0392 0.2784 0.4392];
-            app.BaselineknotspacingppmEditField.Position = [201 47 89 22];
+            app.BaselineknotspacingppmEditField.Position = [201 43 89 22];
             app.BaselineknotspacingppmEditField.Value = 0.4;
 
             % Create AddMMandLipbasisfunctionstofitCheckBox
             app.AddMMandLipbasisfunctionstofitCheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.AddMMandLipbasisfunctionstofitCheckBox.Text = 'Add MM and Lip basis functions to fit';
             app.AddMMandLipbasisfunctionstofitCheckBox.FontColor = [0.0392 0.2784 0.4392];
-            app.AddMMandLipbasisfunctionstofitCheckBox.Position = [28 15 225 22];
+            app.AddMMandLipbasisfunctionstofitCheckBox.Position = [28 12 225 22];
             app.AddMMandLipbasisfunctionstofitCheckBox.Value = true;
 
             % Create MRSProtocolDropDownLabel
             app.MRSProtocolDropDownLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.MRSProtocolDropDownLabel.BackgroundColor = [1 1 1];
             app.MRSProtocolDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
-            app.MRSProtocolDropDownLabel.Position = [28 248 85 22];
+            app.MRSProtocolDropDownLabel.Position = [28 306 85 22];
             app.MRSProtocolDropDownLabel.Text = 'MRS Protocol';
 
             % Create MRSProtocolDropDown
             app.MRSProtocolDropDown = uidropdown(app.SpecifyDataHandlingandModelingOptionsPanel);
             app.MRSProtocolDropDown.Items = {'Brain', 'Braino phantom'};
+            app.MRSProtocolDropDown.ValueChangedFcn = createCallbackFcn(app, @MRSProtocolDropDownValueChanged, true);
             app.MRSProtocolDropDown.FontColor = [0.0392 0.2784 0.4392];
             app.MRSProtocolDropDown.BackgroundColor = [1 1 1];
-            app.MRSProtocolDropDown.Position = [161 248 129 22];
+            app.MRSProtocolDropDown.Position = [161 306 129 22];
             app.MRSProtocolDropDown.Value = 'Brain';
+
+            % Create SpectralregistrationDropDownLabel
+            app.SpectralregistrationDropDownLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
+            app.SpectralregistrationDropDownLabel.BackgroundColor = [1 1 1];
+            app.SpectralregistrationDropDownLabel.FontColor = [0.0392 0.2784 0.4392];
+            app.SpectralregistrationDropDownLabel.Position = [28 273 113 22];
+            app.SpectralregistrationDropDownLabel.Text = 'Spectral registration';
+
+            % Create SpectralregistrationDropDown
+            app.SpectralregistrationDropDown = uidropdown(app.SpecifyDataHandlingandModelingOptionsPanel);
+            app.SpectralregistrationDropDown.Items = {'Robust', 'Restricted', 'None'};
+            app.SpectralregistrationDropDown.FontColor = [0.0392 0.2784 0.4392];
+            app.SpectralregistrationDropDown.BackgroundColor = [1 1 1];
+            app.SpectralregistrationDropDown.Position = [159 273 131 22];
+            app.SpectralregistrationDropDown.Value = 'Robust';
+
+            % Create ReferencefrequencyppmEditFieldLabel
+            app.ReferencefrequencyppmEditFieldLabel = uilabel(app.SpecifyDataHandlingandModelingOptionsPanel);
+            app.ReferencefrequencyppmEditFieldLabel.FontColor = [0.0392 0.2784 0.4392];
+            app.ReferencefrequencyppmEditFieldLabel.Position = [28 142 150 22];
+            app.ReferencefrequencyppmEditFieldLabel.Text = 'Reference frequency (ppm)';
+
+            % Create ReferencefrequencyppmEditField
+            app.ReferencefrequencyppmEditField = uieditfield(app.SpecifyDataHandlingandModelingOptionsPanel, 'numeric');
+            app.ReferencefrequencyppmEditField.Limits = [0 10];
+            app.ReferencefrequencyppmEditField.ValueDisplayFormat = '%.2f';
+            app.ReferencefrequencyppmEditField.HorizontalAlignment = 'left';
+            app.ReferencefrequencyppmEditField.FontColor = [0.0392 0.2784 0.4392];
+            app.ReferencefrequencyppmEditField.Position = [201 142 89 22];
+            app.ReferencefrequencyppmEditField.Value = 4.68;
 
             % Create SelectedMetabolitesPanel
             app.SelectedMetabolitesPanel = uipanel(app.InteractiveOspreyJobmCreatorUIFigure);
@@ -786,7 +652,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SelectedMetabolitesPanel.BackgroundColor = [1 1 1];
             app.SelectedMetabolitesPanel.FontWeight = 'bold';
             app.SelectedMetabolitesPanel.FontSize = 15;
-            app.SelectedMetabolitesPanel.Position = [8 9 707 146];
+            app.SelectedMetabolitesPanel.Position = [8 10 707 146];
 
             % Create AlaCheckBox
             app.AlaCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
@@ -1081,7 +947,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SpecifyMRSandStructuralImagingFilesPanel.BackgroundColor = [1 1 1];
             app.SpecifyMRSandStructuralImagingFilesPanel.FontWeight = 'bold';
             app.SpecifyMRSandStructuralImagingFilesPanel.FontSize = 15;
-            app.SpecifyMRSandStructuralImagingFilesPanel.Position = [365 377 350 249];
+            app.SpecifyMRSandStructuralImagingFilesPanel.Position = [365 372 350 249];
 
             % Create MRSDataButton
             app.MRSDataButton = uibutton(app.SpecifyMRSandStructuralImagingFilesPanel, 'push');
@@ -1200,7 +1066,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SpecifyOutputFolderPanel.BackgroundColor = [1 1 1];
             app.SpecifyOutputFolderPanel.FontWeight = 'bold';
             app.SpecifyOutputFolderPanel.FontSize = 15;
-            app.SpecifyOutputFolderPanel.Position = [365 257 350 107];
+            app.SpecifyOutputFolderPanel.Position = [365 256 350 107];
 
             % Create OutputFolderEditField
             app.OutputFolderEditField = uieditfield(app.SpecifyOutputFolderPanel, 'text');
@@ -1235,7 +1101,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.ExitButton.FontSize = 15;
             app.ExitButton.FontWeight = 'bold';
             app.ExitButton.FontColor = [0.0392 0.2784 0.4392];
-            app.ExitButton.Position = [544 167 165 38];
+            app.ExitButton.Position = [544 168 165 38];
             app.ExitButton.Text = 'Exit';
 
             % Create RunJobButton
@@ -1245,7 +1111,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.RunJobButton.FontSize = 15;
             app.RunJobButton.FontWeight = 'bold';
             app.RunJobButton.FontColor = [0.0392 0.2784 0.4392];
-            app.RunJobButton.Position = [365 214 168 38];
+            app.RunJobButton.Position = [365 211 168 38];
             app.RunJobButton.Text = 'Run Job';
 
             % Create LoadJobFileButton
@@ -1255,7 +1121,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.LoadJobFileButton.FontSize = 15;
             app.LoadJobFileButton.FontWeight = 'bold';
             app.LoadJobFileButton.FontColor = [0.0392 0.2784 0.4392];
-            app.LoadJobFileButton.Position = [543 214 169 38];
+            app.LoadJobFileButton.Position = [543 211 169 38];
             app.LoadJobFileButton.Text = 'Load JobFile';
 
             % Create LoadMRSContButton
@@ -1265,8 +1131,23 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.LoadMRSContButton.FontSize = 15;
             app.LoadMRSContButton.FontWeight = 'bold';
             app.LoadMRSContButton.FontColor = [0.0392 0.2784 0.4392];
-            app.LoadMRSContButton.Position = [366 167 167 38];
+            app.LoadMRSContButton.Position = [366 168 167 38];
             app.LoadMRSContButton.Text = 'Load MRSCont';
+
+            % Create Image
+            app.Image = uiimage(app.InteractiveOspreyJobmCreatorUIFigure);
+            app.Image.Position = [656 631 59 47];
+            app.Image.ImageSource = 'osprey.gif';
+
+            % Create TextArea
+            app.TextArea = uitextarea(app.InteractiveOspreyJobmCreatorUIFigure);
+            app.TextArea.Editable = 'off';
+            app.TextArea.HorizontalAlignment = 'center';
+            app.TextArea.FontSize = 28;
+            app.TextArea.FontWeight = 'bold';
+            app.TextArea.FontColor = [0.0392 0.2784 0.4392];
+            app.TextArea.Position = [367 629 287 49];
+            app.TextArea.Value = {'Osprey'};
 
             % Show the figure after all components are created
             app.InteractiveOspreyJobmCreatorUIFigure.Visible = 'on';

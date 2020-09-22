@@ -43,164 +43,33 @@ if isfield(opts,'protocol')
 else
     app.MRSProtocolDropDown.Value = 'Brain';
 end
+
+if isfield(opts,'SpecReg')
+    switch opts.SpecReg
+        case 'RobSpecReg'
+            app.SpectralregistrationDropDown.Value = 'Robust';
+        case 'RestrSpecReg'
+            app.SpectralregistrationDropDown.Value = 'Restricted';
+        case 'none' 
+            app.SpectralregistrationDropDown.Value = 'Nonne';
+    end
+else
+    if isfield(opts,'protocol')
+        switch lower(opts.protocol)
+            case 'braino pphantom'
+                app.SpectralregistrationDropDown.Value = 'Restricted';
+            otherwise
+                app.SpectralregistrationDropDown.Value = 'Robust';
+        end
+    else
+        app.SpectralregistrationDropDown.Value = 'Robust';
+    end
+end
+
 app.FittingAlgorithmDropDown.Value = opts.fit.method;
 
 switch opts.fit.includeMetabs{1}
-    case 'default'
-        app.IncludedMetabolitesDropDown.Value = opts.fit.includeMetabs{1};
-        
-        app.AlaCheckBox.Value = false;
-        app.AlaCheckBox.Enable = 'Off';
-        app.AscCheckBox.Value = true;
-        app.AscCheckBox.Enable = 'Off';
-        app.AspCheckBox.Value = true;
-        app.AspCheckBox.Enable = 'Off';
-        app.bHBCheckBox.Value = false;
-        app.bHBCheckBox.Enable = 'Off';
-        app.bHGCheckBox.Value = false;
-        app.bHGCheckBox.Enable = 'Off';
-        app.CitCheckBox.Value = false;
-        app.CitCheckBox.Enable = 'Off';
-        app.CrCheckBox.Value = true;
-        app.CrCheckBox.Enable = 'Off';
-        app.CrCH2CheckBox.Value = true;
-        app.CrCH2CheckBox.Enable = 'Off';
-        app.EtOHCheckBox.Value = false;
-        app.EtOHCheckBox.Enable = 'Off';
-        app.GABACheckBox.Value = true;
-        app.GABACheckBox.Enable = 'Off';
-        app.GPCCheckBox.Value = true;
-        app.GPCCheckBox.Enable = 'Off';
-        app.GSHCheckBox.Value = true;
-        app.GSHCheckBox.Enable = 'Off';
-        app.GlcCheckBox.Value = false;
-        app.GlcCheckBox.Enable = 'Off';
-        app.GlnCheckBox.Value = true;
-        app.GlnCheckBox.Enable = 'Off';
-        app.GluCheckBox.Value = true;
-        app.GluCheckBox.Enable = 'Off';
-        app.GlyCheckBox.Value = false;
-        app.GlyCheckBox.Enable = 'Off';
-        app.H2OCheckBox.Value = true;
-        app.H2OCheckBox.Enable = 'Off';
-        app.InsCheckBox.Value = true;
-        app.InsCheckBox.Enable = 'Off';
-        app.LacCheckBox.Value = true;
-        app.LacCheckBox.Enable = 'Off';
-        app.NAACheckBox.Value = true;
-        app.NAACheckBox.Enable = 'Off';
-        app.NAAGCheckBox.Value = true;
-        app.NAAGCheckBox.Enable = 'Off';
-        app.PChCheckBox.Value = true;
-        app.PChCheckBox.Enable = 'Off';
-        app.PCrCheckBox.Value = true;
-        app.PCrCheckBox.Enable = 'Off';
-        app.PECheckBox.Value = true;
-        app.PECheckBox.Enable = 'Off';
-        app.PhenylCheckBox.Value = false;
-        app.PhenylCheckBox.Enable = 'Off';
-        app.ScylloCheckBox.Value = true;
-        app.ScylloCheckBox.Enable = 'Off';
-        app.SerCheckBox.Value = false;
-        app.SerCheckBox.Enable = 'Off';
-        app.TauCheckBox.Value = true;
-        app.TauCheckBox.Enable = 'Off';
-        app.TyrosCheckBox.Value = false;
-        app.TyrosCheckBox.Enable = 'Off';
-        app.MM09CheckBox.Value = true;
-        app.MM09CheckBox.Enable = 'Off';
-        app.MM12CheckBox.Value = true;
-        app.MM12CheckBox.Enable = 'Off';
-        app.MM14CheckBox.Value = true;
-        app.MM14CheckBox.Enable = 'Off';
-        app.MM17CheckBox.Value = true;
-        app.MM17CheckBox.Enable = 'Off';
-        app.MM20CheckBox.Value = true;
-        app.MM20CheckBox.Enable = 'Off';
-        app.Lip09CheckBox.Value = true;
-        app.Lip09CheckBox.Enable = 'Off';
-        app.Lip13CheckBox.Value = true;
-        app.Lip13CheckBox.Enable = 'Off';
-        app.Lip20CheckBox.Value = true;
-        app.Lip20CheckBox.Enable = 'Off';
-    case 'full'
-        app.IncludedMetabolitesDropDown.Value = opts.fit.includeMetabs{1};
-        
-        app.AlaCheckBox.Value = true;
-        app.AlaCheckBox.Enable = 'Off';
-        app.AscCheckBox.Value = true;
-        app.AscCheckBox.Enable = 'Off';
-        app.AspCheckBox.Value = true;
-        app.AspCheckBox.Enable = 'Off';
-        app.bHBCheckBox.Value = true;
-        app.bHBCheckBox.Enable = 'Off';
-        app.bHGCheckBox.Value = true;
-        app.bHGCheckBox.Enable = 'Off';
-        app.CitCheckBox.Value = true;
-        app.CitCheckBox.Enable = 'Off';
-        app.CrCheckBox.Value = true;
-        app.CrCheckBox.Enable = 'Off';
-        app.CrCH2CheckBox.Value = true;
-        app.CrCH2CheckBox.Enable = 'Off';
-        app.EtOHCheckBox.Value = true;
-        app.EtOHCheckBox.Enable = 'Off';
-        app.GABACheckBox.Value = true;
-        app.GABACheckBox.Enable = 'Off';
-        app.GPCCheckBox.Value = true;
-        app.GPCCheckBox.Enable = 'Off';
-        app.GSHCheckBox.Value = true;
-        app.GSHCheckBox.Enable = 'Off';
-        app.GlcCheckBox.Value = true;
-        app.GlcCheckBox.Enable = 'Off';
-        app.GlnCheckBox.Value = true;
-        app.GlnCheckBox.Enable = 'Off';
-        app.GluCheckBox.Value = true;
-        app.GluCheckBox.Enable = 'Off';
-        app.GlyCheckBox.Value = true;
-        app.GlyCheckBox.Enable = 'Off';
-        app.H2OCheckBox.Value = true;
-        app.H2OCheckBox.Enable = 'Off';
-        app.InsCheckBox.Value = true;
-        app.InsCheckBox.Enable = 'Off';
-        app.LacCheckBox.Value = true;
-        app.LacCheckBox.Enable = 'Off';
-        app.NAACheckBox.Value = true;
-        app.NAACheckBox.Enable = 'Off';
-        app.NAAGCheckBox.Value = true;
-        app.NAAGCheckBox.Enable = 'Off';
-        app.PChCheckBox.Value = true;
-        app.PChCheckBox.Enable = 'Off';
-        app.PCrCheckBox.Value = true;
-        app.PCrCheckBox.Enable = 'Off';
-        app.PECheckBox.Value = true;
-        app.PECheckBox.Enable = 'Off';
-        app.PhenylCheckBox.Value = true;
-        app.PhenylCheckBox.Enable = 'Off';
-        app.ScylloCheckBox.Value = true;
-        app.ScylloCheckBox.Enable = 'Off';
-        app.SerCheckBox.Value = true;
-        app.SerCheckBox.Enable = 'Off';
-        app.TauCheckBox.Value = true;
-        app.TauCheckBox.Enable = 'Off';
-        app.TyrosCheckBox.Value = true;
-        app.TyrosCheckBox.Enable = 'Off';
-        app.MM09CheckBox.Value = true;
-        app.MM09CheckBox.Enable = 'Off';
-        app.MM12CheckBox.Value = true;
-        app.MM12CheckBox.Enable = 'Off';
-        app.MM14CheckBox.Value = true;
-        app.MM14CheckBox.Enable = 'Off';
-        app.MM17CheckBox.Value = true;
-        app.MM17CheckBox.Enable = 'Off';
-        app.MM20CheckBox.Value = true;
-        app.MM20CheckBox.Enable = 'Off';
-        app.Lip09CheckBox.Value = true;
-        app.Lip09CheckBox.Enable = 'Off';
-        app.Lip13CheckBox.Value = true;
-        app.Lip13CheckBox.Enable = 'Off';
-        app.Lip20CheckBox.Value = true;
-        app.Lip20CheckBox.Enable = 'Off';
-    otherwise
+    case 'custom'
         app.IncludedMetabolitesDropDown.Value = 'custom';
             
         if any(strcmp(opts.fit.includeMetabs,'Ala')); app.AlaCheckBox.Value = true; else app.AlaCheckBox.Value = false; end
@@ -277,9 +146,29 @@ switch opts.fit.includeMetabs{1}
         app.Lip13CheckBox.Enable = 'On';
         if any(strcmp(opts.fit.includeMetabs,'Lip20')); app.Lip20CheckBox.Value = true; else app.Lip20CheckBox.Value = false; end
         app.Lip20CheckBox.Enable = 'On';
+    otherwise
+        app.IncludedMetabolitesDropDown.Value = opts.fit.includeMetabs{1};
+        
+        osp_set_metabolites(app)
 end
 
 app.FittingStyleDropDown.Value = opts.fit.style;
+
+if isfield(opts.fit,'reffreq')
+    app.ReferencefrequencyppmEditField.Value = opts.fit.reffreq;
+else
+    if isfield(opts,'protocol')
+        switch lower(opts.pprotocol)
+            case 'braino phantom'
+                app.ReferencefrequencyppmEditField.Value = 4.83;
+            otherwise
+                app.ReferencefrequencyppmEditField.Value = 4.68;
+        end
+    else
+        app.ReferencefrequencyppmEditField.Value = 4.68;
+    end
+end
+
 app.MRSFitRangeppmEditField.Value = [num2str(opts.fit.range(1),'%2.1f') ' ' num2str(opts.fit.range(2),'%2.1f')];
 app.WaterFitRangeppmEditField.Value = [num2str(opts.fit.rangeWater(1),'%2.1f') ' ' num2str(opts.fit.rangeWater(2),'%2.1f')];
 app.BaselineknotspacingppmEditField.Value = opts.fit.bLineKnotSpace;

@@ -41,6 +41,16 @@ fprintf(fid,'\n%s',['opts.saveLCM = ' num2str(app.SaveLCMCheckBox.Value) ';']);
 fprintf(fid,'\n%s',['opts.savejMRUI = ' num2str(app.SaveJMRUICheckBox.Value) ';']);
 fprintf(fid,'\n%s',['opts.saveVendor = ' num2str(app.SaveVendorCheckBox.Value) ';']);
 fprintf(fid,'\n%s',['opts.protocol = ''' app.MRSProtocolDropDown.Value ''';']);
+
+switch lower(app.SpectralregistrationDropDown.Value)
+    case 'robust'
+        fprintf(fid,'\n%s',['opts.SpecReg = ''RobSpecReg'';']);
+    case 'restricted'
+        fprintf(fid,'\n%s',['opts.SpecReg = ''RestrSpecReg'';']);
+    case 'none'
+        fprintf(fid,'\n%s',['opts.SpecReg = ''none'';']);
+end
+
 fprintf(fid,'\n%s',['opts.fit.method = ''' app.FittingAlgorithmDropDown.Value ''';']);
 
 switch app.IncludedMetabolitesDropDown.Value 
@@ -90,6 +100,7 @@ switch app.IncludedMetabolitesDropDown.Value
 end
 
 fprintf(fid,'\n%s',['opts.fit.style = ''' app.FittingStyleDropDown.Value ''';']);
+fprintf(fid,'\n%s',['opts.fit.reffreq = ' num2str(app.ReferencefrequencyppmEditField.Value) ';']);
 fprintf(fid,'\n%s',['opts.fit.range = [' app.MRSFitRangeppmEditField.Value '];']);
 fprintf(fid,'\n%s',['opts.fit.rangeWater = [' app.WaterFitRangeppmEditField.Value '];']);
 fprintf(fid,'\n%s',['opts.fit.bLineKnotSpace = ' num2str(app.BaselineknotspacingppmEditField.Value) ';']);
