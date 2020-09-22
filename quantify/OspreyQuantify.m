@@ -183,7 +183,11 @@ for kk = 1:MRSCont.nDatasets
         metsTE  = MRSCont.processed.A{kk}.te * 1e-3;
         waterTE = MRSCont.processed.(waterType){kk}.te * 1e-3;
         % Calculate water-scaled, but not tissue-corrected metabolite levels
-        rawWaterScaled = quantH2O(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE);
+        if isfield(MRSCont.opts,'protocol')
+            rawWaterScaled = quantH2O(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE,MRSCont.opts.protocol);
+        else
+            rawWaterScaled = quantH2O(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE,'brain');
+        end
 
         % Save back to Osprey data container
         for ll = 1:length(getResults)
@@ -406,10 +410,15 @@ end
 
 
 %%% Calculate raw water-scaled estimates %%%
-function rawWaterScaled = quantH2O(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE)
+function rawWaterScaled = quantH2O(metsName, amplMets, amplWater, getResults, metsTR, waterTR, metsTE, waterTE,protocol)
 
 % Define constants
-PureWaterConc       = 55500;            % mmol/L
+switch lower(protocol)
+    case 'braino phantom'
+        PureWaterConc       = 55556;            % mmol/L
+    otherwise
+        PureWaterConc       = 35880;            % mmol/L
+end
 WaterVisibility     = 0.65;             % assuming pure white matter
 metsTE              = metsTE * 1e-3;    % convert to s
 waterTE             = waterTE * 1e-3;   % convert to s
