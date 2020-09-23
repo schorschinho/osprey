@@ -45,8 +45,8 @@ nBASIS.specs(:,7) = ref_basis.NAA.specs;
 
 out = op_addphase(ref_water,-7,0,4.83,0);
 
-nBASIS.fids(:,8) = out.fids;
-nBASIS.specs(:,8) = flipud(out.specs);
+nBASIS.fids(:,8) = out.fids*0.46;
+nBASIS.specs(:,8) = flipud(out.specs)*0.46;
 
 BASIS = fit_resampleBasis(BASIS,nBASIS);
 
