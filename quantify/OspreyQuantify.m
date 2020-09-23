@@ -416,10 +416,12 @@ function rawWaterScaled = quantH2O(metsName, amplMets, amplWater, getResults, me
 switch lower(protocol)
     case 'braino phantom'
         PureWaterConc       = 55556;            % mmol/L
+        WaterVisibility     = 0.65;             % assuming pure white matter
     otherwise
         PureWaterConc       = 35880;            % mmol/L
+        WaterVisibility     = 0.65;             % assuming pure white matter
 end
-WaterVisibility     = 0.65;             % assuming pure white matter
+
 metsTE              = metsTE * 1e-3;    % convert to s
 waterTE             = waterTE * 1e-3;   % convert to s
 metsTR              = metsTR * 1e-3;    % convert to s
