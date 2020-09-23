@@ -159,8 +159,7 @@ files_ref   = {which('exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRES
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {which('exampledata/twix/sub-01/mrs/sub-01_press-water/sub-01_PRESS30_w.dat'),...
-               which('exampledata/twix/sub-02/mrs/sub-02_press-water/sub-02_PRESS30_w.dat')};
+files_w     = {};
 
 % Specify metabolite-nulled data for quantification
 % (OPTIONAL)
