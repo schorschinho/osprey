@@ -247,7 +247,11 @@ end
 % Add the data and plot
 hold(ax_raw, 'on');    
 % Loop over all averages
-nAvgsRaw = rawDataToPlot.sz(rawDataToPlot.dims.averages);
+try
+    nAvgsRaw = rawDataToPlot.sz(rawDataToPlot.dims.averages);
+catch % This is a wild guess in case no averages dimension is stored 
+    nAvgsRaw = rawDataToPlot.sz(2);
+end
 if MRSCont.flags.isUnEdited
     for rr = 1:nAvgsRaw
         plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
