@@ -36,16 +36,22 @@ end
 %% Define order based on the supplied files and the sequence type
 
 if MRSCont.flags.isUnEdited
-    numberstring = ['1' num2str(MRSCont.flags.hasMM) num2str(MRSCont.flags.hasRef)];
+    numberstring = ['1' num2str(MRSCont.flags.hasMM) num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
     switch numberstring
-        case '100'
+        case '1000'
             sortstring = {'A'}; 
-        case '110'
+        case '1100'
             sortstring = {'A','mm'};
-        case '101'
+        case '1001'
+            sortstring = {'A','w'};
+        case '1010'
             sortstring = {'A','ref'};
-        case '111'
+        case '1110'
             sortstring = {'A','mm','ref'};
+        case '1101'
+            sortstring = {'A','mm','w'};
+        case '1111'
+            sortstring = {'A','mm','ref','w'};       
         otherwise
             msg = 'Something is wrong in the processing!';
             fprintf(fileID,msg);
