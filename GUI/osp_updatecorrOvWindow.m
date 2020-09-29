@@ -32,12 +32,12 @@ function osp_updatecorrOvWindow(gui)
            if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                 metab = 'GABA';
             else
-                metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
+                metab = MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab};
            end 
             if gui.overview.Selected.CorrChoice == 1
                 temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
             else if gui.overview.Selected.CorrChoice == 2
-                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.quantify.metabs{gui.overview.Selected.Corr},MRSCont.quantify.metabs{gui.overview.Selected.Corr});
+                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Corr},MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Corr});
                 else
                     switch gui.overview.Selected.Corr
                         case 1
@@ -58,7 +58,7 @@ function osp_updatecorrOvWindow(gui)
             if gui.overview.Selected.CorrChoice == 1
                 set(gui.Plot.corrOv.Children(3).Title, 'String', [gui.overview.Names.Corr{gui.overview.Selected.Corr} ' vs ' metab]) %Update title
             else if gui.overview.Selected.CorrChoice == 2
-                set(gui.Plot.corrOv.Children(3).Title, 'String', [MRSCont.quantify.metabs{gui.overview.Selected.Corr} ' vs ' metab]) %Update title
+                set(gui.Plot.corrOv.Children(3).Title, 'String', [MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Corr} ' vs ' metab]) %Update title
                 else
                     switch gui.overview.Selected.Corr
                         case 1

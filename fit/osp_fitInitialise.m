@@ -115,6 +115,9 @@ else
     metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
     % Collect MMfit flag from the options determined in the job file
     fitMM = MRSCont.opts.fit.fitMM;
+    if fitMM == 1 && metabList.MMexp == 1
+        fitMM = 2;
+    end
     % Create the modified basis set
     basisSet = fit_selectMetabs(basisSet, metabList, fitMM);
 end

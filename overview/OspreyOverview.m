@@ -250,8 +250,8 @@ for sf = 1 : NoFit %Loop over all fits
                 %section to write out MM_clean spectra
                 MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.MM_clean = ModelOutput.data -sum(ModelOutput.indivMets(:,1:4),2);
                 else%re_mm
-                    for n = 1 : MRSCont.fit.basisSet.nMets + MRSCont.fit.basisSet.nMM % loop over basis functions
-                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.(['fit' MRSCont.fit.basisSet.name{n}])  = ModelOutput.indivMets(:,n);
+                    for n = 1 : size(ModelOutput.indivMets,2) % loop over basis functions
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.(['fit' basisSet.name{n}])  = ModelOutput.indivMets(:,n);
                     end
                     % Add basis functions of metabolite combinations 
                     % tNAA = NAA + NAAG
@@ -317,7 +317,7 @@ for sf = 1 : NoFit %Loop over all fits
                     
                     % tMM = all MM functions
                     if MRSCont.opts.fit.fitMM == 1
-                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittMM  = sum(ModelOutput.indivMets(:,MRSCont.fit.basisSet.nMets+1:end),2);
+                        MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittMM  = sum(ModelOutput.indivMets(:,basisSet.nMets+1:end),2);
                     end
                 end %re_mm
             else %if the fit was not succesful write nans into the corresponding fields
@@ -387,6 +387,7 @@ end
 for sf = 1 : NoFit % loop over all fits
     if ~strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'ref_ref') || strcmp([FitNames{sf} '_' dataPlotNames{sf}], 'w_w')
         for kk = 1 : MRSCont.nDatasets % loop over all data sets
+            naa = 1;
              %Find the ppm of the maximum peak magnitude within the given range:
              if MRSCont.flags.isUnEdited
                 ppmindex=find(MRSCont.overview.Osprey.all_models.off_A{1,kk}.data(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>1.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<2.1)==max(MRSCont.overview.Osprey.all_models.off_A{1,kk}.data(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>1.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<2.1)));
@@ -400,6 +401,11 @@ for sf = 1 : NoFit % loop over all fits
                     ppmindex=find(MRSCont.overview.Osprey.all_models.off_A{1,kk}.data(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>1.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<2.1)==max(MRSCont.overview.Osprey.all_models.off_A{1,kk}.data(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>1.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<2.1)));
                     ppmrange=MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>1.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<2.1);
                 end
+                if isempty(ppmindex)
+                    ppmindex=find(MRSCont.overview.Osprey.all_models.off_A{1,kk}.data(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>2.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<3.1)==max(MRSCont.overview.Osprey.all_models.off_A{1,kk}.data(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>2.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<3.1)));
+                    ppmrange=MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>2.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<3.1);
+                    naa = 0;
+                end
              end
              if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
                 if isfield(MRSCont.overview.Osprey.all_models, 'conc_diff1')
@@ -411,7 +417,11 @@ for sf = 1 : NoFit % loop over all fits
                 end
              end
             ppmmax=ppmrange(ppmindex);
-            MRSCont.overview.Osprey.refShift(kk)=(ppmmax-2.013); %ref shift value
+            if naa == 1
+                MRSCont.overview.Osprey.refShift(kk)=(ppmmax-2.013); %ref shift value
+            else
+                MRSCont.overview.Osprey.refShift(kk)=(ppmmax-3.03); %ref shift value
+            end
             MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm = MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm - MRSCont.overview.Osprey.refShift(kk);
         end
     end
@@ -631,7 +641,7 @@ end
 %in the listbox of the GUI
 if isfield(MRSCont, 'exclude')
     if~isempty(MRSCont.exclude)
-        MRSCont.overview.groups(MRSCont.exclude) = [];
+        MRSCont.overview.groups(MRSCont.exclude) = 0;
     end
 end
 
@@ -648,7 +658,7 @@ for sf = 1 : NoFit % loop over fits
     for g = 1 : MRSCont.overview.NoGroups % loop over groups
         MRSCont.overview.Osprey.sort_fit.(['g_' num2str(g)]).([FitNames{sf} '_' dataPlotNames{sf}]) = MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}])(1,MRSCont.overview.groups == g);
     end
-    MRSCont.overview.Osprey.sort_fit.GMean.([FitNames{sf} '_' dataPlotNames{sf}]) = MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}])(1,:);
+    MRSCont.overview.Osprey.sort_fit.GMean.([FitNames{sf} '_' dataPlotNames{sf}]) = MRSCont.overview.Osprey.all_models.([FitNames{sf} '_' dataPlotNames{sf}])(1,MRSCont.overview.groups > 0);
 end
 
 %%% 5. READ CORRELATION DATA INTO THE STRUCT %%%
@@ -694,9 +704,11 @@ end
 for sf = 1 : NoFit %loop over fits
     names = fields(MRSCont.overview.Osprey.sort_fit);
     for g = 1 : length(names) %Loop over groups
-            tempSubSpec = zeros(length(MRSCont.overview.Osprey.sort_fit.(names{g}).([FitNames{sf} '_' dataPlotNames{sf}]){1}),length(MRSCont.overview.Osprey.sort_fit.(names{g}).([FitNames{sf} '_' dataPlotNames{sf}]){1}.ppm));
+            tempSubSpec = zeros(length(MRSCont.overview.Osprey.sort_fit.(names{g}).([FitNames{sf} '_' dataPlotNames{sf}])),length(MRSCont.overview.Osprey.sort_fit.(names{g}).([FitNames{sf} '_' dataPlotNames{sf}]){1}.ppm));
             tempSubRes = tempSubSpec;
             tempSubdata = tempSubSpec;
+            tempSubBaseline = tempSubSpec;
+            tempInidivMetab = [];
             for kk = 1 : length(MRSCont.overview.Osprey.sort_fit.(names{g}).([FitNames{sf} '_' dataPlotNames{sf}])) % Loop over datasets to generate a matrices
               tempSubSpec(kk,:) = MRSCont.overview.Osprey.sort_fit.(names{g}).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit; %Fits
               tempSubRes(kk,:) = MRSCont.overview.Osprey.sort_fit.(names{g}).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res; % Residuals
@@ -749,13 +761,23 @@ for sf = 1 : NoFit %Loop over fits
                     ppmmax=ppmrange(ppmindex);
                     refShift=(ppmmax-2.013);
                 else
+                    naa = 1;
                     ppmindex=find(MRSCont.overview.Osprey.sort_fit.(names{g}).mean_data_off_A(MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A>1.9 & MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A<2.1)==max(MRSCont.overview.Osprey.sort_fit.(names{g}).mean_data_off_A(MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A>1.9 & MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A<2.1)));
                     ppmrange=MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A(MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A>1.9 & MRSCont.overview.Osprey.sort_fit.(names{g}).ppm_fit_off_A<2.1);
+                    if isempty(ppmindex)
+                        ppmindex=find(MRSCont.overview.Osprey.all_models.off_A{1,kk}.data(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>2.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<3.1)==max(MRSCont.overview.Osprey.all_models.off_A{1,kk}.data(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>2.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<3.1)));
+                        ppmrange=MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm(MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm>2.9 & MRSCont.overview.Osprey.all_models.off_A{1,kk}.ppm<3.1);
+                        naa = 0;
+                    end
                     ppmmax=ppmrange(ppmindex);
                     if length(ppmmax) > 1
                         refShift = 0;
-                    else
-                        refShift=(ppmmax-2.013);
+                    else if naa == 1
+                            refShift=(ppmmax-2.013);
+                        else
+                            refShift=(ppmmax-3.02);
+                        
+                    end
                     end
                 end
             end

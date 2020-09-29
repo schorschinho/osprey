@@ -71,14 +71,18 @@ if strcmp(quant,'AlphaCorrWaterScaled') || strcmp(quant,'AlphaCorrWaterScaledGro
     idx_1  = 1;
     ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};
 else
-    idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
+    idx_1  = find(strcmp(MRSCont.quantify.metabs.(model),metab));
     ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};
 end
 metabFlag = 0;
+if isempty(ConcData)
+    dim = size(ConcData);
+    ConcData = zeros(dim(1),1);
+end
 
 if ischar(corrData)
     metabFlag = 1;
-    idx_1  = find(strcmp(MRSCont.quantify.metabs,corrData));
+    idx_1  = find(strcmp(MRSCont.quantify.metabs.(model),corrData));
     corrData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};
 end
 

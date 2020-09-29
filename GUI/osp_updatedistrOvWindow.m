@@ -32,7 +32,7 @@ function osp_updatedistrOvWindow(gui)
             if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                 metab = 'GABA';
             else
-                metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
+                metab = MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab};
             end
             if ~gui.controls.GM
                 [temp] = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot'); 

@@ -74,7 +74,7 @@ for ss = 1 : NoSubSpec
     for np = 1 : length(MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint)
         [max_ind] = find(temp_sz==MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint(np));
         temp_sw(max_ind) = nan;
-        [MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np},MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np},~]  = unique(temp_sw,'Stable');
+        [MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np},MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np},MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_indsort{np}]  = unique(temp_sw,'Stable');
         nanind = isnan(MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np});
         MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np}(isnan(MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np}(1:end))) = [];
         MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np}(nanind ==1) = [];
