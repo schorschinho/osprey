@@ -38,7 +38,7 @@ end
 resBasisSet             = fit_resampleBasis(dataToFit, basisSet);
 
 if dataToFit.centerFreq == 4.83
-    out = op_alignScans(resBasisSet,dataToFit,max(resBasisSet.t));
+    out = op_alignScans(resBasisSet,dataToFit,max(resBasisSet.t)+1);
     resBasisSet.specs = out.specs;
     resBasisSet.fids = out.fids;
 end
