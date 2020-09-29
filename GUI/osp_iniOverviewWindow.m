@@ -216,8 +216,8 @@ function osp_iniOverviewWindow(gui)
                                         'Title', ['Results: ' (gui.quant.Names.Quants{gui.quant.Selected.Quant})],...
                                         'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                         'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-        QuantTextOv = cell(MRSCont.nDatasets+1,gui.quant.Number.Metabs);
-        QuantTextOv(1,:) = MRSCont.quantify.metabs;
+        QuantTextOv = cell(MRSCont.nDatasets+1,length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})));
+        QuantTextOv(1,:) = MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model});
         QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant})(:,:));
         temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv,...
             'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
@@ -241,7 +241,7 @@ function osp_iniOverviewWindow(gui)
                                                  'String',gui.quant.popMenuNames, 'Value', 1);
         gui.controls.pop_distrOvMetab = uicontrol('Parent',gui.controls.distrOv,'style','popupmenu',...
                                                  'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                                 'String',MRSCont.quantify.metabs, 'Value', 1);
+                                                 'String',MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}), 'Value', 1);
        gui.controls.check_distrOv = uicontrol('Parent',gui.controls.distrOv,'Style','checkbox','BackgroundColor',gui.colormap.Background,'String','Gand Mean', ...
                                                     'Value',gui.controls.GM,'Position',[0 0 1 1],'FontName', 'Arial');                                         
        gui.upperBox.distrOv.upperButtons = uix.Panel('Parent', gui.upperBox.distrOv.box, ...
@@ -257,7 +257,7 @@ function osp_iniOverviewWindow(gui)
 
 %osp_plotQuantifyTable to create distribution overview as raincloud plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotRaincloud(MRSCont,gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},'Raincloud plot');
+        [temp] = osp_plotRaincloud(MRSCont,gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.overview.Selected.Metab},'Raincloud plot');
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Plot.distrOv);
         close( temp );
@@ -283,7 +283,7 @@ function osp_iniOverviewWindow(gui)
                                                 'String',gui.quant.popMenuNames, 'Value', 1);
         gui.controls.pop_corrOvMetab = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                                 'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
-                                                'String',MRSCont.quantify.metabs, 'Value', 1);
+                                                'String',MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}), 'Value', 1);
         gui.controls.pop_corrOvCorr = uicontrol('Parent',gui.controls.corrOv,'style','popupmenu',...
                                                'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', 'Arial', ...
                                                'String',gui.overview.Names.QM, 'Value', 1);                                 
@@ -303,7 +303,7 @@ function osp_iniOverviewWindow(gui)
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 %osp_plotQuantifyTable is used to create a correlation plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+        [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.overview.Selected.Metab},MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Plot.corrOv);
         set(gui.Plot.corrOv,'Heights', [-0.07 -0.90 -0.03]);

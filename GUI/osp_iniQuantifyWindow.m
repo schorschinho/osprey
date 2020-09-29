@@ -62,9 +62,9 @@ function osp_iniQuantifyWindow(gui)
 % In this case a table is created based on a uicontol slider
             gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t})));
             gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t}));
-            QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.quant.Number.Quants);
+            QuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{t}))+1,gui.quant.Number.Quants);
             QuantText{1,1} = 'Metabolite';
-            QuantText(2:end,1) = MRSCont.quantify.metabs';
+            QuantText(2:end,1) = MRSCont.quantify.metabs.(gui.quant.Names.Model{t})';
                 for q = 1 : gui.quant.Number.Quants % Collect all results
                     QuantText(1,q+1) = gui.quant.Names.Quants(q);
                     if (strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')) && isfield(MRSCont.quantify.tables.(gui.quant.Names.Model{t}),'AlphaCorrWaterScaled')

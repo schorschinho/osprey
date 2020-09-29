@@ -35,7 +35,7 @@ function osp_pop_corrOvQuant_Call(src,~,gui)
            set(gui.controls.pop_corrOvMetab, 'Enable', 'off');
            set(gui.overview.Selected, 'Metab',1)
         else
-           set(gui.controls.pop_corrOvMetab, 'String', MRSCont.quantify.metabs);
+           set(gui.controls.pop_corrOvMetab, 'String', MRSCont.quantify.metabs.(split_Selection{1}));
            set(gui.controls.pop_corrOvMetab, 'Value', gui.overview.Selected.Metab);
            set(gui.controls.pop_corrOvMetab, 'Enable', 'on');
         end

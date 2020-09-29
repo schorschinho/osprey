@@ -40,10 +40,10 @@ function [augmA, augmb] = fit_createSoftConstrOsprey(basisSet, A, b, ampl)
 
 % Set up vector of soft constraints. All of the below vectors require
 % identical length.
-constr1.met     = {'Lip13', 'Lip13', 'MM09', 'MM09', 'MM09', 'MM09', 'NAA'};
-constr1.wght    = [1        1        1       1       1       1       1];
-constr2.met     = {'Lip09', 'Lip20', 'MM20', 'MM12', 'MM14', 'MM17', 'NAAG'};
-constr2.wght    = [0.267    0.15     1.5     0.3     0.75    0.375   0.15];
+constr1.met     = {'Lip13', 'Lip13', 'MM09', 'MM09', 'MM09', 'MM09', 'NAA', 'MM09', 'MM09', 'MM09'};
+constr1.wght    = [1        1        1       1       1       1       1          1       1       1];
+constr2.met     = {'Lip09', 'Lip20', 'MM20', 'MM12', 'MM14', 'MM17', 'NAAG', 'MM37', 'MM38', 'MM40'};
+constr2.wght    = [0.267    0.15     1.5     0.3     0.75    0.375   0.15      0.89   0.1     1.39  ];
 len1 = length(constr1.met);
 len2 = length(constr1.wght);
 len3 = length(constr2.met);
