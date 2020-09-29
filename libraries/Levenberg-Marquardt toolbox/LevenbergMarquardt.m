@@ -487,10 +487,12 @@ if nargout>5
             funccount=funccount+func_evals_Jacobian;
         end
         dh=D_unbnd2bnd(yGuess,lb,ub);
-        Jx=bsxfun(@times,J,1./dh);        
+%         Jx=bsxfun(@times,J,1./dh); 
+        Jx = J;
         output.firstorder=(Jx'*fval);
         output.firstorderopt=max(abs((Jx'*fval)));
         output.Jacobian=Jx;
+        output.dh=dh;
     end
 end
 %   close things
