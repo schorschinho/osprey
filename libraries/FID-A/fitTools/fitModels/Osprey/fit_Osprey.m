@@ -122,7 +122,7 @@ if ~isempty(progressText)
     drawnow
 end
 
-if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift')
+if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift') && ~isfield(fitOpts,'Diff2')
     switch fitOpts.coMM3        
         case '3to2MMsoft'
         [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'MM');

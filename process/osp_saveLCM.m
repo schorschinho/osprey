@@ -40,15 +40,14 @@ close all;
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'LCModelFiles');
 if ~exist(fullfile(saveDestination,'metabs'),'dir')
-    mkdir(fullfile(saveDestination,'metabs'));
-    if MRSCont.flags.hasRef && ~exist(fullfile(saveDestination,'ref'),'dir')
-        mkdir(fullfile(saveDestination,'ref'));
-    end
-    if MRSCont.flags.hasWater && ~exist(fullfile(saveDestination,'w'),'dir')
-        mkdir(fullfile(saveDestination,'w'));
-    end        
+    mkdir(fullfile(saveDestination,'metabs'));      
 end
-
+if MRSCont.flags.hasRef && ~exist(fullfile(saveDestination,'ref'),'dir')
+    mkdir(fullfile(saveDestination,'ref'));
+end
+if MRSCont.flags.hasWater && ~exist(fullfile(saveDestination,'w'),'dir')
+    mkdir(fullfile(saveDestination,'w'));
+end  
 %%% 1 Export files
 LCMparam = osp_lcmcontrol_params(MRSCont.flags.isMEGA);
 % Loop over all datasets
@@ -101,7 +100,7 @@ for kk = 1:MRSCont.nDatasets
     if MRSCont.flags.hasRef
         % Get TE and the input file name. For GE, the water reference is
         % already contained in the P file.
-        if strcmpi(MRSCont.vendor, 'GE')
+        if strcmpi(MRSCont.vendor, 'GE') || strcmp(MRSCont.datatype,'DATA')
             te_ref                      = MRSCont.processed.A{kk}.te;
             [path_ref,filename_ref,~]   = fileparts(MRSCont.files{kk});
         else
