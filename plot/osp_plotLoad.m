@@ -51,7 +51,7 @@ if nargin<9
                 [~,filen,ext] = fileparts(MRSCont.files_mm{kk});% re_mm
                 figTitle = sprintf(['Load MM data plot: ' filen ext '\n']);% re_mm
         case 'ref'
-            if ~strcmp(MRSCont.datatype,'P')
+            if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
                 [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
                 figTitle = sprintf(['Load water reference data plot: ' filen ext '\n']);
             else

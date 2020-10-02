@@ -46,6 +46,10 @@ end
 if contains(seq,'slaser')
     seq = 'slaser';
 end
+
+if ~strcmp(seq,'press') && ~strcmp(seq,'slaser') %Unable to find the localization type we will assume it is PRESS
+    seq = 'press';
+end
     
 if MRSCont.flags.isUnEdited
     switch MRSCont.vendor
