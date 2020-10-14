@@ -108,10 +108,7 @@ if ~MRSCont.flags.isPRIAM
         end
     end
 elseif MRSCont.flags.isPRIAM
-    msg = 'Coming soon!';
-    fprintf(fileID,msg);
-    error(msg);
-    %[MRSCont] = osp_senseRecon(MRSCont);
+    [MRSCont] = osp_senseRecon(MRSCont);
 end
 
 %% Clean up and save
