@@ -1,5 +1,5 @@
-function out = osp_plotLoad(MRSCont, kk, which, VoxelIndex, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
-%% out = osp_plotLoad(MRSCont, kk, which, VoxelIndex, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
+function out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
+%% out = osp_plotLoad(MRSCont, kk, which, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %   Creates a figure showing raw data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *unprocessed*
 %   data, i.e. all averages will be shown prior to spectral alignment,
@@ -20,7 +20,6 @@ function out = osp_plotLoad(MRSCont, kk, which, VoxelIndex, stag, ppmmin, ppmmax
 %                                       'mm'
 %                               'ref'
 %                               'w'
-%       VoxelIndex = Index for the Voxel
 %       stag     = Numerical value representing the fraction of the maximum
 %                   by which individual averages should be plotted
 %                   vertically staggered (optional. Default - 0, i.e. no stagger)
@@ -43,7 +42,7 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin<10
+if nargin<9
     switch which
         case 'mets'
             [~,filen,ext] = fileparts(MRSCont.files{kk});
@@ -65,11 +64,11 @@ if nargin<10
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
-    if nargin<9
+    if nargin<8
         ylab='';
-        if nargin<8
+        if nargin<7
             xlab='Frequency (ppm)';
-            if nargin<7
+            if nargin<6
                 switch which
                     case 'mets'
                         ppmmax = 4.5;
@@ -80,7 +79,7 @@ if nargin<10
                     otherwise
                         error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                 end
-                if nargin<6
+                if nargin<5
                     switch which
                         case 'mets'
                             ppmmin = 0.2;
@@ -91,17 +90,14 @@ if nargin<10
                         otherwise
                             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                     end
-                    if nargin<5
+                    if nargin<4
                         stag = 0;
-                        if nargin<4
-                            VoxelIndex = 1;                        
-                            if nargin < 3
-                                which = 'mets';
-                                if nargin < 2
-                                    kk = 1;
-                                    if nargin<1
-                                        error('ERROR: no input Osprey container specified.  Aborting!!');
-                                    end
+                        if nargin < 3
+                            which = 'mets';
+                            if nargin < 2
+                                kk = 1;
+                                if nargin<1
+                                    error('ERROR: no input Osprey container specified.  Aborting!!');
                                 end
                             end
                         end
@@ -115,41 +111,17 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract raw spectra in the plot range
-if isfield(MRSCont.flags,'isPRIAM')
-    if (MRSCont.flags.isPRIAM == 1) || (MRSCont.flags.isMRSI == 1)
-        if ~exist('VoxelIndex')
-            VoxelIndex = 1;
-        end
-    end
-    switch which
-        case 'mets'
-            dataToPlot=op_takeVoxel(MRSCont.raw{kk},VoxelIndex);
-            dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
-        case 'mm' %re_mm
-            dataToPlot=op_takeVoxel(MRSCont.raw_mm{kk},VoxelIndex);
-            dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);   %re_mm
-        case 'ref'
-            dataToPlot=op_takeVoxel(MRSCont.raw_ref{kk},VoxelIndex);
-            dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
-        case 'w'
-            dataToPlot=op_takeVoxel(MRSCont.raw_w{kk},VoxelIndex);
-            dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
-        otherwise
-            error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-    end
-else
-    switch which
-        case 'mets'
-            dataToPlot  = op_freqrange(MRSCont.raw{kk}, ppmmin, ppmmax);
-        case 'mm' %re_mm
-            dataToPlot  = op_freqrange(MRSCont.raw_mm{kk}, ppmmin, ppmmax);   %re_mm
-        case 'ref'
-            dataToPlot  = op_freqrange(MRSCont.raw_ref{kk}, ppmmin, ppmmax);
-        case 'w'
-            dataToPlot  = op_freqrange(MRSCont.raw_w{kk}, ppmmin, ppmmax);
-        otherwise
-            error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-    end
+switch which
+    case 'mets'
+        dataToPlot  = op_freqrange(MRSCont.raw{kk}, ppmmin, ppmmax);
+    case 'mm' %re_mm
+        dataToPlot  = op_freqrange(MRSCont.raw_mm{kk}, ppmmin, ppmmax);   %re_mm
+    case 'ref'
+        dataToPlot  = op_freqrange(MRSCont.raw_ref{kk}, ppmmin, ppmmax);
+    case 'w'
+        dataToPlot  = op_freqrange(MRSCont.raw_w{kk}, ppmmin, ppmmax);
+    otherwise
+        error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
 end
 
 
