@@ -104,12 +104,6 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Sequence type is set to unedited (default). Please indicate otherwise in the csv-file or the GUI \n');
         seqType = 'unedited';
     end
-    if isfield(jobStruct,'MultiVoxel')
-        MultiVoxel = jobStruct(1).MultiVoxel;
-    else
-        fprintf('Multivoxel isset to single voxel spectroscopy  (default). Please indicate otherwise in the csv-file or the GUI \n');
-        MultiVoxel = 'SVS';
-    end
     if isfield(jobStruct,'editTarget')
         MRSCont.opts.editTarget = jobStruct(1).editTarget;
     else
@@ -262,18 +256,6 @@ if exist('dataScenario','var')
 else
     MRSCont.flags.isPhantom = 0;
     warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
-end
-
-% Parse the multi voxel entry
-if exist('MultiVoxel','var')
-    switch MultiVoxel
-        case 'PRIAM'
-            MRSCont.flags.isPRIAM = 1;
-        case 'MRSI'
-            MRSCont.flags.isMRSI = 1;
-        otherwise
-            warning('Multi voxel must be ''PRIAM'' or ''MRSI''in the job file, and has been set to ''single voxel'' (default).');
-    end
 end
 
 % Parse spectral registration entry
