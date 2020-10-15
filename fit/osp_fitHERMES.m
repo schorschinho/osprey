@@ -61,7 +61,7 @@ for kk = 1:MRSCont.nDatasets
             basisSetSum.fids = basisSetSum.fids(:,:,7);
             basisSetSum.specs = basisSetSum.specs(:,:,7);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
-
+            
             % Call the fit function
             [fitParamsSum, resBasisSetSum] = fit_runFit(dataToFit, basisSetSum, fitModel, fitOpts);
 
@@ -79,6 +79,10 @@ for kk = 1:MRSCont.nDatasets
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
             dataToFit.refShift   = fitParamsSum.refShift;
             dataToFit.refFWHM   = fitParamsSum.refFWHM;
+            
+            if isfield(fitOpts, 'coMM3') && ~strcmp(fitOpts.coMM3, 'none')
+                [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetSum,fitOpts);
+            end
 
             % Call the fit function
             [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
@@ -97,6 +101,7 @@ for kk = 1:MRSCont.nDatasets
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
             dataToFit.refShift   = fitParamsSum.refShift;
             dataToFit.refFWHM   = fitParamsSum.refFWHM;
+            fitOpts.Diff2 = 1;
 
             % Call the fit function
             [fitParamsDiff2, resBasisSetDiff2]  = fit_runFit(dataToFit, basisSetDiff2, fitModel, fitOpts);

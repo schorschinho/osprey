@@ -134,6 +134,9 @@ opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
 % Add macromolecule and lipid basis functions to the fit? 
 opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
+                                                
+opts.fit.coMM3              = 'none';
+opts.fit.FWHMcoMM3              = 14;                                                
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

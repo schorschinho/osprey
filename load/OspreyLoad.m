@@ -74,8 +74,7 @@ switch MRSCont.vendor
             case 'SDAT'
                 [MRSCont] = osp_LoadSDAT(MRSCont);
             case 'DATA'
-                error('Support for Philips DATA/LIST files coming soon!');
-                %[MRSCont] = osp_LoadDATA(MRSCont);
+                [MRSCont] = osp_LoadDATA(MRSCont);
             case 'RAW'
                 error('Support for Philips RAW/LAB/SIN files coming soon!');
                 %[MRSCont] = osp_LoadRAW(MRSCont);

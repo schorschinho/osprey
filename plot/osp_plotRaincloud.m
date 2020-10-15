@@ -89,7 +89,7 @@ if ~strcmp(quant,'Quality')
         idx_1  = 1;
         ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
     else
-        idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
+        idx_1  = find(strcmp(MRSCont.quantify.metabs.(model),metab));
         ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
     end
 else
@@ -97,6 +97,11 @@ else
    idx_1  = find(strcmp(quality,metab));
    ConcData = MRSCont.QM.tables {:,idx_1};
    quality_Names = {'SNR','FWHM (ppm)','freqShift (Hz)'};
+end
+
+if isempty(ConcData)
+    dim = size(ConcData);
+    ConcData = zeros(dim(1),1);
 end
 
 if strcmp(quant, 'tCr')
