@@ -12,24 +12,32 @@ switch seqType
                     
         app.FittingStyleDropDown.Enable = 'Off';
         app.FittingStyleDropDownLabel.Enable = 'Off';
+        app.DenoisingDropDown.Enable = 'On';
+        app.DenoisingDropDown.Value = 'none';
     case 'MEGA'
         app.EditingTargetsDropDown.Items = {'GABA','GSH'};
         app.EditingTargetsDropDown.Value = 'GABA';
                     
         app.FittingStyleDropDown.Enable = 'On';
         app.FittingStyleDropDownLabel.Enable = 'On';
+        app.DenoisingDropDown.Enable = 'Off';
+        app.DenoisingDropDown.Value = 'none';
     case 'HERMES'
         app.EditingTargetsDropDown.Items = {'GABA, GSH','GABA, GSH, EtOH'};
         app.EditingTargetsDropDown.Value = 'GABA, GSH';
                     
         app.FittingStyleDropDown.Enable = 'On';
         app.FittingStyleDropDownLabel.Enable = 'On';
+        app.DenoisingDropDown.Enable = 'Off';
+        app.DenoisingDropDown.Value = 'none';
     case 'HERCULES'
         app.EditingTargetsDropDown.Items = {'HERCULES1','HERCULES2','HERCULES3'};
         app.EditingTargetsDropDown.Value = 'HERCULES1';
                     
         app.FittingStyleDropDown.Enable = 'On';
         app.FittingStyleDropDownLabel.Enable = 'On';
+        app.DenoisingDropDown.Enable = 'Off';
+        app.DenoisingDropDown.Value = 'none';
 end
             
 app.EditingTargetsDropDown.Value = editTarget;
@@ -64,6 +72,12 @@ else
     else
         app.SpectralregistrationDropDown.Value = 'Robust';
     end
+end
+
+if isfield(opts,'denoising')
+    app.DenoisingDropDown.Value = opts.denoising;
+else
+    app.DenoisingDropDown.Value = 'none';
 end
 
 app.FittingAlgorithmDropDown.Value = opts.fit.method;

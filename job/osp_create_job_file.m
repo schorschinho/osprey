@@ -51,6 +51,8 @@ switch lower(app.SpectralregistrationDropDown.Value)
         fprintf(fid,'\n%s',['opts.SpecReg = ''none'';']);
 end
 
+fprintf(fid,'\n%s',['opts.denoising = ''' app.DenoisingDropDown.Value ''';']);
+
 fprintf(fid,'\n%s',['opts.fit.method = ''' app.FittingAlgorithmDropDown.Value ''';']);
 
 switch app.IncludedMetabolitesDropDown.Value 
