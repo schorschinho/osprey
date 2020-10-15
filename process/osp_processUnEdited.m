@@ -273,6 +273,13 @@ for kk = 1:MRSCont.nDatasets
             [raw_mm]             = op_freqshift(raw_mm,-refShift_mm);            % Reference spectra by cross-correlation
             MRSCont.processed.mm{kk}       = raw_mm;                          % Save back to MRSCont container  %re_mm
         end
+        
+        %%% 7. DENOISING
+        if isfield(MRSCont.opts,'denoising')
+            switch lower(MRSCont.opts.denoising)
+                
+            end
+        end
 
         
         % Save back to MRSCont container
@@ -285,7 +292,7 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.A{kk}     = raw;
 
 
-        %%% 7. GET SHORT-TE WATER DATA %%%
+        %%% 8. GET SHORT-TE WATER DATA %%%
         if MRSCont.flags.hasWater
             raw_w                           = MRSCont.raw_w{kk};                % Get the kk-th dataset
             if raw_w.averages > 1 && raw_w.flags.averaged == 0
@@ -311,7 +318,7 @@ for kk = 1:MRSCont.nDatasets
         end
 
 
-        %%% 8. QUALITY CONTROL PARAMETERS %%%
+        %%% 9. QUALITY CONTROL PARAMETERS %%%
         % Calculate some spectral quality metrics here;
         MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor             
         MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % LW in Hz
@@ -350,7 +357,7 @@ end
 fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
 fclose(fileID);
 
-%%% 9. SET FLAGS %%%
+%%% 10. SET FLAGS %%%
 MRSCont.flags.avgsAligned       = 1;
 MRSCont.flags.averaged          = 1;
 MRSCont.flags.ECCed             = 1;
