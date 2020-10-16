@@ -281,10 +281,14 @@ else if subspecs == 4
 end
 
 fids=squeeze(fids_edit_ph);
-fids_w=squeeze(fids_water_ph);
+if n_mixes == 2
+    fids_w=squeeze(fids_water_ph);
+end
 
 sz=size(fids);
-sz_w=size(fids_w);
+if n_mixes == 2
+    sz_w=size(fids_w);
+end
 
 %Find the magnetic field strength:
 Bo=Larmor/42.577;
@@ -308,14 +312,18 @@ else
 end
 dims.extras=0;
 
-dims_w.t=1;
-dims_w.coils=2;
-dims_w.averages=3;
-dims_w.subSpecs=0;
-dims_w.extras=0;
+if n_mixes == 2
+    dims_w.t=1;
+    dims_w.coils=2;
+    dims_w.averages=3;
+    dims_w.subSpecs=0;
+    dims_w.extras=0;
+end
 
 specs=fftshift(ifft(fids,[],dims.t),dims.t);
-specs_w=fftshift(ifft(fids_w,[],dims_w.t),dims_w.t);
+if n_mixes == 2
+    specs_w=fftshift(ifft(fids_w,[],dims_w.t),dims_w.t);
+end
 
 
 %Now get relevant scan parameters:*****************************
@@ -352,21 +360,23 @@ else
 end
 
 %FOR WATER UNSUPPRESSED DATA:
-if dims_w.subSpecs ~=0
-    if dims_w.averages~=0
-        averages_w=sz_w(dims_w.averages)*sz(dims_w.subSpecs);
-        rawAverages_w=averages_w;
+if n_mixes == 2
+    if dims_w.subSpecs ~=0
+        if dims_w.averages~=0
+            averages_w=sz_w(dims_w.averages)*sz(dims_w.subSpecs);
+            rawAverages_w=averages_w;
+        else
+            averages_w=sz_w(dims_w.subSpecs);
+            rawAverages_w=1;
+        end
     else
-        averages_w=sz_w(dims_w.subSpecs);
-        rawAverages_w=1;
-    end
-else
-    if dims_w.averages~=0
-        averages_w=sz_w(dims_w.averages);
-        rawAverages_w=averages_w;
-    else
-        averages_w=1;
-        rawAverages_w=1;
+        if dims_w.averages~=0
+            averages_w=sz_w(dims_w.averages);
+            rawAverages_w=averages_w;
+        else
+            averages_w=1;
+            rawAverages_w=1;
+        end
     end
 end
 
@@ -385,12 +395,14 @@ else
 end
 
 %FOR WATER UNSUPPRESSED DATA:
-if dims_w.subSpecs ~=0
-    subspecs_w=sz_w(dims.subSpecs);
-    rawSubspecs_w=subspecs_w;
-else
-    subspecs_w=1;
-    rawSubspecs_w=subspecs_w;
+if n_mixes == 2
+    if dims_w.subSpecs ~=0
+        subspecs_w=sz_w(dims.subSpecs);
+        rawSubspecs_w=subspecs_w;
+    else
+        subspecs_w=1;
+        rawSubspecs_w=subspecs_w;
+    end
 end
 
 %****************************************************************
@@ -454,48 +466,50 @@ end
 
 %FOR WATER UNSUPPRESSED DATA
 %FILLING IN DATA STRUCTURE
-out_w.fids=fids_w;
-out_w.specs=specs_w;
-out_w.sz=sz_w;
-out_w.ppm=ppm;  
-out_w.t=t;    
-out_w.spectralwidth=spectralwidth;
-out_w.dwelltime=dwelltime;
-out_w.txfrq=txfrq;
-out_w.date=date;
-out_w.dims=dims_w;
-out_w.Bo=Bo;
-out_w.averages=averages_w;
-out_w.rawAverages=rawAverages_w;
-out_w.subspecs=subspecs_w;
-out_w.rawSubspecs=rawSubspecs_w;
-out_w.seq='';
-out_w.te=te;
-out_w.tr=tr;
-out_w.pointsToLeftshift=0;
-out_w.centerFreq = centerFreq;
-if hasSPAR
-    out_w.geometry = geometry;
-end
+if n_mixes == 2
+    out_w.fids=fids_w;
+    out_w.specs=specs_w;
+    out_w.sz=sz_w;
+    out_w.ppm=ppm;  
+    out_w.t=t;    
+    out_w.spectralwidth=spectralwidth;
+    out_w.dwelltime=dwelltime;
+    out_w.txfrq=txfrq;
+    out_w.date=date;
+    out_w.dims=dims_w;
+    out_w.Bo=Bo;
+    out_w.averages=averages_w;
+    out_w.rawAverages=rawAverages_w;
+    out_w.subspecs=subspecs_w;
+    out_w.rawSubspecs=rawSubspecs_w;
+    out_w.seq='';
+    out_w.te=te;
+    out_w.tr=tr;
+    out_w.pointsToLeftshift=0;
+    out_w.centerFreq = centerFreq;
+    if hasSPAR
+        out_w.geometry = geometry;
+    end
 
 
-%FILLING IN THE FLAGS
-out_w.flags.writtentostruct=1;
-out_w.flags.gotparams=1;
-out_w.flags.leftshifted=0;
-out_w.flags.filtered=0;
-out_w.flags.zeropadded=0;
-out_w.flags.freqcorrected=0;
-out_w.flags.phasecorrected=0;
-out_w.flags.averaged=0;
-out_w.flags.addedrcvrs=0;
-out_w.flags.subtracted=0;
-out_w.flags.writtentotext=0;
-out_w.flags.downsampled=0;
-if out_w.dims.subSpecs==0
-    out_w.flags.isISIS=0;
-else
-    out_w.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
+    %FILLING IN THE FLAGS
+    out_w.flags.writtentostruct=1;
+    out_w.flags.gotparams=1;
+    out_w.flags.leftshifted=0;
+    out_w.flags.filtered=0;
+    out_w.flags.zeropadded=0;
+    out_w.flags.freqcorrected=0;
+    out_w.flags.phasecorrected=0;
+    out_w.flags.averaged=0;
+    out_w.flags.addedrcvrs=0;
+    out_w.flags.subtracted=0;
+    out_w.flags.writtentotext=0;
+    out_w.flags.downsampled=0;
+    if out_w.dims.subSpecs==0
+        out_w.flags.isISIS=0;
+    else
+        out_w.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
+    end
 end
 
 % No water in list file

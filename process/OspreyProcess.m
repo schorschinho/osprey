@@ -45,20 +45,27 @@ fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckPro '\n'],
 [~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
 % Post-process raw data depending on sequence type
-if MRSCont.flags.isUnEdited
-    [MRSCont] = osp_processUnEdited(MRSCont);
-elseif MRSCont.flags.isMEGA
-    [MRSCont] = osp_processMEGA(MRSCont);
-elseif MRSCont.flags.isHERMES
-    [MRSCont] = osp_processHERMES(MRSCont);
-elseif MRSCont.flags.isHERCULES
-    % For now, process HERCULES like HERMES data
-    [MRSCont] = osp_processHERCULES(MRSCont);
+if ~MRSCont.flags.isPRIAM
+    if MRSCont.flags.isUnEdited
+        [MRSCont] = osp_processUnEdited(MRSCont);
+    elseif MRSCont.flags.isMEGA
+        [MRSCont] = osp_processMEGA(MRSCont);
+    elseif MRSCont.flags.isHERMES
+        [MRSCont] = osp_processHERMES(MRSCont);
+    elseif MRSCont.flags.isHERCULES
+        % For now, process HERCULES like HERMES data
+        [MRSCont] = osp_processHERCULES(MRSCont);
+    else
+        msg = 'No flag set for sequence type!';
+        fprintf(fileID,msg);
+        error(msg);
+    end
 else
-    msg = 'No flag set for sequence type!';
-    fprintf(fileID,msg);
-    error(msg);
+    fclose(fileID);
+    [MRSCont] = osp_processMultiVoxel(MRSCont);
 end
+
+
 
 % Gather some more information from the processed data;
 SubSpecNames = fieldnames(MRSCont.processed);
@@ -127,16 +134,18 @@ else
     error(msg);
 end
 
-if ~MRSCont.flags.hasRef
-    QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
-else
-    QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.FWHM.ref',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
+if ~MRSCont.flags.isPRIAM
+    if ~MRSCont.flags.hasRef
+        QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
+    else
+        QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.FWHM.ref',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
+    end
+    MRSCont.QM.tables = array2table(QM,'VariableNames',names);
+    writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
 end
-MRSCont.QM.tables = array2table(QM,'VariableNames',names);
-writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
 
 % Optional:  Create all pdf figures
-if MRSCont.opts.savePDF
+if MRSCont.opts.savePDF && ~MRSCont.flags.isPRIAM
     Names = fieldnames(MRSCont.processed);
     for kk = 1 : MRSCont.nDatasets
         for ss = 1 : length(Names)
@@ -146,20 +155,19 @@ if MRSCont.opts.savePDF
 end
 
 % Optional: write edited files to LCModel .RAW files
-if MRSCont.opts.saveLCM
+if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM
     [MRSCont] = osp_saveLCM(MRSCont);
 end
 
 % Optional: write edited files to jMRUI .txt files
-if MRSCont.opts.savejMRUI
+if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM
     [MRSCont] = osp_saveJMRUI(MRSCont);
 end
-
 % Optional: write edited files to vendor specific format files readable to
 % LCModel and jMRUI
 % SPAR/SDAT if Philips
 % RDA if Siemens
-if MRSCont.opts.saveVendor
+if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM
     [MRSCont] = osp_saveVendor(MRSCont);
 end
 
