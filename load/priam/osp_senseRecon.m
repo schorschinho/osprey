@@ -14,8 +14,8 @@ function MRSCont = osp_senseRecon(MRSCont)
 %   Author:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2018-03-15)
 %       goeltzs1@jhmi.edu
-%   
-%   Credits:    
+%
+%   Credits:
 %       This code is based on an initial PRIAM reconstruction routine.
 %       Dr. Vincent O. Boer (vincentob@drcmr.dk)
 %       Danish Research Centre for Magnetic Resonance (Hvidovre Hospital)
@@ -91,7 +91,4 @@ for kk = 1:length(raw_fields)
         MRSCont = rmfield(MRSCont, raw_fields{kk});
     end
 end
-
-%% Store MultiVoxelInfo
-MRSCont.MultiVoxelInfo.Xvoxels = 2;
 end

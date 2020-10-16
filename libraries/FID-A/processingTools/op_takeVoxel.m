@@ -23,9 +23,9 @@ function out=op_takeVoxel(in,index);
 
 
 
-if (in.flags.MultiVoxel==0)
-    error('ERROR:  This is not a multi voxel dataset!  Aborting!');
-end
+% if (in.flags.MultiVoxel==0)
+%     error('ERROR:  This is not a multi voxel dataset!  Aborting!');
+% end
 
 %PRIAM data
 if length(index)==1
@@ -129,3 +129,4 @@ end
 %FILLING IN THE FLAGS
 out.flags=in.flags;
 out.flags.MultiVoxel=0;
+end

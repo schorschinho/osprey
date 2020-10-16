@@ -10,20 +10,20 @@ if in.dims.subSpecs ~= 0
     fids = zeros(in.sz(in.dims.t),in.sz(in.dims.averages),in.sz(in.dims.subSpecs),Voxels);
     for ll = 1:Navg
         for mm = 1:NsubSpec
-            fids(:,ll,mm,:) = (SENSE.U * squeeze(in.fids(:,:,ll,mm))')';
+            fids(:,ll,mm,:) = (SENSE.U * squeeze(in.fids(:,:,ll,mm)).').';
             % Phase by multiplying with normalized complex conjugate of first point
             conj_norm = conj(fids(1,ll,mm,:)) ./ abs(conj(fids(1,ll,mm,:)));
-            fids(:,ll,mm,:) = fids(:,ll,mm,:) .* permute(repmat(conj_norm(:,:)', [1 1 1 in.sz(in.dims.t) 1]), [4 2 3 1]);
+            fids(:,ll,mm,:) = fids(:,ll,mm,:) .* permute(repmat(conj_norm(:,:).', [1 1 1 in.sz(in.dims.t) 1]), [4 2 3 1]);
         end
     end
 else
     fids = zeros(in.sz(in.dims.t),in.sz(in.dims.averages),Voxels);
     for ll = 1:Navg
-            fids(:,ll,:) = (SENSE.U * squeeze(in.fids(:,:,ll))')';
+            fids(:,ll,:) = (SENSE.U * squeeze(in.fids(:,:,ll)).').';
             % Phase by multiplying with normalized complex conjugate of first point
             conj_norm = conj(fids(1,ll,:)) ./ abs(conj(fids(1,ll,:)));
-            fids(:,ll,:) = fids(:,ll,:) .* permute(repmat(conj_norm(:,:)', [1 1 in.sz(in.dims.t) 1]), [3 2 1]);
-    end    
+            fids(:,ll,:) = fids(:,ll,:) .* permute(repmat(conj_norm(:,:).', [1 1 in.sz(in.dims.t) 1]), [3 2 1]);
+    end
 end
 
 %re-calculate Specs using fft
@@ -62,11 +62,16 @@ out.specs=specs;
 out.sz=sz;
 out.dims=dims;
 
+%Adding MultiVoxelInfo
+out.nXvoxels = Voxels;
+out.nYvoxels = 0;
+out.nZvoxels = 0;
+
 %Adding voxel dimension
 if in.dims.subSpecs ~= 0
     out.dims.Xvoxels = 4;
 else
-    out.dims.Xvoxels = 3; 
+    out.dims.Xvoxels = 3;
 end
 
 %FILLING IN THE FLAGS
@@ -74,5 +79,5 @@ out.flags=in.flags;
 out.flags.MultiVoxel=1;
 out.flags.addedrcvrs =1;
 
-    
+
 end

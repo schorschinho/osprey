@@ -59,19 +59,24 @@ MRSCont.runtime.Fit = 0;
 [MRSCont] = osp_fitInitialise(MRSCont);
 MRSCont.opts.fit.outputFolder = outputFolder;
 % Call the fit functions (depending on sequence type)
-if MRSCont.flags.isUnEdited
-    [MRSCont] = osp_fitUnEdited(MRSCont);
-elseif MRSCont.flags.isMEGA
-    [MRSCont] = osp_fitMEGA(MRSCont);
-elseif MRSCont.flags.isHERMES
-    [MRSCont] = osp_fitHERMES(MRSCont);
-elseif MRSCont.flags.isHERCULES
-    % For now, fit HERCULES like HERMES data
-    [MRSCont] = osp_fitHERCULES(MRSCont);
+if ~MRSCont.flags.isPRIAM
+    if MRSCont.flags.isUnEdited
+        [MRSCont] = osp_fitUnEdited(MRSCont);
+    elseif MRSCont.flags.isMEGA
+        [MRSCont] = osp_fitMEGA(MRSCont);
+    elseif MRSCont.flags.isHERMES
+        [MRSCont] = osp_fitHERMES(MRSCont);
+    elseif MRSCont.flags.isHERCULES
+        % For now, fit HERCULES like HERMES data
+        [MRSCont] = osp_fitHERCULES(MRSCont);
+    else
+        msg = 'No flag set for sequence type!';
+        fprintf(fileID,msg);
+        error(msg);
+    end
 else
-    msg = 'No flag set for sequence type!';
-    fprintf(fileID,msg);
-    error(msg);
+    fclose(fileID);
+    [MRSCont] = osp_fitMultiVoxel(MRSCont);
 end
 
 %% Perform water reference and short-TE water fit
@@ -143,46 +148,48 @@ fprintf(fileID,'Full fit time %f seconds\n',MRSCont.runtime.Fit);
 fclose(fileID); %close log file
 
 %% Store  and print some QM parameters
-[MRSCont]=osp_fit_Quality(MRSCont);
+if ~MRSCont.flags.isPRIAM
+    [MRSCont]=osp_fit_Quality(MRSCont);
 
-% Store data quality measures in csv file
-if MRSCont.flags.isUnEdited
-    relResA = MRSCont.QM.relAmpl.A';
-    MRSCont.QM.tables.relResA = relResA;
-elseif MRSCont.flags.isMEGA
-    if strcmp( MRSCont.opts.fit.style, 'Separate')
+    % Store data quality measures in csv file
+    if MRSCont.flags.isUnEdited
         relResA = MRSCont.QM.relAmpl.A';
-        relResdiff1 = MRSCont.QM.relAmpl.diff1';
         MRSCont.QM.tables.relResA = relResA;
-        MRSCont.QM.tables.relResdiff1 = relResdiff1;
+    elseif MRSCont.flags.isMEGA
+        if strcmp( MRSCont.opts.fit.style, 'Separate')
+            relResA = MRSCont.QM.relAmpl.A';
+            relResdiff1 = MRSCont.QM.relAmpl.diff1';
+            MRSCont.QM.tables.relResA = relResA;
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+        else
+            relRessum = MRSCont.QM.relAmpl.sum';
+            relResdiff1 = MRSCont.QM.relAmpl.diff1';
+            MRSCont.QM.tables.relRessum = relRessum;
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;        
+        end        
+    elseif MRSCont.flags.isHERMES
+            relRessum = MRSCont.QM.relAmpl.sum';
+            relResdiff1 = MRSCont.QM.relAmpl.diff1';
+            relResdiff2 = MRSCont.QM.relAmpl.diff2';
+            MRSCont.QM.tables.relRessum = relRessum;
+            MRSCont.QM.tables.relResdiff1 = relResdiff1; 
+            MRSCont.QM.tables.relResdiff2 = relResdiff2;
+    elseif MRSCont.flags.isHERCULES
+        % For now, process HERCULES like HERMES data
+            relRessum = MRSCont.QM.relAmpl.sum';
+            relResdiff1 = MRSCont.QM.relAmpl.diff1';
+            relResdiff2 = MRSCont.QM.relAmpl.diff2';
+            MRSCont.QM.tables.relRessum = relRessum;
+            MRSCont.QM.tables.relResdiff1 = relResdiff1; 
+            MRSCont.QM.tables.relResdiff2 = relResdiff2;    
     else
-        relRessum = MRSCont.QM.relAmpl.sum';
-        relResdiff1 = MRSCont.QM.relAmpl.diff1';
-        MRSCont.QM.tables.relRessum = relRessum;
-        MRSCont.QM.tables.relResdiff1 = relResdiff1;        
-    end        
-elseif MRSCont.flags.isHERMES
-        relRessum = MRSCont.QM.relAmpl.sum';
-        relResdiff1 = MRSCont.QM.relAmpl.diff1';
-        relResdiff2 = MRSCont.QM.relAmpl.diff2';
-        MRSCont.QM.tables.relRessum = relRessum;
-        MRSCont.QM.tables.relResdiff1 = relResdiff1; 
-        MRSCont.QM.tables.relResdiff2 = relResdiff2;
-elseif MRSCont.flags.isHERCULES
-    % For now, process HERCULES like HERMES data
-        relRessum = MRSCont.QM.relAmpl.sum';
-        relResdiff1 = MRSCont.QM.relAmpl.diff1';
-        relResdiff2 = MRSCont.QM.relAmpl.diff2';
-        MRSCont.QM.tables.relRessum = relRessum;
-        MRSCont.QM.tables.relResdiff1 = relResdiff1; 
-        MRSCont.QM.tables.relResdiff2 = relResdiff2;    
-else
-    msg = 'No flag set for sequence type!';
-    fprintf(fileID,msg);
-    error(msg);
-end
+        msg = 'No flag set for sequence type!';
+        fprintf(fileID,msg);
+        error(msg);
+    end
 
-writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
+    writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
+end
 
 %% Clean up and save
 % Set exit flags and version

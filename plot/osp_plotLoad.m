@@ -115,12 +115,10 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract raw spectra in the plot range
-if isfield(MRSCont.flags,'isPRIAM')
-    if (MRSCont.flags.isPRIAM == 1) || (MRSCont.flags.isMRSI == 1)
+if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
         if ~exist('VoxelIndex')
             VoxelIndex = 1;
         end
-    end
     switch which
         case 'mets'
             dataToPlot=op_takeVoxel(MRSCont.raw{kk},VoxelIndex);
@@ -277,5 +275,3 @@ if ~MRSCont.flags.isGUI
 end
 
 end
-
-   

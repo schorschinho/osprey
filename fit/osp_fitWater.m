@@ -44,26 +44,57 @@ basisSet.specs  = basisSet.specs(:,logical(idx_toKeep),1);
 basisSet.nMets  = 1; basisSet.nMM = 0;
 
 %%  Construct the basis functions and the spectrum that is to be fit.
-% Apply scaling factor to the data
-dataToFit       = MRSCont.processed.(fitWhich){kk};
-dataToFit       = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+if MRSCont.flags.isPRIAM == 1
+    XVox = MRSCont.raw{1}.nXvoxels;
+% else if MRSCont.flags.isMRSI == 1
+%         XVox = MRSCont.raw{1}.nXvoxels;
+%         YVox = MRSCont.raw{1}.nYvoxels;
+%         ZVox = MRSCont.raw{1}.nZvoxels;
+%     end
+end
+
 % Extract fit options
 fitOpts     = MRSCont.opts.fit;
 fitModel    = fitOpts.method;
 
-% Call the fit function
-[fitParamsWater, resBasisSetWater]  = fit_runFitWater(dataToFit, basisSet, fitModel, fitOpts);
-        
-%% Save back the fit parameters to MRSCont
-% Discern whether the reference or the short-TE water scan was selected
-switch fitWhich
-    case 'ref'
-        str = 'ref';
-    case 'w'
-        str = 'w';
+if MRSCont.flags.isPRIAM == 1
+    XVox = MRSCont.raw{1}.nXvoxels;
+    for x = 1 : XVox
+        % Apply scaling factor to the data
+        dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},x);      
+        dataToFit = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk}(x));
+        % Call the fit function
+        [fitParamsWater, resBasisSetWater]  = fit_runFitWater(dataToFit, basisSet, fitModel, fitOpts);
+        % Save back the fit parameters to MRSCont
+        % Discern whether the reference or the short-TE water scan was selected
+        switch fitWhich
+            case 'ref'
+                str = 'ref';
+            case 'w'
+                str = 'w';
+        end
+        % Write
+        MRSCont.fit.resBasisSet{x}.(str).water{kk}      = resBasisSetWater;
+        MRSCont.fit.results{x}.(str).fitParams{kk}   = fitParamsWater;
+    end
+else 
+        % Apply scaling factor to the data
+        dataToFit       = MRSCont.processed.(fitWhich){kk};
+        dataToFit       = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+
+        % Call the fit function
+        [fitParamsWater, resBasisSetWater]  = fit_runFitWater(dataToFit, basisSet, fitModel, fitOpts);
+        % Save back the fit parameters to MRSCont
+        % Discern whether the reference or the short-TE water scan was selected
+        switch fitWhich
+            case 'ref'
+                str = 'ref';
+            case 'w'
+                str = 'w';
+        end
+        % Write
+        MRSCont.fit.resBasisSet.(str).water{kk}      = resBasisSetWater;
+        MRSCont.fit.results.(str).fitParams{kk}   = fitParamsWater;
 end
-% Write
-MRSCont.fit.resBasisSet.(str).water{kk}      = resBasisSetWater;
-MRSCont.fit.results.(str).fitParams{kk}   = fitParamsWater;
-        
+               
 end

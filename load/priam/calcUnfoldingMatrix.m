@@ -22,8 +22,8 @@ function MRSCont = calcUnfoldingMatrix(MRSCont, ref_file, Ref, img_array, noise_
 %   Author:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2018-03-18)
 %       goeltzs1@jhmi.edu
-%   
-%   Credits:    
+%
+%   Credits:
 %       This code is based on an initial PRIAM reconstruction routine.
 %       Dr. Vincent O. Boer (vincentob@drcmr.dk)
 %       Danish Research Centre for Magnetic Resonance (Hvidovre Hospital)
@@ -43,9 +43,9 @@ refsc_orientation = MRSCont.SENSE{kk}.refsc_sin_info.slice_orientation; % 0 = ax
 
 % Get dimensions, orientation and global offset of MRS scan
 sin_file = strrep(spec_file,'.data','.sin');
-if ~isfile(sin_file) 
+if ~isfile(sin_file)
     msg = 'No sin file found. It needs to have the same name as the .data file.';
-    error(msg);   
+    error(msg);
 end
 
 MRSCont.SENSE{kk}.sin_info = get_sin_info(sin_file);
@@ -57,52 +57,61 @@ mrs_orientation = MRSCont.SENSE{kk}.sin_info.slice_orientation; % not needed yet
 mrs_angulation = [MRSCont.raw_uncomb{kk}.geometry.rot.ap MRSCont.raw_uncomb{kk}.geometry.rot.lr MRSCont.raw_uncomb{kk}.geometry.rot.cc]; % ap - rl - fh
 
 % Calculate voxel offsets (this will need more work later)
-% disp('Offset Voxel 1: (AP, RL, FH)')
 mrs_offset1 = [ mrs_offset(1); mrs_offset(2); mrs_offset(3)];
-% disp('Offset Voxel 2: (AP, RL, FH)')
-mrs_offset2 = [ mrs_offset(1); ...
-    mrs_offset(2) - MRSCont.SENSE{kk}.vox_sep * cos(mrs_angulation(1)*pi/180); ...
-    mrs_offset(3) + MRSCont.SENSE{kk}.vox_sep * sin(mrs_angulation(1)*pi/180)]; % will depend on orientation and angulations extracted from SDAT
 
+% Calculate voxel offset in dependence of the orientation of the mrs voxel
+switch refsc_orientation
+    case 1 % saggital orientation ap - rl - fh
+        mrs_offset2 = [ mrs_offset(1); ...
+            mrs_offset(2) - MRSCont.SENSE{kk}.vox_sep * cos(mrs_angulation(1)*pi/180); ...
+            mrs_offset(3) + MRSCont.SENSE{kk}.vox_sep * sin(mrs_angulation(1)*pi/180)]; % will depend on orientation and angulations extracted from SDAT
+
+    case 2 % coronal orientation ap - rl - fh
+        mrs_offset2 = [ mrs_offset(1)+ MRSCont.SENSE{kk}.vox_sep * sin(mrs_angulation(1)*pi/180); ...
+            mrs_offset(2); ...
+            mrs_offset(3) - MRSCont.SENSE{kk}.vox_sep * cos(mrs_angulation(1)*pi/180)]; % will depend on orientation and angulations extracted from SDAT
+end
 % Translate ref scan into 'real world' dimensions depending on orientation of
 % the reference orientation. Arrange such that the order of dimensions is
 % always AP-RL-FH.
 switch refsc_orientation
     case 1 % sagittal slices
-        % This arrives in the order 
+        % This arrives in the order
         % [ncoils fh ap rl]
         img_array = permute(img_array,[1 3 4 2]);
         dim_ap = size(img_array,2);
         dim_rl = size(img_array,3);
         dim_fh = size(img_array,4);
-        
+
         img_array = flip(img_array, 3);
         % refscan voxel size arrives in order ap fh rl
         % swap to make ap rl fh
         refsc_voxel_size([1 2 3]) = refsc_voxel_size([1 3 2]);
-        mrs_offset([1 2 3]) = mrs_offset([1 3 2]);
+%         mrs_offset([1 2 3]) = mrs_offset([1 3 2]);
 
     case 2 % coronal slices
         % This arrives in the order
-        % [ncoils rl fh ap]
-        img_array = permute(img_array,[1 4 2 3]); 
+        % [ncoils fh rl ap]
+        img_array = permute(img_array,[1 4 3 2]);
         dim_ap = size(img_array,2);
         dim_rl = size(img_array,3);
         dim_fh = size(img_array,4);
-        
-        % refscan voxel size arrives in order rl fh ap % presumably!
+
+        % refscan voxel size arrives in order fh rl ap % presumably!
         % swap to make ap rl fh
-        refsc_voxel_size([1 2 3]) = refsc_voxel_size([3 1 2]); 
-        
+        refsc_voxel_size([1 2 3]) = refsc_voxel_size([3 2 1]);
+%         mrs_offset([1 2 3]) = mrs_offset([3 2 1]);
+%         refsc_offset([1 2 3]) = refsc_offset([3 2 1]);
+
     case 0 % axial slices
         dim_ap = size(img_array,2);
         dim_rl = size(img_array,3); % presumably!
         dim_fh = size(img_array,4); % presumably!
-        
+
         % refscan voxel size arrives in order ap rl fh (presumably!)
         % swap to make ap rl fh
         refsc_voxel_size([1 2 3]) = refsc_voxel_size([1 2 3]);
-        
+
 end
 
 % Correct by offset of reference scan
@@ -230,101 +239,98 @@ noise_array(toDelete,:) = [];
 %% Figure
 %get sensitivities
 if ~MRSCont.SENSE{kk}.sens_from_ref_scan
-    
+
     ix = round(mean(ap_range));
     iy = round(mean(rl_range));
     iz = round(mean(fh_range));
     ix2 = round(mean(ap_range2));
     iy2 = round(mean(rl_range2));
     iz2 = round(mean(fh_range2));
-    
+
     signal = sens1;
     signal = signal./sqrt(sum(abs(signal).^2));
     tmpimage = squeeze(sum(bsxfun(@times, sensitivities, conj(signal)),1));
-    
+
     disp( ['orig. voxel positions; x1=' num2str(ix) '; y1=' num2str(iy) '; z1=' num2str(iz) ';'])
     [max_val, position] = max(abs(tmpimage(:)));
     [tx,ty,tz] = ind2sub(size(tmpimage),position);
     disp( ['opt. voxel positions; x1=' num2str(tx) '; y1=' num2str(ty) '; z1=' num2str(tz) ';'])
     disp(['similarity: ' num2str(max_val) ' vs ' num2str(abs(tmpimage(ix,iy,iz)))])
-    
+
     figure(17)
     clf
     jet2 = jet;
     jet2(1,:) = [0;0;0];
     colormap(jet2)
-    
+
     minpl = 0;
     maxpl = 1;
     
+    tmpimage(ix,iy,1:end) = 0.3;
+    tmpimage(ix,1:end,iz) = 0.3;
+    tmpimage(1:end,iy,iz) = 0.3;
+
     subplot(2,3,1)
+
     imagesc(abs(rot90(squeeze(tmpimage(ix,:,:)))),[minpl maxpl])
-    line([0 100],[iy iy],'Color',[1 1 1])
-    line([iz iz],[0 100],'Color',[1 1 1])
     ylabel('y');ylabel('FH')
     xlabel('z');xlabel('LR')
     axis square;
-    
+
     title('MPR')
     subplot(2,3,2)
     imagesc(abs(rot90(squeeze(tmpimage(:,iy,:)),3)),[minpl maxpl])
-    line([0 100],[ix ix],'Color',[1 1 1])
-    line([iz iz],[0 100],'Color',[1 1 1])
     ylabel('x');ylabel('AP')
     xlabel('z');xlabel('LR')
     axis square;
     set(gca,'YDir','normal');
     title('MPR')
+    
     subplot(2,3,3)
     imagesc(abs(squeeze(tmpimage(:,:,iz))),[minpl maxpl])
-    line([0 100],[ix ix],'Color',[1 1 1])
-    line([iy iy],[0 100],'Color',[1 1 1])
     ylabel('x');ylabel('AP')
     xlabel('y');xlabel('FH')
     axis square;
     set(gca,'YDir','normal');
     title('MPR')
-    
+
     signal = sens2;
     signal = signal./sqrt(sum(abs(signal).^2));
     tmpimage = squeeze(sum(bsxfun(@times, sensitivities, conj(signal)),1));
-    
+    tmpimage(ix2,iy2,1:end) = 0.3;
+    tmpimage(ix2,1:end,iz2) = 0.3;
+    tmpimage(1:end,iy2,iz2) = 0.3;
+
     disp( ['orig. voxel positions; x1=' num2str(ix2) '; y1=' num2str(iy2) '; z1=' num2str(iz2) ';'])
     [max_val, position] = max(abs(tmpimage(:)));
     [tx,ty,tz] = ind2sub(size(tmpimage),position);
     disp( ['opt. voxel positions; x2=' num2str(tx) '; y2=' num2str(ty) '; z2=' num2str(tz) ';'])
     disp(['similarity: ' num2str(max_val) ' vs ' num2str(abs(tmpimage(ix2,iy2,iz2)))])
     disp(' ')
-    
+
     subplot(2,3,4)
     imagesc(abs(rot90(squeeze(tmpimage(ix2,:,:)))),[minpl maxpl])
-    line([0 100],[iy2 iy2],'Color',[1 1 1])
-    line([iz2 iz2],[0 100],'Color',[1 1 1])
     axis square;
     ylabel('y')
     xlabel('z')
-    
+
     title('MPR')
     subplot(2,3,5)
     imagesc(abs(rot90(squeeze(tmpimage(:,iy2,:)),3)),[minpl maxpl])
-    line([0 100],[ix2 ix2],'Color',[1 1 1])
-    line([iz2 iz2],[0 100],'Color',[1 1 1])
     axis square;
     ylabel('x')
     xlabel('z')
     set(gca,'YDir','normal');
-    
+
     title('MPR')
     subplot(2,3,6)
     imagesc(abs(squeeze(tmpimage(:,:,iz2))),[minpl maxpl])
-    line([0 100],[ix2 ix2],'Color',[1 1 1])
-    line([iy2 iy2],[0 100],'Color',[1 1 1])
     axis square;
     ylabel('x')
     xlabel('y')
     set(gca,'YDir','normal');
     title('MPR')
-    
+
 end
 %%
 % Normalize

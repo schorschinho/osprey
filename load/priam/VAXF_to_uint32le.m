@@ -1,4 +1,3 @@
-
 function [ uint32le] = VAXF_to_uint32le(floatVAXF)
 %VAXF_TO_UINT32LE Converts from VAXF (single precision) to IEEE-LE (UINT32)
 
