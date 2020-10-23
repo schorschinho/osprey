@@ -1,0 +1,167 @@
+%% jobSDAT.m
+%   This function describes an Osprey job defined in a MATLAB script.
+%
+%   A valid Osprey job contains four distinct classes of items:
+%       1. basic information on the MRS sequence used
+%       2. several settings for data handling and modeling
+%       3. a list of MRS (and, optionally, structural imaging) data files
+%          to be loaded
+%       4. an output folder to store the results and exported files
+%
+%   The list of MRS and structural imaging files is provided in the form of
+%   cell arrays. They can simply be provided explicitly, or from a more
+%   complex script that automatically determines file names from a given
+%   folder structure.
+%
+%   Osprey distinguishes between four sets of data:
+%       - metabolite (water-suppressed) data
+%           (MANDATORY)
+%           Defined in cell array "files"
+%       - water reference data acquired with the SAME sequence as the
+%           metabolite data, just without water suppression RF pulses. This
+%           data is used to determine complex coil combination
+%           coefficients, and perform eddy current correction.
+%           (OPTIONAL)
+%           Defined in cell array "files_ref"
+%       - additional water data used for water-scaled quantification,
+%           usually from short-TE acquisitions due to reduced T2-weighting
+%           (OPTIONAL)
+%           Defined in cell array "files_w"
+%       - Structural image data used for co-registration and tissue class
+%           segmentation (usually a T1 MPRAGE). These files need to be
+%           provided in the NIfTI format (*.nii) or, for GE data, as a
+%           folder containing DICOM Files (*.dcm).
+%           (OPTIONAL)
+%           Defined in cell array "files_nii"
+%
+%   Files in the formats
+%       - .7 (GE)
+%       - .SDAT, .DATA/.LIST, .RAW/.SIN/.LAB (Philips)
+%       - .DAT (Siemens)
+%   usually contain all of the acquired data in a single file per scan. GE
+%   systems store water reference data in the same .7 file, so there is no
+%   need to specify it separately under files_ref.
+%
+%   Files in the formats
+%       - .DCM (any)
+%       - .IMA, .RDA (Siemens)
+%   may contain separate files for each average. Instead of providing
+%   individual file names, please specify folders. Metabolite data, water
+%   reference data, and water data need to be located in separate folders.
+%
+%   AUTHOR:
+%       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
+%       goeltzs1@jhmi.edu
+%
+%   HISTORY:
+%       2019-07-15: First version of the code.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 1. SPECIFY SEQUENCE INFORMATION %%%
+
+% Specify sequence type
+seqType = 'MEGA';           % OPTIONS:    - 'unedited' (default)
+                                %             - 'MEGA'
+                                %             - 'HERMES'
+                                %             - 'HERCULES'
+                                
+                                % Specify Multi voxel type (optional)
+MultiVoxel = 'PRIAM';           % OPTIONS:    - 'PRIAM' (default)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%
+opts.fit.includeMetabs      = { 'default'}; 
+
+% Save LCModel-exportable files for each spectrum?
+opts.saveLCM                = 0;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+% Save jMRUI-exportable files for each spectrum?
+opts.saveJMRUI              = 0;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+
+% Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
+opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+
+% Choose the fitting algorithm
+opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
+                                                %           - 'AQSES' (planned)
+                                                %           - 'LCModel' (planned)
+                                                %           - 'TARQUIN' (planned)
+
+% Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
+% (only available for the Osprey fitting method)
+opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
+                                                %           - 'Separate' - will fit DIFF and OFF separately
+
+% Determine fitting range (in ppm) for the metabolite and water spectra
+opts.fit.range              = [0.5 4.0];        % [ppm] Default: [0.2 4.2]
+opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
+
+% Determine the baseline knot spacing (in ppm) for the metabolite spectra
+opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
+
+% Add macromolecule and lipid basis functions to the fit?
+opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
+                                                %             - 1 (yes, default)
+ editTarget                  = {'GABA'};                                                
+
+opts.fit.coMM3              = 'freeGauss';
+opts.fit.FWHMcoMM3              = 14;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
+% When using single-average Siemens RDA or DICOM files, specify their
+% folders instead of single files!
+
+% Specify metabolite data
+% (MANDATORY)
+files       = {'E:\0DrBarker_R01project\PRIAM\transneg\mrs\raw_tra_neg.data',...
+                'E:\0DrBarker_R01project\PRIAM\transneg2\mrs\raw_tra2_neg.data'};
+
+% Specify water reference data for eddy-current correction (same sequence as metabolite data!)
+% (OPTIONAL)
+% Leave empty for GE P-files (.7) - these include water reference data by
+% default.
+files_ref   =  {};
+
+% Specify water data for quantification (e.g. short-TE water scan)
+% (OPTIONAL)
+files_w     = {};
+
+% Specify T1-weighted structural imaging data
+% (OPTIONAL)
+% Link to single NIfTI (*.nii) files for Siemens and Philips data
+% Link to DICOM (*.dcm) folders for GE data
+files_nii   = {};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 4. SPECIFY STAT FILE %%%
+% Supply location of a csv file, which contains possible correlation
+% measures and group variables. Each column must start with the name of the
+% measure. For the grouping variable use 'group' and numbers between 1 and
+% the number of included groups. If no group is supplied the data will be
+% treated as one group.
+
+file_stat = '';
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 5. SPECIFY OUTPUT FOLDER %%
+% The Osprey data container will be saved as a *.mat file in the output
+% folder that you specify below. In addition, any exported files (for use
+% with jMRUI, TARQUIN, or LCModel) will be saved in sub-folders.
+
+% Specify output folder
+% (MANDATORY)
+outputFolder = 'E:\0DrBarker_R01project\PRIAM\derivatives';
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
