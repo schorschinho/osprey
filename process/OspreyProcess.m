@@ -88,6 +88,39 @@ for ss = 1 : NoSubSpec
         temp_sw = temp_sw_store;
     end
 end
+%% Get scaling for the plots
+% Creates y-axis range to align the process plots between datasets
+MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
+
+for ss = 1 : NoSubSpec
+    Range = zeros(2,MRSCont.nDatasets);
+    switch SubSpecNames{ss}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum','mm'}
+            ppmmax = 4.5;
+        case {'ref', 'w'}
+            ppmmax = 2*4.68;        
+    end
+    switch SubSpecNames{ss}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
+            ppmmin = 0.2;
+        case {'ref', 'w','mm'}
+            ppmmin = 0;        
+    end
+    for kk = 1 : MRSCont.nDatasets
+        temp_spec = op_freqrange(MRSCont.processed.(SubSpecNames{ss}){kk}, ppmmin, ppmmax);
+        if ~(strcmp(SubSpecNames{ss},'ref') || strcmp(SubSpecNames{ss},'w'))
+            Range(1,kk) = max(real(temp_spec.specs),[],'all');
+            Range(2,kk) = min(real(temp_spec.specs),[],'all');   
+        else
+            Range(1,kk) = max(abs(real(temp_spec.specs)),[],'all');
+            Range(2,kk) = min(abs(real(temp_spec.specs)),[],'all');            
+        end
+    end
+    MRSCont.plot.processed.(SubSpecNames{ss}).max = Range(1,:);
+    MRSCont.plot.processed.(SubSpecNames{ss}).min = Range(2,:);
+    MRSCont.plot.processed.(SubSpecNames{ss}).ContMax = max(Range(1,:));
+    MRSCont.plot.processed.(SubSpecNames{ss}).ContMin = min(Range(2,:)); 
+end
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess    = 1;
@@ -111,7 +144,7 @@ if MRSCont.flags.isUnEdited
     end
 elseif MRSCont.flags.isMEGA
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
-    subspec = {'sum'};
+    subspec = {'A'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
     end
