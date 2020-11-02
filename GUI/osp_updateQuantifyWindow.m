@@ -37,15 +37,23 @@ function osp_updateQuantifyWindow(gui)
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
         gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model})));
         gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}));
-        QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.quant.Number.Quants);
+        QuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}))+1,gui.quant.Number.Quants);
         QuantText{1,1} = 'Metabolite';
-        QuantText(2:end,1) = MRSCont.quantify.metabs';
+        QuantText(2:end,1) = MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})';
        for q = 1 : gui.quant.Number.Quants %Collect all results
             QuantText(1,q+1) = gui.quant.Names.Quants(q);
             if strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')
-                idx_GABA  = find(strcmp(MRSCont.quantify.metabs,'GABA'));
-                tempQuantText = cell(length(MRSCont.quantify.metabs),1);
-                tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
+                idx_GABA  = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}),'GABA'));
+                if strcmp(MRSCont.opts.fit.coMM3, 'none')                            
+                     tempQuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})),1);
+                     tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
+                else                              
+                     tempQuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})),1);
+                     tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:);
+                     tempQuantText(idx_GABA) = table2cell(tempQuants(1,1));
+                     idx_GABAp  = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}),'GABAplus'));
+                     tempQuantText(idx_GABAp) = table2cell(tempQuants(1,2));
+                end  
                 QuantText(2:end,q+1) = tempQuantText;
             else
                 QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';

@@ -34,8 +34,13 @@ function osp_updatequantOvWindow(gui)
                 else
                     exclude = 0;
                 end
-                QuantTextOv = cell(MRSCont.nDatasets+1-exclude,1);
-                QuantTextOv(1,:) = {'GABA'};
+                if ~strcmp(MRSCont.opts.fit.coMM3, 'none')
+                    QuantTextOv = cell(MRSCont.nDatasets+1-exclude,2);
+                    QuantTextOv(1,:) = {'GABA','GABA+'};
+                else
+                   QuantTextOv = cell(MRSCont.nDatasets+1-exclude,1);
+                   QuantTextOv(1,:) = {'GABA'}; 
+                end
                 QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
             else
                 if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
@@ -43,8 +48,8 @@ function osp_updatequantOvWindow(gui)
                 else
                     exclude = 0;
                 end            
-                QuantTextOv = cell(MRSCont.nDatasets+1-exclude,gui.quant.Number.Metabs);
-                QuantTextOv(1,:) = MRSCont.quantify.metabs;
+                QuantTextOv = cell(MRSCont.nDatasets+1-exclude,length(MRSCont.quantify.metabs.(split_Selection{1})));
+                QuantTextOv(1,:) = MRSCont.quantify.metabs.(split_Selection{1});
                 QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2})(:,:));
             end
         else
@@ -53,7 +58,7 @@ function osp_updatequantOvWindow(gui)
             else
                 exclude = 0;
             end  
-            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,6);
+            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,length(MRSCont.QM.tables.Properties.VariableNames));
             QuantTextOv(1,:) = MRSCont.QM.tables.Properties.VariableNames;
             QuantTextOv(2:end,:) = table2cell(MRSCont.QM.tables(:,:));
         end
@@ -61,7 +66,7 @@ function osp_updatequantOvWindow(gui)
         set( temp, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         set( temp, 'Parent', gui.Results.quantOv );
         if ~strcmp(Selection,'Quality') 
-            set(gui.Results.quantOv, 'Title', ['Results: ' split_Selection{2}]);
+            set(gui.Results.quantOv, 'Title', ['Results: ' Selection]);
         else
             set(gui.Results.quantOv, 'Title', 'Results: Quality' );
         end
