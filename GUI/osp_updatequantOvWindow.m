@@ -62,9 +62,11 @@ function osp_updatequantOvWindow(gui)
             QuantTextOv(1,:) = MRSCont.QM.tables.Properties.VariableNames;
             QuantTextOv(2:end,:) = table2cell(MRSCont.QM.tables(:,:));
         end
-        temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv);
+        tempF = figure( 'Visible', 'off' );
+        temp=uimulticollist ( 'Parent',tempF,'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv,'Visible','off');
         set( temp, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         set( temp, 'Parent', gui.Results.quantOv );
+        close(tempF);
         if ~strcmp(Selection,'Quality') 
             set(gui.Results.quantOv, 'Title', ['Results: ' Selection]);
         else
