@@ -36,7 +36,7 @@ function osp_check_distrOv_Call(src,~,gui)
                set(gui.controls.pop_distrOvMetab, 'Value', gui.quant.idx.GABA);
                set(gui.controls.pop_distrOvMetab, 'Enable', 'off');
             else
-               set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.metabs);
+               set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.metabs.(split_Selection{1}));
                set(gui.controls.pop_distrOvMetab, 'Value', metab);
                set(gui.controls.pop_distrOvMetab, 'Enable', 'on');
             end
