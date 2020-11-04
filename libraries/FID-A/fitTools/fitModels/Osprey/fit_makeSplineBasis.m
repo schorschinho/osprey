@@ -94,10 +94,12 @@ end
 splineBasisFunctionMatrix(:,:,1) = real(splineBasisFunctionMatrix_Hilb);
 splineBasisFunctionMatrix(:,:,2) = -imag(splineBasisFunctionMatrix_Hilb);
 
+warning off
 % Now cut the functions out only between the nominal knots
 for rr = 1:length(beta_j)
     splineInnerBasisFunctionMatrix(:,rr,:) = splineBasisFunctionMatrix(knotLocations(3):1:knotLocations(end-2),rr,:);
 end
+warning on
 % visualize
 if plot
     figure

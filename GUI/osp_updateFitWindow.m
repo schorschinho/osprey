@@ -107,7 +107,7 @@ function osp_updateFitWindow(gui)
         end
 %%%3. VISUALIZATION PART OF THIS TAB %%%
         temp = figure( 'Visible', 'off' );
-        temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,Selection);
+        temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,Selection);
         ViewAxes = gca();
         delete(gui.Plot.fit.Children)
         set(ViewAxes.Children, 'Parent', gui.Plot.fit); %Update plot
