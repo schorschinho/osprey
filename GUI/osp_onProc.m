@@ -35,7 +35,6 @@ function osp_onProc( ~, ~ ,gui)
     delete(gui.layout.dummy);
     gui.process.Number = length(fieldnames(MRSCont.processed));
     gui.process.Names = fieldnames(MRSCont.processed);
-    gui.process.Names = sort(gui.process.Names);
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    
     osp_iniProcessWindow(gui);
