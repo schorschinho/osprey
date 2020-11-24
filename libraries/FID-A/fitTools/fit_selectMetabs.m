@@ -39,7 +39,7 @@ if nargin<3
 end
 % Save all available metabolite names in a cell
 all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','CrCH2','EtOH','GABA','GPC','GSH','Glc','Gln' ...
-    ,'Glu','Gly','H2O','Ins','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
+    ,'Glu','Gly','HCar','H2O','Ins','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
     ,'Scyllo','Ser','Tau','Tyros'};
 
 % Duplicate the input basis set
@@ -63,14 +63,23 @@ basisSetOut.nMets = sum(idx_toKeep);
 
 % If the flag for including MM/lipid basis functions is set in osp_FitInitialise,
 % include them now
-all_MMs = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
+switch fitMM 
+    case 2
+    all_MMs = {'MMexp'};   
+    otherwise
+    all_MMs = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20','MM37','MM38','MM40'};
+end
 % Check which of these are available in the basis set
 MMsInBasisSet = basisSetIn.name;
 [MMsToKeep,~,~] = intersect(MMsInBasisSet, all_MMs, 'stable');
-if fitMM
+if fitMM ==1
     idx_toKeepMM = ones(length(MMsToKeep),1);
-else
-    idx_toKeepMM = zeros(length(MMsToKeep),1);
+else if fitMM == 2
+        idx_toKeepMM = zeros(12,1);
+        idx_toKeepMM(end) = 1;
+    else
+        idx_toKeepMM = zeros(length(MMsToKeep),1);    
+    end
 end
 
 idx_toKeep = [idx_toKeep; idx_toKeepMM];

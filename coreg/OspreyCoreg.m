@@ -104,9 +104,13 @@ for kk = 1:MRSCont.nDatasets
                     case 'SDAT'
                         [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
                     case 'DATA'
+                        if isfield(MRSCont.raw{kk}, 'geometry')
+                            [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                        else
                         msg = 'Philips DATA files do not contain voxel geometry information.';
                         fprintf(fileID,msg);
-                        error(msg);                        
+                        error(msg);  
+                      end
                     case 'RAW'
                         msg = 'Philips RAW files do not contain voxel geometry information.';
                         fprintf(fileID,msg);

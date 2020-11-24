@@ -48,7 +48,6 @@ for kk = 1:MRSCont.nDatasets
     fitModel    = fitOpts.method;
     fitStyle    = fitOpts.style;
 
-
     %%% 2. SEPARATE FIT %%%
     % For the separate (classic) MEGA fit, model the EDIT-OFF and DIFF
     % spectra separately.
@@ -72,6 +71,7 @@ for kk = 1:MRSCont.nDatasets
 
             %%% 2b. FIT DIFF1-SPECTRUM
             % Apply scaling factor to the data
+            fitOpts     = MRSCont.opts.fit;
             dataToFit   = MRSCont.processed.diff1{kk};
             basisSetDiff1 = MRSCont.fit.basisSet;
             basisSetDiff1.fids = basisSetDiff1.fids(:,:,3);
@@ -81,7 +81,7 @@ for kk = 1:MRSCont.nDatasets
             dataToFit.refFWHM   = fitParamsOff.refFWHM;
             
             if ~strcmp(fitOpts.coMM3, 'none')
-                [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,fitOpts);
+                [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetOff,fitOpts);
             end
 
             % Call the fit function

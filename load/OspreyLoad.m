@@ -85,8 +85,7 @@ switch MRSCont.vendor
             case 'SDAT'
                 [MRSCont] = osp_LoadSDAT(MRSCont);
             case 'DATA'
-                error('Support for Philips DATA/LIST files coming soon!');
-                %[MRSCont] = osp_LoadDATA(MRSCont);
+                [MRSCont] = osp_LoadDATA(MRSCont);
             case 'RAW'
                 error('Support for Philips RAW/LAB/SIN files coming soon!');
                 %[MRSCont] = osp_LoadRAW(MRSCont);
@@ -120,10 +119,7 @@ if ~MRSCont.flags.isPRIAM
         end
     end
 elseif MRSCont.flags.isPRIAM
-    msg = 'Coming soon!';
-    fprintf(fileID,msg);
-    error(msg);
-    %[MRSCont] = osp_senseRecon(MRSCont);
+    [MRSCont] = osp_senseRecon(MRSCont);
 end
 
 %% Clean up and save

@@ -122,12 +122,19 @@ if ~isempty(progressText)
     drawnow
 end
 
-if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift')
-    switch fitOpts.coMM3
-        case 'BSpline'
-        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,10,0);
+if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift') && ~isfield(fitOpts,'Diff2')
+    switch fitOpts.coMM3        
         case '3to2MMsoft'
-        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0,1);
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'MM');
+        case '1to1GABAsoft'
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,1,'GABA');
+        case '3to2GABAsoft'  % 3:2 GABA and co-edited MM3 model
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'GABA');
+        case '2to3GABAsoft' % 2:3 GABA and co-edited MM3 model
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,1.5,'GABA');
+        case 'freeGauss' % Gauss with free frequency and linewidth
+        [fitParamsStep2] = fit_OspreyPrelimStep2freeGauss(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
+        resBasisSet = fitParamsStep2.resBasisSetUpdated;
         otherwise
             [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
     end             
@@ -135,7 +142,7 @@ else
     [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);    
 end
 
-% [J,Jfd,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);
+% [J,~,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);
 
 %%% 5. CREATE OUTPUT %%%
 % Return fit parameters
@@ -143,7 +150,7 @@ fitParams = fitParamsStep2;
 fitParams.refShift = refShift;
 fitParams.refFWHM = refFWHM;
 fitParams.prelimParams = fitParamsStep1;
-% fitParams.CRLB = CRLB;
+%fitParams.CRLB = CRLB;
 end
 
 

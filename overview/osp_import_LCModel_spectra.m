@@ -106,6 +106,10 @@ for i = 1 : files
                                     if ~isempty(idx_1)
                                         MRSCont.overview.LCModel.all_models.(name){1,j}.fittMM  = MRSCont.overview.LCModel.all_models.(name){1,j}.fittMM + MRSCont.overview.LCModel.all_models.(name){1,j}.(['fit' dataNames{idx_1}]);
                                     end
+                                    idx_1  = find(strcmp(dataNames,'MMexp'));
+                                    if ~isempty(idx_1)
+                                        MRSCont.overview.LCModel.all_models.(name){1,j}.fittMM  = MRSCont.overview.LCModel.all_models.(name){1,j}.fittMM + MRSCont.overview.LCModel.all_models.(name){1,j}.(['fit' dataNames{idx_1}]);
+                                    end
                                 end
                                 idx_1  = find(strcmp(dataNames,'NAA'));
                                 idx_2  = find(strcmp(dataNames,'NAAG'));
@@ -205,11 +209,11 @@ for kk = 1 : MRSCont.nDatasets
 end
 
 %Exclude datasets
-if isfield(MRSCont, 'exclude')
-    if~isempty(MRSCont.exclude)
-        MRSCont.overview.groups(MRSCont.exclude) = [];
-    end
-end
+% if isfield(MRSCont, 'exclude')
+%     if~isempty(MRSCont.exclude)
+%         MRSCont.overview.groups(MRSCont.exclude) = [];
+%     end
+% end
 for g = 1 : MRSCont.overview.NoGroups
     MRSCont.overview.LCModel.sort_fit.(['g_' num2str(g)]).(name) = MRSCont.overview.LCModel.all_models.(name)(1,MRSCont.overview.groups == g);
 end

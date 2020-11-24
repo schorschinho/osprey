@@ -19,7 +19,7 @@
 %
 % Modified by Helge Zöllner: Replace MATLAB padarray function with free pad function 
 
-function out=op_zeropad(in,zpFactor);
+function out=op_zeropad(in,zpFactor,factor);
 
 % if in.flags.zeropadded
 %     cont=input('WARNING:  Zero padding has already been performed!  Continue anyway?  (y or n)','s');
@@ -29,10 +29,17 @@ function out=op_zeropad(in,zpFactor);
 %         error('STOPPING');
 %     end
 % end
+if nargin < 3
+    factor = 1;
+end
 
-
-%Add zeros using pad function from FileExchange;
-fids=op_pad(in.fids,in.sz(1)*zpFactor,'zero');
+if factor %zeropadding by a factor
+    %Add zeros using pad function from FileExchange;
+    fids=op_pad(in.fids,in.sz(1)*zpFactor,'zero');
+else %zeropadding up to a certain number 
+    fids=op_pad(in.fids,zpFactor,'zero');
+end
+    
 
 %Calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);

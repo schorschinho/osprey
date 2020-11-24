@@ -28,11 +28,13 @@ function osp_pop_whichcorrOvCorr_Call(src,~,gui)
         src.Value=idx;
         gui.overview.Selected.CorrChoice = idx;
         gui.overview.Selected.Corr = 1;
+        Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
+        split_Selection = strsplit(Selection,'-');  
         if idx == 1
             set(gui.controls.pop_corrOvCorr, 'String', gui.overview.Names.Corr);
             set(gui.controls.pop_corrOvCorr, 'Value', gui.overview.Selected.Corr);
         else if idx == 2
-            set(gui.controls.pop_corrOvCorr, 'String', MRSCont.quantify.metabs);
+            set(gui.controls.pop_corrOvCorr, 'String', MRSCont.quantify.metabs.(split_Selection{1}));
             set(gui.controls.pop_corrOvCorr, 'Value', gui.overview.Selected.Corr);
             else
                 set(gui.controls.pop_corrOvCorr, 'String', gui.overview.Names.QM);

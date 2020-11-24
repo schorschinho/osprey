@@ -152,7 +152,7 @@ for sf = 1 : NoFit %Loop over all fits
                 end     
         end
     %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
-    noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0);
+    noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
     ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';
 
     P=polyfit(ppmwindow2,noisewindow,2);
