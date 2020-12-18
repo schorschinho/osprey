@@ -40,10 +40,7 @@ end
 % folder, load them here. Otherwise, start loading them.
 
 for kk = 1:MRSCont.nDatasets
-    MRSCont.SENSE{kk}.sens_from_ref_scan = 0; % 1 not implemented yet, GO 11/01/2016
-    % Ask for spatial separation of the voxels that was entered into the exam
-    % card (in mm, positive value)
-    MRSCont.SENSE{kk}.vox_sep = -60;
+
     % Get the input file name
         [path,filename,~]   = fileparts(MRSCont.files{kk});
         % For batch analysis, get the last two sub-folders (e.g. site and
@@ -53,22 +50,23 @@ for kk = 1:MRSCont.nDatasets
             saveName = [path_split{end-1} '_' path_split{end} '_' filename];
         end
         % Generate file name for the voxel reconstruction file to be saved under
-        senseCoilFile            = fullfile(outputFolder ,'SenseReconstruction', [saveName '_ref_scan_sense_coil_img.mat']);
-        volumeCoilFile            = fullfile(outputFolder ,'SenseReconstruction', [saveName '_ref_scan_volume_coil_img.mat']);
-        MRSCont.SENSE{kk}.senseCoilFile = senseCoilFile;
-        MRSCont.SENSE{kk}.volumeCoilFile = volumeCoilFile;
-    if (exist(senseCoilFile,'file') ||  exist(volumeCoilFile,'file')) %fprintf('Found existing coil reference data. Loading...\n%s\n',[spec_path filesep 'GannetRecon_output' filesep 'ref_scan_sense_coil_img.mat']);
+        senseCoilFile   = fullfile(outputFolder ,'SenseReconstruction', [saveName '_ref_scan_sense_coil_img.mat']);
+        volumeCoilFile  = fullfile(outputFolder ,'SenseReconstruction', [saveName '_ref_scan_volume_coil_img.mat']);
+        MRSCont.SENSE.senseCoilFile{kk}  = senseCoilFile;
+        MRSCont.SENSE.volumeCoilFile{kk} = volumeCoilFile;
+    if (exist(senseCoilFile,'file') ||  exist(volumeCoilFile,'file'))
+        fprintf('Found existing coil reference data. Loading...\n%s\n and \n%s\n',senseCoilFile,volumeCoilFile);
         load(senseCoilFile);
         load(volumeCoilFile);
-        disp('Loading coil reference data finished!');
+        disp('Loading coil reference data finished!\n');
     else
-        [cpx_file,Ref,img_array,img_body,noise_array,noise_body] = loadRefScan(MRSCont.files{kk});
-        save(senseCoilFile,'cpx_file','Ref','img_array','noise_array','noise_body');
-        save(volumeCoilFile,'cpx_file','Ref','img_body','noise_array','noise_body');
+        [cpx_file,Ref,img_array,img_body,noise_array,noise_body] = loadRefScan(MRSCont.files_sense{kk});
+        save(senseCoilFile,  'cpx_file', 'Ref', 'img_array', 'noise_array', 'noise_body');
+        save(volumeCoilFile, 'cpx_file', 'Ref', 'img_body',  'noise_array', 'noise_body');
     end
 
     %% Calculate the actual unfolding matrix
-    MRSCont = calcUnfoldingMatrix(MRSCont, cpx_file, Ref, img_array, noise_array,MRSCont.files{kk},kk);
+    MRSCont = calcUnfoldingMatrix(MRSCont, cpx_file, Ref, img_array, noise_array, MRSCont.files{kk},kk);
 end
 %% perform SENSE unfolding
 for kk = 1:MRSCont.nDatasets

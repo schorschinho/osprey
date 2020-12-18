@@ -45,11 +45,30 @@ sin_info.voxel_size = str2num(tokens{1}{2}); % row - column - slice
 % voxel sizes
 expn = '\s\d\d\s\d\d\s(\d\d)\:\sloc_ap_rl_fh_offcentres\s*:(\s*-?\d+\.\d+)+[\r\n]';
 tokens = regexp(data, expn, 'tokens');
-sin_info.voxel_offsets = str2num(tokens{1}{2}); % AP - RL - FH
+sin_info.loc_ap_rl_fh_offcentres = str2num(tokens{1}{2}); % AP - RL - FH
 
 % slice orientations
 expn = '\s\d\d\s\d\d\s(\d\d)\:\sslice_orientations\s*:(\s*[0-9]+)+[\r\n]';
 tokens = regexp(data, expn, 'tokens');
 sin_info.slice_orientation = str2num(tokens{1}{2}); % 0 = axial slices, 1 = sagittal slices, 2 = coronal slices
 
+% recon resolution
+expn = '\s\d\d\s\d\d\s(\d\d)\:\srecon_resolutions\s*:(\s*-?\d+)+[\r\n]';
+tokens = regexp(data, expn, 'tokens');
+sin_info.recon_resolutions = str2num(tokens{1}{2});
+
+% row orientation
+expn = '\s\d\d\s\d\d\s(\d\d)\:\sloc_ap_rl_fh_row_image_oris\s*:(\s*-?\d+\.\d+)+[\r\n]';
+tokens = regexp(data, expn, 'tokens');
+sin_info.loc_ap_rl_fh_row_image_oris = str2num(tokens{1}{2});
+
+% col orientation
+expn = '\s\d\d\s\d\d\s(\d\d)\:\sloc_ap_rl_fh_col_image_oris\s*:(\s*-?\d+\.\d+)+[\r\n]';
+tokens = regexp(data, expn, 'tokens');
+sin_info.loc_ap_rl_fh_col_image_oris = str2num(tokens{1}{2});
+
+% increments
+expn = '\s\d\d\s\d\d\s(\d\d)\:\sloc_ap_rl_fh_offcentr_incrs\s*:(\s*-?\d+\.\d+)+[\r\n]';
+tokens = regexp(data, expn, 'tokens');
+sin_info.loc_ap_rl_fh_offcentr_incrs = str2num(tokens{1}{2});
 end
