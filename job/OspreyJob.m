@@ -269,8 +269,12 @@ if exist('MultiVoxel','var')
     switch MultiVoxel
         case 'PRIAM'
             MRSCont.flags.isPRIAM = 1;
-            MRSCont.SENSE.priam_offset = priam_offset;
-            MRSCont.SENSE.priam_direction = priam_direction;
+            MRSCont.SENSE = cell(length(priam_offset));
+            for kk = 1:length(priam_offset)
+                MRSCont.SENSE{kk}.priam_offset = priam_offset{kk};
+                MRSCont.SENSE{kk}.priam_direction = priam_direction{kk};
+            end
+
         case 'MRSI'
             MRSCont.flags.isMRSI = 1;
         otherwise
