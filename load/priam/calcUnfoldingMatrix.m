@@ -206,7 +206,8 @@ end
 
 
 % Store voxel center and corners for output figure
-MRSCont.SENSE{kk}.vol_image = vol_sos.fname;
+MRSCont.SENSE{kk}.sos_image = niiSOSFile;
+MRSCont.SENSE{kk}.sense_image = niiSENSEFile;
 MRSCont.SENSE{kk}.SOS_max   = SOS_max;
 MRSCont.SENSE{kk}.voxel_ctr = vox_center;
 MRSCont.SENSE{kk}.vox_corner = vox_corner;
@@ -243,7 +244,7 @@ end
 
 
 % Get dimensions, orientation and global offset of the reference image scan
-MRSCont.SENSE{kk} .refsc_sin_info   = get_sin_info([MRSCont.files_sense{kk}(1:end-4) '.sin']);
+MRSCont.SENSE{kk}.refsc_sin_info   = get_sin_info([MRSCont.files_sense{kk}(1:end-4) '.sin']);
 % Now pick only the coils that have been used in the actual MRS scan.
 MRSCont.SENSE{kk}.nRecCoils = niiSENSE.hdr.dim(5); % save number of receiver coils
 for ii = 1:MRSCont.SENSE{kk}.nRecCoils

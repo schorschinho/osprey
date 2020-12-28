@@ -59,7 +59,9 @@ for kk = 1:MRSCont.nDatasets
 
     % Calculate the SENSE unfolding matrix based on MRS voxel locations
     % (This is where the bulk of the work happens)
-    MRSCont = calcUnfoldingMatrix(MRSCont, niiSOSFile, niiSENSEFile, kk, 1);
+    % Set the last argument for calcUnfoldingMatrix to 1 to view the
+    % overlays (for debugging purposes)
+    MRSCont = calcUnfoldingMatrix(MRSCont, niiSOSFile, niiSENSEFile, kk, 0);
 end
 
 
