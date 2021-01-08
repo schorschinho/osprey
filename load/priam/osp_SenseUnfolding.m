@@ -10,7 +10,7 @@ if in.dims.subSpecs ~= 0
     fids = zeros(in.sz(in.dims.t),in.sz(in.dims.averages),in.sz(in.dims.subSpecs),Voxels);
     for ll = 1:Navg
         for mm = 1:NsubSpec
-            fids(:,ll,mm,:) = (SENSE.U * squeeze(in.fids(:,:,ll,mm)).').';
+            fids(:,ll,mm,:) = (conj(SENSE.U) * squeeze(in.fids(:,:,ll,mm)).').';
             % Phase by multiplying with normalized complex conjugate of first point
             conj_norm = conj(fids(1,ll,mm,:)) ./ abs(conj(fids(1,ll,mm,:)));
             fids(:,ll,mm,:) = fids(:,ll,mm,:) .* permute(repmat(conj_norm(:,:).', [1 1 1 in.sz(in.dims.t) 1]), [4 2 3 1]);
@@ -19,7 +19,7 @@ if in.dims.subSpecs ~= 0
 else
     fids = zeros(in.sz(in.dims.t),in.sz(in.dims.averages),Voxels);
     for ll = 1:Navg
-            fids(:,ll,:) = (SENSE.U * squeeze(in.fids(:,:,ll)).').';
+            fids(:,ll,:) = (conj(SENSE.U) * squeeze(in.fids(:,:,ll)).').';
             % Phase by multiplying with normalized complex conjugate of first point
             conj_norm = conj(fids(1,ll,:)) ./ abs(conj(fids(1,ll,:)));
             fids(:,ll,:) = fids(:,ll,:) .* permute(repmat(conj_norm(:,:).', [1 1 in.sz(in.dims.t) 1]), [3 2 1]);

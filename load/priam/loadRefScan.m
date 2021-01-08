@@ -1,12 +1,9 @@
-function [cpx_file,Ref,img_array,img_body,noise_array,noise_body] = loadRefScan(spec_file)
-%% [cpx_file,Ref,img_array,img_body,noise_array,noise_body] = loadRefScan(spec_path)
-%   Loads a Philips coil reference scan (*.cpx format) when provided a
-%   path. Assumes a subdirectory '/ref' containing this data, relative to
-%   the MRS data path.
+function [cpx_file, Ref, img_array, img_body ,noise_array, noise_body] = loadRefScan(cpx_file)
+%% [cpx_file ,Ref, img_array, img_body, noise_array, noise_body] = loadRefScan(cpx_file)
+%   Loads a Philips coil reference scan (*.cpx format).
 %
 %   Input:
-%       spec_path   Folder containing the MRS data. loadRefScan assumes a
-%                   subdirectory '/ref' containing the *.cpx data.
+%       cpx_file    Coil sensitivity scan (*.cpx).
 %
 %   Output:
 %       ref_file    cpx file used
@@ -14,9 +11,9 @@ function [cpx_file,Ref,img_array,img_body,noise_array,noise_body] = loadRefScan(
 %       img_array   4D stack of receiver coil images
 %                   [number of coils, x, y, z]
 %       img_body    4D stack of body coil images
-%       noise_array 2D stack of receiver coil noise levels
+%       noise_array 2D stack of receiver coil noise signals
 %                   [number of coils, number of pixels estimated for noise]
-%       noise_body  2D stack of body coil noise levels
+%       noise_body  2D stack of body coil noise signals
 %
 %
 %   Author:
@@ -33,23 +30,16 @@ function [cpx_file,Ref,img_array,img_body,noise_array,noise_body] = loadRefScan(
 %
 
 
-%% Put together the filenames for the coil reference scan
-
-% Coil reference scan needs to be a .cpx file in a subfolder '/ref'
-% relative to the MRS data.
-disp('Determining coil reference scan...')
-cpx_file = strrep(spec_file,'mrs','ref');
-cpx_file = strrep(cpx_file,'.data','_SenseRefScan.cpx');
-
+% Check whether .cpx file exists
 if ~isfile(cpx_file) 
-    msg = 'No cpx file found. It needs to located in a subfolder ''ref'' in the subject folder with the same name as the .data file with _SenseRefScan.cpx in the name.';
+    msg = 'Coil sensitivity file (*.cpx) not found.';
     error(msg);   
 end
 
 %% Read coil reference imaging scan (*.cpx)
 
 % Load the selected cpx file
-fprintf('Loading coil reference scan...\n%s',cpx_file);
+fprintf('Loading coil reference scan...\n%s', cpx_file);
 img = read_cpx(cpx_file);
 
 % Permute the coil reference image array to be in the following order:

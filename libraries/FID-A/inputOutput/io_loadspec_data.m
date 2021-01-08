@@ -514,7 +514,7 @@ end
 
 % No water in list file
 if n_mixes ~= 2
-    out_w = []
+    out_w = [];
 end
 
 
