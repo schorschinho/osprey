@@ -99,9 +99,7 @@ msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', 
     end
     
 end
-if ~isempty(raw_ref)
-    MRSCont.flags.hasRef = 1;
-end
+
 fprintf('... done.\n');
 time = toc(refLoadTime);
 if MRSCont.flags.isGUI        
