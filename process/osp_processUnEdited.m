@@ -68,7 +68,11 @@ for kk = 1:MRSCont.nDatasets
                 raw_mm.flags.averaged  = 1; %re_mm
                 raw_mm.dims.averages   = 0; %re_mm
             end
-            [raw_mm,~]                     = op_ppmref(raw_mm,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm  %re_mm            
+            if isfield(MRSCont.opts.fit,'reffreq')
+                [raw_mm,~]             = op_ppmref(raw_mm,4.6,4.8,MRSCont.opts.fit.reffreq);
+            else
+                [raw_mm,~]             = op_ppmref(raw_mm,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm  %re_mm            
+            end
         end  %re_mm
         
         
@@ -107,7 +111,11 @@ for kk = 1:MRSCont.nDatasets
                 raw = temp_raw;
             end
             [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
-            [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
+            if isfield(MRSCont.opts.fit,'reffreq')
+                [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,MRSCont.opts.fit.reffreq);  
+            else
+                [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
+            end
             MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
         end
 
@@ -231,11 +239,22 @@ for kk = 1:MRSCont.nDatasets
         % Define different water removal frequency ranges, depending on
         % whether this is phantom data
         if MRSCont.flags.isPhantom
-            waterRemovalFreqRange = [4.5 5];
+            waterRemovalFreqRange = [4.5 5.0];
             fracFID = 0.2;
         else
-            waterRemovalFreqRange = [4.5 4.9];
-            fracFID = 0.75;
+            if isfield(MRSCont.opts,'protocol')
+                switch lower(MRSCont.opts.protocol)
+                    case 'braino phantom'
+                        waterRemovalFreqRange = [4.5 5.2];
+                        fracFID = 0.75;
+                    otherwise
+                        waterRemovalFreqRange = [4.5 4.9];
+                        fracFID = 0.75;
+                end
+            else
+                waterRemovalFreqRange = [4.5 4.9];
+                fracFID = 0.75;
+            end
         end
         % Apply iterative water filter
         raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
@@ -254,6 +273,13 @@ for kk = 1:MRSCont.nDatasets
             [raw_mm]             = op_freqshift(raw_mm,-refShift_mm);            % Reference spectra by cross-correlation
             MRSCont.processed.mm{kk}       = raw_mm;                          % Save back to MRSCont container  %re_mm
         end
+        
+        %%% 7. DENOISING
+        if isfield(MRSCont.opts,'denoising')
+            switch lower(MRSCont.opts.denoising)
+                
+            end
+        end
 
         
         % Save back to MRSCont container
@@ -266,7 +292,7 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.A{kk}     = raw;
 
 
-        %%% 7. GET SHORT-TE WATER DATA %%%
+        %%% 8. GET SHORT-TE WATER DATA %%%
         if MRSCont.flags.hasWater
             raw_w                           = MRSCont.raw_w{kk};                % Get the kk-th dataset
             if raw_w.averages > 1 && raw_w.flags.averaged == 0
@@ -276,8 +302,12 @@ for kk = 1:MRSCont.nDatasets
                 raw_w.flags.averaged    = 1;
                 raw_w.dims.averages     = 0;
             end
-            [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
-            [raw_w,~]                       = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
+            [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            if isfield(MRSCont.opts.fit,'reffreq')
+                [raw_w,~]               = op_ppmref(raw_w,4.6,4.8,MRSCont.opts.fit.reffreq); 
+            else
+                [raw_w,~]               = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
+            end
             
             % Apply some linebroadening, if phantom data
             if MRSCont.flags.isPhantom
@@ -288,7 +318,7 @@ for kk = 1:MRSCont.nDatasets
         end
 
 
-        %%% 8. QUALITY CONTROL PARAMETERS %%%
+        %%% 9. QUALITY CONTROL PARAMETERS %%%
         % Calculate some spectral quality metrics here;
         MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor             
         MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % LW in Hz
@@ -327,7 +357,7 @@ end
 fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
 fclose(fileID);
 
-%%% 9. SET FLAGS %%%
+%%% 10. SET FLAGS %%%
 MRSCont.flags.avgsAligned       = 1;
 MRSCont.flags.averaged          = 1;
 MRSCont.flags.ECCed             = 1;

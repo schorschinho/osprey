@@ -41,10 +41,10 @@ XYZ = XYZ + repmat(halfpixshift, [1 size(XYZ,2)]);
 
 %%% 2. PREPARE THE MRS VOXEL COORDINATES %%%
 % Convert from RAS to LPS
-VoxOffs  = geom.pos .* [-1 1 1];
-tlhc_LPS = geom.rot.tlhc .* [-1 1 1];
-trhc_LPS = geom.rot.trhc .* [-1 1 1];
-brhc_LPS = geom.rot.brhc .* [-1 1 1];
+VoxOffs  = geom.pos .* [1 1 1];
+tlhc_LPS = geom.rot.tlhc .* [1 1 1];
+trhc_LPS = geom.rot.trhc .* [1 1 1];
+brhc_LPS = geom.rot.brhc .* [1 1 1];
 
 e1_SVS_n = trhc_LPS - tlhc_LPS;
 e1_SVS_n = e1_SVS_n ./ norm(e1_SVS_n);

@@ -49,7 +49,14 @@ matlabFolder    = strjoin(allFolders(1:end-2), filesep); % parent-parent folder 
 addpath(genpath(ospFolder));
 
 % SPM
-addpath(genpath([matlabFolder filesep 'spm12' filesep]));    % SPM path
+if isfile(fullfile(ospFolder,'GUI','SPMpath.mat'))
+    load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
+    spmpath = SPMpath;
+else    
+    spmpath = genpath([matlabFolder filesep 'spm12' filesep]);
+end
+addpath(spmpath);    % SPM path
+
 % Check if SPM12 is installed
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)

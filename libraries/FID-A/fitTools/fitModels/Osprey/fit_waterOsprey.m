@@ -24,7 +24,6 @@
 
 function [fitParams] = fit_waterOsprey(dataToFit, resBasisSet, fitOpts)
 
-
 %%% 1. EXTRACT OPTIONS AND PREPARE FIT %%%
 % Extract ppm fit range
 fitRangePPMWater = fitOpts.rangeWater;
@@ -38,7 +37,7 @@ fitRangePPMWater = fitOpts.rangeWater;
 % values to be provided.
 ph0         = 0; % zero-order phase correction [rad]
 ph1         = 0; % first-order phase correction [rad]
-gaussLB     = op_getLW(dataToFit,4.5,4.9); % Gaussian damping [Hz^2]
+gaussLB     = op_getLW(dataToFit,4.5,5.2); % Gaussian damping [Hz^2]
 lorentzLB   = 0.01; % Lorentzian damping [Hz] for water
 freqShift   = 0; % Frequency shift [Hz] for water
 % Concatenate together into one large x0 vector.
@@ -237,4 +236,3 @@ b = data;
 [ampl]  = fnnls(A'*A,A'*b);
 
 end 
-

@@ -1,4 +1,4 @@
-function  Osprey
+function  Osprey(varargin)
 %% Osprey
 %   This creates the inital Osprey window. Here you pick exsisitng
 %   jobFiles or MRS container to be loaded into the OspreyGui.
@@ -15,8 +15,18 @@ function  Osprey
 %
 %   HISTORY:
 %       2019-07-11: First version of the code.
+
 %% Check for available add-ons
-  [~] = osp_Toolbox_Check ('OspreyGUI',0);
+[ospFFolder,~,~] = fileparts(which('Osprey.m'));
+if ~isfile(fullfile(ospFFolder,'startpath.mat'))
+    curdir = cd(ospFFolder);
+    startpath = path;
+    save('startpath.mat','startpath')
+    cd(curdir)
+end
+  
+[~] = osp_Toolbox_Check ('OspreyGUI',0);
+
 %% Set up Layout
 %Here we set up the color layout
 %default colormap
@@ -33,6 +43,12 @@ logoBanner = uiw.utility.loadIcon(logoFcn);
 gui.d = uiw.dialog.About('Name', 'Osprey','Version','1.0.0','Date', 'October 6, 2019',...
 'Timeout', 3,'CustomText', 'Osprey is provided by Johns Hopkins University.',...
 'ContactInfo', 'gabamrs@gmail.com','LogoCData', logoBanner);
+
+if ~isempty(varargin)
+    CreateOspreyJob_app
+    return
+end
+
 %% Create the StartUp Menu
 gui.out = 0;
 gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBar', 'none', ...
@@ -175,6 +191,13 @@ end % onLoadMRSCont
 
 function onExit( ~, ~ ) %Callback Exit button
     % User wants to quit out of the application
+    [ospFFolder,~,~] = fileparts(which('Osprey.m'));
+    curdir = cd(ospFFolder);
+    load('startpath.mat')
+    path(startpath);
+    delete('startpath.mat')
+    cd(curdir)
+            
     delete( gui.window );
 end % onExit
 end

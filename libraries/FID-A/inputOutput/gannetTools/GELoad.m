@@ -243,7 +243,7 @@ switch num2str(rdbm_rev_num)
         trhc         = 184;
         brhc         = 187;
         
-    case '26.002'
+    case {'26.002','28.002'}
         
         % int
         rdb_hdr_off_image   = 11;
@@ -277,10 +277,8 @@ switch num2str(rdbm_rev_num)
         image_user22 = 112;
         tlhc         = 181;
         trhc         = 184;
-        brhc         = 187;
-        
+        brhc         = 187;    
 end
-
 
 % Read rdb header as short, int and float
 fseek(fid, 0, 'bof');
@@ -317,6 +315,12 @@ nrows = hdr_value(rdb_hdr_da_yres);
 start_recv = hdr_value(rdb_hdr_dab_start_rcv);
 stop_recv = hdr_value(rdb_hdr_dab_stop_rcv);
 nreceivers = (stop_recv - start_recv) + 1;
+
+pfile = dir(fname);
+pfilesize = 2*point_size*nechoes*nreceivers*(nframes+1)*npoints+pfile_header_size;
+if pfile.bytes ~=pfilesize
+    nreceivers = (pfile.bytes-pfile_header_size)/(2*point_size*nechoes*(nframes+1)*npoints); 
+end
 
 % RTN 2018
 dataframes = f_hdr_value(rdb_hdr_user4)/nex;
@@ -369,7 +373,6 @@ if (nechoes == 1)
     else
         mult = 1/nex;
     end
-    
     
     WaterData = ShapeData(:,:,2:refframes+1,:) * mult;
     FullData = ShapeData(:,:,refframes+2:end,:) * mult;
@@ -427,6 +430,4 @@ FullData = FullData .* repmat([1; 1i], [1 npoints totalframes nreceivers]);
 FullData = conj(squeeze(sum(FullData,1)));
 WaterData = WaterData .* repmat([1; 1i], [1 npoints waterframes nreceivers]);
 WaterData = conj(squeeze(sum(WaterData,1)));
-
-
 

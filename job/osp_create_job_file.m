@@ -44,6 +44,19 @@ fprintf(fid,'\n%s','%%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%');
 fprintf(fid,'\n%s',['opts.saveLCM = ' num2str(app.SaveLCMCheckBox.Value) ';']);
 fprintf(fid,'\n%s',['opts.savejMRUI = ' num2str(app.SaveJMRUICheckBox.Value) ';']);
 fprintf(fid,'\n%s',['opts.saveVendor = ' num2str(app.SaveVendorCheckBox.Value) ';']);
+fprintf(fid,'\n%s',['opts.protocol = ''' app.MRSProtocolDropDown.Value ''';']);
+
+switch lower(app.SpectralregistrationDropDown.Value)
+    case 'robust'
+        fprintf(fid,'\n%s',['opts.SpecReg = ''RobSpecReg'';']);
+    case 'restricted'
+        fprintf(fid,'\n%s',['opts.SpecReg = ''RestrSpecReg'';']);
+    case 'none'
+        fprintf(fid,'\n%s',['opts.SpecReg = ''none'';']);
+end
+
+fprintf(fid,'\n%s',['opts.denoising = ''' app.DenoisingDropDown.Value ''';']);
+
 fprintf(fid,'\n%s',['opts.fit.method = ''' app.FittingAlgorithmDropDown.Value ''';']);
 
 switch app.IncludedMetabolitesDropDown.Value 
@@ -73,6 +86,7 @@ switch app.IncludedMetabolitesDropDown.Value
         if app.PChCheckBox.Value, fprintf(fid,'%s',' ''PCh'''); end
         if app.PCrCheckBox.Value, fprintf(fid,'%s',' ''PCr'''); end
         if app.PECheckBox.Value, fprintf(fid,'%s',' ''PE'''); end
+        if app.PhenylCheckBox.Value, fprintf(fid,'%s',' ''Phenyl'''); end
         if app.ScylloCheckBox.Value, fprintf(fid,'%s',' ''Scyllo'''); end
         if app.SerCheckBox.Value, fprintf(fid,'%s',' ''Ser'''); end
         if app.TauCheckBox.Value, fprintf(fid,'%s',' ''Tau'''); end
@@ -92,6 +106,7 @@ switch app.IncludedMetabolitesDropDown.Value
 end
 
 fprintf(fid,'\n%s',['opts.fit.style = ''' app.FittingStyleDropDown.Value ''';']);
+fprintf(fid,'\n%s',['opts.fit.reffreq = ' num2str(app.ReferencefrequencyppmEditField.Value) ';']);
 fprintf(fid,'\n%s',['opts.fit.range = [' app.MRSFitRangeppmEditField.Value '];']);
 fprintf(fid,'\n%s',['opts.fit.rangeWater = [' app.WaterFitRangeppmEditField.Value '];']);
 fprintf(fid,'\n%s',['opts.fit.bLineKnotSpace = ' num2str(app.BaselineknotspacingppmEditField.Value) ';']);
@@ -99,58 +114,58 @@ fprintf(fid,'\n%s',['opts.fit.fitMM = ' num2str(app.AddMMandLipbasisfunctionstof
 fprintf(fid,'\n%s','');
 
 fprintf(fid,'\n%s','%%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%%');
-if isempty(app.MRSDataText.Value{1})
+if isempty(app.MRSdataDropDown.Items)
     error('A MRS data file should be specified')
 else
     fprintf(fid,'\n%s',['files = {']);
-    fprintf(fid,'%s',['''' app.MRSDataText.Value{1} '''']);
+    fprintf(fid,'%s',['''' app.MRSdataDropDown.Items{1} '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.MRSDataText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' app.MRSdataDropDown.Items{i} '''']);
     end
     fprintf(fid,'%s',['};']);
 end
-if isempty(app.H2OReferenceText.Value{1})
+if isempty(app.H2OReferenceDropDown.Items)
     fprintf(fid,'\n%s',['files_ref = {};']);
 else
     fprintf(fid,'\n%s',['files_ref = {']);
     fprintf(fid,'%s',['''' app.H2OReferenceText.Value{1} '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.MRSDataText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' app.H2OReferenceDropDown.Items{i} '''']);
     end
     fprintf(fid,'%s',['};']);
 end
-if isempty(app.H2OShortTEText.Value{1})
+if isempty(app.H2OShortTEDropDown.Items)
     fprintf(fid,'\n%s',['files_w = {};']);
 else
     fprintf(fid,'\n%s',['files_w = {']);
-    fprintf(fid,'%s',['''' app.H2OShortTEText.Value{1} '''']);
+    fprintf(fid,'%s',['''' app.H2OShortTEDropDown.Items{1} '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.H2OShortTEText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' app.H2OShortTEDropDown.Items{i} '''']);
     end
     fprintf(fid,'%s',['};']);
 end
-if isempty(app.MetaboliteNulledText.Value{1})
+if isempty(app.MetaboliteNulledDropDown.Items)
     fprintf(fid,'\n%s',['files_mm = {};']);
 else
     fprintf(fid,'\n%s',['files_mm = {']);
-    fprintf(fid,'%s',['''' app.MetaboliteNulledText.Value{1} '''']);
+    fprintf(fid,'%s',['''' app.MetaboliteNulledDropDown.Items{1} '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.MetaboliteNulledText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' app.MetaboliteDropDown.Items{i} '''']);
     end
     fprintf(fid,'%s',['};']);
 end
-if isempty(app.T1DataText.Value{1})
+if isempty(app.T1DataniftiniiDropDown.Items)
     fprintf(fid,'\n%s',['files_nii = {};']);
 else
     fprintf(fid,'\n%s',['files_nii = {']);
-    fprintf(fid,'%s',['''' app.T1DataText.Value{1} '''']);
+    fprintf(fid,'%s',['''' app.T1DataniftiniiDropDown.Items{1} '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.T1DataText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' app.T1DataniftiniiDropDown.Items{i} '''']);
     end
     fprintf(fid,'%s',['};']);
 end
