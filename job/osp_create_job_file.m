@@ -33,7 +33,11 @@ fprintf(fid,'\n%s','% This is a GUI generated Osprey jobFile. The code was kindl
 fprintf(fid,'\n%s','');
 fprintf(fid,'\n%s','%%% 1. SPECIFY SEQUENCE INFORMATION %%%');
 fprintf(fid,'\n%s',['seqType = ''' app.SequenceTypeDropDown.Value ''';']);
-fprintf(fid,'\n%s',['editTarget = {''' app.EditingTargetsDropDown.Value '''};']);
+if strcmp(app.EditingTargetsDropDown.Value, 'GABA, GSH')
+     fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH''};']);
+else
+     fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH'', ''EtOH''};']);
+end
 fprintf(fid,'\n%s','');
 
 fprintf(fid,'\n%s','%%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%');
