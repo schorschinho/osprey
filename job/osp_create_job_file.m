@@ -34,9 +34,9 @@ fprintf(fid,'\n%s','');
 fprintf(fid,'\n%s','%%% 1. SPECIFY SEQUENCE INFORMATION %%%');
 fprintf(fid,'\n%s',['seqType = ''' app.SequenceTypeDropDown.Value ''';']);
 if strcmp(app.EditingTargetsDropDown.Value, 'GABA, GSH')
-     fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH''};']);
+    fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH''};']);
 else
-     fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH'', ''EtOH''};']);
+    fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH'', ''EtOH''};']);
 end
 fprintf(fid,'\n%s','');
 
@@ -129,7 +129,7 @@ if isempty(app.H2OReferenceDropDown.Items)
     fprintf(fid,'\n%s',['files_ref = {};']);
 else
     fprintf(fid,'\n%s',['files_ref = {']);
-    fprintf(fid,'%s',['''' app.H2OReferenceDropDown.Items{1} '''']);
+    fprintf(fid,'%s',['''' app.H2OReferenceText.Value{1} '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
         fprintf(fid,'\n\t\t%s',[' ' '''' app.H2OReferenceDropDown.Items{i} '''']);
