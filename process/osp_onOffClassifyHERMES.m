@@ -1,4 +1,4 @@
-function [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
+function [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, inB, inC, inD, target)
 %% [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
 %   This function decides how the four-provided HERMES/HERCULES sub-spectra are
 %   being edited. Currently, this function works for all combinations of
@@ -44,42 +44,59 @@ function [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, i
 %   HISTORY:
 %       2019-08-15: First version of the code.
 
-% Determine maximum signal intensities for water and NAA in each
-% sub-spectrum.
-[max_w(1), max_NAA(1)]  = findMax(inA);
-[max_w(2), max_NAA(2)]  = findMax(inB);
-[max_w(3), max_NAA(3)]  = findMax(inC);
-[max_w(4), max_NAA(4)]  = findMax(inD);
+if nargin < 5
+    target = 'GABAGSH';
+end
+
+switch target
+    case 'GABAGSH'
+        % Determine maximum signal intensities for water and NAA in each
+        % sub-spectrum.
+        [max_first(1), max_second(1)]  = findMaxNAAw(inA);
+        [max_first(2), max_second(2)]  = findMaxNAAw(inB);
+        [max_first(3), max_second(3)]  = findMaxNAAw(inC);
+        [max_first(4), max_second(4)]  = findMaxNAAw(inD);
+    case 'GABALac'
+        [max_first(1), max_second(1)]  = findMaxNAAInsCr(inA);
+        [max_first(2), max_second(2)]  = findMaxNAAInsCr(inB);
+        [max_first(3), max_second(3)]  = findMaxNAAInsCr(inC);
+        [max_first(4), max_second(4)]  = findMaxNAAInsCr(inD);
+    otherwise
+        [max_first(1), max_second(1)]  = findMaxNAAw(inA);
+        [max_first(2), max_second(2)]  = findMaxNAAw(inB);
+        [max_first(3), max_second(3)]  = findMaxNAAw(inC);
+        [max_first(4), max_second(4)]  = findMaxNAAw(inD);
+end
 
 % Sort the intensities in ascending order
-[~,order_w]   = sort(max_w);
-[~,order_NAA] = sort(max_NAA);
+[~,order_first]   = sort(max_first);
+[~,order_second] = sort(max_second);
 
 % Now loop over the subspectra indices (A = 1, B = 2, etc) to determine
 % whether the respective experiments have high or low intensities:
 for ll = 1:4
-    idx_w   = find(order_w == ll);
-    idx_NAA = find(order_NAA == ll);
+    idx_first   = find(order_first == ll);
+    idx_second = find(order_second == ll);
     
-    if ismember(idx_w,[3 4])
-        GSH.ON(ll) = 0;
-    elseif ismember(idx_w,[1 2])
-        GSH.ON(ll) = 1;
+    if ismember(idx_first,[3 4])
+        first.ON(ll) = 0;
+    elseif ismember(idx_first,[1 2])
+        first.ON(ll) = 1;
     end
     
-    if ismember(idx_NAA,[3 4])
-        GABA.ON(ll) = 0;
-    elseif ismember(idx_NAA,[1 2])
-        GABA.ON(ll) = 1;
+    if ismember(idx_second,[3 4])
+        second.ON(ll) = 0;
+    elseif ismember(idx_second,[1 2])
+        second.ON(ll) = 1;
     end
     
 end
 
 % Determine the sub-spectra indices belonging to each editing pattern
-idx_OFF_OFF = ~GABA.ON & ~GSH.ON;
-idx_ON_OFF  = GABA.ON & ~GSH.ON;
-idx_OFF_ON  = ~GABA.ON & GSH.ON;
-idx_ON_ON   = GABA.ON & GSH.ON;
+idx_OFF_OFF = ~second.ON & ~first.ON;
+idx_ON_OFF  = second.ON & ~first.ON;
+idx_OFF_ON  = ~second.ON & first.ON;
+idx_ON_ON   = second.ON & first.ON;
 
 % Commute for output
 inputVars = {'inA', 'inB', 'inC', 'inD'};
@@ -97,7 +114,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [max_w, max_NAA] = findMax(in)
+function [max_w, max_NAA] = findMaxNAAw(in)
 % This embedded function finds the maximum intensities of the water
 % and NAA signals of an input spectrum.
 
@@ -107,6 +124,23 @@ out_NAA = op_freqrange(in,1.8,2.2);
 
 % Determine maximum absolute signal
 max_w   = max([abs(max(real(out_w.specs))), abs(min(real(out_w.specs)))]);
+max_NAA = max([abs(max(real(out_NAA.specs))), abs(min(real(out_NAA.specs)))]);
+end
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [max_ins, max_NAA] = findMaxNAAInsCr(in)
+% This embedded function finds the maximum intensities of the creatine and
+% inositol singals at 3.9 ppm and NAA signals of an input spectrum.
+
+% Determine relevant frequency ranges
+out_ins   = op_freqrange(in,3.9,4.3);
+out_NAA = op_freqrange(in,1.8,2.2);
+
+% Determine maximum absolute signal
+max_ins   = max([abs(max(real(out_ins.specs))), abs(min(real(out_ins.specs)))]);
 max_NAA = max([abs(max(real(out_NAA.specs))), abs(min(real(out_NAA.specs)))]);
 end
     
