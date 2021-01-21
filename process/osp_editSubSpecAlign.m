@@ -38,16 +38,7 @@ function [varargout] = osp_editSubSpecAlign(varargin)
 %       2019-08-15: First version of the code.
 
 % Determine whether there are 2 (MEGA) or 4 (HERMES/HERCULES) inputs
-if nargin == 7
-    seqType = 'HERMES';
-    inA     = varargin{1};
-    inB     = varargin{2};
-    inC     = varargin{3};
-    inD     = varargin{4};
-    unstableWater = varargin{5};
-    target1 = varargin{6};
-    target2 = varargin{7};
-elseif nargin == 5
+if nargin == 5
     seqType = 'HERMES';
     inA     = varargin{1};
     inB     = varargin{2};
@@ -154,151 +145,67 @@ t           = inA.t;
 
 %%% 2. PERFORM ALIGNMENT BASED ON SEQUENCE TYPE
 if strcmp(seqType, 'HERMES')
-    if ~(exist('target1','var') && exist('target2','var'))
-        %Fall back into default HERMES GABA GSH editing
-        target1 = 'GABA';
-        target2 = 'GSH';
-    end
+    % For HERMES/HERCULES data, align the GSH-OFF spectra first, i.e.
+    % minimize the residual water peak in the difference between them.
     
-    target = [target1 target2];
-    switch target
-        case {'GABAGSH','GABALac'}  
-            % For HERMES/HERCULES data, align the GSH-OFF spectra first, i.e.
-            % minimize the residual water peak in the difference between them.
-
-            % Determine normalization factor so that normalized spectra are entered
-            % into the optimization
-            a = max(max([abs(real(inA.specs)) abs(real(inB.specs))]));
-            fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inB, 1/a), freqLim(1,:), t, x);
-            param(1,:) = lsqnonlin(fun, x0(1,:), [], [], lsqnonlinopts);
-            % Apply the calculated frequency/phase adjustment to the inB spectrum
-            fidsB = inB.fids.*exp(1i*pi*(t'*param(1,1)*2+param(1,2)/180));
-            specsB = fftshift(fft(fidsB, [], inB.dims.t), inB.dims.t);
-            % Create output
-            outA = inA;
-            outB = inB;
-            outB.fids = fidsB;
-            outB.specs = specsB;
-
-            % Then, align the GABA-OFF spectra, i.e minimize the residual NAA peak
-            % in the difference between them.
-            % Determine normalization factor so that normalized spectra are entered
-            % into the optimization
-            a = max(max([abs(real(inA.specs)) abs(real(inC.specs))]));
-            fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inC, 1/a), freqLim(2,:), t, x);
-            param(2,:) = lsqnonlin(fun, x0(2,:), [], [], lsqnonlinopts);
-            % Apply the calculated frequency/phase adjustment to the inC spectrum
-            fidsC = inC.fids.*exp(1i*pi*(t'*param(2,1)*2+param(2,2)/180));
-            specsC = fftshift(fft(fidsC, [], inC.dims.t), inC.dims.t);
-            % Create output
-            outC = inC;
-            outC.fids = fidsC;
-            outC.specs = specsC;
-
-            % Then, align the GABA-ON-GSH-ON spectra to the **corrected** GABA-OFF-GSH-ON
-            % spectrum - this is something Mark/Georg independently from each other
-            % found out to work best for HERMES/HERCULES data.
-
-            % Find Cho peak and get starting estimate for the frequency shift
-            freqLim(3,:) = freq <= 3.2+0.09 & freq >= 3.2-0.09;
-            [~,i] = max([abs(real(outC.specs(freqLim(3,:)))) abs(real(inD.specs(freqLim(3,:))))]);
-            freq2 = freq(freqLim(3,:));
-            maxFreq = freq2(i);
-            for jj = 1:2
-                tmp(jj,:) = freq <= maxFreq(jj)+0.08 & freq >= maxFreq(jj)-0.08;
-            end
-            freqLim(3,:) = or(tmp(1,:), tmp(2,:));
-            f0 = (maxFreq(1) - maxFreq(2)) * inA.txfrq*1e-6;
-            x0(3,:) = [f0 0];
-
-            % Determine normalization factor so that normalized spectra are entered
-            % into the optimization
-            a = max(max([abs(real(outC.specs)) abs(real(inD.specs))]));
-            fun = @(x) objFunc(op_ampScale(outC, 1/a), op_ampScale(inD, 1/a), freqLim(3,:), t, x);
-            param(3,:) = lsqnonlin(fun, x0(3,:), [], [], lsqnonlinopts);
-            % Apply the calculated frequency/phase adjustment to the inD spectrum
-            fidsD = inD.fids.*exp(1i*pi*(t'*param(3,1)*2+param(3,2)/180));
-            specsD = fftshift(fft(fidsD, [], inD.dims.t), inD.dims.t);
-
-            % Create output
-            outD = inD;
-            outD.fids = fidsD;
-            outD.specs = specsD;
-        
-        case 'NAANAAG' 
-            % For HERMES/HERCULES data, align the GSH-OFF spectra first, i.e.
-            % minimize the residual water peak in the difference between them.
-            % NAA
-            freqLim(1,:) = freq <= 2.01+0.13 & freq >= 2.01-0.13;
-            [~,i] = max([abs(real(inA.specs(freqLim(1,:)))) abs(real(inB.specs(freqLim(1,:))))]);
-            freq2 = freq(freqLim(1,:));
-            maxFreq = freq2(i);
-            for jj = 1:2
-                tmp(jj,:) = freq <= maxFreq(jj)+0.13 & freq >= maxFreq(jj)-0.13;
-            end
-            freqLim(1,:) = or(tmp(1,:), tmp(2,:));
-            f0 = (maxFreq(1) - maxFreq(2)) * inA.txfrq*1e-6;
-            x0(1,:) = [f0 0];
-            % Determine normalization factor so that normalized spectra are entered
-            % into the optimization
-            a = max(max([abs(real(inA.specs)) abs(real(inB.specs))]));
-            fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inB, 1/a), freqLim(1,:), t, x);
-            param(1,:) = lsqnonlin(fun, x0(1,:), [], [], lsqnonlinopts);
-            % Apply the calculated frequency/phase adjustment to the inB spectrum
-            fidsB = inB.fids.*exp(1i*pi*(t'*param(1,1)*2+param(1,2)/180));
-            specsB = fftshift(fft(fidsB, [], inB.dims.t), inB.dims.t);
-            % Create output
-            outA = inA;
-            outB = inB;
-            outB.fids = fidsB;
-            outB.specs = specsB;
-
-            % Then, align the GABA-OFF spectra, i.e minimize the residual NAA peak
-            % in the difference between them.
-            % Determine normalization factor so that normalized spectra are entered
-            % into the optimization
-            a = max(max([abs(real(inA.specs)) abs(real(inC.specs))]));
-            fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inC, 1/a), freqLim(2,:), t, x);
-            param(2,:) = lsqnonlin(fun, x0(2,:), [], [], lsqnonlinopts);
-            % Apply the calculated frequency/phase adjustment to the inC spectrum
-            fidsC = inC.fids.*exp(1i*pi*(t'*param(2,1)*2+param(2,2)/180));
-            specsC = fftshift(fft(fidsC, [], inC.dims.t), inC.dims.t);
-            % Create output
-            outC = inC;
-            outC.fids = fidsC;
-            outC.specs = specsC;
-
-            % Then, align the GABA-ON-GSH-ON spectra to the **corrected** GABA-OFF-GSH-ON
-            % spectrum - this is something Mark/Georg independently from each other
-            % found out to work best for HERMES/HERCULES data.
-
-            % Find Cho peak and get starting estimate for the frequency shift
-            freqLim(3,:) = freq <= 2.01+0.13 & freq >= 2.01-0.13;
-            [~,i] = max([abs(real(outC.specs(freqLim(3,:)))) abs(real(inD.specs(freqLim(3,:))))]);
-            freq2 = freq(freqLim(3,:));
-            maxFreq = freq2(i);
-            for jj = 1:2
-                tmp(jj,:) = freq <= maxFreq(jj)+0.13 & freq >= maxFreq(jj)-0.13;
-            end
-            freqLim(3,:) = or(tmp(1,:), tmp(2,:));
-            f0 = (maxFreq(1) - maxFreq(2)) * inA.txfrq*1e-6;
-            x0(3,:) = [f0 0];
-
-            % Determine normalization factor so that normalized spectra are entered
-            % into the optimization
-            a = max(max([abs(real(outC.specs)) abs(real(inD.specs))]));
-            fun = @(x) objFunc(op_ampScale(outC, 1/a), op_ampScale(inD, 1/a), freqLim(3,:), t, x);
-            param(3,:) = lsqnonlin(fun, x0(3,:), [], [], lsqnonlinopts);
-            % Apply the calculated frequency/phase adjustment to the inD spectrum
-            fidsD = inD.fids.*exp(1i*pi*(t'*param(3,1)*2+param(3,2)/180));
-            specsD = fftshift(fft(fidsD, [], inD.dims.t), inD.dims.t);
-
-            % Create output
-            outD = inD;
-            outD.fids = fidsD;
-            outD.specs = specsD;
-    end
+    % Determine normalization factor so that normalized spectra are entered
+    % into the optimization
+    a = max(max([abs(real(inA.specs)) abs(real(inB.specs))]));
+    fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inB, 1/a), freqLim(1,:), t, x);
+    param(1,:) = lsqnonlin(fun, x0(1,:), [], [], lsqnonlinopts);
+    % Apply the calculated frequency/phase adjustment to the inB spectrum
+    fidsB = inB.fids.*exp(1i*pi*(t'*param(1,1)*2+param(1,2)/180));
+    specsB = fftshift(fft(fidsB, [], inB.dims.t), inB.dims.t);
+    % Create output
+    outA = inA;
+    outB = inB;
+    outB.fids = fidsB;
+    outB.specs = specsB;
     
+    % Then, align the GABA-OFF spectra, i.e minimize the residual NAA peak
+    % in the difference between them.
+    % Determine normalization factor so that normalized spectra are entered
+    % into the optimization
+    a = max(max([abs(real(inA.specs)) abs(real(inC.specs))]));
+    fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inC, 1/a), freqLim(2,:), t, x);
+    param(2,:) = lsqnonlin(fun, x0(2,:), [], [], lsqnonlinopts);
+    % Apply the calculated frequency/phase adjustment to the inC spectrum
+    fidsC = inC.fids.*exp(1i*pi*(t'*param(2,1)*2+param(2,2)/180));
+    specsC = fftshift(fft(fidsC, [], inC.dims.t), inC.dims.t);
+    % Create output
+    outC = inC;
+    outC.fids = fidsC;
+    outC.specs = specsC;
+    
+    % Then, align the GABA-ON-GSH-ON spectra to the **corrected** GABA-OFF-GSH-ON
+    % spectrum - this is something Mark/Georg independently from each other
+    % found out to work best for HERMES/HERCULES data.
+    
+    % Find Cho peak and get starting estimate for the frequency shift
+    freqLim(3,:) = freq <= 3.2+0.09 & freq >= 3.2-0.09;
+    [~,i] = max([abs(real(outC.specs(freqLim(3,:)))) abs(real(inD.specs(freqLim(3,:))))]);
+    freq2 = freq(freqLim(3,:));
+    maxFreq = freq2(i);
+    for jj = 1:2
+        tmp(jj,:) = freq <= maxFreq(jj)+0.08 & freq >= maxFreq(jj)-0.08;
+    end
+    freqLim(3,:) = or(tmp(1,:), tmp(2,:));
+    f0 = (maxFreq(1) - maxFreq(2)) * inA.txfrq*1e-6;
+    x0(3,:) = [f0 0];
+
+    % Determine normalization factor so that normalized spectra are entered
+    % into the optimization
+    a = max(max([abs(real(outC.specs)) abs(real(inD.specs))]));
+    fun = @(x) objFunc(op_ampScale(outC, 1/a), op_ampScale(inD, 1/a), freqLim(3,:), t, x);
+    param(3,:) = lsqnonlin(fun, x0(3,:), [], [], lsqnonlinopts);
+    % Apply the calculated frequency/phase adjustment to the inD spectrum
+    fidsD = inD.fids.*exp(1i*pi*(t'*param(3,1)*2+param(3,2)/180));
+    specsD = fftshift(fft(fidsD, [], inD.dims.t), inD.dims.t);
+    
+    % Create output
+    outD = inD;
+    outD.fids = fidsD;
+    outD.specs = specsD;
     varargout{1} = outA;
     varargout{2} = outB;
     varargout{3} = outC;
