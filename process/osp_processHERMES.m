@@ -302,7 +302,7 @@ for kk = 1:MRSCont.nDatasets
         %%% 4. DETERMINE ON/OFF STATUS
         % Classify the four sub-spectra such that the OFF spectrum is stored to
         % field A, and the ON spectrum is stored to field B.
-        [raw_A, raw_B, raw_C, raw_D, commuteOrder] = osp_onOffClassifyHERMES(raw_A, raw_B, raw_C, raw_D);
+        [raw_A, raw_B, raw_C, raw_D, commuteOrder] = osp_onOffClassifyHERMES(raw_A, raw_B, raw_C, raw_D,[target1 target2]);
         subSpecNames = {'A', 'B', 'C', 'D'};
         % Save drift information back to container
         eval(['MRSCont.QM.drift.pre.A{kk} = driftPre' subSpecNames{commuteOrder(1)} ';']);
@@ -316,12 +316,20 @@ for kk = 1:MRSCont.nDatasets
         % Generate the drift plot for the entire experiment in
         % the correct order
         driftPre = [MRSCont.QM.drift.pre.A{kk}, MRSCont.QM.drift.pre.B{kk}, MRSCont.QM.drift.pre.C{kk}, MRSCont.QM.drift.pre.D{kk}]';
-        driftPre = reshape(driftPre, [raw.averages, 1]);
+        try
+            driftPre = reshape(driftPre, [raw.averages, 1]);
+        catch
+            driftPre = reshape(driftPre, [raw.rawAverages, 1]);
+        end
         MRSCont.QM.drift.pre.diff1{kk}  = driftPre;
         MRSCont.QM.drift.pre.diff2{kk}  = driftPre;
         MRSCont.QM.drift.pre.sum{kk}    = driftPre;
         driftPost = [MRSCont.QM.drift.post.A{kk}, MRSCont.QM.drift.post.B{kk}, MRSCont.QM.drift.post.C{kk}, MRSCont.QM.drift.post.D{kk}]';
-        driftPost = reshape(driftPost, [raw.averages, 1]);
+        try
+            driftPost = reshape(driftPost, [raw.averages, 1]);
+        catch
+            driftPost = reshape(driftPost, [raw.rawAverages, 1]);
+        end
         MRSCont.QM.drift.post.diff1{kk}  = driftPost;
         MRSCont.QM.drift.post.diff2{kk}  = driftPost;
         MRSCont.QM.drift.post.sum{kk}    = driftPost;
@@ -370,7 +378,7 @@ for kk = 1:MRSCont.nDatasets
         [raw_A,~] = op_phaseCrCho(raw_A, 1); 
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
-        [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D);
+        [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,0,target1,target2);
         % Create the sum spectrum
         Sum     = op_addScans(raw_A,raw_B);
         Sum     = op_addScans(Sum,raw_C);
@@ -407,18 +415,29 @@ for kk = 1:MRSCont.nDatasets
         if MRSCont.flags.isPhantom
             waterRemovalFreqRange = [4.5 5];
             fracFID = 0.2;
+            Kinit = 32;
         else
-            waterRemovalFreqRange = [4.5 4.9];
-            fracFID = 0.75;
+            if ~MRSCont.flags.isPRIAM
+                waterRemovalFreqRange = [4.5 4.9];
+                fracFID = 0.75;
+                Kinit = 32;
+            else
+%                 waterRemovalFreqRange = [4.3 5.5];
+%                 fracFID = 0.75;
+%                 Kinit = 45;
+                waterRemovalFreqRange = [4.5 4.9];
+                fracFID = 0.75;
+                Kinit = 32;
+            end
         end
         % Apply iterative water filter
-        raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        raw_C = op_iterativeWaterFilter(raw_C, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        raw_D = op_iterativeWaterFilter(raw_D, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        diff2 = op_iterativeWaterFilter(diff2, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+        raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        raw_C = op_iterativeWaterFilter(raw_C, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        raw_D = op_iterativeWaterFilter(raw_D, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        diff2 = op_iterativeWaterFilter(diff2, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
 
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
