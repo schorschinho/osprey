@@ -93,6 +93,9 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_nii')
         files_nii = {jobStruct.files_nii};
     end
+    if isfield(jobStruct, 'files_sense')
+        files_sense = {jobStruct.sense};
+    end
     if isfield(jobStruct, 'outputFolder')
         outputFolder = jobStruct(1).outputFolder;
     else
@@ -320,7 +323,7 @@ end
 if exist('files_nii','var')
     MRSCont.files_nii = files_nii;
 end
-if exist('files_nii','var')
+if exist('files_sense','var')
     MRSCont.files_sense = files_sense;
 end
 if exist('outputFolder','var')
