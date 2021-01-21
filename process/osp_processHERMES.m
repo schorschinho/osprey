@@ -116,6 +116,7 @@ for kk = 1:MRSCont.nDatasets
         temp_proc   = op_addScans(temp_proc,temp_rawC);
         temp_proc   = op_addScans(temp_proc,temp_rawD);
         temp_spec   = temp_proc;
+        refShift_ind_ini = zeros(temp_rawA.averages,1);
         for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1))
             fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1));
             specs = temp_proc.specs(:,av:av+(round(temp_rawA.averages*0.1)-1));

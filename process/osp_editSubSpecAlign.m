@@ -338,6 +338,24 @@ elseif strcmp(seqType, 'MEGA')
             fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inB, 1/a), freqLim(2,:), t, x);
             param(1,:) = lsqnonlin(fun, x0(2,:), [], [], lsqnonlinopts);
 
+        case 'PE322'
+            % For Lac-edited data, align the Lac-ON spectrum using the
+            % NAA peak.
+            % Determine normalization factor so that normalized spectra are entered
+            % into the optimization
+            a = max(max([abs(real(inA.specs)) abs(real(inB.specs))]));
+            fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inB, 1/a), freqLim(2,:), t, x);
+            param(1,:) = lsqnonlin(fun, x0(2,:), [], [], lsqnonlinopts);
+ 
+        case 'PE398'
+            % For Lac-edited data, align the Lac-ON spectrum using the
+            % NAA peak.
+            % Determine normalization factor so that normalized spectra are entered
+            % into the optimization
+            a = max(max([abs(real(inA.specs)) abs(real(inB.specs))]));
+            fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inB, 1/a), freqLim(2,:), t, x);
+            param(1,:) = lsqnonlin(fun, x0(2,:), [], [], lsqnonlinopts);
+
             
         otherwise
             error('Error in osp_editSubSpecAlign! Target string not recognized.');

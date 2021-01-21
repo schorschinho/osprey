@@ -29,7 +29,7 @@
 
 function RF=io_writelcmBASIS(in,outfile,vendor,SEQ);
 
-metabList = fit_createMetabList;
+metabList = fit_createMetabList({'default'});
 % Create the modified basis set without macro molecules 
 basisSet = fit_selectMetabs(in, metabList, 0);
 

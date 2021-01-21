@@ -132,6 +132,9 @@ while ~feof(fid)
     ppm=ppm+4.68;
     t=[dwelltime:dwelltime:vectorsize*dwelltime];
     txfrq=hzpppm*1e6;
+    if strcmp(metabName,'-CrCH2')
+        metabName = 'CrCH2';
+    end
     eval(['out.' metabName '.fids=fids;']);
     eval(['out.' metabName '.specs=specs;']);
     eval(['out.' metabName '.sz=[vectorsize 1 1 1];']);
