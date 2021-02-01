@@ -43,7 +43,11 @@ function osp_updatemeanOvWindow(gui)
                 end
             end
         else
-            temp = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1);
+            if ~(isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM)
+                temp = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1);
+            else
+                temp = osp_plotMeanSpec(MRSCont, Selection{1},1, 0.01,10);
+            end
             ViewAxes = gca();
             set(ViewAxes.Children,'Parent',gui.Plot.meanOv.Children(2))
         end

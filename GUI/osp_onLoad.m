@@ -30,6 +30,22 @@ function [gui] = osp_onLoad( ~, ~ ,gui)
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYLOAD %%%
     MRSCont = OspreyLoad(MRSCont);
+    if MRSCont.flags.isPRIAM
+        try
+            gui.info.nXvoxels = MRSCont.raw{1,gui.controls.Selected}.nXvoxels;
+            gui.info.nYvoxels = MRSCont.raw{1,gui.controls.Selected}.nYvoxels;
+            gui.info.nZvoxels = MRSCont.raw{1,gui.controls.Selected}.nZvoxels;
+        catch
+        end
+    end
+    if MRSCont.flags.isMRSI
+        try
+            gui.info.nXvoxels = MRSCont.raw{1,gui.controls.Selected}.nXvoxels;
+            gui.info.nYvoxels = MRSCont.raw{1,gui.controls.Selected}.nYvoxels;
+            gui.info.nZvoxels = MRSCont.raw{1,gui.controls.Selected}.nZvoxels;
+        catch
+        end
+    end
     delete(gui.layout.dummy);
     if ~isempty(MRSCont.raw{1,gui.controls.Selected}.seq)
         if strcmp(sprintf('\n'),MRSCont.raw{1,gui.controls.Selected}.seq(end)) %Clean up Sequence Name if needed

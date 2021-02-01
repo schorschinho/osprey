@@ -42,6 +42,13 @@ function osp_iniOverviewWindow(gui)
         gui.layout.overviewTab.Selection  = 1;
 
 
+% Check version of Osprey - since we have changed the layout of the Overview struct with the implementation of DualVoxel
+if isfield(MRSCont.overview.Osprey, 'sort_data')
+    sort_data = 'sort_data';
+else
+    sort_data = 'sort_data_voxel_1';
+end        
+        
 %%% 2. SPECS OVERVIEW %%% 
 %Overview Panel for all specs sorted by groups
         gui.Plot.specsOv = uix.VBox(...
@@ -138,12 +145,12 @@ function osp_iniOverviewWindow(gui)
         temp = figure( 'Visible', 'off' );
         if gui.load.Selected ==1 %Metabolite data
             if length(gui.process.Names)>1
-                temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{2}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+                temp = op_plotspec(MRSCont.overview.Osprey.(sort_data).(['g_' num2str(1)]).(gui.process.Names{2}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
             else
-                temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+                temp = op_plotspec(MRSCont.overview.Osprey.(sort_data).(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
             end
         else %Water data?
-            temp = op_plotspec(MRSCont.overview.Osprey.sort_data.(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
+            temp = op_plotspec(MRSCont.overview.Osprey.(sort_data).(['g_' num2str(1)]).(gui.process.Names{1}),2,1,gui.colormap.cb(1,:),gui.layout.shift*(1-1),['Overview ' gui.layout.proTab.TabTitles{gui.load.Selected}]);
         end
         set(gca, 'YColor', MRSCont.colormap.Background);
         set(gca,'YTickLabel',{})
@@ -212,18 +219,46 @@ function osp_iniOverviewWindow(gui)
                                                 'String',gui.quant.popMenuNames, 'Value', 1);
  
 % Quantification table is created based on uicontrol
-        gui.Results.quantOv = uix.Panel('Parent', gui.Plot.quantOv, 'Padding', 5, ...
-                                        'Title', ['Results: ' (gui.quant.Names.Model{gui.quant.Selected.Model}) '-' (gui.quant.Names.Quants{gui.quant.Selected.Quant})],...
-                                        'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
-                                        'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-        QuantTextOv = cell(MRSCont.nDatasets+1,length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})));
-        QuantTextOv(1,:) = MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model});
-        QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant})(:,:));
-        temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv,...
-            'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-        set(temp,'BackgroundColor',gui.colormap.Background)
-        set(temp, 'Parent', gui.Results.quantOv );
-        set(gui.Plot.quantOv,'Heights', [-0.07 -0.93]);
+        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+            gui.Results.quantOv = uix.Panel('Parent', gui.Plot.quantOv, 'Padding', 5, ...
+                                            'Title', ['Results: ' (gui.quant.Names.Model{gui.quant.Selected.Model}) '-' (gui.quant.Names.Quants{gui.quant.Selected.Quant})],...
+                                            'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                            'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            QuantTextOv = cell(MRSCont.nDatasets+1,length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})));
+            QuantTextOv(1,:) = MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model});
+            QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant}).Voxel_1(:,:));
+            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv,...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            set(temp,'BackgroundColor',gui.colormap.Background)
+            set(temp, 'Parent', gui.Results.quantOv );
+            set(gui.Plot.quantOv,'Heights', [-0.07 -0.93]);
+        else
+            gui.Results.quantOv1 = uix.Panel('Parent', gui.Plot.quantOv, 'Padding', 5, ...
+                                            'Title', ['Results Voxel 1: ' (gui.quant.Names.Model{gui.quant.Selected.Model}) '-' (gui.quant.Names.Quants{gui.quant.Selected.Quant})],...
+                                            'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                            'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            QuantTextOv = cell(MRSCont.nDatasets+1,length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})));
+            QuantTextOv(1,:) = MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model});
+            QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant}).Voxel_1(:,:));
+            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv,...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            set(temp,'BackgroundColor',gui.colormap.Background)
+            set(temp, 'Parent', gui.Results.quantOv1 );
+            
+            gui.Results.quantOv2 = uix.Panel('Parent', gui.Plot.quantOv, 'Padding', 5, ...
+                                            'Title', ['Results Voxel 2: ' (gui.quant.Names.Model{gui.quant.Selected.Model}) '-' (gui.quant.Names.Quants{gui.quant.Selected.Quant})],...
+                                            'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                            'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            QuantTextOv = cell(MRSCont.nDatasets+1,length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})));
+            QuantTextOv(1,:) = MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model});
+            QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant}).Voxel_2(:,:));
+            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv,...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            set(temp,'BackgroundColor',gui.colormap.Background)
+            set(temp, 'Parent', gui.Results.quantOv2 );
+            
+            set(gui.Plot.quantOv,'Heights', [-0.07 -0.46 -0.46]);
+        end
     
 %%% 5. RAINCLOUD PLOTS %%%
         gui.layout.overviewTab.Selection  = 4;
@@ -231,7 +266,58 @@ function osp_iniOverviewWindow(gui)
 
 %Creates popup menus for differnt quantifications and metabolites
         gui.upperBox.distrOv.box = uix.HBox('Parent', gui.Plot.distrOv,'BackgroundColor',gui.colormap.Background, 'Spacing',5); 
-        gui.controls.distrOvPanel = uix.Panel('Parent', gui.upperBox.distrOv.box,'Title', 'Actual Quantification and Metabolite', ...
+        if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                gui.upperBox.distrOv.upperLeftButtons = uix.Panel('Parent', gui.upperBox.distrOv.box, ...
+                                         'Padding', 5, 'Title', ['Navigate voxel'],...
+                                         'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                         'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+                gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.distrOv.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
+                gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
+                gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','X:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Y:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Z:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
+                set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
+                set(gui.controls.b_left_z,'Callback',{@osp_onLeftZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_left_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_left_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_left_z.Enable = 'off';
+                end
+                gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
+                set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
+                set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_right_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_right_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_right_z.Enable = 'off';
+                end  
+                set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
+        end
+        gui.controls.distrOvPanel = uix.Panel('Parent', gui.upperBox.distrOv.box,'Title', ['Actual Quantification and Metabolite in Voxel ' num2str(gui.controls.act_x)], ...
                                              'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                              'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
         gui.controls.distrOv = uix.HBox('Parent', gui.controls.distrOvPanel,...
@@ -253,7 +339,11 @@ function osp_iniOverviewWindow(gui)
        [img2] = imresize(img, 0.05);
        set(gui.controls.b_save_distrOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
        set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
-       set(gui.upperBox.distrOv.box, 'Width', [-0.9 -0.1])                                               
+       if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        set(gui.upperBox.distrOv.box, 'Width', [-0.1 -0.8 -0.1])   
+       else
+        set(gui.upperBox.distrOv.box, 'Width', [-0.9 -0.1])   
+       end
 
 %osp_plotQuantifyTable to create distribution overview as raincloud plot
         temp = figure( 'Visible', 'off' );
@@ -261,7 +351,7 @@ function osp_iniOverviewWindow(gui)
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Plot.distrOv);
         close( temp );
-        set(gui.Plot.distrOv,'Heights', [-0.07 -0.90 -0.03]);
+        set(gui.Plot.distrOv,'Heights', [-0.1 -0.87 -0.03]);
         gui.Plot.distrOv.Children(3).Legend.Location = 'North';
         set(gui.controls.distrOv, 'Width', [-0.42 -0.42 -0.15])
 
@@ -274,7 +364,58 @@ function osp_iniOverviewWindow(gui)
 % Creates popup menu for differnt quantification, metabolite and
 % correaltion measure
         gui.upperBox.corrOv.box = uix.HBox('Parent', gui.Plot.corrOv,'BackgroundColor',gui.colormap.Background, 'Spacing',5); 
-        gui.controls.corrOvPanel = uix.Panel('Parent', gui.upperBox.corrOv.box,'Title', 'Actual Quantification, Metabolite, and Correlation Measure', ...
+        if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                gui.upperBox.corrOv.upperLeftButtons = uix.Panel('Parent', gui.upperBox.corrOv.box, ...
+                                         'Padding', 5, 'Title', ['Navigate voxel'],...
+                                         'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                         'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+                gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.corrOv.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
+                gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
+                gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','X:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Y:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Z:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
+                set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
+                set(gui.controls.b_left_z,'Callback',{@osp_onLeftZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_left_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_left_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_left_z.Enable = 'off';
+                end
+                gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
+                set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
+                set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_right_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_right_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_right_z.Enable = 'off';
+                end  
+                set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
+        end
+        gui.controls.corrOvPanel = uix.Panel('Parent', gui.upperBox.corrOv.box,'Title', ['Actual Quantification, Metabolite, and Correlation Measure ' num2str(gui.controls.act_x)], ...
                                             'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
         gui.controls.corrOv = uix.HBox('Parent', gui.controls.corrOvPanel,'Padding', 5, 'Spacing', 10,'BackgroundColor',gui.colormap.Background);
@@ -305,14 +446,22 @@ function osp_iniOverviewWindow(gui)
        [img2] = imresize(img, 0.05);
        set(gui.controls.b_save_corrOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
        set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
-       set(gui.upperBox.corrOv.box, 'Width', [-0.9 -0.1])                                      
+       if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        set(gui.upperBox.corrOv.box, 'Width', [-0.1 -0.8 -0.1])   
+       else
+        set(gui.upperBox.corrOv.box, 'Width', [-0.9 -0.1])   
+       end                                          
 %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
 %osp_plotQuantifyTable is used to create a correlation plot
         temp = figure( 'Visible', 'off' );
-        [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.overview.Selected.Metab},MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+            [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.overview.Selected.Metab},MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+        elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+            [temp] = osp_plotScatter(MRSCont, gui.quant.Names.Model{gui.quant.Selected.Model}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.overview.Selected.Metab},MRSCont.QM{1,gui.controls.act_x}.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
+        end
         ViewAxes = gca();
         set(ViewAxes, 'Parent', gui.Plot.corrOv);
-        set(gui.Plot.corrOv,'Heights', [-0.07 -0.90 -0.03]);
+        set(gui.Plot.corrOv,'Heights', [-0.1 -0.87 -0.03]);
         gui.Plot.corrOv.Children(3).Legend.Location = 'North';
         close( temp );
 
