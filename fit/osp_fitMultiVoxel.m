@@ -67,53 +67,6 @@ elseif MRSCont.flags.isMRSI == 1
    cx = round(XVox/2);
    cy = round(YVox/2);
    cz = round(ZVox/2);
-
-   for ss = 1 : NoSubSpec % Loop over Subspec 
-        for kk = 1 :MRSCont.nDatasets
-                fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},x);                
-       end
-        for kk = 1 :MRSCont.nDatasets % Loop over scale values
-                    fitMRSCont.fit.scale{kk} =  MRSCont.fit.scale{kk}(x);                
-        end
-        if MRSCont.flags.isUnEdited
-            [fitMRSCont] = osp_fitUnEdited(fitMRSCont);
-        elseif MRSCont.flags.isMEGA
-            [fitMRSCont] = osp_fitMEGA(fitMRSCont);
-        elseif MRSCont.flags.isHERMES
-            [fitMRSCont] = osp_fitHERMES(fitMRSCont);
-        elseif MRSCont.flags.isHERCULES
-            % For now, fit HERCULES like HERMES data
-            [fitMRSCont] = osp_fitHERCULES(fitMRSCont);
-        else
-            msg = 'No flag set for sequence type!';
-            fprintf(fileID,msg);
-            error(msg);
-        end
-
-        if x == 1
-            outMRSCont.fit = fitMRSCont.fit;
-        else
-            fields = {'resBasisSet','results'};
-            for f = 1 : length(fields)
-                if isfield(outMRSCont.fit,fields{f})
-                    if iscell(outMRSCont.fit.(fields{f}))
-                        %PRIAM data
-                        outMRSCont.fit.(fields{f}){x} = fitMRSCont.fit.(fields{f});
-                    else
-                        temp = outMRSCont.fit.(fields{f});
-                        outMRSCont.fit = rmfield(outMRSCont.fit, fields{f});
-                        outMRSCont.fit.(fields{f}){1} = temp;
-                        outMRSCont.fit.(fields{f}){x} = fitMRSCont.fit.(fields{f});
-                    end            
-                end
-            end
-        end
-    end
-elseif MRSCont.flags.isMRSI == 1
-    %Fit center of MRSI first for inital guess parameters
-   cx = round(XVox/2);
-   cy = round(YVox/2);
-   cz = round(ZVox/2);
    
    for ss = 1 : NoSubSpec % Loop over Subspec 
        for kk = 1 :MRSCont.nDatasets
