@@ -37,7 +37,10 @@ warning('off','all');
 % Parse input arguments
 if nargin < 2
     target1 = MRSCont.opts.editTarget{1}; 
-    target2 = MRSCont.opts.editTarget{2};  
+    target2 = MRSCont.opts.editTarget{2}; 
+    if length(MRSCont.opts.editTarget) > 2
+       target3 = MRSCont.opts.editTarget{3}; 
+    end
 end
 %% Loop over all datasets
 refProcessTime = tic;
@@ -324,6 +327,9 @@ for kk = 1:MRSCont.nDatasets
         end
         MRSCont.QM.drift.pre.diff1{kk}  = driftPre;
         MRSCont.QM.drift.pre.diff2{kk}  = driftPre;
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            MRSCont.QM.drift.pre.diff3{kk}  = driftPre;
+        end
         MRSCont.QM.drift.pre.sum{kk}    = driftPre;
         driftPost = [MRSCont.QM.drift.post.A{kk}, MRSCont.QM.drift.post.B{kk}, MRSCont.QM.drift.post.C{kk}, MRSCont.QM.drift.post.D{kk}]';
         try
@@ -333,6 +339,9 @@ for kk = 1:MRSCont.nDatasets
         end
         MRSCont.QM.drift.post.diff1{kk}  = driftPost;
         MRSCont.QM.drift.post.diff2{kk}  = driftPost;
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            MRSCont.QM.drift.post.diff3{kk}  = driftPre;
+        end
         MRSCont.QM.drift.post.sum{kk}    = driftPost;
 
         eval(['raw_A.specReg.fs     = fs_' subSpecNames{commuteOrder(1)} ';']); % save align parameters
@@ -379,7 +388,12 @@ for kk = 1:MRSCont.nDatasets
         [raw_A,~] = op_phaseCrCho(raw_A, 1); 
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
-        [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,0,target1,target2);
+        if ~exist('target3', 'var')
+            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,0,target1,target2);
+        else
+            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,0,target2,target3);
+        end
+
         % Create the sum spectrum
         Sum     = op_addScans(raw_A,raw_B);
         Sum     = op_addScans(Sum,raw_C);
@@ -406,6 +420,36 @@ for kk = 1:MRSCont.nDatasets
         diff2.specReg.fs = fs;
         diff2.specReg.phs = phs;
         diff2.specReg.weights = weights;
+        
+        if exist('target3', 'var') % For HERMES 4 acqusitions 
+            % Create the Asp-edited difference spectrum
+            diff1   = op_addScans(raw_A,raw_B,1);
+            diff1   = op_addScans(diff1,raw_C,1);
+            diff1   = op_addScans(diff1,raw_D);
+            diff1.target = target1;
+            diff1.commuteOrder = commuteOrder;
+            diff1.specReg.fs = fs;
+            diff1.specReg.phs = phs;
+            diff1.specReg.weights = weights;
+            % Create the NAA-edited difference spectrum
+            diff2   = op_addScans(raw_C,raw_D);
+            diff2   = op_addScans(diff2,raw_A,1);
+            diff2   = op_addScans(diff2,raw_B,1);
+            diff2.target = target2;
+            diff2.commuteOrder = commuteOrder;
+            diff2.specReg.fs = fs;
+            diff2.specReg.phs = phs;
+            diff2.specReg.weights = weights;     
+            % Create the NAAG-edited difference spectrum
+            diff3   = op_addScans(raw_B,raw_D);
+            diff3   = op_addScans(diff3,raw_A,1);
+            diff3   = op_addScans(diff3,raw_C,1);
+            diff3.target = target3;
+            diff3.commuteOrder = commuteOrder;
+            diff3.specReg.fs = fs;
+            diff3.specReg.phs = phs;
+            diff3.specReg.weights = weights;    
+        end
 
         %%% 6. REMOVE RESIDUAL WATER %%%
         % Remove water and correct back to baseline.
@@ -438,8 +482,10 @@ for kk = 1:MRSCont.nDatasets
         raw_D = op_iterativeWaterFilter(raw_D, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
         diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
         diff2 = op_iterativeWaterFilter(diff2, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            diff3 = op_iterativeWaterFilter(diff3, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        end
         Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
-
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
         % Reference resulting data correctly and consistently
@@ -452,6 +498,9 @@ for kk = 1:MRSCont.nDatasets
         [raw_D]             = op_freqshift(raw_D,-refShift_final);            % Apply same shift to ON-ON
         [diff1]             = op_freqshift(diff1,-refShift_final);            % Apply same shift to diff1
         [diff2]             = op_freqshift(diff2,-refShift_final);            % Apply same shift to diff2
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            [diff3]             = op_freqshift(diff3,-refShift_final);            % Apply same shift to diff2
+        end
         [Sum]               = op_freqshift(Sum,-refShift_final);              % Apply same shift to sum
 
         % Add commuteOrder
@@ -467,6 +516,9 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.D{kk}     = raw_D;                                    % Save ON-ON back to MRSCont container
         MRSCont.processed.diff1{kk} = diff1;                                    % Save diff1 back to MRSCont container
         MRSCont.processed.diff2{kk} = diff2;                                    % Save diff2 back to MRSCont container
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            MRSCont.processed.diff3{kk} = diff3;                                    % Save diff3 back to MRSCont container
+        end
         MRSCont.processed.sum{kk}   = Sum;                                      % Save sum back to MRSCont container
 
 
@@ -536,6 +588,15 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.QM.drift.pre.AvgDeltaCr.diff2(kk) = mean(MRSCont.QM.drift.pre.diff2{kk} - 3.02);
         MRSCont.QM.drift.post.AvgDeltaCr.diff2(kk) = mean(MRSCont.QM.drift.post.diff2{kk} - 3.02);
         MRSCont.QM.res_water_amp.diff2(kk) = sum(MRSCont.processed.diff2{kk}.watersupp.amp);
+        
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            MRSCont.QM.SNR.diff3(kk)    = op_getSNR(MRSCont.processed.diff3{kk},2.8,3.2); % GSH amplitude over noise floor                
+            MRSCont.QM.FWHM.diff3(kk)   = op_getLW(MRSCont.processed.diff3{kk},2.8,3.2); % in Hz
+            MRSCont.QM.freqShift.diff3(kk)  = refShift_SubSpecAlign + refShift_final;
+            MRSCont.QM.drift.pre.AvgDeltaCr.diff3(kk) = mean(MRSCont.QM.drift.pre.diff3{kk} - 3.02);
+            MRSCont.QM.drift.post.AvgDeltaCr.diff3(kk) = mean(MRSCont.QM.drift.post.diff3{kk} - 3.02);
+            MRSCont.QM.res_water_amp.diff3(kk) = sum(MRSCont.processed.diff3{kk}.watersupp.amp);
+        end
 
         MRSCont.QM.SNR.sum(kk)    = op_getSNR(MRSCont.processed.sum{kk}); % Cr amplitude over noise floor                  
         MRSCont.QM.FWHM.sum(kk)   = op_getLW(MRSCont.processed.sum{kk},2.8,3.2); % in Hz
