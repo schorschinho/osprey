@@ -90,11 +90,13 @@ for ss = 1 : NoSubSpec
 end
 %% Get scaling for the plots
 % Creates y-axis range to align the process plots between datasets
+
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
     MRSCont.plot.processed.match = 1; % Scaling between datasets is turned off by default
 else
     MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
 end
+
 
 for ss = 1 : NoSubSpec
     Range = zeros(2,MRSCont.nDatasets);
