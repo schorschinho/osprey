@@ -84,27 +84,9 @@ for kk = 1:MRSCont.nDatasets
                 raw_ref.flags.averaged  = 1;
                 raw_ref.dims.averages   = 0;
             end
-            temp_raw_ref = raw_ref;
-            temp_raw = raw;
-            [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
-             
-            temp_raw_NAA=op_freqrange(temp_raw,1.8,2.2);
-            raw_NAA=op_freqrange(raw,1.8,2.2);
-            
-            %Find the ppm of the maximum peak magnitude within the given range:
-            temp_ppmindex_NAA=find(abs(temp_raw_NAA.specs(:,1))==max(abs(temp_raw_NAA.specs(:,1))));
-            ppmindex_NAA=find(abs(raw_NAA.specs(:,1))==max(abs(raw_NAA.specs(:,1))));
-
-            %now do automatic zero-order phase correction (Use Creatine Peak):
-            temp_ph0_NAA=-phase(temp_raw_NAA.specs(temp_ppmindex_NAA,1))*180/pi;
-            ph0_NAA=-phase(raw_NAA.specs(ppmindex_NAA,1))*180/pi;
-            
-            if 2*abs(temp_ph0_NAA) > abs(ph0_NAA)
-                if MRSCont.flags.hasMM
-                    [raw_mm,~]                   = op_eccKlose(raw_mm, temp_raw_ref);        % Klose eddy current correction
-                end
-            else
-                raw = temp_raw;
+                        
+            if MRSCont.flags.hasMM
+                [raw_mm,~]                   = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
             end
             [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
             [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm

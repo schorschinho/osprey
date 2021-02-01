@@ -33,7 +33,11 @@ fprintf(fid,'\n%s','% This is a GUI generated Osprey jobFile. The code was kindl
 fprintf(fid,'\n%s','');
 fprintf(fid,'\n%s','%%% 1. SPECIFY SEQUENCE INFORMATION %%%');
 fprintf(fid,'\n%s',['seqType = ''' app.SequenceTypeDropDown.Value ''';']);
-fprintf(fid,'\n%s',['editTarget = {''' app.EditingTargetsDropDown.Value '''};']);
+if strcmp(app.EditingTargetsDropDown.Value, 'GABA, GSH')
+    fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH''};']);
+else
+    fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH'', ''EtOH''};']);
+end
 fprintf(fid,'\n%s','');
 
 fprintf(fid,'\n%s','%%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%');
@@ -110,7 +114,7 @@ if isempty(app.H2OReferenceText.Value{1})
     fprintf(fid,'\n%s',['files_ref = {};']);
 else
     fprintf(fid,'\n%s',['files_ref = {']);
-    fprintf(fid,'%s',['''' app.MRSDataText.Value{1} '''']);
+    fprintf(fid,'%s',['''' app.H2OReferenceText.Value{1} '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
         fprintf(fid,'\n\t\t%s',[' ' '''' app.MRSDataText.Value{i} '''']);

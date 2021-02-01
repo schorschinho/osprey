@@ -235,7 +235,7 @@ for kk = 1:MRSCont.nDatasets
         % Calculate mean WM/GM fractions
         meanfGM = mean(MRSCont.seg.tissue.fGM); % average GM fraction across datasets
         meanfWM = mean(MRSCont.seg.tissue.fWM); % average WM fraction across datasets
-        [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName,amplMets, amplWater,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM);
+        [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName,amplMets, amplWater,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM,MRSCont.opts.fit.coMM3);
 
         % Save back to Osprey data container
         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaled{kk} = AlphaCorrWaterScaled;
@@ -253,6 +253,7 @@ MRSCont.runtime.Quantify = time;
 fclose(fileID); %close log file
 %% Create tables
 % Set up readable tables for each quantification.
+[MRSCont] = osp_createTable(MRSCont,'amplMets', getResults);
 if qtfyCr
     [MRSCont] = osp_createTable(MRSCont,'tCr', getResults);
 end
@@ -274,6 +275,10 @@ end
 MRSCont.flags.didQuantify           = 1;
 % Save the metabolite tables as CSV structure
 exportCSV (MRSCont,saveDestination, getResults);
+%   Remove amplitudes table
+for ll = 1:length(getResults)
+    MRSCont.quantify.tables.(getResults{ll}) = rmfield(MRSCont.quantify.tables.(getResults{ll}),{'amplMets'});
+end
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;
@@ -362,11 +367,55 @@ for kk = 1:MRSCont.nDatasets
         if  ~isempty(idx_1) && ~isempty(idx_2)
             idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GlcTau'));
             if isempty(idx_3)
-                MRSCont.quantify.metabs{length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GlcTau';
+                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GlcTau';
             end
             idx_GlcTau = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GlcTau'));
             GlcTau = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
             MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GlcTau) = GlcTau;
+        end
+    end
+    %GABA+coMM3
+    if strcmp(MRSCont.opts.fit.coMM3, '1to1GABA') % fixed GABA coMM3 model
+        for ll = 1:length(getResults)        
+            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
+            if  ~isempty(idx_1)
+                idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                if isempty(idx_3)
+                    MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GABAplus';
+                end
+                idx_GABAp = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1);
+                MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GABAp) = GABAp;
+            end
+        end        
+    else if strcmp(MRSCont.opts.fit.coMM3, '3to2MM') % fixed MM09 coMM3 model
+             for ll = 1:length(getResults)
+                idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
+                idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'MM09'));
+                if  ~isempty(idx_1) && ~isempty(idx_2)
+                    idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                    if isempty(idx_3)
+                        MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GABAplus';
+                    end
+                    idx_GABAp = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                    GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
+                    MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GABAp) = GABAp;
+                end
+            end              
+        else % Models with a separate comMM3 function or without a co-edited MM function         
+            for ll = 1:length(getResults)
+                idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
+                idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'MM3co'));
+                if  ~isempty(idx_1) && ~isempty(idx_2)
+                    idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                    if isempty(idx_3)
+                        MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GABAplus';
+                    end
+                    idx_GABAp = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                    GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2);
+                    MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GABAp) = GABAp;
+                end
+            end
         end
     end
 end
@@ -534,7 +583,7 @@ end
 
 
 %%% Calculate alpha-corrected water-scaled GABA estimates %%%
-function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName, amplMets, amplWater,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM)
+function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName, amplMets, amplWater,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM,coMM3)
 % This function calculates water-scaled, alpha-corrected GABA
 % estimates in molal units, according to Gasparovic et al, Magn Reson Med
 % 55:1219-26 (2006).
@@ -592,6 +641,22 @@ ConcIU_TissCorr_Harris = (amplMets.(getResults{1})(idx_GABA) ./ amplWater) ...
 
 AlphaCorrWaterScaled = ConcIU_TissCorr_Harris / (fGM + alpha*fWM);
 AlphaCorrWaterScaledGroupNormed = ConcIU_TissCorr_Harris * CorrFactor;
+
+if ~strcmp(coMM3, 'none')
+    % GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015))
+    idx_GABAp  = find(strcmp(metsName.(getResults{1}),'GABAplus'));
+    [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.(getResults{1}){idx_GABA});
+    % average across GM and WM
+    T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
+    T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
+    ConcIU_TissCorr_Harris = (amplMets.(getResults{1})(idx_GABAp) ./ amplWater) ...
+            .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+                fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+                fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
+
+    AlphaCorrWaterScaled(2,1) = ConcIU_TissCorr_Harris / (fGM + alpha*fWM);
+    AlphaCorrWaterScaledGroupNormed(2,1) = ConcIU_TissCorr_Harris * CorrFactor;
+end
 end
 %%% /Calculate alpha-corrected water-scaled GABA estimates %%%
 
@@ -647,26 +712,49 @@ end
 %%% Function to create metabolite overview in MATLAB table format %%%
 function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
     if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWaterScaledGroupNormed'))
-        % Extract metabolite names from basisset
-        for ll = 1:length(getResults)
-        names = MRSCont.quantify.metabs.(getResults{ll});
+        if ~strcmp(qtfyType, 'amplMets')
+            % Extract metabolite names from basisset
+            for ll = 1:length(getResults)
+            names = MRSCont.quantify.metabs.(getResults{ll});
 
-        conc = zeros(MRSCont.nDatasets,length(names));
-        
-            for kk = 1:MRSCont.nDatasets
-                conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
-            end
-            % Save back to Osprey data container
-            if isfield(MRSCont, 'exclude')
-                if~isempty(MRSCont.exclude)
-                    conc(MRSCont.exclude,:) = [];
+            conc = zeros(MRSCont.nDatasets,length(names));
+
+                for kk = 1:MRSCont.nDatasets
+                    conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
                 end
+                % Save back to Osprey data container
+                if isfield(MRSCont, 'exclude')
+                    if~isempty(MRSCont.exclude)
+                        conc(MRSCont.exclude,:) = [];
+                    end
+                end
+                MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
             end
-            MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
+        else
+            % Extract metabolite names from basisset
+            for ll = 1:length(getResults)
+            names = MRSCont.quantify.metabs.(getResults{ll});
+
+            conc = zeros(MRSCont.nDatasets,length(names));
+
+                for kk = 1:MRSCont.nDatasets
+                    conc(kk,:) = MRSCont.quantify.(qtfyType){kk}.(getResults{ll});
+                end
+                % Save back to Osprey data container
+                if isfield(MRSCont, 'exclude')
+                    if~isempty(MRSCont.exclude)
+                        conc(MRSCont.exclude,:) = [];
+                    end
+                end
+                MRSCont.quantify.tables.(getResults{ll}).(qtfyType)  = array2table(conc,'VariableNames',names);
+            end            
         end
     else
             % Extract metabolite names from basisset
         names = {'GABA'};
+        if ~strcmp(MRSCont.opts.fit.coMM3, 'none')
+            names = {'GABA','GABAplus'};    
+        end
 
 
         conc = zeros(MRSCont.nDatasets,length(names));

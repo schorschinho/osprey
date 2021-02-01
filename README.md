@@ -102,6 +102,7 @@ development of Osprey and shared processing code:
 - Philipp Ehses (German Center for Neurodegenerative Diseases, Bonn)
 - Wouter Potters (UMC Amsterdam)
 - Xiangrui Li (Ohio State University, Columbus, OH)
+- Peter Van Schuerbeek (UZ Brussel)
 
 We are particularly grateful for the incredible [raincloud plot tools](https://github.com/RainCloudPlots/RainCloudPlots) developed by Micah Allen, Davide Poggiali, Kirstie Whitaker, Tom Rhys Marshall, and Rogier Kievit. Should you make use of the OspreyOverview raincloud plots, please consider citing their original publications:
 

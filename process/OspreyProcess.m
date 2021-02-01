@@ -45,7 +45,7 @@ fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckPro '\n'],
 [~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
 % Post-process raw data depending on sequence type
-if ~MRSCont.flags.isPRIAM
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     if MRSCont.flags.isUnEdited
         [MRSCont] = osp_processUnEdited(MRSCont);
     elseif MRSCont.flags.isMEGA
@@ -88,6 +88,45 @@ for ss = 1 : NoSubSpec
         temp_sw = temp_sw_store;
     end
 end
+%% Get scaling for the plots
+% Creates y-axis range to align the process plots between datasets
+
+if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
+    MRSCont.plot.processed.match = 1; % Scaling between datasets is turned off by default
+else
+    MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
+end
+
+
+for ss = 1 : NoSubSpec
+    Range = zeros(2,MRSCont.nDatasets);
+    switch SubSpecNames{ss}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum','mm'}
+            ppmmax = 4.5;
+        case {'ref', 'w'}
+            ppmmax = 2*4.68;        
+    end
+    switch SubSpecNames{ss}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
+            ppmmin = 0.2;
+        case {'ref', 'w','mm'}
+            ppmmin = 0;        
+    end
+    for kk = 1 : MRSCont.nDatasets
+        temp_spec = op_freqrange(MRSCont.processed.(SubSpecNames{ss}){kk}, ppmmin, ppmmax);
+        if ~(strcmp(SubSpecNames{ss},'ref') || strcmp(SubSpecNames{ss},'w'))
+            Range(1,kk) = max(real(temp_spec.specs),[],'all');
+            Range(2,kk) = min(real(temp_spec.specs),[],'all');   
+        else
+            Range(1,kk) = max(abs(real(temp_spec.specs)),[],'all');
+            Range(2,kk) = min(abs(real(temp_spec.specs)),[],'all');            
+        end
+    end
+    MRSCont.plot.processed.(SubSpecNames{ss}).max = Range(1,:);
+    MRSCont.plot.processed.(SubSpecNames{ss}).min = Range(2,:);
+    MRSCont.plot.processed.(SubSpecNames{ss}).ContMax = max(Range(1,:));
+    MRSCont.plot.processed.(SubSpecNames{ss}).ContMin = min(Range(2,:)); 
+end
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess    = 1;
@@ -111,7 +150,7 @@ if MRSCont.flags.isUnEdited
     end
 elseif MRSCont.flags.isMEGA
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
-    subspec = {'sum'};
+    subspec = {'A'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
     end
@@ -134,7 +173,7 @@ else
     error(msg);
 end
 
-if ~MRSCont.flags.isPRIAM
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     if ~MRSCont.flags.hasRef
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
     else
@@ -145,7 +184,7 @@ if ~MRSCont.flags.isPRIAM
 end
 
 % Optional:  Create all pdf figures
-if MRSCont.opts.savePDF && ~MRSCont.flags.isPRIAM
+if MRSCont.opts.savePDF && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     Names = fieldnames(MRSCont.processed);
     for kk = 1 : MRSCont.nDatasets
         for ss = 1 : length(Names)
@@ -155,19 +194,19 @@ if MRSCont.opts.savePDF && ~MRSCont.flags.isPRIAM
 end
 
 % Optional: write edited files to LCModel .RAW files
-if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM
+if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveLCM(MRSCont);
 end
 
 % Optional: write edited files to jMRUI .txt files
-if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM
+if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveJMRUI(MRSCont);
 end
 % Optional: write edited files to vendor specific format files readable to
 % LCModel and jMRUI
 % SPAR/SDAT if Philips
 % RDA if Siemens
-if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM
+if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveVendor(MRSCont);
 end
 

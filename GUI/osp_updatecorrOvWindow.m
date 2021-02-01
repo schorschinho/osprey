@@ -35,16 +35,16 @@ function osp_updatecorrOvWindow(gui)
                 metab = MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab};
            end 
             if gui.overview.Selected.CorrChoice == 1
-                temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
+                switch gui.overview.Selected.Corr
+                    case 1
+                    temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+                    case 2
+                    temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+                end                                
             else if gui.overview.Selected.CorrChoice == 2
                 temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Corr},MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Corr});
                 else
-                    switch gui.overview.Selected.Corr
-                        case 1
-                        temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
-                        case 2
-                        temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
-                    end
+                    temp = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
                 end
             end
             set(gui.Plot.corrOv.Children(3), 'XLim', temp.Children(2).XLim);
@@ -56,17 +56,18 @@ function osp_updatecorrOvWindow(gui)
             set(gui.Plot.corrOv,'Heights', [-0.07 -0.90 -0.03]);
             gui.Plot.corrOv.Children(3).Legend.Location = 'North'; %Update legend
             if gui.overview.Selected.CorrChoice == 1
-                set(gui.Plot.corrOv.Children(3).Title, 'String', [gui.overview.Names.Corr{gui.overview.Selected.Corr} ' vs ' metab]) %Update title
+                switch gui.overview.Selected.Corr
+                    case 1
+                    set(gui.Plot.corrOv.Children(3).Title, 'String', [metab ' vs SNR']) %Update title
+                    case 2
+                    set(gui.Plot.corrOv.Children(3).Title, 'String', [metab ' vs FHWM (ppm)']) %Update title
+                end                                
             else if gui.overview.Selected.CorrChoice == 2
                 set(gui.Plot.corrOv.Children(3).Title, 'String', [MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Corr} ' vs ' metab]) %Update title
                 else
-                    switch gui.overview.Selected.Corr
-                        case 1
-                        set(gui.Plot.corrOv.Children(3).Title, 'String', [metab ' vs SNR']) %Update title
-                        case 2
-                        set(gui.Plot.corrOv.Children(3).Title, 'String', [metab ' vs FHWM (ppm)']) %Update title
-                    end
+                    set(gui.Plot.corrOv.Children(3).Title, 'String', [gui.overview.Names.Corr{gui.overview.Selected.Corr} ' vs ' metab]) %Update title
                 end
             end
+            addpath(genpath([gui.folder.spmversion filesep]));
         setappdata(gui.figure,'MRSCont',MRSCont); %Write  MRSCont into hidden container in gui class            
 end
