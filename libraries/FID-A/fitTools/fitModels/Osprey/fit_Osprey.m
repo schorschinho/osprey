@@ -69,12 +69,12 @@ if ~isfield(dataToFit,'refShift') %NO referenceing so far
     [refShift, refFWHM] = fit_OspreyReferencing(dataToFit);
     % Apply initial referencing shift
     dataToFitRef = op_freqshift(dataToFit, -refShift);
-else %Referencing was performed on another Subspec
-    disp('Initial was performed on another Subspec...');
-    fprintf(fileID,'Initial was performed on another Subspec...\n');
+else %Referencing was performed on another Subspec or the center voxel (MRSI)
+    disp('Initial was performed on another Subspec or the center voxel (MRSI)...');
+    fprintf(fileID,'Initial was performed on another Subspec or the center voxel (MRSI)...\n');
     if ~isempty(progressText) 
         String = get(progressText,'String');
-        set(progressText,'String' ,sprintf([String(1,:) '\nInitial was performed on another Subspec...\n']));
+        set(progressText,'String' ,sprintf([String(1,:) '\nInitial was performed on another Subspec or the center voxel (MRSI)...\n']));
         drawnow
     end    
     refShift = dataToFit.refShift;
@@ -100,14 +100,31 @@ end
 % best phasing / referencing shift parameters are chosen.
 % (Worth exploring in future versions by passing the starting values for
 % the phase corrections as arguments.)
-disp('Running preliminary analysis with reduced basis set...');
-fprintf(fileID,'Running preliminary analysis with reduced basis set...\n');
-if ~isempty(progressText) 
-    String = get(progressText,'String');
-    set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
-    drawnow
+if ~isfield(fitOpts, 'MRSIpriors')
+    disp('Running preliminary analysis with reduced basis set...');
+    fprintf(fileID,'Running preliminary analysis with reduced basis set...\n');
+    if ~isempty(progressText) 
+        String = get(progressText,'String');
+        set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
+        drawnow
+    end
+    [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
+else
+    disp('Take priors from center voxel...');
+    fprintf(fileID,'Take priors from center voxel...\n');
+    if ~isempty(progressText) 
+        String = get(progressText,'String');
+        set(progressText,'String' ,sprintf([String(1,:)  '\nTake priors from center voxel...\n']));
+        drawnow
+    end
+    fitParamsStep1 = fitOpts.MRSIpriors.prelimParams; % Get results from center voxel
+    %Overwrite parameters with final results, not sure if this is better
+    %then the inital results
+    fitParamsStep1.ph0 = fitOpts.MRSIpriors.ph0;
+    fitParamsStep1.ph1 = fitOpts.MRSIpriors.ph1;
+    fitParamsStep1.gaussLB = fitOpts.MRSIpriors.gaussLB;
+    
 end
-[fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
 
 
 %%% 4. FINAL PRELIMINARY ANALYSIS STEP 2 %%%
