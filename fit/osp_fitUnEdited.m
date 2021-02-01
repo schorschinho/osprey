@@ -50,16 +50,6 @@ for kk = 1:MRSCont.nDatasets
         % Extract fit options
         fitOpts     = MRSCont.opts.fit;
         fitModel    = fitOpts.method;
-        
-        % If MRSI data load priors
-        if MRSCont.flags.isMRSI
-            if isfield(MRSCont.fit, 'results')
-                fitParamsOff   = MRSCont.fit.results.off.fitParams{kk};
-%                 dataToFit.refShift   = fitParamsOff.refShift;
-%                 dataToFit.refFWHM   = fitParamsOff.refFWHM;
-                fitOpts.MRSIpriors = fitParamsOff;
-            end
-        end
 
         % Call the fit function
         basisSet    = MRSCont.fit.basisSet;

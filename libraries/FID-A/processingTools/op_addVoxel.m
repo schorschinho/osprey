@@ -29,13 +29,13 @@ if length(index)==1
     dims.Xvoxels=length(size(fids));
 end
 if length(index)==2
-    dims.Xvoxels=length(size(fids));
-    dims.Yvoxels=length(size(fids))+1;    
+    dims.Xvoxels=length(size(fids))-1;
+    dims.Yvoxels=length(size(fids));    
 end
 if length(index)==3
-    dims.Xvoxels=length(size(fids));
-    dims.Yvoxels=length(size(fids))+1;
-    dims.Zvoxels=length(size(fids))+2;    
+    dims.Xvoxels=length(size(fids))-2;
+    dims.Yvoxels=length(size(fids))-1;
+    dims.Zvoxels=length(size(fids));    
 end
 
 %PRIAM data
@@ -61,43 +61,43 @@ end
 
 % 2D MRSI data
 if length(index)==2
-    if dims.Xvoxels==0
+    if dims.Xvoxels==0 || in2.dims.Yvoxels==0
         %Can't take subspec because there are none:
         error('ERROR:  There are multiple voxels in this dataset!  Aborting!');
-    elseif dims.Xvoxels==1
+    elseif dims.Xvoxels==1 || in2.dims.Yvoxels==1
         %SHOULD NEVER HAPPEN (Time dimension should always be dim=1)
         error('ERROR:  dims.Xvoxels==1 or dims.Yvoxels==1.  This should never happen!  Aborting!');
     elseif dims.Xvoxels==2
-        fids(:,index(1),index(2))=in2.fids(:);
-    elseif dims.Xvoxels==3
-        fids(:,:,index(1),index(2))=in2.fids(:,:);
-    elseif dims.Xvoxels==4
-        fids(:,:,:,index(1),index(2))=in2.fids(:,:,:);
+        fids(:,index(1),index(2))=in2.fids(:,index(1),index(2));
+    elseif dims.Xvoxels==3;
+        fids(:,:,index(1),index(2))=in2.fids(:,:,index(1),index(2));
+    elseif dims.Xvoxels==4;
+        fids(:,:,:,index(1),index(2))=in2.fids(:,:,:,index(1),index(2));
     elseif dims.Xvoxels==5
-        fids(:,:,:,:,index(1),index(2))=in2.fids(:,:,:,:);
+        fids(:,:,:,:,index(1),index(2))=in2.fids(:,:,:,:,index(1),index(2));
     elseif dims.Xvoxels==6
-        fids(:,:,:,:,:,index(1),index(2))=in2.fids(:,:,:,:,:);    
+        fids(:,:,:,:,:,index(1),index(2))=in2.fids(:,:,:,:,:,index(1),index(2));    
     end
 end
 
 % 3D MRSI data
 if length(index)==3
-    if dims.Xvoxels==0
+    if dims.Xvoxels==0 || in2.dims.Yvoxels==0 || in2.dims.Zvoxels==0
         %Can't take subspec because there are none:
         error('ERROR:  There are multiple voxels in this dataset!  Aborting!');
-    elseif dims.Xvoxels==1
+    elseif dims.Xvoxels==1 || in2.dims.Yvoxels==1 || in2.dims.Zvoxels==1
         %SHOULD NEVER HAPPEN (Time dimension should always be dim=1)
         error('ERROR:  dims.Xvoxels==1 or dims.Yvoxels==1 or dims.Zvoxels==1.  This should never happen!  Aborting!');
     elseif dims.Xvoxels==2
-        fids(:,index(1),index(2),index(3))=in2.fids(:);
-    elseif dims.Xvoxels==3
-        fids(:,:,index(1),index(2),index(3))=in2.fids(:,:);
-    elseif dims.Xvoxels==4
-        fids(:,:,:,index(1),index(2),index(3))=in2.fids(:,:,:);
+        fids(:,index(1),index(2),index(3))=in2.fids(:,index(1),index(2),index(3));
+    elseif dims.Xvoxels==3;
+        fids(:,:,index(1),index(2),index(3))=in2.fids(:,:,index(1),index(2),index(3));
+    elseif dims.Xvoxels==4;
+        fids(:,:,:,index(1),index(2),index(3))=in2.fids(:,:,:,index(1),index(2),index(3));
     elseif dims.Xvoxels==5
-        fids(:,:,:,:,index(1),index(2),index(3))=in2.fids(:,:,:,:);
+        fids(:,:,:,:,index(1),index(2),index(3))=in2.fids(:,:,:,:,index(1),index(2),index(3));
     elseif dims.Xvoxels==6
-        fids(:,:,:,:,:,index(1),index(2),index(3))=in2.fids(:,:,:,:,:);  
+        fids(:,:,:,:,:,index(1),index(2),index(3))=in2.fids(:,:,:,:,:,index(1),index(2),index(3));  
     end
 end
 

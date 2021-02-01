@@ -44,7 +44,7 @@ end
 % Fall back to defaults if not provided
 if nargin<6
     switch which_spec
-        case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum','mm'}
             ppmmax = 4.5;
         case {'ref', 'w'}
             ppmmax = 2*4.68;
@@ -53,7 +53,7 @@ if nargin<6
     end
     if nargin<5
         switch which_spec
-            case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum'}
+            case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
                 ppmmin = 0.2;
             case {'ref', 'w','mm'}
                 ppmmin = 0;
@@ -88,11 +88,9 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract raw and processed spectra in the plot range
-if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
-        if ~exist('VoxelIndex') && (MRSCont.flags.isPRIAM == 1)
+if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
+        if ~exist('VoxelIndex')
             VoxelIndex = 1;
-        elseif ~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)
-            VoxelIndex = [1 1];  
         end
 
         switch which_spec
@@ -132,7 +130,7 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
 
                 eval(['rawDataToPlot = raw_' which_spec ';']);
                 rawDataToScale = raw_A;                                     % This is used to get consistent yLims
-            case {'diff1', 'diff2','diff3', 'sum'}
+            case {'diff1', 'diff2', 'sum'}
                  rawDataToPlot=op_takeVoxel(MRSCont.raw{kk},VoxelIndex);
                  procDataToPlot=op_takeVoxel(MRSCont.processed.(which_spec){kk},VoxelIndex);
                 if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
@@ -214,7 +212,7 @@ else
 
             eval(['rawDataToPlot = raw_' which_spec ';']);
             rawDataToScale = raw_A;                                     % This is used to get consistent yLims
-        case {'diff1', 'diff2','diff3', 'sum'}
+        case {'diff1', 'diff2', 'sum'}
             rawDataToPlot  = MRSCont.raw{kk};
             procDataToPlot = MRSCont.processed.(which_spec){kk};
             if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
@@ -279,50 +277,29 @@ applyDataToScale = rawDataToScale;
 t = rawDataToScale.t;
 switch which_spec
     case {'A', 'B', 'C', 'D'} 
-        if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
+        if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
             fs = procDataToPlot.specReg{VoxelIndex}.fs;
             phs = procDataToPlot.specReg{VoxelIndex}.phs;
-        elseif(isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
-            fs = procDataToPlot.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-            phs = procDataToPlot.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
         else
             fs = procDataToPlot.specReg.fs;
             phs = procDataToPlot.specReg.phs;           
         end
-    case {'diff1', 'diff2','diff3', 'sum'}
-        if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
+    case {'diff1', 'diff2', 'sum'}
+        if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
             if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-                
-                fs{1} = proc_A.specReg{VoxelIndex}.fs;
-                phs{1} = proc_A.specReg{VoxelIndex}.phs;
-                fs{2} = proc_B.specReg{VoxelIndex}.fs;
-                phs{2} = proc_B.specReg{VoxelIndex}.phs;
-                fs{3} = proc_C.specReg{VoxelIndex}.fs;
-                phs{3} = proc_C.specReg{VoxelIndex}.phs;
-                fs{4} = proc_D.specReg{VoxelIndex}.fs;
-                phs{4} = proc_D.specReg{VoxelIndex}.phs;
+                    fs{1} = proc_A.specReg{VoxelIndex}.fs;
+                    phs{1} = proc_A.specReg{VoxelIndex}.phs;
+                    fs{2} = proc_B.specReg{VoxelIndex}.fs;
+                    phs{2} = proc_B.specReg{VoxelIndex}.phs;
+                    fs{3} = proc_C.specReg{VoxelIndex}.fs;
+                    phs{3} = proc_C.specReg{VoxelIndex}.phs;
+                    fs{4} = proc_D.specReg{VoxelIndex}.fs;
+                    phs{4} = proc_D.specReg{VoxelIndex}.phs;
             else
                     fs{1} = proc_A.specReg{VoxelIndex}.fs;
                     phs{1} = proc_A.specReg{VoxelIndex}.phs;
                     fs{2} = proc_B.specReg{VoxelIndex}.fs;
                     phs{2} = proc_B.specReg{VoxelIndex}.phs;
-            end
-        elseif(isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
-            if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-                
-                fs{1} = proc_A.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                phs{1} = proc_A.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                fs{2} = proc_B.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                phs{2} = proc_B.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                fs{3} = proc_C.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                phs{3} = proc_C.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                fs{4} = proc_D.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                phs{4} = proc_D.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-            else
-                    fs{1} = proc_A.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                    phs{1} = proc_A.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                    fs{2} = proc_B.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                    phs{2} = proc_B.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
             end
         else
             if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
@@ -343,7 +320,7 @@ switch which_spec
         end
 end
 
-if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
+if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
     if isfield(MRSCont.QM{VoxelIndex}.freqShift, which_spec)
         switch which_spec
             case {'A', 'B', 'C', 'D'} 
@@ -353,29 +330,8 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
                     applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
-            case {'diff1', 'diff2','diff3', 'sum'}
+            case {'diff1', 'diff2', 'sum'}
                 refShift = -repmat(MRSCont.QM{VoxelIndex}.freqShift.(which_spec)(kk), size(fs{1}));
-                for ss = 1 : length(fs)
-                    fs{ss} = fs{ss} - refShift;
-                    for jj = 1:size(applyDataToScale.fids,2)
-                        applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
-                            exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
-                    end
-                end
-        end
-    end
-elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
-    if isfield(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift, which_spec)
-        switch which_spec
-            case {'A', 'B', 'C', 'D'} 
-                refShift = -repmat(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk), size(fs));
-                fs = fs - refShift;
-                for jj = 1:size(applyDataToScale.fids,2)
-                    applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
-                        exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
-                end
-            case {'diff1', 'diff2','diff3', 'sum'}
-                refShift = -repmat(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
                     for jj = 1:size(applyDataToScale.fids,2)
@@ -395,7 +351,7 @@ else
                     applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
-            case {'diff1', 'diff2','diff3', 'sum'}
+            case {'diff1', 'diff2', 'sum'}
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(kk), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
@@ -410,11 +366,10 @@ end
 
 applyDataToScale.specs = fftshift(fft(applyDataToScale.fids,[],rawDataToScale.dims.t),rawDataToScale.dims.t);
 
-
 plotRangeScale = op_freqrange(applyDataToScale, ppmmin, ppmmax);
 yLims= [ min(min(real(plotRangeScale.specs(:,:)))) max(max(real(plotRangeScale.specs(:,:))))];
 yLimsAbs = (abs(yLims(1)) +  abs(yLims(2)));
-if strcmp(which_spec, 'diff1') || strcmp(which_spec, 'diff2') || strcmp(which_spec, 'diff3') || strcmp(which_spec, 'sum')
+if strcmp(which_spec, 'diff1') || strcmp(which_spec, 'diff2') || strcmp(which_spec, 'sum')
     if MRSCont.flags.isMEGA
         yLims = [yLims(1) - (yLimsAbs*0.1) (2*yLims(2)) + (yLimsAbs*0.1)];
     else
@@ -423,6 +378,7 @@ if strcmp(which_spec, 'diff1') || strcmp(which_spec, 'diff2') || strcmp(which_sp
 else
     yLims = [yLims(1) - (yLimsAbs*0.1) yLims(2) + (yLimsAbs*0.1)];
 end
+
 
 % Add the data and plot
 hold(ax_raw, 'on');    
@@ -513,21 +469,17 @@ applyDataToPlot = rawDataToPlot;
 t = rawDataToPlot.t;
 switch which_spec
     case {'A', 'B', 'C', 'D'} 
-        if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
+        if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
             fs = procDataToPlot.specReg{VoxelIndex}.fs;
             phs = procDataToPlot.specReg{VoxelIndex}.phs;
-            weights = MRSCont.processed.(which_spec){kk}.specReg{VoxelIndex(1)}.weights;
-        elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
-            fs = procDataToPlot.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-            phs = procDataToPlot.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-            weights = MRSCont.processed.(which_spec){kk}.specReg{VoxelIndex(1), VoxelIndex(2)}.weights;
+            weights = MRSCont.processed.(which_spec){kk}.specReg{VoxelIndex}.weights;
         else
             fs = procDataToPlot.specReg.fs;
             phs = procDataToPlot.specReg.phs;
             weights = MRSCont.processed.(which_spec){kk}.specReg.weights;            
         end
-    case {'diff1', 'diff2', 'diff3', 'sum'}
-        if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+    case {'diff1', 'diff2', 'sum'}
+        if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
             if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
                     fs{1} = proc_A.specReg{VoxelIndex}.fs;
                     phs{1} = proc_A.specReg{VoxelIndex}.phs;
@@ -544,24 +496,6 @@ switch which_spec
                     fs{2} = proc_B.specReg{VoxelIndex}.fs;
                     phs{2} = proc_B.specReg{VoxelIndex}.phs;
                     weights = MRSCont.processed.(which_spec){kk}.specReg{VoxelIndex}.weights;
-            end
-        elseif(isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
-            if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-                    fs{1} = proc_A.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                    phs{1} = proc_A.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                    fs{2} = proc_B.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                    phs{2} = proc_B.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                    fs{3} = proc_C.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                    phs{3} = proc_C.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                    fs{4} = proc_D.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                    phs{4} = proc_D.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                    weights = MRSCont.processed.(which_spec){kk}.specReg{VoxelIndex(1), VoxelIndex(2)}.weights;
-            else
-                    fs{1} = proc_A.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                    phs{1} = proc_A.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                    fs{2} = proc_B.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
-                    phs{2} = proc_B.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
-                    weights = MRSCont.processed.(which_spec){kk}.specReg{VoxelIndex(1), VoxelIndex(2)}.weights;
             end
         else
             if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
@@ -584,39 +518,18 @@ switch which_spec
         end
 end
 
-if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
-    if isfield(MRSCont.QM{VoxelIndex(1)}.freqShift, which_spec)
+if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
+    if isfield(MRSCont.QM{VoxelIndex}.freqShift, which_spec)
         switch which_spec
             case {'A', 'B', 'C', 'D'} 
-                refShift = -repmat(MRSCont.QM{VoxelIndex(1)}.freqShift.(which_spec)(kk), size(fs));
+                refShift = -repmat(MRSCont.QM{VoxelIndex}.freqShift.(which_spec)(kk), size(fs));
                 fs = fs - refShift;
                 for jj = 1:size(applyDataToPlot.fids,2)
                     applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
             case {'diff1', 'diff2', 'sum'}
-                refShift = -repmat(MRSCont.QM{VoxelIndex(1)}.freqShift.(which_spec)(kk), size(fs{1}));
-                for ss = 1 : length(fs)
-                    fs{ss} = fs{ss} - refShift;
-                    for jj = 1:size(applyDataToPlot.fids,2)
-                        applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
-                            exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
-                    end
-                end
-        end
-    end
-elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
-    if isfield(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift, which_spec)
-        switch which_spec
-            case {'A', 'B', 'C', 'D'} 
-                refShift = -repmat(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk), size(fs));
-                fs = fs - refShift;
-                for jj = 1:size(applyDataToPlot.fids,2)
-                    applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
-                        exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
-                end
-            case {'diff1', 'diff2', 'diff3', 'sum'}
-                refShift = -repmat(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk), size(fs{1}));
+                refShift = -repmat(MRSCont.QM{VoxelIndex}.freqShift.(which_spec)(kk), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
                     for jj = 1:size(applyDataToPlot.fids,2)
@@ -636,7 +549,7 @@ else
                     applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
-            case {'diff1', 'diff2', 'diff3', 'sum'}
+            case {'diff1', 'diff2', 'sum'}
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(kk), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
@@ -672,7 +585,7 @@ if MRSCont.flags.isMEGA
         set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
     else
         for rr = 1:nAvgsRaw
-            plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
+            plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr), 'LineWidth', 0.5, 'Color', colormap.Foreground);
         end
         set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
     end
@@ -727,68 +640,13 @@ end
 %%% 6. PLOT PROCESSED %%%
 % Add the data and plot
 hold(ax_proc, 'on');
-if isfield(MRSCont,'plot') && isfield(MRSCont.plot, 'processed') && (MRSCont.plot.processed.match == 1)
-    if MRSCont.flags.hasRef || MRSCont.flags.hasWater
-        if MRSCont.flags.hasRef
-            plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs)/MRSCont.plot.processed.ref.max(kk), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
-            maxRef = MRSCont.plot.processed.ref.max;
-        else
-            plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs)/MRSCont.plot.processed.w.max(kk), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
-            maxRef = MRSCont.plot.processed.w.max;
-        end
-        if strcmp(which_spec, 'diff1') || strcmp(which_spec, 'diff2') || strcmp(which_spec, 'sum')
-            if strcmp(which_spec, 'sum')
-                y = [-0.2*max(MRSCont.plot.processed.(which_spec).max/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-            else
-                if strcmp(which_spec, 'diff1')
-                    switch MRSCont.opts.editTarget{1}
-                        case 'GABA'
-                            y = [-0.2*max(MRSCont.plot.processed.(which_spec).max/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-                        case 'GSH'
-                            y = [1.1*min(MRSCont.plot.processed.(which_spec).min/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-                        case 'Lac'
-                            y = [1.1*min(MRSCont.plot.processed.(which_spec).min/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-                        otherwise
-                            y = [1.1*min(MRSCont.plot.processed.(which_spec).min/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-                    end
-                else
-                    switch MRSCont.opts.editTarget{2}
-                        case 'GABA'
-                            y = [-0.2*max(MRSCont.plot.processed.(which_spec).max/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-                        case 'GSH'
-                            y = [1.1*min(MRSCont.plot.processed.(which_spec).min/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-                        case 'Lac'
-                            y = [1.1*min(MRSCont.plot.processed.(which_spec).min/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-                        otherwise
-                            y = [1.1*min(MRSCont.plot.processed.(which_spec).min/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)];
-                    end
-                end
-                            
-            end
-        else
-            y = [-0.2*max(MRSCont.plot.processed.(which_spec).max/maxRef), 1.2*max(MRSCont.plot.processed.(which_spec).max/maxRef)]; 
-        end
-    else        
-        plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
-        if strcmp(which_spec, 'diff1') || strcmp(which_spec, 'diff2') || strcmp(which_spec, 'diff3') || strcmp(which_spec, 'sum')
-            y = [min(MRSCont.plot.processed.(which_spec).min) max(MRSCont.plot.processed.(which_spec).max)];
-        else
-            if MRSCont.flags.isMEGA || MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-                y = [min(MRSCont.plot.processed.(which_spec).min) max(MRSCont.plot.processed.(which_spec).max)];
-            else
-                y = [min(MRSCont.plot.processed.(which_spec).min) max(MRSCont.plot.processed.(which_spec).max)];
-            end        
-        end        
-    end
-else
-    plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs)/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
-    if strcmp(which_spec,'diff2')
-        y = [-1.2, 1.2];
-    else if strcmp(which_spec,'diff1')
-        y = [-2, 1.2];        
-        else
-        y = [-0.2, 1.2];
-        end
+plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs)/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
+if strcmp(which_spec,'diff2')
+    y = [-1.2, 1.2];
+else if strcmp(which_spec,'diff1')
+    y = [-2, 1.2];        
+    else
+    y = [-0.2, 1.2];
     end
 end
 set(ax_proc, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
@@ -802,11 +660,7 @@ if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
     end
 end
 hold(ax_proc, 'off');
-if MRSCont.plot.processed.match == 0
-    title(ax_proc, 'Aligned and averaged', 'Color', colormap.Foreground);
-else
-    title(ax_proc, 'Aligned, averaged, and scaled', 'Color', colormap.Foreground);
-end
+title(ax_proc, 'Aligned and averaged', 'Color', colormap.Foreground);
 xlabel(ax_proc, 'Frequency (ppm)', 'Color', colormap.Foreground)
 if MRSCont.flags.isGUI
     set(ax_proc, 'YColor', colormap.Background);
@@ -815,7 +669,7 @@ if MRSCont.flags.isGUI
 end
 
 %%% 7. GENERATE DRIFT PLOT %%%
-if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
+if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
     if isfield(MRSCont.QM{VoxelIndex}.drift.pre, which_spec)
         if length(MRSCont.QM{VoxelIndex}.drift.pre.(which_spec){kk}) > 1
             crDriftPre = MRSCont.QM{VoxelIndex}.drift.pre.(which_spec){kk} + MRSCont.QM{VoxelIndex}.freqShift.(which_spec)(kk)/applyDataToPlot.txfrq*1e6;
@@ -832,41 +686,6 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
 
             text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end)-(MRSCont.QM{VoxelIndex}.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6), 'Pre', 'Color', colormap.LightAccent);
             text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end)-(MRSCont.QM{VoxelIndex}.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6), 'Post', 'Color', colormap.Foreground);
-            set(ax_drift, 'YLim', [3.028-0.1 3.028+0.1]);
-            yticks([3.028-0.08 3.028-0.04 3.028 3.028+0.04 3.028+0.08]);
-            yticklabels({'2.94' '2.98' '3.02' '3.06' '3.10'});
-            x = xlim;
-            plot(ax_drift, [x(1) x(2)], [3.028 3.028],'LineStyle', ':', 'Color', colormap.Foreground, 'LineWidth', 0.5);
-            plot(ax_drift, [x(1) x(2)], [3.028-0.04 3.028-0.04],'LineStyle', '--', 'Color', colormap.Foreground, 'LineWidth', 0.5);
-            plot(ax_drift, [x(1) x(2)], [3.028+0.04 3.028+0.04],'LineStyle', '--', 'Color', colormap.Foreground, 'LineWidth', 0.5);
-            hold(ax_drift, 'off');
-        else 
-            x = xlim;
-            y = yLims;
-            text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
-        end
-    else
-        x = xlim;
-        y = yLims;
-        text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
-    end
-elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
-    if isfield(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.pre, which_spec)
-        if length(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.pre.(which_spec){kk}) > 1
-            crDriftPre = MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.pre.(which_spec){kk} + MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk)/applyDataToPlot.txfrq*1e6;
-            crDriftPost = MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.post.(which_spec){kk} + MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk)/applyDataToPlot.txfrq*1e6;
-            hold(ax_drift, 'on');
-            colors = ones(length(crDriftPre),1).*colormap.Foreground;
-            for dots = 1 : length(crDriftPre)
-                colors(dots,1) = colors(dots,1) + (1 - colors(dots,1)) * (1-weights(dots));
-                colors(dots,2) = colors(dots,2) + (1 - colors(dots,2)) * (1-weights(dots));
-                colors(dots,3) = colors(dots,3) + (1 - colors(dots,3)) * (1-weights(dots));
-            end
-            scatter(ax_drift, [1:length(crDriftPre)],crDriftPre'-(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6),36,ones(length(crDriftPre),1).*colormap.LightAccent);
-            scatter(ax_drift, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormap.Foreground);    
-
-            text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end)-(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6), 'Pre', 'Color', colormap.LightAccent);
-            text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end)-(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk)/procDataToPlot.txfrq*1e6), 'Post', 'Color', colormap.Foreground);
             set(ax_drift, 'YLim', [3.028-0.1 3.028+0.1]);
             yticks([3.028-0.08 3.028-0.04 3.028 3.028+0.04 3.028+0.08]);
             yticklabels({'2.94' '2.98' '3.02' '3.06' '3.10'});

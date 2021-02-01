@@ -126,21 +126,6 @@ out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
 
-%FILLING IN DATA STRUCUTRE FOR SDAT MRSI
-if isfield(header, 'dim2_pnts')
-    out.nXvoxels = header.dim2_pnts;
-    out.flags.MultiVoxel=1;
-end
-if isfield(header, 'dim3_pnts')
-    out.nYvoxels = header.dim3_pnts;
-    out.flags.MultiVoxel=1;
-end
-if isfield(header, 'nr_of_slices_for_multislice') && isfield(header, 'dim2_pnts');
-    out.nZvoxels = header.nr_of_slices_for_multislice;
-    out.flags.MultiVoxel=1;
-end
-
-
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;

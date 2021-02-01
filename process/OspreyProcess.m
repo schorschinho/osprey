@@ -45,7 +45,7 @@ fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckPro '\n'],
 [~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
 % Post-process raw data depending on sequence type
-if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if ~MRSCont.flags.isPRIAM
     if MRSCont.flags.isUnEdited
         [MRSCont] = osp_processUnEdited(MRSCont);
     elseif MRSCont.flags.isMEGA
@@ -90,13 +90,7 @@ for ss = 1 : NoSubSpec
 end
 %% Get scaling for the plots
 % Creates y-axis range to align the process plots between datasets
-
-if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
-    MRSCont.plot.processed.match = 1; % Scaling between datasets is turned off by default
-else
-    MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
-end
-
+MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
 
 for ss = 1 : NoSubSpec
     Range = zeros(2,MRSCont.nDatasets);
@@ -173,7 +167,7 @@ else
     error(msg);
 end
 
-if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if ~MRSCont.flags.isPRIAM
     if ~MRSCont.flags.hasRef
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
     else
@@ -184,7 +178,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
 end
 
 % Optional:  Create all pdf figures
-if MRSCont.opts.savePDF && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if MRSCont.opts.savePDF && ~MRSCont.flags.isPRIAM
     Names = fieldnames(MRSCont.processed);
     for kk = 1 : MRSCont.nDatasets
         for ss = 1 : length(Names)
@@ -194,19 +188,19 @@ if MRSCont.opts.savePDF && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
 end
 
 % Optional: write edited files to LCModel .RAW files
-if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM
     [MRSCont] = osp_saveLCM(MRSCont);
 end
 
 % Optional: write edited files to jMRUI .txt files
-if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM
     [MRSCont] = osp_saveJMRUI(MRSCont);
 end
 % Optional: write edited files to vendor specific format files readable to
 % LCModel and jMRUI
 % SPAR/SDAT if Philips
 % RDA if Siemens
-if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM
     [MRSCont] = osp_saveVendor(MRSCont);
 end
 

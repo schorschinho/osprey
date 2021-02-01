@@ -70,16 +70,12 @@ end
 nlinopts    = statset('nlinfit');
 % nlinopts    = statset(nlinopts,'MaxIter',1e8,'MaxFunEvals',1e8,'TolX',1e-10,'TolFun',1e-10);
 LorentzModelInit = [1 HWHM tempx(max_ind) 0];
+LorentzModelParam = lsqcurvefit(@LorentzModel,LorentzModelInit,newx(limits),real(r(limits)),[1 0 tempx(1) -180],[1 2*HWHM tempx(end) 180],nlinopts);
 
-try
-    LorentzModelParam = lsqcurvefit(@LorentzModel,LorentzModelInit,newx(limits),real(r(limits)),[1 0 tempx(1) -180],[1 2*HWHM tempx(end) 180],nlinopts);
-    % Return FWHM and reference shift
-    refFWHM     = 2 * LorentzModelParam(2) * abs(ppm(1)-ppm(2));
-    refShift    = (LorentzModelParam(3) - length(newx)/2) * (ppm(1)-ppm(2)) * dataToFit.txfrq*1e-6;
-catch
-    refFWHM     = nan;
-    refShift    = 0;
-end
+
+% Return FWHM and reference shift
+refFWHM     = 2 * LorentzModelParam(2) * abs(ppm(1)-ppm(2));
+refShift    = (LorentzModelParam(3) - length(newx)/2) * (ppm(1)-ppm(2)) * dataToFit.txfrq*1e-6;
 
 %%% embedded Lorentzian model function
 function Lorentz = LorentzModel(x,freq)

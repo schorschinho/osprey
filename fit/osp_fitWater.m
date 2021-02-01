@@ -62,7 +62,7 @@ if MRSCont.flags.isPRIAM == 1
     for x = 1 : XVox
         % Apply scaling factor to the data
         dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},x);      
-        dataToFit = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+        dataToFit = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk}(x));
         % Call the fit function
         [fitParamsWater, resBasisSetWater]  = fit_runFitWater(dataToFit, basisSet, fitModel, fitOpts);
         % Save back the fit parameters to MRSCont
