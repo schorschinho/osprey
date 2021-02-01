@@ -59,7 +59,7 @@ MRSCont.runtime.Fit = 0;
 [MRSCont] = osp_fitInitialise(MRSCont);
 MRSCont.opts.fit.outputFolder = outputFolder;
 % Call the fit functions (depending on sequence type)
-if ~MRSCont.flags.isPRIAM
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     if MRSCont.flags.isUnEdited
         [MRSCont] = osp_fitUnEdited(MRSCont);
     elseif MRSCont.flags.isMEGA
@@ -147,8 +147,35 @@ MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
 fprintf(fileID,'Full fit time %f seconds\n',MRSCont.runtime.Fit);
 fclose(fileID); %close log file
 
+%% If DualVoxel or MRSI we want to extract y-axis scaling
+if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
+    MRSCont.plot.fit.match = 1; % Scaling between datasets is turned on by default
+    MRSCont.flags.didFit           = 1;
+    MRSCont.ver.Fit            = '1.0.0 Fit';
+    if MRSCont.flags.isUnEdited
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'off');
+    elseif MRSCont.flags.isMEGA
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'off');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff1');
+    elseif MRSCont.flags.isHERMES
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'sum');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff1');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff2');
+    elseif MRSCont.flags.isHERCULES
+        % For now, fit HERCULES like HERMES data
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'sum');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff1');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff2');
+    end
+    if MRSCont.flags.hasRef
+       [MRSCont] = osp_extract_minmax_fit(MRSCont, 'ref'); 
+    end
+    if MRSCont.flags.hasWater
+       [MRSCont] = osp_extract_minmax_fit(MRSCont, 'w'); 
+    end    
+end
 %% Store  and print some QM parameters
-if ~MRSCont.flags.isPRIAM
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont]=osp_fit_Quality(MRSCont);
 
     % Store data quality measures in csv file
