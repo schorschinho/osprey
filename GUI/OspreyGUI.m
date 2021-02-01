@@ -41,6 +41,7 @@ classdef OspreyGUI < handle
         colormap % colormaps for gui and 
         controls % gui control handles
         waitbar % waitbar values
+        info % stores some info about the acquisition
         load % OspreyLoad infos
         process %  OspreyProcess infos
         fit % OspreyFit infos
@@ -99,6 +100,9 @@ classdef OspreyGUI < handle
             gui.quant.Selected.Model = 1;
             gui.quant.Selected.Quant = 1;
             gui.overview.Selected.Metab = 1;
+            gui.controls.act_x = 1;
+            gui.controls.act_y = 1;
+            gui.controls.act_z = 1;
         %Names for each selection    
             gui.load.Names.Spec = {'metabolites'};
         %Inital number of datasets
@@ -132,10 +136,29 @@ classdef OspreyGUI < handle
                     if MRSCont.flags.isPRIAM
                         gui.load.Names.Seq =['PRIAM ' MRSCont.vendor];
                     end
+                    if MRSCont.flags.isMRSI
+                        gui.load.Names.Seq =['MRSI ' MRSCont.vendor];
+                    end
                 end
                 gui.load.Names.Geom = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
             end
             
+            if MRSCont.flags.isPRIAM
+                try
+                    gui.info.nXvoxels = MRSCont.raw{1,gui.controls.Selected}.nXvoxels;
+                    gui.info.nYvoxels = MRSCont.raw{1,gui.controls.Selected}.nYvoxels;
+                    gui.info.nZvoxels = MRSCont.raw{1,gui.controls.Selected}.nZvoxels;
+                catch
+                end
+            end
+            if MRSCont.flags.isMRSI
+                try
+                    gui.info.nXvoxels = MRSCont.raw{1,gui.controls.Selected}.nXvoxels;
+                    gui.info.nYvoxels = MRSCont.raw{1,gui.controls.Selected}.nYvoxels;
+                    gui.info.nZvoxels = MRSCont.raw{1,gui.controls.Selected}.nZvoxels;
+                catch
+                end
+            end
             if MRSCont.flags.didProcess %Get variables regarding the processing
                 gui.process.Number = length(fieldnames(MRSCont.processed));
                 gui.process.Names = fieldnames(MRSCont.processed);
@@ -169,8 +192,13 @@ classdef OspreyGUI < handle
                 end
                     gui.fit.Number = length(gui.fit.Names); 
                 else
-                    gui.fit.Names = fieldnames(MRSCont.fit.results);
-                    gui.fit.Number = length(fieldnames(MRSCont.fit.results));   
+                    if (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                        gui.fit.Names = fieldnames(MRSCont.fit.results{1});
+                        gui.fit.Number = length(fieldnames(MRSCont.fit.results{1}));                         
+                    else
+                        gui.fit.Names = fieldnames(MRSCont.fit.results);
+                        gui.fit.Number = length(fieldnames(MRSCont.fit.results));   
+                    end
                 end
             end
 
@@ -299,7 +327,7 @@ classdef OspreyGUI < handle
         % Segment button
             gui.layout.b_segm = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Segment','Enable','off','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_segm,'Units','Normalized','Position',[0.1 0.51 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didSeg == 1  && isfield(MRSCont, 'seg') && (gui.controls.nDatasets >= length(MRSCont.seg.tissue.fGM)) && isfield(MRSCont.ver, 'Seg') && strcmp(MRSCont.ver.Seg,MRSCont.ver.CheckSeg)) && (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image)) && isfield(MRSCont.ver, 'Coreg') && strcmp(MRSCont.ver.Coreg,MRSCont.ver.CheckCoreg))
+            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didSeg == 1  && isfield(MRSCont, 'seg') && (gui.controls.nDatasets >= length(MRSCont.seg.tissue.fGM(:,1))) && isfield(MRSCont.ver, 'Seg') && strcmp(MRSCont.ver.Seg,MRSCont.ver.CheckSeg)) && (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image)) && isfield(MRSCont.ver, 'Coreg') && strcmp(MRSCont.ver.Coreg,MRSCont.ver.CheckCoreg))
                 gui.layout.b_segm.Enable = 'on';
             end
             set(gui.layout.b_segm,'Callback',{@osp_onSeg,gui}, 'TooltipString', 'Call OspreySeg');

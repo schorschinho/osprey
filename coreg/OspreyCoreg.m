@@ -106,7 +106,11 @@ for kk = 1:MRSCont.nDatasets
                         [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
                     case 'DATA'
                         if isfield(MRSCont.raw{kk}, 'geometry')
-                            [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                            if ~MRSCont.flags.isPRIAM % SVS coregistration
+                                [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                            else  %DualVoxel coregistration
+                                [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
+                            end
                         else
                         msg = 'Philips DATA files do not contain voxel geometry information.';
                         fprintf(fileID,msg);
@@ -131,8 +135,7 @@ for kk = 1:MRSCont.nDatasets
                 else
                     switch MRSCont.datatype
                         case 'P'
-                            % Load the DICOM folder provided in the job file
-                            dcm_folder = MRSCont.files_nii{kk};
+                            % Load the DICOM folder provided in the job file                           
                             [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
                         otherwise
                             msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';

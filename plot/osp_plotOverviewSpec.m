@@ -81,6 +81,17 @@ end
     which_spec = 'mm'; %re_mm
  end %re_mm
 
+% Check version of Osprey - since we have changed the layout of the Overview struct with the implementation of DualVoxel
+if isfield(MRSCont.overview.Osprey, 'sort_data')
+    sort_data = 'sort_data';
+    sort_fit = 'sort_fit';
+    mm = 'all_models';
+else
+    sort_data = 'sort_data_voxel_1';
+    sort_fit = 'sort_fit_voxel_1';
+    mm = 'all_models_voxel_1';
+end
+ 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract normalized spectra and fits
 if isnumeric(g)
@@ -95,7 +106,10 @@ end
 %Is spectrum?
 
 if (strcmp(which_spec,'A') || strcmp(which_spec,'B') || strcmp(which_spec,'C') || strcmp(which_spec,'D') || strcmp(which_spec,'diff1') || strcmp(which_spec,'diff2') || strcmp(which_spec,'sum') ||strcmp(which_spec,'mm') ||  strcmp(which_spec,'ref') || strcmp(which_spec,'w'))
-    data = MRSCont.overview.Osprey.sort_data.(GroupString).(which_spec);
+    data = MRSCont.overview.Osprey.(sort_data).(GroupString).(which_spec);
+    if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+        data2 = MRSCont.overview.Osprey.sort_data_voxel_2.(GroupString).(which_spec);
+    end
     if nargin<8
         if (~strcmp(which_spec,'w') && ~strcmp(which_spec,'ref'))
             figTitle = ['Individual specs: ' which_spec];
@@ -111,14 +125,23 @@ else % Is fit?
         switch fitwhich
             case 'off'
                 fit = 'A';
-                data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fitwhich '_' fit]);
+                    if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                        data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fitwhich '_' fit]);
+                    end
             case {'ref','w','mm'}
                 fit = fitwhich;
-                data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fitwhich '_' fit]);
+                if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                    data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fitwhich '_' fit]);
+                end
 
             case {'lean'}
                 fit = fitwhich;
-                data = MRSCont.overview.Osprey.all_models.mm_mm;
+                data = MRSCont.overview.Osprey.(mm).mm_mm;
+                if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                    data2 = MRSCont.overview.Osprey.(mm).mm_mm;
+                end
         end
     end
     if MRSCont.flags.isMEGA %Is MEGA
@@ -126,17 +149,29 @@ else % Is fit?
             case {'diff1','sum'}
                 if strcmp(fitStyle,'Concatenated') %Is Concatenated?
                     fit = 'conc';
-                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fit '_' fitwhich]);
+                    data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fit '_' fitwhich]);
+                    if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                        data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fit '_' fitwhich]);
+                    end
                 else
                     fit = 'diff1';
-                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
+                    data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fitwhich '_' fit]);
+                    if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                        data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fitwhich '_' fit]);
+                    end
                 end
             case {'off'}
                     fit = 'A';
-                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
+                    data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fitwhich '_' fit]);
+                    if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                        data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fitwhich '_' fit]);
+                    end
             case {'ref','w','mm'}
                 fit = fitwhich;
-                data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fit '_' fitwhich]);
+                data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fit '_' fitwhich]);
+                if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                    data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fit '_' fitwhich]);
+                    end
         end
     end
     if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is Multiplexed
@@ -144,14 +179,23 @@ else % Is fit?
             case {'diff1','diff2','sum'}
                 if strcmp(fitStyle,'Concatenated') %Is Concatenated?
                     fit = 'conc';
-                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fit '_' fitwhich]);
+                    data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fit '_' fitwhich]);
+                    if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                        data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fit '_' fitwhich]);
+                    end
                 else
                     fit = fitwhich;
-                    data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fit '_' fitwhich]);
+                    data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fit '_' fitwhich]);
+                    if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                        data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fit '_' fitwhich]);
+                    end
                 end
             case {'ref','w'}
                 fit = fitwhich;
-                data = MRSCont.overview.Osprey.sort_fit.(GroupString).([fitwhich '_' fit]);
+                data = MRSCont.overview.Osprey.(sort_fit).(GroupString).([fitwhich '_' fit]);
+                if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                    data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).([fitwhich '_' fit]);
+                end
         end
     end
 
@@ -171,23 +215,41 @@ end
 %%% 3. PLOT DATA %%%
 if length(which_spec)>4
     if ~strcmp(which_spec(1:4),'MM_c') %re_mm
-    if ~strcmp(which_spec(1:4),'Fit:')
-        maxshift_abs = max(abs(data{1}.specs));
-        shift = maxshift_abs * shift;
-        out = plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
-        hold on;
-        for kk = 2 : length(data)
-            plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        if ~strcmp(which_spec(1:4),'Fit:')
+            maxshift_abs = max(abs(data{1}.specs));
+            shift = maxshift_abs * shift;
+            out = plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+            hold on;
+            for kk = 2 : length(data)
+                plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+            end
+            if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                maxshift_abs = max(abs(data2{1}.specs));
+                shift = maxshift_abs * shift + maxshift_abs*0.15;
+                out = plot(data2{1}.ppm,data2{1}.specs+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
+                hold on;
+                for kk = 2 : length(data2)
+                    plot(data2{kk}.ppm,data2{kk}.specs+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
+                end    
+            end
+        else
+            maxshift_abs = max(abs(data{1}.fit));
+            shift = maxshift_abs * shift;
+            out = plot(data{1}.ppm,data{1}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
+            hold on;
+            for kk = 2 : length(data)
+                plot(data{kk}.ppm,data{kk}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
+            end
+            if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                maxshift_abs = max(abs(data2{1}.fit));
+                shift = maxshift_abs * shift+ maxshift_abs*0.15;
+                out = plot(data2{1}.ppm,data2{1}.fit+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
+                hold on;
+                for kk = 2 : length(data2)
+                    plot(data2{kk}.ppm,data2{kk}.fit+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
+                end
+            end
         end
-    else
-        maxshift_abs = max(abs(data{1}.fit));
-        shift = maxshift_abs * shift;
-        out = plot(data{1}.ppm,data{1}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
-        hold on;
-        for kk = 2 : length(data)
-            plot(data{kk}.ppm,data{kk}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
-        end
-    end
     else %re_mm
         maxshift_abs = max(abs(data{1}.MM_clean));
         shift = maxshift_abs * shift;
@@ -195,6 +257,15 @@ if length(which_spec)>4
         hold on;
         for kk = 2 : length(data)
             plot(data{kk}.ppm,data{kk}.MM_clean+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        end
+        if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+            maxshift_abs = max(abs(data2{1}.MM_clean));
+            shift = maxshift_abs * shift+ maxshift_abs*0.15;
+            out = plot(data2{1}.ppm,data2{1}.MM_clean+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
+            hold on;
+            for kk = 2 : length(data2)
+                plot(data2{kk}.ppm,data2{kk}.MM_clean+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
+            end
         end
     end %re_mm
 else
@@ -204,6 +275,15 @@ else
         hold on;
         for kk = 2 : length(data)
             plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        end
+        if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+            maxshift_abs = max(abs(data2{1}.specs));
+            shift = maxshift_abs * shift+ maxshift_abs*0.15;
+            out = plot(data2{1}.ppm,data2{1}.specs+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
+            hold on;
+            for kk = 2 : length(data2)
+                plot(data2{kk}.ppm,data2{kk}.specs+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
+            end
         end
 end
 %%% 4. DESIGN FINETUNING %%%
