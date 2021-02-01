@@ -86,6 +86,7 @@ msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', 
         
         if ~MRSCont.flags.hasRef && ~isempty(raw_ref)
             MRSCont.raw_ref_uncomb{kk}  = raw_ref;
+            MRSCont.flags.hasRef = 1;
         else if MRSCont.flags.hasRef
                 [~,raw_ref]=io_loadspec_data(MRSCont.files_ref{kk},1,kk,statFile);
                 MRSCont.raw_ref_uncomb{kk}  = raw_ref;

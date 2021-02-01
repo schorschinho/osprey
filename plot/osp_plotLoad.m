@@ -44,26 +44,53 @@ end
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
 if nargin<10
-    switch which
-        case 'mets'
-            [~,filen,ext] = fileparts(MRSCont.files{kk});
-            figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n']);
-        case 'mm'% re_mm
-                [~,filen,ext] = fileparts(MRSCont.files_mm{kk});% re_mm
-                figTitle = sprintf(['Load MM data plot: ' filen ext '\n']);% re_mm
-        case 'ref'
-            if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
-                [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
-                figTitle = sprintf(['Load water reference data plot: ' filen ext '\n']);
-            else
+    if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+        switch which
+            case 'mets'
                 [~,filen,ext] = fileparts(MRSCont.files{kk});
-                figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n']);
-            end
-        case 'w'
-            [~,filen,ext] = fileparts(MRSCont.files_w{kk});
-            figTitle = sprintf(['Load water data plot: ' filen ext '\n']);
-        otherwise
-            error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+                figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n']);
+            case 'mm'% re_mm
+                    [~,filen,ext] = fileparts(MRSCont.files_mm{kk});% re_mm
+                    figTitle = sprintf(['Load MM data plot: ' filen ext '\n']);% re_mm
+            case 'ref'
+                if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
+                    [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
+                    figTitle = sprintf(['Load water reference data plot: ' filen ext '\n']);
+                else
+                    [~,filen,ext] = fileparts(MRSCont.files{kk});
+                    figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n']);
+                end
+            case 'w'
+                [~,filen,ext] = fileparts(MRSCont.files_w{kk});
+                figTitle = sprintf(['Load water data plot: ' filen ext '\n']);
+            otherwise
+                error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+        end
+    else
+        if nargin<4
+            VoxelIndex = 1; 
+        end
+        switch which
+            case 'mets'
+                [~,filen,ext] = fileparts(MRSCont.files{kk});
+                figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+            case 'mm'% re_mm
+                    [~,filen,ext] = fileparts(MRSCont.files_mm{kk});% re_mm
+                    figTitle = sprintf(['Load MM data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);% re_mm
+            case 'ref'
+                if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
+                    [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
+                    figTitle = sprintf(['Load water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+                else
+                    [~,filen,ext] = fileparts(MRSCont.files{kk});
+                    figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+                end
+            case 'w'
+                [~,filen,ext] = fileparts(MRSCont.files_w{kk});
+                figTitle = sprintf(['Load water data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+            otherwise
+                error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+        end      
     end
     if nargin<9
         ylab='';
@@ -112,13 +139,33 @@ if nargin<10
     end
 end
 
+%Get y-axis values
+maxRef = ones(1,MRSCont.nDatasets);
+if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
+    if MRSCont.flags.hasRef
+        maxRef = MRSCont.plot.load.ref.max;
+    else if MRSCont.flags.hasWater
+        maxRef = MRSCont.plot.load.w.max;
+        end
+    end    
+    ymin = min(MRSCont.plot.load.(which).min/maxRef);
+    ymax = 1.2*max(MRSCont.plot.load.(which).max/maxRef);
+    if ymin < 0
+        ymin = 1.5 * ymin;
+    else
+        ymin = ymin - 0.5*ymax;
+    end
+end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract raw spectra in the plot range
-if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
-        if ~exist('VoxelIndex')
+if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
+        if ~exist('VoxelIndex') && (MRSCont.flags.isPRIAM == 1)
             VoxelIndex = 1;
+        elseif ~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)
+            VoxelIndex = [1 1];  
         end
+        
     switch which
         case 'mets'
             dataToPlot=op_takeVoxel(MRSCont.raw{kk},VoxelIndex);
@@ -135,6 +182,7 @@ if isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
+    dataToPlot.specs = dataToPlot.specs/maxRef(kk);
 else
     switch which
         case 'mets'
@@ -148,6 +196,7 @@ else
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
+    dataToPlot.specs = dataToPlot.specs/maxRef(kk);
 end
 
 
@@ -241,6 +290,9 @@ hold off;
 %%% 4. DESIGN FINETUNING %%%
 for ax = 1 : length(axesNames)
     set(axesHandles.(axesNames{ax}), 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'XMinorTick', 'On');
+    if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
+        set(axesHandles.(axesNames{ax}), 'YLim', [ymin, ymax]);
+    end
     set(axesHandles.(axesNames{ax}), 'LineWidth', 1, 'TickDir', 'out');
     set(axesHandles.(axesNames{ax}), 'FontSize', 16);
     set(axesHandles.(axesNames{ax}), 'Units', 'normalized');
