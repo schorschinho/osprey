@@ -78,6 +78,9 @@ for kk = 1:MRSCont.nDatasets
             basisSetDiff1.fids = basisSetDiff1.fids(:,:,5);
             basisSetDiff1.specs = basisSetDiff1.specs(:,:,5);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+            dataToFit.refShift   = fitParamsSum.refShift;
+            dataToFit.refFWHM   = fitParamsSum.refFWHM;            
+
 
             if isfield(fitOpts, 'coMM3') && ~strcmp(fitOpts.coMM3, 'none')
                 [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetSum,fitOpts);

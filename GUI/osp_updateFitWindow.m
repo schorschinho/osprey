@@ -27,7 +27,7 @@ function osp_updateFitWindow(gui)
         Selection = gui.fit.Names{gui.fit.Selected};
         gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(2);
         gui.upperBox.fit.Info = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2); 
-        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) && ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        if (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
             set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
             set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
             set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
@@ -46,7 +46,7 @@ function osp_updateFitWindow(gui)
         else %Is concatenated and not water/reference
             gui.fit.Style = 'conc';
         end
-        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        if ~((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI))
             RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
             ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
             ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
@@ -83,7 +83,7 @@ function osp_updateFitWindow(gui)
         end
         set(gui.upperBox.fit.Info.Children(2).Children, 'String',sprintf(StatText))
         % Update amplitudes for the fit results panel based on the files in the MRSCont (Raw Amplitudes or Water-scaled if ref or water supplied)
-        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        if ~((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI))
             if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
                 if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit?
                     NameText = [''];

@@ -25,7 +25,7 @@ function osp_updateLoadWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         gui.upperBox.data.Info = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(2);
-        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) && ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        if (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
             set(gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
             set(gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
             set(gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)

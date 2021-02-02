@@ -288,11 +288,11 @@ end
 
 if isfield(MRSCont.plot,'fit') && MRSCont.plot.fit.match
     if strcmp(which_spec, 'conc')
-        stagData = MRSCont.plot.fit.(conc).stagData;
-        maxPlot = MRSCont.plot.fit.(conc).maxPlot;        
+        stagData = MRSCont.plot.fit.(conc).stagData(kk);
+        maxPlot = MRSCont.plot.fit.(conc).maxPlot(kk);        
     else
-        stagData = MRSCont.plot.fit.(which_spec).stagData;
-        maxPlot = MRSCont.plot.fit.(which_spec).maxPlot;
+        stagData = MRSCont.plot.fit.(which_spec).stagData(kk);
+        maxPlot = MRSCont.plot.fit.(which_spec).maxPlot(kk);
     end
 else
     % Determine a positive stagger to offset data, fit, residual, and 

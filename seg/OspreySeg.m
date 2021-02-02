@@ -200,6 +200,7 @@ if MRSCont.flags.isGUI
         set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
         pause(1);
     catch
+    end
 end
 fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
 MRSCont.runtime.Seg = time;
@@ -244,7 +245,6 @@ end
 
 end
 
-end
 
 
 
