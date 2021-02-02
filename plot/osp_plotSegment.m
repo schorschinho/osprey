@@ -1,10 +1,10 @@
-function out = osp_plotSegment(MRSCont, kk)
-%% out = osp_plotSegment(MRSCont, kk)
+function out = osp_plotSegment(MRSCont, kk, VoxelIndex)
+%% out = osp_plotSegment(MRSCont, kk, VoxelIndex)
 %   Creates a figure showing output from the segemntation routine
 %   stored in an Osprey data container
 %
 %   USAGE:
-%       out = osp_plotSegment(MRSCont, kk)
+%       out = osp_plotSegment(MRSCont, kk, VoxelIndex)
 %
 %   OUTPUTS:
 %       out     = MATLAB figure handle
@@ -12,6 +12,7 @@ function out = osp_plotSegment(MRSCont, kk)
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
+%       VoxelIndex = Index for DualVoxel (optional. Default = 1)
 %
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2019-11-26)
@@ -27,10 +28,13 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 2
-    kk = 1;
-    if nargin<1
-        error('ERROR: no input Osprey container specified.  Aborting!!');
+if nargin < 3
+    VoxelIndex = 1;
+    if nargin < 2
+        kk = 1;
+        if nargin<1
+            error('ERROR: no input Osprey container specified.  Aborting!!');
+        end
     end
 end
 
@@ -47,9 +51,18 @@ if length(path_split) > 2
 end
 
 segDestination = fullfile(MRSCont.outputFolder, 'SegMaps');
-GM  = fullfile(segDestination, [saveName '_GM.nii']);
-WM  = fullfile(segDestination, [saveName '_WM.nii']);
-CSF = fullfile(segDestination, [saveName '_CSF.nii']);
+
+VoxelNum = ['_Voxel_' num2str(VoxelIndex)];
+
+GM  = fullfile(segDestination, [saveName VoxelNum '_GM.nii']);
+WM  = fullfile(segDestination, [saveName VoxelNum '_WM.nii']);
+CSF = fullfile(segDestination, [saveName VoxelNum '_CSF.nii']);
+
+if ~exist(GM, 'file') % This is just for combability of older Osprey versions
+    GM  = fullfile(segDestination, [saveName '_GM.nii']);
+    WM  = fullfile(segDestination, [saveName '_WM.nii']);
+    CSF = fullfile(segDestination, [saveName '_CSF.nii']);
+end
 
 vol_GM_mask  = spm_vol(GM);
 vol_WM_mask  = spm_vol(WM);
@@ -57,9 +70,14 @@ vol_CSF_mask = spm_vol(CSF);
 
 Vimage=spm_vol(MRSCont.coreg.vol_image{kk}.fname);
 
-Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);
+if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+    Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);    
+    voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
+else
+    Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}{VoxelIndex}.fname);    
+    voxel_ctr = MRSCont.coreg.voxel_ctr{kk}(:,:,VoxelIndex); 
+end
 
-voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
 %%% 3. SET UP THREE PLANE IMAGE %%%
 % Generate three plane image for the output
 % Transform structural image and co-registered voxel mask from voxel to
@@ -90,20 +108,28 @@ caxis([0 1])
 axis equal;
 axis tight;
 axis off;
-if ~MRSCont.flags.isGUI
-    title(['Segmentation: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
+
+if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+    titleStr = sprintf(['Segmentation:\n ' filename_voxel fileext_voxel ' & '  filename_image fileext_image]);
 else
-    title(['Segmentation: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
+    titleStr = sprintf(['Segmentation:\n ' filename_voxel fileext_voxel ' & '  filename_image fileext_image '\n Voxel ' num2str(VoxelIndex)]);      
+end
+
+
+if ~MRSCont.flags.isGUI
+    title(titleStr, 'Interpreter', 'none','FontSize', 16);
+else
+    title(titleStr, 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
 
 %%% 5. ADD TISSUE COMPOSITION %%%
 text(floor(size(vox_t,2)/2), size(img_montage,1)-15, 'voxel fraction', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
-tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fGM(kk));
+tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fGM(kk,VoxelIndex));
 text(floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
-tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fWM(kk));
+tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fWM(kk,VoxelIndex));
 text(2*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
-tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fCSF(kk));
+tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fCSF(kk,VoxelIndex));
 text(3*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 
 %%% 6. ADD OSPREY LOGO %%%

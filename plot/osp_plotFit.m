@@ -51,10 +51,21 @@ fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
 if nargin<9    
     [~,filen,ext] = fileparts(MRSCont.files{kk});
-    if strcmp(which_spec, 'conc')
-        figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext]);
+    if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+        if strcmp(which_spec, 'conc')
+            figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext]);
+        else
+            figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext]);
+        end
     else
-        figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext]);
+        if nargin<4
+            VoxelIndex = 1; 
+         end
+        if strcmp(which_spec, 'conc')
+            figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex)]);
+        else
+            figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex)]);
+        end 
     end
     if nargin<8
         ylab='';
@@ -85,35 +96,54 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract processed spectra and fit parameters
-if (MRSCont.flags.isPRIAM == 1)
-    if ~exist('VoxelIndex')
-        VoxelIndex = 1;
-    end
+if (MRSCont.flags.isPRIAM == 1) || (MRSCont.flags.isMRSI == 1)
+    if ~exist('VoxelIndex') && (MRSCont.flags.isPRIAM == 1)
+            VoxelIndex = 1;
+        elseif ~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)
+            VoxelIndex = [1 1];  
+        end
     if  strcmp(which_spec, 'conc')
         dataToPlot=op_takeVoxel(MRSCont.processed.(conc){kk},VoxelIndex);
     else
         if strcmp(which_spec, 'off')
             dataToPlot=op_takeVoxel(MRSCont.processed.A{kk},VoxelIndex);
         else
-            dataToPlot=op_takeVoxel(MRSCont.processed.(conc){kk},VoxelIndex);
+            dataToPlot=op_takeVoxel(MRSCont.processed.(which_spec){kk},VoxelIndex);
         end
     end
 
-
-    if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
-        fitRangePPM = MRSCont.opts.fit.rangeWater;
-        basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
-    else if strcmp(which_spec, 'conc')
-            fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
-        else if strcmp(which_spec, 'off')
+    if (MRSCont.flags.isPRIAM == 1)
+        if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+            fitRangePPM = MRSCont.opts.fit.rangeWater;
+            basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
+        else if strcmp(which_spec, 'conc')
                 fitRangePPM = MRSCont.opts.fit.range;
-                basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec){kk};
-            else
-                fitRangePPM = MRSCont.opts.fit.range;
-                basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec){kk};
+                basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
+            else if strcmp(which_spec, 'off')
+                    fitRangePPM = MRSCont.opts.fit.range;
+                    basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec){kk};
+                else
+                    fitRangePPM = MRSCont.opts.fit.range;
+                    basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec){kk};
+                end
             end
         end
+    else
+        if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+            fitRangePPM = MRSCont.opts.fit.rangeWater;
+            basisSet    = MRSCont.fit.resBasisSet{VoxelIndex(1), VoxelIndex(2)}.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
+        else if strcmp(which_spec, 'conc')
+                fitRangePPM = MRSCont.opts.fit.range;
+                basisSet    = MRSCont.fit.resBasisSet{VoxelIndex(1), VoxelIndex(2)}.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
+            else if strcmp(which_spec, 'off')
+                    fitRangePPM = MRSCont.opts.fit.range;
+                    basisSet    = MRSCont.fit.resBasisSet{VoxelIndex(1), VoxelIndex(2)}.(which_spec){kk};
+                else
+                    fitRangePPM = MRSCont.opts.fit.range;
+                    basisSet    = MRSCont.fit.resBasisSet{VoxelIndex(1), VoxelIndex(2)}.(which_spec){kk};
+                end
+            end
+        end        
     end
 else
     if  strcmp(which_spec, 'conc')
@@ -150,6 +180,8 @@ end
 
 if (MRSCont.flags.isPRIAM == 1)
     fitParams   = MRSCont.fit.results{VoxelIndex}.(which_spec).fitParams{kk};
+elseif (MRSCont.flags.isMRSI == 1)
+    fitParams   = MRSCont.fit.results{VoxelIndex(1), VoxelIndex(2)}.(which_spec).fitParams{kk};
 else
     fitParams   = MRSCont.fit.results.(which_spec).fitParams{kk};
 end
@@ -160,7 +192,7 @@ if (length(fitParams.ampl) == 3)
     inputData.basisSet_mm                  = MRSCont.fit.basisSet_mm;
 end
 if (MRSCont.flags.isPRIAM == 1)
-    inputSettings.scale                 = MRSCont.fit.scale{kk}(VoxelIndex);
+    inputSettings.scale                 = MRSCont.fit.scale{kk};
 else
     inputSettings.scale                 = MRSCont.fit.scale{kk};
 end
@@ -193,6 +225,18 @@ switch fitMethod
                 [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
             end
         end
+    case 'OspreyAsym'
+        if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+            % if water, use the water model
+            [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
+        else
+            % if metabolites, use the metabolite model
+            if strcmp(inputSettings.fitStyle,'Concatenated')
+                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
+            else
+                [ModelOutput] = fit_OspreyAsymParamsToModel(inputData, inputSettings, fitParams);
+            end
+        end        
     case 'OspreyNoLS'
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
             % if water, use the water model
@@ -242,10 +286,20 @@ if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
     indivPlots  = ModelOutput.indivMets;
 end
 
-% Determine a positive stagger to offset data, fit, residual, and 
-% baseline from the individual metabolite contributions
-stagData = 0.1*(max(abs(min(dataToPlot)), abs(max(dataToPlot))));
-maxPlot = max(dataToPlot + abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData;
+if isfield(MRSCont.plot,'fit') && MRSCont.plot.fit.match
+    if strcmp(which_spec, 'conc')
+        stagData = MRSCont.plot.fit.(conc).stagData(kk);
+        maxPlot = MRSCont.plot.fit.(conc).maxPlot(kk);        
+    else
+        stagData = MRSCont.plot.fit.(which_spec).stagData(kk);
+        maxPlot = MRSCont.plot.fit.(which_spec).maxPlot(kk);
+    end
+else
+    % Determine a positive stagger to offset data, fit, residual, and 
+    % baseline from the individual metabolite contributions
+    stagData = 0.1*(max(abs(min(dataToPlot)), abs(max(dataToPlot))));
+    maxPlot = max(dataToPlot + abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData;
+end
 % Add the data and plot
 hold on;
 plot(ppm, (zeros(1,length(ppm)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground); % Zeroline
@@ -310,7 +364,7 @@ if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
 else
     % Preliminary formatting; might need some more stability here, or
     % differentiation based on sequence type
-    set(gca, 'YLim', [0  1]);
+    set(gca, 'YLim', [0  1.2]);
     hold off;
     % If water is being shown, show a simple legend
     %legend('Data', 'Fit', 'Residual');

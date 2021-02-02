@@ -24,7 +24,7 @@ if MRSCont.flags.isPRIAM == 1
            end
        end
         for kk = 1 :MRSCont.nDatasets % Loop over scale values
-                    fitMRSCont.fit.scale{kk} =  MRSCont.fit.scale{kk}(x);                
+                    fitMRSCont.fit.scale{kk} =  MRSCont.fit.scale{kk};                
         end
         if MRSCont.flags.isUnEdited
             [fitMRSCont] = osp_fitUnEdited(fitMRSCont);
@@ -42,7 +42,8 @@ if MRSCont.flags.isPRIAM == 1
         end
 
         if x == 1
-            outMRSCont.fit = fitMRSCont.fit;
+            outMRSCont.fit.resBasisSet = fitMRSCont.fit.resBasisSet;
+            outMRSCont.fit.results = fitMRSCont.fit.results;
         else
             fields = {'resBasisSet','results'};
             for f = 1 : length(fields)
@@ -60,6 +61,8 @@ if MRSCont.flags.isPRIAM == 1
             end
         end
     end
+    time = toc(metFitTime);
+    outMRSCont.runtime.FitMet = time;    
 elseif MRSCont.flags.isMRSI == 1
     %Fit center of MRSI first for inital guess parameters
    cx = round(XVox/2);

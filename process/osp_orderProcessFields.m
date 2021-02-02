@@ -76,21 +76,39 @@ elseif MRSCont.flags.isMEGA
     end
     
 elseif (MRSCont.flags.isHERMES) || (MRSCont.flags.isHERCULES)
-    numberstring = ['1' num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
-    switch numberstring
-        case '100'
-            sortstring = {'A','B','C','D','diff1','diff2','sum'}; 
-        case '110'
-            sortstring = {'A','B','C','D','diff1','diff2','sum','ref'};
-        case '101'
-            sortstring = {'A','B','C','D','diff1','diff2','sum','w'};
-        case '111'
-            sortstring = {'A','B','C','D','diff1','diff2','sum','ref','w'};
-        otherwise
-            msg = 'Something is wrong in the processing!';
-            fprintf(fileID,msg);
-            error(msg);
-    end    
+     if ~(length(MRSCont.opts.editTarget) > 2)
+        numberstring = ['1' num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
+        switch numberstring
+            case '100'
+                sortstring = {'A','B','C','D','diff1','diff2','sum'}; 
+            case '110'
+                sortstring = {'A','B','C','D','diff1','diff2','sum','ref'};
+            case '101'
+                sortstring = {'A','B','C','D','diff1','diff2','sum','w'};
+            case '111'
+                sortstring = {'A','B','C','D','diff1','diff2','sum','ref','w'};
+            otherwise
+                msg = 'Something is wrong in the processing!';
+                fprintf(fileID,msg);
+                error(msg);
+        end  
+     else
+         numberstring = ['1' num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
+        switch numberstring
+            case '100'
+                sortstring = {'A','B','C','D','diff1','diff2','diff3','sum'}; 
+            case '110'
+                sortstring = {'A','B','C','D','diff1','diff2','diff3','sum','ref'};
+            case '101'
+                sortstring = {'A','B','C','D','diff1','diff2','diff3','sum','w'};
+            case '111'
+                sortstring = {'A','B','C','D','diff1','diff2','diff3','sum','ref','w'};
+            otherwise
+                msg = 'Something is wrong in the processing!';
+                fprintf(fileID,msg);
+                error(msg);
+        end  
+     end
 else
     msg = 'No flag set for sequence type!';
     fprintf(fileID,msg);

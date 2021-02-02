@@ -1,10 +1,10 @@
-function out = osp_plotCoreg(MRSCont, kk)
-%% out = osp_plotProcess(MRSCont, kk, GUI)
+function out = osp_plotCoreg(MRSCont, kk, VoxelIndex)
+%% out = osp_plotProcess(MRSCont, kk)
 %   Creates a figure showing coregistration between T1 image and MRS voxel
 %   stored in an Osprey data container
 %
 %   USAGE:
-%       out = osp_plotCoreg(MRSCont, kk, GUI)
+%       out = osp_plotCoreg(MRSCont, kk)
 %
 %   OUTPUTS:
 %       out     = MATLAB figure handle
@@ -12,6 +12,7 @@ function out = osp_plotCoreg(MRSCont, kk)
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
+%       VoxelIndex = Index for DualVoxel (optional. Default = 1)
 %
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2019-11-26)
@@ -27,10 +28,13 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 2
-    kk = 1;
-    if nargin<1
-        error('ERROR: no input Osprey container specified.  Aborting!!');
+if nargin < 3
+   VoxelIndex = 1; 
+    if nargin < 2
+        kk = 1;
+        if nargin<1
+            error('ERROR: no input Osprey container specified.  Aborting!!');
+        end
     end
 end
 
@@ -40,8 +44,13 @@ end
 [~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
 
 Vimage=spm_vol(MRSCont.coreg.vol_image{kk}.fname);
-Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);
-voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
+if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+    Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);    
+    voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
+else
+    Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}{VoxelIndex}.fname);    
+    voxel_ctr = MRSCont.coreg.voxel_ctr{kk}(:,:,VoxelIndex); 
+end
 %%% 3. SET UP THREE PLANE IMAGE %%%
 % Generate three plane image for the output
 % Transform structural image and co-registered voxel mask from voxel to
@@ -67,11 +76,9 @@ three_plane_img(:,size_max*2+(1:size_max)) = image_center(img_c, size_max);
 % Generate a new figure and keep the handle memorized
 if ~MRSCont.flags.isGUI
     out = figure;
-    title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
     set(gcf, 'Color', 'w');
 else
     out = figure('Visible','off');
-    title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
 imagesc(three_plane_img);
@@ -80,10 +87,18 @@ caxis([0 1])
 axis equal;
 axis tight;
 axis off;
-if ~MRSCont.flags.isGUI
-    title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
+
+
+if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+    titleStr = sprintf(['Coregistration:\n ' filename_voxel fileext_voxel ' & '  filename_image fileext_image]);
 else
-    title(['Coregistration: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
+    titleStr = sprintf(['Coregistration:\n ' filename_voxel fileext_voxel ' & '  filename_image fileext_image '\n Voxel ' num2str(VoxelIndex)]);      
+end
+
+if ~MRSCont.flags.isGUI
+        title(titleStr, 'Interpreter', 'none','FontSize', 16);
+else
+    title(titleStr, 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
 %%% 5. ADD OSPREY LOGO %%%

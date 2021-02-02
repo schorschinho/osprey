@@ -27,6 +27,7 @@ if nargin < 4
     launchViewer = 0;
 end
 
+
 % Deactivate MATLAB warnings and load geometry parameters
 warning('off','MATLAB:nearlySingularMatrix');
 warning('off','MATLAB:qhullmx:InternalWarning');
@@ -183,7 +184,9 @@ for rr = 1:size(vox_center,2)
         saveName = [path_split{end-1} '_' path_split{end} '_' filename];
     end
     % Set up saving location
-    saveDestination = fullfile(MRSCont.outputFolder, 'VoxelMasks');
+    
+
+    saveDestination = fullfile(MRSCont.outputFolder,'SenseReconstruction', 'VoxelMasks');
     if ~exist(saveDestination,'dir')
         mkdir(saveDestination);
     end

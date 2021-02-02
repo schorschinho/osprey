@@ -27,10 +27,13 @@ function osp_FitTabChangeFcn(src,~,gui)
     % User selected tab refreshs plot
     gui.fit.Selected = src.Selection;
     % Parameter shown in the info panel on top
-    gui.Info.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2);
+%     gui.Info.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2);
     gui.Results.fit =  gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1);
     gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected});
     gui.InfoText.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children;
+    set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
+    set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
+    set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
     gui.Results.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1).Children;
     delete(gui.Plot.fit.Children(1).Children(2).Children)
     % Grid for Plot

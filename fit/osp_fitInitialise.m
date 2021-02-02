@@ -145,7 +145,7 @@ end
 
 % Determine the scaling factor between data and basis set for each dataset
 for kk = 1:MRSCont.nDatasets
-    if ~MRSCont.flags.isMRSI
+    if ~MRSCont.flags.isMRSI  && ~MRSCont.flags.isPRIAM
         MRSCont.fit.scale{kk} = max(real(MRSCont.processed.A{kk}.specs)) / max(max(max(real(basisSet.specs))));
     else
         MRSCont.fit.scale{kk} = max(max(max(real(MRSCont.processed.A{kk}.specs)))) / max(max(max(real(basisSet.specs))));

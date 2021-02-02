@@ -143,7 +143,11 @@ function osp_iniProcessWindow(gui)
                 gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','ref','w'};
                 gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on', 'on', 'on', 'on'};
                 gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'diff1ProTab', 'diff2ProTab', 'sumProTab', 'refProTab', 'wProTab'}; %Create 9 tabs
-                gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water','water'};
+                try
+                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target{1},MRSCont.processed.diff2{1,gui.process.Selected}.target{1},'tNAA','water','water'};
+                catch
+                   gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water','water'}; 
+                end
             elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater) %Only metabs?
                 gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -154,7 +158,11 @@ function osp_iniProcessWindow(gui)
                 gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum'};
                 gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on', 'on'};
                 gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'diff1ProTab', 'diff2ProTab', 'sumProTab'}; %Create 7 tabs
-                gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA'};
+                try
+                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target{1},MRSCont.processed.diff2{1,gui.process.Selected}.target{1},'tNAA'};
+                catch
+                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA'};
+                end
             else
                 if MRSCont.flags.hasRef %Has only reference?
                     gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -167,7 +175,11 @@ function osp_iniProcessWindow(gui)
                     gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','ref'};
                     gui.layout.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','refProTab'}; %Create 8 tabs
-                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water'};
+                    try
+                        gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target{1},MRSCont.processed.diff2{1,gui.process.Selected}.target{1},'tNAA','water'};
+                    catch
+                        gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water'};
+                    end
                 end
                 if MRSCont.flags.hasWater %Has only water?
                     gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -180,7 +192,11 @@ function osp_iniProcessWindow(gui)
                     gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','w'};
                     gui.layout.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','wProTab'}; %Create 8 tabs
-                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water'};
+                    try
+                        gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target{1},MRSCont.processed.diff2{1,gui.process.Selected}.target{1},'tNAA','water'};
+                    catch
+                        gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water'};
+                    end
                 end
             end
         end
@@ -191,6 +207,58 @@ function osp_iniProcessWindow(gui)
             ind=find(ismember(gui.layout.proTabhandles,[gui.process.Names{t} 'ProTab']));
             gui.layout.proTab.Selection  = ind;
             gui.upperBox.pro.box = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
+            if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                gui.upperBox.data.upperLeftButtons = uix.Panel('Parent', gui.upperBox.pro.box, ...
+                                         'Padding', 5, 'Title', ['Navigate voxel'],...
+                                         'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                         'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+                gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.data.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
+                gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
+                gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','X:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Y:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Z:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
+                set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
+                set(gui.controls.b_left_z,'Callback',{@osp_onLeftZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_left_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_left_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_left_z.Enable = 'off';
+                end
+                
+                gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
+                set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
+                set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_right_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_right_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_right_z.Enable = 'off';
+                end   
+                set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
+            end
             gui.upperBox.pro.Info = uix.Panel('Parent', gui.upperBox.pro.box, ...
                 'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
                 'HighlightColor', gui.colormap.Foreground,'FontName', 'Arial', 'BackgroundColor',...
@@ -204,32 +272,61 @@ function osp_iniProcessWindow(gui)
             [img2] = imresize(img, 0.1);
             set(gui.controls.b_save_proTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
             set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
-            set(gui.upperBox.pro.box, 'Width', [-0.9 -0.1]);            
+            if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                set(gui.upperBox.pro.box, 'Width', [-0.1 -0.8 -0.1]);
+            else
+                set(gui.upperBox.pro.box, 'Width', [-0.9 -0.1]);   
+            end
             % Creates layout for plotting and data control
             gui.Plot.pro = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}), ...
                 'Padding', 5,'BackgroundColor', gui.colormap.Background);
             set(gui.layout.(gui.layout.proTabhandles{ind}), 'Heights', [-0.1 -0.9]);
             % Get parameter from file to fill the info panel
-            if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum'))
-                StatText = ['Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+            if ~(isfield(MRSCont.flags,'isPRIAM')|| isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum'))
+                    StatText = ['Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+                else if strcmp(gui.process.Names{t},'ref')
+                StatText = ['Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
                             num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                            ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
-                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-            else if strcmp(gui.process.Names{t},'ref')
-            StatText = ['Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                        num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                        ' Hz / ppm'];
-                else
-                    if ~strcmp(gui.process.Names{t},'mm') %re
-                    StatText = ['Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm'];
+                            ' Hz / ppm'];
                     else
-                        StatText = ['MM Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm'];
-                    end %re
+                        if ~strcmp(gui.process.Names{t},'mm') %re
+                        StatText = ['Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                    num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                    ' Hz / ppm'];
+                        else
+                            StatText = ['MM Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                    num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                    ' Hz / ppm'];
+                        end %re
+                    end
                 end
+            elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum'))
+                    StatText = ['Voxel ' num2str(gui.controls.act_x) ': Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{1,gui.controls.act_x}.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.post.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+                else if strcmp(gui.process.Names{t},'ref')
+                StatText = ['Voxel ' num2str(gui.controls.act_x) ': Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                            num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                            ' Hz / ppm'];
+                    else
+                        if ~strcmp(gui.process.Names{t},'mm') %re
+                        StatText = ['Voxel ' num2str(gui.controls.act_x) ': Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                    num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                    ' Hz / ppm'];
+                        else
+                            StatText = ['Voxel ' num2str(gui.controls.act_x) ': MM Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                    num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                    ' Hz / ppm'];
+                        end %re
+                    end
+                end
+                
             end
             gui.InfoText.pro  = uicontrol('Parent',gui.upperBox.pro.Info,'style','text',...
                                          'FontSize', 12, 'FontName', 'Arial',...

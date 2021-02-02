@@ -128,6 +128,7 @@ MRSCont = getappdata(gui.figure,'MRSCont');
         gui.InfoText.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children;
         gui.Plot.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected});
         set(gui.layout.rawTab, 'selection', gui.load.Selected);
+        osp_updateLoadWindow(gui);
         case 2 %Process tab
         gui.layout.ListBox.Enable = 'on';
         gui.InfoText.pro = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
@@ -143,6 +144,7 @@ MRSCont = getappdata(gui.figure,'MRSCont');
         case 4 %Coreg Tab
         gui.layout.ListBox.Enable = 'on';
         gui.InfoText.coreg = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
+        osp_updateCoregWindow(gui);
         case 5 % Quantify tab
         gui.layout.ListBox.Enable = 'on';
         osp_updateQuantifyWindow(gui);
