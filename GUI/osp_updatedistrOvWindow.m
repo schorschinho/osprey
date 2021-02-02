@@ -28,6 +28,9 @@ function osp_updatedistrOvWindow(gui)
         Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
         if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
             set(gui.controls.distrOvPanel,'Title',['Actual Quantification and Metabolite in Voxel ' num2str(gui.controls.act_x)]);
+            set(gui.layout.distrOvTab.Children.Children(1).Children(3).Children.Children.Children(4),'String',gui.controls.act_z)
+            set(gui.layout.distrOvTab.Children.Children(1).Children(3).Children.Children.Children(5),'String',gui.controls.act_y)
+            set(gui.layout.distrOvTab.Children.Children(1).Children(3).Children.Children.Children(6),'String',gui.controls.act_x)
         end
 %%% 2. VISUALIZATION PART OF THIS TAB %%%        
         if ~strcmp(Selection,'Quality')    

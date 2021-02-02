@@ -26,7 +26,7 @@ function osp_updateCoregWindow(gui)
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         addpath(genpath([gui.folder.spmversion filesep])); % Add SPM  path
         gui.controls.b_save_coregTab = gui.layout.coregTab.Children(2).Children(1).Children;
-         if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) && ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+         if (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
             set(gui.layout.coregTab.Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
             set(gui.layout.coregTab.Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
             set(gui.layout.coregTab.Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
