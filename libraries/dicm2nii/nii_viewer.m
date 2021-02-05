@@ -302,6 +302,7 @@ hs.gap = min(hs.pixdim) ./ hs.pixdim * 3; % in unit of smallest pixdim
 
 p.lb = rg(1); p.ub = rg(2);
 p = dispPara(p);
+p.alpha = 1;
 [pName, niiName, ext] = fileparts(p.nii.hdr.file_name);
 if strcmpi(ext, '.gz'), [~, niiName] = fileparts(niiName); end
 
@@ -419,7 +420,7 @@ hs.lb = java_spinner([7 10 48 22], [p.lb -inf inf p.lb_step], ph, ...
     cb('lb'), '#.##', 'min value (threshold)');
 hs.ub = java_spinner([59 10 56 22], [p.ub -inf inf p.ub_step], ph, ...
     cb('ub'), '#.##', 'max value (clipped)');
-hs.lutStr = {'grayscale' 'red' 'green' 'blue' 'violet' 'yellow' 'cyan' ...
+hs.lutStr = {'grayscale' 'blue' 'red' 'green' 'violet' 'yellow' 'cyan' ...
     'red-yellow' 'blue-green' 'two-sided'  '<html><font color="red">lines' ...
     'parula' 'jet' 'hsv' 'hot' 'cool' 'spring' 'summer' 'autumn' 'winter' ...
     'bone' 'copper' 'pink' 'prism' 'flag' 'phase' 'phase3' 'phase6' 'RGB' 'custom'};
@@ -2744,9 +2745,9 @@ if p.lut ~= 29, im = repmat(im, [1 1 3]); end % gray now
 
 switch p.lut
     case 1 % gray do nothing
-    case 2, im(:,:,2:3) = 0; % red
+    case 2, im(:,:,1:2) = 0; % blue  [11/255 71/255 111/255];
     case 3, im(:,:,[1 3]) = 0; % green
-    case 4, im(:,:,1:2) = 0; % blue
+    case 4, im(:,:,2:3) = 0; % red
     case 5, im(:,:,2) = 0; % violet
     case 6, im(:,:,3) = 0; % yellow
     case 7, im(:,:,1) = 0; % cyan
@@ -2912,7 +2913,7 @@ else
 end
 p.lb_step = stepSize(p.lb); 
 p.ub_step = stepSize(p.ub);
-p.alpha = 1; % opaque
+p.alpha = 0.5; % opaque
 p.smooth = false;
 p.interp = 1; % nearest
 p.volume = 1; % first volume
