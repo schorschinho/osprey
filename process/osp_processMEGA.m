@@ -152,6 +152,19 @@ for kk = 1:MRSCont.nDatasets
             driftPre{1} = 0;
             driftPre{2} = 0;
             driftPost = driftPre;
+            if MRSCont.flags.isPhantom
+                % Next, shift the entire metabolite spectrum by 0.15 ppm.
+                % This doesn't have to be completely accurate, since additional
+                % referencing steps are performed in the later stages of
+                % post-processing and modelling, but we want the prominent singlets
+                % to appear within 0.1 ppm of their expected in-vivo positions.
+                phantomShiftPPM = 0.15 * raw.txfrq*1e-6;
+                raw = op_freqshift(raw, -phantomShiftPPM);
+                % Finally, apply some linebroadening. High-quality in-vitro
+                % data may have linewidth lower than the simulated basis set
+                % data.
+                raw = op_filter(raw, 2);
+            end
         end
 
         % Get sub-spectra, depending on whether they are stored as such
