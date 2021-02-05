@@ -22,14 +22,14 @@
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 % 
 
-function out=op_findMin(in,abs);
+function out=op_findMin(in,absolute);
 % Fall back into defaults
 if nargin < 2
-    abs =0;
+    absolute =0;
 end
 
 % Take absolute of real part of the spectrum if needed
-if ~abs
+if ~absolute
     specs=real(in.specs);
 else
     specs=abs(real(in.specs));
