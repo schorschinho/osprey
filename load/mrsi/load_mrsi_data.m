@@ -371,20 +371,20 @@ if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multislice'
 %                                                                                     spec_zfill, seq_type, kx_tot, ky_tot);
         
         % If I don't want to delete k-space data or correct something HZ
-           k_ph_corr_on1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-           k_ph_corr_on2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-           k_ph_corr_off1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-           k_ph_corr_off2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));   
-        
+%            k_ph_corr_on1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
+%            k_ph_corr_on2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
+%            k_ph_corr_off1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
+%            k_ph_corr_off2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));   
+%         
         
         % Remove + phase - Used in paper
-%         [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-%         on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-%         k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
-%         on1_replace_track, off1_replace_track, on2_replace_track, ...
-%         off2_replace_track, zero_replace_track, k_space_locs, corr_options]  = motion_correct_mrsi_full_ph(k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-%                                                                                                         on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-%                                                                                                         spec_zfill, seq_type, kx_tot, ky_tot);
+        [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
+        on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
+        k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
+        on1_replace_track, off1_replace_track, on2_replace_track, ...
+        off2_replace_track, zero_replace_track, k_space_locs, corr_options]  = motion_correct_mrsi_full_ph(k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
+                                                                                                        on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
+                                                                                                        spec_zfill, seq_type, kx_tot, ky_tot);
 
 %         % Remove + phase streamlined
 %         [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
@@ -762,7 +762,6 @@ else
 
         % I don't want zerofiling to be happening
         % These shoudl be the corrected spectra, but this is not working
-        % for whatever reason
         off_spec_nolb_1 = fftshift(fft(k_fft2_off,1024,3));
         off_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024,3));
         on_spec_nolb_1 = fftshift(fft(k_fft2_off,1024,3));
@@ -770,10 +769,10 @@ else
         
         %Therefore I'm overwriting the recently 'corrected' specctra with
         %the uncorrected ones
-        on_spec_nolb_1 = fftshift(fft(squeeze(k_sort_on_phased_k1),1024,3),3);
-        off_spec_nolb_1 = fftshift(fft(squeeze(k_sort_off_phased_k1),1024,3),3);
-        on_spec_nolb_2 = fftshift(fft(squeeze(k_sort_on_phased_k2),1024,3),3);
-        off_spec_nolb_2 = fftshift(fft(squeeze(k_sort_off_phased_k2),1024,3),3);
+%         on_spec_nolb_1 = fftshift(fft(squeeze(k_sort_on_phased_k1),1024,3),3);
+%         off_spec_nolb_1 = fftshift(fft(squeeze(k_sort_off_phased_k1),1024,3),3);
+%         on_spec_nolb_2 = fftshift(fft(squeeze(k_sort_on_phased_k2),1024,3),3);
+%         off_spec_nolb_2 = fftshift(fft(squeeze(k_sort_off_phased_k2),1024,3),3);
             
         on_spec_nolb_1(isnan(on_spec_nolb_1)) = 0 + 1i*0;
         off_spec_nolb_1(isnan(off_spec_nolb_1)) = 0 + 1i*0;
