@@ -85,6 +85,15 @@ function osp_iniCoregWindow(gui)
                 end  
                 set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
             end
+    gui.upperBox.coreg.upperButtons1 = uix.Panel('Parent', gui.upperBox.coreg.box, ...
+                                     'Padding', 5, 'Title', ['Nii Viewer'],...
+                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground); 
+    gui.controls.b_nii_coregTab = uicontrol('Parent',gui.upperBox.coreg.upperButtons1,'Style','PushButton');
+    [img, ~, ~] = imread('Nii.png', 'BackgroundColor', gui.colormap.Background);
+    [img2] = imresize(img, 0.1);
+    set(gui.controls.b_nii_coregTab,'CData', img2, 'TooltipString', 'Start external Nifti viewer');
+    set(gui.controls.b_nii_coregTab,'Callback',{@osp_onNii,gui});
     gui.upperBox.coreg.Info = uix.Panel('Parent', gui.upperBox.coreg.box, 'Padding', 5, ...
                               'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
                               'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
@@ -99,9 +108,9 @@ function osp_iniCoregWindow(gui)
     set(gui.controls.b_save_coregTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
     set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
     if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-        set(gui.upperBox.coreg.box, 'Width', [-0.12 -0.78 -0.1]);
+        set(gui.upperBox.coreg.box, 'Width', [-0.12 -0.1 -0.68 -0.1]);
     else
-        set(gui.upperBox.coreg.box, 'Width', [-0.9 -0.1]);   
+        set(gui.upperBox.coreg.box, 'Width', [-0.1 -0.8 -0.1]);   
     end                  
     % Creates layout for plotting and data control
     gui.Plot.coreg = uix.HBox('Parent', gui.layout.coregTab,'BackgroundColor',gui.colormap.Background);
