@@ -99,7 +99,7 @@ function osp_iniCoregWindow(gui)
     set(gui.controls.b_save_coregTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
     set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
     if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-        set(gui.upperBox.coreg.box, 'Width', [-0.1 -0.8 -0.1]);
+        set(gui.upperBox.coreg.box, 'Width', [-0.12 -0.78 -0.1]);
     else
         set(gui.upperBox.coreg.box, 'Width', [-0.9 -0.1]);   
     end                  

@@ -38,7 +38,7 @@ function osp_updateLoadWindow(gui)
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
         if gui.load.Selected == 1 %Is metabolite data?
-            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
+            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) '\naverages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
         else
@@ -75,6 +75,9 @@ function osp_updateLoadWindow(gui)
         elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             StatText = ['Voxel ' num2str(gui.controls.act_x) ': ' StatText];
             set(gui.InfoText.data, 'String',sprintf(StatText))
+        else
+            StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': ' StatText];
+            set(gui.InfoText.data, 'String',sprintf(StatText))
         end       
         
 
@@ -84,7 +87,9 @@ function osp_updateLoadWindow(gui)
             if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
             elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',gui.controls.act_x);                 
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',gui.controls.act_x);  
+               else
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',[gui.controls.act_x gui.controls.act_y]);               
             end
             if MRSCont.flags.isUnEdited %Is UnEdited?
                 ViewAxes = gca();
@@ -192,7 +197,17 @@ function osp_updateLoadWindow(gui)
                         end 
         end
         % Get rid of the Load figure
-        close( temp );    
+        close( temp );  
+        
+        % If it is Multivoxel data we have to update the Voxel Position
+        % window
+        if MRSCont.flags.isMRSI 
+            temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x]);
+            ViewAxes = gca();
+            drawnow
+            set( gui.layout.LocPanel.Children,'ColorData', ViewAxes.ColorData );
+            close(temp)
+        end
         set(gui.upperBox.data.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}] );
         set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class

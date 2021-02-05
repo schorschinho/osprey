@@ -99,6 +99,9 @@ function osp_iniProcessWindow(gui)
                 gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
                 gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab', 'wProTab'}; %Create 6 tabs
                 gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water','water'};
+                if iscell(gui.process.SNR{3})
+                        gui.process.SNR{3} = gui.process.SNR{3}{1};
+                end
             elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater) %Only metabolites?
                 gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                 gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -107,6 +110,9 @@ function osp_iniProcessWindow(gui)
                 gui.layout.proTab.TabEnables = {'on', 'on','on', 'on'};
                 gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab',}; %Create 4 tabs
                 gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'water'};
+                if iscell(gui.process.SNR{3})
+                        gui.process.SNR{3} = gui.process.SNR{3}{1};
+                end
             else
                 if MRSCont.flags.hasRef %Has only reference?
                     gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -117,6 +123,9 @@ function osp_iniProcessWindow(gui)
                     gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab'}; %Create 5 tabs
                     gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water'};
+                    if iscell(gui.process.SNR{3})
+                            gui.process.SNR{3} = gui.process.SNR{3}{1};
+                    end
                 end
                 if MRSCont.flags.hasWater %Has only water?
                     gui.layout.BProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
@@ -127,6 +136,9 @@ function osp_iniProcessWindow(gui)
                     gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'wProTab'}; %Create 5 tabs
                     gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water'};
+                    if iscell(gui.process.SNR{3})
+                            gui.process.SNR{3} = gui.process.SNR{3}{1};
+                    end
                 end
             end
         end
@@ -273,7 +285,7 @@ function osp_iniProcessWindow(gui)
             set(gui.controls.b_save_proTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
             set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
             if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                set(gui.upperBox.pro.box, 'Width', [-0.1 -0.8 -0.1]);
+                set(gui.upperBox.pro.box, 'Width', [-0.12 -0.78 -0.1]);
             else
                 set(gui.upperBox.pro.box, 'Width', [-0.9 -0.1]);   
             end
@@ -326,7 +338,28 @@ function osp_iniProcessWindow(gui)
                         end %re
                     end
                 end
-                
+            else
+                if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum'))
+                    StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.post.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+                else if strcmp(gui.process.Names{t},'ref')
+                StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                            num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                            ' Hz / ppm'];
+                    else
+                        if ~strcmp(gui.process.Names{t},'mm') %re
+                        StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                    num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                    ' Hz / ppm'];
+                        else
+                            StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': MM Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                    num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                                    ' Hz / ppm'];
+                        end %re
+                    end
+                end
             end
             gui.InfoText.pro  = uicontrol('Parent',gui.upperBox.pro.Info,'style','text',...
                                          'FontSize', 12, 'FontName', 'Arial',...

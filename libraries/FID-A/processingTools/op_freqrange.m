@@ -23,15 +23,15 @@ end
 fullspecs=fftshift(fft(in.fids,[],in.dims.t),in.dims.t);
 
 %now take only the specified range of the spectrum
-specs=fullspecs(in.ppm>=ppmmin & in.ppm<=ppmmax,:,:);
+specs=fullspecs(in.ppm>=ppmmin & in.ppm<=ppmmax,:,:,:,:);
 
 if npoints ~= 0 && npoints > length(specs)
-    specs=fullspecs(:,:,:);
+    specs=fullspecs(:,:,:,:,:);
     ppm = in.ppm;
 
 else if npoints ~= 0 && npoints < length(specs)
     ppmmin = ppmmin + (in.ppm(2) -in.ppm(1));
-    specs=fullspecs(in.ppm>=ppmmin & in.ppm<=ppmmax,:,:);
+    specs=fullspecs(in.ppm>=ppmmin & in.ppm<=ppmmax,:,:,:,:);
     %calculate the ppm scale
     ppm=in.ppm(in.ppm>=ppmmin & in.ppm<=ppmmax);
 else
