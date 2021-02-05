@@ -54,7 +54,7 @@ switch target
         max_diffBA = max(specB - specA);
         
         
-        if max_diffAB > max_diffBA
+        if max_diffAB >= max_diffBA
             outA = inA;
             outB = inB;
             switchOrder = 0;
@@ -75,7 +75,7 @@ switch target
         max_diffBA = max(specB - specA);
         
         
-        if max_diffAB > max_diffBA
+        if max_diffAB >= max_diffBA
             outA = inA;
             outB = inB;
             switchOrder = 0;

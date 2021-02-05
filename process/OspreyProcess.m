@@ -115,11 +115,11 @@ for ss = 1 : NoSubSpec
     for kk = 1 : MRSCont.nDatasets
         temp_spec = op_freqrange(MRSCont.processed.(SubSpecNames{ss}){kk}, ppmmin, ppmmax);
         if ~(strcmp(SubSpecNames{ss},'ref') || strcmp(SubSpecNames{ss},'w'))
-            Range(1,kk) = max(real(temp_spec.specs),[],'all');
-            Range(2,kk) = min(real(temp_spec.specs),[],'all');   
+            Range(1,kk) = op_findMax(temp_spec);
+            Range(2,kk) = op_findMin(temp_spec);
         else
-            Range(1,kk) = max(abs(real(temp_spec.specs)),[],'all');
-            Range(2,kk) = min(abs(real(temp_spec.specs)),[],'all');            
+            Range(1,kk) = op_findMax(temp_spec,1);
+            Range(2,kk) = op_findMin(temp_spec,1);       
         end
     end
     MRSCont.plot.processed.(SubSpecNames{ss}).max = Range(1,:);

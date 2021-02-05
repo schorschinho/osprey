@@ -25,14 +25,14 @@ fids=in1.fids(:,:,:,:,:,:,:,:,:);
 
 %change the dims variables
 dims = in1.dims;
-if length(index)==1
+if length(index)==1 && ~isfield(dims, 'Xvoxels')
     dims.Xvoxels=length(size(fids));
 end
-if length(index)==2
+if length(index)==2 && ~isfield(dims, 'Xvoxels')
     dims.Xvoxels=length(size(fids));
     dims.Yvoxels=length(size(fids))+1;    
 end
-if length(index)==3
+if length(index)==3 && ~isfield(dims, 'Xvoxels')
     dims.Xvoxels=length(size(fids));
     dims.Yvoxels=length(size(fids))+1;
     dims.Zvoxels=length(size(fids))+2;    

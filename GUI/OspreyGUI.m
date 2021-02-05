@@ -376,6 +376,12 @@ classdef OspreyGUI < handle
                                     'Parent', gui.layout.controlPanel, 'String',gui.layout.RedFileList(:) , ...
                                     'Value', gui.controls.Selected, 'Interruptible', 'on', 'BusyAction', 'cancel', ...
                                     'ForegroundColor',gui.colormap.Foreground, 'TooltipString', 'Select a file you want to inspect.');
+
+            if MRSCont.flags.isMRSI
+                gui.layout.MRSILocPanel = uix.Panel('Parent', gui.layout.leftMenu, 'Title', 'Voxel Location','BackgroundColor',gui.colormap.Background);
+                set(gui.layout.MRSILocPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold', 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground);
+                set(gui.layout.leftMenu,'Heights',[-.08,-.3,-0.1,-.2])
+            end
         %% Create the display panel tab row
 
             gui.layout.tabs = uix.TabPanel('Parent', gui.layout.mainLayout, 'Padding', 3, 'FontName', 'Arial','Visible','off',...
@@ -403,14 +409,23 @@ classdef OspreyGUI < handle
             gui.layout.tabs.TabEnables = {'off', 'off', 'off', 'off', 'off', 'off'};
             set( gui.layout.mainLayout, 'Widths', [-0.2  -0.8] );
             gui.layout.EmptydataPlot = 0;
+
         %% Here we create the inital setup of the tabs
         % Now enable the display tabs depending on which processing steps have
         % been completed:
             gui.controls.waitbar = waitbar(0,'Start','Name','Loading your MRS Container');
             waitbar(0,gui.controls.waitbar,'Loading your raw spectra')
             if (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)) && isfield(MRSCont.ver, 'Load') && strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad)) % Was data loaded at all that can be looked at?
+                gui.layout.LocPanel = uix.HBox('Parent', gui.layout.MRSILocPanel, 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
                 osp_iniLoadWindow(gui);
-                set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
+                if MRSCont.flags.isMRSI 
+                    temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x]);
+                    ViewAxes = gca();
+                    drawnow
+                    set( ViewAxes, 'Parent', gui.layout.LocPanel );
+                    close(temp)
+                end
+                set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});  
             end
             waitbar(gui.waitbar.step,gui.controls.waitbar,'Loading your processed spectra');
             if (MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A)) && isfield(MRSCont.ver, 'Pro') && strcmp(MRSCont.ver.Pro,MRSCont.ver.CheckPro)) % Has data been processed?

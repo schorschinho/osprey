@@ -50,11 +50,12 @@ maxRef_index=find(abs(real(Refwindow))==max(abs(real((Refwindow)))));
 maxRef=real(Refwindow(maxRef_index));
 
 % plot(ppmwindow,abs(real(Refwindow)),'.');
+if ~isempty(maxRef) && ~(sum(maxRef) == 0)
+    gtHalfMax=find(abs(real(Refwindow)) >= 0.5*abs(maxRef));
 
-gtHalfMax=find(abs(real(Refwindow)) >= 0.5*abs(maxRef));
+    FWHM1=abs(ppmwindow(gtHalfMax(1)) - ppmwindow(gtHalfMax(end)));
+    FWHM1=FWHM1*(42.577*in.Bo);  %Assumes proton.
 
-FWHM1=abs(ppmwindow(gtHalfMax(1)) - ppmwindow(gtHalfMax(end)));
-FWHM1=FWHM1*(42.577*in.Bo);  %Assumes proton.
 
 
 %METHOD 2:  FIT WATER PEAK TO DETERMINE FWHM PARAM
@@ -91,4 +92,8 @@ end
 FWHM2=abs(parsFit(2));
 FWHM2=FWHM2*(42.577*in.Bo);  %Assumes Proton.
 
+else
+    FWHM1 = 0;
+    FWHM2 = 0;
+end
 FWHM=mean([FWHM1 FWHM2]);  

@@ -687,6 +687,7 @@ function [T1_GM, T1_WM, T2_GM, T2_WM] = lookUpRelaxTimes(metName)
 % T1 for GABA from Puts et al, J Magn Reson Imaging 37:999-1003 (2013)
 % T2 values from Wyss et al, Magn Reson Med 80:452-461 (2018)
 % T2 values are averaged between OCC and pACC for GM; and PVWM for WM
+% Structure is [T1_GM T1_WM T2_GM T2_WM]
 relax.Asc   = [1340 1190 (125+105)/2 172];
 relax.Asp   = [1340 1190 (111+90)/2 148];
 relax.Cr    = [1460 1240 (148+144)/2 166]; % 3.03 ppm resonance; 3.92 ppm signal is taken care of by -CrCH2 during fitting

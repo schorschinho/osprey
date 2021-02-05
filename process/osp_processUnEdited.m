@@ -72,26 +72,6 @@ for kk = 1:MRSCont.nDatasets
         end  %re_mm
         
         
-        %%% 2. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
-        % If there are reference scans, load them here to allow eddy-current
-        % correction of the raw data.
-        if MRSCont.flags.hasRef
-            raw_ref                         = MRSCont.raw_ref{kk};              % Get the kk-th dataset
-            if raw_ref.averages > 1 && raw_ref.flags.averaged == 0
-                [raw_ref,~,~]               = op_alignAverages(raw_ref, 1, 'n');
-                raw_ref                     = op_averaging(raw_ref);            % Average
-            else
-                raw_ref.flags.averaged  = 1;
-                raw_ref.dims.averages   = 0;
-            end
-                        
-            if MRSCont.flags.hasMM
-                [raw_mm,~]                   = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
-            end
-            [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
-            [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
-            MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
-        end
 
         %%% 2a. PHANTOM-SPECIFIC PRE-PROCESSING %%%
         % If this is phantom data (assuming room temperature), we want to
@@ -192,7 +172,28 @@ for kk = 1:MRSCont.nDatasets
             driftPost = driftPre;
         end
 
-        %%% 4. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%
+        %%% 4. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
+        % If there are reference scans, load them here to allow eddy-current
+        % correction of the raw data.
+        if MRSCont.flags.hasRef
+            raw_ref                         = MRSCont.raw_ref{kk};              % Get the kk-th dataset
+            if raw_ref.averages > 1 && raw_ref.flags.averaged == 0
+                [raw_ref,~,~]               = op_alignAverages(raw_ref, 1, 'n');
+                raw_ref                     = op_averaging(raw_ref);            % Average
+            else
+                raw_ref.flags.averaged  = 1;
+                raw_ref.dims.averages   = 0;
+            end
+                        
+            if MRSCont.flags.hasMM
+                [raw_mm,~]                   = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
+            end
+            [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
+            [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
+            MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
+        end
+        
+        %%% 5. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%
         % Automate determination whether the NAA peak has positive polarity.
         % For water suppression methods like MOIST, the residual water may
         % actually have negative polarity, but end up positive in the data, so
@@ -209,7 +210,7 @@ for kk = 1:MRSCont.nDatasets
         end
 
 
-        %%% 5. REMOVE RESIDUAL WATER %%%
+        %%% 6. REMOVE RESIDUAL WATER %%%
         % Define different water removal frequency ranges, depending on
         % whether this is phantom data
         if MRSCont.flags.isPhantom
@@ -226,7 +227,7 @@ for kk = 1:MRSCont.nDatasets
             raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
         end
 
-        %%% 6. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
+        %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
         %%% DATA
         [refShift, ~] = osp_CrChoReferencing(raw);
         [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation     
@@ -248,7 +249,7 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.A{kk}     = raw;
 
 
-        %%% 7. GET SHORT-TE WATER DATA %%%
+        %%% 8. GET SHORT-TE WATER DATA %%%
         if MRSCont.flags.hasWater
             raw_w                           = MRSCont.raw_w{kk};                % Get the kk-th dataset
             if raw_w.averages > 1 && raw_w.flags.averaged == 0
@@ -270,7 +271,7 @@ for kk = 1:MRSCont.nDatasets
         end
 
 
-        %%% 8. QUALITY CONTROL PARAMETERS %%%
+        %%% 9. QUALITY CONTROL PARAMETERS %%%
         % Calculate some spectral quality metrics here;
         MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor             
         MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % LW in Hz
@@ -309,7 +310,7 @@ end
 fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
 fclose(fileID);
 
-%%% 9. SET FLAGS %%%
+%%% 10. SET FLAGS %%%
 MRSCont.flags.avgsAligned       = 1;
 MRSCont.flags.averaged          = 1;
 MRSCont.flags.ECCed             = 1;
