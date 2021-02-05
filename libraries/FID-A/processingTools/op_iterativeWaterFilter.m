@@ -66,7 +66,7 @@ if isnan(real(out_temp.fids))
     end
 end
 
-if isnan(real(out_temp.fids))
+if isnan(sum(real(out_temp.fids))) || isnan(sum(real(out_temp.specs)))
     out_temp.fids = in.fids;
     out_temp.specs = in.specs;
 end

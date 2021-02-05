@@ -77,7 +77,29 @@ function osp_updateProWindow(gui)
                                 ' Hz / ppm'];
                     end
                 end
-            end              
+            end
+        else
+            if (strcmp(Selection,'A') || strcmp(Selection,'B') || strcmp(Selection,'C') || strcmp(Selection,'D') || strcmp(Selection,'diff1') || strcmp(Selection,'diff2') || strcmp(Selection,'sum'))
+                StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Metabolite Data -> SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(Selection)(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                            num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)/MRSCont.processed.(Selection){gui.controls.Selected}.txfrq*1e6))...
+                            ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.freqShift.(Selection)(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.pre.AvgDeltaCr.(Selection)(gui.controls.Selected)*MRSCont.processed.(Selection){gui.controls.Selected}.txfrq/1e6)...
+                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.post.AvgDeltaCr.(Selection)(gui.controls.Selected)*MRSCont.processed.(Selection){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+            else if strcmp(Selection,'ref')
+            StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Reference Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(Selection)(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                        num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)/MRSCont.processed.(Selection){gui.controls.Selected}.txfrq*1e6))...
+                        ' Hz / ppm'];
+                else
+                    if ~strcmp(Selection,'mm') %re
+                    StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Water Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(Selection)(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                                num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)) '/' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)/MRSCont.processed.(Selection){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm'];
+                    else
+                        StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': MM Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(Selection)(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                                num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)) '/' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)/MRSCont.processed.(Selection){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm'];
+                    end %re
+                end
+            end      
         end
 
         set(gui.upperBox.pro.Info.Children, 'String',sprintf(StatText));
@@ -87,6 +109,8 @@ function osp_updateProWindow(gui)
             temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection); %Create figure
         elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,gui.controls.act_x); %Create figure
+        else
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,[gui.controls.act_x gui.controls.act_y]); %Create figure
         end
         %Delete old content
         delete(gui.layout.proDrift.Children.Children)
@@ -107,6 +131,16 @@ function osp_updateProWindow(gui)
         set(  gui.layout.proPre.Children, 'XLim', temp.Children(4).XLim);
         set(  gui.layout.proPre.Children, 'YLim', temp.Children(4).YLim);
         close( temp );
+
+        % If it is Multivoxel data we have to update the Voxel Position
+        % window
+        if MRSCont.flags.isMRSI 
+            temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x]);
+            ViewAxes = gca();
+            drawnow
+            set( gui.layout.LocPanel.Children,'ColorData', ViewAxes.ColorData );
+            close(temp)
+        end
         set(gui.upperBox.pro.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]);
         set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class 

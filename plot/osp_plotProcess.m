@@ -91,7 +91,7 @@ end
 if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
         if ~exist('VoxelIndex') && (MRSCont.flags.isPRIAM == 1)
             VoxelIndex = 1;
-        elseif ~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)
+        elseif (~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)) || (length(VoxelIndex) < 2 && (MRSCont.flags.isMRSI == 1))
             VoxelIndex = [1 1];  
         end
 
@@ -150,12 +150,22 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
                         proc_A   = MRSCont.processed.A{kk};                      % Get first subspectrum
                         proc_B   = MRSCont.processed.B{kk};                      % Get second subspectrum
                         if procDataToPlot.flags.orderswitched
-                            temp_spec = rawDataToPlot.specs(:,:,1);
-                            rawDataToPlot.specs(:,:,1) = rawDataToPlot.specs(:,:,2);
-                            rawDataToPlot.specs(:,:,2) = temp_spec;
-                            temp_fids = rawDataToPlot.fids(:,:,1);
-                            rawDataToPlot.fids(:,:,1) = rawDataToPlot.fids(:,:,2);
-                            rawDataToPlot.fids(:,:,2) = temp_fids;
+                            nAvgs = rawDataToPlot.averages;
+                            if nAvgs > 1
+                                temp_spec = rawDataToPlot.specs(:,:,1);
+                                rawDataToPlot.specs(:,:,1) = rawDataToPlot.specs(:,:,2);
+                                rawDataToPlot.specs(:,:,2) = temp_spec;
+                                temp_fids = rawDataToPlot.fids(:,:,1);
+                                rawDataToPlot.fids(:,:,1) = rawDataToPlot.fids(:,:,2);
+                                rawDataToPlot.fids(:,:,2) = temp_fids;
+                            else
+                                temp_spec = rawDataToPlot.specs(:,1);
+                                rawDataToPlot.specs(:,1) = rawDataToPlot.specs(:,2);
+                                rawDataToPlot.specs(:,2) = temp_spec;
+                                temp_fids = rawDataToPlot.fids(:,1);
+                                rawDataToPlot.fids(:,1) = rawDataToPlot.fids(:,2);
+                                rawDataToPlot.fids(:,2) = temp_fids;
+                            end
                         end
                 end
                 rawDataToScale = rawDataToPlot;                                      % This is used to get consistent yLims
@@ -378,9 +388,14 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
                 refShift = -repmat(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
-                    for jj = 1:size(applyDataToScale.fids,2)
-                        applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
-                            exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                    if applyDataToScale.averages > 1
+                        for jj = 1:size(applyDataToScale.fids,2)
+                            applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
+                                exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                        end
+                    else
+                         applyDataToScale.fids(:,ss) = applyDataToScale.fids(:,ss) .* ...
+                            exp(1i*fs{ss}*2*pi*t') * exp(1i*pi/180*phs{ss});                       
                     end
                 end
         end
@@ -430,7 +445,8 @@ hold(ax_raw, 'on');
 try
     nAvgsRaw = rawDataToPlot.sz(rawDataToPlot.dims.averages);
 catch % This is a wild guess in case no averages dimension is stored 
-    nAvgsRaw = rawDataToPlot.sz(2);
+    nAvgsRaw = rawDataToPlot.averages;
+%     nAvgsRaw = rawDataToPlot.sz(2);
 end
 if MRSCont.flags.isUnEdited
     for rr = 1:nAvgsRaw
@@ -444,21 +460,38 @@ if MRSCont.flags.isMEGA
   if ~strcmp(which_spec, 'w') && ~strcmp(which_spec, 'ref') && ~strcmp(which_spec, 'A') && ~strcmp(which_spec, 'B')
     stag = [0,0.5] .* yLimsAbs;
     stagText = stag + (0.25.* yLimsAbs);
-    for rr = 1:nAvgsRaw
-        plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,rr,1)), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
-        plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,rr,2) + stag(2)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
+    if nAvgsRaw > 1
+        for rr = 1:nAvgsRaw
+            plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,rr,1)), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
+            plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,rr,2) + stag(2)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
+        end
+    else
+        plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,1)), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
+        plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,2) + stag(2)), 'LineWidth', 0.5, 'Color', colormap.Foreground);        
     end
     plotRange = op_freqrange(rawDataToPlot, ppmmin, ppmmax);
-    yLims = [mean(min(real(plotRange.specs(:,:,1)))) (mean(max(real(plotRange.specs(:,:,2))))+stag(2))].*1.5;
+    if plotRange.averages > 1 
+        yLims = [mean(min(real(plotRange.specs(:,:,1)))) (mean(max(real(plotRange.specs(:,:,2))))+stag(2))].*1.5;
+    else
+        yLims = [mean(min(real(plotRange.specs(:,1)))) (mean(max(real(plotRange.specs(:,2))))+stag(2))].*1.5;
+    end
     text(ax_raw, ppmmin+0.3, stagText(1), 'off', 'Color', colormap.LightAccent);
     text(ax_raw, ppmmin+0.3, stagText(2) , 'on', 'Color', colormap.Foreground); 
-    set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);  
+    try
+        set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims); 
+    catch
+        set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', [-0.1 0.1]); 
+    end
     y = yLims;
   else
         for rr = 1:nAvgsRaw
             plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
         end
-        set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
+        try
+        set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims); 
+        catch
+            set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', [-0.1 0.1]); 
+        end
         y = yLims;
   end
 end
@@ -619,9 +652,14 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
                 refShift = -repmat(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_spec)(kk), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
-                    for jj = 1:size(applyDataToPlot.fids,2)
-                        applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
-                            exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                    if applyDataToPlot.averages > 1
+                        for jj = 1:size(applyDataToPlot.fids,2)
+                            applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
+                                exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                        end
+                    else
+                         applyDataToPlot.fids(:,ss) = applyDataToPlot.fids(:,ss) .* ...
+                            exp(1i*fs{ss}*2*pi*t') * exp(1i*pi/180*phs{ss});                       
                     end
                 end
         end
@@ -663,18 +701,31 @@ if MRSCont.flags.isMEGA
     if ~strcmp(which_spec, 'w') && ~strcmp(which_spec, 'ref') && ~strcmp(which_spec, 'A') && ~strcmp(which_spec, 'B')
         stag = [0,0.5,1,1.5] .* yLimsAbs;
         stagText = stag + (0.25.* yLimsAbs);
-        for rr = 1:nAvgsRaw
-            plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr,1)), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
-            plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr,2) + stag(2)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
+        if applyDataToPlot.averages > 1
+            for rr = 1:nAvgsRaw
+                plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr,1)), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
+                plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr,2) + stag(2)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
+            end
+        else
+            plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,1)), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
+            plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,2) + stag(2)), 'LineWidth', 0.5, 'Color', colormap.Foreground);           
         end
         text(ax_aligned, ppmmin+0.3, stagText(1), 'off', 'Color', colormap.LightAccent);
         text(ax_aligned, ppmmin+0.3, stagText(2), 'on', 'Color', colormap.Foreground);
-        set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
+        try
+            set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims); 
+        catch
+            set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', [-0.1 0.1]); 
+        end
     else
         for rr = 1:nAvgsRaw
             plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
         end
-        set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
+        try
+            set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims); 
+        catch
+            set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', [-0.1 0.1]); 
+        end
     end
 end
 
