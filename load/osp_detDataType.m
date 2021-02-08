@@ -117,6 +117,8 @@ if ~exist('retMsg','var')
     retMsg = sprintf('All provided datafiles are of the %s %s format.', MRSCont.vendor, MRSCont.datatype);
     fprintf(fileID,'All provided datafiles are of the %s %s format.\n', MRSCont.vendor, MRSCont.datatype);
 end
-disp(retMsg);
+if ~MRSCont.flags.isGUI
+    disp(retMsg);
+end
 
 end
