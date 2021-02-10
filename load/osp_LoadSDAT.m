@@ -155,6 +155,13 @@ for kk = 1:MRSCont.nDatasets
         end
         if MRSCont.flags.hasWater
             raw_w   = io_loadspec_sdat(MRSCont.files_w{kk},1);
+            % If multi-echo water data are provided, double-check that the
+            % number of echo times in the job file is the same as the
+            % number of echoes in the water file:
+            if MRSCont.flags.hasMultiEchoWater
+                assert(length(MRSCont.opts.fit.multiEchoWater{kk}) == ...
+                    raw_w.sz(2), 'Number of echo times specified in the job file does not agree with number of echoes in water file.');
+            end
             MRSCont.raw_w{kk}    = raw_w;
         end
     end

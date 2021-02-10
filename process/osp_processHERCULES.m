@@ -10,7 +10,7 @@ function [MRSCont] = osp_processHERCULES(MRSCont,target1,target2)
 %       - Correct referencing of the ppm frequency axis
 %
 %   USAGE:
-%       [MRSCont] = osp_processHERMES(MRSCont);
+%       [MRSCont] = osp_processHERCULES(MRSCont);
 %
 %   INPUTS:
 %       MRSCont     = Osprey MRS data container.

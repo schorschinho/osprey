@@ -26,7 +26,7 @@ MRSCont.flags.isMEGA        = 0;
 MRSCont.flags.isHERMES      = 0;
 MRSCont.flags.isHERCULES    = 0;
 MRSCont.flags.isPRIAM       = 0;
-MRSCont.flags.isMRSI       = 0;
+MRSCont.flags.isMRSI        = 0;
 MRSCont.opts.savePDF                = 0;
 MRSCont.opts.saveLCM                = 0;
 MRSCont.opts.savejMRUI              = 0;
@@ -39,7 +39,7 @@ MRSCont.opts.fit.style              = 'Concatenated';   % Options: 'Concatenated
 MRSCont.opts.fit.bLineKnotSpace     = 0.4;              % Baseline spline knot spacing [ppm]. Default: 0.4.
 MRSCont.opts.fit.fitMM              = 1;                % Add MM and lipid basis functions to basis set? Default: 1.
 MRSCont.opts.fit.coMM3              = 'none';                % Add co-edited MM3 peak model for GABA editing? Default: none.
-MRSCont.opts.fit.FWHMcoMM3              = 14;                % FWHM [Hz] of the co-edited peak Default: 14 Hz.
+MRSCont.opts.fit.FWHMcoMM3          = 14;                % FWHM [Hz] of the co-edited peak Default: 14 Hz.
 
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
@@ -62,14 +62,15 @@ end
 
 %%% 3. INITIALISE MRSCONT FIELDS AND FLAGS %%%
 % Set default fields
-MRSCont.ospFolder           = ospFolder;
-MRSCont.files               = {};
-MRSCont.files_mm            = {};
-MRSCont.files_ref           = {};
-MRSCont.files_w             = {};
-MRSCont.flags.hasMM         = 0;
-MRSCont.flags.hasRef        = 0;
-MRSCont.flags.hasWater      = 0;
+MRSCont.ospFolder               = ospFolder;
+MRSCont.files                   = {};
+MRSCont.files_mm                = {};
+MRSCont.files_ref               = {};
+MRSCont.files_w                 = {};
+MRSCont.flags.hasMM             = 0;
+MRSCont.flags.hasRef            = 0;
+MRSCont.flags.hasWater          = 0;
+MRSCont.flags.hasMultiEchoWater = 0;
 % Set default flags
 MRSCont.flags.didLCMWrite   = 0;
 MRSCont.flags.didjMRUIWrite = 0;

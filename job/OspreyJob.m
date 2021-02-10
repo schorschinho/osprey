@@ -90,8 +90,11 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_w')
         files_w = {jobStruct.files_w};
     end
-    if isfield(jobStruct, 'files_nii')
-        files_nii = {jobStruct.files_nii};
+    if isfield(jobStruct, 'files_w')
+        files_w = {jobStruct.files_w};
+    end
+    if isfield(jobStruct, 'multiEchoWater')
+        MRSCont.opts.fit.multiEchoWater = {jobStruct.files_nii};
     end
     if isfield(jobStruct, 'files_sense')
         files_sense = {jobStruct.sense};
@@ -289,6 +292,12 @@ end
 if ~isfield(MRSCont.opts,'SpecReg')
     MRSCont.opts.SpecReg = 'RobSpecReg';
     warning('Spectral registration must be ''RobSpecReg'', ''RestSpecReg'' or ''none''  in the job file, and has been set to ''RobSpecReg'' (default).');
+end
+
+% Parse whether multi-echo water has been provided
+if isfield(MRSCont.opts.fit, 'multiEchoWater')
+    
+    MRSCont.flags.hasMultiEchoWater = 1;
 end
 
 if exist('file_stat','var')
