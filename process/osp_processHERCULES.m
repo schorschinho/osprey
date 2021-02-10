@@ -485,12 +485,28 @@ for kk = 1:MRSCont.nDatasets
                 [raw_w_A]               = op_rmempty(raw_w_A);              % Remove empty lines
                 raw_w                   = op_concatAverages(raw_w_A,raw_w_B);
             end
+            % If there is more than one water average, align and average
+            % them, run a Klose ECC, and frequency-reference the spectrum.
             if ~raw_w.flags.averaged
-                [raw_w,fs_A,phs_A]      = op_alignAverages(raw_w,1,'n');    % Align averages
-                raw_w                   = op_averaging(raw_w);              % Average
+                if ~MRSCont.flags.hasMultiEchoWater
+                    [raw_w,fs_A,phs_A]      = op_alignAverages(raw_w,1,'n');    % Align averages
+                    raw_w                   = op_averaging(raw_w);              % Average
+                    [raw_w,~]               = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+                    [raw_w,~]               = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
+                else
+                    % If it's a multi-TE series, don't align or average.
+                    % Instead, apply the ECC and frequency-reference 
+                    % separately for each of the TEs.
+                    for rr = 1:raw_w.averages
+                        raw_w_sub{rr}       = op_takeaverages(raw_w, rr);
+                        [raw_w_sub{rr},~]   = op_eccKlose(raw_w_sub{rr}, raw_w_sub{rr}); % Klose eddy current correction
+                        [raw_w_sub{rr},~]   = op_ppmref(raw_w_sub{rr},4.6,4.8,4.68);     % Reference to water @ 4.68 ppm
+                        raw_w.fids(:,rr)    = raw_w_sub{rr}.fids;
+                        raw_w.specs(:,rr)   = raw_w_sub{rr}.specs;
+                    end
+                end
             end
-            [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
-            [raw_w,~]                   = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
+
             MRSCont.processed.w{kk}     = raw_w;                            % Save back to MRSCont container
         end
 
@@ -551,8 +567,16 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.QM.FWHM.ref(kk) = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
         end
         if MRSCont.flags.hasWater
-            MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor              
-            MRSCont.QM.FWHM.w(kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
+            % If these are multi-TE data, take the first of the echos to
+            % determine SNR and FWHM.
+            if ~MRSCont.flags.hasMultiEchoWater
+                MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor
+                MRSCont.QM.FWHM.w(kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
+            else
+                firstMultiEchoWater     = op_takeaverages(MRSCont.processed.w{kk}, 1);
+                MRSCont.QM.SNR.w(kk)    = op_getSNR(firstMultiEchoWater,4.2,5.2); % water amplitude over noise floor
+                MRSCont.QM.FWHM.w(kk)   = op_getLW(firstMultiEchoWater,4.2,5.2); % in Hz
+            end
         end
     end         
 end

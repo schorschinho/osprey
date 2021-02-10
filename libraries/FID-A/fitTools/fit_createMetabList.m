@@ -47,6 +47,9 @@ if length(includeMetabs) == 1
         for ll = 1:length(all_mets)
             metabList.(all_mets{ll}) = 1;
         end
+    else
+        % If just a single metabolite is selected (e.g. water), use it.
+        metabList.(includeMetabs{1}) = 1;
     end
 else
     % ... otherwise, if a list of metabolite names is provided, use it.

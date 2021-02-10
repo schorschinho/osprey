@@ -31,7 +31,7 @@ if inw.dims.coils~=0 ||  inw.dims.subSpecs~=0 || inw.averages>1
         inw                 = op_concatAverages(inw_A,inw_B);            
     end
     if ~inw.flags.averaged
-        [inw]             = op_rmempty(inw); 
+        [inw]               = op_rmempty(inw); 
         [inw,~,~]           = op_alignAverages(inw,1,'n');  % Align averages
         inw                 = op_averaging(inw);            % Average
     end

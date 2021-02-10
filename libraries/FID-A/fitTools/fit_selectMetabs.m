@@ -88,9 +88,9 @@ basisSetOut.nMM = sum(idx_toKeepMM);
 
 % If the flag is set to zero, remove the name, the FIDs and the specs
 % from the basis set. Also update the numbers for metabolite and MM/lipid
-% basis functions
+% basis functions, and the overall size.
 basisSetOut.name   = basisSetOut.name(logical(idx_toKeep));
 basisSetOut.fids   = basisSetOut.fids(:,logical(idx_toKeep),:);
 basisSetOut.specs  = basisSetOut.specs(:,logical(idx_toKeep),:);
-
+basisSetOut.sz     = size(basisSetOut.fids);
 end

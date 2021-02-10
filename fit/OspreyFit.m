@@ -39,7 +39,7 @@ end
 
 % Check that OspreyProcess has been run before
 if ~MRSCont.flags.didProcess
-    msg = 'Trying to fit data, but loaded data has not been process yet. Run OspreyProcess first.';
+    msg = 'Trying to fit data, but loaded data has not been processed yet. Run OspreyProcess first.';
     fprintf(fileID,msg);
     error(msg);
 end

@@ -1,5 +1,5 @@
 function [MRSCont] = osp_fitWater(MRSCont, kk, fitWhich)
-%% [MRSCont] = LCG_fitWater(MRSCont)
+%% [MRSCont] = osp_fitWater(MRSCont, kk, fitWhich)
 %   This function initializes and runs fitting of the water reference and
 %   short-TE water scans.
 %
