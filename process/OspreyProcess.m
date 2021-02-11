@@ -88,7 +88,7 @@ for ss = 1 : NoSubSpec
         temp_sw = temp_sw_store;
     end
 end
-%% If DualVoxel or MRSI we want to extract y-axis scaling
+%% Get scaling for the plots
 % Creates y-axis range to align the process plots between datasets
 
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
@@ -96,14 +96,50 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
 else
     MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
 end
-osp_scale_yaxis(MRSCont,'OspreyLoad');
 
+
+for ss = 1 : NoSubSpec
+    Range = zeros(2,MRSCont.nDatasets);
+    switch SubSpecNames{ss}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum','mm'}
+            ppmmax = 4.5;
+        case {'ref', 'w'}
+            ppmmax = 2*4.68;        
+    end
+    switch SubSpecNames{ss}
+        case {'A', 'B', 'C', 'D', 'diff1', 'diff2', 'sum'}
+            ppmmin = 0.2;
+        case {'ref', 'w','mm'}
+            ppmmin = 0;        
+    end
+    for kk = 1 : MRSCont.nDatasets
+        temp_spec = op_freqrange(MRSCont.processed.(SubSpecNames{ss}){kk}, ppmmin, ppmmax);
+        if ~(strcmp(SubSpecNames{ss},'ref') || strcmp(SubSpecNames{ss},'w'))
+            Range(1,kk) = op_findMax(temp_spec);
+            Range(2,kk) = op_findMin(temp_spec);
+        else
+            Range(1,kk) = op_findMax(temp_spec,1);
+            Range(2,kk) = op_findMin(temp_spec,1);       
+        end
+    end
+    MRSCont.plot.processed.(SubSpecNames{ss}).max = Range(1,:);
+    MRSCont.plot.processed.(SubSpecNames{ss}).min = Range(2,:);
+    MRSCont.plot.processed.(SubSpecNames{ss}).ContMax = max(Range(1,:));
+    MRSCont.plot.processed.(SubSpecNames{ss}).ContMin = min(Range(2,:)); 
+end
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess    = 1;
 fclose(fileID);
 [MRSCont]                   = osp_orderProcessFields(MRSCont);
 MRSCont.ver.Pro             = '1.0.0 Pro';
+
+% Save the output structure to the output folder
+% Determine output folder
+outputFile      = MRSCont.outputFile;
+if ~exist(outputFolder,'dir')
+    mkdir(outputFolder);
+end
 
 % Store data quality measures in csv file
 if MRSCont.flags.isUnEdited
@@ -148,8 +184,13 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
 end
 
 % Optional:  Create all pdf figures
-if MRSCont.opts.savePDF 
-    osp_plotAllPDF(MRSCont, 'OspreyProcess')
+if MRSCont.opts.savePDF && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+    Names = fieldnames(MRSCont.processed);
+    for kk = 1 : MRSCont.nDatasets
+        for ss = 1 : length(Names)
+            osp_plotModule(MRSCont, 'OspreyProcess', kk, Names{ss});
+        end
+    end
 end
 
 % Optional: write edited files to LCModel .RAW files
@@ -167,13 +208,6 @@ end
 % RDA if Siemens
 if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveVendor(MRSCont);
-end
-
-% Save the output structure to the output folder
-% Determine output folder
-outputFile      = MRSCont.outputFile;
-if ~exist(outputFolder,'dir')
-    mkdir(outputFolder);
 end
 
 if MRSCont.flags.isGUI

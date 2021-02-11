@@ -149,7 +149,30 @@ fclose(fileID); %close log file
 
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
-    osp_scale_yaxis(MRSCont,'OspreyLoad');   
+    MRSCont.plot.fit.match = 1; % Scaling between datasets is turned on by default
+    MRSCont.flags.didFit           = 1;
+    MRSCont.ver.Fit            = '1.0.0 Fit';
+    if MRSCont.flags.isUnEdited
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'off');
+    elseif MRSCont.flags.isMEGA
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'off');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff1');
+    elseif MRSCont.flags.isHERMES
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'sum');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff1');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff2');
+    elseif MRSCont.flags.isHERCULES
+        % For now, fit HERCULES like HERMES data
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'sum');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff1');
+        [MRSCont] = osp_extract_minmax_fit(MRSCont, 'diff2');
+    end
+    if MRSCont.flags.hasRef
+       [MRSCont] = osp_extract_minmax_fit(MRSCont, 'ref'); 
+    end
+    if MRSCont.flags.hasWater
+       [MRSCont] = osp_extract_minmax_fit(MRSCont, 'w'); 
+    end    
 end
 %% Store  and print some QM parameters
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
@@ -199,6 +222,16 @@ end
 % Set exit flags and version
 MRSCont.flags.didFit           = 1;
 MRSCont.ver.Fit            = '1.0.0 Fit';
+% Delete redundant resBasiset entries
+% FitNames = fieldnames(MRSCont.fit.results);
+% NoFit = length(fieldnames(MRSCont.fit.results));
+% for sf = 1 : NoFit
+%     if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
+%         MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(MRSCont.info.A.unique_ndatapoint_ind);
+%     else
+%         MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_ind); 
+%     end
+% end
 
 % Save the output structure to the output folder
 % Determine output folder
@@ -210,7 +243,39 @@ end
 
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
-    osp_plotAllPDF(MRSCont, 'OspreyFit')
+    if strcmp(MRSCont.opts.fit.style, 'Concatenated')
+    temp = fieldnames(MRSCont.fit.results);
+    if MRSCont.flags.isUnEdited
+        Names = fieldnames(MRSCont.fit.results);
+    end
+    if MRSCont.flags.isMEGA
+        Names = {'diff1','sum'};
+        if length(temp) == 2
+            Names{3} = temp{2};
+        else if length(temp) == 3
+            Names{3} = temp{2};
+            Names{4} = temp{3};
+            end
+        end
+    end
+    if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+        Names = {'diff1','diff2','sum'};
+        if length(temp) == 2
+            Names{4} = temp{2};
+        else if length(temp) == 3
+            Names{4} = temp{2};
+            Names{5} = temp{3};
+            end
+        end
+    end
+    else
+        Names = fieldnames(MRSCont.fit.results);  
+    end
+    for kk = 1 : MRSCont.nDatasets
+        for ss = 1 : length(Names)
+            osp_plotModule(MRSCont, 'OspreyFit', kk, Names{ss});
+        end
+    end
 end
 
 if MRSCont.flags.isGUI

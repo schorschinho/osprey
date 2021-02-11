@@ -60,10 +60,58 @@ for kk = 1:MRSCont.nDatasets
     if ((MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~isfield(MRSCont.ver, 'Pro') || ~strcmp(MRSCont.ver.Pro,MRSCont.ver.CheckPro))    
         %%% 1. GET RAW DATA %%%
         raw         = MRSCont.raw{kk};                                          % Get the kk-th dataset
+ 
+        % Get sub-spectra, depending on whether they are stored as such
+        if raw.subspecs == 2
+
+            raw_A   = op_takesubspec(raw,1);                    % Get first subspectrum
+            raw_B   = op_takesubspec(raw,2);                    % Get second subspectrum
+
+        else
+
+            raw_A   = op_takeaverages(raw,1:2:raw.averages);    % Get first subspectrum
+            raw_B   = op_takeaverages(raw,2:2:raw.averages);    % Get second subspectrum
+        end
         
         if raw.averages > 1 && raw.flags.averaged == 0
-        % Calculate starting values for spectral registration
-        [refShift_ind_ini]=op_preref(raw,'MEGA');
+        temp_A = op_averaging(raw_A);
+        raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
+        % Determine the polarity of the respective peak: if the absolute of the
+        % maximum minus the absolute of the minimum is positive, the polarity 
+        % of the respective peak is positive; if the absolute of the maximum 
+        % minus the absolute of the minimum is negative, the polarity is negative.
+        polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
+        temp_rawA = raw_A;
+        if polResidCr < 0        
+            temp_rawA = op_ampScale(temp_rawA,-1);
+        end
+
+        temp_B = op_averaging(raw_B);
+        raw_B_Cr    = op_freqrange(temp_B,2.8,3.2);
+        polResidCr  = abs(max(real(raw_B_Cr.specs))) - abs(min(real(raw_B_Cr.specs)));
+        temp_rawB = raw_B;
+        if polResidCr < 0        
+            temp_rawB = op_ampScale(temp_rawB,-1);
+        end
+
+        temp_proc   = op_addScans(temp_rawA,temp_rawB);
+        temp_spec   = temp_proc;
+        for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1))
+            fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1));
+            specs = temp_proc.specs(:,av:av+(round(temp_rawA.averages*0.1)-1));
+            temp_spec.fids = mean(fids,2);
+            temp_spec.specs = mean(specs,2);
+            [refShift, ~] = osp_CrChoReferencing(temp_spec);
+            refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift;
+        end
+        if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0
+            fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
+            specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
+            temp_spec.fids = mean(fids,2);
+            temp_spec.specs = mean(specs,2);
+            [refShift, ~] = osp_CrChoReferencing(temp_spec);
+            refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift;        
+        end
         % Perform robust spectral correction with weighted averaging.
         % This can obviously only be done, if the spectra have not been 
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
@@ -147,8 +195,20 @@ for kk = 1:MRSCont.nDatasets
                 [raw_ref,~,~]           = op_alignAverages(raw_ref,1,'n');  % Align averages
                 raw_ref                 = op_averaging(raw_ref);            % Average
             end
-           [raw_A,~]               = op_eccKlose(raw_A, raw_ref);
-           [raw_B,raw_ref]         = op_eccKlose(raw_B, raw_ref);        % Klose eddy current correction
+
+    %         % The following IF only for Big GABA dataset - a few Siemens datasets
+    %         % have been accidentally acquired with the water suppression switched
+    %         % on for the water reference scan. In that case, don't do ECC, but
+    %         % rather leave it to the phase correction in step 5.
+%             if strcmp(MRSCont.vendor,'Siemens') && kk >= 53 && kk <= 58
+%             if kk == 1 || kk == 2 || kk == 33 || kk == 35 %CER
+%             if kk == 1 || kk == 2 || kk == 35|| kk == 36  %THA
+%              if kk == 1  %MOT   
+%             else 
+               [raw_A,~]               = op_eccKlose(raw_A, raw_ref);
+               [raw_B,raw_ref]         = op_eccKlose(raw_B, raw_ref);        % Klose eddy current correction
+%            end
+    %         end
 
             [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}   = raw_ref;                          % Save back to MRSCont container

@@ -117,14 +117,55 @@ elseif MRSCont.flags.isMRSI && ~strcmp(MRSCont.datatype,'DATA')
     [MRSCont] = osp_MRSIRecon(MRSCont);
 end
 
-%% If DualVoxel or MRSI we want to extract y-axis scaling
+%% Get scaling for the plots
 % Creates y-axis range to align the process plots between datasets
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
     MRSCont.plot.load.match = 1; % Scaling between datasets is turned off by default
 else
     MRSCont.plot.load.match = 0; % Scaling between datasets is turned off by default
 end
-osp_scale_yaxis(MRSCont,'OspreyLoad');
+
+ppmmax = 4.5;
+ppmmin = 0.2;   
+Range = zeros(2,MRSCont.nDatasets);
+for kk = 1 : MRSCont.nDatasets
+    temp_spec = op_freqrange(MRSCont.raw{kk}, ppmmin, ppmmax);
+    Range(1,kk) = op_findMax(temp_spec);
+    Range(2,kk) = op_findMin(temp_spec);           
+end
+MRSCont.plot.load.mets.max = Range(1,:);
+MRSCont.plot.load.mets.min = Range(2,:);
+MRSCont.plot.load.mets.ContMax = max(Range(1,:));
+MRSCont.plot.load.mets.ContMin = min(Range(2,:)); 
+
+if MRSCont.flags.hasRef
+    ppmmax = 2*4.68;
+    ppmmin = 0;   
+    Range = zeros(2,MRSCont.nDatasets);
+    for kk = 1 : MRSCont.nDatasets
+        temp_spec = op_freqrange(MRSCont.raw_ref{kk}, ppmmin, ppmmax);
+        Range(1,kk) = op_findMax(temp_spec);
+        Range(2,kk) = op_findMin(temp_spec);            
+    end
+    MRSCont.plot.load.ref.max = Range(1,:);
+    MRSCont.plot.load.ref.min = Range(2,:);
+    MRSCont.plot.load.ref.ContMax = max(Range(1,:));
+    MRSCont.plot.load.ref.ContMin = min(Range(2,:)); 
+end
+if MRSCont.flags.hasWater
+    ppmmax = 2*4.68;
+    ppmmin = 0;   
+    Range = zeros(2,MRSCont.nDatasets);
+    for kk = 1 : MRSCont.nDatasets
+        temp_spec = op_freqrange(MRSCont.raw_w{kk}, ppmmin, ppmmax);
+        Range(1,kk) = op_findMax(temp_spec);
+        Range(2,kk) = op_findMin(temp_spec);             
+    end
+    MRSCont.plot.load.w.max = Range(1,:);
+    MRSCont.plot.load.w.min = Range(2,:);
+    MRSCont.plot.load.w.ContMax = max(Range(1,:));
+    MRSCont.plot.load.w.ContMin = min(Range(2,:)); 
+end
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didLoadData           = 1;
@@ -133,6 +174,7 @@ MRSCont.ver.Load             = '1.0.0 Load';
 
 % Save the output structure to the output folder
 % Determine output folder
+outputFolder    = MRSCont.outputFolder;
 outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
@@ -141,7 +183,18 @@ end
 
 % Optional: Create all pdf figures
 if MRSCont.opts.savePDF
-    osp_plotAllPDF(MRSCont, 'OspreyLoad')
+    for kk = 1 : MRSCont.nDatasets
+        osp_plotModule(MRSCont, 'OspreyLoad', kk, 'mets');
+        if MRSCont.flags.hasRef
+            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'ref');
+        end
+        if MRSCont.flags.hasWater
+            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'w');
+        end
+        if MRSCont.flags.hasMM
+            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'mm');
+        end
+    end
 end
 
 % Gather some more information from the processed data;

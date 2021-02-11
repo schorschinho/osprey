@@ -230,7 +230,9 @@ end
 
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
-    osp_plotAllPDF(MRSCont, 'OspreySeg')
+    for kk = 1 : MRSCont.nDatasets
+            osp_plotModule(MRSCont, 'OspreySeg', kk);
+    end
 end
 
 if MRSCont.flags.isGUI
