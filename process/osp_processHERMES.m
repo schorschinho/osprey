@@ -80,63 +80,8 @@ for kk = 1:MRSCont.nDatasets
         end
 
         if raw.averages > 1 && raw.flags.averaged == 0
-        temp_A = op_averaging(raw_A);
-        raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
-        % Determine the polarity of the respective peak: if the absolute of the
-        % maximum minus the absolute of the minimum is positive, the polarity 
-        % of the respective peak is positive; if the absolute of the maximum 
-        % minus the absolute of the minimum is negative, the polarity is negative.
-        polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
-        temp_rawA = raw_A;
-        if polResidCr < 0        
-            temp_rawA = op_ampScale(temp_rawA,-1);
-        end
-
-        temp_B = op_averaging(raw_B);
-        raw_B_Cr    = op_freqrange(temp_B,2.8,3.2);
-        polResidCr  = abs(max(real(raw_B_Cr.specs))) - abs(min(real(raw_B_Cr.specs)));
-        temp_rawB = raw_B;
-        if polResidCr < 0        
-            temp_rawB = op_ampScale(temp_rawB,-1);
-        end
-
-        temp_C = op_averaging(raw_C);
-        raw_C_Cr    = op_freqrange(temp_C,2.8,3.2);
-        polResidCr  = abs(max(real(raw_C_Cr.specs))) - abs(min(real(raw_C_Cr.specs)));
-        temp_rawC = raw_C;
-        if polResidCr < 0        
-            temp_rawC = op_ampScale(temp_rawC,-1);
-        end
-
-        temp_D = op_averaging(raw_D);
-        raw_D_Cr    = op_freqrange(temp_D,2.8,3.2);
-        polResidCr  = abs(max(real(raw_D_Cr.specs))) - abs(min(real(raw_D_Cr.specs)));
-        temp_rawD = raw_D;
-        if polResidCr < 0        
-            temp_rawD = op_ampScale(temp_rawD,-1);
-        end
-        temp_proc   = op_addScans(temp_rawA,temp_rawB);
-        temp_proc   = op_addScans(temp_proc,temp_rawC);
-        temp_proc   = op_addScans(temp_proc,temp_rawD);
-        temp_spec   = temp_proc;
-        refShift_ind_ini = zeros(temp_rawA.averages,1);
-        for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1))
-            fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1));
-            specs = temp_proc.specs(:,av:av+(round(temp_rawA.averages*0.1)-1));
-            temp_spec.fids = mean(fids,2);
-            temp_spec.specs = mean(specs,2);
-            [refShift, ~] = osp_CrChoReferencing(temp_spec);
-            refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift;
-        end
-        if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0
-            fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-            specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-            temp_spec.fids = mean(fids,2);
-            temp_spec.specs = mean(specs,2);
-            [refShift, ~] = osp_CrChoReferencing(temp_spec);
-            refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift;        
-        end
-
+        % Calculate starting values for spectral registration
+        [refShift_ind_ini]=op_preref(raw,'HERMES');
         % Perform robust spectral correction with weighted averaging.
         % This can obviously only be done, if the spectra have not been 
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
