@@ -201,7 +201,18 @@ for kk = 1:MRSCont.nDatasets
         % Classify the two sub-spectra such that the OFF spectrum is stored to
         % field A, and the ON spectrum is stored to field B.
         [raw_A, raw_B, switchOrder]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
-
+        % Save drift information back to container
+        if ~switchOrder
+            MRSCont.QM.drift.pre.A{kk} = driftPre{1};
+            MRSCont.QM.drift.pre.B{kk} = driftPre{2};
+            MRSCont.QM.drift.post.A{kk} = driftPost{1};
+            MRSCont.QM.drift.post.B{kk} = driftPost{1};
+        else
+            MRSCont.QM.drift.pre.A{kk} = driftPre{2};
+            MRSCont.QM.drift.pre.B{kk} = driftPre{1};
+            MRSCont.QM.drift.post.A{kk} = driftPost{2};
+            MRSCont.QM.drift.post.B{kk} = driftPost{1};
+        end
         raw_A.specReg.fs     = raw.specReg.fs(:,1); % save align parameters
         raw_B.specReg.fs     = raw.specReg.fs(:,2);
         raw_A.specReg.phs     = raw.specReg.phs(:,1);
@@ -318,52 +329,33 @@ for kk = 1:MRSCont.nDatasets
 
 
         %%% 10. QUALITY CONTROL PARAMETERS %%%
-        % Calculate some spectral quality metrics here;
-        MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor          
-        MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
-        MRSCont.QM.drift.pre.A{kk}  = driftPre{1};
-        MRSCont.QM.drift.post.A{kk} = driftPost{1};
-        MRSCont.QM.freqShift.A(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre{1} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost{1} - 3.02);
-        MRSCont.QM.res_water_amp.A(kk) = sum(MRSCont.processed.A{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk},2.8,3.2); % Cr amplitude over noise floor             
-        MRSCont.QM.FWHM.B(kk)   = op_getLW(MRSCont.processed.B{kk},2.8,3.2); % in Hz
-        MRSCont.QM.drift.pre.B{kk}  = driftPre{2};
-        MRSCont.QM.drift.post.B{kk} = driftPost{2};
-        MRSCont.QM.freqShift.B(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.B(kk) = mean(driftPre{2} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.B(kk) = mean(driftPost{2} - 3.02);
-        MRSCont.QM.res_water_amp.B(kk) = sum(MRSCont.processed.B{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.diff1(kk)    = op_getSNR(MRSCont.processed.diff1{kk},2.8,3.2); % GABA amplitude over noise floor             
-        MRSCont.QM.FWHM.diff1(kk)   = op_getLW(MRSCont.processed.diff1{kk},2.8,3.2); % in Hz
-        MRSCont.QM.drift.pre.diff1{kk}  = reshape([driftPre{1}'; driftPre{2}'], [], 1)';
-        MRSCont.QM.drift.post.diff1{kk} = reshape([driftPost{1}'; driftPost{2}'], [], 1)';
-        MRSCont.QM.freqShift.diff1(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.pre.diff1{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.post.diff1{kk} - 3.02);
-        MRSCont.QM.res_water_amp.diff1(kk) = sum(MRSCont.processed.diff1{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.sum(kk)    = op_getSNR(MRSCont.processed.sum{kk}); % Cr amplitude over noise floor                 
-        MRSCont.QM.FWHM.sum(kk)   = op_getLW(MRSCont.processed.sum{kk},2.8,3.2); % in Hz
-        MRSCont.QM.drift.pre.sum{kk}  =  MRSCont.QM.drift.pre.diff1{kk};
-        MRSCont.QM.drift.post.sum{kk} = MRSCont.QM.drift.post.diff1{kk};
-        MRSCont.QM.freqShift.sum(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.pre.sum{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.post.sum{kk} - 3.02);
-        MRSCont.QM.res_water_amp.sum(kk) = sum(MRSCont.processed.sum{kk}.watersupp.amp);
-
+        SubSpec = {'A','B','diff1','sum'};       
+        SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
         if MRSCont.flags.hasRef
-            MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor              
-            MRSCont.QM.FWHM.ref(kk) = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
+            SubSpec{end+1} = 'ref';
+            SNRRange{end+1} = [4.2,5.2];
         end
         if MRSCont.flags.hasWater
-            MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor              
-            MRSCont.QM.FWHM.w(kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
+            SubSpec{end+1} = 'w';
+            SNRRange{end+1} = [4.2,5.2];
         end
-    end         
+        % Calculate some spectral quality metrics here;
+        for ss = 1 : length(SubSpec)          
+            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk});       
+            MRSCont.QM.FWHM.(SubSpec{ss})(kk)   = op_getLW(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2)); % in Hz       
+            if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w'))
+                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift_SubSpecAlign + refShift_final;       
+                MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                if strcmp(SubSpec{ss},'diff1') || strcmp(SubSpec{ss},'sum')
+                    MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'], [], 1)';
+                    MRSCont.QM.drift.post.(SubSpec{ss}){kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'], [], 1)';
+                end
+                MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+                MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+            end
+        end
+      
+    end
 end
 fprintf('... done.\n');
 time = toc(refProcessTime);

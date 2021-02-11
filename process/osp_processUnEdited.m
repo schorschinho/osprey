@@ -232,29 +232,37 @@ for kk = 1:MRSCont.nDatasets
 
 
         %%% 9. QUALITY CONTROL PARAMETERS %%%
-        % Calculate some spectral quality metrics here;
-        MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor             
-        MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % LW in Hz
-        MRSCont.QM.drift.pre.A{kk}  = driftPre;
-        MRSCont.QM.drift.post.A{kk} = driftPost;
-        MRSCont.QM.freqShift.A(kk)  = refShift;
-        MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost - 3.02);
-        MRSCont.QM.res_water_amp.A(kk) = sum(MRSCont.processed.A{kk}.watersupp.amp);
+        SubSpec = {'A'};       
+        SNRRange = {[1.8,2.2]};
         if MRSCont.flags.hasMM
-            MRSCont.QM.SNR.mm(kk)    = op_getSNR(MRSCont.processed.mm{kk},0.7,1.1); % water amplitude over noise floor
-            MRSCont.QM.FWHM.mm(kk)   = op_getLW(MRSCont.processed.mm{kk},0.7,1.1); % LW in Hz
+            SubSpec{end+1} = 'mm';
+            SNRRange{end+1} = [0.7,1.1];
         end
         if MRSCont.flags.hasRef
-            MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor
-            MRSCont.QM.FWHM.ref(kk) = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % LW in Hz
+            SubSpec{end+1} = 'ref';
+            SNRRange{end+1} = [4.2,5.2];
         end
         if MRSCont.flags.hasWater
-            MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor           
-            MRSCont.QM.FWHM.w(kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % LW in Hz
+            SubSpec{end+1} = 'w';
+            SNRRange{end+1} = [4.2,5.2];
         end
-        
-        
+        % Calculate some spectral quality metrics here;
+        for ss = 1 : length(SubSpec)          
+            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk});       
+            MRSCont.QM.FWHM.(SubSpec{ss})(kk)   = op_getLW(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2)); % in Hz       
+            if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w') || strcmp(SubSpec{ss},'mm'))
+                 MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = driftPre;
+                MRSCont.QM.drift.post.(SubSpec{ss}){kk} = driftPost;
+                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift;       
+                MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                if strcmp(SubSpec{ss},'diff1') || strcmp(SubSpec{ss},'sum')
+                    MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = reshape([MRSCont.QM.drift.pre.A'; MRSCont.QM.drift.pre.B'], [], 1)';
+                    MRSCont.QM.drift.post.(SubSpec{ss}){kk} = reshape([MRSCont.QM.drift.post.A'; MRSCont.QM.drift.post.B'], [], 1)';
+                end
+                MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+                MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+            end
+        end              
     end
 
     if MRSCont.flags.isGUI        
