@@ -97,7 +97,6 @@ else
     MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
 end
 osp_scale_yaxis(MRSCont,'OspreyLoad');
-
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess    = 1;

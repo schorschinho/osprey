@@ -54,9 +54,14 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract processed spectra and fit parameters
-map = zeros(MRSCont.raw{kk}.nXvoxels, MRSCont.raw{kk}.nYvoxels);
-map(VoxelIndex(1),VoxelIndex(2)) = 1;
+%map = zeros(MRSCont.raw{kk}.nXvoxels, MRSCont.raw{kk}.nYvoxels);
+map = squeeze(abs(MRSCont.raw{kk}.fids(1,1,:,:)));
+map = map/(max(max(max(map))));
+map(map > 2 * map(1,1)) = 0.5;
+map(map < 0.5) = 0;
 
+map(VoxelIndex(1),VoxelIndex(2)) = 1;
+map = rot90(map);
 
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
@@ -69,7 +74,8 @@ end
 
 Background = [255/255 254/255 254/255];
 Foreground = [11/255 71/255 111/255];
-cmap = [Background; Foreground];
+Accent = [254/255 186/255 47/255];
+cmap = [Background; Foreground; Accent];
 heatmap(map, 'CellLabelColor','none')
 colorbar off
 colormap(cmap);
