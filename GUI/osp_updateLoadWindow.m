@@ -139,6 +139,8 @@ function osp_updateLoadWindow(gui)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm');
                     elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm',gui.controls.act_x);
+                          else
+                            temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm',[gui.controls.act_x gui.controls.act_y]);          
                     end
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)
@@ -151,6 +153,8 @@ function osp_updateLoadWindow(gui)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
                     elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',gui.controls.act_x);
+                      else
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',[gui.controls.act_x gui.controls.act_y]);          
                     end
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)
@@ -163,6 +167,8 @@ function osp_updateLoadWindow(gui)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
                     elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',gui.controls.act_x);
+              else
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',[gui.controls.act_x gui.controls.act_y]);          
                     end
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)
@@ -176,6 +182,8 @@ function osp_updateLoadWindow(gui)
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
                 elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',gui.controls.act_x);
+              else
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',[gui.controls.act_x gui.controls.act_y]);          
                 end
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)
@@ -187,6 +195,8 @@ function osp_updateLoadWindow(gui)
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
                 elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',gui.controls.act_x);
+              else
+                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',[gui.controls.act_x gui.controls.act_y]);          
                 end
                 ViewAxes = gca();
                 delete(gui.Plot.data.Children(1).Children(1).Children)

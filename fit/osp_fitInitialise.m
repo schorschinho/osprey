@@ -104,7 +104,7 @@ MRSCont.fit.basisSet = [];
 % the user folder is loaded.
  if isempty(MRSCont.opts.fit.basisSetFile)
     addpath( which('fit/basissets'));
-    MRSCont.opts.fit.basisSetFile = which('fit/basissets/user/BASIS_noMM.mat');
+    MRSCont.opts.fit.basisSetFile = which('fit/basissets/user/BASIS_MM.mat');
     if isempty(MRSCont.opts.fit.basisSetFile)
         error('There is no appropriate basis set to model your data. Please supply a sufficient basis set in Osprey .mat format in the fit/basissets/user/BASIS_MM.mat file! ');
     else

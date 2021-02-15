@@ -50,6 +50,8 @@ if MRSCont.flags.isUnEdited
             sortstring = {'A','mm','ref'};
         case '1101'
             sortstring = {'A','mm','w'};
+        case '1011'
+            sortstring = {'A','ref','w'};
         case '1111'
             sortstring = {'A','mm','ref','w'};       
         otherwise
