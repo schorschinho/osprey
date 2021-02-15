@@ -58,11 +58,11 @@ end
 % in the basis set. Remove from the soft constraint vectors, if not.
 % Check which soft-constrained metabolites are available in the basis set.
 metsInBasisSet = basisSet.name;
-[metsToKeep1,ia1,ib1] = intersect(constr1.met, metsInBasisSet, 'stable');
-[metsToKeep2,ia2,ib2] = intersect(constr2.met, metsInBasisSet, 'stable');
+ia1 = ismember(constr1.met, metsInBasisSet);
+ia2 = ismember(constr2.met, metsInBasisSet);
 idx_toKeep = zeros(length(constr1.met),1);
 for rr = 1:length(idx_toKeep)
-    idx_toKeep(rr) = ismember(rr,ia1) & ismember(rr,ia2);
+    idx_toKeep(rr) = ia1(rr) & ia2(rr);
 end
 constr1.met     = constr1.met(logical(idx_toKeep));
 constr1.wght    = constr1.wght(logical(idx_toKeep));
