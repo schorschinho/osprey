@@ -1089,56 +1089,7 @@ outputFile      = MRSCont.outputFile;
 
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
-    Names = fieldnames(MRSCont.processed);
-    for ss = 1 : length(Names)
-        osp_plotModule(MRSCont, 'OspreySpecOverview', 1, Names{ss});
-        osp_plotModule(MRSCont, 'OspreyMeanOverview', 1, Names{ss});
-    end
-
-    if MRSCont.flags.isUnEdited
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'off-tCr', 'tNAA');
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'off-tCr', 'tCho');
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'off-tCr', 'Ins');
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'off-tCr', 'Glx');
-
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'tNAA', 'SNR');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'tCho', 'SNR');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'Ins', 'SNR');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'Glx', 'SNR');
-
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'tNAA', 'FWHM');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'tCho', 'FWHM');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'Ins', 'FWHM');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'Glx', 'FWHM');
-    end
-    if MRSCont.flags.isMEGA
-        if ~strcmp(MRSCont.opts.fit.style, 'Concatenated')
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
-        else
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
-        end
-    end
-    if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-        if ~strcmp(MRSCont.opts.fit.style, 'Concatenated')
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{2});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{2}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{2}, 'FWHM');
-        else
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{2});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{2}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{2}, 'FWHM');
-        end
-    end
+    osp_plotAllPDF(MRSCont, 'OspreyOverview')
 end
 
 if MRSCont.flags.isGUI
