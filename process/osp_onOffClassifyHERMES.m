@@ -57,10 +57,10 @@ switch target
         [max_first(3), max_second(3)]  = findMaxNAAw(inC);
         [max_first(4), max_second(4)]  = findMaxNAAw(inD);
     case 'GABALac'
-        [max_first(1), max_second(1)]  = findMaxNAAInsCr(inA);
-        [max_first(2), max_second(2)]  = findMaxNAAInsCr(inB);
-        [max_first(3), max_second(3)]  = findMaxNAAInsCr(inC);
-        [max_first(4), max_second(4)]  = findMaxNAAInsCr(inD);
+        [max_first(1), max_second(1)]  = findMaxNAACr(inA);
+        [max_first(2), max_second(2)]  = findMaxNAACr(inB);
+        [max_first(3), max_second(3)]  = findMaxNAACr(inC);
+        [max_first(4), max_second(4)]  = findMaxNAACr(inD);
     otherwise
         [max_first(1), max_second(1)]  = findMaxNAAw(inA);
         [max_first(2), max_second(2)]  = findMaxNAAw(inB);
@@ -131,12 +131,12 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [max_ins, max_NAA] = findMaxNAAInsCr(in)
+function [max_ins, max_NAA] = findMaxNAACr(in)
 % This embedded function finds the maximum intensities of the creatine and
-% inositol singals at 3.9 ppm and NAA signals of an input spectrum.
+% siganls at 3.9 ppm and NAA signals of an input spectrum.
 
 % Determine relevant frequency ranges
-out_ins   = op_freqrange(in,3.9,4.3);
+out_ins   = op_freqrange(in,3.8,4);
 out_NAA = op_freqrange(in,1.8,2.2);
 
 % Determine maximum absolute signal
