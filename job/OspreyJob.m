@@ -214,6 +214,14 @@ if exist('opts','var')
     end
 end
 
+if ~isfield(MRSCont.opts, 'UnstableWater')
+    MRSCont.opts.UnstableWater = 0;
+end
+
+if ~isfield(MRSCont.opts, 'L1NormAlign')
+    MRSCont.opts.L1NormAlign = 0;
+end
+
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
 % Parse the sequence type entry
 switch seqType
