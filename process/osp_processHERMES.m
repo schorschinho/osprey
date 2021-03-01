@@ -389,9 +389,9 @@ for kk = 1:MRSCont.nDatasets
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
         if ~exist('target3', 'var')
-            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,0,target1,target2);
+            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target1,target2);
         else
-            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,0,target2,target3);
+            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target2,target3);
         end
 
         % Create the sum spectrum

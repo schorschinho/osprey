@@ -121,7 +121,11 @@ for kk = 1:MRSCont.nDatasets
                     case 'RobSpecReg'
                         [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini); % Align and average
                     case 'RestrSpecReg'
-                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,MRSCont.opts.fit.range(1),MRSCont.opts.fit.range(2)); % Align and average
+                        if isfield(MRSCont.opts,'SpecRegRange')
+                            [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,MRSCont.opts.SpecRegRange(1),MRSCont.opts.SpecRegRange(2)); % Align and average
+                        else
+                            [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,MRSCont.opts.fit.range(1),MRSCont.opts.fit.range(2)); % Align and average
+                        end
                     case 'none'
                         [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,1); % Align and average   
                 end
@@ -296,7 +300,15 @@ for kk = 1:MRSCont.nDatasets
         [raw_A,~]       = op_phaseCrCho(raw_A, 1);
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
-        [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target);
+        
+        if MRSCont.opts.L1NormAlign
+            [raw_A, raw_B]  = osp_editSubSpecAlignLNorm(raw_A, raw_B);
+        else        
+            [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);
+        end
+        
+
+        
         % Create the sum spectrum
         Sum             = op_addScans(raw_A,raw_B);
         if switchOrder
