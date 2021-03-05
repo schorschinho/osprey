@@ -42,6 +42,14 @@ end
 % Load T1 image, mask volume, T1 max value, and voxel center
 [~,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
 [~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
+[~,~,fileext_mask]   = fileparts(MRSCont.coreg.vol_mask{kk}.fname);
+
+if ~exist(MRSCont.coreg.vol_image{kk}.fname,'file')
+    gunzip([MRSCont.coreg.vol_image{kk}.fname, '.gz']);
+end
+if ~exist(MRSCont.coreg.vol_mask{kk}.fname,'file')
+    gunzip([MRSCont.coreg.vol_mask{kk}.fname, '.gz']);
+end
 
 Vimage=spm_vol(MRSCont.coreg.vol_image{kk}.fname);
 if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
@@ -50,6 +58,15 @@ if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
 else
     Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}{VoxelIndex}.fname);    
     voxel_ctr = MRSCont.coreg.voxel_ctr{kk}(:,:,VoxelIndex); 
+end
+
+if ~MRSCont.flags.didSeg
+    if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
+        delete(MRSCont.coreg.vol_mask{kk}.fname);
+    end
+    if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
+        delete(MRSCont.coreg.vol_image{kk}.fname);
+    end
 end
 %%% 3. SET UP THREE PLANE IMAGE %%%
 % Generate three plane image for the output

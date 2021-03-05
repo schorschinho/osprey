@@ -72,6 +72,8 @@ for kk = 1:MRSCont.nDatasets
 
         % Get the input file name
         [path,filename,~]   = fileparts(MRSCont.files{kk});
+        % Get the nii file name
+        [~,~,T1ext]   = fileparts(MRSCont.files_nii{kk});
         % For batch analysis, get the last two sub-folders (e.g. site and
         % subject)
         path_split          = regexp(path,filesep,'split');
@@ -81,10 +83,16 @@ for kk = 1:MRSCont.nDatasets
         % Generate file name for the voxel mask NIfTI file to be saved under
         maskFile            = fullfile(saveDestination, [saveName '_VoxelMask.nii']);
 
+        %Uncompress .nii.gz if needed
+        if strcmp(T1ext,'.gz')
+            gunzip(MRSCont.files_nii{kk});
+            MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.gz','');
+        end
         % Call voxel mask generator depending on file type
         switch MRSCont.vendor
             case 'Siemens'
                 % Load the *.nii file provided in the job file
+                
                 vol_image = spm_vol(MRSCont.files_nii{kk});
                 switch MRSCont.datatype
                     case 'TWIX'
@@ -154,6 +162,12 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.vol_mask{kk}  = vol_mask;
         MRSCont.coreg.T1_max{kk}    = T1_max;
         MRSCont.coreg.voxel_ctr{kk} = voxel_ctr;
+        
+        %Delete .nii file if a .nii.gz
+         if strcmp(T1ext,'.gz')
+            delete(MRSCont.files_nii{kk});
+            MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.nii','.nii.gz');
+        end
     end
 end
 fprintf('... done.\n');

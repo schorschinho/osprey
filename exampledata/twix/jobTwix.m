@@ -169,8 +169,8 @@ files_mm     = {};
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {which('exampledata/twix/sub-01/anat/sub-01_T1w.nii'),...
-               which('exampledata/twix/sub-02/anat/sub-02_T1w.nii')};
+files_nii   = {which('exampledata/twix/sub-01/anat/sub-01_T1w.nii.gz'),...
+               which('exampledata/twix/sub-02/anat/sub-02_T1w.nii.gz')};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
