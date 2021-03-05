@@ -23,6 +23,7 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 - Conventional MRS (STEAM, PRESS, semi-LASER, LASER)
 - MEGA editing
 - Hadamard-encoded editing (HERMES, HERCULES)
+- Dual voxel (PRIAM)
 
 ### Supported sequence implementations
 - Philips (Philips product sequences; Johns Hopkins patches)
@@ -30,7 +31,7 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 - GE (GE product sequences; Ralph Noeske sequence)
 
 ### Supported file formats
-- Philips: SDAT/SPAR, DATA/LIST (coming soon), SIN/LAB/RAW (coming soon)
+- Philips: SDAT/SPAR, DATA/LIST, SIN/LAB/RAW (coming soon)
 - Siemens: TWIX/DAT, RDA (single- & multi-file), DICOM (DCM/IMA, single- & multi-file)
 - GE: P
 
