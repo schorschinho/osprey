@@ -61,10 +61,15 @@ limits      = newx >= 0.94*length(spec) & newx <= 1.06*length(spec);
 tempx = newx(limits);
 tempr = r(limits);
 gtHalfMax=find(tempr >= 0.5 * max_value);
-HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
-if HWHM == 0
-    gtHalfMax=find(tempr >= 0.3 * max_value);
+if ~isempty(gtHalfMax)
     HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
+    if HWHM == 0
+        gtHalfMax=find(tempr >= 0.3 * max_value);
+        HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
+    end
+else
+   HWHM = 0;
+%    max_ind = 0; 
 end
 
 nlinopts    = statset('nlinfit');
