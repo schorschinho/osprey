@@ -122,14 +122,14 @@ elseif MRSCont.flags.isHERMES
     subspec = {'sum'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end    
+    end
 elseif MRSCont.flags.isHERCULES
     % For now, process HERCULES like HERMES data
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'sum'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end    
+    end
 else
     msg = 'No flag set for sequence type!';
     fprintf(fileID,msg);
@@ -147,7 +147,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
 end
 
 % Optional:  Create all pdf figures
-if MRSCont.opts.savePDF 
+if MRSCont.opts.savePDF
     osp_plotAllPDF(MRSCont, 'OspreyProcess')
 end
 

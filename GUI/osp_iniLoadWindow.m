@@ -272,9 +272,15 @@ function osp_iniLoadWindow(gui)
                 end %re_mm
             else %re_mm
                 if t == 2 %ref data/tab
-                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
-                    ViewAxes = gca();
-                    set( ViewAxes, 'Parent', gui.Plot.data );
+                    if MRSCont.flags.hasRef
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
+                        ViewAxes = gca();
+                        set( ViewAxes, 'Parent', gui.Plot.data );
+                    elseif MRSCont.flags.hasWater
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
+                        ViewAxes = gca();
+                        set( ViewAxes, 'Parent', gui.Plot.data );
+                    end
                 else %water data/tab has only one window all the time
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
                     ViewAxes = gca();

@@ -1,8 +1,0 @@
-jobSDAT_MEGA.m
-Timestamp February 04, 2021 16:58:58 1.0.0 Osprey  1.0.0 job
-Timestamp February 04, 2021 16:59:01 1.0.0 Osprey  1.0.0 Load
-All provided datafiles are of the Philips SDAT format.
-Loading raw data from dataset 1 out of 2 total datasets...
-Loading raw data from dataset 2 out of 2 total datasets...
-... done.
- Elapsed time 0.719520 seconds

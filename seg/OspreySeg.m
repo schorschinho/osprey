@@ -95,13 +95,29 @@ for kk = 1:MRSCont.nDatasets
                 error(msg);                  
         end
 
-
+        
         % Get the input file name
         [T1dir, T1name, T1ext]  = fileparts(niftiFile);
-        segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
+         segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
         % If a GM-segmented file doesn't exist, start the segmentation
-        if ~exist(segFileGM,'file')
+        if ~exist(segFileGM,'file') && ~exist(strrep(segFileGM,'.gz',''),'file')
+            %Uncompress .nii.gz if needed
+            if strcmp(T1ext,'.gz')
+                gunzip(niftiFile);
+                niftiFile = strrep(niftiFile,'.gz','');
+                T1ext = strrep(T1ext,'.gz','');
+                segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
+            end           
             createSegJob(niftiFile);
+        else if strcmp(T1ext,'.gz')
+                if exist(fullfile(T1dir, ['c1' T1name '.gz']),'file')
+                    gunzip(segFileGM);
+                    gunzip(fullfile(T1dir, ['c2' T1name T1ext]));
+                    gunzip(fullfile(T1dir, ['c3' T1name T1ext]));                 
+                end
+                T1ext = strrep(T1ext,'.gz','');
+                segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
+            end
         end
 
 
@@ -127,7 +143,9 @@ for kk = 1:MRSCont.nDatasets
             else
                 vol_mask = MRSCont.coreg.vol_mask{kk}{rr};
             end
-            
+            if ~exist(vol_mask.fname,'file') && exist(strrep(vol_mask.fname,'.nii','.nii.gz'),'file')
+                gunzip(strrep(vol_mask.fname,'.nii','.nii.gz'));
+            end
             [maskDir, maskName, maskExt] = fileparts(vol_mask.fname);
 
             % Create and save masked tissue maps
@@ -142,7 +160,7 @@ for kk = 1:MRSCont.nDatasets
             
             %Add voxel number for DualVoxel
             if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
-                VoxelNum = '';
+                VoxelNum = '_Voxel_1';
             else
                 VoxelNum = ['_Voxel_' num2str(rr)];
             end
@@ -180,6 +198,24 @@ for kk = 1:MRSCont.nDatasets
             GMsum  = sum(sum(sum(vol_GMMask.private.dat(:,:,:))));
             WMsum  = sum(sum(sum(vol_WMMask.private.dat(:,:,:))));
             CSFsum = sum(sum(sum(vol_CSFMask.private.dat(:,:,:))));
+            
+            %Compress nifit and delete uncompressed files
+            gzip(vol_GMMask.fname);
+            delete(vol_GMMask.fname);
+            gzip(vol_WMMask.fname);
+            delete(vol_WMMask.fname);
+            gzip(vol_CSFMask.fname);
+            delete(vol_CSFMask.fname);
+            gzip(GMvol.fname);
+            delete(GMvol.fname);
+            gzip(WMvol.fname);
+            delete(WMvol.fname);
+            gzip(CSFvol.fname);
+            delete(CSFvol.fname);
+            delete(vol_mask.fname);
+
+
+
 
             % Normalize
             fGM  = GMsum / (GMsum + WMsum + CSFsum);
