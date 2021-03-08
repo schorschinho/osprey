@@ -25,7 +25,6 @@ function out=op_sortMRSIsdat(in);
 %   5) extras.
 %   6) Xvoxels
 %   7) Yvoxels
-%   8) Zvoxels
 
 % Create a number code for the switch 
 dims = in.dims;

@@ -65,7 +65,6 @@ if MRSCont.flags.isPRIAM == 1
     outMRSCont.runtime.FitMet = time;    
 elseif MRSCont.flags.isMRSI == 1
     %Fit center of MRSI first for inital guess parameters
-
    cx = round(XVox/2);
    cy = round(YVox/2);
    cz = round(ZVox/2);
@@ -109,97 +108,57 @@ elseif MRSCont.flags.isMRSI == 1
             outMRSCont.fit.(fields{f}){cx,cy,cz} = fitMRSCont.fit.(fields{f});
         end          
     end
-    
-    for z = 1 : ZVox
-        for x = 1 : XVox
-            for y = 1 : YVox
-                for f = 1 : length(fields)
-                     % 2D MRSI data
-                    if ZVox <=1
-                        outMRSCont.fit.(fields{f}){x,y} = outMRSCont.fit.(fields{f}){cx,cy};
-                    else  % 3D MRSI data
-                        outMRSCont.fit.(fields{f}){x,y,z} = outMRSCont.fit.(fields{f}){cx,cy,cz};
-                    end                          
-                end
-                outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl)); 
-            end
-        end
-    end
 
-    MRSCont.fit.MRSIfitPriors = fitMRSCont.fit;
-    ph0 = fitMRSCont.fit.results.off.fitParams{kk}.ph0;
-    ph1= fitMRSCont.fit.results.off.fitParams{kk}.ph1;
-    gaussLB = fitMRSCont.fit.results.off.fitParams{kk}.gaussLB;
+   MRSCont.fit.MRSIfitPriors = fitMRSCont.fit;
     % Fit all remaining voxels
     for z = 1 : ZVox 
-        for nVox = 2 : (XVox * YVox)
+        for nVox = 2 : 64
            [x,y] = osp_spiral(nVox);
            x = x+cx;
            y = y+cy;
-           % Masking goes here for now 8 to 24 y
-           % 7 to 23 x
-%            if (x > 7) && (x < 23) && (y > 8) && (y < 24)
-          if (x > 14) && (x < 15) && (y > 14) && (y < 15)
-               for ss = 1 : NoSubSpec % Loop over Subspec 
-                   for kk = 1 :MRSCont.nDatasets
-                       if ZVox <=1
-                           fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y]);  
-                       else
-                           fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y,z]); 
-                       end
+           for ss = 1 : NoSubSpec % Loop over Subspec 
+               for kk = 1 :MRSCont.nDatasets
+                   if ZVox <=1
+                       fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y]);  
+                   else
+                       fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y,z]); 
                    end
                end
-                fitMRSCont.fit =  MRSCont.fit.MRSIfitPriors;  %Load prior results into the struct                        
-                msg = sprintf('\nFitting metabolite spectra from kx %d out of %d total x phase steps...\n', x, XVox);
-                fprintf([reverseStr, msg]);
-                msg = sprintf('\nFitting metabolite spectra from ky  %d out of %d total y phase steps...\n', y, YVox);
-                fprintf([reverseStr, msg]);
-                msg = sprintf('\nFitting metabolite spectra from slice %d out of %d total slices...\n', z, ZVox);
-                fprintf([reverseStr, msg]);
-                msg = sprintf('\nFitting metabolite spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
-                fprintf([reverseStr, msg]);
-                if ~((x == cx) && (y == cy) && (z == cz)) % Do not re-analyze the center voxel
-                    if MRSCont.flags.isUnEdited
-                        [fitMRSCont] = osp_fitUnEdited(fitMRSCont);
-                    elseif MRSCont.flags.isMEGA
-                        [fitMRSCont] = osp_fitMEGA(fitMRSCont);
-                    elseif MRSCont.flags.isHERMES
-                        [fitMRSCont] = osp_fitHERMES(fitMRSCont);
-                    elseif MRSCont.flags.isHERCULES
-                        % For now, fit HERCULES like HERMES data
-                        [fitMRSCont] = osp_fitHERCULES(fitMRSCont);
-                    else
-                        msg = 'No flag set for sequence type!';
-                        fprintf(fileID,msg);
-                        error(msg);
-                    end
-                    fclose all
-                    ph0(end+1) = fitMRSCont.fit.results.off.fitParams{kk}.ph0;
-                    ph1(end+1)= fitMRSCont.fit.results.off.fitParams{kk}.ph1;
-                    gaussLB(end+1) = fitMRSCont.fit.results.off.fitParams{kk}.gaussLB;
-                    MRSCont.fit.MRSIfitPriors = fitMRSCont.fit; %Store new priors
-                    MRSCont.fit.MRSIfitPriors.results.off.fitParams{kk}.ph0 = median(ph0);
-                    MRSCont.fit.MRSIfitPriors.results.off.fitParams{kk}.gaussLB=median(ph1);
-                    MRSCont.fit.MRSIfitPriors.results.off.fitParams{kk}.gaussLB = median(gaussLB);
-                    fields = {'resBasisSet','results'};
-                    for f = 1 : length(fields)
-                         % 2D MRSI data
-                        if ZVox <=1
-                            outMRSCont.fit.(fields{f}){x,y} = fitMRSCont.fit.(fields{f});
-                        else  % 3D MRSI data
-                            outMRSCont.fit.(fields{f}){x,y,z} = fitMRSCont.fit.(fields{f});
-                        end          
-                    end
+           end
+            fitMRSCont.fit =  MRSCont.fit.MRSIfitPriors;  %Load prior results into the struct                        
+            msg = sprintf('\nFitting metabolite spectra from kx %d out of %d total x phase steps...\n', x, XVox);
+            fprintf([reverseStr, msg]);
+            msg = sprintf('\nFitting metabolite spectra from ky  %d out of %d total y phase steps...\n', y, YVox);
+            fprintf([reverseStr, msg]);
+            msg = sprintf('\nFitting metabolite spectra from slice %d out of %d total slices...\n', z, ZVox);
+            fprintf([reverseStr, msg]);
+            msg = sprintf('\nFitting metabolite spectra from voxel %d out of %d total voxels...\n', x*y*z, XVox*YVox*ZVox);
+            fprintf([reverseStr, msg]);
+            if ~((x == cx) && (y == cy) && (z == cz)) % Do not re-analyze the center voxel
+                if MRSCont.flags.isUnEdited
+                    [fitMRSCont] = osp_fitUnEdited(fitMRSCont);
+                elseif MRSCont.flags.isMEGA
+                    [fitMRSCont] = osp_fitMEGA(fitMRSCont);
+                elseif MRSCont.flags.isHERMES
+                    [fitMRSCont] = osp_fitHERMES(fitMRSCont);
+                elseif MRSCont.flags.isHERCULES
+                    % For now, fit HERCULES like HERMES data
+                    [fitMRSCont] = osp_fitHERCULES(fitMRSCont);
+                else
+                    msg = 'No flag set for sequence type!';
+                    fprintf(fileID,msg);
+                    error(msg);
                 end
-          else
-                        msg = sprintf('\nFitting metabolite spectra from kx %d out of %d total x phase steps...\n', x, XVox);
-                        fprintf([reverseStr, msg]);
-                        msg = sprintf('\nFitting metabolite spectra from ky  %d out of %d total y phase steps...\n', y, YVox);
-                        fprintf([reverseStr, msg]);
-                        msg = sprintf('\nFitting metabolite spectra from slice %d out of %d total slices...\n', z, ZVox);
-                        fprintf([reverseStr, msg]);
-                        msg = sprintf('\nFitting metabolite spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
-                        fprintf([reverseStr, msg]);
+                MRSCont.fit.MRSIfitPriors = fitMRSCont.fit; %Store new priors
+                fields = {'resBasisSet','results'};
+                for f = 1 : length(fields)
+                     % 2D MRSI data
+                    if ZVox <=1
+                        outMRSCont.fit.(fields{f}){x,y} = fitMRSCont.fit.(fields{f});
+                    else  % 3D MRSI data
+                        outMRSCont.fit.(fields{f}){x,y,z} = fitMRSCont.fit.(fields{f});
+                    end          
+                end
             end
         end
     end
