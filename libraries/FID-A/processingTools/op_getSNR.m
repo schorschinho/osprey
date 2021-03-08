@@ -71,8 +71,3 @@ noisesd=std(real(noise));
 
 %SNR=maxNAA/noisesd
 SNR=signal/noisesd;
-
-%For out of volume MRSI 
-if isempty(SNR) || isnan(sum(SNR))
-    SNR = 0;
-end

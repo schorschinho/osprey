@@ -79,23 +79,17 @@ elseif MRSCont.flags.isMRSI == 1
                         procMRSCont.raw{kk} = op_takeVoxel(MRSCont.raw{kk},[x y z]);
                     end
                     if procMRSCont.flags.hasRef
-                        try
-                            if ZVox <=1
-                                procMRSCont.raw_ref{kk} = op_takeVoxel(MRSCont.raw_ref{kk},[x y]);
-                            else
-                             procMRSCont.raw_ref{kk} = op_takeVoxel(MRSCont.raw_ref{kk},[x y z]);
-                            end
-                        catch
+                        if ZVox <=1
+                            procMRSCont.raw_ref{kk} = op_takeVoxel(MRSCont.raw_ref{kk},[x y]);
+                        else
+                         procMRSCont.raw_ref{kk} = op_takeVoxel(MRSCont.raw_ref{kk},[x y z]);
                         end
                     end
                     if procMRSCont.flags.hasWater
-                        try
-                            if ZVox <=1
-                                procMRSCont.raw_w{kk} = op_takeVoxel(MRSCont.raw_w{kk},[x y]);
-                            else
-                                procMRSCont.raw_w{kk} = op_takeVoxel(MRSCont.raw_w{kk},[x y z]);
-                            end
-                        catch
+                        if ZVox <=1
+                            procMRSCont.raw_w{kk} = op_takeVoxel(MRSCont.raw_w{kk},[x y]);
+                        else
+                            procMRSCont.raw_w{kk} = op_takeVoxel(MRSCont.raw_w{kk},[x y z]);
                         end
                     end
                 end
