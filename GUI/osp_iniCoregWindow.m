@@ -131,27 +131,7 @@ function osp_iniCoregWindow(gui)
 % coregistration or the segmentation
     gui.Results.coreg = uix.VBox('Parent', gui.Plot.coreg,'BackgroundColor',gui.colormap.Background);
     temp = figure( 'Visible', 'off' );
-    if ~isfield(MRSCont.flags,'isPRIAM') && ~isfield(MRSCont.flags,'isMRSI') && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-        if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-            osp_plotCoreg(MRSCont, gui.controls.Selected);
-            ViewAxes = gca();
-            set(ViewAxes, 'Parent', gui.Results.coreg );
-            colormap(gui.Results.coreg.Children,'gray')
-            close( temp );
-            temp = figure( 'Visible', 'off' );
-            osp_plotSegment(MRSCont, gui.controls.Selected);
-            ViewAxes = gca();
-            set(ViewAxes, 'Parent', gui.Results.coreg );
-            colormap(gui.Results.coreg.Children(1),'gray');
-            close( temp );
-        else % Only coreg has been run
-            osp_plotCoreg(MRSCont, gui.controls.Selected);
-            ViewAxes = gca();
-            set(ViewAxes, 'Parent', gui.Results.coreg );
-            colormap(gui.Results.coreg.Children,'gray');
-            close( temp );
-        end
-    elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+    if (isfield(MRSCont.flags, 'isPRIAM')) &&  MRSCont.flags.isPRIAM
         if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
             osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
             ViewAxes = gca();
@@ -170,7 +150,28 @@ function osp_iniCoregWindow(gui)
             set(ViewAxes, 'Parent', gui.Results.coreg );
             colormap(gui.Results.coreg.Children,'gray');
             close( temp );
-        end        
+        end 
+        
+    else
+        if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
+            osp_plotCoreg(MRSCont, gui.controls.Selected);
+            ViewAxes = gca();
+            set(ViewAxes, 'Parent', gui.Results.coreg );
+            colormap(gui.Results.coreg.Children,'gray')
+            close( temp );
+            temp = figure( 'Visible', 'off' );
+            osp_plotSegment(MRSCont, gui.controls.Selected);
+            ViewAxes = gca();
+            set(ViewAxes, 'Parent', gui.Results.coreg );
+            colormap(gui.Results.coreg.Children(1),'gray');
+            close( temp );
+        else % Only coreg has been run
+            osp_plotCoreg(MRSCont, gui.controls.Selected);
+            ViewAxes = gca();
+            set(ViewAxes, 'Parent', gui.Results.coreg );
+            colormap(gui.Results.coreg.Children,'gray');
+            close( temp );
+        end       
     end
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

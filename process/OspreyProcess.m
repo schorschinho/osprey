@@ -29,20 +29,18 @@ function [MRSCont] = OspreyProcess(MRSCont)
 %       2019-02-19: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+diary(fullfile(outputFolder, 'LogFile.txt'));
 % Check that OspreyLoad has been run before
 if ~MRSCont.flags.didLoadData
     msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);
 end
 
 
 % Version, toolbox check and updating log file
-MRSCont.ver.CheckPro        = '1.0.0 Pro';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckPro '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
-[~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
 % Post-process raw data depending on sequence type
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
@@ -57,11 +55,10 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         [MRSCont] = osp_processHERCULES(MRSCont);
     else
         msg = 'No flag set for sequence type!';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 else
-    fclose(fileID);
     [MRSCont] = osp_processMultiVoxel(MRSCont);
 end
 
@@ -130,9 +127,8 @@ end
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess    = 1;
-fclose(fileID);
+diary off
 [MRSCont]                   = osp_orderProcessFields(MRSCont);
-MRSCont.ver.Pro             = '1.0.0 Pro';
 
 % Save the output structure to the output folder
 % Determine output folder

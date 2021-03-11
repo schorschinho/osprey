@@ -28,17 +28,16 @@ function [MRSCont] = OspreyOverview(MRSCont)
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+diary(fullfile(outputFolder, 'LogFile.txt'));
 % Fall back to defaults if not provided
 if ~MRSCont.flags.didQuantify
     msg = 'Trying to create data overview, but data have not been quantify yet. Run OspreyQuantify first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);
 end
 
 % Version check and updating log file
-MRSCont.ver.Over             = '1.0.0 Overview';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Over '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyOverview',MRSCont.flags.isGUI);
 
 
 %%% 2. INITIALIZE VARIABLES %%%
@@ -152,9 +151,8 @@ end
 for rr = 1 : Voxels
     for ss = 1 : NoSubSpec % Loop over Subspec
         msg = sprintf('Gathering spectra from subspectrum %d out of %d total subspectra...\n', ss, NoSubSpec);
-        fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf(fileID, [reverseStr, msg]);
+        fprintf([reverseStr, msg]);
         if MRSCont.flags.isGUI && isfield(progressText,'String')
             set(progressText,'String' ,sprintf('Gathering spectra from subspectrum %d out of %d total subspectra...\n', ss, NoSubSpec));
             drawnow
@@ -212,7 +210,6 @@ for rr = 1 : Voxels
 end
 
 fprintf('... done.\n');
-fprintf(fileID,'... done.\n');
 if MRSCont.flags.isGUI && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.'));
     pause(1);
@@ -224,9 +221,8 @@ reverseStr = '';
 for rr = 1 : Voxels%Loop over
     for sf = 1 : NoFit %Loop over all fits
         msg = sprintf('Gathering fit models from fit %d out of %d total fits...\n', sf, NoFit);
-        fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf(fileID, [reverseStr, msg]);
+        fprintf([reverseStr, msg]);
         if MRSCont.flags.isGUI && isfield(progressText,'String')
             set(progressText,'String' ,sprintf('Gathering fit models from fit %d out of %d total fits...\n', sf, NoFit));
             drawnow
@@ -386,7 +382,20 @@ for rr = 1 : Voxels%Loop over
                             elseif ~isempty(idx_Glu) && ~isempty(idx_Gln)
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitGlx  = ModelOutput.indivMets(:,idx_Glu) + ModelOutput.indivMets(:,idx_Gln);
                             end
-
+                            
+                            % tEA = PE + EA
+                            idx_PE  = find(strcmp(basisSet.name,'PE'));
+                            idx_EA  = find(strcmp(basisSet.name,'EA'));
+                            if isempty(idx_PE) && isempty(idx_Gln)
+                                % do nothing
+                            elseif isempty(idx_PE) && ~isempty(idx_EA)
+                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittEA  = ModelOutput.indivMets(:,idx_EA);
+                            elseif ~isempty(idx_PE) && isempty(idx_EA)
+                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittEA  = ModelOutput.indivMets(:,idx_PE);
+                            elseif ~isempty(idx_PE) && ~isempty(idx_EA)
+                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittEA  = ModelOutput.indivMets(:,idx_PE) + ModelOutput.indivMets(:,idx_EA);
+                            end
+                            
                             % tMM = all MM functions
                             if MRSCont.opts.fit.fitMM == 1
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittMM  = sum(ModelOutput.indivMets(:,basisSet.nMets+1:end),2);
@@ -544,6 +553,19 @@ for rr = 1 : Voxels%Loop over
                             elseif ~isempty(idx_Glu) && ~isempty(idx_Gln)
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fitGlx  = ModelOutput.indivMets(:,idx_Glu) + ModelOutput.indivMets(:,idx_Gln);
                             end
+                            
+                            % tEA = PE + EA
+                            idx_PE  = find(strcmp(basisSet.name,'PE'));
+                            idx_EA  = find(strcmp(basisSet.name,'EA'));
+                            if isempty(idx_PE) && isempty(idx_Gln)
+                                % do nothing
+                            elseif isempty(idx_PE) && ~isempty(idx_EA)
+                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittEA  = ModelOutput.indivMets(:,idx_EA);
+                            elseif ~isempty(idx_PE) && isempty(idx_EA)
+                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittEA  = ModelOutput.indivMets(:,idx_PE);
+                            elseif ~isempty(idx_PE) && ~isempty(idx_EA)
+                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittEA  = ModelOutput.indivMets(:,idx_PE) + ModelOutput.indivMets(:,idx_EA);
+                            end
 
                             % tMM = all MM functions
                             if MRSCont.opts.fit.fitMM == 1
@@ -565,7 +587,6 @@ for rr = 1 : Voxels%Loop over
     end
 end
 fprintf('... done.\n');
-fprintf(fileID,'... done.\n');
 if MRSCont.flags.isGUI  && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.'));
     pause(1);
@@ -586,9 +607,8 @@ end
 for rr = 1 : Voxels
     for sf = 1 : NoFit % loop over all fits
         msg = sprintf('Interpolating fit models from fit %d out of %d total fits...\n', sf, NoFit);
-        fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf(fileID, [reverseStr, msg]);
+        fprintf([reverseStr, msg]);
         if MRSCont.flags.isGUI && isfield(progressText,'String')
             set(progressText,'String' ,sprintf('Interpolating fit models from fit %d out of %d total fits...\n', sf, NoFit));
             drawnow
@@ -664,7 +684,6 @@ for rr = 1 : Voxels
 end
 
 fprintf('... done.\n');
-fprintf(fileID,'... done.\n');
 if MRSCont.flags.isGUI  && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.'));
     pause(1);
@@ -682,9 +701,8 @@ for rr = 1 : Voxels
             scale                 = MRSCont.fit.scale{kk};                        
         end
         msg = sprintf('Scaling data from dataset %d out of %d total datasetss...\n', kk, MRSCont.nDatasets);
-        fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf(fileID, [reverseStr, msg]);
+        fprintf([reverseStr, msg]);
         if MRSCont.flags.isGUI && isfield(progressText,'String')
             set(progressText,'String' ,sprintf('Scaling data from dataset %d out of %d total datasetss...\n', kk, MRSCont.nDatasets));
             drawnow
@@ -817,8 +835,6 @@ for rr = 1 : Voxels
         end
     end
 end
-fprintf('... done.\n');
-fprintf(fileID,'... done.\n');
 if MRSCont.flags.isGUI  && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.'));
     pause(1);
@@ -1055,32 +1071,32 @@ end
 % Set exit flags and version
 MRSCont.flags.didOverview          = 1;
 time = toc(OverviewTime);
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fprintf('... done.\n Elapsed time %f seconds\n',time);
 MRSCont.runtime.Overview = time;
-fprintf(fileID,'Runtime Breakdown................\n');
-fprintf(fileID,'OspreyLoad runtime: %f seconds\n',MRSCont.runtime.Load);
-fprintf(fileID,'OspreyProcess runtime: %f seconds\n',MRSCont.runtime.Proc);
-fprintf(fileID,'OspreyFit runtime: %f seconds\n',MRSCont.runtime.Fit);
-fprintf(fileID,'\tOspreyFit metab runtime: %f seconds\n',MRSCont.runtime.FitMet);
+fprintf('Runtime Breakdown................\n');
+fprintf('OspreyLoad runtime: %f seconds\n',MRSCont.runtime.Load);
+fprintf('OspreyProcess runtime: %f seconds\n',MRSCont.runtime.Proc);
+fprintf('OspreyFit runtime: %f seconds\n',MRSCont.runtime.Fit);
+fprintf('\tOspreyFit metab runtime: %f seconds\n',MRSCont.runtime.FitMet);
 if isfield(MRSCont.runtime, 'FitRef')
-    fprintf(fileID,'\tOspreyFit reference runtime: %f seconds\n',MRSCont.runtime.FitRef);
+    fprintf('\tOspreyFit reference runtime: %f seconds\n',MRSCont.runtime.FitRef);
 end
 if isfield(MRSCont.runtime, 'FitWater')
-    fprintf(fileID,'\tOspreyFit water runtime: %f seconds\n',MRSCont.runtime.FitWater);
+    fprintf('\tOspreyFit water runtime: %f seconds\n',MRSCont.runtime.FitWater);
 end
 MRSCont.runtime.All = MRSCont.runtime.Load +MRSCont.runtime.Proc+MRSCont.runtime.Fit+MRSCont.runtime.Quantify+MRSCont.runtime.Overview;
 if isfield(MRSCont.runtime, 'Coreg')
     MRSCont.runtime.All = MRSCont.runtime.All + MRSCont.runtime.Coreg;
-    fprintf(fileID,'OspreyCoreg runtime: %f seconds\n',MRSCont.runtime.Coreg);
+    fprintf('OspreyCoreg runtime: %f seconds\n',MRSCont.runtime.Coreg);
 end
 if isfield(MRSCont.runtime, 'Seg')
     MRSCont.runtime.All = MRSCont.runtime.All + MRSCont.runtime.Seg;
-    fprintf(fileID,'OspreySeg runtime: %f seconds\n',MRSCont.runtime.Seg);
+    fprintf('OspreySeg runtime: %f seconds\n',MRSCont.runtime.Seg);
 end
-fprintf(fileID,'OspreyOverview runtime: %f seconds\n',MRSCont.runtime.Overview);
-fprintf(fileID,'Full Osprey runtime: %f seconds\n',MRSCont.runtime.All);
-fclose(fileID); %close log file
+fprintf('OspreyOverview runtime: %f seconds\n',MRSCont.runtime.Overview);
+fprintf('Full Osprey runtime: %f seconds\n',MRSCont.runtime.All);
 
+diary off
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;
