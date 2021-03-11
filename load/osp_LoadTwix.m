@@ -51,6 +51,7 @@ end
 %% Get the data (loop over all datasets)
 refLoadTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
@@ -58,7 +59,7 @@ end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('\nLoading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, '\n', msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
     end
