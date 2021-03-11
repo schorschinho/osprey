@@ -152,13 +152,14 @@ MRSCont = addMetabComb(MRSCont, getResults);
 %% Loop over all datasets
 QuantifyTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, '\n', msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI  && isfield(progressText,'String')      
         set(progressText,'String' ,sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow

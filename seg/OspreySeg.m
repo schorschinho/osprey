@@ -56,13 +56,14 @@ end
 %% Loop over all datasets
 refSegTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, '\n', msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow

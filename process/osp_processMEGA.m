@@ -43,13 +43,14 @@ end
 %% Loop over all datasets
 refProcessTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, '\n', msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
