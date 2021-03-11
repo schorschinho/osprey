@@ -187,6 +187,8 @@ vol_mask.descrip = 'MRS_voxel_mask';
 
 % Write the SPM volume to disk
 vol_mask = spm_write_vol(vol_mask,mask);
+gzip(vol_mask.fname);
+delete(vol_mask.fname);
 
 % Store voxel centre for output figure
 voxel_ctr = [VoxOffs(1) VoxOffs(2) VoxOffs(3)];

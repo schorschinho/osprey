@@ -55,10 +55,8 @@ for kk = 1:MRSCont.nDatasets
         %%% 1. GET RAW DATA %%%
         raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
 
-        %%% 1B. GET MM DATA %%% re_mm
-        % If there are reference scans, load them here to allow eddy-current re_mm
-        % correction of the raw data. re_mm
-        if MRSCont.flags.hasMM %re_mm
+        %%% 1B. GET MM DATA %%% 
+        if MRSCont.flags.hasMM
             raw_mm                         = MRSCont.raw_mm{kk};              % Get the kk-th dataset re_mm
             if raw_mm.averages > 1 && raw_mm.flags.averaged == 0 %re_mm
                 [raw_mm,~,~]               = op_alignAverages(raw_mm, 1, 'n'); %re_mm
@@ -103,48 +101,10 @@ for kk = 1:MRSCont.nDatasets
         end
         
         %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
-        % Automate determination whether the Cr peak has positive polarity.
-        % For water suppression methods like MOIST, the residual water may
-        % actually have negative polarity, but end up positive in the data, so
-        % that the spectrum needs to be flipped.
-        % Determine the polarity of the respective peak: if the absolute of the
-        % maximum minus the absolute of the minimum is positive, the polarity
-        % of the respective peak is positive; if the absolute of the maximum
-        % minus the absolute of the minimum is negative, the polarity is negative.
+
         if raw.averages > 1 && raw.flags.averaged == 0
-            temp_A = op_averaging(raw);
-            raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
-            polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
-            temp_rawA = raw;
-            if polResidCr < 0        
-                temp_rawA = op_ampScale(temp_rawA,-1);
-            end
-            % We will use a frequency cross-correlation approach on the
-            % Choline and Creatine singlets to generate a robust initial
-            % frequency guess for the robust spectral registration. This is
-            % especially useful for data with heavy frequency drift. The
-            % transients are averaged into bins including 10% of the
-            % averages of the whole spectra and referenced afterwards. For
-            % these packages the same initial frequency guess is forwarded
-            % to op_robustSpecReg.
-            temp_proc = temp_rawA;
-            temp_spec   = temp_proc;
-            for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) % 10% packaging
-                fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1)); 
-                specs = temp_proc.specs(:,av:av+(round(temp_rawA.averages*0.1)-1));
-                temp_spec.fids = mean(fids,2); % store average fid
-                temp_spec.specs = mean(specs,2); % store average spectra
-                [refShift, ~] = osp_CrChoReferencing(temp_spec); % determine frequency shift
-                refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift; %save initial frequency guess
-            end
-            if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0 % remaining averages if data isn't a multiple of 10.
-                fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-                specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-                temp_spec.fids = mean(fids,2); % store average fid
-                temp_spec.specs = mean(specs,2); % store average spectra
-                [refShift, ~] = osp_CrChoReferencing(temp_spec); % determine frequency shift
-                refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift; %save initial frequency guess
-            end
+            % Calculate starting values for spectral registration
+             [refShift_ind_ini]=op_preref(raw,'unedited');
             if ~MRSCont.flags.isPhantom
                 switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
                     case 'RobSpecReg'
@@ -271,29 +231,37 @@ for kk = 1:MRSCont.nDatasets
 
 
         %%% 9. QUALITY CONTROL PARAMETERS %%%
-        % Calculate some spectral quality metrics here;
-        MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor             
-        MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % LW in Hz
-        MRSCont.QM.drift.pre.A{kk}  = driftPre;
-        MRSCont.QM.drift.post.A{kk} = driftPost;
-        MRSCont.QM.freqShift.A(kk)  = refShift;
-        MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost - 3.02);
-        MRSCont.QM.res_water_amp.A(kk) = sum(MRSCont.processed.A{kk}.watersupp.amp);
+        SubSpec = {'A'};       
+        SNRRange = {[1.8,2.2]};
         if MRSCont.flags.hasMM
-            MRSCont.QM.SNR.mm(kk)    = op_getSNR(MRSCont.processed.mm{kk},0.7,1.1); % water amplitude over noise floor
-            MRSCont.QM.FWHM.mm(kk)   = op_getLW(MRSCont.processed.mm{kk},0.7,1.1); % LW in Hz
+            SubSpec{end+1} = 'mm';
+            SNRRange{end+1} = [0.7,1.1];
         end
         if MRSCont.flags.hasRef
-            MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor
-            MRSCont.QM.FWHM.ref(kk) = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % LW in Hz
+            SubSpec{end+1} = 'ref';
+            SNRRange{end+1} = [4.2,5.2];
         end
         if MRSCont.flags.hasWater
-            MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor           
-            MRSCont.QM.FWHM.w(kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % LW in Hz
+            SubSpec{end+1} = 'w';
+            SNRRange{end+1} = [4.2,5.2];
         end
-        
-        
+        % Calculate some spectral quality metrics here;
+        for ss = 1 : length(SubSpec)          
+            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk});       
+            MRSCont.QM.FWHM.(SubSpec{ss})(kk)   = op_getLW(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2)); % in Hz       
+            if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w') || strcmp(SubSpec{ss},'mm'))
+                 MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = driftPre;
+                MRSCont.QM.drift.post.(SubSpec{ss}){kk} = driftPost;
+                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift;       
+                MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                if strcmp(SubSpec{ss},'diff1') || strcmp(SubSpec{ss},'sum')
+                    MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = reshape([MRSCont.QM.drift.pre.A'; MRSCont.QM.drift.pre.B'], [], 1)';
+                    MRSCont.QM.drift.post.(SubSpec{ss}){kk} = reshape([MRSCont.QM.drift.post.A'; MRSCont.QM.drift.post.B'], [], 1)';
+                end
+                MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+                MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+            end
+        end              
     end
 
     if MRSCont.flags.isGUI        

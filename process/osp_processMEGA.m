@@ -58,58 +58,10 @@ for kk = 1:MRSCont.nDatasets
     if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp) 
         %%% 1. GET RAW DATA %%%
         raw         = MRSCont.raw{kk};                                          % Get the kk-th dataset
- 
-        % Get sub-spectra, depending on whether they are stored as such
-        if raw.subspecs == 2
-
-            raw_A   = op_takesubspec(raw,1);                    % Get first subspectrum
-            raw_B   = op_takesubspec(raw,2);                    % Get second subspectrum
-
-        else
-
-            raw_A   = op_takeaverages(raw,1:2:raw.averages);    % Get first subspectrum
-            raw_B   = op_takeaverages(raw,2:2:raw.averages);    % Get second subspectrum
-        end
         
         if raw.averages > 1 && raw.flags.averaged == 0
-        temp_A = op_averaging(raw_A);
-        raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
-        % Determine the polarity of the respective peak: if the absolute of the
-        % maximum minus the absolute of the minimum is positive, the polarity 
-        % of the respective peak is positive; if the absolute of the maximum 
-        % minus the absolute of the minimum is negative, the polarity is negative.
-        polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
-        temp_rawA = raw_A;
-        if polResidCr < 0        
-            temp_rawA = op_ampScale(temp_rawA,-1);
-        end
-
-        temp_B = op_averaging(raw_B);
-        raw_B_Cr    = op_freqrange(temp_B,2.8,3.2);
-        polResidCr  = abs(max(real(raw_B_Cr.specs))) - abs(min(real(raw_B_Cr.specs)));
-        temp_rawB = raw_B;
-        if polResidCr < 0        
-            temp_rawB = op_ampScale(temp_rawB,-1);
-        end
-
-        temp_proc   = op_addScans(temp_rawA,temp_rawB);
-        temp_spec   = temp_proc;
-        for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1))
-            fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1));
-            specs = temp_proc.specs(:,av:av+(round(temp_rawA.averages*0.1)-1));
-            temp_spec.fids = mean(fids,2);
-            temp_spec.specs = mean(specs,2);
-            [refShift, ~] = osp_CrChoReferencing(temp_spec);
-            refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift;
-        end
-        if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0
-            fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-            specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-            temp_spec.fids = mean(fids,2);
-            temp_spec.specs = mean(specs,2);
-            [refShift, ~] = osp_CrChoReferencing(temp_spec);
-            refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift;        
-        end
+        % Calculate starting values for spectral registration
+        [refShift_ind_ini]=op_preref(raw,'MEGA');
         % Perform robust spectral correction with weighted averaging.
         % This can obviously only be done, if the spectra have not been 
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
@@ -197,20 +149,8 @@ for kk = 1:MRSCont.nDatasets
                 [raw_ref,~,~]           = op_alignAverages(raw_ref,1,'n');  % Align averages
                 raw_ref                 = op_averaging(raw_ref);            % Average
             end
-
-    %         % The following IF only for Big GABA dataset - a few Siemens datasets
-    %         % have been accidentally acquired with the water suppression switched
-    %         % on for the water reference scan. In that case, don't do ECC, but
-    %         % rather leave it to the phase correction in step 5.
-%             if strcmp(MRSCont.vendor,'Siemens') && kk >= 53 && kk <= 58
-%             if kk == 1 || kk == 2 || kk == 33 || kk == 35 %CER
-%             if kk == 1 || kk == 2 || kk == 35|| kk == 36  %THA
-%              if kk == 1  %MOT   
-%             else 
-               [raw_A,~]               = op_eccKlose(raw_A, raw_ref);
-               [raw_B,raw_ref]         = op_eccKlose(raw_B, raw_ref);        % Klose eddy current correction
-%            end
-    %         end
+           [raw_A,~]               = op_eccKlose(raw_A, raw_ref);
+           [raw_B,raw_ref]         = op_eccKlose(raw_B, raw_ref);        % Klose eddy current correction
 
             [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}   = raw_ref;                          % Save back to MRSCont container
@@ -263,7 +203,18 @@ for kk = 1:MRSCont.nDatasets
         % Classify the two sub-spectra such that the OFF spectrum is stored to
         % field A, and the ON spectrum is stored to field B.
         [raw_A, raw_B, switchOrder]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
-
+        % Save drift information back to container
+        if ~switchOrder
+            MRSCont.QM.drift.pre.A{kk} = driftPre{1};
+            MRSCont.QM.drift.pre.B{kk} = driftPre{2};
+            MRSCont.QM.drift.post.A{kk} = driftPost{1};
+            MRSCont.QM.drift.post.B{kk} = driftPost{1};
+        else
+            MRSCont.QM.drift.pre.A{kk} = driftPre{2};
+            MRSCont.QM.drift.pre.B{kk} = driftPre{1};
+            MRSCont.QM.drift.post.A{kk} = driftPost{2};
+            MRSCont.QM.drift.post.B{kk} = driftPost{1};
+        end
         raw_A.specReg.fs     = raw.specReg.fs(:,1); % save align parameters
         raw_B.specReg.fs     = raw.specReg.fs(:,2);
         raw_A.specReg.phs     = raw.specReg.phs(:,1);
@@ -388,52 +339,33 @@ for kk = 1:MRSCont.nDatasets
 
 
         %%% 10. QUALITY CONTROL PARAMETERS %%%
-        % Calculate some spectral quality metrics here;
-        MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor          
-        MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
-        MRSCont.QM.drift.pre.A{kk}  = driftPre{1};
-        MRSCont.QM.drift.post.A{kk} = driftPost{1};
-        MRSCont.QM.freqShift.A(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(driftPre{1} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(driftPost{1} - 3.02);
-        MRSCont.QM.res_water_amp.A(kk) = sum(MRSCont.processed.A{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk},2.8,3.2); % Cr amplitude over noise floor             
-        MRSCont.QM.FWHM.B(kk)   = op_getLW(MRSCont.processed.B{kk},2.8,3.2); % in Hz
-        MRSCont.QM.drift.pre.B{kk}  = driftPre{2};
-        MRSCont.QM.drift.post.B{kk} = driftPost{2};
-        MRSCont.QM.freqShift.B(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.B(kk) = mean(driftPre{2} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.B(kk) = mean(driftPost{2} - 3.02);
-        MRSCont.QM.res_water_amp.B(kk) = sum(MRSCont.processed.B{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.diff1(kk)    = op_getSNR(MRSCont.processed.diff1{kk},2.8,3.2); % GABA amplitude over noise floor             
-        MRSCont.QM.FWHM.diff1(kk)   = op_getLW(MRSCont.processed.diff1{kk},2.8,3.2); % in Hz
-        MRSCont.QM.drift.pre.diff1{kk}  = reshape([driftPre{1}'; driftPre{2}'], [], 1)';
-        MRSCont.QM.drift.post.diff1{kk} = reshape([driftPost{1}'; driftPost{2}'], [], 1)';
-        MRSCont.QM.freqShift.diff1(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.pre.diff1{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.post.diff1{kk} - 3.02);
-        MRSCont.QM.res_water_amp.diff1(kk) = sum(MRSCont.processed.diff1{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.sum(kk)    = op_getSNR(MRSCont.processed.sum{kk}); % Cr amplitude over noise floor                 
-        MRSCont.QM.FWHM.sum(kk)   = op_getLW(MRSCont.processed.sum{kk},2.8,3.2); % in Hz
-        MRSCont.QM.drift.pre.sum{kk}  =  MRSCont.QM.drift.pre.diff1{kk};
-        MRSCont.QM.drift.post.sum{kk} = MRSCont.QM.drift.post.diff1{kk};
-        MRSCont.QM.freqShift.sum(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.pre.sum{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.post.sum{kk} - 3.02);
-        MRSCont.QM.res_water_amp.sum(kk) = sum(MRSCont.processed.sum{kk}.watersupp.amp);
-
+        SubSpec = {'A','B','diff1','sum'};       
+        SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
         if MRSCont.flags.hasRef
-            MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor              
-            MRSCont.QM.FWHM.ref(kk) = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
+            SubSpec{end+1} = 'ref';
+            SNRRange{end+1} = [4.2,5.2];
         end
         if MRSCont.flags.hasWater
-            MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor              
-            MRSCont.QM.FWHM.w(kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
+            SubSpec{end+1} = 'w';
+            SNRRange{end+1} = [4.2,5.2];
         end
-    end         
+        % Calculate some spectral quality metrics here;
+        for ss = 1 : length(SubSpec)          
+            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk});       
+            MRSCont.QM.FWHM.(SubSpec{ss})(kk)   = op_getLW(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2)); % in Hz       
+            if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w'))
+                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift_SubSpecAlign + refShift_final;       
+                MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                if strcmp(SubSpec{ss},'diff1') || strcmp(SubSpec{ss},'sum')
+                    MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'], [], 1)';
+                    MRSCont.QM.drift.post.(SubSpec{ss}){kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'], [], 1)';
+                end
+                MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+                MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+            end
+        end
+      
+    end
 end
 time = toc(refProcessTime);
 if MRSCont.flags.isGUI        

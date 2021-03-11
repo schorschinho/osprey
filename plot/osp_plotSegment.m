@@ -58,6 +58,12 @@ GM  = fullfile(segDestination, [saveName VoxelNum '_GM.nii']);
 WM  = fullfile(segDestination, [saveName VoxelNum '_WM.nii']);
 CSF = fullfile(segDestination, [saveName VoxelNum '_CSF.nii']);
 
+if exist([GM '.gz'], 'file')
+    gunzip([GM '.gz']);
+    gunzip([WM '.gz']);
+    gunzip([CSF '.gz']);
+end
+
 if ~exist(GM, 'file') % This is just for combability of older Osprey versions
     GM  = fullfile(segDestination, [saveName '_GM.nii']);
     WM  = fullfile(segDestination, [saveName '_WM.nii']);
@@ -68,6 +74,11 @@ vol_GM_mask  = spm_vol(GM);
 vol_WM_mask  = spm_vol(WM);
 vol_CSF_mask = spm_vol(CSF);
 
+ [~, ~, T1ext]  = fileparts(MRSCont.coreg.vol_image{kk}.fname);
+if strcmp(T1ext, '.gz') && ~exist(MRSCont.coreg.vol_image{kk}.fname,'file') 
+    gunzip(MRSCont.coreg.vol_image{kk}.fname)
+end
+
 Vimage=spm_vol(MRSCont.coreg.vol_image{kk}.fname);
 
 if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
@@ -77,6 +88,8 @@ else
     Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}{VoxelIndex}.fname);    
     voxel_ctr = MRSCont.coreg.voxel_ctr{kk}(:,:,VoxelIndex); 
 end
+
+
 
 %%% 3. SET UP THREE PLANE IMAGE %%%
 % Generate three plane image for the output
@@ -90,6 +103,18 @@ vox_t_CSF = flipud(voxel2world_space(vol_CSF_mask, voxel_ctr));
 img_t = img_t/MRSCont.coreg.T1_max{kk};
 img_montage = [img_t+0.225*vox_t, img_t+0.3*vox_t_GM, img_t+0.225*vox_t_WM, img_t+0.4*vox_t_CSF];
 
+
+if exist([GM, '.gz'],'file')
+    delete(GM);
+    delete(WM);
+    delete(CSF);
+end
+if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
+    delete(MRSCont.coreg.vol_image{kk}.fname);
+end
+if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
+    delete(MRSCont.coreg.vol_mask{kk}.fname);
+end
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 if ~MRSCont.flags.isGUI

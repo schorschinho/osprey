@@ -110,7 +110,16 @@ try
             neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
             neededSpecific = cellstr({});
     end
-
+    
+    %To account for the re-naming of new downloads of the Widget Toolbox
+    %for Matlab versions earlier than 2020b, while maintaining
+    %functionality for older downloads, we need to check for all naming
+    %conventions of the Widgets Toolbox HZ
+    for tb = 1 : length(available)
+        if contains(available{tb},'Widgets Toolbox')
+            available{tb} = 'Widgets Toolbox';
+        end
+    end
     missingSpecific = setdiff(neededSpecific,available);
     missing = setdiff(neededGlobal,available); 
 
