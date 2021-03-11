@@ -35,17 +35,16 @@ function [MRSCont] = OspreyQuantify(MRSCont)
 %       2019-10-22: HZ added tables.
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+diary(fullfile(outputFolder, 'LogFile.txt'));
 % Check that OspreyFit has been run before
 if ~MRSCont.flags.didFit
     msg = 'Trying to quantify data, but data have not been modelled yet. Run OspreyFit first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);    
 end
 
 % Version check and updating log file
-MRSCont.ver.Quant             = '1.0.0 Quant';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Quant '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyQuantify',MRSCont.flags.isGUI);
 
 
 %%% 0. CHECK WHICH QUANTIFICATIONS CAN BE DONE %%%
@@ -158,9 +157,8 @@ if MRSCont.flags.isGUI
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID, [reverseStr, msg]);
+    fprintf([reverseStr, '\n', msg]);
     if MRSCont.flags.isGUI  && isfield(progressText,'String')      
         set(progressText,'String' ,sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
@@ -258,15 +256,13 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
     end
 end
-fprintf('... done.\n');
 time = toc(QuantifyTime);
 if MRSCont.flags.isGUI && isfield(progressText,'String')      
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fprintf('... done.\n Elapsed time %f seconds\n',time);
 MRSCont.runtime.Quantify = time;
-fclose(fileID); %close log file
 %% Create tables
 % Set up readable tables for each quantification.
 [MRSCont] = osp_createTable(MRSCont,'amplMets', getResults);
@@ -289,6 +285,7 @@ end
 %% Clean up and save
 % Set exit flags
 MRSCont.flags.didQuantify           = 1;
+diary off
 % Save the metabolite tables as CSV structure
 exportCSV (MRSCont,saveDestination, getResults);
 %   Remove amplitudes table
@@ -376,18 +373,32 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCr,:) = tCr;
         end
     end
-    %Glc+Tau
+    % tCr Cr+PCr
     for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glc'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Tau'));
+        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Cr'));
+        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCr'));
         if  ~isempty(idx_1) && ~isempty(idx_2)
-            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GlcTau'));
+            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
             if isempty(idx_3)
-                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GlcTau';
+                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tCr';
             end
-            idx_GlcTau = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GlcTau'));
-            GlcTau = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GlcTau,:) = GlcTau;
+            idx_tCr = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
+            tCr = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCr,:) = tCr;
+        end
+    end
+    %PE+EA
+    for ll = 1:length(getResults)
+        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PE'));
+        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'EA'));
+        if  ~isempty(idx_1) && ~isempty(idx_2)
+            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tEA'));
+            if isempty(idx_3)
+                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tEA';
+            end
+            idx_tEA = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tEA'));
+            tEA = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tEA,:) = tEA;
         end
     end
     %GABA+coMM3

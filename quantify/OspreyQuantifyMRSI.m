@@ -35,17 +35,17 @@ function [MRSCont] = OspreyQuantifyMRSI(MRSCont)
 
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+diary(fullfile(outputFolder, 'LogFile.txt'));
 % Check that OspreyFit has been run before
 if ~MRSCont.flags.didFit
     msg = 'Trying to quantify data, but data have not been modelled yet. Run OspreyFit first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);    
 end
 
 % Version check and updating log file
 MRSCont.ver.Quant             = '1.0.0 Quant';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Quant '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+fprintf(['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Quant '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 
 
 %%% 0. CHECK WHICH QUANTIFICATIONS CAN BE DONE %%%
@@ -171,9 +171,8 @@ if MRSCont.flags.isGUI
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID, [reverseStr, msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI  && isfield(progressText,'String')      
         set(progressText,'String' ,sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
@@ -265,15 +264,13 @@ for kk = 1:MRSCont.nDatasets
 %         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
 %     end
 end
-fprintf('... done.\n');
 time = toc(QuantifyTime);
 if MRSCont.flags.isGUI && isfield(progressText,'String')      
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fprintf('... done.\n Elapsed time %f seconds\n',time);
 MRSCont.runtime.Quantify = time;
-fclose(fileID); %close log file
 %% Create tables
 % Set up readable tables for each quantification.
 % [MRSCont] = osp_createTable(MRSCont,'amplMets', getResults);
@@ -296,6 +293,7 @@ fclose(fileID); %close log file
 %% Clean up and save
 % Set exit flags
 MRSCont.flags.didQuantify           = 1;
+diary off
 % Save the metabolite tables as CSV structure
 % exportCSV (MRSCont,saveDestination, getResults);
 

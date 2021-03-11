@@ -29,27 +29,25 @@ function [MRSCont] = OspreyFit(MRSCont)
 %       2019-02-24: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+diary(fullfile(outputFolder, 'LogFile.txt'));
 % Check that OspreyLoad has been run before
 if ~MRSCont.flags.didLoadData
     msg = 'Trying to fit data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);
 end
 
 % Check that OspreyProcess has been run before
 if ~MRSCont.flags.didProcess
     msg = 'Trying to fit data, but loaded data has not been process yet. Run OspreyProcess first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);
 end
 
 %% Load fit settings, prepare data and pass it on to the fitting algorithm
 
 % Version, toolbox check and updating log file
-MRSCont.ver.CheckFit       = '1.0.0 Fit';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckFit '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-[~] = osp_Toolbox_Check ('OspreyFit',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyFit',MRSCont.flags.isGUI);
 MRSCont.runtime.Fit = 0;
 
 % Initialise the fit - this step includes:
@@ -71,11 +69,10 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         [MRSCont] = osp_fitHERCULES(MRSCont);
     else
         msg = 'No flag set for sequence type!';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 else
-    fclose(fileID);
     [MRSCont] = osp_fitMultiVoxel(MRSCont);
 end
 
@@ -83,7 +80,6 @@ end
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
 % If water reference exists, fit it
 if MRSCont.flags.hasRef
     refFitTime = tic;
@@ -91,25 +87,22 @@ if MRSCont.flags.hasRef
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
         msg = sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-        fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf(fileID,[reverseStr, msg]);
+        fprintf([reverseStr, '\n', msg]);
         if MRSCont.flags.isGUI        
             set(progressText,'String' ,sprintf('Fitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
             drawnow
         end
-        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
         end
     end
-    fprintf('... done.\n');
-    fprintf(fileID,'... done.\n');
     time = toc(refFitTime);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
         pause(1);
     end
-    fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+    fprintf('... done.\n Elapsed time %f seconds\n',time);
     MRSCont.runtime.FitRef = time;
     MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
 end
@@ -121,31 +114,27 @@ if MRSCont.flags.hasWater
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
         msg = sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-        fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf(fileID,[reverseStr, msg]);
+        fprintf([reverseStr, '\n', msg]);
         if MRSCont.flags.isGUI        
             set(progressText,'String' ,sprintf('Fitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
             drawnow
         end
-        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
         end
     end
-    fprintf('... done.\n');
-    fprintf(fileID,'... done.\n');
     time = toc(waterFitTime);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
         pause(1);
     end
-    fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+    fprintf('... done.\n Elapsed time %f seconds\n',time);
     MRSCont.runtime.FitWater = time;
     MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
 end
 MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
-fprintf(fileID,'Full fit time %f seconds\n',MRSCont.runtime.Fit);
-fclose(fileID); %close log file
+fprintf('Full fit time %f seconds\n',MRSCont.runtime.Fit);
 
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
@@ -188,7 +177,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
             MRSCont.QM.tables.relResdiff2 = relResdiff2;    
     else
         msg = 'No flag set for sequence type!';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 
@@ -198,7 +187,18 @@ end
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didFit           = 1;
-MRSCont.ver.Fit            = '1.0.0 Fit';
+
+diary off
+% Delete redundant resBasiset entries
+% FitNames = fieldnames(MRSCont.fit.results);
+% NoFit = length(fieldnames(MRSCont.fit.results));
+% for sf = 1 : NoFit
+%     if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
+%         MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(MRSCont.info.A.unique_ndatapoint_ind);
+%     else
+%         MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_ind); 
+%     end
+% end
 
 % Save the output structure to the output folder
 % Determine output folder

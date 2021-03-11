@@ -35,20 +35,8 @@ function osp_onPrint( ~, ~ ,gui)
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
-    switch selectedTab
-        case 1
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
-        case 2
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
-        case 3
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
-        case 4
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
-        case 5
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
-        otherwise
-            Title = '';
-    end
+
+    Title = MRSCont.ver.Osp;
             
     Frame = uix.Panel('Parent',out, 'Padding', 1, 'Title', Title,...
                                  'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
