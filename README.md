@@ -23,6 +23,7 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 - Conventional MRS (STEAM, PRESS, semi-LASER, LASER)
 - MEGA editing
 - Hadamard-encoded editing (HERMES, HERCULES)
+- Dual voxel (PRIAM)
 
 ### Supported sequence implementations
 - Philips (Philips product sequences; Johns Hopkins patches)
@@ -30,7 +31,7 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 - GE (GE product sequences; Ralph Noeske sequence)
 
 ### Supported file formats
-- Philips: SDAT/SPAR, DATA/LIST (coming soon), SIN/LAB/RAW (coming soon)
+- Philips: SDAT/SPAR, DATA/LIST, SIN/LAB/RAW (coming soon)
 - Siemens: TWIX/DAT, RDA (single- & multi-file), DICOM (DCM/IMA, single- & multi-file)
 - GE: P
 
@@ -97,10 +98,12 @@ development of Osprey and shared processing code:
 
 - Jamie Near (McGill University, Montreal)
 - Ralph Noeske (GE Healthcare, Berlin)
-- Peter Barker (Johns Hopkins University, Baltimore)
-- Robin de Graaf (Yale School of Medicine, New Haven)
+- Peter Barker (Johns Hopkins University, Baltimore, MD)
+- Robin de Graaf (Yale School of Medicine, New Haven, CT)
 - Philipp Ehses (German Center for Neurodegenerative Diseases, Bonn)
 - Wouter Potters (UMC Amsterdam)
+- Xiangrui Li (Ohio State University, Columbus, OH)
+- Peter Van Schuerbeek (UZ Brussel)
 
 We are particularly grateful for the incredible [raincloud plot tools](https://github.com/RainCloudPlots/RainCloudPlots) developed by Micah Allen, Davide Poggiali, Kirstie Whitaker, Tom Rhys Marshall, and Rogier Kievit. Should you make use of the OspreyOverview raincloud plots, please consider citing their original publications:
 

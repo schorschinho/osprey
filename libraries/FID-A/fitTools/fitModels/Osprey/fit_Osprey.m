@@ -69,12 +69,12 @@ if ~isfield(dataToFit,'refShift') %NO referenceing so far
     [refShift, refFWHM] = fit_OspreyReferencing(dataToFit);
     % Apply initial referencing shift
     dataToFitRef = op_freqshift(dataToFit, -refShift);
-else %Referencing was performed on another Subspec
-    disp('Initial was performed on another Subspec...');
-    fprintf(fileID,'Initial was performed on another Subspec...\n');
+else %Referencing was performed on another Subspec or the center voxel (MRSI)
+    disp('Initial was performed on another Subspec or the center voxel (MRSI)...');
+    fprintf(fileID,'Initial was performed on another Subspec or the center voxel (MRSI)...\n');
     if ~isempty(progressText) 
         String = get(progressText,'String');
-        set(progressText,'String' ,sprintf([String(1,:) '\nInitial was performed on another Subspec...\n']));
+        set(progressText,'String' ,sprintf([String(1,:) '\nInitial was performed on another Subspec or the center voxel (MRSI)...\n']));
         drawnow
     end    
     refShift = dataToFit.refShift;
@@ -100,14 +100,31 @@ end
 % best phasing / referencing shift parameters are chosen.
 % (Worth exploring in future versions by passing the starting values for
 % the phase corrections as arguments.)
-disp('Running preliminary analysis with reduced basis set...');
-fprintf(fileID,'Running preliminary analysis with reduced basis set...\n');
-if ~isempty(progressText) 
-    String = get(progressText,'String');
-    set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
-    drawnow
+if ~isfield(fitOpts, 'MRSIpriors')
+    disp('Running preliminary analysis with reduced basis set...');
+    fprintf(fileID,'Running preliminary analysis with reduced basis set...\n');
+    if ~isempty(progressText) 
+        String = get(progressText,'String');
+        set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
+        drawnow
+    end
+    [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
+else
+    disp('Take priors from center voxel...');
+    fprintf(fileID,'Take priors from center voxel...\n');
+    if ~isempty(progressText) 
+        String = get(progressText,'String');
+        set(progressText,'String' ,sprintf([String(1,:)  '\nTake priors from center voxel...\n']));
+        drawnow
+    end
+    fitParamsStep1 = fitOpts.MRSIpriors.prelimParams; % Get results from center voxel
+    %Overwrite parameters with final results, not sure if this is better
+    %then the inital results
+    fitParamsStep1.ph0 = fitOpts.MRSIpriors.ph0;
+    fitParamsStep1.ph1 = fitOpts.MRSIpriors.ph1;
+    fitParamsStep1.gaussLB = fitOpts.MRSIpriors.gaussLB;
+    
 end
-[fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
 
 
 %%% 4. FINAL PRELIMINARY ANALYSIS STEP 2 %%%
@@ -122,12 +139,19 @@ if ~isempty(progressText)
     drawnow
 end
 
-if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift')
-    switch fitOpts.coMM3
-        case 'BSpline'
-        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,10,0);
+if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift') && ~isfield(fitOpts,'Diff2')
+    switch fitOpts.coMM3        
         case '3to2MMsoft'
-        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0,1);
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'MM');
+        case '1to1GABAsoft'
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,1,'GABA');
+        case '3to2GABAsoft'  % 3:2 GABA and co-edited MM3 model
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'GABA');
+        case '2to3GABAsoft' % 2:3 GABA and co-edited MM3 model
+        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,1.5,'GABA');
+        case 'freeGauss' % Gauss with free frequency and linewidth
+        [fitParamsStep2] = fit_OspreyPrelimStep2freeGauss(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
+        resBasisSet = fitParamsStep2.resBasisSetUpdated;
         otherwise
             [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
     end             
@@ -135,7 +159,7 @@ else
     [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);    
 end
 
-% [J,Jfd,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);
+% [J,~,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);
 
 %%% 5. CREATE OUTPUT %%%
 % Return fit parameters
@@ -143,7 +167,7 @@ fitParams = fitParamsStep2;
 fitParams.refShift = refShift;
 fitParams.refFWHM = refFWHM;
 fitParams.prelimParams = fitParamsStep1;
-% fitParams.CRLB = CRLB;
+%fitParams.CRLB = CRLB;
 end
 
 

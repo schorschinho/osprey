@@ -1,477 +1,227 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Osprey | osprey-documentation.utf8</title>
+  <meta name="description" content="" />
+  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Osprey | osprey-documentation.utf8" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Osprey | osprey-documentation.utf8" />
+  
+  
+  
 
 
 
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
-    
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width,initial-scale=1">
-      
-        <meta name="description" content="The Official Documentation for Osprey">
-      
-      
-        <link rel="canonical" href="https://schorschinho.github.io/osprey/">
-      
-      
-        <meta name="author" content="Georg Oeltzschner">
-      
-      <link rel="shortcut icon" href="img/osprey.png">
-      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.1.6">
-    
-    
-      
-        <title>Osprey documentation</title>
-      
-    
-    
-      <link rel="stylesheet" href="assets/stylesheets/main.4b9ffd7b.min.css">
-      
-        <link rel="stylesheet" href="assets/stylesheets/palette.b79bcd20.min.css">
-      
-      
-        
-        
-        <meta name="theme-color" content="">
-      
-    
-    
-    
-      
-        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
-        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
-      
-    
-    
-    
-    
-      
-    
-    
-  </head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-    
-    
-    <body dir="ltr" data-md-color-primary="black" data-md-color-accent="deep-orange">
-  
-    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
-    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
-    <label class="md-overlay" for="__drawer"></label>
-    <div data-md-component="skip">
-      
-        
-        <a href="#osprey" class="md-skip">
-          Skip to content
-        </a>
-      
+
+<link rel="next" href="getting-started.html"/>
+<script src="libs/header-attrs-2.6/header-attrs.js"></script>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="css/style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Osprey Documentation</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Osprey</a>
+<ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#contact-feedback-suggestions"><i class="fa fa-check"></i>Contact, Feedback, Suggestions</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#developers"><i class="fa fa-check"></i>Developers</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#acknowledgements"><i class="fa fa-check"></i>Acknowledgements</a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="getting-started.html"><a href="getting-started.html"><i class="fa fa-check"></i><b>1</b> Getting started</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="getting-started.html"><a href="getting-started.html#system-requirements"><i class="fa fa-check"></i><b>1.1</b> System requirements</a></li>
+<li class="chapter" data-level="1.2" data-path="getting-started.html"><a href="getting-started.html#installing-osprey"><i class="fa fa-check"></i><b>1.2</b> Installing Osprey</a></li>
+<li class="chapter" data-level="1.3" data-path="getting-started.html"><a href="getting-started.html#how-to-organize-your-raw-data"><i class="fa fa-check"></i><b>1.3</b> How to organize your raw data</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="the-osprey-workflow.html"><a href="the-osprey-workflow.html"><i class="fa fa-check"></i><b>2</b> The Osprey Workflow</a></li>
+<li class="chapter" data-level="3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html"><i class="fa fa-check"></i><b>3</b> The Osprey job file</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#example-job-file"><i class="fa fa-check"></i><b>3.1</b> Example job file</a>
+<ul>
+<li class="chapter" data-level="3.1.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#sequence-information"><i class="fa fa-check"></i><b>3.1.1</b> Sequence Information</a></li>
+<li class="chapter" data-level="3.1.2" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#data-handling-and-modeling-options"><i class="fa fa-check"></i><b>3.1.2</b> Data handling and modeling options</a></li>
+<li class="chapter" data-level="3.1.3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-mrs-data-and-structural-imaging-files"><i class="fa fa-check"></i><b>3.1.3</b> Specifying MRS data and structural imaging files</a></li>
+<li class="chapter" data-level="3.1.4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-the-output-folder"><i class="fa fa-check"></i><b>3.1.4</b> 4. Specifying the output folder</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html"><i class="fa fa-check"></i><b>4</b> Osprey GUI tutorial</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#starting-osprey"><i class="fa fa-check"></i><b>4.1</b> Starting Osprey</a></li>
+<li class="chapter" data-level="4.2" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#loading-a-job-file"><i class="fa fa-check"></i><b>4.2</b> Loading a job file</a></li>
+<li class="chapter" data-level="4.3" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#loading-the-raw-mrs-data"><i class="fa fa-check"></i><b>4.3</b> Loading the raw MRS data</a></li>
+<li class="chapter" data-level="4.4" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#processing-the-raw-data"><i class="fa fa-check"></i><b>4.4</b> Processing the raw data</a></li>
+<li class="chapter" data-level="4.5" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#fitting-the-spectra"><i class="fa fa-check"></i><b>4.5</b> Fitting the spectra</a></li>
+<li class="chapter" data-level="4.6" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#co-registering-to-an-anatomical-image"><i class="fa fa-check"></i><b>4.6</b> Co-registering to an anatomical image</a></li>
+<li class="chapter" data-level="4.7" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#segmentation-and-tissue-fraction-calculation"><i class="fa fa-check"></i><b>4.7</b> Segmentation and tissue fraction calculation</a></li>
+<li class="chapter" data-level="4.8" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#quantification"><i class="fa fa-check"></i><b>4.8</b> Quantification</a></li>
+<li class="chapter" data-level="4.9" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#overview"><i class="fa fa-check"></i><b>4.9</b> Overview</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html"><i class="fa fa-check"></i><b>5</b> Osprey basis set tools</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#io_lcmbasis"><i class="fa fa-check"></i><b>5.1</b> io_LCMBasis</a></li>
+<li class="chapter" data-level="5.2" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#fit_makebasis"><i class="fa fa-check"></i><b>5.2</b> fit_makeBasis</a>
+<ul>
+<li class="chapter" data-level="5.2.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#complete-syntax"><i class="fa fa-check"></i><b>5.2.1</b> Complete syntax</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#fit_plotbasis"><i class="fa fa-check"></i><b>5.3</b> fit_plotBasis</a>
+<ul>
+<li class="chapter" data-level="5.3.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#complete-syntax-1"><i class="fa fa-check"></i><b>5.3.1</b> Complete syntax</a></li>
+</ul></li>
+</ul></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
     </div>
-    <div data-md-component="announce">
-      
-    </div>
-    
-      <header class="md-header" data-md-component="header">
-  <nav class="md-header-nav md-grid" aria-label="Header">
-    <a href="https://schorschinho.github.io/osprey/" title="Osprey documentation" class="md-header-nav__button md-logo" aria-label="Osprey documentation">
-      
-  <img src="img/osprey.png" alt="logo">
 
-    </a>
-    <label class="md-header-nav__button md-icon" for="__drawer">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
-    </label>
-    <div class="md-header-nav__title" data-md-component="header-title">
-      
-        <div class="md-header-nav__ellipsis">
-          <span class="md-header-nav__topic md-ellipsis">
-            Osprey documentation
-          </span>
-          <span class="md-header-nav__topic md-ellipsis">
-            
-              Home
-            
-          </span>
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"></a>
+          </h1>
         </div>
-      
-    </div>
-    
-      <label class="md-header-nav__button md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
-      </label>
-      
-<div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
-      <label class="md-search__icon md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-      </label>
-      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
-      </button>
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-    
-    
-      <div class="md-header-nav__source">
-        
-<a href="https://github.com/schorschinho/osprey" title="Go to repository" class="md-source">
-  <div class="md-source__icon md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
-  </div>
-  <div class="md-source__repository">
-    schorschinho/osprey
-  </div>
-</a>
-      </div>
-    
-  </nav>
-</header>
-    
-    <div class="md-container" data-md-component="container">
-      
-        
-      
-      
-        
-      
-      <main class="md-main" data-md-component="main">
-        <div class="md-main__inner md-grid">
-          
-            
-              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
-  <label class="md-nav__title" for="__drawer">
-    <a href="https://schorschinho.github.io/osprey/" title="Osprey documentation" class="md-nav__button md-logo" aria-label="Osprey documentation">
-      
-  <img src="img/osprey.png" alt="logo">
 
-    </a>
-    Osprey documentation
-  </label>
-  
-    <div class="md-nav__source">
-      
-<a href="https://github.com/schorschinho/osprey" title="Go to repository" class="md-source">
-  <div class="md-source__icon md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
-  </div>
-  <div class="md-source__repository">
-    schorschinho/osprey
-  </div>
-</a>
-    </div>
-  
-  <ul class="md-nav__list" data-md-scrollfix>
-    
-      
-      
-      
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
 
-  
-
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Home
-        <span class="md-nav__icon md-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
-        </span>
-      </label>
-    
-    <a href="." title="Home" class="md-nav__link md-nav__link--active">
-      Home
-    </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-      </span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#contact-feedback-suggestions" class="md-nav__link">
-    Contact, Feedback, Suggestions
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#developers" class="md-nav__link">
-    Developers
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#acknowledgements" class="md-nav__link">
-    Acknowledgements
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item">
-    <a href="02-osprey-workflow/01-structure-workflow/" title="The Osprey Workflow" class="md-nav__link">
-      The Osprey Workflow
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
-    
-    <label class="md-nav__link" for="nav-3">
-      Getting started
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
-      </span>
-    </label>
-    <nav class="md-nav" aria-label="Getting started" data-md-level="1">
-      <label class="md-nav__title" for="nav-3">
-        <span class="md-nav__icon md-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-        </span>
-        Getting started
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="01-getting-started/01-system-requirements/" title="System requirements" class="md-nav__link">
-      System requirements
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="01-getting-started/02-installing-osprey/" title="Installing Osprey" class="md-nav__link">
-      Installing Osprey
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="01-getting-started/03-organize-data/" title="How to organize your raw data" class="md-nav__link">
-      How to organize your raw data
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item">
-    <a href="03-job-files/01-the-job-file/" title="Job files" class="md-nav__link">
-      Job files
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item">
-    <a href="04-osprey-gui-tutorial/01-osprey-gui-tutorial/" title="Osprey GUI Tutorial" class="md-nav__link">
-      Osprey GUI Tutorial
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
-    
-    <label class="md-nav__link" for="nav-6">
-      Tools and helpers
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
-      </span>
-    </label>
-    <nav class="md-nav" aria-label="Tools and helpers" data-md-level="1">
-      <label class="md-nav__title" for="nav-6">
-        <span class="md-nav__icon md-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-        </span>
-        Tools and helpers
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="05-tools-helpers/01-basis-set-tools/" title="Basis set tools" class="md-nav__link">
-      Basis set tools
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
-    
-  </ul>
-</nav>
-                  </div>
-                </div>
-              </div>
-            
-            
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-      </span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#contact-feedback-suggestions" class="md-nav__link">
-    Contact, Feedback, Suggestions
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#developers" class="md-nav__link">
-    Developers
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#acknowledgements" class="md-nav__link">
-    Acknowledgements
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-                  </div>
-                </div>
-              </div>
-            
-          
-          <div class="md-content">
-            <article class="md-content__inner md-typeset">
-              
-                
-                
-                  
-                
-                
-                <h1 id="osprey">Osprey<a class="headerlink" href="#osprey" title="Permanent link">&para;</a></h1>
-<p><img src="img/osprey.png" alt="Osprey" width="200"/></p>
+            <section class="normal" id="section-">
+<!--bookdown:title:end-->
+<!--bookdown:title:start-->
+<div id="osprey" class="section level1 unnumbered">
+<h1>Osprey</h1>
+<p><img src="img/osprey.png" width="512" /></p>
 <p>Osprey is an all-in-one software suite for state-of-the art processing and
 quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.</p>
-<h2 id="contact-feedback-suggestions">Contact, Feedback, Suggestions<a class="headerlink" href="#contact-feedback-suggestions" title="Permanent link">&para;</a></h2>
+<div id="contact-feedback-suggestions" class="section level2 unnumbered">
+<h2>Contact, Feedback, Suggestions</h2>
 <p>For any sort of questions, feedback, suggestions, or critique, please visit the <a href="https://forum.mrshub.org/c/mrs-software/osprey/10">Osprey support forum</a> on the <a href="https://www.mrshub.org">MRSHub</a>.</p>
 <p>We also welcome your direct contributions to Osprey in the <a href="https://github.com/schorschinho/osprey">Osprey GitHub repository</a>.</p>
-<h2 id="developers">Developers<a class="headerlink" href="#developers" title="Permanent link">&para;</a></h2>
+</div>
+<div id="developers" class="section level2 unnumbered">
+<h2>Developers</h2>
 <ul>
 <li><a href="mailto:goeltzs1@jhu.edu">Georg Oeltzschner</a></li>
 <li><a href="mailto:hzoelln2@jhu.edu">Helge J. Zöllner</a></li>
 <li><a href="mailto:raee2@jhu.edu">Richard A. E. Edden</a></li>
 </ul>
 <p>Should you publish material that made use of Osprey, please cite the following publication:</p>
-<p><a href="https://doi.org/10.1016/j.jneumeth.2020.108827">G Oeltzschner, HJ Zöllner, SCN Hui, M Mikkelsen, MG Saleh, S Tapper, RAE Edden. Osprey: Open-Source Processing, Reconstruction  &amp; Estimation of Magnetic Resonance Spectroscopy Data. J Neurosci Meth 343:108827 (2020).</a></p>
-<h2 id="acknowledgements">Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permanent link">&para;</a></h2>
+<p><a href="https://doi.org/10.1016/j.jneumeth.2020.108827">G Oeltzschner, HJ Zöllner, SCN Hui, M Mikkelsen, MG Saleh, S Tapper, RAE Edden. Osprey: Open-Source Processing, Reconstruction &amp; Estimation of Magnetic Resonance Spectroscopy Data. J Neurosci Meth 343:108827 (2020).</a></p>
+</div>
+<div id="acknowledgements" class="section level2 unnumbered">
+<h2>Acknowledgements</h2>
 <p>This work has been supported by NIH grants R01EB016089, P41EB15909, R01EB023963, and K99AG062230.</p>
 <p>We wish to thank the following individuals for their contributions to the
 development of Osprey and shared processing code:</p>
@@ -482,116 +232,75 @@ development of Osprey and shared processing code:</p>
 <li>Robin de Graaf (Yale School of Medicine, New Haven)</li>
 <li>Philipp Ehses (German Center for Neurodegenerative Diseases, Bonn)</li>
 <li>Wouter Potters (UMC Amsterdam)</li>
+<li>Xiangrui Li (Ohio State University, Columbus)</li>
 </ul>
 <p>We are particularly grateful for the incredible <a href="https://github.com/RainCloudPlots/RainCloudPlots">raincloud plot tools</a> developed by Micah Allen, Davide Poggiali, Kirstie Whitaker, Tom Rhys Marshall, and Rogier Kievit. Should you make use of the OspreyOverview raincloud plots, please consider citing their original publications:</p>
 <blockquote>
 <ul>
-<li>Allen M, Poggiali D, Whitaker K et al. Raincloud plots: a multi-platform tool for robust data
-visualization [version 1; peer review: 2 approved].
+<li>Allen M, Poggiali D, Whitaker K et al. Raincloud plots: a multi-platform tool for robust data visualization [version 1; peer review: 2 approved].
 Wellcome Open Res 2019, 4:63. DOI: 10.12688/wellcomeopenres.15191.1</li>
-<li>Allen M, Poggiali D, Whitaker K, Marshall TR, Kievit R. (2018) RainCloudPlots tutorials and codebase (Version v1.1). Zenodo. <a href="http://doi.org/10.5281/zenodo.3368186">http://doi.org/10.5281/zenodo.3368186</a></li>
+<li>Allen M, Poggiali D, Whitaker K, Marshall TR, Kievit R. (2018) RainCloudPlots tutorials and codebase (Version v1.1). Zenodo. <a href="http://doi.org/10.5281/zenodo.3368186" class="uri">http://doi.org/10.5281/zenodo.3368186</a></li>
 </ul>
 </blockquote>
-                
-              
-              
-                
 
+</div>
+</div>
+            </section>
 
-              
-            </article>
           </div>
         </div>
-      </main>
-      
-        
-<footer class="md-footer">
-  
-    <div class="md-footer-nav">
-      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
-        
-        
-          <a href="02-osprey-workflow/01-structure-workflow/" title="The Osprey Workflow" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
-            <div class="md-footer-nav__title">
-              <div class="md-ellipsis">
-                <span class="md-footer-nav__direction">
-                  Next
-                </span>
-                The Osprey Workflow
-              </div>
-            </div>
-            <div class="md-footer-nav__button md-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
-            </div>
-          </a>
-        
-      </nav>
-    </div>
-  
-  <div class="md-footer-meta md-typeset">
-    <div class="md-footer-meta__inner md-grid">
-      <div class="md-footer-copyright">
-        
-          <div class="md-footer-copyright__highlight">
-            Copyright &copy; 2019-2020 Georg Oeltzschner
-          </div>
-        
-        Made with
-        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-          Material for MkDocs
-        </a>
       </div>
-      
-  <div class="md-footer-social">
-    
-      
-      
-        
-        
-      
-      <a href="https://github.com/schorschinho" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
-      </a>
-    
-      
-      
-        
-        
-      
-      <a href="https://twitter.com/oeltzschner" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
-      </a>
-    
-      
-      
-        
-        
-      
-      <a href="https://www.linkedin.com/in/georg-oeltzschner-6b4bb983/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-footer-social__link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
-      </a>
-    
-  </div>
 
+<a href="getting-started.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
-</footer>
-      
-    </div>
-    
-      <script src="assets/javascripts/vendor.a0c4167b.min.js"></script>
-      <script src="assets/javascripts/bundle.fb26dd1d.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
-      
-      <script>
-        app = initialize({
-          base: ".",
-          features: [],
-          search: Object.assign({
-            worker: "assets/javascripts/worker/search.37585f48.min.js"
-          }, typeof search !== "undefined" && search)
-        })
-      </script>
-      
-    
-  </body>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/schorschinho/osprey/edit/master/index.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
 </html>

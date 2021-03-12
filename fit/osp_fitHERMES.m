@@ -28,15 +28,14 @@ function [MRSCont] = osp_fitHERMES(MRSCont)
 % Loop over all the datasets here
 metFitTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI        
             set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
             drawnow
@@ -52,7 +51,7 @@ for kk = 1:MRSCont.nDatasets
     % For the separate (classic) HERMES fit, model the two DIFF
     % spectra and the SUM spectrum separately.
     if strcmp(fitStyle, 'Separate')
-        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.sum.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))     
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.sum.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)  
 
             %%% 2a. FIT SUM-SPECTRUM
             % Apply scaling factor to the data
@@ -61,7 +60,7 @@ for kk = 1:MRSCont.nDatasets
             basisSetSum.fids = basisSetSum.fids(:,:,7);
             basisSetSum.specs = basisSetSum.specs(:,:,7);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
-
+            
             % Call the fit function
             [fitParamsSum, resBasisSetSum] = fit_runFit(dataToFit, basisSetSum, fitModel, fitOpts);
 
@@ -79,6 +78,10 @@ for kk = 1:MRSCont.nDatasets
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
             dataToFit.refShift   = fitParamsSum.refShift;
             dataToFit.refFWHM   = fitParamsSum.refFWHM;
+            
+            if isfield(fitOpts, 'coMM3') && ~strcmp(fitOpts.coMM3, 'none')
+                [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetSum,fitOpts);
+            end
 
             % Call the fit function
             [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
@@ -97,6 +100,7 @@ for kk = 1:MRSCont.nDatasets
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
             dataToFit.refShift   = fitParamsSum.refShift;
             dataToFit.refFWHM   = fitParamsSum.refFWHM;
+            fitOpts.Diff2 = 1;
 
             % Call the fit function
             [fitParamsDiff2, resBasisSetDiff2]  = fit_runFit(dataToFit, basisSetDiff2, fitModel, fitOpts);
@@ -112,7 +116,7 @@ for kk = 1:MRSCont.nDatasets
     % For the concatenated MEGA fit, model the DIFF1 and SUM spectra
     % together.
     if strcmp(fitStyle, 'Concatenated')
-        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.conc.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))   
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.conc.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp))   
         
             %%% 3a. FIT CONCATENATED SPECTRUM
             % Apply scaling factor to the data
@@ -133,14 +137,13 @@ for kk = 1:MRSCont.nDatasets
         end
     end
     %% end time counter
-    if isequal(kk, MRSCont.nDatasets)      
-        fprintf('... done.\n');        
+    if isequal(kk, MRSCont.nDatasets)           
         time = toc(metFitTime);
         if MRSCont.flags.isGUI        
             set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
             pause(1);
         end
-        fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+        fprintf('... done.\n Elapsed time %f seconds\n',time);
         MRSCont.runtime.FitMet = time;        
     end
 end

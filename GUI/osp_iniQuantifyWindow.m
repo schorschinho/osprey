@@ -43,7 +43,7 @@ function osp_iniQuantifyWindow(gui)
         gui.layout.quantifyTab.TabTitles  = gui.quant.Names.Model;
         
 %%% 3. FILLING INFO PANEL FOR THIS TAB %%%
-% All the information from the Raw data is read out here
+if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
         for t = 1 : gui.quant.Number.Model %Loop over fits
             gui.upperBox.quant.Info = uix.Panel('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}), 'Padding', 5, ...
                                       'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
@@ -58,22 +58,30 @@ function osp_iniQuantifyWindow(gui)
                      gui.InfoText.quant  = uicontrol('Parent',gui.upperBox.quant.Info,'style','text',...
                 'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-%%% 4. VISUALIZATION PART OF THIS TAB %%%%
+
 % In this case a table is created based on a uicontol slider
             gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t})));
             gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t}));
-            QuantText = cell(length(MRSCont.quantify.metabs)+1,gui.quant.Number.Quants);
+            QuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{t}))+1,gui.quant.Number.Quants);
             QuantText{1,1} = 'Metabolite';
-            QuantText(2:end,1) = MRSCont.quantify.metabs';
+            QuantText(2:end,1) = MRSCont.quantify.metabs.(gui.quant.Names.Model{t})';
                 for q = 1 : gui.quant.Number.Quants % Collect all results
                     QuantText(1,q+1) = gui.quant.Names.Quants(q);
-                    if (strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')) && isfield(MRSCont.quantify.tables.(gui.quant.Names.Model{t}),'AlphaCorrWaterScaled')
-                        idx_GABA  = find(strcmp(MRSCont.quantify.metabs,'GABA'));
-                        tempQuantText = cell(length(MRSCont.quantify.metabs),1);
-                        tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
+                    if (strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')) && isfield(MRSCont.quantify.tables.(gui.quant.Names.Model{t}),'AlphaCorrWaterScaled')                       
+                        idx_GABA  = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}),'GABA'));
+                        if strcmp(MRSCont.opts.fit.coMM3, 'none')                            
+                                    tempQuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})),1);
+                                    tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1(gui.controls.Selected,:))';
+                        else                              
+                                     tempQuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})),1);
+                                     tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1(gui.controls.Selected,:);
+                                     tempQuantText(idx_GABA) = table2cell(tempQuants(1,1));
+                                     idx_GABAp  = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}),'GABAplus'));
+                                     tempQuantText(idx_GABAp) = table2cell(tempQuants(1,2));
+                        end                         
                         QuantText(2:end,q+1) = tempQuantText;
                     else
-                        QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q})(gui.controls.Selected,:))';
+                        QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q}).Voxel_1(gui.controls.Selected,:))';
                     end
                 end
             temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
@@ -81,5 +89,104 @@ function osp_iniQuantifyWindow(gui)
             set ( temp, 'BackgroundColor',gui.colormap.Background);
             set( temp, 'Parent', gui.Plot.quant);
         end
+else       
+
+% All the information from the Raw data is read out here
+        for t = 1 : gui.quant.Number.Model %Loop over fits
+            gui.upperBox.quant.box = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
+                gui.upperBox.quant.upperLeftButtons = uix.Panel('Parent', gui.upperBox.quant.box, ...
+                                         'Padding', 5, 'Title', ['Navigate voxel'],...
+                                         'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                         'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+                gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.quant.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
+                gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
+                gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','X:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Y:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Z:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
+                set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
+                set(gui.controls.b_left_z,'Callback',{@osp_onLeftZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_left_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_left_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_left_z.Enable = 'off';
+                end
+                gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
+                set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
+                set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_right_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_right_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_right_z.Enable = 'off';
+                end   
+                set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
+            gui.upperBox.quant.Info = uix.Panel('Parent', gui.upperBox.quant.box, 'Padding', 5, ...
+                                      'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
+                                      'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                      'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            % Creates layout for plotting and data control
+            gui.Plot.quant = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background);
+            set(gui.layout.(gui.layout.quantifyTabhandles{t}), 'Heights', [-0.1 -0.9]);
+            % Get parameter from file to fill the info panel
+           StatText = ['Voxel ' num2str(gui.controls.act_x) ' Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style ...
+                         '\nSelected subspecs: ' gui.quant.Names.Model{gui.quant.Selected.Model} ];
+                     gui.InfoText.quant  = uicontrol('Parent',gui.upperBox.quant.Info,'style','text',...
+                'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            set(gui.upperBox.quant.box, 'Width', [-0.1 -0.9]);  
+% In this case a table is created based on a uicontol slider
+            gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t})));
+            gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t}));
+            QuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{t}))+1,gui.quant.Number.Quants);
+            QuantText{1,1} = 'Metabolite';
+            QuantText(2:end,1) = MRSCont.quantify.metabs.(gui.quant.Names.Model{t})';
+                for q = 1 : gui.quant.Number.Quants % Collect all results
+                    QuantText(1,q+1) = gui.quant.Names.Quants(q);
+                    if (strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')) && isfield(MRSCont.quantify.tables.(gui.quant.Names.Model{t}),'AlphaCorrWaterScaled')                       
+                        idx_GABA  = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}),'GABA'));
+                        if strcmp(MRSCont.opts.fit.coMM3, 'none')                            
+                                    tempQuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})),1);
+                                    tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).(['Voxel_' num2str(gui.controls.act_x)])(gui.controls.Selected,:))';
+                        else                              
+                                     tempQuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})),1);
+                                     tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).(['Voxel_' num2str(gui.controls.act_x)])(gui.controls.Selected,:);
+                                     tempQuantText(idx_GABA) = table2cell(tempQuants(1,1));
+                                     idx_GABAp  = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}),'GABAplus'));
+                                     tempQuantText(idx_GABAp) = table2cell(tempQuants(1,2));
+                        end                         
+                        QuantText(2:end,q+1) = tempQuantText;
+                    else
+                        QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q}).(['Voxel_' num2str(gui.controls.act_x)])(gui.controls.Selected,:))';
+                    end
+                end
+            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            set ( temp, 'BackgroundColor',gui.colormap.Background);
+            set( temp, 'Parent', gui.Plot.quant);
+        end 
+end
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

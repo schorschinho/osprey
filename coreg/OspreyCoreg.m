@@ -32,18 +32,16 @@ function [MRSCont] = OspreyCoreg(MRSCont)
 %       2019-06-28: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+diary(fullfile(outputFolder, 'LogFile.txt'));
 % Check that OspreyLoad has been run before
 if ~MRSCont.flags.didLoadData
     msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);
 end
 
 % Version, toolbox check and updating log file
-MRSCont.ver.CheckCoreg       = '1.0.0 Coreg';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckCoreg '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-[~] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
 
 warning('off','all');
 
@@ -56,22 +54,24 @@ end
 %% Loop over all datasets
 refCoregTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
+    msg = sprintf('\nCoregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
     end
-    if ((MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~isfield(MRSCont.ver, 'Coreg') || ~strcmp(MRSCont.ver.Coreg,MRSCont.ver.CheckCoreg))
+    if ~(MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         % Get the input file name
         [path,filename,~]   = fileparts(MRSCont.files{kk});
+        % Get the nii file name
+        [~,~,T1ext]   = fileparts(MRSCont.files_nii{kk});
         % For batch analysis, get the last two sub-folders (e.g. site and
         % subject)
         path_split          = regexp(path,filesep,'split');
@@ -81,10 +81,16 @@ for kk = 1:MRSCont.nDatasets
         % Generate file name for the voxel mask NIfTI file to be saved under
         maskFile            = fullfile(saveDestination, [saveName '_VoxelMask.nii']);
 
+        %Uncompress .nii.gz if needed
+        if strcmp(T1ext,'.gz')
+            gunzip(MRSCont.files_nii{kk});
+            MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.gz','');
+        end
         % Call voxel mask generator depending on file type
         switch MRSCont.vendor
             case 'Siemens'
                 % Load the *.nii file provided in the job file
+                
                 vol_image = spm_vol(MRSCont.files_nii{kk});
                 switch MRSCont.datatype
                     case 'TWIX'
@@ -95,7 +101,7 @@ for kk = 1:MRSCont.nDatasets
                         [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
                     otherwise
                         msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                        fprintf(fileID,msg);
+                        fprintf(msg);
                         error(msg);
                 end
             case 'Philips'
@@ -105,32 +111,47 @@ for kk = 1:MRSCont.nDatasets
                     case 'SDAT'
                         [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
                     case 'DATA'
+                        if isfield(MRSCont.raw{kk}, 'geometry')
+                            if ~MRSCont.flags.isPRIAM % SVS coregistration
+                                [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                            else  %DualVoxel coregistration
+                                [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
+                            end
+                        else
                         msg = 'Philips DATA files do not contain voxel geometry information.';
-                        fprintf(fileID,msg);
-                        error(msg);                        
+                        fprintf(msg);
+                        error(msg);  
+                      end
                     case 'RAW'
                         msg = 'Philips RAW files do not contain voxel geometry information.';
-                        fprintf(fileID,msg);
+                        fprintf(msg);
                         error(msg);                        
                     otherwise
                         msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                        fprintf(fileID,msg);
+                        fprintf(msg);
                         error(msg);                        
                 end
             case 'GE'
-                switch MRSCont.datatype
-                    case 'P'
-                        % Load the DICOM folder provided in the job file
-                        dcm_folder = MRSCont.files_nii{kk};
-                        [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
-                    otherwise
-                         msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                        fprintf(fileID,msg);
-                        error(msg);                      
+                [~,~,file_exten]=fileparts(MRSCont.files_nii{kk});
+                if contains(file_exten,'.nii')
+                    % Load the *.nii file provided in the job file
+                    vol_image = spm_vol(MRSCont.files_nii{kk});
+                    
+                    [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{kk}, vol_image, maskFile);
+                else
+                    switch MRSCont.datatype
+                        case 'P'
+                            % Load the DICOM folder provided in the job file                           
+                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
+                        otherwise
+                            msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                            fprintf(msg);
+                            error(msg);  
+                    end
                 end
             otherwise
                 msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
+                fprintf(msg);
                 error(msg);                
         end
 
@@ -139,21 +160,25 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.vol_mask{kk}  = vol_mask;
         MRSCont.coreg.T1_max{kk}    = T1_max;
         MRSCont.coreg.voxel_ctr{kk} = voxel_ctr;
+        
+        %Delete .nii file if a .nii.gz
+         if strcmp(T1ext,'.gz')
+            delete(MRSCont.files_nii{kk});
+            MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.nii','.nii.gz');
+        end
     end
 end
-fprintf('... done.\n');
 time = toc(refCoregTime);
 if MRSCont.flags.isGUI        
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fprintf('... done.\n Elapsed time %f seconds\n',time);
 MRSCont.runtime.Coreg = time;
-fclose(fileID); %close log file
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didCoreg           = 1;
-MRSCont.ver.Coreg            = '1.0.0 Coreg';
+diary off
 
 % Save the output structure to the output folder
 % Determine output folder
@@ -165,9 +190,7 @@ end
 
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
-    for kk = 1 : MRSCont.nDatasets
-            osp_plotModule(MRSCont, 'OspreyCoreg', kk);
-    end
+    osp_plotAllPDF(MRSCont, 'OspreyCoreg')
 end
 
 if MRSCont.flags.isGUI

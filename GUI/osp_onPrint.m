@@ -35,20 +35,8 @@ function osp_onPrint( ~, ~ ,gui)
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
-    switch selectedTab
-        case 1
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
-        case 2
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
-        case 3
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
-        case 4
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
-        case 5
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
-        otherwise
-            Title = '';
-    end
+
+    Title = MRSCont.ver.Osp;
             
     Frame = uix.Panel('Parent',out, 'Padding', 1, 'Title', Title,...
                                  'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -99,13 +87,24 @@ function osp_onPrint( ~, ~ ,gui)
                              num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
                 end
             end
-            set(InfoText, 'String', sprintf(StatText));
+            if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                set(InfoText, 'String',sprintf(StatText))
+            elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                StatText = [StatText '; Voxel ' num2str(gui.controls.act_x)];
+                set(InfoText, 'String',sprintf(StatText))
+            end   
      %%% 4. VISUALIZATION PART OF THIS TAB %%%
      %osp_plotLoad is used to visualize the raw data. Number of subplots
      %depends on the number of subspectra of the seuqence
             if gui.load.Selected == 1 %Metabolite data/tab
-                outputFile      = [filename '_OspreyLoad_mets.pdf'];
-                temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
+                if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
+                    VoxelIndex = 1;
+                elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',gui.controls.act_x);  
+                    VoxelIndex = gui.controls.act_x;
+                end
+                outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyLoad_mets.pdf'];
                 if MRSCont.flags.isUnEdited % One window for UnEdited
                     ViewAxes = gca();
                     set( ViewAxes, 'Parent', Plot );
@@ -120,37 +119,49 @@ function osp_onPrint( ~, ~ ,gui)
                     set(Plot.Children(1), 'OuterPosition', [0,0,1,0.5])
                 end
                 if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Four windows for HERMES/HERCULES
-                    gui.layout.multiACload = uix.VBox('Parent', Plot, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
-                        gui.layout.multiAload = uix.VBox('Parent', gui.layout.multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                        gui.layout.multiCload = uix.VBox('Parent', gui.layout.multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                    gui.layout.multiBDload = uix.VBox('Parent', Plot,'Padding', 5, 'BackgroundColor',gui.colormap.Background);
-                        gui.layout.multiBload = uix.VBox('Parent', gui.layout.multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                        gui.layout.multiDload = uix.VBox('Parent', gui.layout.multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                    set( temp.Children(1), 'Parent', gui.layout.multiDload );
-                    set( temp.Children(1), 'Parent', gui.layout.multiCload );
-                    set( temp.Children(1), 'Parent', gui.layout.multiBload );
-                    set( temp.Children(1), 'Parent', gui.layout.multiAload );
+                   multiACload = uix.VBox('Parent', Plot, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                        multiAload = uix.VBox('Parent', multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
+                        multiCload = uix.VBox('Parent', multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
+                    multiBDload = uix.VBox('Parent', Plot,'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                        multiBload = uix.VBox('Parent', multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
+                        multiDload = uix.VBox('Parent', multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
+                    set( temp.Children(1), 'Parent', multiDload );
+                    set( temp.Children(1), 'Parent', multiCload );
+                    set( temp.Children(1), 'Parent', multiBload );
+                    set( temp.Children(1), 'Parent', multiAload );
                     set(Plot,'Width', [-0.49 -0.49]);
-                    set(gui.layout.multiDload.Children(1), 'Units', 'normalized')
-                    set(gui.layout.multiDload.Children(1), 'OuterPosition', [0,0,1,1])
-                    set(gui.layout.multiCload.Children(1), 'Units', 'normalized')
-                    set(gui.layout.multiCload.Children(1), 'OuterPosition', [0,0,1,1])
-                    set(gui.layout.multiBload.Children(1), 'Units', 'normalized')
-                    set(gui.layout.multiBload.Children(1), 'OuterPosition', [0,0,1,1])
-                    set(gui.layout.multiAload.Children(1), 'Units', 'normalized')
-                    set(gui.layout.multiAload.Children(1), 'OuterPosition', [0,0,1,1])
+                    set(multiDload.Children(1), 'Units', 'normalized')
+                    set(multiDload.Children(1), 'OuterPosition', [0,0,1,1])
+                    set(multiCload.Children(1), 'Units', 'normalized')
+                    set(multiCload.Children(1), 'OuterPosition', [0,0,1,1])
+                    set(multiBload.Children(1), 'Units', 'normalized')
+                    set(multiBload.Children(1), 'OuterPosition', [0,0,1,1])
+                    set(multiAload.Children(1), 'Units', 'normalized')
+                    set(multiAload.Children(1), 'OuterPosition', [0,0,1,1])
 
                 end
             else if gui.load.Selected == 2 %ref data/tab
-                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
+                    if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
+                        VoxelIndex = 1;
+                    elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',gui.controls.act_x);
+                        VoxelIndex = gui.controls.act_x;
+                    end
                     ViewAxes = gca();
                     set( ViewAxes, 'Parent', Plot );
-                    outputFile      = [filename '_OspreyLoad_ref.pdf'];
+                    outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyLoad_ref.pdf'];
                 else %water data/tab has only one window all the time
-                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
+                    if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
+                        VoxelIndex = 1;
+                    elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',gui.controls.act_x);
+                        VoxelIndex = gui.controls.act_x;
+                    end
                     ViewAxes = gca();
                     set(ViewAxes, 'Parent', Plot );
-                    outputFile      = [filename '_OspreyLoad_w.pdf'];
+                    outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyLoad_w.pdf'];
                 end
             end
             set(input_figure, 'Heights', [-0.1 -0.9]);
@@ -166,20 +177,42 @@ function osp_onPrint( ~, ~ ,gui)
                 'Padding', 5,'BackgroundColor', gui.colormap.Background);
             set(input_figure, 'Heights', [-0.11 -0.89]);
             % Get parameter from file to fill the info panel
-            if (strcmp(gui.process.Names{gui.process.Selected},'A') || strcmp(gui.process.Names{gui.process.Selected},'B') || strcmp(gui.process.Names{gui.process.Selected},'C') || strcmp(gui.process.Names{gui.process.Selected},'D') || strcmp(gui.process.Names{gui.process.Selected},'diff1') || strcmp(gui.process.Names{gui.process.Selected},'diff2') || strcmp(gui.process.Names{gui.process.Selected},'sum') )
-                StatText = ['Metabolite Data -> SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM: '...
-                            num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6))...
-                            ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6)...
-                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-            else if (strcmp(gui.process.Names{gui.process.Selected},'ref') || strcmp(gui.process.Names{gui.process.Selected},'mm'))
-            StatText = ['Reference Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM: '...
-                        num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6))...
-                        ' ppm / Hz'];
-                else
-                    StatText = ['Water Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM: '...
-                                num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6))...
-                                ' ppm / Hz'];
+            if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                if (strcmp(gui.process.Names{gui.process.Selected},'A') || strcmp(gui.process.Names{gui.process.Selected},'B') || strcmp(gui.process.Names{gui.process.Selected},'C') || strcmp(gui.process.Names{gui.process.Selected},'D') || strcmp(gui.process.Names{gui.process.Selected},'diff1') || strcmp(gui.process.Names{gui.process.Selected},'diff2') || strcmp(gui.process.Names{gui.process.Selected},'sum') )
+                    StatText = ['Metabolite Data -> SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                                num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+                else if (strcmp(gui.process.Names{gui.process.Selected},'ref') || strcmp(gui.process.Names{gui.process.Selected},'mm'))
+                StatText = ['Reference Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                            num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
+                            ' Hz / ppm'];
+                    else
+                        StatText = ['Water Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                                    num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
+                                    ' Hz / ppm'];
+                    end
                 end
+            elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                if (strcmp(gui.process.Names{gui.process.Selected},'A') || strcmp(gui.process.Names{gui.process.Selected},'B') || strcmp(gui.process.Names{gui.process.Selected},'C') || strcmp(gui.process.Names{gui.process.Selected},'D') || strcmp(gui.process.Names{gui.process.Selected},'diff1') || strcmp(gui.process.Names{gui.process.Selected},'diff2') || strcmp(gui.process.Names{gui.process.Selected},'sum') )
+                    StatText = ['Metabolite Data -> SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                                num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{1,gui.controls.act_x}.freqShift.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.pre.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.post.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+                else if (strcmp(gui.process.Names{gui.process.Selected},'ref') || strcmp(gui.process.Names{gui.process.Selected},'mm'))
+                StatText = ['Reference Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                            num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
+                            ' Hz / ppm'];
+                    else
+                        StatText = ['Water Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                                    num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
+                                    ' Hz / ppm'];
+                    end
+                end                
+            end
+            
+            if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                StatText = ['Voxel ' num2str(gui.controls.act_x) ': ' StatText];
             end
             InfoText  = uicontrol('Parent',Info,'style','text','FontSize', 12, 'FontName', 'Arial',...
                                          'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
@@ -187,7 +220,13 @@ function osp_onPrint( ~, ~ ,gui)
 
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
  %osp_plotProcess is used to visualize the processed spectra
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{gui.process.Selected}); % Create figure
+            if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{gui.process.Selected}); % Create figure
+                VoxelIndex = 1;
+            elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{gui.process.Selected},gui.controls.act_x); %Create figure
+                VoxelIndex = gui.controls.act_x;
+            end
             %Subplots are distributed here
                 proSpecs = uix.VBox('Parent', Plot, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     proPre = uix.VBox('Parent', proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
@@ -212,7 +251,7 @@ function osp_onPrint( ~, ~ ,gui)
             set(proAlgn.Children(1), 'Units', 'normalized')
             set(proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
             
-            outputFile      = [filename '_OspreyProcess_' Selection '.pdf'];
+            outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyProcess_' Selection '.pdf'];
         case 3 %Fit
              outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyFit');
             [~,filename,~]  = fileparts(MRSCont.files{gui.controls.Selected});
@@ -224,24 +263,45 @@ function osp_onPrint( ~, ~ ,gui)
             else %Is concatenated and not water/reference
                 gui.fit.Style = 'conc';
             end
-            if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
-                refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
-                ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
-                ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
-                iniph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
-                iniph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1;  
+            if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
+                    refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
+                    refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
+                    ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
+                    ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+                    iniph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
+                    iniph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1;  
+                end
+                RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+            elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
+                    refShift = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
+                    refFWHM = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
+                    ph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
+                    ph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+                    iniph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
+                    iniph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1;  
+                end
+                RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
             end
-            RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-
             % Get parameter from file to fill the info panel
             if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data
-            iniph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
-            iniph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1;
-            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
+                if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                    iniph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
+                    iniph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1;
+                    StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f') '°; ph1: ' num2str(ph1,'%1.2f') '°; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
-                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(Selection){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets) '; Number of MM/lipids: ' num2str(MRSCont.fit.resBasisSet.(Selection){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM) ...
+                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets) '; Number of MM/lipids: ' num2str(MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM) ...
                         ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected}) '; initial ph0: ' num2str(iniph0,'%1.2f') '°; initial ph1: ' num2str(iniph1,'%1.2f') '°'];
+                elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                    iniph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
+                    iniph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1;
+                    StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
+                        '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f') '°; ph1: ' num2str(ph1,'%1.2f') '°; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
+                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets) '; Number of MM/lipids: ' num2str(MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM) ...
+                        ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected}) '; initial ph0: ' num2str(iniph0,'%1.2f') '°; initial ph1: ' num2str(iniph1,'%1.2f') '°'];
+                end
+
             else if strcmp (Selection, 'ref') %Reference data?
             StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
@@ -258,64 +318,128 @@ function osp_onPrint( ~, ~ ,gui)
             Results = uix.Panel('Parent', Plot,...
                                        'Title', ['Raw Amplitudes'],'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,...
                                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-            if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
-                if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
-                    NameText = [''];
-                    RawAmplText = [''];
-                    for m = 1 : length(RawAmpl) %Names and Amplitudes
-                        NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
-                        RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+            if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)            
+                if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
+                    if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
+                        NameText = [''];
+                        RawAmplText = [''];
+                        for m = 1 : length(RawAmpl) %Names and Amplitudes
+                            NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                            RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                        end
+                    else %Water/reference fit but this should never happen in this loop
+                       NameText = ['Water: ' ];
+                       RawAmplText = [num2str(RawAmpl,'%1.2e')];
                     end
-                else %Water/reference fit but this should never happen in this loop
-                   NameText = ['Water: ' ];
-                   RawAmplText = [num2str(RawAmpl,'%1.2e')];
+                    set(Results, 'Title', ['Raw Amplitudes']);
+                        FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                        FitTextNames  = uicontrol('Parent',FitText,'style','text',...
+                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                        FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
+                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
+                    if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
+                        if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                        else
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                        end
+                        NameText = [''];
+                        RawAmplText = [''];
+                        for m = 1 : length(RawAmpl) %Names and Amplitudes
+                            NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                            RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                        end
+                        set(Results, 'Title', ['Raw Water Ratio']);
+                        FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                        FitTextNames  = uicontrol('Parent',FitText,'style','text',...
+                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                        FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
+                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    else %Water/reference fit
+                       NameText = ['Water: ' ];
+                       RawAmplText = [num2str(RawAmpl,'%1.2e')];
+                       set(Results, 'Title', ['Raw Amplitudes']);
+                       FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                       FitTextNames  = uicontrol('Parent',FitText,'style','text',...
+                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                       'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                       FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
+                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                       'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    end
                 end
-                set(Results, 'Title', ['Raw Amplitudes']);
-                    FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    FitTextNames  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
-                    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                    FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
-                    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-            else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
-                if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
-                    if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
-                        RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
-                    else
-                        RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+            elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
+                    if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
+                        NameText = [''];
+                        RawAmplText = [''];
+                        for m = 1 : length(RawAmpl) %Names and Amplitudes
+                            NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                            RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                        end
+                    else %Water/reference fit but this should never happen in this loop
+                       NameText = ['Water: ' ];
+                       RawAmplText = [num2str(RawAmpl,'%1.2e')];
                     end
-                    NameText = [''];
-                    RawAmplText = [''];
-                    for m = 1 : length(RawAmpl) %Names and Amplitudes
-                        NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
-                        RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                    set(Results, 'Title', ['Raw Amplitudes']);
+                        FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                        FitTextNames  = uicontrol('Parent',FitText,'style','text',...
+                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                        FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
+                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
+                    if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
+                        if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results{1,gui.controls.act_x}.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                        else
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results{1,gui.controls.act_x}.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                        end
+                        NameText = [''];
+                        RawAmplText = [''];
+                        for m = 1 : length(RawAmpl) %Names and Amplitudes
+                            NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                            RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                        end
+                        set(Results, 'Title', ['Raw Water Ratio']);
+                        FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                        FitTextNames  = uicontrol('Parent',FitText,'style','text',...
+                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                        FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
+                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    else %Water/reference fit
+                       NameText = ['Water: ' ];
+                       RawAmplText = [num2str(RawAmpl,'%1.2e')];
+                       set(Results, 'Title', ['Raw Amplitudes']);
+                       FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                       FitTextNames  = uicontrol('Parent',FitText,'style','text',...
+                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                       'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                       FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
+                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                       'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     end
-                    set(Results, 'Title', ['Raw Water Ratio']);
-                    FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                    FitTextNames  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
-                    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                    FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
-                    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                else %Water/reference fit
-                   NameText = ['Water: ' ];
-                   RawAmplText = [num2str(RawAmpl,'%1.2e')];
-                   set(Results, 'Title', ['Raw Amplitudes']);
-                   FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-                   FitTextNames  = uicontrol('Parent',FitText,'style','text',...
-                   'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
-                   'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                   FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
-                   'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
-                   'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 end
             end
+                
 %%%  5. VISUALIZATION PART OF THIS TAB %%%
 %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,Selection);
+            if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,Selection);
+                VoxelIndex = 1;
+            else
+                temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,gui.controls.act_x,Selection);
+                VoxelIndex = gui.controls.act_x;
+            end
             ViewAxes = gca();
             set(ViewAxes, 'Parent', Plot );
             close( temp );
@@ -323,7 +447,7 @@ function osp_onPrint( ~, ~ ,gui)
             set(Plot,'Widths', [-0.16 -0.84]);
             set(Plot.Children(2), 'Units', 'normalized');
             set(Plot.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
-            outputFile      = [filename '_OspreyFit_' gui.fit.Style '_' Selection '.pdf'];
+            outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyFit_' gui.fit.Style '_' Selection '.pdf'];
         case 4 %Coreg/Seg
             outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyCoregSeg');
             addpath(genpath([gui.folder.spmversion filesep])); % Add SPM  path
@@ -349,25 +473,42 @@ function osp_onPrint( ~, ~ ,gui)
             Results = uix.VBox('Parent', Plot,'BackgroundColor',gui.colormap.Background);
             temp = figure( 'Visible', 'off' );
             if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-                osp_plotCoreg(MRSCont, gui.controls.Selected);
+                if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
+                else
+                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
+                end 
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children,'gray')
                 close( temp );
                 temp = figure( 'Visible', 'off' );
-                osp_plotSegment(MRSCont, gui.controls.Selected);
+                if ~isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+                    temp = osp_plotSegment(MRSCont, gui.controls.Selected);
+                else
+                    temp = osp_plotSegment(MRSCont, gui.controls.Selected,gui.controls.act_x);
+                end 
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children(1),'gray');
                 close( temp );
             else % Only coreg has been run
-                osp_plotCoreg(MRSCont, gui.controls.Selected);
+                if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
+                else
+                    temp = osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
+                end 
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Results );
                 colormap(Results.Children,'gray');
                 close( temp );
             end            
-            outputFile      = [filename '_OspreyCoregSeg.pdf'];
+            if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI) 
+                VoxelIndex = 1;
+            else
+                VoxelIndex = gui.controls.act_x;
+            end
+            outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyCoregSeg.pdf'];
             rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path
         case 6 %Overview
             ovSelection = get(gui.layout.overviewTab, 'Selection');
@@ -431,9 +572,14 @@ function osp_onPrint( ~, ~ ,gui)
                                 fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},g);
                             end
                         end
-                    else
-                        outputFile  = [Selection{1} 'Grand_mean.pdf'];
-                        fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1);
+                    else                        
+                        if ~(isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM)
+                            outputFile  = [Selection{1} 'Grand_mean.pdf'];
+                            fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1);
+                        else
+                            outputFile  = [Selection{1} 'Grand_mean_Dual_Voxel.pdf'];
+                            fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},1, 0.01,10);
+                        end
                     end
                     set(fig_hold.Children, 'Parent', Plot );
                     close(fig_hold);
@@ -446,12 +592,22 @@ function osp_onPrint( ~, ~ ,gui)
                         if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                             metab = 'GABA';
                         else
-                            metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
+                            metab = MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab};
                         end
-                        if ~gui.controls.GM
-                            fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');
+                        if  ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                            if ~gui.controls.GM
+                                fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',0,gui.controls.act_x);
+                            else
+                                fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',1,gui.controls.act_x);
+                            end
+                            VoxelIndex = gui.controls.act_x;
                         else
-                            fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',1);
+                            if ~gui.controls.GM
+                                fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot');
+                            else
+                                fig_hold = osp_plotRaincloud(MRSCont,split_Selection{1},split_Selection{2},metab,'Raincloud plot',1);
+                            end  
+                            VoxelIndex = 1;
                         end
                     else
                        quality = {'SNR','FWHM','freqShift'};
@@ -469,9 +625,9 @@ function osp_onPrint( ~, ~ ,gui)
                     set(out.Children.Children(1).Children(1).Children,'Children',flipud(out.Children.Children(1).Children(1).Children.Children));
                     close(fig_hold);
                     if ~gui.controls.GM
-                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '.pdf'];  
+                        outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '.pdf'];  
                     else
-                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} 'Grand_mean.pdf'];  
+                        outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} 'Grand_mean.pdf'];  
                     end
                 case 5 %Correlation plot
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Correlation');
@@ -481,24 +637,46 @@ function osp_onPrint( ~, ~ ,gui)
                     if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
                         metab = 'GABA';
                     else
-                        metab = MRSCont.quantify.metabs{gui.overview.Selected.Metab};
+                        metab = MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab};
                     end 
-                    if gui.overview.Selected.CorrChoice == 1
-                        fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
-                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
-                    else if gui.overview.Selected.CorrChoice == 2
-                        fig_hold = osp_plotScatter(MRSCont,split_Selection{1},gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs{gui.overview.Selected.Metab},metab,metab);
-                        outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  MRSCont.quantify.metabs{gui.overview.Selected.Metab} '.pdf'];
-                        else
-                            switch gui.overview.Selected.Corr
-                                case 1
-                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
-                                outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
-                                case 2
-                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
-                                outputFile  = [metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                    if  ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                        VoxelIndex = 1;
+                        if gui.overview.Selected.CorrChoice == 1
+                            fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
+                            outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
+                        else if gui.overview.Selected.CorrChoice == 2
+                            fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab},metab,metab);
+                            outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab} '.pdf'];
+                            else
+                                switch gui.overview.Selected.Corr
+                                    case 1
+                                    fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+                                    outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                                    case 2
+                                    fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+                                    outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                                end
                             end
                         end
+                    else
+                        VoxelIndex = gui.controls.act_x;
+                        if gui.overview.Selected.CorrChoice == 1
+                            fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},gui.controls.act_x);
+                            outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
+                        else if gui.overview.Selected.CorrChoice == 2
+                            fig_hold = osp_plotScatter(MRSCont,split_Selection{1},gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab},metab,metab,gui.controls.act_x);
+                            outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab} '.pdf'];
+                            else
+                                switch gui.overview.Selected.Corr
+                                    case 1
+                                    fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x);
+                                    outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                                    case 2
+                                    fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x);
+                                    outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                                end
+                            end
+                        end                        
                     end
                     delete( fig_hold.Children(1));
                     delete( fig_hold.Children(1));

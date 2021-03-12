@@ -29,7 +29,6 @@ function [MRSCont, retMsg] = osp_detDataType(MRSCont)
 
 % Concatenate all data including MM, water and reference scans
 files = MRSCont.files;
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 if isfield(MRSCont, 'files_mm')
     files = [files MRSCont.files_mm];
 end
@@ -55,48 +54,47 @@ for kk = 1:length(files)
             end
             % If not, throw an error
             if length(unique(ext)) > 1
-                retMsg = fprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
-                fprintf(fileID,'Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
+                retMsg = sprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
+                sprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
             end
             % If all files have the same extension, pick the first one to
             % determine the format
-            fileToDet = [files{kk} filesInFolder(1).name];
+            fileToDet = fullfile(files{kk}, filesInFolder(1).name);
         case 2
             % If files, just take the filename.
             fileToDet = files{kk};
         case 0
             % If it doesn't exist, throw an error
-            fprintf(fileID,'Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
+            sprintf('Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
             error('Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
     end
-    last2char   = fileToDet((end-1):end);
-    last3char   = fileToDet((end-2):end);
-    last4char   = fileToDet((end-3):end);
-    if strcmpi(last2char,'.7')
+    % Parse file extension
+    [~,~,ext] = fileparts(fileToDet);
+    if strcmpi(ext,'.7')
         buffer.vendor{kk}       = 'GE';
         buffer.datatype{kk}     = 'P';
         MRSCont.flags.hasRef = 1;
-    elseif strcmpi(last3char,'RDA')
+    elseif strcmpi(ext,'.RDA')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'RDA';
-    elseif strcmpi(last3char,'IMA') || strcmpi(last3char,'DCM')
+    elseif strcmpi(ext,'.IMA') || strcmpi(ext,'DCM') || strcmpi(ext,'')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'DICOM';
-    elseif strcmpi(last4char,'.DAT')
+    elseif strcmpi(ext,'.DAT')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'TWIX';
-    elseif strcmpi(last3char,'RAW')
+    elseif strcmpi(ext,'.RAW')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'RAW';
-    elseif strcmpi(last4char,'SDAT')
+    elseif strcmpi(ext,'.SDAT')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'SDAT';
-    elseif strcmpi(last4char,'DATA')
+    elseif strcmpi(ext,'.DATA')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'DATA';
     else
-        retMsg = 'Unrecognized datatype. All filenames need to end .7 .SDAT .DATA .RAW .RDA .IMA .DCM or .DAT';
-        fprintf(fileID,retMsg);
+        retMsg = 'Unrecognized datatype. Filenames need to end in .7 .SDAT .DATA .RAW .RDA .IMA .DCM or .DAT!';
+        fprintf(retMsg);
     end
 end
 
@@ -106,7 +104,7 @@ for pp = 1:length(seq_params)
     unique_params = unique(buffer.(seq_params{pp}));
     if length(unique_params) > 1
         retMsg = 'WARNING! One or more datatypes or vendors are not the same across all input files.';
-        fprintf(fileID,retMsg);
+        sprintf(retMsg);
     else
         MRSCont.(seq_params{pp}) = unique_params{1};
     end
@@ -115,8 +113,7 @@ end
 % Print final success message
 if ~exist('retMsg','var')
     retMsg = sprintf('All provided datafiles are of the %s %s format.', MRSCont.vendor, MRSCont.datatype);
-    fprintf(fileID,'All provided datafiles are of the %s %s format.\n', MRSCont.vendor, MRSCont.datatype);
+    sprintf('All provided datafiles are of the %s %s format.\n', MRSCont.vendor, MRSCont.datatype);
 end
-disp(retMsg);
 
 end

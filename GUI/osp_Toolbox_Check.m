@@ -1,7 +1,7 @@
-function [hasSPM] = osp_Toolbox_Check (Module,ToolChecked)
+function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %% [hasSPM] = osp_Toolbox_Check (Module,ToolChecked)
 %   This function checks the availabilty of the required MATLAB toolboxes
-%   and SPM versions
+%   and SPM versions. Adds the version number of Osprey.
 %
 %   USAGE:
 %      [hasSPM] = osp_Toolbox_Check (Module,ToolChecked)
@@ -32,6 +32,8 @@ function [hasSPM] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %%
 %%% 1. GET SPMPATH AND TOOLBOXES%%%
+OspreyVersion = 'Osprey 1.0.0';
+fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
 lic = strcmp({'Enabled'}, addons.Properties.VariableNames);
@@ -104,10 +106,20 @@ try
             neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
             neededSpecific = {'SPM12'};        
         otherwise
-            ModuleString = ['run ' Module];
+            ModuleString = ['run \bf' Module];
+            neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
             neededSpecific = cellstr({});
     end
-
+    
+    %To account for the re-naming of new downloads of the Widget Toolbox
+    %for Matlab versions earlier than 2020b, while maintaining
+    %functionality for older downloads, we need to check for all naming
+    %conventions of the Widgets Toolbox HZ
+    for tb = 1 : length(available)
+        if contains(available{tb},'Widgets Toolbox')
+            available{tb} = 'Widgets Toolbox';
+        end
+    end
     missingSpecific = setdiff(neededSpecific,available);
     missing = setdiff(neededGlobal,available); 
 

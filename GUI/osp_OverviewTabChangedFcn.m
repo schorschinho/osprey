@@ -28,10 +28,10 @@ function osp_OverviewTabChangedFcn(src,~,gui)
     switch NewValue
        case 1
             osp_updateSpecsOvWindow(gui);
-            set(gui.controls.pop_specsOvPlot, 'value',gui.load.Selected)
+            set(gui.controls.pop_specsOvPlot, 'value',gui.process.Selected)
        case 2
             osp_updatemeanOvWindow(gui);
-            set(gui.controls.pop_meanOvPlot, 'value',gui.load.Selected)
+            set(gui.controls.pop_meanOvPlot, 'value',gui.process.Selected)
        case 3
             set(gui.layout.overviewTab, 'selection', 3);
        case 4

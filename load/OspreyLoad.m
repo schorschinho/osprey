@@ -42,11 +42,9 @@ if ~isempty(MRSCont.files_w)
 end
 
 % Version check and updating log file
-MRSCont.ver.CheckLoad        = '1.0.0 Load';
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckLoad '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-fclose(fileID);
+diary(fullfile(outputFolder, 'LogFile.txt'));
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyLoad',MRSCont.flags.isGUI);
 
 % Determine data types
 [MRSCont, retMsg] = osp_detDataType(MRSCont);
@@ -66,7 +64,7 @@ switch MRSCont.vendor
                 [MRSCont] = osp_LoadDICOM(MRSCont);
             otherwise
                 msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
+                fprintf(msg);
                 error(msg);
         end
     case 'Philips'
@@ -74,14 +72,17 @@ switch MRSCont.vendor
             case 'SDAT'
                 [MRSCont] = osp_LoadSDAT(MRSCont);
             case 'DATA'
-                error('Support for Philips DATA/LIST files coming soon!');
-                %[MRSCont] = osp_LoadDATA(MRSCont);
+                if ~MRSCont.flags.isMRSI
+                    [MRSCont] = osp_LoadDATA(MRSCont);
+                else
+                    [MRSCont] = load_mrsi_data(MRSCont);
+                end
             case 'RAW'
                 error('Support for Philips RAW/LAB/SIN files coming soon!');
                 %[MRSCont] = osp_LoadRAW(MRSCont);
             otherwise
                 msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
+                fprintf(msg);
                 error(msg);
         end
     case 'GE'
@@ -90,17 +91,17 @@ switch MRSCont.vendor
                 [MRSCont] = osp_LoadP(MRSCont);
             otherwise
                 msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
+                fprintf(msg);
                 error(msg);
         end
     otherwise
         msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
 end
 
 % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
-if ~MRSCont.flags.isPRIAM
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1
         [MRSCont] = osp_combineCoils(MRSCont);
     else
@@ -109,21 +110,26 @@ if ~MRSCont.flags.isPRIAM
         end
     end
 elseif MRSCont.flags.isPRIAM
-    msg = 'Coming soon!';
-    fprintf(fileID,msg);
-    error(msg);
-    %[MRSCont] = osp_senseRecon(MRSCont);
+    [MRSCont] = osp_senseRecon(MRSCont);
+elseif MRSCont.flags.isMRSI && ~strcmp(MRSCont.datatype,'DATA')
+    [MRSCont] = osp_MRSIRecon(MRSCont);
 end
 
+%% If DualVoxel or MRSI we want to extract y-axis scaling
+% Creates y-axis range to align the process plots between datasets
+if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
+    MRSCont.plot.load.match = 1; % Scaling between datasets is turned off by default
+else
+    MRSCont.plot.load.match = 0; % Scaling between datasets is turned off by default
+end
+osp_scale_yaxis(MRSCont,'OspreyLoad');
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didLoadData           = 1;
-MRSCont.ver.Load             = '1.0.0 Load';
-
+diary off
 
 % Save the output structure to the output folder
 % Determine output folder
-outputFolder    = MRSCont.outputFolder;
 outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
@@ -132,18 +138,7 @@ end
 
 % Optional: Create all pdf figures
 if MRSCont.opts.savePDF
-    for kk = 1 : MRSCont.nDatasets
-        osp_plotModule(MRSCont, 'OspreyLoad', kk, 'mets');
-        if MRSCont.flags.hasRef
-            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'ref');
-        end
-        if MRSCont.flags.hasWater
-            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'w');
-        end
-        if MRSCont.flags.hasMM
-            osp_plotModule(MRSCont, 'OspreyLoad', kk, 'mm');
-        end
-    end
+    osp_plotAllPDF(MRSCont, 'OspreyLoad')
 end
 
 % Gather some more information from the processed data;

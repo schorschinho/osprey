@@ -134,6 +134,9 @@ opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
 % Add macromolecule and lipid basis functions to the fit? 
 opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
+                                                
+opts.fit.coMM3              = 'none';
+opts.fit.FWHMcoMM3              = 14;                                                
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -169,8 +172,8 @@ files_mm     = {};
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {which('exampledata/sdat/sub-01/anat/sub-01_T1w.nii'),...
-               which('exampledata/sdat/sub-02/anat/sub-02_T1w.nii')};
+files_nii   = {which('exampledata/sdat/sub-01/anat/sub-01_T1w.nii.gz'),...
+               which('exampledata/sdat/sub-02/anat/sub-02_T1w.nii.gz')};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

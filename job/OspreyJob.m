@@ -93,6 +93,9 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_nii')
         files_nii = {jobStruct.files_nii};
     end
+    if isfield(jobStruct, 'files_sense')
+        files_sense = {jobStruct.sense};
+    end
     if isfield(jobStruct, 'outputFolder')
         outputFolder = jobStruct(1).outputFolder;
     else
@@ -103,6 +106,12 @@ if strcmp(jobFileFormat,'csv')
     else
         fprintf('Sequence type is set to unedited (default). Please indicate otherwise in the csv-file or the GUI \n');
         seqType = 'unedited';
+    end
+    if isfield(jobStruct,'MultiVoxel')
+        MultiVoxel = jobStruct(1).MultiVoxel;
+    else
+        fprintf('Multivoxel is set to single voxel spectroscopy  (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MultiVoxel = 'SVS';
     end
     if isfield(jobStruct,'editTarget')
         MRSCont.opts.editTarget = jobStruct(1).editTarget;
@@ -205,6 +214,14 @@ if exist('opts','var')
     end
 end
 
+if ~isfield(MRSCont.opts, 'UnstableWater')
+    MRSCont.opts.UnstableWater = 0;
+end
+
+if ~isfield(MRSCont.opts, 'L1NormAlign')
+    MRSCont.opts.L1NormAlign = 0;
+end
+
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
 % Parse the sequence type entry
 switch seqType
@@ -258,6 +275,24 @@ else
     warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
 end
 
+% Parse the multi voxel entry
+if exist('MultiVoxel','var')
+    switch MultiVoxel
+        case 'PRIAM'
+            MRSCont.flags.isPRIAM = 1;
+            MRSCont.SENSE = cell(length(priam_offset));
+            for kk = 1:length(priam_offset)
+                MRSCont.SENSE{kk}.priam_offset = priam_offset{kk};
+                MRSCont.SENSE{kk}.priam_direction = priam_direction{kk};
+            end
+
+        case 'MRSI'
+            MRSCont.flags.isMRSI = 1;
+        otherwise
+            warning('Multi voxel must be ''PRIAM'' or ''MRSI''in the job file, and has been set to ''single voxel'' (default).');
+    end
+end
+
 % Parse spectral registration entry
 if ~isfield(MRSCont.opts,'SpecReg')
     MRSCont.opts.SpecReg = 'RobSpecReg';
@@ -296,6 +331,9 @@ end
 if exist('files_nii','var')
     MRSCont.files_nii = files_nii;
 end
+if exist('files_sense','var')
+    MRSCont.files_sense = files_sense;
+end
 if exist('outputFolder','var')
     MRSCont.outputFolder = outputFolder;
 else
@@ -303,7 +341,7 @@ else
 end
 
 % Check that each array has an identical number of entries
-fieldNames = {'files', 'files_ref', 'files_w','files_mm', 'files_nii'};
+fieldNames = {'files', 'files_ref', 'files_w','files_mm', 'files_nii', 'files_sense'};
 ctr = 0;
 for kk = 1:length(fieldNames)
     if isfield(MRSCont, fieldNames{kk})
@@ -318,9 +356,9 @@ end
 % Check whether the number of entries is identical
 isUnique = unique(numDataSets);
 if length(isUnique) ~= 1
-    msg = sprintf('''%s'' has %i entries, but ', whichFieldNames{1}, numDataSets(1));
+    msg = fprintf('''%s'' has %i entries, but ', whichFieldNames{1}, numDataSets(1));
     for ll = 2:length(whichFieldNames)
-        msg2 = sprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
+        msg2 = fprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
         msg = strcat(msg,msg2);
     end
 
@@ -340,8 +378,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didLoadJob    = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = '1.0.0 Osprey';
-MRSCont.ver.Job             = '1.0.0 job';
+MRSCont.ver.Osp             = 'Osprey 1.0.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
@@ -404,25 +441,27 @@ if ~GUI
                             if isfield(MRSCont,'files_w')
                                 MRSCont.files_w = MRSContNew.files_w;
                             end
-                            if isfield(MRSCont,'files_ref')
+                            if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
+                            end
+                            if isfield(MRSCont,'files_sense')
+                                MRSCont.files_sense = MRSContNew.files_sense;
                             end
                         end
                         MRSCont.flags.speedUp        = 1;
                     end
              end
-        elseif askOverWriteJob=='y' || askOverWriteJob=='Y'
+        elseif askOverWriteJob=='y' || askOverWriteJob=='Y'            
+            delete(fullfile(outputFolder, 'LogFile.txt'));   
+            diary(fullfile(outputFolder, 'LogFile.txt'));
             disp('Continue with loading new job, overwriting existing job.');
-            fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-            fprintf(fileID,[jobFile '\n']);
-            fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-            fclose(fileID);
+            fprintf([jobFile '\n']);
+            fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
         end
     else
-        fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-        fprintf(fileID,[jobFile '\n']);
-        fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-        fclose(fileID);
+        diary(fullfile(outputFolder, 'LogFile.txt'));
+        fprintf([jobFile '\n']);
+        fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
     end
 else
     opts.Interpreter = 'tex';
@@ -481,22 +520,24 @@ else
                             if isfield(MRSCont,'files_ref')
                                 MRSCont.files_nii = MRSContNew.files_nii;
                             end
+                            if isfield(MRSCont,'files_sense')
+                                MRSCont.files_sense = MRSContNew.files_sense;
+                            end
                         end
                         MRSCont.flags.speedUp        = 1;
                     end
              end
             elseif strcmp(askOverWriteJob, 'Yes')
+                delete(fullfile(outputFolder, 'LogFile.txt'));
+                diary(fullfile(outputFolder, 'LogFile.txt'));
                 disp('Continue with loading new job, overwriting existing job.');
-                fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-                fprintf(fileID,[jobFile '\n']);
-                fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-                fclose(fileID);
+                fprintf([jobFile '\n']);
+                fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
         end
     else
-    fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-    fprintf(fileID,[jobFile '\n']);
-    fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-    fclose(fileID);
+    diary(fullfile(outputFolder, 'LogFile.txt'));
+    fprintf([jobFile '\n']);
+    fprintf(['Timestamp %s ' MRSCont.ver.Osp  '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
     end
 end
 
@@ -509,6 +550,8 @@ save(fullfile(outputFolder, outputFile), 'MRSCont');
 MRSCont = saveMRSCont;
 
 % Close any remaining open figures
+diary off
 close all;
 
 end
+

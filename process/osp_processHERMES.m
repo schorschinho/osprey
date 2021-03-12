@@ -37,26 +37,28 @@ warning('off','all');
 % Parse input arguments
 if nargin < 2
     target1 = MRSCont.opts.editTarget{1}; 
-    target2 = MRSCont.opts.editTarget{2};  
+    target2 = MRSCont.opts.editTarget{2}; 
+    if length(MRSCont.opts.editTarget) > 2
+       target3 = MRSCont.opts.editTarget{3}; 
+    end
 end
 %% Loop over all datasets
 refProcessTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
     end    
     
-    if ((MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~isfield(MRSCont.ver, 'Pro') || ~strcmp(MRSCont.ver.Pro,MRSCont.ver.CheckPro))
+    if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
         %%% 1. GET RAW DATA %%%
         raw         = MRSCont.raw{kk};                          % Get the kk-th dataset
 
@@ -77,62 +79,8 @@ for kk = 1:MRSCont.nDatasets
         end
 
         if raw.averages > 1 && raw.flags.averaged == 0
-        temp_A = op_averaging(raw_A);
-        raw_A_Cr    = op_freqrange(temp_A,2.8,3.2);
-        % Determine the polarity of the respective peak: if the absolute of the
-        % maximum minus the absolute of the minimum is positive, the polarity 
-        % of the respective peak is positive; if the absolute of the maximum 
-        % minus the absolute of the minimum is negative, the polarity is negative.
-        polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
-        temp_rawA = raw_A;
-        if polResidCr < 0        
-            temp_rawA = op_ampScale(temp_rawA,-1);
-        end
-
-        temp_B = op_averaging(raw_B);
-        raw_B_Cr    = op_freqrange(temp_B,2.8,3.2);
-        polResidCr  = abs(max(real(raw_B_Cr.specs))) - abs(min(real(raw_B_Cr.specs)));
-        temp_rawB = raw_B;
-        if polResidCr < 0        
-            temp_rawB = op_ampScale(temp_rawB,-1);
-        end
-
-        temp_C = op_averaging(raw_C);
-        raw_C_Cr    = op_freqrange(temp_C,2.8,3.2);
-        polResidCr  = abs(max(real(raw_C_Cr.specs))) - abs(min(real(raw_C_Cr.specs)));
-        temp_rawC = raw_C;
-        if polResidCr < 0        
-            temp_rawC = op_ampScale(temp_rawC,-1);
-        end
-
-        temp_D = op_averaging(raw_D);
-        raw_D_Cr    = op_freqrange(temp_D,2.8,3.2);
-        polResidCr  = abs(max(real(raw_D_Cr.specs))) - abs(min(real(raw_D_Cr.specs)));
-        temp_rawD = raw_D;
-        if polResidCr < 0        
-            temp_rawD = op_ampScale(temp_rawD,-1);
-        end
-        temp_proc   = op_addScans(temp_rawA,temp_rawB);
-        temp_proc   = op_addScans(temp_proc,temp_rawC);
-        temp_proc   = op_addScans(temp_proc,temp_rawD);
-        temp_spec   = temp_proc;
-        for av = 1 : round(temp_rawA.averages*0.1) :temp_rawA.averages-(round(temp_rawA.averages*0.1)-1)-mod(temp_rawA.averages,round(temp_rawA.averages*0.1))
-            fids = temp_proc.fids(:,av:av+(round(temp_rawA.averages*0.1)-1));
-            specs = temp_proc.specs(:,av:av+(round(temp_rawA.averages*0.1)-1));
-            temp_spec.fids = mean(fids,2);
-            temp_spec.specs = mean(specs,2);
-            [refShift, ~] = osp_CrChoReferencing(temp_spec);
-            refShift_ind_ini(av : av+round(temp_rawA.averages*0.1)-1) = refShift;
-        end
-        if mod(temp_rawA.averages,round(temp_rawA.averages*0.1)) > 0
-            fids = temp_proc.fids(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-            specs = temp_proc.specs(:,end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1):end);
-            temp_spec.fids = mean(fids,2);
-            temp_spec.specs = mean(specs,2);
-            [refShift, ~] = osp_CrChoReferencing(temp_spec);
-            refShift_ind_ini(end-(mod(temp_rawA.averages,round(temp_rawA.averages*0.1))-1) : temp_rawA.averages) = refShift;        
-        end
-
+        % Calculate starting values for spectral registration
+        [refShift_ind_ini]=op_preref(raw,'HERMES');
         % Perform robust spectral correction with weighted averaging.
         % This can obviously only be done, if the spectra have not been 
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
@@ -302,7 +250,7 @@ for kk = 1:MRSCont.nDatasets
         %%% 4. DETERMINE ON/OFF STATUS
         % Classify the four sub-spectra such that the OFF spectrum is stored to
         % field A, and the ON spectrum is stored to field B.
-        [raw_A, raw_B, raw_C, raw_D, commuteOrder] = osp_onOffClassifyHERMES(raw_A, raw_B, raw_C, raw_D);
+        [raw_A, raw_B, raw_C, raw_D, commuteOrder] = osp_onOffClassifyHERMES(raw_A, raw_B, raw_C, raw_D,[target1 target2]);
         subSpecNames = {'A', 'B', 'C', 'D'};
         % Save drift information back to container
         eval(['MRSCont.QM.drift.pre.A{kk} = driftPre' subSpecNames{commuteOrder(1)} ';']);
@@ -316,14 +264,28 @@ for kk = 1:MRSCont.nDatasets
         % Generate the drift plot for the entire experiment in
         % the correct order
         driftPre = [MRSCont.QM.drift.pre.A{kk}, MRSCont.QM.drift.pre.B{kk}, MRSCont.QM.drift.pre.C{kk}, MRSCont.QM.drift.pre.D{kk}]';
-        driftPre = reshape(driftPre, [raw.averages, 1]);
+        try
+            driftPre = reshape(driftPre, [raw.averages, 1]);
+        catch
+            driftPre = reshape(driftPre, [raw.rawAverages, 1]);
+        end
         MRSCont.QM.drift.pre.diff1{kk}  = driftPre;
         MRSCont.QM.drift.pre.diff2{kk}  = driftPre;
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            MRSCont.QM.drift.pre.diff3{kk}  = driftPre;
+        end
         MRSCont.QM.drift.pre.sum{kk}    = driftPre;
         driftPost = [MRSCont.QM.drift.post.A{kk}, MRSCont.QM.drift.post.B{kk}, MRSCont.QM.drift.post.C{kk}, MRSCont.QM.drift.post.D{kk}]';
-        driftPost = reshape(driftPost, [raw.averages, 1]);
+        try
+            driftPost = reshape(driftPost, [raw.averages, 1]);
+        catch
+            driftPost = reshape(driftPost, [raw.rawAverages, 1]);
+        end
         MRSCont.QM.drift.post.diff1{kk}  = driftPost;
         MRSCont.QM.drift.post.diff2{kk}  = driftPost;
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            MRSCont.QM.drift.post.diff3{kk}  = driftPre;
+        end
         MRSCont.QM.drift.post.sum{kk}    = driftPost;
 
         eval(['raw_A.specReg.fs     = fs_' subSpecNames{commuteOrder(1)} ';']); % save align parameters
@@ -370,7 +332,12 @@ for kk = 1:MRSCont.nDatasets
         [raw_A,~] = op_phaseCrCho(raw_A, 1); 
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
-        [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D);
+        if ~exist('target3', 'var')
+            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target1,target2);
+        else
+            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target2,target3);
+        end
+
         % Create the sum spectrum
         Sum     = op_addScans(raw_A,raw_B);
         Sum     = op_addScans(Sum,raw_C);
@@ -397,6 +364,36 @@ for kk = 1:MRSCont.nDatasets
         diff2.specReg.fs = fs;
         diff2.specReg.phs = phs;
         diff2.specReg.weights = weights;
+        
+        if exist('target3', 'var') % For HERMES 4 acqusitions 
+            % Create the Asp-edited difference spectrum
+            diff1   = op_addScans(raw_A,raw_B,1);
+            diff1   = op_addScans(diff1,raw_C,1);
+            diff1   = op_addScans(diff1,raw_D);
+            diff1.target = target1;
+            diff1.commuteOrder = commuteOrder;
+            diff1.specReg.fs = fs;
+            diff1.specReg.phs = phs;
+            diff1.specReg.weights = weights;
+            % Create the NAA-edited difference spectrum
+            diff2   = op_addScans(raw_C,raw_D);
+            diff2   = op_addScans(diff2,raw_A,1);
+            diff2   = op_addScans(diff2,raw_B,1);
+            diff2.target = target2;
+            diff2.commuteOrder = commuteOrder;
+            diff2.specReg.fs = fs;
+            diff2.specReg.phs = phs;
+            diff2.specReg.weights = weights;     
+            % Create the NAAG-edited difference spectrum
+            diff3   = op_addScans(raw_B,raw_D);
+            diff3   = op_addScans(diff3,raw_A,1);
+            diff3   = op_addScans(diff3,raw_C,1);
+            diff3.target = target3;
+            diff3.commuteOrder = commuteOrder;
+            diff3.specReg.fs = fs;
+            diff3.specReg.phs = phs;
+            diff3.specReg.weights = weights;    
+        end
 
         %%% 6. REMOVE RESIDUAL WATER %%%
         % Remove water and correct back to baseline.
@@ -407,19 +404,32 @@ for kk = 1:MRSCont.nDatasets
         if MRSCont.flags.isPhantom
             waterRemovalFreqRange = [4.5 5];
             fracFID = 0.2;
+            Kinit = 32;
         else
-            waterRemovalFreqRange = [4.5 4.9];
-            fracFID = 0.75;
+            if ~MRSCont.flags.isPRIAM
+                waterRemovalFreqRange = [4.5 4.9];
+                fracFID = 0.75;
+                Kinit = 32;
+            else
+%                 waterRemovalFreqRange = [4.3 5.5];
+%                 fracFID = 0.75;
+%                 Kinit = 45;
+                waterRemovalFreqRange = [4.5 4.9];
+                fracFID = 0.75;
+                Kinit = 32;
+            end
         end
         % Apply iterative water filter
-        raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        raw_C = op_iterativeWaterFilter(raw_C, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        raw_D = op_iterativeWaterFilter(raw_D, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        diff2 = op_iterativeWaterFilter(diff2, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-
+        raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        raw_C = op_iterativeWaterFilter(raw_C, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        raw_D = op_iterativeWaterFilter(raw_D, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        diff2 = op_iterativeWaterFilter(diff2, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            diff3 = op_iterativeWaterFilter(diff3, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
+        end
+        Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, Kinit, fracFID*length(raw.fids), 0);
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
         % Reference resulting data correctly and consistently
@@ -432,6 +442,9 @@ for kk = 1:MRSCont.nDatasets
         [raw_D]             = op_freqshift(raw_D,-refShift_final);            % Apply same shift to ON-ON
         [diff1]             = op_freqshift(diff1,-refShift_final);            % Apply same shift to diff1
         [diff2]             = op_freqshift(diff2,-refShift_final);            % Apply same shift to diff2
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            [diff3]             = op_freqshift(diff3,-refShift_final);            % Apply same shift to diff2
+        end
         [Sum]               = op_freqshift(Sum,-refShift_final);              % Apply same shift to sum
 
         % Add commuteOrder
@@ -447,6 +460,9 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.D{kk}     = raw_D;                                    % Save ON-ON back to MRSCont container
         MRSCont.processed.diff1{kk} = diff1;                                    % Save diff1 back to MRSCont container
         MRSCont.processed.diff2{kk} = diff2;                                    % Save diff2 back to MRSCont container
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            MRSCont.processed.diff3{kk} = diff3;                                    % Save diff3 back to MRSCont container
+        end
         MRSCont.processed.sum{kk}   = Sum;                                      % Save sum back to MRSCont container
 
 
@@ -474,74 +490,39 @@ for kk = 1:MRSCont.nDatasets
 
 
         %%% 10. QUALITY CONTROL PARAMETERS %%%
-        % Calculate some spectral quality metrics here;
-        MRSCont.QM.SNR.A(kk)    = op_getSNR(MRSCont.processed.A{kk}); % NAA amplitude over noise floor          
-        MRSCont.QM.FWHM.A(kk)   = op_getLW(MRSCont.processed.A{kk},1.8,2.2); % in Hz
-        MRSCont.QM.freqShift.A(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.A(kk) = mean(MRSCont.QM.drift.pre.A{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.A(kk) = mean(MRSCont.QM.drift.post.A{kk} - 3.02);
-        MRSCont.QM.res_water_amp.A(kk) = sum(MRSCont.processed.A{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.B(kk)    = op_getSNR(MRSCont.processed.B{kk},2.8,3.2); % Cr amplitude over noise floor           
-        MRSCont.QM.FWHM.B(kk)  = op_getLW(MRSCont.processed.B{kk},2.8,3.2); % in Hz
-        MRSCont.QM.freqShift.B(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.B(kk) = mean(MRSCont.QM.drift.pre.B{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.B(kk) = mean(MRSCont.QM.drift.post.B{kk} - 3.02);
-        MRSCont.QM.res_water_amp.B(kk) = sum(MRSCont.processed.B{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.C(kk)    = op_getSNR(MRSCont.processed.C{kk}); % NAA amplitude over noise floor                
-        MRSCont.QM.FWHM.C(kk)   = op_getLW(MRSCont.processed.C{kk},1.8,2.2); % in Hz
-        MRSCont.QM.freqShift.C(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.C(kk) = mean(MRSCont.QM.drift.pre.C{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.C(kk) = mean(MRSCont.QM.drift.post.C{kk} - 3.02);
-        MRSCont.QM.res_water_amp.C(kk) = sum(MRSCont.processed.C{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.D(kk)    = op_getSNR(MRSCont.processed.D{kk},2.8,3.2); % Cr amplitude over noise floor             
-        MRSCont.QM.FWHM.D(kk)   = op_getLW(MRSCont.processed.D{kk},2.8,3.2); % in Hz
-        MRSCont.QM.freqShift.D(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.D(kk) = mean(MRSCont.QM.drift.pre.D{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.D(kk) = mean(MRSCont.QM.drift.post.D{kk} - 3.02);
-        MRSCont.QM.res_water_amp.D(kk) = sum(MRSCont.processed.D{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.diff1(kk)    = op_getSNR(MRSCont.processed.diff1{kk},2.8,3.2); % GABA amplitude over noise floor              
-        MRSCont.QM.FWHM.diff1(kk)   = op_getLW(MRSCont.processed.diff1{kk},2.8,3.2); % in Hz
-        MRSCont.QM.freqShift.diff1(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.pre.diff1{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.diff1(kk) = mean(MRSCont.QM.drift.post.diff1{kk} - 3.02);
-        MRSCont.QM.res_water_amp.diff1(kk) = sum(MRSCont.processed.diff1{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.diff2(kk)    = op_getSNR(MRSCont.processed.diff2{kk},2.8,3.2); % GSH amplitude over noise floor                
-        MRSCont.QM.FWHM.diff2(kk)   = op_getLW(MRSCont.processed.diff2{kk},2.8,3.2); % in Hz
-        MRSCont.QM.freqShift.diff2(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.diff2(kk) = mean(MRSCont.QM.drift.pre.diff2{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.diff2(kk) = mean(MRSCont.QM.drift.post.diff2{kk} - 3.02);
-        MRSCont.QM.res_water_amp.diff2(kk) = sum(MRSCont.processed.diff2{kk}.watersupp.amp);
-
-        MRSCont.QM.SNR.sum(kk)    = op_getSNR(MRSCont.processed.sum{kk}); % Cr amplitude over noise floor                  
-        MRSCont.QM.FWHM.sum(kk)   = op_getLW(MRSCont.processed.sum{kk},2.8,3.2); % in Hz
-        MRSCont.QM.freqShift.sum(kk)  = refShift_SubSpecAlign + refShift_final;
-        MRSCont.QM.drift.pre.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.pre.sum{kk} - 3.02);
-        MRSCont.QM.drift.post.AvgDeltaCr.sum(kk) = mean(MRSCont.QM.drift.post.sum{kk} - 3.02);
-        MRSCont.QM.res_water_amp.sum(kk) = sum(MRSCont.processed.sum{kk}.watersupp.amp);
-
+        SubSpec = {'A','B','C','D','diff1','diff2','sum'};       
+        SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
+        if exist('target3', 'var') % For HERMES 4 acqusitions
+            SubSpec{end+1} = 'diff3';
+            SNRRange{end+1} = [2.8,3.2];
+        end   
         if MRSCont.flags.hasRef
-            MRSCont.QM.SNR.ref(kk)  = op_getSNR(MRSCont.processed.ref{kk},4.2,5.2); % water amplitude over noise floor              
-            MRSCont.QM.FWHM.ref(kk) = op_getLW(MRSCont.processed.ref{kk},4.2,5.2); % in Hz
+            SubSpec{end+1} = 'ref';
+            SNRRange{end+1} = [4.2,5.2];
         end
         if MRSCont.flags.hasWater
-            MRSCont.QM.SNR.w(kk)    = op_getSNR(MRSCont.processed.w{kk},4.2,5.2); % water amplitude over noise floor              
-            MRSCont.QM.FWHM.w(kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2); % in Hz
+            SubSpec{end+1} = 'w';
+            SNRRange{end+1} = [4.2,5.2];
+        end
+        % Calculate some spectral quality metrics here;
+        for ss = 1 : length(SubSpec)          
+            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk});       
+            MRSCont.QM.FWHM.(SubSpec{ss})(kk)   = op_getLW(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2)); % in Hz       
+            if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w'))
+                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift_SubSpecAlign + refShift_final;       
+                MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+                MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);
+            end
         end
     end         
 end
-fprintf('... done.\n');
 time = toc(refProcessTime);
 if MRSCont.flags.isGUI        
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-fclose(fileID);
+fprintf('... done.\n Elapsed time %f seconds\n',time);
 
 %%% 11. SET FLAGS %%%
 MRSCont.flags.avgsAligned   = 1;

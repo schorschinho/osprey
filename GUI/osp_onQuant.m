@@ -35,9 +35,9 @@ function osp_onQuant( ~, ~ ,gui)
     gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1})));
     gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1}));
     gui.quant.Number.Metabs = length(MRSCont.quantify.metabs);
-    gui.overview.Selected.Metab = find(strcmp(MRSCont.quantify.metabs, 'tNAA'));
+    gui.overview.Selected.Metab = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{1}), 'tNAA'));
     if isempty(gui.overview.Selected.Metab)
-        gui.overview.Selected.Metab = find(strcmp(MRSCont.quantify.metabs, 'NAA'));
+        gui.overview.Selected.Metab = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{1}), 'NAA'));
     end
     gui.quant.idx.GABA = find(strcmp(MRSCont.quantify.metabs, 'GABA'));
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class

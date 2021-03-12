@@ -35,8 +35,8 @@ for i = 1 : files
                         if strcmp(d1(i,1).name(end-4), 't')
                             if ~exist('metab')
                                 data = osp_import_Tarquin_fit_ouput(fullfile(PathName,d1(i,1).name));
-                                dataNames = data.Properties.VariableNames;
-                                data = table2array(data);
+                                dataNames = cellstr(osp_import_Tarquin_metabolite_names(fullfile(PathName,d1(i,1).name)));
+                                data = table2array(data(:,1:length(dataNames)));
                                  waterAmp = osp_importfile_waterAmpl_Tarquin(strrep(fullfile(PathName,d1(i,1).name),'_fit.txt','.csv'));
                                  phase = osp_importfile_ph0ph1_Tarquin(strrep(fullfile(PathName,d1(i,1).name),'_fit.txt','.csv'));
                                  scale = waterAmp;
@@ -68,6 +68,9 @@ for i = 1 : files
                                 if MRSCont.opts.fit.fitMM == 1
                                     MRSCont.overview.Tarquin.all_models.(name){1,j}.fittMM  = 0;
                                     idx_1  = find(strcmp(dataNames,'MM09'));
+                                    if isempty(idx_1)
+                                        idx_1  = find(strcmp(dataNames,'MMexp'));
+                                    end
                                     for f = idx_1 : length(dataNames)
                                     MRSCont.overview.Tarquin.all_models.(name){1,j}.fittMM  = MRSCont.overview.Tarquin.all_models.(name){1,j}.fittMM + MRSCont.overview.Tarquin.all_models.(name){1,j}.(['fit' dataNames{f}]);
                                     end
@@ -99,7 +102,7 @@ for i = 1 : files
                                 refShift=(ppmmax-2.013);
                                 MRSCont.overview.Tarquin.all_models.(name){1,j}.ppm = MRSCont.overview.Tarquin.all_models.(name){1,j}.ppm - refShift;
                                 MRSCont.overview.Tarquin.all_models.(name){1,j}.ph0 = phase(1);
-                                MRSCont.overview.Tarquin.all_models.(name){1,j}.ph1 = phase(2); 
+                                MRSCont.overview.Tarquin.all_models.(name){1,j}.ph1 = phase(2);
                                 j = j + 1;
                                 
                             end
@@ -121,11 +124,11 @@ for kk = 1 : MRSCont.nDatasets
 end
 
 %Exclude datasets
-if isfield(MRSCont, 'exclude')
-    if~isempty(MRSCont.exclude)
-        MRSCont.overview.groups(MRSCont.exclude) = [];
-    end
-end
+% if isfield(MRSCont, 'exclude')
+%     if~isempty(MRSCont.exclude)
+%         MRSCont.overview.groups(MRSCont.exclude) = [];
+%     end
+% end
 for g = 1 : MRSCont.overview.NoGroups
     MRSCont.overview.Tarquin.sort_fit.(['g_' num2str(g)]).(name) = MRSCont.overview.Tarquin.all_models.(name)(1,MRSCont.overview.groups == g);
 end

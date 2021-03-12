@@ -1,4 +1,4 @@
-function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GMean)
+function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GMean,VoxelIndex)
 %% [out_rain] = osp_plotRaincloud(MRSCont,metab,plots,tit)
 % Creates raincloud plot from the quantification tables and the chosen quantifcation and metabolite
 % The figure contains raincloud plots with boxplots, as well as, mean
@@ -38,34 +38,37 @@ function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GMean)
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 6
-    GMean = 0;
-    if nargin<5
-        tit = '';
-        if nargin<4
-            metab = 'GABA';
-            if nargin<3
-                quant = 'tCr';
-                if nargin<2
-                    model = '';
-                    if MRSCont.flags.isUnEdited
-                        model = 'off';
-                    end
-                    if MRSCont.flags.isMEGA && strcmp(MRSCont.opts.fit.style,'Separate')
-                            model = 'diff1';
-                        else
-                            model = 'conc';
-                    end
-                    if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && strcmp(MRSCont.opts.fit.style,'Separate')
-                            model = 'diff1';
-                        else
-                            model = 'conc';
-                    end
-                    if strcmp(model,'')
-                        error('ERROR: unable to retrieve default model, please specify.  Aborting!!');
-                    end
-                    if nargin<1
-                        error('ERROR: no input Osprey container specified.  Aborting!!');
+if nargin < 7
+    VoxelIndex = 1;
+    if nargin < 6
+        GMean = 0;
+        if nargin<5
+            tit = '';
+            if nargin<4
+                metab = 'GABA';
+                if nargin<3
+                    quant = 'tCr';
+                    if nargin<2
+                        model = '';
+                        if MRSCont.flags.isUnEdited
+                            model = 'off';
+                        end
+                        if MRSCont.flags.isMEGA && strcmp(MRSCont.opts.fit.style,'Separate')
+                                model = 'diff1';
+                            else
+                                model = 'conc';
+                        end
+                        if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && strcmp(MRSCont.opts.fit.style,'Separate')
+                                model = 'diff1';
+                            else
+                                model = 'conc';
+                        end
+                        if strcmp(model,'')
+                            error('ERROR: unable to retrieve default model, please specify.  Aborting!!');
+                        end
+                        if nargin<1
+                            error('ERROR: no input Osprey container specified.  Aborting!!');
+                        end
                     end
                 end
             end
@@ -87,16 +90,21 @@ cb(4,:) = temp;
 if ~strcmp(quant,'Quality')
     if strcmp(quant,'AlphaCorrWaterScaled') || strcmp(quant,'AlphaCorrWaterScaledGroupNormed')
         idx_1  = 1;
-        ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
+        ConcData = MRSCont.quantify.tables.(model).(quant).(['Voxel_' num2str(VoxelIndex)]) {:,idx_1};  
     else
-        idx_1  = find(strcmp(MRSCont.quantify.metabs,metab));
-        ConcData = MRSCont.quantify.tables.(model).(quant) {:,idx_1};  
+        idx_1  = find(strcmp(MRSCont.quantify.metabs.(model),metab));
+        ConcData = MRSCont.quantify.tables.(model).(quant).(['Voxel_' num2str(VoxelIndex)]) {:,idx_1};  
     end
 else
    quality = {'SNR','FWHM','freqShift'};
    idx_1  = find(strcmp(quality,metab));
    ConcData = MRSCont.QM.tables {:,idx_1};
    quality_Names = {'SNR','FWHM (ppm)','freqShift (Hz)'};
+end
+
+if isempty(ConcData)
+    dim = size(ConcData);
+    ConcData = zeros(dim(1),1);
 end
 
 if strcmp(quant, 'tCr')

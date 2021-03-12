@@ -26,7 +26,7 @@ for jj = 1:length(filesInFolder)
     end
 end
 filesInFolder = filesInFolder(hidden);%delete hidden files 
-filesInFolder = strcat(folder, {filesInFolder.name});        
+filesInFolder = fullfile(folder, {filesInFolder.name});        
 
 % Get the header of the first file to make some decisions.
 DicomHeader = read_dcm_header(filesInFolder{1});
