@@ -111,13 +111,18 @@ for kk = 1:MRSCont.nDatasets
                 vol_image = spm_vol(MRSCont.files_nii{kk});
                 switch MRSCont.datatype
                     case 'SDAT'
-                        [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                         if ~MRSCont.flags.isMRSI % SVS coregistration
+                            [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                         else
+                              [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,2);
+%                                MRSCont.coreg.vol_mask_mrsi{kk} = vol_mask_mrsi;
+                         end
                     case 'DATA'
                         if isfield(MRSCont.raw{kk}, 'geometry')
                             if ~MRSCont.flags.isPRIAM % SVS coregistration
-                                [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
                             else  %DualVoxel coregistration
-                                [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
                             end
                         else
                         msg = 'Philips DATA files do not contain voxel geometry information.';

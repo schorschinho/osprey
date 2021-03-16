@@ -121,7 +121,10 @@ elseif MRSCont.flags.isMRSI == 1
                         outMRSCont.fit.(fields{f}){x,y,z} = outMRSCont.fit.(fields{f}){cx,cy,cz};
                     end                          
                 end
-                outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl)); 
+                if ~((x == cx) && (y == cy) && (z == cz)) % Do not overwrite the center voxel
+                    outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl)); 
+                    outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j)); 
+                end
             end
         end
     end
@@ -136,10 +139,9 @@ elseif MRSCont.flags.isMRSI == 1
            [x,y] = osp_spiral(nVox);
            x = x+cx;
            y = y+cy;
-           % Masking goes here for now 8 to 24 y
-           % 7 to 23 x
-%            if (x > 7) && (x < 23) && (y > 8) && (y < 24)
-          if (x > 14) && (x < 15) && (y > 14) && (y < 15)
+
+             try
+             if MRSCont.mask(x,y)
                for ss = 1 : NoSubSpec % Loop over Subspec 
                    for kk = 1 :MRSCont.nDatasets
                        if ZVox <=1
@@ -179,7 +181,7 @@ elseif MRSCont.flags.isMRSI == 1
                     gaussLB(end+1) = fitMRSCont.fit.results.off.fitParams{kk}.gaussLB;
                     MRSCont.fit.MRSIfitPriors = fitMRSCont.fit; %Store new priors
                     MRSCont.fit.MRSIfitPriors.results.off.fitParams{kk}.ph0 = median(ph0);
-                    MRSCont.fit.MRSIfitPriors.results.off.fitParams{kk}.gaussLB=median(ph1);
+                    MRSCont.fit.MRSIfitPriors.results.off.fitParams{kk}.ph1=median(ph1);
                     MRSCont.fit.MRSIfitPriors.results.off.fitParams{kk}.gaussLB = median(gaussLB);
                     fields = {'resBasisSet','results'};
                     for f = 1 : length(fields)
@@ -200,7 +202,9 @@ elseif MRSCont.flags.isMRSI == 1
                         fprintf([reverseStr, msg]);
                         msg = sprintf('\nFitting metabolite spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
                         fprintf([reverseStr, msg]);
-            end
+             end
+             catch
+             end
         end
     end
     time = toc(metFitTime);

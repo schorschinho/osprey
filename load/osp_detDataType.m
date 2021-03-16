@@ -75,22 +75,22 @@ for kk = 1:length(files)
         buffer.vendor{kk}       = 'GE';
         buffer.datatype{kk}     = 'P';
         MRSCont.flags.hasRef = 1;
-    elseif strcmpi(ext,'RDA')
+    elseif strcmpi(ext,'.RDA')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'RDA';
-    elseif strcmpi(ext,'IMA') || strcmpi(ext,'DCM') || strcmpi(ext,'')
+    elseif strcmpi(ext,'.IMA') || strcmpi(ext,'.DCM') || strcmpi(ext,'')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'DICOM';
     elseif strcmpi(ext,'.DAT')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'TWIX';
-    elseif strcmpi(ext,'RAW')
+    elseif strcmpi(ext,'.RAW')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'RAW';
-    elseif strcmpi(ext,'SDAT')
+    elseif strcmpi(ext,'.SDAT')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'SDAT';
-    elseif strcmpi(ext,'DATA')
+    elseif strcmpi(ext,'.DATA')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'DATA';
     else

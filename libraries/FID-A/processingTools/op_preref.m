@@ -146,6 +146,7 @@ end
     % to op_robustSpecReg.
     
     temp_spec   = temp_proc;
+    refShift_ind_ini = zeros(temp_proc.averages,1);
     for av = 1 : round(temp_proc.averages*0.1) :temp_proc.averages-(round(temp_proc.averages*0.1)-1)-mod(temp_proc.averages,round(temp_proc.averages*0.1)) % 10% packaging
         fids = temp_proc.fids(:,av:av+(round(temp_proc.averages*0.1)-1)); 
         specs = temp_proc.specs(:,av:av+(round(temp_proc.averages*0.1)-1));

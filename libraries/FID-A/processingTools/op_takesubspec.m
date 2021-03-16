@@ -22,7 +22,7 @@ function out=op_takesubspec(in,index);
 if in.flags.subtracted
     error('ERROR:  Subspectra have already been combined!  Aborting!');
 end
-
+in.fids = squeeze(in.fids);
 if in.dims.subSpecs==0
     %Can't take subspec because there are none:
     error('ERROR:  There are no subspectra in this dataset!  Aborting!');
@@ -30,13 +30,13 @@ elseif in.dims.subSpecs==1
     %SHOULD NEVER HAPPEN (Time dimension should always be dim=1)
     error('ERROR:  dims.subSpecs==1.  This should never happen!  Aborting!');
 elseif in.dims.subSpecs==2
-    fids=in.fids(:,index);
+    fids=in.fids(:,index,:,:,:);
 elseif in.dims.subSpecs==3;
-    fids=in.fids(:,:,index);
+    fids=in.fids(:,:,index,:,:,:);
 elseif in.dims.subSpecs==4;
-    fids=in.fids(:,:,:,index);
+    fids=in.fids(:,:,:,index,:,:,:);
 elseif in.dims.subSpecs==5
-    fids=in.fids(:,:,:,:,index);
+    fids=in.fids(:,:,:,:,index,:,:,:);
 end
 
 %re-calculate Specs using fft

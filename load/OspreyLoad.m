@@ -124,7 +124,7 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
 else
     MRSCont.plot.load.match = 0; % Scaling between datasets is turned off by default
 end
-osp_scale_yaxis(MRSCont,'OspreyLoad');
+MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad');
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didLoadData           = 1;

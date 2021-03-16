@@ -51,13 +51,13 @@ fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
 if nargin<9    
     [~,filen,ext] = fileparts(MRSCont.files{kk});
-    if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+    if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
         if strcmp(which_spec, 'conc')
             figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext]);
         else
             figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext]);
         end
-    else
+    elseif  (MRSCont.flags.isPRIAM && isfield(MRSCont.flags,'isPRIAM')) 
         if nargin<4
             VoxelIndex = 1; 
          end
@@ -66,6 +66,15 @@ if nargin<9
         else
             figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex)]);
         end 
+    else
+            if nargin<4
+                VoxelIndex = [1 1]; 
+             end
+            if strcmp(which_spec, 'conc')
+                figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
+            else
+                figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
+            end 
     end
     if nargin<8
         ylab='';

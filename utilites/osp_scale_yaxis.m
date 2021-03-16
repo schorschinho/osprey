@@ -1,4 +1,4 @@
-function osp_scale_yaxis(MRSCont,Module)
+function MRSCont = osp_scale_yaxis(MRSCont,Module)
     switch Module
         case 'OspreyLoad' 
             ppmmax = 4.5;
@@ -6,8 +6,8 @@ function osp_scale_yaxis(MRSCont,Module)
             Range = zeros(2,MRSCont.nDatasets);
             for kk = 1 : MRSCont.nDatasets
                 temp_spec = op_freqrange(MRSCont.raw{kk}, ppmmin, ppmmax);
-                Range(1,kk) = op_findMax(temp_spec);
-                Range(2,kk) = op_findMin(temp_spec);           
+                Range(1,kk) = op_findMaxMedian(temp_spec);
+                Range(2,kk) = op_findMinMedian(temp_spec);           
             end
             MRSCont.plot.load.mets.max = Range(1,:);
             MRSCont.plot.load.mets.min = Range(2,:);
@@ -20,8 +20,8 @@ function osp_scale_yaxis(MRSCont,Module)
                 Range = zeros(2,MRSCont.nDatasets);
                 for kk = 1 : MRSCont.nDatasets
                     temp_spec = op_freqrange(MRSCont.raw_ref{kk}, ppmmin, ppmmax);
-                    Range(1,kk) = op_findMax(temp_spec);
-                    Range(2,kk) = op_findMin(temp_spec);            
+                    Range(1,kk) = op_findMaxMedian(temp_spec);
+                    Range(2,kk) = op_findMinMedian(temp_spec);            
                 end
                 MRSCont.plot.load.ref.max = Range(1,:);
                 MRSCont.plot.load.ref.min = Range(2,:);
@@ -34,8 +34,8 @@ function osp_scale_yaxis(MRSCont,Module)
                 Range = zeros(2,MRSCont.nDatasets);
                 for kk = 1 : MRSCont.nDatasets
                     temp_spec = op_freqrange(MRSCont.raw_w{kk}, ppmmin, ppmmax);
-                    Range(1,kk) = op_findMax(temp_spec);
-                    Range(2,kk) = op_findMin(temp_spec);             
+                    Range(1,kk) = op_findMaxMedian(temp_spec);
+                    Range(2,kk) = op_findMinMedian(temp_spec);             
                 end
                 MRSCont.plot.load.w.max = Range(1,:);
                 MRSCont.plot.load.w.min = Range(2,:);
@@ -63,11 +63,11 @@ function osp_scale_yaxis(MRSCont,Module)
                 for kk = 1 : MRSCont.nDatasets
                     temp_spec = op_freqrange(MRSCont.processed.(SubSpecNames{ss}){kk}, ppmmin, ppmmax);
                     if ~(strcmp(SubSpecNames{ss},'ref') || strcmp(SubSpecNames{ss},'w'))
-                        Range(1,kk) = op_findMax(temp_spec);
-                        Range(2,kk) = op_findMin(temp_spec);
+                        Range(1,kk) = op_findMaxMedian(temp_spec);
+                        Range(2,kk) = op_findMinMedian(temp_spec);
                     else
-                        Range(1,kk) = op_findMax(temp_spec,1);
-                        Range(2,kk) = op_findMin(temp_spec,1);       
+                        Range(1,kk) = op_findMaxMedian(temp_spec,1);
+                        Range(2,kk) = op_findMinMedian(temp_spec,1);       
                     end
                 end
                 MRSCont.plot.processed.(SubSpecNames{ss}).max = Range(1,:);

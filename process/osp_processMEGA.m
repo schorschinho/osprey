@@ -334,7 +334,9 @@ for kk = 1:MRSCont.nDatasets
                 [raw_w,~,~]             = op_alignAverages(raw_w,1,'n');    % Align averages
                 raw_w                   = op_averaging(raw_w);              % Average
             end
-            [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            if ~MRSCont.flags.isMRSI
+                [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            end
             [raw_w,~]                   = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
             MRSCont.processed.w{kk}     = raw_w;                            % Save back to MRSCont container
         end
