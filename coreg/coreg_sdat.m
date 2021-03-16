@@ -29,7 +29,7 @@
 % vol_mask  = SPM volume of the coregistered voxel mask.
 % T1_max    = maximum intensity of the image volume.
 
-function [vol_mask, T1_max, voxel_ctr] = coreg_sdat(in, vol_image, maskFile,DualVoxel)
+function [vol_mask, T1_max, voxel_ctr, vol_mask_mrsi] = coreg_sdat(in, vol_image, maskFile,DualVoxel)
 
 if nargin < 4
     DualVoxel = 0;
@@ -115,6 +115,52 @@ vox_ctr_coor = [lr_off ap_off cc_off];
 vox_ctr_coor = repmat(vox_ctr_coor.', [1,8]);
 vox_corner = vox_rot+vox_ctr_coor;
 
+%For MRSI we want to identify individual voxels within the slab. Depending
+%on the x and y dimension, calculate individual voxel sizes, corner and
+%voxel center coordinates.
+
+if DualVoxel == 2
+    lr_size_mrsi_vox = lr_size/29;
+    ap_size_mrsi_vox = ap_size/33;
+    cc_size_mrsi_vox = cc_size;
+    
+    % Define voxel coordinates before rotation and transition
+    vox_ctr_mrsi = ...
+    [lr_size_mrsi_vox/2 -ap_size_mrsi_vox/2  cc_size_mrsi_vox/2;
+    -lr_size_mrsi_vox/2 -ap_size_mrsi_vox/2  cc_size_mrsi_vox/2;
+    -lr_size_mrsi_vox/2  ap_size_mrsi_vox/2  cc_size_mrsi_vox/2;
+     lr_size_mrsi_vox/2  ap_size_mrsi_vox/2  cc_size_mrsi_vox/2;
+    -lr_size_mrsi_vox/2  ap_size_mrsi_vox/2 -cc_size_mrsi_vox/2;
+     lr_size_mrsi_vox/2  ap_size_mrsi_vox/2 -cc_size_mrsi_vox/2;
+     lr_size_mrsi_vox/2 -ap_size_mrsi_vox/2 -cc_size_mrsi_vox/2;
+    -lr_size_mrsi_vox/2 -ap_size_mrsi_vox/2 -cc_size_mrsi_vox/2];
+
+    % Apply rotation as prescribed
+    vox_rot_mrsi = xrot * yrot * zrot * vox_ctr_mrsi.';
+    
+    lr_off_mrsi = lr_off - lr_size/2 + 2.5*lr_size_mrsi_vox;
+    ap_off_mrsi = ap_off + ap_size/2 + ap_size_mrsi_vox/2;
+    cc_off_mrsi = cc_off;
+    
+    lr_off_mrsi = repmat(lr_off_mrsi,[29,33]);
+    ap_off_mrsi = repmat(ap_off_mrsi,[29,33]);
+    cc_off_mrsi = repmat(cc_off_mrsi,[29,33]);
+    
+    for x = 1 : 29
+        for y = 1 : 33
+            lr_off_mrsi(x,y) = lr_off_mrsi(x,y)+lr_size_mrsi_vox*(x-1);
+            ap_off_mrsi(x,y) = ap_off_mrsi(x,y)-ap_size_mrsi_vox*(y-1);
+            cc_off_mrsi(x,y) = cc_off_mrsi(x,y);
+            vox_ctr_coor_temp = [lr_off_mrsi(x,y) ap_off_mrsi(x,y) cc_off_mrsi(x,y)];
+            vox_ctr_coor_mrsi(:,:,x,y) = repmat(vox_ctr_coor_temp.', [1,8]);
+            vox_corner_mrsi(:,:,x,y) = vox_rot_mrsi+vox_ctr_coor_mrsi(:,:,x,y);
+        end
+    end
+    
+    
+end    
+
+
 % For PRIAM MRS we need to add the second voxel dimensions and locations
 % Depending on the PRIAM offset direction parameter, calculate the voxel
 % corner and voxel center coordinates
@@ -170,9 +216,10 @@ for rr = 1:size(vox_ctr_coor,3)
     
     if ~isstruct(DualVoxel) % For svs data create one voxel mask
         maskFileOut = maskFile;
+        maskFileOut            = strrep(maskFile,'VoxelMask.nii',['Voxel_1_VoxelMask.nii']);     
         
     else  % For PRIAM data create two voxel masks        
-        maskFileOut            = strrep(maskFile,'VoxelMask.nii',['Voxel' num2str(rr) '_VoxelMask.nii']);       
+        maskFileOut            = strrep(maskFile,'VoxelMask.nii',['Voxel_' num2str(rr) '_VoxelMask.nii']);       
     end
 
     % Fill in the SPM volume header information
@@ -190,8 +237,12 @@ for rr = 1:size(vox_ctr_coor,3)
     % Write the SPM volume to disk
     if ~isstruct(DualVoxel) 
         vol_mask = spm_write_vol(vol_mask,mask);
+        gzip(vol_mask.fname);
+        delete(vol_mask.fname);
     else % For PRIAM data store two voxel masks
         vol_mask_out{rr} = spm_write_vol(vol_mask,mask);
+        gzip(vol_mask.fname);
+        delete(vol_mask.fname);
     end
 
     % Store voxel centre for output figure
@@ -202,10 +253,60 @@ for rr = 1:size(vox_ctr_coor,3)
     end
 end
 
+
+%%% 4. CREATE AND SAVE THE INDIVIDUAL VOXEL MRSI MASKS
+% Create a mask with all voxels that are inside the voxel
+if DualVoxel == 2
+    vx = 1;
+    for x = 1 : 29
+        for y = 1 : 33
+            mask = zeros(1,size(XYZ,2));
+            sphere_radius = sqrt((lr_size_mrsi_vox/2)^2+(ap_size_mrsi_vox/2)^2+(cc_size_mrsi_vox/2)^2);
+            distance2voxctr = sqrt(sum((XYZ-repmat([vox_ctr_coor_mrsi(1,1,x,y) vox_ctr_coor_mrsi(2,1,x,y) vox_ctr_coor_mrsi(3,1,x,y)].',[1 size(XYZ,2)])).^2,1));
+            sphere_mask(distance2voxctr <= sphere_radius) = 1;
+
+            mask(sphere_mask == 1) = 1;
+            XYZ_sphere = XYZ(:,sphere_mask == 1);
+
+            tri = delaunayn([vox_corner_mrsi(:,:,x,y).'; [vox_ctr_coor_mrsi(1,1,x,y) vox_ctr_coor_mrsi(2,1,x,y) vox_ctr_coor_mrsi(3,1,x,y)]]);
+            tn = tsearchn([vox_corner_mrsi(:,:,x,y).'; [vox_ctr_coor_mrsi(1,1,x,y) vox_ctr_coor_mrsi(2,1,x,y) vox_ctr_coor_mrsi(3,1,x,y)]], tri, XYZ_sphere.');
+            isinside = ~isnan(tn);
+            mask(sphere_mask==1) = isinside;
+
+            % Take over the voxel dimensions from the structural
+            mask = reshape(mask, vol_image.dim);
+            if vx == 1
+                mask_out_mrsi = mask;
+            else
+                mask_out_mrsi = mask_out_mrsi + mask * vx;
+            end
+            voxel_ctr_out(:,:,x,y) = [lr_off ap_off cc_off];
+            vx = vx + 1;
+        end
+    end  
+    maskFileOut            = strrep(maskFile,'VoxelMask.nii','VoxelMaskMRSI.nii');       
+
+
+    % Fill in the SPM volume header information
+    vol_mask.fname   = maskFileOut;
+    vol_mask.dim     = vol_image.dim;
+    vol_mask.dt      = vol_image.dt;
+    vol_mask.mat     = vol_image.mat;
+    vol_mask.descrip = [ 'MRSI_voxel_mask_Voxel'];
+
+
+    vol_mask_out_mrsi = spm_write_vol(vol_mask,mask_out_mrsi);
+end   
+
+
 if exist('vol_mask_out','var')
     vol_mask = vol_mask_out;
 end
-
+if exist('vol_mask_out_mrsi','var')
+    vol_mask_mrsi = vol_mask_out_mrsi;
+else
+    vol_mask_mrsi = [];
+end
 % Reactivate MATLAB warnings
 warning('on','MATLAB:nearlySingularMatrix');
 warning('on','MATLAB:qhullmx:InternalWarning');

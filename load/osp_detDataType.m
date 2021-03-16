@@ -60,7 +60,7 @@ for kk = 1:length(files)
             end
             % If all files have the same extension, pick the first one to
             % determine the format
-            fileToDet = [files{kk} filesInFolder(1).name];
+            fileToDet = fullfile(files{kk}, filesInFolder(1).name);
         case 2
             % If files, just take the filename.
             fileToDet = files{kk};
@@ -69,33 +69,32 @@ for kk = 1:length(files)
             fprintf(fileID,'Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
             error('Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
     end
-    last2char   = fileToDet((end-1):end);
-    last3char   = fileToDet((end-2):end);
-    last4char   = fileToDet((end-3):end);
-    if strcmpi(last2char,'.7')
+    % Parse file extension
+    [~,~,ext] = fileparts(fileToDet);
+    if strcmpi(ext,'.7')
         buffer.vendor{kk}       = 'GE';
         buffer.datatype{kk}     = 'P';
         MRSCont.flags.hasRef = 1;
-    elseif strcmpi(last3char,'RDA')
+    elseif strcmpi(ext,'.RDA')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'RDA';
-    elseif strcmpi(last3char,'IMA') || strcmpi(last3char,'DCM')
+    elseif strcmpi(ext,'.IMA') || strcmpi(ext,'.DCM') || strcmpi(ext,'')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'DICOM';
-    elseif strcmpi(last4char,'.DAT')
+    elseif strcmpi(ext,'.DAT')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'TWIX';
-    elseif strcmpi(last3char,'RAW')
+    elseif strcmpi(ext,'.RAW')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'RAW';
-    elseif strcmpi(last4char,'SDAT')
+    elseif strcmpi(ext,'.SDAT')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'SDAT';
-    elseif strcmpi(last4char,'DATA')
+    elseif strcmpi(ext,'.DATA')
         buffer.vendor{kk}       = 'Philips';
         buffer.datatype{kk}     = 'DATA';
     else
-        retMsg = 'Unrecognized datatype. All filenames need to end .7 .SDAT .DATA .RAW .RDA .IMA .DCM or .DAT';
+        retMsg = 'Unrecognized datatype. Filenames need to end in .7 .SDAT .DATA .RAW .RDA .IMA .DCM or .DAT!';
         fprintf(fileID,retMsg);
     end
 end

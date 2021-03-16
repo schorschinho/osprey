@@ -131,7 +131,7 @@ function osp_iniCoregWindow(gui)
 % coregistration or the segmentation
     gui.Results.coreg = uix.VBox('Parent', gui.Plot.coreg,'BackgroundColor',gui.colormap.Background);
     temp = figure( 'Visible', 'off' );
-    if ~isfield(MRSCont.flags,'isPRIAM') && ~isfield(MRSCont.flags,'isMRSI') && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+    if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
         if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
             osp_plotCoreg(MRSCont, gui.controls.Selected);
             ViewAxes = gca();

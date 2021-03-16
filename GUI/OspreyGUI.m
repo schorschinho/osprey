@@ -202,7 +202,7 @@ classdef OspreyGUI < handle
                 end
             end
 
-            if MRSCont.flags.didQuantify %Get variables regarding the quantification
+            if MRSCont.flags.didQuantify && ~MRSCont.flags.isMRSI %Get variables regarding the quantification
                 gui.quant.Number.Model = length(fieldnames(MRSCont.quantify.tables));
                 gui.quant.Names.Model = fieldnames(MRSCont.quantify.tables);
                 gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1})));
@@ -211,6 +211,16 @@ classdef OspreyGUI < handle
                 gui.quant.Selected.Metab = find(strcmp(MRSCont.quantify.metabs, 'tNAA'));
                 gui.quant.Selected.Model = 1;
                 gui.quant.idx.GABA = find(strcmp(MRSCont.quantify.metabs, 'GABA'));
+            elseif MRSCont.flags.didQuantify
+                gui.quant.Number.Model = length(fieldnames(MRSCont.quantify.amplMets{1, 1}));
+                gui.quant.Names.Model = fieldnames(MRSCont.quantify.amplMets{1, 1});
+%                 gui.quant.Number.Quants = 1;
+%                 gui.quant.Names.Quants = {};
+                gui.quant.Number.Metabs = length(fieldnames(MRSCont.quantify.amplMets{1, 1}.off));
+                gui.quant.Names.Metabs = fieldnames(MRSCont.quantify.amplMets{1, 1}.off);
+                gui.quant.Selected.Metab = {'NAA'};
+                gui.quant.Selected.Model = 1;
+%                 gui.quant.idx.GABA = find(strcmp(MRSCont.quantify.metabs, 'GABA'));
             end
             if MRSCont.flags.didOverview %Get variables for the overview tab
                 gui.overview.NAAnormed = 1;
