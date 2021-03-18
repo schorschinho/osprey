@@ -82,22 +82,8 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', colormapfig.Background);
     MRSCont.flags.isGUI = 1;
-    switch Module
-        case 'OspreyLoad'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
-        case 'OspreyProcess'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
-        case 'OspreyFit'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
-        case 'OspreyCoreg'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
-        case 'OspreySeg'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg ' ' MRSCont.ver.Seg]; 
-        case 'OspreyOverview'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
-        otherwise
-            Title = '';
-    end
+
+    Title = MRSCont.ver.Osp;
             
     Frame = uix.Panel('Parent',out, 'Padding', 1, 'Title', Title,...
                                  'FontName', 'Arial', 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground,...
