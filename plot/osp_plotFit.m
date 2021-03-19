@@ -52,6 +52,9 @@ fitStyle    = MRSCont.opts.fit.style;
 if nargin<9    
     [~,filen,ext] = fileparts(MRSCont.files{kk});
     if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+        if nargin<5
+            conc = 'diff1';
+         end
         if strcmp(which_spec, 'conc')
             figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext]);
         else
@@ -60,6 +63,9 @@ if nargin<9
     else
         if nargin<4
             VoxelIndex = 1; 
+        end
+         if nargin<5
+            conc = 'diff1';
          end
         if strcmp(which_spec, 'conc')
             figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex)]);

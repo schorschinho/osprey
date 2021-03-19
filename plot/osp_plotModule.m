@@ -303,6 +303,13 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
         case 'OspreyFit' %Fit
              outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyFit');
             [~,filename,~]  = fileparts(MRSCont.files{kk});
+            
+            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit 
+                which = which;
+            else %Is concatenated and not water/reference
+                spec = which;
+                which = 'conc';               
+            end
 
             Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
             set(input_figure, 'Heights', [-0.12 -0.88]);
@@ -392,7 +399,11 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
 %%%  5. VISUALIZATION PART OF THIS TAB %%%
 %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotFit(MRSCont, kk,Style,which);
+            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit 
+                temp = osp_plotFit(MRSCont, kk,Style);
+            else %Is concatenated and not water/reference
+                temp = osp_plotFit(MRSCont, kk,Style,1,spec);              
+            end
             ViewAxes = gca();
             set(ViewAxes, 'Parent', Plot );
             close( temp );

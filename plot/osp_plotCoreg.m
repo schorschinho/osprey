@@ -60,14 +60,6 @@ else
     voxel_ctr = MRSCont.coreg.voxel_ctr{kk}(:,:,VoxelIndex); 
 end
 
-if ~MRSCont.flags.didSeg
-    if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
-        delete(MRSCont.coreg.vol_mask{kk}.fname);
-    end
-    if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
-        delete(MRSCont.coreg.vol_image{kk}.fname);
-    end
-end
 %%% 3. SET UP THREE PLANE IMAGE %%%
 % Generate three plane image for the output
 % Transform structural image and co-registered voxel mask from voxel to
@@ -91,6 +83,17 @@ three_plane_img(:,size_max*2+(1:size_max)) = image_center(img_c, size_max);
 
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
+
+if ~MRSCont.flags.didSeg
+    if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
+        delete(MRSCont.coreg.vol_mask{kk}.fname);
+    end
+    if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
+        delete(MRSCont.coreg.vol_image{kk}.fname);
+    end
+end
+
+
 if ~MRSCont.flags.isGUI
     out = figure;
     set(gcf, 'Color', 'w');
