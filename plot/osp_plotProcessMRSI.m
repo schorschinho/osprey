@@ -1,4 +1,4 @@
-function out = osp_plotProcessMRSI(MRSCont, kk, which_spec, ppmmin, ppmmax,mask)
+function out = osp_plotProcessMRSI(MRSCont, kk, which_spec, ppmmin, ppmmax,mask, lb)
 %% out = osp_plotProcessMRSI(MRSCont, kk, which, ppmmin, ppmmax)
 %   Creates a figure showing processed data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *processed and
@@ -42,32 +42,35 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 6
-    mask = 1;
-    if nargin<5
-        switch which_spec
-            case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
-                ppmmax = 5;
-            case {'ref', 'w'}
-                ppmmax = 2*4.68;
-            otherwise
-                error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-        end
-        if nargin<4
+if nargin < 7
+    lb = 0;
+    if nargin < 6
+        mask = 1;
+        if nargin<5
             switch which_spec
-                case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum'}
-                    ppmmin = 0.2;
-                case {'ref', 'w','mm'}
-                    ppmmin = 0;
+                case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
+                    ppmmax = 5;
+                case {'ref', 'w'}
+                    ppmmax = 2*4.68;
                 otherwise
                     error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
             end
-            if nargin < 3
-                which_spec = 'A';
-                if nargin < 2
-                    kk = 1;
-                    if nargin<1
-                        error('ERROR: no input Osprey container specified.  Aborting!!');
+            if nargin<4
+                switch which_spec
+                    case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum'}
+                        ppmmin = 0.2;
+                    case {'ref', 'w','mm'}
+                        ppmmin = 0;
+                    otherwise
+                        error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+                end
+                if nargin < 3
+                    which_spec = 'A';
+                    if nargin < 2
+                        kk = 1;
+                        if nargin<1
+                            error('ERROR: no input Osprey container specified.  Aborting!!');
+                        end
                     end
                 end
             end
@@ -108,6 +111,9 @@ for y = 1 : YVox
     procDataLineToPlot = [];
     for x = 1 : XVox
          procData=op_takeVoxel(MRSCont.processed.(which_spec){kk},[x, y]);
+         if ~(lb == 0)
+            [procData,~]=op_filter(procData,lb);
+         end
          procData     = op_freqrange(procData,ppmmin,ppmmax);
          procDataLineToPlot = vertcat(procDataLineToPlot,real(procData.specs),ones(50,1)*nan);
     end
