@@ -139,6 +139,14 @@ elseif MRSCont.flags.isMRSI == 1
            [x,y] = osp_spiral(nVox);
            x = x+cx;
            y = y+cy;
+           msg = sprintf('\nFitting metabolite spectra from kx %d out of %d total x phase steps...\n', x, XVox);
+            fprintf([reverseStr, msg]);
+            msg = sprintf('\nFitting metabolite spectra from ky  %d out of %d total y phase steps...\n', y, YVox);
+            fprintf([reverseStr, msg]);
+            msg = sprintf('\nFitting metabolite spectra from slice %d out of %d total slices...\n', z, ZVox);
+            fprintf([reverseStr, msg]);
+            msg = sprintf('\nFitting metabolite spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
+            fprintf([reverseStr, msg]);
 
              try
              if MRSCont.mask(x,y)
@@ -152,14 +160,6 @@ elseif MRSCont.flags.isMRSI == 1
                    end
                end
                 fitMRSCont.fit =  MRSCont.fit.MRSIfitPriors;  %Load prior results into the struct                        
-                msg = sprintf('\nFitting metabolite spectra from kx %d out of %d total x phase steps...\n', x, XVox);
-                fprintf([reverseStr, msg]);
-                msg = sprintf('\nFitting metabolite spectra from ky  %d out of %d total y phase steps...\n', y, YVox);
-                fprintf([reverseStr, msg]);
-                msg = sprintf('\nFitting metabolite spectra from slice %d out of %d total slices...\n', z, ZVox);
-                fprintf([reverseStr, msg]);
-                msg = sprintf('\nFitting metabolite spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
-                fprintf([reverseStr, msg]);
                 if ~((x == cx) && (y == cy) && (z == cz)) % Do not re-analyze the center voxel
                     if MRSCont.flags.isUnEdited
                         [fitMRSCont] = osp_fitUnEdited(fitMRSCont);
@@ -193,15 +193,6 @@ elseif MRSCont.flags.isMRSI == 1
                         end          
                     end
                 end
-          else
-                        msg = sprintf('\nFitting metabolite spectra from kx %d out of %d total x phase steps...\n', x, XVox);
-                        fprintf([reverseStr, msg]);
-                        msg = sprintf('\nFitting metabolite spectra from ky  %d out of %d total y phase steps...\n', y, YVox);
-                        fprintf([reverseStr, msg]);
-                        msg = sprintf('\nFitting metabolite spectra from slice %d out of %d total slices...\n', z, ZVox);
-                        fprintf([reverseStr, msg]);
-                        msg = sprintf('\nFitting metabolite spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
-                        fprintf([reverseStr, msg]);
              end
              catch
              end

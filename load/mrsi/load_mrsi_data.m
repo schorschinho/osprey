@@ -52,6 +52,7 @@ lb = 5;
 spec_zfill =2;
 k_zfill = 1;
 seq_type = 'MEGA-PRESS';
+% MRSCont.opts.MoCo = 0;
 
 %%
 % Close any remaining open figures
@@ -303,6 +304,15 @@ for kk = 1:MRSCont.nDatasets
            k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
            k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
         end
+        k_ph_corr_on = zeros(size(k_sort,1),size(k_sort,1)); 
+        k_ph_corr_off = ones(size(k_sort,1),size(k_sort,1)) * 180; 
+        k_ph_merge_on = cat(3, k_ph_corr_on,k_ph_corr_on);
+       k_ph_merge_off = cat(3, k_ph_corr_off,k_ph_corr_off);
+       k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
+
+        k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 size(k_sort,3) size(k_sort, 4)]);
+        k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 5 6 3 4]);
+        k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
 
 
         if (strcmp(seq_type, 'HERMES') || strcmp(seq_type, 'HERMES lip sup'))
@@ -389,30 +399,44 @@ for kk = 1:MRSCont.nDatasets
             % ------------------------------------------------------%
 
             if strcmp(seq_type, 'MEGA-PRESS')
-
-
+                
+                if ~MRSCont.opts.MoCo
                 % If I don't want to delete k-space data or correct something HZ
-%                    k_ph_corr_on1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-%                    k_ph_corr_on2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-%                    k_ph_corr_off1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-%                    k_ph_corr_off2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));   
-%                 
-                                                                                                     
+                   k_ph_corr = zeros(size(k_sort,1),size(k_sort,1));  
+                
+                else   
+                  
+                
                 [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
                 on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
                 k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
                 on1_replace_track, off1_replace_track, on2_replace_track, ...
-                off2_replace_track, zero_replace_track, k_space_locs, corr_options]  = motion_correct_mrsi_full_ph(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
+                off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
                                                                                                                 spec_zfill, seq_type, kx_tot, ky_tot);
                                                                                                             
-               k_sort_merge_on = cat(5, k_sort_on,k_sort_on2);
-               k_sort_merge_off = cat(5, k_sort_off,k_sort_off2);
-               k_sort = cat(6,k_sort_merge_on,k_sort_merge_off);
+                %                 [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
+%                 on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
+%                 k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
+%                 on1_replace_track, off1_replace_track, on2_replace_track, ...
+%                 off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph_water(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
+%                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
+%                                                                                                                 spec_zfill, seq_type, kx_tot, ky_tot);                                                                                              
+                   on_replace_track = cat(3, on1_replace_track,on2_replace_track);
+                   off_replace_track = cat(3, off1_replace_track,off2_replace_track);
+                   replace_track = cat(4,on_replace_track,off_replace_track);
+
+                   k_sort_merge_on = cat(5, k_sort_on,k_sort_on2);
+                   k_sort_merge_off = cat(5, k_sort_off,k_sort_off2);
+                   k_sort = cat(6,k_sort_merge_on,k_sort_merge_off);
+
+                   k_ph_merge_on = cat(3, k_ph_corr_on1,k_ph_corr_on2);
+                   k_ph_merge_off = cat(3, k_ph_corr_off1,k_ph_corr_off2);
+                   k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
                
-               k_ph_merge_on = cat(3, k_ph_corr_on1,k_ph_corr_on2);
-               k_ph_merge_off = cat(3, k_ph_corr_off1,k_ph_corr_off2);
-               k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
+                
+                end
+                                                                                                                                                                                                                                                                                                                 
             end
         else
             k_sort_on_phased_k1 = k_sort_on_phased1;
@@ -819,6 +843,10 @@ for kk = 1:MRSCont.nDatasets
         [~,t_dim] = max(sz);
         kx_dim = find(sz==kx_tot);
         ky_dim = find(sz==ky_tot);
+        if kx_tot == ky_tot
+            kx_dim = kx_dim(1);
+            ky_dim = kx_dim + 1;
+        end
         if subspecs == 2
             specs = permute(spec, [t_dim 4 5 kx_dim ky_dim]);
         end
@@ -843,6 +871,10 @@ for kk = 1:MRSCont.nDatasets
         [~,t_dim] = max(sz);
         kx_dim = find(sz==kx_tot);
         ky_dim = find(sz==ky_tot);
+        if kx_tot == ky_tot
+            kx_dim = kx_dim(1);
+            ky_dim = kx_dim + 1;
+        end
         specs_w = permute(specs_w, [t_dim kx_dim ky_dim]);
         dims_w.extras=0;  
         dims_w.Xvoxels=2;
@@ -1015,6 +1047,13 @@ for kk = 1:MRSCont.nDatasets
         out.flags.isISIS=0;
     else
         out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
+    end
+    
+    if MRSCont.opts.MoCo
+        MRSCont.MoCo{kk}.k_ph_corr = k_ph_corr;  
+        MRSCont.MoCo{kk}.replace_track = replace_track;  
+        MRSCont.MoCo{kk}.zero_replace_track = zero_replace_track;  
+        MRSCont.MoCo{kk}.corr_options = corr_options;          
     end
 
     MRSCont.raw{kk} = out;
