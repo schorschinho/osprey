@@ -3,7 +3,7 @@
 [![GitHub Release Date](https://img.shields.io/github/release-date/schorschinho/osprey)](https://github.com/schorschinho/osprey/releases)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/schorschinho/osprey?foo=bar)](https://github.com/schorschinho/osprey/commits/develop)
 [![GitHub last commit](https://img.shields.io/github/last-commit/schorschinho/osprey)](https://github.com/schorschinho/osprey/commits/develop)
-[![Website](https://img.shields.io/website?down_color=lightgrey&down_message=offline&up_color=green&up_message=online&url=https%3A%2F%2Fschorschinho.github.io%2osprey)](https://schorschinho.github.io/osprey)
+[![Website](https://img.shields.io/website?down_color=lightgrey&down_message=offline&up_color=green&up_message=online&url=https%3A%2F%2Fschorschinho.github.io%2Fosprey)](https://schorschinho.github.io/osprey)
 [![License](https://img.shields.io/github/license/schorschinho/osprey)](https://github.com/schorschinho/osprey/blob/develop/LICENSE.md)
 
 <img src="graphics/osprey.png" alt="Osprey" width="200"/>
