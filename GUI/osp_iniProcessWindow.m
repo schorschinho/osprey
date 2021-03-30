@@ -128,10 +128,10 @@ function osp_iniProcessWindow(gui)
                     end
                 end
                 if MRSCont.flags.hasWater %Has only water?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.wProTab = uix.VBox('Parent', gui.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
+                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
+                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
+                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
+                    gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
                     gui.layout.proTab.TabTitles  = {'A','B','diff1','sum','w'};
                     gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
                     gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'wProTab'}; %Create 5 tabs
