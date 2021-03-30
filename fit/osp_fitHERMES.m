@@ -116,7 +116,7 @@ for kk = 1:MRSCont.nDatasets
     % For the concatenated MEGA fit, model the DIFF1 and SUM spectra
     % together.
     if strcmp(fitStyle, 'Concatenated')
-        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.conc.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp))   
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.conc.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)   
         
             %%% 3a. FIT CONCATENATED SPECTRUM
             % Apply scaling factor to the data
