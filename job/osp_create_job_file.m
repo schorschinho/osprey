@@ -117,7 +117,7 @@ else
     fprintf(fid,'%s',['''' app.H2OReferenceText.Value{1} '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.MRSDataText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' app.H2OReferenceText.Value{i} '''']);
     end
     fprintf(fid,'%s',['};']);
 end
