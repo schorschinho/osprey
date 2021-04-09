@@ -33,6 +33,11 @@ function [MRSCont] = osp_fitWater(MRSCont, kk, fitWhich)
 % Find the basis set index corresponding to water
 basisSet            = MRSCont.fit.basisSet;
 h2o_idx = find(strcmp(basisSet.name, 'H2O'));
+if isempty(h2o_idx)
+    basisSet = load(MRSCont.opts.fit.basisSetFile);
+    basisSet = basisSet.BASIS;
+    h2o_idx = find(strcmp(basisSet.name, 'H2O'));
+end
 idx_toKeep = zeros(basisSet.nMets + basisSet.nMM,1);
 idx_toKeep(h2o_idx) = 1;
 
