@@ -93,7 +93,13 @@ for kk = 1:MRSCont.nDatasets
             % data may have linewidth lower than the simulated basis set
             % data.
             raw = op_filter(raw, 2);
-            [raw, fs, phs, weights, driftPre, driftPost]   = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,0.5,4.2);
+                switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                    case 'none'
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,1); % Align and average  
+                    otherwise
+                        [raw, fs, phs, weights, driftPre, driftPost]   = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,0.5,4.2);
+                end
+            
             end
             raw.specReg.fs              = fs; % save align parameters
             raw.specReg.phs             = phs; % save align parameters

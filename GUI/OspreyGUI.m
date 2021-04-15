@@ -216,8 +216,10 @@ classdef OspreyGUI < handle
                 gui.quant.Names.Model = fieldnames(MRSCont.quantify.amplMets{1, 1});
 %                 gui.quant.Number.Quants = 1;
 %                 gui.quant.Names.Quants = {};
-                gui.quant.Number.Metabs = length(fieldnames(MRSCont.quantify.amplMets{1, 1}.off));
-                gui.quant.Names.Metabs = fieldnames(MRSCont.quantify.amplMets{1, 1}.off);
+                for m = 1 : gui.quant.Number.Model 
+                    gui.quant.Number.Metabs = length(fieldnames(MRSCont.quantify.amplMets{1, 1}.off));
+                    gui.quant.Names.Metabs = fieldnames(MRSCont.quantify.amplMets{1, 1}.off);
+                end
                 gui.quant.Selected.Metab = {'NAA'};
                 gui.quant.Selected.Model = 1;
 %                 gui.quant.idx.GABA = find(strcmp(MRSCont.quantify.metabs, 'GABA'));

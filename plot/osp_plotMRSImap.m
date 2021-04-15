@@ -122,15 +122,23 @@ map = map';
 
 sz_map = size(map);
 
-map = imresize(map,sz_map .* upsample);
+mask = MRSCont.mask{kk};
+map = mask .* map';
+if upsample > 1
+    map = imresize(map,sz_map .* upsample);
+end
 
-% colormap = viridis(100);
-% heatmap(map,'Colormap',colormap);
 
 
-heatmap(map,'Colormap',gray);
 
-% caxis(out.Children,[0 0.5]);
+
+colormap = viridis(100);
+heatmap(map,'Colormap',colormap);
+
+
+% heatmap(map,'Colormap',gray);
+
+caxis(out.Children,[0 1]);
 colorbar off
 
 %%% 7. DESIGN FINETUNING %%%

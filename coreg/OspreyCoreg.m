@@ -121,7 +121,7 @@ for kk = 1:MRSCont.nDatasets
                         if isfield(MRSCont.raw{kk}, 'geometry')
                             if ~MRSCont.flags.isPRIAM % SVS coregistration
                                 [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
-                            else  %DualVoxel coregistration
+                            else 
                                 [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
                             end
                         else

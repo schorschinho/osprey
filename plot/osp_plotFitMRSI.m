@@ -272,7 +272,7 @@ shift = 0.30;
 for y = 1 : YVox
     for x = 1 : XVox
         if mask
-            if MRSCont.mask(x,y)
+            if MRSCont.mask{kk}(x,y)
                 plot((x-1)*(npoints+50)+1:x*(npoints+50),procDataMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y,'Color',colormap.Foreground);
                 plot((x-1)*(npoints+50)+1:x*(npoints+50),FitMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y,'Color',colormap.Accent);
                 plot((x-1)*(npoints+50)+1:x*(npoints+50),ResMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y+shift/2,'Color',colormap.Foreground);
