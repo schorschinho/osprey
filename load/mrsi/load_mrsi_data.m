@@ -304,10 +304,11 @@ for kk = 1:MRSCont.nDatasets
            k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
            k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
         end
-        k_ph_corr_on = zeros(size(k_sort,1),size(k_sort,1)); 
-        k_ph_corr_off = ones(size(k_sort,1),size(k_sort,1)) * 180; 
-        k_ph_merge_on = cat(3, k_ph_corr_on,k_ph_corr_on);
-       k_ph_merge_off = cat(3, k_ph_corr_off,k_ph_corr_off);
+        k_ph_corr_on = zeros(size(k_sort,1),size(k_sort,2)); 
+        %Here we need an automated phase adjustment HZ
+        k_ph_corr_off = ones(size(k_sort,1),size(k_sort,2)) * 1; 
+        k_ph_merge_on = repmat(k_ph_corr_on, [1 1 size(k_sort,5)]);
+       k_ph_merge_off = repmat(k_ph_corr_off, [1 1 size(k_sort,5)]);
        k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
 
         k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 size(k_sort,3) size(k_sort, 4)]);
@@ -415,7 +416,7 @@ for kk = 1:MRSCont.nDatasets
                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
                                                                                                                 spec_zfill, seq_type, kx_tot, ky_tot);
                                                                                                             
-                %                 [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
+%                                 [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
 %                 on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
 %                 k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
 %                 on1_replace_track, off1_replace_track, on2_replace_track, ...

@@ -248,8 +248,12 @@ else
             gui.Plot.quantHBox = uix.HBox('Parent', gui.Plot.quant.MainBox,'BackgroundColor',gui.colormap.Background);
             gui.Plot.quantVBox = uix.VBox('Parent', gui.Plot.quantHBox,'BackgroundColor',gui.colormap.Background);
             gui.Plot.quantMRSImap = uix.VBox('Parent', gui.Plot.quantVBox,'BackgroundColor',gui.colormap.Background);
-            
-                temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Style,gui.fit.Style, {'NAA'}, []);
+                
+                if ~strcmp(gui.fit.Style,'w') && ~strcmp(gui.fit.Style,'ref')
+                    temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Style,gui.fit.Style, {'NAA'}, []);
+                else
+                    temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Style,gui.fit.Style, {'H2O'}, []);
+                end
                 ViewAxes = gca();
                 drawnow
                 set( ViewAxes, 'Parent', gui.Plot.quantMRSImap );

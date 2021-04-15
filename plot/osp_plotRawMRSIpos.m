@@ -61,7 +61,11 @@ end
 % map(map > 2 * map(1,1)) = 0.5;
 % map(map < 0.5) = 0;
 
-if ~MRSCont.flags.didQuantify
+if MRSCont.flags.didSeg
+        map = MRSCont.mask{kk};
+        map = map'; 
+        map(map > 0) = 0.5;
+else if ~MRSCont.flags.didQuantify
     if ~MRSCont.flags.hasWater
         spec = op_freqrange(MRSCont.raw{kk},4.0,5.5);
         if MRSCont.flags.isMEGA
@@ -83,12 +87,15 @@ if ~MRSCont.flags.didQuantify
         map(map > 0.05) = 0.5;
         map(map < 0.5) = 0;
     end
-else
-    map = MRSCont.quantify.amplMets{kk}.off.NAA + MRSCont.quantify.amplMets{kk}.off.NAAG;
+else    
+     map = MRSCont.quantify.amplMets{kk}.off.NAA + MRSCont.quantify.amplMets{kk}.off.NAAG;
     map = map/(max(max(max(map))));
     map(map > 0.1) = 0.5;
     map(map < 0.5) = 0;
 end
+    
+end
+
 
 map(VoxelIndex(2),VoxelIndex(1)) = 1;
 map = map';

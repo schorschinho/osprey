@@ -136,7 +136,7 @@ shift = shift/2;
 for y = 1 : YVox
     for x = 1 : XVox
         if mask
-            if MRSCont.mask(x,y)
+            if MRSCont.mask{kk}(x,y)
                 plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),procDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.Foreground);
                 hold on
                 text((x-1)*(procData.sz(1)+50)+1, procDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/10, num2str(ppmmin), 'Color', colormap.ForegroundTint);

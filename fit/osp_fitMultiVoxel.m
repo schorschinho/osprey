@@ -149,7 +149,7 @@ elseif MRSCont.flags.isMRSI == 1
             fprintf([reverseStr, msg]);
 
              try
-             if MRSCont.mask(x,y)
+             if MRSCont.mask{kk}(x,y)
                for ss = 1 : NoSubSpec % Loop over Subspec 
                    for kk = 1 :MRSCont.nDatasets
                        if ZVox <=1

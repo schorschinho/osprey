@@ -98,7 +98,7 @@ elseif MRSCont.flags.isMRSI == 1
             msg = sprintf('\nFitting water spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
             fprintf([reverseStr, msg]);
             try
-                if MRSCont.mask(x,y)
+                if MRSCont.mask{kk}(x,y)
                     for kk = 1 :MRSCont.nDatasets
                         if ZVox <=1
                             dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},[x,y]);  
