@@ -107,6 +107,19 @@ for x = 1 : XVox
 end
 
 
+if MRSCont.flags.hasRef || MRSCont.flags.hasWater
+    if MRSCont.flags.hasRef
+        Norm = MRSCont.plot.processed.ref.ContMax;
+    else
+        Norm = MRSCont.plot.processed.w.ContMax;
+    end        
+    yLim = [min(MRSCont.plot.processed.(which_spec).min) max(MRSCont.plot.processed.(which_spec).max)]/Norm;
+else
+    Norm = MRSCont.plot.processed.A.ContMax;
+    yLim = [min(MRSCont.plot.processed.A.min) max(MRSCont.plot.processed.A.max)]/Norm;
+end
+
+
 for y = 1 : YVox
     procDataLineToPlot = [];
     for x = 1 : XVox
@@ -115,7 +128,7 @@ for y = 1 : YVox
             [procData,~]=op_filter(procData,lb);
          end
          procData     = op_freqrange(procData,ppmmin,ppmmax);
-         procDataLineToPlot = vertcat(procDataLineToPlot,real(procData.specs),ones(50,1)*nan);
+         procDataLineToPlot = vertcat(procDataLineToPlot,real(procData.specs)/Norm,ones(50,1)*nan);
     end
     procDataMarixToPlot(:,y) = procDataLineToPlot;
 end
@@ -130,7 +143,7 @@ else
     out = figure('Visible','off');
 end
 
-yLim = [min(MRSCont.plot.processed.(which_spec).min) max(MRSCont.plot.processed.(which_spec).max)];
+
 shift = abs(yLim(1)) + abs(yLim(2));
 shift = shift/2;
 for y = 1 : YVox
