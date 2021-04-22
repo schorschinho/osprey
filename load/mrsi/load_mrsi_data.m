@@ -169,8 +169,10 @@ for kk = 1:MRSCont.nDatasets
             all_count(dl) = count;
             loc(dl) = this_dl(5) + 1;
             coil(dl) = this_dl(6);
-            kx(dl) = this_dl(9);
-            ky(dl) = this_dl(10);
+%             kx(dl) = this_dl(9);
+%             ky(dl) = this_dl(10);
+            kx(dl) = this_dl(10);
+            ky(dl) = this_dl(9);
             avg(dl) = this_dl(12);
             sign(dl) = this_dl(13);
         end
