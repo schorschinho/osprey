@@ -73,6 +73,6 @@ noisesd=std(real(noise));
 SNR=signal/noisesd;
 
 %For out of volume MRSI 
-if isempty(SNR) || isnan(sum(SNR))
+if isempty(SNR) || isnan(sum(SNR)) || length(SNR) > 1
     SNR = 0;
 end

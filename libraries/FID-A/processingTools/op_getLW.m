@@ -50,7 +50,7 @@ maxRef_index=find(abs(real(Refwindow))==max(abs(real((Refwindow)))));
 maxRef=real(Refwindow(maxRef_index));
 
 % plot(ppmwindow,abs(real(Refwindow)),'.');
-if ~isempty(maxRef) && ~(sum(maxRef) == 0)
+if ~isempty(maxRef) && ~(sum(maxRef) == 0) && ~(length(maxRef) > 1)
     gtHalfMax=find(abs(real(Refwindow)) >= 0.5*abs(maxRef));
 
     FWHM1=abs(ppmwindow(gtHalfMax(1)) - ppmwindow(gtHalfMax(end)));

@@ -52,7 +52,6 @@ lb = 5;
 spec_zfill =2;
 k_zfill = 1;
 seq_type = 'MEGA-PRESS';
-% MRSCont.opts.MoCo = 0;
 
 %%
 % Close any remaining open figures
@@ -403,28 +402,28 @@ for kk = 1:MRSCont.nDatasets
 
             if strcmp(seq_type, 'MEGA-PRESS')
                 
-                if ~MRSCont.opts.MoCo
+                if strcmp(MRSCont.opts.MoCo.target, 'none')
                 % If I don't want to delete k-space data or correct something HZ
-                   k_ph_corr = zeros(size(k_sort,1),size(k_sort,1));  
+                   k_ph_corr = zeros(size(k_sort,1),size(k_sort,2),size(k_sort,5),size(k_sort,6));  
                 
-                else   
-                  
-                
-                [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-                on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-                k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
-                on1_replace_track, off1_replace_track, on2_replace_track, ...
-                off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
+                else if strcmp(MRSCont.opts.MoCo.target, 'full')                                  
+                    [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
+                    ~, ~, ~, ~,...
+                    k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
+                    on1_replace_track, off1_replace_track, on2_replace_track, ...
+                    off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
-                                                                                                                spec_zfill, seq_type, kx_tot, ky_tot);
-                                                                                                            
-%                                 [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-%                 on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-%                 k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
-%                 on1_replace_track, off1_replace_track, on2_replace_track, ...
-%                 off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph_water(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
-%                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
-%                                                                                                                 spec_zfill, seq_type, kx_tot, ky_tot);                                                                                              
+                                                                                                                spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
+                    else                                                                                   
+                        [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
+                        ~, ~, ~, ~,...
+                        k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
+                        on1_replace_track, off1_replace_track, on2_replace_track, ...
+                        off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph_water(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
+                                                                                                                spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
+                                                                                                                spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);                                                                                              
+                   
+                    end     
                    on_replace_track = cat(3, on1_replace_track,on2_replace_track);
                    off_replace_track = cat(3, off1_replace_track,off2_replace_track);
                    replace_track = cat(4,on_replace_track,off_replace_track);
@@ -436,8 +435,7 @@ for kk = 1:MRSCont.nDatasets
                    k_ph_merge_on = cat(3, k_ph_corr_on1,k_ph_corr_on2);
                    k_ph_merge_off = cat(3, k_ph_corr_off1,k_ph_corr_off2);
                    k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
-               
-                
+                               
                 end
                                                                                                                                                                                                                                                                                                                  
             end
@@ -545,47 +543,64 @@ for kk = 1:MRSCont.nDatasets
             k_fft2_off1_off2 = squeeze(sum(k_fft2_off1_off2_phased,3));
 %%
         elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
+            if ~strcmp(MRSCont.opts.MoCo.target, 'none') % Here we are store the non corrected data
+                % For each point in time and coil take the 2D fft
+                sz_k_sort = size(k_sort);
+                k_fft2 = zeros([x_tot,y_tot,sz_k_sort(3:end)]);
+                sz_k_on = size(k_sort_on);
+                k_fft2_wat = zeros([x_tot,y_tot, sz_k_sort(3), sz_k_sort(5:end)]);
+                wat_k_space = zeros([sz_k_on(1:3), sz_k_sort(5:end)]);
 
+                disp('Taking Fourier transforms of non corrected data.')
+                for c_idx = 1:size(k_sort_on,3) % Each coil
+                    wat_peak = squeeze(k_sort(:,:,c_idx,1,:,:));
+                    k_fft2_wat(:,:,c_idx,:,:) = fft2(wat_peak, x_tot,y_tot);
+                    wat_k_space(:,:,c_idx,:,:) = wat_peak.*conj(wat_peak)./abs(wat_peak);
+                    for t_idx = 1:size(k_sort_on, 4) % Each point in time
+                        k_fft2(:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort(:,:,c_idx,t_idx,:,:)),x_tot,y_tot); % zerofill k-space
+                    end
+                end
+
+                % Phase each coil before summing over the channels.
+                k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 1024]);
+                k_fft2_wat = permute(k_fft2_wat,[1 2 3 6 4 5]);
+
+
+                if ~MRSCont.flags.hasWater
+                    k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
+                else
+                    k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
+                    k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));
+                end
+
+                k_fft2_no_MoCo = squeeze(sum(k_fft2_phased,3));
+                
+            end
             % For each point in time and coil take the 2D fft
             sz_k_sort = size(k_sort);
-
             k_fft2 = zeros([x_tot,y_tot,sz_k_sort(3:end)]);
-
             sz_k_on = size(k_sort_on);
             k_fft2_wat = zeros([x_tot,y_tot, sz_k_sort(3), sz_k_sort(5:end)]);
-
-
             wat_k_space = zeros([sz_k_on(1:3), sz_k_sort(5:end)]);
 
 
             % -------------- Motion Correction Phase ------------%
             % Phase correction (for motion) here                 %
-            % ---------------------------------------------------%
-        % % 
+            % ---------------------------------------------------% 
             k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 size(k_sort,3) size(k_sort, 4)]);
-            k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 5 6 3 4]);
-
-        %     
+            k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 5 6 3 4]);  
             k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
 
 
             disp('Taking Fourier transforms.')
             for c_idx = 1:size(k_sort_on,3) % Each coil
                 wat_peak = squeeze(k_sort(:,:,c_idx,1,:,:));
-
                 k_fft2_wat(:,:,c_idx,:,:) = fft2(wat_peak, x_tot,y_tot);
-
                 wat_k_space(:,:,c_idx,:,:) = wat_peak.*conj(wat_peak)./abs(wat_peak);
-
                 for t_idx = 1:size(k_sort_on, 4) % Each point in time
                     k_fft2(:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort(:,:,c_idx,t_idx,:,:)),x_tot,y_tot); % zerofill k-space
                 end
             end
-
-            wat_k_space = squeeze(sum(wat_k_space,3));
-
-
-            %wat_map = squeeze(abs(fftshift(sum(k_fft2_on_wat,3))));
 
             % Phase each coil before summing over the channels.
             k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 1024]);
@@ -595,8 +610,6 @@ for kk = 1:MRSCont.nDatasets
             if ~MRSCont.flags.hasWater
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
             else
-%                 k_fft2_wat_ref = repmat(k_fft2_wat_ref, [1 1 1 1 1 1024]);
-%                 k_fft2_wat_ref = permute(k_fft2_wat_ref,[1 2 3 6 4 5]);
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
                 k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));
             end
@@ -686,8 +699,6 @@ for kk = 1:MRSCont.nDatasets
             k_fft2_off2 = squeeze(sum(k_fft2_off2_phased,4));
         end
  %%       
-
-
         if (strcmp(seq_type, 'HERMES') || strcmp(seq_type, 'HERMES lip sup'))
             on1_on2_spec = fftshift(fft(k_fft2_on1_on2,1024,3));
             on1_off2_spec = fftshift(fft(k_fft2_on1_off2,1024,3));
@@ -702,6 +713,10 @@ for kk = 1:MRSCont.nDatasets
                 if MRSCont.flags.hasWater
                     specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,1024,3));               
                     specs_w(isnan(specs_w)) = 0 + 1i*0;
+                end
+                if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,1024,3));               
+                    specs_no_MoCo(isnan(specs_no_MoCo)) = 0 + 1i*0;
                 end
 
             else
@@ -834,8 +849,6 @@ for kk = 1:MRSCont.nDatasets
 
     %Find the magnetic field strength:
     Bo=Larmor/42.577;
-
-
     %Now create a record of the dimensions of the data array.  
     dims.t=1;
     dims.coils=0;
@@ -852,6 +865,9 @@ for kk = 1:MRSCont.nDatasets
         end
         if subspecs == 2
             specs = permute(spec, [t_dim 4 5 kx_dim ky_dim]);
+            if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                specs_no_MoCo = permute(specs_no_MoCo, [t_dim 4 5 kx_dim ky_dim]);
+            end
         end
         dims.Xvoxels=4;
         dims.Yvoxels=5;
@@ -890,11 +906,20 @@ for kk = 1:MRSCont.nDatasets
 
     
     if mod(size(specs,dims.t),2)==0
-    %disp('Length of vector is even.  Doing normal conversion');
-    fids=ifft(fftshift(specs,dims.t),[],dims.t);
+        %disp('Length of vector is even.  Doing normal conversion');
+        fids=ifft(fftshift(specs,dims.t),[],dims.t);
     else
         %disp('Length of vector is odd.  Doing circshift by 1');
         fids=ifft(circshift(fftshift(specs,dims.t),1),[],dims.t);
+    end
+    if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+         if mod(size(specs_no_MoCo,dims.t),2)==0
+            %disp('Length of vector is even.  Doing normal conversion');
+            fids_no_MoCo=ifft(fftshift(specs_no_MoCo,dims.t),[],dims.t);
+        else
+            %disp('Length of vector is odd.  Doing circshift by 1');
+            fids_no_MoCo=ifft(circshift(fftshift(specs_no_MoCo,dims.t),1),[],dims.t);
+        end
     end
     if MRSCont.flags.hasWater
         if mod(size(specs,dims.t),2)==0
@@ -1052,7 +1077,7 @@ for kk = 1:MRSCont.nDatasets
         out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
     end
     
-    if MRSCont.opts.MoCo
+    if ~strcmp(MRSCont.opts.MoCo.target,'none')
         MRSCont.MoCo{kk}.k_ph_corr = k_ph_corr;  
         MRSCont.MoCo{kk}.replace_track = replace_track;  
         MRSCont.MoCo{kk}.zero_replace_track = zero_replace_track;  
@@ -1060,6 +1085,11 @@ for kk = 1:MRSCont.nDatasets
     end
 
     MRSCont.raw{kk} = out;
+    if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+        out.fids = fids_no_MoCo;
+        out.specs = specs_no_MoCo;
+        MRSCont.raw_no_MoCo{kk} = out;
+    end
     %FOR WATER UNSUPPRESSED DATA
     %FILLING IN DATA STRUCTURE
     if MRSCont.flags.hasWater

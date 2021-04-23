@@ -4,7 +4,7 @@ function [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
     on1_replace_track, off1_replace_track, on2_replace_track, ...
     off2_replace_track, zero_replace_track, k_space_locs, corr_options] = motion_correct_mrsi_full_ph(k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
                                                                                                 on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-                                                                                                spec_zfill, seq_type, kx_tot, ky_tot)
+                                                                                                spec_zfill, seq_type, kx_tot, ky_tot,thresholds)
 % Written by Kimberly Chan
 % Johns Hopkins School of Medicine
 % Last updated 03/28/19
@@ -13,9 +13,10 @@ function [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
 % -------------- %
 % --Thresholds-- %
 % -------------- %
-thresh = 0.8;
-ph_thresh = 0.9;
-last_resort_thresh = 0.6;
+
+thresh = thresholds.thresh;
+ph_thresh = thresholds.ph_thresh;
+last_resort_thresh = thresholds.last_resort_thresh;
 
 k_ph_corr_on1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
 k_ph_corr_on2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
