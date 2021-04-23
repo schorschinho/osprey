@@ -258,9 +258,10 @@ for kk = 1:MRSCont.nDatasets
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
         
-        if MRSCont.opts.L1NormAlign
+        switch MRSCont.opts.SubSpecAlignment
+            case 'L1Norm'
             [raw_A, raw_B]  = osp_editSubSpecAlignLNorm(raw_A, raw_B);
-        else        
+            case 'L2Norm'
             [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);
         end
         
@@ -361,7 +362,7 @@ for kk = 1:MRSCont.nDatasets
         end
         % Calculate some spectral quality metrics here;
         for ss = 1 : length(SubSpec)          
-            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk});       
+            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2));       
             MRSCont.QM.FWHM.(SubSpec{ss})(kk)   = op_getLW(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2)); % in Hz       
             if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w'))
                 MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift_SubSpecAlign + refShift_final;       
