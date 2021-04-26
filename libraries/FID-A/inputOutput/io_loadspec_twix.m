@@ -525,6 +525,14 @@ out.tr=TR/1000;
 out.pointsToLeftshift=leftshift;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
+if isfield(twix_obj.hdr.Config,'Nucleus')
+    out.nucleus = twix_obj.hdr.Config.Nucleus  ;
+end
+if isfield(twix_obj.hdr.Dicom,'SoftwareVersions')
+    out.software = [version ' ' twix_obj.hdr.DicomSoftwareVersions];
+else
+    out.software = version;
+end
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;

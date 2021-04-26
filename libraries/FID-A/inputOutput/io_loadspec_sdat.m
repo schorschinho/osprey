@@ -125,7 +125,12 @@ out.tr=tr;
 out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
-
+if isfield(header,'nucleus')
+    out.nucleus = header.nucleus;
+end
+if isfield(header,'equipment_sw_verions')
+    out.software = ['R ' header.equipment_sw_verions];
+end
 %FILLING IN DATA STRUCUTRE FOR SDAT MRSI
 if isfield(header, 'dim2_pnts')
     out.nXvoxels = header.dim2_pnts;
