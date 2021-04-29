@@ -47,13 +47,21 @@ for kk = 1:length(files)
         case 7
             % If folders, then check that all files in this folder have the
             % same type
-            dirFolder = dir([files{1}]);
+            dirFolder = dir([files{kk}]);
             filesInFolder = dirFolder(~[dirFolder.isdir]);
+            filesInFolder = filesInFolder(~ismember({filesInFolder.name}, {'.','..','.DS_Store'}));
+            hidden = logical(ones(1,length(filesInFolder)));
+            for jj = 1:length(filesInFolder) 
+                if strcmp(filesInFolder(jj).name(1),'.')
+                    hidden(jj) = 0;
+                end
+            end
+            filesInFolder = filesInFolder(hidden);%delete hidden files 
             for rr = 1:length(filesInFolder)
-                [~,~,ext{rr}] = fileparts(filesInFolder(rr).name);
+                [~,~,ext_fold{rr}] = fileparts(filesInFolder(rr).name);
             end
             % If not, throw an error
-            if length(unique(ext)) > 1
+            if length(unique(ext_fold)) > 1
                 retMsg = sprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
                 sprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
             end
@@ -77,7 +85,7 @@ for kk = 1:length(files)
     elseif strcmpi(ext,'.RDA')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'RDA';
-    elseif strcmpi(ext,'.IMA') || strcmpi(ext,'DCM') || strcmpi(ext,'')
+    elseif strcmpi(ext,'.IMA') || strcmpi(ext,'.DCM') || strcmpi(ext,'')
         buffer.vendor{kk}       = 'Siemens';
         buffer.datatype{kk}     = 'DICOM';
     elseif strcmpi(ext,'.DAT')
