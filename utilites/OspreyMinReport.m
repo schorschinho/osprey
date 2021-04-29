@@ -33,7 +33,7 @@ if ~MRSCont.flags.didQuantify
 end
 outputFolder    = MRSCont.outputFolder;
 fid=fopen(fullfile(outputFolder,'SummaryMRSinMRS.md'),'w+');
-fprintf(fid,'\n # Summary following minimum reporting standards in MRS genrated in Osprey');
+fprintf(fid,'\n # Summary following minimum reporting standards in MRS generated in Osprey');
 fprintf(fid,'\n See Lin et al. ''Minimum Reporting Standards for in vivo Magnetic Resonance Spectroscopy (MRSinMRS): Experts'' consensus recommendations. NMR in Biomedicine. 2021;e4484.');
 fprintf(fid,'\n [doi.org/10.1002/nbm.4448](https://doi.org/10.1002/nbm.4448)');
 fprintf(fid,'\n \n');
@@ -71,7 +71,15 @@ fprintf(fid,'|2. Acquisition|  | \n');
 fprintf(fid,'|--|--| \n');
 fprintf(fid,'|a. Pulse sequence | %s| \n', MRSCont.fit.basisSet.seq{1}); % Here we need something for cases without fitting was done
 fprintf(fid,'|b. Volume of interest (VOI) locations | %s| \n', '-');
-fprintf(fid,'|c. Nominal VOI size [mm^3]| %d x %d x %d mm^3| \n', MRSCont.raw{1}.geometry.size.ap,  MRSCont.raw{1}.geometry.size.lr,  MRSCont.raw{1}.geometry.size.cc);
+if isfield(MRSCont.raw{1}, 'geometry')
+    dim_names = fieldnames(MRSCont.raw{1}.geometry.size);
+    dim1 = MRSCont.raw{1}.geometry.size.(dim_names{1});
+    dim2 = MRSCont.raw{1}.geometry.size.(dim_names{2});
+    dim3 = MRSCont.raw{1}.geometry.size.(dim_names{3});
+    fprintf(fid,'|c. Nominal VOI size [mm<sup>3</sup>]| %d x %d x %d mm<sup>3</sup>| \n', dim1,  dim2,  dim3);
+else
+    fprintf(fid,'|c. Nominal VOI size [mm<sup>3</sup>]| - x - x - mm<sup>3</sup>| \n');
+end
 fprintf(fid,'|d. Repetition time (TR), echo time (TE) [ms]| TR %d ms, TE %d ms| \n', MRSCont.raw{1}.tr, MRSCont.raw{1}.te);
 fprintf(fid,'|e. Total number of averages per spectrum <br> i. Number of averaged specra per subspectrum | %d total averages with %d averages per subspectrum| \n', MRSCont.raw{1}.rawAverages,MRSCont.raw{1}.rawAverages/MRSCont.raw{1}.rawSubspecs);
 if MRSCont.flags.isUnEdited
