@@ -225,7 +225,7 @@ classdef OspreyGUI < handle
                     gui.overview.CorrMeas = MRSCont.overview.corr.Meas;
                 end
                 gui.overview.Selected.Corr = 1;
-                gui.overview.Selected.CorrChoice = 3;
+                gui.overview.Selected.CorrChoice = 1;
                 gui.overview.Names.QM = {'SNR','FWHM (ppm)'};
             end
             gui.waitbar.overall = MRSCont.flags.didLoadData+MRSCont.flags.didProcess+MRSCont.flags.didFit+MRSCont.flags.didCoreg+MRSCont.flags.didSeg+MRSCont.flags.didQuantify+MRSCont.flags.didOverview;
