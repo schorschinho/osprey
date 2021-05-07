@@ -93,6 +93,17 @@ end
 
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
+
+if ~MRSCont.flags.didSeg
+    if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
+        delete(MRSCont.coreg.vol_mask{kk}.fname);
+    end
+    if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
+        delete(MRSCont.coreg.vol_image{kk}.fname);
+    end
+end
+
+
 if ~MRSCont.flags.isGUI
     out = figure;
     set(gcf, 'Color', 'w');

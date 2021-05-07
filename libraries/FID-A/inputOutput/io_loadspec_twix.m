@@ -46,6 +46,12 @@ version=twix_obj.image.softwareVersion;
 sqzSize=twix_obj.image.sqzSize; 
 sqzDims=twix_obj.image.sqzDims;
 
+%Check if the tiwx file is from a VE version
+if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'E11')
+    disp('Changed software version to VE.');
+    twix_obj.image.softwareVersion = 've';
+    version=twix_obj.image.softwareVersion;
+end
 
 %find out what sequence, the data were acquired with.  If this is a
 %multi-raid file, then the header may contain multiple instances of
@@ -113,8 +119,8 @@ end
 %25 Oct 2018: Due to a recent change, the VE version of Jamie Near's MEGA-PRESS 
 %sequence also falls into this category. 
 if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequence 
-        (strcmp(version,'vd') && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
-        (strcmp(version,'vd') && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence                                                   
+        ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
+        ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence                                                   
     squeezedData=squeeze(dOut.data);
     if twix_obj.image.NCol>1 && twix_obj.image.NCha>1
         data(:,:,:,1)=squeezedData(:,:,[1:2:end-1]);
@@ -171,19 +177,32 @@ TE = twix_obj.hdr.MeasYaps.alTE{1};  %Franck Lamberton
 TR = twix_obj.hdr.MeasYaps.alTR{1};  %Franck Lamberton
 
 % Extract voxel dimensions
-TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
-TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
-TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
-TwixHeader.PosCor         = twix_obj.hdr.Config.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
-TwixHeader.PosSag         = twix_obj.hdr.Config.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
-TwixHeader.PosTra         = twix_obj.hdr.Config.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
+if (strcmp(version,'vd') || strcmp(version,'vb'))
+    TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
+    TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
+    TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
+    TwixHeader.PosCor         = twix_obj.hdr.Config.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
+    TwixHeader.PosSag         = twix_obj.hdr.Config.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
+    TwixHeader.PosTra         = twix_obj.hdr.Config.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
+    TwixHeader.VoI_InPlaneRot = twix_obj.hdr.Config.VoI_InPlaneRotAngle; % Voxel rotation in plane
+    TwixHeader.NormCor        = twix_obj.hdr.Config.VoI_Normal_Cor; % Coronal component of normal vector of voxel
+    TwixHeader.NormSag        = twix_obj.hdr.Config.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
+    TwixHeader.NormTra        = twix_obj.hdr.Config.VoI_Normal_Tra; % Transversal component of normal vector of voxel
+else
+    TwixHeader.VoI_RoFOV     = twix_obj.hdr.Spice.VoiReadoutFOV; % Voxel size in readout direction [mm]
+    TwixHeader.VoI_PeFOV     = twix_obj.hdr.Spice.VoiPhaseFOV; % Voxel size in phase encoding direction [mm]
+    TwixHeader.VoIThickness  = twix_obj.hdr.Spice.VoiThickness; % Voxel size in slice selection direction [mm]
+    TwixHeader.PosCor         = twix_obj.hdr.Spice.VoiPositionCor; % Coronal coordinate of voxel [mm]
+    TwixHeader.PosSag         = twix_obj.hdr.Spice.VoiPositionSag; % Sagittal coordinate of voxel [mm]
+    TwixHeader.PosTra         = twix_obj.hdr.Spice.VoiPositionTra; % Transversal coordinate of voxel [mm]   
+    TwixHeader.VoI_InPlaneRot = twix_obj.hdr.Spice.VoiInPlaneRot; % Voxel rotation in plane
+    TwixHeader.NormCor        = twix_obj.hdr.Spice.VoiNormalCor; % Coronal component of normal vector of voxel
+    TwixHeader.NormSag        = twix_obj.hdr.Spice.VoiNormalSag; % Sagittal component of normal vector of voxel
+    TwixHeader.NormTra        = twix_obj.hdr.Spice.VoiNormalTra; % Transversal component of normal vector of voxel
+end
 TwixHeader.TablePosSag    = twix_obj.hdr.Dicom.lGlobalTablePosSag; % Sagittal table position [mm]
 TwixHeader.TablePosCor    = twix_obj.hdr.Dicom.lGlobalTablePosCor; % Coronal table position [mm]
 TwixHeader.TablePosTra    = twix_obj.hdr.Dicom.lGlobalTablePosTra; % Transversal table position [mm]
-TwixHeader.VoI_InPlaneRot = twix_obj.hdr.Config.VoI_InPlaneRotAngle; % Voxel rotation in plane
-TwixHeader.NormCor        = twix_obj.hdr.Config.VoI_Normal_Cor; % Coronal component of normal vector of voxel
-TwixHeader.NormSag        = twix_obj.hdr.Config.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
-TwixHeader.NormTra        = twix_obj.hdr.Config.VoI_Normal_Tra; % Transversal component of normal vector of voxel
 % If a parameter is set to zero (e.g. if no voxel rotation is
 % performed), the respective field is left empty in the TWIX file. This
 % case needs to be intercepted. Setting to the minimum possible value.
@@ -397,7 +416,11 @@ dwelltime = twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime{1}*1e-9;  %Franck Lamberto
 spectralwidth=1/dwelltime;
     
 %Get TxFrq
-txfrq=twix_obj.hdr.Meas.Frequency;
+if strcmp(version,'ve')
+    txfrq=twix_obj.hdr.Meas.lFrequency  ;
+else
+    txfrq=twix_obj.hdr.Meas.Frequency;
+end
 
 %Get Date
 %date = getfield(regexp(twix_obj.hdr.MeasYaps.tReferenceImage0, ...
@@ -502,6 +525,14 @@ out.tr=TR/1000;
 out.pointsToLeftshift=leftshift;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
+if isfield(twix_obj.hdr.Config,'Nucleus')
+    out.nucleus = twix_obj.hdr.Config.Nucleus  ;
+end
+if isfield(twix_obj.hdr.Dicom,'SoftwareVersions')
+    out.software = [version ' ' twix_obj.hdr.DicomSoftwareVersions];
+else
+    out.software = version;
+end
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;

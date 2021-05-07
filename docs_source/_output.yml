@@ -1,0 +1,22 @@
+bookdown::gitbook:
+  css: css/style.css
+  config:
+    toc:
+      before: |
+        <li><a href="./">Osprey Documentation</a></li>
+      after: |
+        <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+    edit: https://github.com/schorschinho/osprey/edit/master/%s
+    # download: ["pdf", "epub"]
+bookdown::html_chapters:
+  css: [css/style.css, css/toc.css]
+bookdown::pdf_book:
+  includes:
+  latex_engine: xelatex
+  citation_package: natbib
+  keep_tex: yes
+  template: null
+  pandoc_args: --top-level-division=chapter
+  toc_depth: 3
+  toc_unnumbered: no
+bookdown::epub_book: default

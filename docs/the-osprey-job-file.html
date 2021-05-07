@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 3 The Osprey job file | osprey-documentation.utf8</title>
+  <meta name="description" content="" />
+  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 3 The Osprey job file | osprey-documentation.utf8" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 3 The Osprey job file | osprey-documentation.utf8" />
+  
+  
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="the-osprey-workflow.html"/>
+<link rel="next" href="osprey-gui-tutorial.html"/>
+<script src="libs/header-attrs-2.6/header-attrs.js"></script>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="css/style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Osprey Documentation</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Osprey</a>
+<ul>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#contact-feedback-suggestions"><i class="fa fa-check"></i>Contact, Feedback, Suggestions</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#developers"><i class="fa fa-check"></i>Developers</a></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html#acknowledgements"><i class="fa fa-check"></i>Acknowledgements</a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="getting-started.html"><a href="getting-started.html"><i class="fa fa-check"></i><b>1</b> Getting started</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="getting-started.html"><a href="getting-started.html#system-requirements"><i class="fa fa-check"></i><b>1.1</b> System requirements</a></li>
+<li class="chapter" data-level="1.2" data-path="getting-started.html"><a href="getting-started.html#installing-osprey"><i class="fa fa-check"></i><b>1.2</b> Installing Osprey</a></li>
+<li class="chapter" data-level="1.3" data-path="getting-started.html"><a href="getting-started.html#how-to-organize-your-raw-data"><i class="fa fa-check"></i><b>1.3</b> How to organize your raw data</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="the-osprey-workflow.html"><a href="the-osprey-workflow.html"><i class="fa fa-check"></i><b>2</b> The Osprey Workflow</a></li>
+<li class="chapter" data-level="3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html"><i class="fa fa-check"></i><b>3</b> The Osprey job file</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#example-job-file"><i class="fa fa-check"></i><b>3.1</b> Example job file</a>
+<ul>
+<li class="chapter" data-level="3.1.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#sequence-information"><i class="fa fa-check"></i><b>3.1.1</b> Sequence Information</a></li>
+<li class="chapter" data-level="3.1.2" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#data-handling-and-modeling-options"><i class="fa fa-check"></i><b>3.1.2</b> Data handling and modeling options</a></li>
+<li class="chapter" data-level="3.1.3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-mrs-data-and-structural-imaging-files"><i class="fa fa-check"></i><b>3.1.3</b> Specifying MRS data and structural imaging files</a></li>
+<li class="chapter" data-level="3.1.4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-the-output-folder"><i class="fa fa-check"></i><b>3.1.4</b> 4. Specifying the output folder</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html"><i class="fa fa-check"></i><b>4</b> Osprey GUI tutorial</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#starting-osprey"><i class="fa fa-check"></i><b>4.1</b> Starting Osprey</a></li>
+<li class="chapter" data-level="4.2" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#loading-a-job-file"><i class="fa fa-check"></i><b>4.2</b> Loading a job file</a></li>
+<li class="chapter" data-level="4.3" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#loading-the-raw-mrs-data"><i class="fa fa-check"></i><b>4.3</b> Loading the raw MRS data</a></li>
+<li class="chapter" data-level="4.4" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#processing-the-raw-data"><i class="fa fa-check"></i><b>4.4</b> Processing the raw data</a></li>
+<li class="chapter" data-level="4.5" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#fitting-the-spectra"><i class="fa fa-check"></i><b>4.5</b> Fitting the spectra</a></li>
+<li class="chapter" data-level="4.6" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#co-registering-to-an-anatomical-image"><i class="fa fa-check"></i><b>4.6</b> Co-registering to an anatomical image</a></li>
+<li class="chapter" data-level="4.7" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#segmentation-and-tissue-fraction-calculation"><i class="fa fa-check"></i><b>4.7</b> Segmentation and tissue fraction calculation</a></li>
+<li class="chapter" data-level="4.8" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#quantification"><i class="fa fa-check"></i><b>4.8</b> Quantification</a></li>
+<li class="chapter" data-level="4.9" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#overview"><i class="fa fa-check"></i><b>4.9</b> Overview</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html"><i class="fa fa-check"></i><b>5</b> Osprey basis set tools</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#io_lcmbasis"><i class="fa fa-check"></i><b>5.1</b> io_LCMBasis</a></li>
+<li class="chapter" data-level="5.2" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#fit_makebasis"><i class="fa fa-check"></i><b>5.2</b> fit_makeBasis</a>
+<ul>
+<li class="chapter" data-level="5.2.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#complete-syntax"><i class="fa fa-check"></i><b>5.2.1</b> Complete syntax</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#fit_plotbasis"><i class="fa fa-check"></i><b>5.3</b> fit_plotBasis</a>
+<ul>
+<li class="chapter" data-level="5.3.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#complete-syntax-1"><i class="fa fa-check"></i><b>5.3.1</b> Complete syntax</a></li>
+</ul></li>
+</ul></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"></a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="the-osprey-job-file" class="section level1" number="3">
+<h1><span class="header-section-number">Chapter 3</span> The Osprey job file</h1>
+<p>Every <strong>Osprey</strong> analysis requires the user to provide a job file. The <strong>Osprey</strong> job file is the only direct point of contact between the user and the analysis. It contains paths to MRS data files and structural images, defines processing and modelling options, and determines whether (and where) output files are being saved.</p>
+<p>The job file system ensures that all processing, modeling, and quantification steps are performed in an operator-independent, reproducible way.</p>
+<div id="example-job-file" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Example job file</h2>
+<p>The following collapsible box contains the <a href="https://github.com/schorschinho/osprey/blob/develop/exampledata/sdat/jobSDAT.m">example job file <code>jobSDAT.m</code></a> defining a batched analysis of the two Philips PRESS (TE = 30 ms) datasets that are included in the <code>exampledata/sdat/</code> directory of the <a href="https://github.com/schorschinho/osprey"><strong>Osprey</strong> repository</a>. You can click on the dropdown arrow on the right to take a look through the file, and then read on for a detailed description of each job file item.</p>
+<p>Example job file <code>jobSDAT.m</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb6-1"><a href="the-osprey-job-file.html#cb6-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">%% jobSDAT.m</span></span>
+<span id="cb6-2"><a href="the-osprey-job-file.html#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   This function describes an Osprey job defined in a MATLAB script.</span></span>
+<span id="cb6-3"><a href="the-osprey-job-file.html#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">%</span></span>
+<span id="cb6-4"><a href="the-osprey-job-file.html#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   A valid Osprey job contains four distinct classes of items:</span></span>
+<span id="cb6-5"><a href="the-osprey-job-file.html#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       1. basic information on the MRS sequence used</span></span>
+<span id="cb6-6"><a href="the-osprey-job-file.html#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       2. several settings for data handling and modeling</span></span>
+<span id="cb6-7"><a href="the-osprey-job-file.html#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       3. a list of MRS (and, optionally, structural imaging) data files</span></span>
+<span id="cb6-8"><a href="the-osprey-job-file.html#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">%          to be loaded</span></span>
+<span id="cb6-9"><a href="the-osprey-job-file.html#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       4. an output folder to store the results and exported files</span></span>
+<span id="cb6-10"><a href="the-osprey-job-file.html#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">%</span></span>
+<span id="cb6-11"><a href="the-osprey-job-file.html#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   The list of MRS and structural imaging files is provided in the form of</span></span>
+<span id="cb6-12"><a href="the-osprey-job-file.html#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   cell arrays. They can simply be provided explicitly, or from a more</span></span>
+<span id="cb6-13"><a href="the-osprey-job-file.html#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   complex script that automatically determines file names from a given</span></span>
+<span id="cb6-14"><a href="the-osprey-job-file.html#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   folder structure.</span></span>
+<span id="cb6-15"><a href="the-osprey-job-file.html#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">%</span></span>
+<span id="cb6-16"><a href="the-osprey-job-file.html#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   Osprey distinguishes between four sets of data:</span></span>
+<span id="cb6-17"><a href="the-osprey-job-file.html#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - metabolite (water-suppressed) data</span></span>
+<span id="cb6-18"><a href="the-osprey-job-file.html#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           (MANDATORY)</span></span>
+<span id="cb6-19"><a href="the-osprey-job-file.html#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           Defined in cell array &quot;files&quot;</span></span>
+<span id="cb6-20"><a href="the-osprey-job-file.html#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - water reference data acquired with the SAME sequence as the</span></span>
+<span id="cb6-21"><a href="the-osprey-job-file.html#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           metabolite data, just without water suppression RF pulses. This</span></span>
+<span id="cb6-22"><a href="the-osprey-job-file.html#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           data is used to determine complex coil combination</span></span>
+<span id="cb6-23"><a href="the-osprey-job-file.html#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           coefficients, and perform eddy current correction.</span></span>
+<span id="cb6-24"><a href="the-osprey-job-file.html#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           (OPTIONAL)</span></span>
+<span id="cb6-25"><a href="the-osprey-job-file.html#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           Defined in cell array &quot;files_ref&quot;</span></span>
+<span id="cb6-26"><a href="the-osprey-job-file.html#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - additional water data used for water-scaled quantification,</span></span>
+<span id="cb6-27"><a href="the-osprey-job-file.html#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           usually from short-TE acquisitions due to reduced T2-weighting</span></span>
+<span id="cb6-28"><a href="the-osprey-job-file.html#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           (OPTIONAL)</span></span>
+<span id="cb6-29"><a href="the-osprey-job-file.html#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           Defined in cell array &quot;files_w&quot;</span></span>
+<span id="cb6-30"><a href="the-osprey-job-file.html#cb6-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - Structural image data used for co-registration and tissue class</span></span>
+<span id="cb6-31"><a href="the-osprey-job-file.html#cb6-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           segmentation (usually a T1 MPRAGE). These files need to be</span></span>
+<span id="cb6-32"><a href="the-osprey-job-file.html#cb6-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           provided in the NIfTI format (*.nii) or, for GE data, as a</span></span>
+<span id="cb6-33"><a href="the-osprey-job-file.html#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           folder containing DICOM Files (*.dcm).</span></span>
+<span id="cb6-34"><a href="the-osprey-job-file.html#cb6-34" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           (OPTIONAL)</span></span>
+<span id="cb6-35"><a href="the-osprey-job-file.html#cb6-35" aria-hidden="true" tabindex="-1"></a>    <span class="co">%           Defined in cell array &quot;files_nii&quot;</span></span>
+<span id="cb6-36"><a href="the-osprey-job-file.html#cb6-36" aria-hidden="true" tabindex="-1"></a>    <span class="co">%</span></span>
+<span id="cb6-37"><a href="the-osprey-job-file.html#cb6-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   Files in the formats</span></span>
+<span id="cb6-38"><a href="the-osprey-job-file.html#cb6-38" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - .7 (GE)</span></span>
+<span id="cb6-39"><a href="the-osprey-job-file.html#cb6-39" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - .SDAT, .DATA/.LIST, .RAW/.SIN/.LAB (Philips)</span></span>
+<span id="cb6-40"><a href="the-osprey-job-file.html#cb6-40" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - .DAT (Siemens)</span></span>
+<span id="cb6-41"><a href="the-osprey-job-file.html#cb6-41" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   usually contain all of the acquired data in a single file per scan. GE</span></span>
+<span id="cb6-42"><a href="the-osprey-job-file.html#cb6-42" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   systems store water reference data in the same .7 file, so there is no</span></span>
+<span id="cb6-43"><a href="the-osprey-job-file.html#cb6-43" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   need to specify it separately under files_ref.</span></span>
+<span id="cb6-44"><a href="the-osprey-job-file.html#cb6-44" aria-hidden="true" tabindex="-1"></a>    <span class="co">%</span></span>
+<span id="cb6-45"><a href="the-osprey-job-file.html#cb6-45" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   Files in the formats</span></span>
+<span id="cb6-46"><a href="the-osprey-job-file.html#cb6-46" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - .DCM (any)</span></span>
+<span id="cb6-47"><a href="the-osprey-job-file.html#cb6-47" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       - .IMA, .RDA (Siemens)</span></span>
+<span id="cb6-48"><a href="the-osprey-job-file.html#cb6-48" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   may contain separate files for each average. Instead of providing</span></span>
+<span id="cb6-49"><a href="the-osprey-job-file.html#cb6-49" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   individual file names, please specify folders. Metabolite data, water</span></span>
+<span id="cb6-50"><a href="the-osprey-job-file.html#cb6-50" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   reference data, and water data need to be located in separate folders.</span></span>
+<span id="cb6-51"><a href="the-osprey-job-file.html#cb6-51" aria-hidden="true" tabindex="-1"></a>    <span class="co">%</span></span>
+<span id="cb6-52"><a href="the-osprey-job-file.html#cb6-52" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   In the example script at hand the MATLAB functions strrep and which are</span></span>
+<span id="cb6-53"><a href="the-osprey-job-file.html#cb6-53" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   used to generate a relative path, which allows you to run the examples</span></span>
+<span id="cb6-54"><a href="the-osprey-job-file.html#cb6-54" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   on your machine directly. To set up your own Osprey job supply the</span></span>
+<span id="cb6-55"><a href="the-osprey-job-file.html#cb6-55" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   specific locations as described above.</span></span>
+<span id="cb6-56"><a href="the-osprey-job-file.html#cb6-56" aria-hidden="true" tabindex="-1"></a>    <span class="co">%</span></span>
+<span id="cb6-57"><a href="the-osprey-job-file.html#cb6-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   AUTHOR:</span></span>
+<span id="cb6-58"><a href="the-osprey-job-file.html#cb6-58" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)</span></span>
+<span id="cb6-59"><a href="the-osprey-job-file.html#cb6-59" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       goeltzs1@jhmi.edu</span></span>
+<span id="cb6-60"><a href="the-osprey-job-file.html#cb6-60" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   </span></span>
+<span id="cb6-61"><a href="the-osprey-job-file.html#cb6-61" aria-hidden="true" tabindex="-1"></a>    <span class="co">%   HISTORY:</span></span>
+<span id="cb6-62"><a href="the-osprey-job-file.html#cb6-62" aria-hidden="true" tabindex="-1"></a>    <span class="co">%       2019-07-15: First version of the code.</span></span>
+<span id="cb6-63"><a href="the-osprey-job-file.html#cb6-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-64"><a href="the-osprey-job-file.html#cb6-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-65"><a href="the-osprey-job-file.html#cb6-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-66"><a href="the-osprey-job-file.html#cb6-66" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span></span>
+<span id="cb6-67"><a href="the-osprey-job-file.html#cb6-67" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%% 1. SPECIFY SEQUENCE INFORMATION %%%</span></span>
+<span id="cb6-68"><a href="the-osprey-job-file.html#cb6-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-69"><a href="the-osprey-job-file.html#cb6-69" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Specify sequence type</span></span>
+<span id="cb6-70"><a href="the-osprey-job-file.html#cb6-70" aria-hidden="true" tabindex="-1"></a>    seqType <span class="op">=</span> <span class="st">&#39;unedited&#39;</span><span class="op">;</span>           <span class="co">% OPTIONS:    - &#39;unedited&#39; (default)</span></span>
+<span id="cb6-71"><a href="the-osprey-job-file.html#cb6-71" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">%             - &#39;MEGA&#39;</span></span>
+<span id="cb6-72"><a href="the-osprey-job-file.html#cb6-72" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">%             - &#39;HERMES&#39;</span></span>
+<span id="cb6-73"><a href="the-osprey-job-file.html#cb6-73" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">%             - &#39;HERCULES&#39;</span></span>
+<span id="cb6-74"><a href="the-osprey-job-file.html#cb6-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-75"><a href="the-osprey-job-file.html#cb6-75" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Specify editing targets</span></span>
+<span id="cb6-76"><a href="the-osprey-job-file.html#cb6-76" aria-hidden="true" tabindex="-1"></a>    editTarget <span class="op">=</span> {<span class="st">&#39;none&#39;</span>}<span class="op">;</span>            <span class="co">% OPTIONS:    - {&#39;none&#39;} (default if &#39;unedited&#39;)</span></span>
+<span id="cb6-77"><a href="the-osprey-job-file.html#cb6-77" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">%             - {&#39;GABA&#39;}, {&#39;GSH&#39;}  (for &#39;MEGA&#39;)</span></span>
+<span id="cb6-78"><a href="the-osprey-job-file.html#cb6-78" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">%             - {&#39;GABA, &#39;GSH}, {&#39;GABA, GSH, EtOH&#39;} (for &#39;HERMES&#39;)</span></span>
+<span id="cb6-79"><a href="the-osprey-job-file.html#cb6-79" aria-hidden="true" tabindex="-1"></a>                                    <span class="co">%             - {&#39;HERCULES1&#39;}, {&#39;HERCULES2&#39;} (for &#39;HERCULES&#39;)</span></span>
+<span id="cb6-80"><a href="the-osprey-job-file.html#cb6-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-81"><a href="the-osprey-job-file.html#cb6-81" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span></span>
+<span id="cb6-82"><a href="the-osprey-job-file.html#cb6-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-83"><a href="the-osprey-job-file.html#cb6-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-84"><a href="the-osprey-job-file.html#cb6-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-85"><a href="the-osprey-job-file.html#cb6-85" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span></span>
+<span id="cb6-86"><a href="the-osprey-job-file.html#cb6-86" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%</span></span>
+<span id="cb6-87"><a href="the-osprey-job-file.html#cb6-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-88"><a href="the-osprey-job-file.html#cb6-88" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Save LCModel-exportable files for each spectrum?</span></span>
+<span id="cb6-89"><a href="the-osprey-job-file.html#cb6-89" aria-hidden="true" tabindex="-1"></a>    opts.saveLCM                <span class="op">=</span> <span class="fl">1</span><span class="op">;</span>                <span class="co">% OPTIONS:    - 0 (no, default)</span></span>
+<span id="cb6-90"><a href="the-osprey-job-file.html#cb6-90" aria-hidden="true" tabindex="-1"></a>                                                    <span class="co">%             - 1 (yes)</span></span>
+<span id="cb6-91"><a href="the-osprey-job-file.html#cb6-91" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Save jMRUI-exportable files for each spectrum?</span></span>
+<span id="cb6-92"><a href="the-osprey-job-file.html#cb6-92" aria-hidden="true" tabindex="-1"></a>    opts.saveJMRUI              <span class="op">=</span> <span class="fl">1</span><span class="op">;</span>                <span class="co">% OPTIONS:    - 0 (no, default)</span></span>
+<span id="cb6-93"><a href="the-osprey-job-file.html#cb6-93" aria-hidden="true" tabindex="-1"></a>                                                    <span class="co">%             - 1 (yes)</span></span>
+<span id="cb6-94"><a href="the-osprey-job-file.html#cb6-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-95"><a href="the-osprey-job-file.html#cb6-95" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?</span></span>
+<span id="cb6-96"><a href="the-osprey-job-file.html#cb6-96" aria-hidden="true" tabindex="-1"></a>    opts.saveVendor             <span class="op">=</span> <span class="fl">1</span><span class="op">;</span>                <span class="co">% OPTIONS:    - 0 (no, default)</span></span>
+<span id="cb6-97"><a href="the-osprey-job-file.html#cb6-97" aria-hidden="true" tabindex="-1"></a>                                                    <span class="co">%             - 1 (yes)</span></span>
+<span id="cb6-98"><a href="the-osprey-job-file.html#cb6-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-99"><a href="the-osprey-job-file.html#cb6-99" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Choose the fitting algorithm</span></span>
+<span id="cb6-100"><a href="the-osprey-job-file.html#cb6-100" aria-hidden="true" tabindex="-1"></a>    opts.fit.method             <span class="op">=</span> <span class="st">&#39;Osprey&#39;</span><span class="op">;</span>       <span class="co">% OPTIONS:    - &#39;Osprey&#39; (default)</span></span>
+<span id="cb6-101"><a href="the-osprey-job-file.html#cb6-101" aria-hidden="true" tabindex="-1"></a>                                                    <span class="co">%           - &#39;AQSES&#39; (planned)</span></span>
+<span id="cb6-102"><a href="the-osprey-job-file.html#cb6-102" aria-hidden="true" tabindex="-1"></a>                                                    <span class="co">%           - &#39;TARQUIN&#39; (planned)</span></span>
+<span id="cb6-103"><a href="the-osprey-job-file.html#cb6-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-104"><a href="the-osprey-job-file.html#cb6-104" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)</span></span>
+<span id="cb6-105"><a href="the-osprey-job-file.html#cb6-105" aria-hidden="true" tabindex="-1"></a>    <span class="co">% (only available for the Osprey fitting method)</span></span>
+<span id="cb6-106"><a href="the-osprey-job-file.html#cb6-106" aria-hidden="true" tabindex="-1"></a>    opts.fit.style              <span class="op">=</span> <span class="st">&#39;Concatenated&#39;</span><span class="op">;</span>   <span class="co">% OPTIONS:  - &#39;Concatenated&#39; (default) - will fit DIFF and SUM simultaneously)</span></span>
+<span id="cb6-107"><a href="the-osprey-job-file.html#cb6-107" aria-hidden="true" tabindex="-1"></a>                                                    <span class="co">%           - &#39;Separate&#39; - will fit DIFF and OFF separately</span></span>
+<span id="cb6-108"><a href="the-osprey-job-file.html#cb6-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-109"><a href="the-osprey-job-file.html#cb6-109" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Determine fitting range (in ppm) for the metabolite and water spectra</span></span>
+<span id="cb6-110"><a href="the-osprey-job-file.html#cb6-110" aria-hidden="true" tabindex="-1"></a>    opts.fit.range              <span class="op">=</span> [<span class="fl">0.2</span> <span class="fl">4.2</span>]<span class="op">;</span>        <span class="co">% [ppm] Default: [0.2 4.2]</span></span>
+<span id="cb6-111"><a href="the-osprey-job-file.html#cb6-111" aria-hidden="true" tabindex="-1"></a>    opts.fit.rangeWater         <span class="op">=</span> [<span class="fl">2.0</span> <span class="fl">7.4</span>]<span class="op">;</span>        <span class="co">% [ppm] Default: [2.0 7.4]</span></span>
+<span id="cb6-112"><a href="the-osprey-job-file.html#cb6-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-113"><a href="the-osprey-job-file.html#cb6-113" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Determine the baseline knot spacing (in ppm) for the metabolite spectra</span></span>
+<span id="cb6-114"><a href="the-osprey-job-file.html#cb6-114" aria-hidden="true" tabindex="-1"></a>    opts.fit.bLineKnotSpace     <span class="op">=</span> <span class="fl">0.4</span><span class="op">;</span>              <span class="co">% [ppm] Default: 0.4.</span></span>
+<span id="cb6-115"><a href="the-osprey-job-file.html#cb6-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-116"><a href="the-osprey-job-file.html#cb6-116" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Add macromolecule and lipid basis functions to the fit?</span></span>
+<span id="cb6-117"><a href="the-osprey-job-file.html#cb6-117" aria-hidden="true" tabindex="-1"></a>    opts.fit.fitMM              <span class="op">=</span> <span class="fl">1</span><span class="op">;</span>                <span class="co">% OPTIONS:    - 0 (no)</span></span>
+<span id="cb6-118"><a href="the-osprey-job-file.html#cb6-118" aria-hidden="true" tabindex="-1"></a>                                                    <span class="co">%             - 1 (yes, default)</span></span>
+<span id="cb6-119"><a href="the-osprey-job-file.html#cb6-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-120"><a href="the-osprey-job-file.html#cb6-120" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span></span>
+<span id="cb6-121"><a href="the-osprey-job-file.html#cb6-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-122"><a href="the-osprey-job-file.html#cb6-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-123"><a href="the-osprey-job-file.html#cb6-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-124"><a href="the-osprey-job-file.html#cb6-124" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span></span>
+<span id="cb6-125"><a href="the-osprey-job-file.html#cb6-125" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%</span></span>
+<span id="cb6-126"><a href="the-osprey-job-file.html#cb6-126" aria-hidden="true" tabindex="-1"></a>    <span class="co">% When using single-average Siemens RDA or DICOM files, specify their</span></span>
+<span id="cb6-127"><a href="the-osprey-job-file.html#cb6-127" aria-hidden="true" tabindex="-1"></a>    <span class="co">% folders instead of single files!</span></span>
+<span id="cb6-128"><a href="the-osprey-job-file.html#cb6-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-129"><a href="the-osprey-job-file.html#cb6-129" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Specify metabolite data</span></span>
+<span id="cb6-130"><a href="the-osprey-job-file.html#cb6-130" aria-hidden="true" tabindex="-1"></a>    <span class="co">% (MANDATORY)</span></span>
+<span id="cb6-131"><a href="the-osprey-job-file.html#cb6-131" aria-hidden="true" tabindex="-1"></a>    files       <span class="op">=</span> {<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat&#39;</span>)<span class="op">,...</span></span>
+<span id="cb6-132"><a href="the-osprey-job-file.html#cb6-132" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat&#39;</span>)}<span class="op">;</span></span>
+<span id="cb6-133"><a href="the-osprey-job-file.html#cb6-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-134"><a href="the-osprey-job-file.html#cb6-134" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Specify water reference data for eddy-current correction (same sequence as metabolite data!)</span></span>
+<span id="cb6-135"><a href="the-osprey-job-file.html#cb6-135" aria-hidden="true" tabindex="-1"></a>    <span class="co">% (OPTIONAL)</span></span>
+<span id="cb6-136"><a href="the-osprey-job-file.html#cb6-136" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Leave empty for GE P-files (.7) - these include water reference data by</span></span>
+<span id="cb6-137"><a href="the-osprey-job-file.html#cb6-137" aria-hidden="true" tabindex="-1"></a>    <span class="co">% default.</span></span>
+<span id="cb6-138"><a href="the-osprey-job-file.html#cb6-138" aria-hidden="true" tabindex="-1"></a>    files_ref   <span class="op">=</span> {<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat&#39;</span>)<span class="op">,...</span></span>
+<span id="cb6-139"><a href="the-osprey-job-file.html#cb6-139" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat&#39;</span>)}<span class="op">;</span></span>
+<span id="cb6-140"><a href="the-osprey-job-file.html#cb6-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-141"><a href="the-osprey-job-file.html#cb6-141" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Specify water data for quantification (e.g. short-TE water scan)</span></span>
+<span id="cb6-142"><a href="the-osprey-job-file.html#cb6-142" aria-hidden="true" tabindex="-1"></a>    <span class="co">% (OPTIONAL)</span></span>
+<span id="cb6-143"><a href="the-osprey-job-file.html#cb6-143" aria-hidden="true" tabindex="-1"></a>    files_w     <span class="op">=</span> {<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat&#39;</span>)<span class="op">,...</span></span>
+<span id="cb6-144"><a href="the-osprey-job-file.html#cb6-144" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat&#39;</span>)}<span class="op">;</span></span>
+<span id="cb6-145"><a href="the-osprey-job-file.html#cb6-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-146"><a href="the-osprey-job-file.html#cb6-146" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Specify T1-weighted structural imaging data</span></span>
+<span id="cb6-147"><a href="the-osprey-job-file.html#cb6-147" aria-hidden="true" tabindex="-1"></a>    <span class="co">% (OPTIONAL)</span></span>
+<span id="cb6-148"><a href="the-osprey-job-file.html#cb6-148" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Link to single NIfTI (*.nii) files for Siemens and Philips data</span></span>
+<span id="cb6-149"><a href="the-osprey-job-file.html#cb6-149" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Link to DICOM (*.dcm) folders for GE data</span></span>
+<span id="cb6-150"><a href="the-osprey-job-file.html#cb6-150" aria-hidden="true" tabindex="-1"></a>    files_nii   <span class="op">=</span> {<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-01/anat/sub-01_T1w.nii&#39;</span>)<span class="op">,...</span></span>
+<span id="cb6-151"><a href="the-osprey-job-file.html#cb6-151" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-02/anat/sub-02_T1w.nii&#39;</span>)}<span class="op">;</span></span>
+<span id="cb6-152"><a href="the-osprey-job-file.html#cb6-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-153"><a href="the-osprey-job-file.html#cb6-153" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span></span>
+<span id="cb6-154"><a href="the-osprey-job-file.html#cb6-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-155"><a href="the-osprey-job-file.html#cb6-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-156"><a href="the-osprey-job-file.html#cb6-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-157"><a href="the-osprey-job-file.html#cb6-157" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span></span>
+<span id="cb6-158"><a href="the-osprey-job-file.html#cb6-158" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%% 4. SPECIFY OUTPUT FOLDER %%</span></span>
+<span id="cb6-159"><a href="the-osprey-job-file.html#cb6-159" aria-hidden="true" tabindex="-1"></a>    <span class="co">% The Osprey data container will be saved as a *.mat file in the output</span></span>
+<span id="cb6-160"><a href="the-osprey-job-file.html#cb6-160" aria-hidden="true" tabindex="-1"></a>    <span class="co">% folder that you specify below. In addition, any exported files (for use</span></span>
+<span id="cb6-161"><a href="the-osprey-job-file.html#cb6-161" aria-hidden="true" tabindex="-1"></a>    <span class="co">% with jMRUI, TARQUIN, or LCModel) will be saved in sub-folders.</span></span>
+<span id="cb6-162"><a href="the-osprey-job-file.html#cb6-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-163"><a href="the-osprey-job-file.html#cb6-163" aria-hidden="true" tabindex="-1"></a>    <span class="co">% Specify output folder</span></span>
+<span id="cb6-164"><a href="the-osprey-job-file.html#cb6-164" aria-hidden="true" tabindex="-1"></a>    <span class="co">% (MANDATORY)</span></span>
+<span id="cb6-165"><a href="the-osprey-job-file.html#cb6-165" aria-hidden="true" tabindex="-1"></a>    outputFolder <span class="op">=</span> <span class="fu">strrep</span>(<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/jobSDAT.m&#39;</span>)<span class="op">,</span><span class="st">&#39;jobSDAT.m&#39;</span><span class="op">,</span><span class="st">&#39;derivatives&#39;</span>)<span class="op">;</span></span>
+<span id="cb6-166"><a href="the-osprey-job-file.html#cb6-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-167"><a href="the-osprey-job-file.html#cb6-167" aria-hidden="true" tabindex="-1"></a>    <span class="co">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span></span></code></pre></div>
+<div id="sequence-information" class="section level3" number="3.1.1">
+<h3><span class="header-section-number">3.1.1</span> Sequence Information</h3>
+<p>In this section of the job file, you determine basic information on the type of sequence you used.</p>
+<div id="sequence-type" class="section level4" number="3.1.1.1">
+<h4><span class="header-section-number">3.1.1.1</span> Sequence Type</h4>
+
+<div class="rmdnote">
+The <code>seqType</code> variable is a describes the sequence type, and is a required input in the form of a string.
+<code>seqType</code> determines whether the supplied datasets have been acquired with spectral editing experiments.
+</div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb7-1"><a href="the-osprey-job-file.html#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Specify sequence type</span></span>
+<span id="cb7-2"><a href="the-osprey-job-file.html#cb7-2" aria-hidden="true" tabindex="-1"></a>seqType <span class="op">=</span> <span class="st">&#39;unedited&#39;</span><span class="op">;</span>           <span class="co">% OPTIONS:    - &#39;unedited&#39; (default)</span></span>
+<span id="cb7-3"><a href="the-osprey-job-file.html#cb7-3" aria-hidden="true" tabindex="-1"></a>                                <span class="co">%             - &#39;MEGA&#39;</span></span>
+<span id="cb7-4"><a href="the-osprey-job-file.html#cb7-4" aria-hidden="true" tabindex="-1"></a>                                <span class="co">%             - &#39;HERMES&#39;</span></span>
+<span id="cb7-5"><a href="the-osprey-job-file.html#cb7-5" aria-hidden="true" tabindex="-1"></a>                                <span class="co">%             - &#39;HERCULES&#39;</span></span></code></pre></div>
+</div>
+<div id="editing-targets" class="section level4" number="3.1.1.2">
+<h4><span class="header-section-number">3.1.1.2</span> Editing Targets</h4>
+
+<div class="rmdnote">
+The <code>editTarget</code> variable describes the sequence type, and is a required input in the form of a cell array.
+<code>editTarget</code> determines the target spin system(s) of spectral editing experiments. If no spectral editing has been performed, enter <code>{'none'}</code>.
+</div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb8-1"><a href="the-osprey-job-file.html#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Specify editing targets</span></span>
+<span id="cb8-2"><a href="the-osprey-job-file.html#cb8-2" aria-hidden="true" tabindex="-1"></a>editTarget <span class="op">=</span> {<span class="st">&#39;none&#39;</span>}<span class="op">;</span>          <span class="co">% OPTIONS:    - {&#39;none&#39;} (default if &#39;unedited&#39;)</span></span>
+<span id="cb8-3"><a href="the-osprey-job-file.html#cb8-3" aria-hidden="true" tabindex="-1"></a>                                <span class="co">%             - {&#39;GABA&#39;}, {&#39;GSH&#39;}  (for &#39;MEGA&#39;)</span></span>
+<span id="cb8-4"><a href="the-osprey-job-file.html#cb8-4" aria-hidden="true" tabindex="-1"></a>                                <span class="co">%             - {&#39;GABA, &#39;GSH}, {&#39;GABA, GSH, EtOH&#39;} (for &#39;HERMES&#39;)</span></span>
+<span id="cb8-5"><a href="the-osprey-job-file.html#cb8-5" aria-hidden="true" tabindex="-1"></a>                                <span class="co">%             - {&#39;HERCULES1&#39;}, {&#39;HERCULES2&#39;} (for &#39;HERCULES&#39;)</span></span></code></pre></div>
+</div>
+</div>
+<div id="data-handling-and-modeling-options" class="section level3" number="3.1.2">
+<h3><span class="header-section-number">3.1.2</span> Data handling and modeling options</h3>
+<p>In this section of the job file, you provide information on whether you would like to save the processed data in externally usable file formats (for example, if you want to interface your analysis with LCModel), and specify options for the modelling.</p>
+<div id="saving-data-to-external-formats" class="section level4" number="3.1.2.1">
+<h4><span class="header-section-number">3.1.2.1</span> Saving data to external formats</h4>
+
+<div class="rmdnote">
+<p>The <code>opts.save</code> variable set determines whether <strong>Osprey</strong> saves the processed data in formats that can be interfaced with external analysis software.</p>
+By setting <code>opts.saveLCM</code> to <code>1</code>, LCModel-readable <code>.RAW</code> files are produced.
+By setting <code>opts.saveJMRUI</code> to <code>1</code>, jMRUI/Tarquin-readable <code>.TXT</code> files are produced.
+By setting <code>opts.saveVendor</code> to <code>1</code>, single vendor-specific files are created, i.e. <code>.SDAT/.SPAR</code> files for Philips data, and <code>.RDA</code> files for Siemens data, regardless of the raw data format.
+</div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb9-1"><a href="the-osprey-job-file.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Save LCModel-exportable files for each spectrum?</span></span>
+<span id="cb9-2"><a href="the-osprey-job-file.html#cb9-2" aria-hidden="true" tabindex="-1"></a>opts.saveLCM                <span class="op">=</span> <span class="fl">1</span><span class="op">;</span>                <span class="co">% OPTIONS:    - 0 (no, default)</span></span>
+<span id="cb9-3"><a href="the-osprey-job-file.html#cb9-3" aria-hidden="true" tabindex="-1"></a>                                                <span class="co">%             - 1 (yes)</span></span>
+<span id="cb9-4"><a href="the-osprey-job-file.html#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">% Save jMRUI-exportable files for each spectrum?</span></span>
+<span id="cb9-5"><a href="the-osprey-job-file.html#cb9-5" aria-hidden="true" tabindex="-1"></a>opts.saveJMRUI              <span class="op">=</span> <span class="fl">1</span><span class="op">;</span>                <span class="co">% OPTIONS:    - 0 (no, default)</span></span>
+<span id="cb9-6"><a href="the-osprey-job-file.html#cb9-6" aria-hidden="true" tabindex="-1"></a>                                                <span class="co">%             - 1 (yes)</span></span>
+<span id="cb9-7"><a href="the-osprey-job-file.html#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="the-osprey-job-file.html#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">% Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?</span></span>
+<span id="cb9-9"><a href="the-osprey-job-file.html#cb9-9" aria-hidden="true" tabindex="-1"></a>opts.saveVendor             <span class="op">=</span> <span class="fl">1</span><span class="op">;</span>                <span class="co">% OPTIONS:    - 0 (no, default)</span></span>
+<span id="cb9-10"><a href="the-osprey-job-file.html#cb9-10" aria-hidden="true" tabindex="-1"></a>                                                <span class="co">%             - 1 (yes)</span></span></code></pre></div>
+<p>LCModel <code>.RAW</code> files can be loaded via the <code>Other</code> option in the LCModel file type selection menu.</p>
+<p>Please be aware that LCModel may prompt you to enter the number of FID data points (a positive integer number, e.g. <code>2048</code>), dwell time (in seconds, e.g. <code>0.0005</code>), and the static magnetic field strength in MHz (e.g. <code>123.26</code> for a Siemens 2.89 T magnet).</p>
+<p>In addition to the <code>.RAW</code> files, Osprey also creates the corresponding <code>.CONTROL</code> files. These files can be used for LCModel batch processing.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="the-osprey-job-file.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">for</span> <span class="fu">file</span> in /storage/LCModelControlFiles/*<span class="kw">;</span></span>
+<span id="cb10-2"><a href="the-osprey-job-file.html#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">do</span> <span class="ex">/usr/local/.lcmodel/bin/lcmodel</span> <span class="op">&lt;</span> <span class="va">$file</span><span class="kw">;</span></span>
+<span id="cb10-3"><a href="the-osprey-job-file.html#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">done</span> </span></code></pre></div>
+
+<div class="rmdimportant">
+To create working <code>.CONTROL</code> files you have to specify the following mandatory variables in the <code>osp_lcmcontrol_params()</code> function located in the process folder: <code>key</code>, <code>FILBAS</code>, <code>FOLDER</code>, and <code>DOECC</code>.
+</div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="the-osprey-job-file.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">key</span> = 0<span class="kw">;</span> <span class="ex">%Your</span> LCM key goes here</span>
+<span id="cb11-2"><a href="the-osprey-job-file.html#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">FILBAS</span> = <span class="st">&#39;/storage/myBasisSet_30ms_PRESS.BASIS&#39;</span><span class="kw">;</span> <span class="ex">%</span> Location of .BASIS file used in LCModel</span>
+<span id="cb11-3"><a href="the-osprey-job-file.html#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ex">FOLDER</span> = <span class="st">&#39;/storage/LCMoutput&#39;</span><span class="kw">;</span> <span class="ex">%Output</span> folder (Create this on your linux machine first)</span>
+<span id="cb11-4"><a href="the-osprey-job-file.html#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="va">DOECC=</span> <span class="st">&#39;F&#39;</span>; <span class="ex">%</span> No eddy current correction in LCModel as this is already performed in Osprey.</span></code></pre></div>
+
+<div class="rmdnote">
+The other parameters are optional and are described in the <code>osp_lcmcontrol_params()</code> function.
+</div>
+<p>When loading <code>.TXT</code> files with Tarquin, you will probably need to enter the echo time in seconds (e.g. <code>0.03</code> for a <code>TE = 30 ms</code> acquisition).</p>
+<p>The <code>opts.saveVendor</code> switch has been introduced to sidestep these problems with <code>.RAW</code> and <code>.TXT</code> files. LCModel, TARQUIN and jMRUI accept the <code>.SDAT/.SPAR</code> and <code>.RDA</code> file formats, and should be able to read the header information correctly.</p>
+<p>All exported third-party format files are stored in sub-directories of the output folder specified further down in the job file.</p>
+</div>
+<div id="specifying-fitting-options" class="section level4" number="3.1.2.2">
+<h4><span class="header-section-number">3.1.2.2</span> Specifying fitting options</h4>
+
+<div class="rmdnote">
+The <code>opts.fit.method</code> variable set determines the modelling algorithm used to fit the processed spectra.
+Currently, the only available option is the default <strong>Osprey</strong> model. We are planning to implement other algorithms in the future.
+</div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb12-1"><a href="the-osprey-job-file.html#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Choose the fitting algorithm</span></span>
+<span id="cb12-2"><a href="the-osprey-job-file.html#cb12-2" aria-hidden="true" tabindex="-1"></a>opts.fit.method             <span class="op">=</span> <span class="st">&#39;Osprey&#39;</span><span class="op">;</span>       <span class="co">% OPTIONS:  - &#39;Osprey&#39; (default)</span></span>
+<span id="cb12-3"><a href="the-osprey-job-file.html#cb12-3" aria-hidden="true" tabindex="-1"></a>                                              <span class="co">%           - &#39;AQSES&#39; (planned)</span></span>
+<span id="cb12-4"><a href="the-osprey-job-file.html#cb12-4" aria-hidden="true" tabindex="-1"></a>                                              <span class="co">%           - &#39;TARQUIN&#39; (planned)</span></span></code></pre></div>
+
+<div class="rmdnote">
+<p>The <code>opts.fit.style</code> variable set determines how difference-edited data are modeled.</p>
+<p>By setting <code>opts.fit.style</code> to <code>Concatenated</code>, the difference and sum spectra in MEGA, HERMES and HERCULES datasets will be modeled simultaneously, i.e. with common metabolite amplitude parameters across these spectra.</p>
+By setting <code>opts.fit.style</code> to <code>Separate</code>, the difference and edit-OFF spectra in MEGA, HERMES and HERCULES datasets will be modeled independently. In this case, the creatine reference signal will be determined from the edit-OFF spectrum.
+</div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb13-1"><a href="the-osprey-job-file.html#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)</span></span>
+<span id="cb13-2"><a href="the-osprey-job-file.html#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">% (only available for the Osprey fitting method)</span></span>
+<span id="cb13-3"><a href="the-osprey-job-file.html#cb13-3" aria-hidden="true" tabindex="-1"></a>opts.fit.style              <span class="op">=</span> <span class="st">&#39;Concatenated&#39;</span><span class="op">;</span>   <span class="co">% OPTIONS:  - &#39;Concatenated&#39; (default) - will fit DIFF and SUM simultaneously)</span></span>
+<span id="cb13-4"><a href="the-osprey-job-file.html#cb13-4" aria-hidden="true" tabindex="-1"></a>                                                <span class="co">%           - &#39;Separate&#39; - will fit DIFF and OFF separately</span></span></code></pre></div>
+
+<div class="rmdnote">
+The <code>opts.fit.range</code> and <code>opts.fit.rangeWater</code> variables determine the fitting range (in ppm) of the metabolite and water spectra, respectively.
+</div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb14-1"><a href="the-osprey-job-file.html#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Determine fitting range (in ppm) for the metabolite and water spectra</span></span>
+<span id="cb14-2"><a href="the-osprey-job-file.html#cb14-2" aria-hidden="true" tabindex="-1"></a>opts.fit.range              <span class="op">=</span> [<span class="fl">0.2</span> <span class="fl">4.2</span>]<span class="op">;</span>        <span class="co">% [ppm] Default: [0.2 4.2]</span></span>
+<span id="cb14-3"><a href="the-osprey-job-file.html#cb14-3" aria-hidden="true" tabindex="-1"></a>opts.fit.rangeWater         <span class="op">=</span> [<span class="fl">2.0</span> <span class="fl">7.4</span>]<span class="op">;</span>        <span class="co">% [ppm] Default: [2.0 7.4]</span></span></code></pre></div>
+
+<div class="rmdnote">
+<p>The <code>opts.fit.bLineKnotSpace</code> variable determines the spacing (in ppm) between two adjacent knots of the cubic B-spline baseline. This parameter is equivalent to the <code>DKNTMN</code> parameter in LCModel.</p>
+Higher values correspond to a stiffer baseline, while lower values will produce a larger number of spline knots, allowing for greater flexibility of the baseline.
+</div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb15-1"><a href="the-osprey-job-file.html#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Determine the baseline knot spacing (in ppm) for the metabolite spectra</span></span>
+<span id="cb15-2"><a href="the-osprey-job-file.html#cb15-2" aria-hidden="true" tabindex="-1"></a>opts.fit.bLineKnotSpace     <span class="op">=</span> <span class="fl">0.4</span><span class="op">;</span>              <span class="co">% [ppm] Default: 0.4.</span></span></code></pre></div>
+<p>Choosing lower values for the <code>bLineKnotSpace</code> variable will improve the fit quality at the expense of overparametrization of the model. LCModel uses a default knot spacing of <code>DKNTMN = 0.15</code>, i.e. 0.15 ppm, which likely allows too much flexibility. In the absence of baseline regularization in the current stage of the <strong>Osprey</strong> model development, we chose to restrict baseline flexibility by opting for a default value of 0.4 ppm.</p>
+
+<div class="rmdnote">
+<p>The <code>opts.fit.fitMM</code> variable determines whether simulated Gaussian signals representing broad macromolecular and lipid signals are included in the basis set.</p>
+By default, <strong>Osprey</strong> includes these basis functions. If you want to use an experimentally measured MM/lipid basis function, or operate at long echo times where the MM and lipid resonances have decayed, you can set <code>opts.fit.fitMM = 0</code> to exclude them.
+</div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb16-1"><a href="the-osprey-job-file.html#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Add macromolecule and lipid basis functions to the fit?</span></span>
+<span id="cb16-2"><a href="the-osprey-job-file.html#cb16-2" aria-hidden="true" tabindex="-1"></a>opts.fit.fitMM              <span class="op">=</span> <span class="fl">1</span><span class="op">;</span>                <span class="co">% OPTIONS:    - 0 (no)</span></span>
+<span id="cb16-3"><a href="the-osprey-job-file.html#cb16-3" aria-hidden="true" tabindex="-1"></a>                                                <span class="co">%             - 1 (yes, default)</span></span></code></pre></div>
+</div>
+</div>
+<div id="specifying-mrs-data-and-structural-imaging-files" class="section level3" number="3.1.3">
+<h3><span class="header-section-number">3.1.3</span> Specifying MRS data and structural imaging files</h3>
+<p>In this section of the job file, you specify the full paths to the MRS data and structural imaging files that you would like to process and analyze.</p>
+<p><strong>Osprey</strong> is designed for the batch analysis of multiple datasets in one session. Each dataset corresponds to an element of a cell array. The cell arrays for metabolite data, water reference data, short-TE water data, and structural imaging files need to have the same number of elements. For example, if you have MRS data from two voxels in the same subject, you need to enter the path to the <code>.NII</code> structural twice into the <code>files_nii</code> cell array.</p>
+<p>At the current stage of implementation, you can only analyze one type of sequence per job file, i.e. if you have MEGA-PRESS and PRESS data for each subject, you will have to design two separate job files for MEGA-PRESS and PRESS data.</p>
+<div id="metabolite-data" class="section level4" number="3.1.3.1">
+<h4><span class="header-section-number">3.1.3.1</span> Metabolite data</h4>
+
+<div class="rmdnote">
+The <code>files</code> variable is defined as a cell array of full paths to the raw MRS data files containing your metabolite (water-suppressed) data.
+</div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb17-1"><a href="the-osprey-job-file.html#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Specify metabolite data</span></span>
+<span id="cb17-2"><a href="the-osprey-job-file.html#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">% (MANDATORY)</span></span>
+<span id="cb17-3"><a href="the-osprey-job-file.html#cb17-3" aria-hidden="true" tabindex="-1"></a>files       <span class="op">=</span> {<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat&#39;</span>)<span class="op">,...</span></span>
+<span id="cb17-4"><a href="the-osprey-job-file.html#cb17-4" aria-hidden="true" tabindex="-1"></a>               <span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat&#39;</span>)}<span class="op">;</span></span></code></pre></div>
+<p>In the job files in the <code>exampledata</code> folder of the <strong>Osprey</strong> repository, the <code>which</code> function ensures that the paths are correctly defined regardless of where you put your <strong>Osprey</strong> folder. When designing your own job file, you will have to provide the full paths to your raw data, e.g.:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb18-1"><a href="the-osprey-job-file.html#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Specify metabolite data</span></span>
+<span id="cb18-2"><a href="the-osprey-job-file.html#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">% (MANDATORY)</span></span>
+<span id="cb18-3"><a href="the-osprey-job-file.html#cb18-3" aria-hidden="true" tabindex="-1"></a>files       <span class="op">=</span> {<span class="st">&#39;/Users/Georg/Documents/MRSData/study-01/sub-01/mrs/sub-01_press/sub-01_PRESS_35_act.sdat&#39;</span><span class="op">,...</span></span>
+<span id="cb18-4"><a href="the-osprey-job-file.html#cb18-4" aria-hidden="true" tabindex="-1"></a>               <span class="st">&#39;/Users/Georg/Documents/MRSData/study-01/sub-02/mrs/sub-02_press/sub-02_PRESS_35_act.sdat&#39;</span><span class="op">,</span>}<span class="op">;</span></span></code></pre></div>
+<p>Instead of writing out the full paths explicitly, you can also create a procedure that is tailored to your local file organization, as long as you end up with a <code>files</code> cell array containing an element for each file you want to analyze.</p>
+
+<div class="rmdwarning">
+<p>MRS raw data can be exported in DICOM and Siemens RDA format, where each average is saved as a separate <code>.DCM</code> or <code>.RDA</code> file. In this case, you have to enter the full path to the <strong>folder</strong> containing all single-average files belong to <strong>one acquisition</strong>.</p>
+Please refer to the <code>[data organization chapter][how-to-organize-your-raw-data]</code> of this documentation for best practices on creating a useful folder structure for your raw data.
+</div>
+</div>
+<div id="lineshape-reference-data" class="section level4" number="3.1.3.2">
+<h4><span class="header-section-number">3.1.3.2</span> Lineshape reference data</h4>
+
+<div class="rmdnote">
+<p>The <code>files_ref</code> variable is defined as a cell array of full paths to the raw MRS data files to your lineshape (water-unsuppressed) reference data.</p>
+These are an optional input, acquired with the same sequence as the metabolite data, but without water suppression, and used to perform eddy-current correction of the metabolite data.
+</div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb19-1"><a href="the-osprey-job-file.html#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Specify water reference data for eddy-current correction (same sequence as metabolite data!)</span></span>
+<span id="cb19-2"><a href="the-osprey-job-file.html#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">% (OPTIONAL)</span></span>
+<span id="cb19-3"><a href="the-osprey-job-file.html#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">% Leave empty for GE P-files (.7) - these include water reference data by</span></span>
+<span id="cb19-4"><a href="the-osprey-job-file.html#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co">% default.</span></span>
+<span id="cb19-5"><a href="the-osprey-job-file.html#cb19-5" aria-hidden="true" tabindex="-1"></a>files_ref   <span class="op">=</span> {<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat&#39;</span>)<span class="op">,...</span></span>
+<span id="cb19-6"><a href="the-osprey-job-file.html#cb19-6" aria-hidden="true" tabindex="-1"></a>               <span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat&#39;</span>)}<span class="op">;</span></span></code></pre></div>
+<p>If only lineshape reference data are provided, this signal is also used to calculate water-scaled concentration estimates.</p>
+</div>
+<div id="short-te-water-data" class="section level4" number="3.1.3.3">
+<h4><span class="header-section-number">3.1.3.3</span> Short-TE water data</h4>
+
+<div class="rmdnote">
+<p>The <code>files_w</code> variable is defined as a cell array of full paths to the raw MRS data files to short-TE water data.</p>
+These are another optional input, and can be used to derive water-scaled concentration estimates (while lineshape reference data are only used for eddy-current correction). Using short-TE water as the concentration reference standard reduces T2-weighting of the water reference signal (and associated correction errors) compared to long-TE water data.
+</div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb20-1"><a href="the-osprey-job-file.html#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Specify water data for quantification (e.g. short-TE water scan)</span></span>
+<span id="cb20-2"><a href="the-osprey-job-file.html#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">% (OPTIONAL)</span></span>
+<span id="cb20-3"><a href="the-osprey-job-file.html#cb20-3" aria-hidden="true" tabindex="-1"></a>files_w     <span class="op">=</span> {<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-01/mrs/sub-01_press-ref/sub-01_PRESS_35_ref.sdat&#39;</span>)<span class="op">,...</span></span>
+<span id="cb20-4"><a href="the-osprey-job-file.html#cb20-4" aria-hidden="true" tabindex="-1"></a>               <span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-02/mrs/sub-02_press-ref/sub-02_PRESS_35_ref.sdat&#39;</span>)}<span class="op">;</span></span></code></pre></div>
+</div>
+<div id="structural-images" class="section level4" number="3.1.3.4">
+<h4><span class="header-section-number">3.1.3.4</span> Structural images</h4>
+
+<div class="rmdnote">
+<p>The <code>files_nii</code> variable is defined as a cell array of full paths to T1-weighted structural images used for co-registration and segmentation purposes.</p>
+<strong>Osprey</strong> requires NIfTI (<code>.nii</code>) files to be supplied. For GE files, you may also provide the full path to a directory containing the DICOM folders corresponding to the T1 acquisition.
+</div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb21-1"><a href="the-osprey-job-file.html#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Specify T1-weighted structural imaging data</span></span>
+<span id="cb21-2"><a href="the-osprey-job-file.html#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co">% (OPTIONAL)</span></span>
+<span id="cb21-3"><a href="the-osprey-job-file.html#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co">% Link to single NIfTI (.nii) files for Siemens and Philips data</span></span>
+<span id="cb21-4"><a href="the-osprey-job-file.html#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co">% Link to DICOM (.dcm) folders for GE data</span></span>
+<span id="cb21-5"><a href="the-osprey-job-file.html#cb21-5" aria-hidden="true" tabindex="-1"></a>files_nii   <span class="op">=</span> {<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-01/anat/sub-01_T1w.nii&#39;</span>)<span class="op">,...</span></span>
+<span id="cb21-6"><a href="the-osprey-job-file.html#cb21-6" aria-hidden="true" tabindex="-1"></a>               <span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/sub-02/anat/sub-02_T1w.nii&#39;</span>)}<span class="op">;</span></span></code></pre></div>
+<p><strong>Osprey</strong> uses <strong>SPM12</strong> functions to load and process structural images. Please refer to the <a href="/01-getting-started/02-installing-osprey/">installation instructions</a> for information on how to set up SPM12.</p>
+</div>
+</div>
+<div id="specifying-the-output-folder" class="section level3" number="3.1.4">
+<h3><span class="header-section-number">3.1.4</span> 4. Specifying the output folder</h3>
+<p>In this section of the job file, you specify the full paths to an output folder where the <strong>Osprey</strong> data container is saved in <code>.mat</code> format. In addition, any exported files (for use with jMRUI, TARQUIN, or LCModel) will be saved in separate sub-folders of the output folder.</p>
+
+<div class="rmdnote">
+<p>The <code>outputFolder</code> variable specifies a full path to the output folder.</p>
+If the output folder does not exist yet, it will be created.
+</div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb22-1"><a href="the-osprey-job-file.html#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">% Specify output folder</span></span>
+<span id="cb22-2"><a href="the-osprey-job-file.html#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">% (MANDATORY)</span></span>
+<span id="cb22-3"><a href="the-osprey-job-file.html#cb22-3" aria-hidden="true" tabindex="-1"></a>outputFolder <span class="op">=</span> <span class="fu">strrep</span>(<span class="fu">which</span>(<span class="st">&#39;exampledata/sdat/jobSDAT.m&#39;</span>)<span class="op">,</span><span class="st">&#39;jobSDAT.m&#39;</span><span class="op">,</span><span class="st">&#39;derivatives&#39;</span>)<span class="op">;</span></span></code></pre></div>
+<p>In the job files in the <code>example</code> folder of the <strong>Osprey</strong> repository, the <code>which</code> and <code>strrep</code> functions ensures that an output folder <code>derivatives</code> in the folder where the job file <code>jobSDAT</code> resides. When designing your own job file, you will have to provide the full path to your desired output folder.</p>
+<p>Note that <strong>Osprey</strong> detects if the output folder already exists and contains data from a previous analysis. In this case, you will be prompted whether you would like to overwrite the existing output.</p>
+
+</div>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="the-osprey-workflow.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="osprey-gui-tutorial.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/schorschinho/osprey/edit/master/03-jobfiles.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
+</html>

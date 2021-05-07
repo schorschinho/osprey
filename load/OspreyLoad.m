@@ -42,11 +42,9 @@ if ~isempty(MRSCont.files_w)
 end
 
 % Version check and updating log file
-MRSCont.ver.CheckLoad        = '1.0.0 Load';
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckLoad '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-fclose(fileID);
+diary(fullfile(outputFolder, 'LogFile.txt'));
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyLoad',MRSCont.flags.isGUI);
 
 % Determine data types
 [MRSCont, retMsg] = osp_detDataType(MRSCont);
@@ -66,7 +64,7 @@ switch MRSCont.vendor
                 [MRSCont] = osp_LoadDICOM(MRSCont);
             otherwise
                 msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
+                fprintf(msg);
                 error(msg);
         end
     case 'Philips'
@@ -84,7 +82,7 @@ switch MRSCont.vendor
                 %[MRSCont] = osp_LoadRAW(MRSCont);
             otherwise
                 msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
+                fprintf(msg);
                 error(msg);
         end
     case 'GE'
@@ -93,12 +91,12 @@ switch MRSCont.vendor
                 [MRSCont] = osp_LoadP(MRSCont);
             otherwise
                 msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
+                fprintf(msg);
                 error(msg);
         end
     otherwise
         msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
 end
 
@@ -128,8 +126,7 @@ MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad');
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didLoadData           = 1;
-MRSCont.ver.Load             = '1.0.0 Load';
-
+diary off
 
 % Save the output structure to the output folder
 % Determine output folder

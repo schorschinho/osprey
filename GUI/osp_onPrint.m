@@ -35,20 +35,8 @@ function osp_onPrint( ~, ~ ,gui)
     canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
-    switch selectedTab
-        case 1
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
-        case 2
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
-        case 3
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
-        case 4
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
-        case 5
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
-        otherwise
-            Title = '';
-    end
+
+    Title = MRSCont.ver.Osp;
             
     Frame = uix.Panel('Parent',out, 'Padding', 1, 'Title', Title,...
                                  'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -729,39 +717,39 @@ function osp_onPrint( ~, ~ ,gui)
                     if  ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
                         VoxelIndex = 1;
                         if gui.overview.Selected.CorrChoice == 1
-                            fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
-                            outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
+                            switch gui.overview.Selected.Corr
+                                case 1
+                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+                                outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                                case 2
+                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
+                                outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                            end
                         else if gui.overview.Selected.CorrChoice == 2
                             fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab},metab,metab);
                             outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab} '.pdf'];
-                            else
-                                switch gui.overview.Selected.Corr
-                                    case 1
-                                    fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
-                                    outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
-                                    case 2
-                                    fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr});
-                                    outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
-                                end
+                            else                          
+                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr});
+                                outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
                             end
                         end
                     else
                         VoxelIndex = gui.controls.act_x;
                         if gui.overview.Selected.CorrChoice == 1
-                            fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},gui.controls.act_x);
-                            outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
+                            switch gui.overview.Selected.Corr
+                                case 1
+                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x);
+                                outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                                case 2
+                                fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x);
+                                outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
+                            end
                         else if gui.overview.Selected.CorrChoice == 2
                             fig_hold = osp_plotScatter(MRSCont,split_Selection{1},gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab},metab,metab,gui.controls.act_x);
                             outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  MRSCont.quantify.metabs.(split_Selection{1}){gui.overview.Selected.Metab} '.pdf'];
                             else
-                                switch gui.overview.Selected.Corr
-                                    case 1
-                                    fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.SNR.A',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x);
-                                    outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
-                                    case 2
-                                    fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,MRSCont.QM.FWHM.A',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x);
-                                    outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.QM{gui.overview.Selected.Corr} '.pdf'];
-                                end
+                               fig_hold = osp_plotScatter(MRSCont,split_Selection{1},split_Selection{2},metab,gui.overview.CorrMeas{gui.overview.Selected.Corr},gui.overview.Names.Corr{gui.overview.Selected.Corr},gui.controls.act_x);
+                                outputFile  = ['Voxel_' num2str(VoxelIndex) '_' metab '_' split_Selection{1} '_' split_Selection{2} '_'  gui.overview.Names.Corr{gui.overview.Selected.Corr} '.pdf'];
                             end
                         end                        
                     end

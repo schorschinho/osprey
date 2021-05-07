@@ -1,4 +1,4 @@
-function [outMRSCont] = osp_fitMultiVoxel(MRSCont)    
+function [outMRSCont] = osp_fitMultiVoxel(MRSCont)
 fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 metFitTime = tic;
 outMRSCont= MRSCont;
@@ -14,17 +14,17 @@ else if MRSCont.flags.isMRSI == 1
     end
 end
 SubSpecNames = fieldnames(fitMRSCont.processed);
-NoSubSpec = length(fieldnames(fitMRSCont.processed)); 
+NoSubSpec = length(fieldnames(fitMRSCont.processed));
 
 if MRSCont.flags.isPRIAM == 1
     for x = 1 : XVox
-       for ss = 1 : NoSubSpec % Loop over Subspec 
+       for ss = 1 : NoSubSpec % Loop over Subspec
             for kk = 1 :MRSCont.nDatasets
-                    fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},x);                
+                    fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},x);
            end
        end
         for kk = 1 :MRSCont.nDatasets % Loop over scale values
-                    fitMRSCont.fit.scale{kk} =  MRSCont.fit.scale{kk};                
+                    fitMRSCont.fit.scale{kk} =  MRSCont.fit.scale{kk};
         end
         if MRSCont.flags.isUnEdited
             [fitMRSCont] = osp_fitUnEdited(fitMRSCont);
@@ -56,29 +56,28 @@ if MRSCont.flags.isPRIAM == 1
                         outMRSCont.fit = rmfield(outMRSCont.fit, fields{f});
                         outMRSCont.fit.(fields{f}){1} = temp;
                         outMRSCont.fit.(fields{f}){x} = fitMRSCont.fit.(fields{f});
-                    end            
+                    end
                 end
             end
         end
     end
     time = toc(metFitTime);
-    outMRSCont.runtime.FitMet = time;    
+    outMRSCont.runtime.FitMet = time;
 elseif MRSCont.flags.isMRSI == 1
     %Fit center of MRSI first for inital guess parameters
-
    cx = round(XVox/2);
    cy = round(YVox/2);
    cz = round(ZVox/2);
-   
-   for ss = 1 : NoSubSpec % Loop over Subspec 
+
+   for ss = 1 : NoSubSpec % Loop over Subspec
        for kk = 1 :MRSCont.nDatasets
            if ZVox <=1
-               fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[cx,cy]);  
+               fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[cx,cy]);
            else
-               fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[cx,cy,cz]); 
+               fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[cx,cy,cz]);
            end
        end
-   end                       
+   end
     msg = sprintf('\nFitting center voxel (%d, %d, %d) of the MRSI dataset...\n', cx, cy, cz);
     fprintf([reverseStr, msg]);
 
@@ -107,9 +106,9 @@ elseif MRSCont.flags.isMRSI == 1
             temp = outMRSCont.fit.(fields{f});
             outMRSCont.fit = rmfield(outMRSCont.fit, fields{f});
             outMRSCont.fit.(fields{f}){cx,cy,cz} = fitMRSCont.fit.(fields{f});
-        end          
+        end
     end
-    
+
     for z = 1 : ZVox
         for x = 1 : XVox
             for y = 1 : YVox
@@ -119,23 +118,20 @@ elseif MRSCont.flags.isMRSI == 1
                         outMRSCont.fit.(fields{f}){x,y} = outMRSCont.fit.(fields{f}){cx,cy};
                     else  % 3D MRSI data
                         outMRSCont.fit.(fields{f}){x,y,z} = outMRSCont.fit.(fields{f}){cx,cy,cz};
-                    end                          
+                    end
                 end
                 if ~((x == cx) && (y == cy) && (z == cz)) % Do not overwrite the center voxel
-                    outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl)); 
-                    outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j)); 
+                    outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl));
+                    outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j));
                 end
             end
         end
     end
 
-    MRSCont.fit.MRSIfitPriors = fitMRSCont.fit;
-    ph0 = fitMRSCont.fit.results.off.fitParams{kk}.ph0;
-    ph1= fitMRSCont.fit.results.off.fitParams{kk}.ph1;
-    gaussLB = fitMRSCont.fit.results.off.fitParams{kk}.gaussLB;
+   MRSCont.fit.MRSIfitPriors = fitMRSCont.fit;
     % Fit all remaining voxels
-    for z = 1 : ZVox 
-        for nVox = 2 : (XVox * YVox)
+    for z = 1 : ZVox
+        for nVox = 2 : 64
            [x,y] = osp_spiral(nVox);
            x = x+cx;
            y = y+cy;
@@ -150,16 +146,16 @@ elseif MRSCont.flags.isMRSI == 1
 
              try
              if MRSCont.mask{kk}(x,y)
-               for ss = 1 : NoSubSpec % Loop over Subspec 
+               for ss = 1 : NoSubSpec % Loop over Subspec
                    for kk = 1 :MRSCont.nDatasets
                        if ZVox <=1
-                           fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y]);  
+                           fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y]);
                        else
-                           fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y,z]); 
+                           fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y,z]);
                        end
                    end
                end
-                fitMRSCont.fit =  MRSCont.fit.MRSIfitPriors;  %Load prior results into the struct                        
+                fitMRSCont.fit =  MRSCont.fit.MRSIfitPriors;  %Load prior results into the struct
                 if ~((x == cx) && (y == cy) && (z == cz)) % Do not re-analyze the center voxel
                     if MRSCont.flags.isUnEdited
                         [fitMRSCont] = osp_fitUnEdited(fitMRSCont);
@@ -190,7 +186,7 @@ elseif MRSCont.flags.isMRSI == 1
                             outMRSCont.fit.(fields{f}){x,y} = fitMRSCont.fit.(fields{f});
                         else  % 3D MRSI data
                             outMRSCont.fit.(fields{f}){x,y,z} = fitMRSCont.fit.(fields{f});
-                        end          
+                        end
                     end
                 end
              end
@@ -199,7 +195,7 @@ elseif MRSCont.flags.isMRSI == 1
         end
     end
     time = toc(metFitTime);
-    outMRSCont.runtime.FitMet = time;    
+    outMRSCont.runtime.FitMet = time;
     outMRSCont.fit.basisSet = MRSCont.fit.basisSet;
     outMRSCont.fit.scale = MRSCont.fit.scale;
 end

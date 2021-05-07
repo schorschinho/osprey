@@ -29,7 +29,6 @@ function [MRSCont, retMsg] = osp_detDataType(MRSCont)
 
 % Concatenate all data including MM, water and reference scans
 files = MRSCont.files;
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 if isfield(MRSCont, 'files_mm')
     files = [files MRSCont.files_mm];
 end
@@ -48,15 +47,23 @@ for kk = 1:length(files)
         case 7
             % If folders, then check that all files in this folder have the
             % same type
-            dirFolder = dir([files{1}]);
+            dirFolder = dir([files{kk}]);
             filesInFolder = dirFolder(~[dirFolder.isdir]);
+            filesInFolder = filesInFolder(~ismember({filesInFolder.name}, {'.','..','.DS_Store'}));
+            hidden = logical(ones(1,length(filesInFolder)));
+            for jj = 1:length(filesInFolder) 
+                if strcmp(filesInFolder(jj).name(1),'.')
+                    hidden(jj) = 0;
+                end
+            end
+            filesInFolder = filesInFolder(hidden);%delete hidden files 
             for rr = 1:length(filesInFolder)
-                [~,~,ext{rr}] = fileparts(filesInFolder(rr).name);
+                [~,~,ext_fold{rr}] = fileparts(filesInFolder(rr).name);
             end
             % If not, throw an error
-            if length(unique(ext)) > 1
-                retMsg = fprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
-                fprintf(fileID,'Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
+            if length(unique(ext_fold)) > 1
+                retMsg = sprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
+                sprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
             end
             % If all files have the same extension, pick the first one to
             % determine the format
@@ -66,7 +73,7 @@ for kk = 1:length(files)
             fileToDet = files{kk};
         case 0
             % If it doesn't exist, throw an error
-            fprintf(fileID,'Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
+            sprintf('Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
             error('Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
     end
     % Parse file extension
@@ -95,7 +102,7 @@ for kk = 1:length(files)
         buffer.datatype{kk}     = 'DATA';
     else
         retMsg = 'Unrecognized datatype. Filenames need to end in .7 .SDAT .DATA .RAW .RDA .IMA .DCM or .DAT!';
-        fprintf(fileID,retMsg);
+        fprintf(retMsg);
     end
 end
 
@@ -105,7 +112,7 @@ for pp = 1:length(seq_params)
     unique_params = unique(buffer.(seq_params{pp}));
     if length(unique_params) > 1
         retMsg = 'WARNING! One or more datatypes or vendors are not the same across all input files.';
-        fprintf(fileID,retMsg);
+        sprintf(retMsg);
     else
         MRSCont.(seq_params{pp}) = unique_params{1};
     end
@@ -114,10 +121,7 @@ end
 % Print final success message
 if ~exist('retMsg','var')
     retMsg = sprintf('All provided datafiles are of the %s %s format.', MRSCont.vendor, MRSCont.datatype);
-    fprintf(fileID,'All provided datafiles are of the %s %s format.\n', MRSCont.vendor, MRSCont.datatype);
-end
-if ~MRSCont.flags.isGUI
-    disp(retMsg);
+    sprintf('All provided datafiles are of the %s %s format.\n', MRSCont.vendor, MRSCont.datatype);
 end
 
 end

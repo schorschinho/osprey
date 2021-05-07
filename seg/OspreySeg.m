@@ -30,20 +30,18 @@ function [MRSCont] = OspreySeg(MRSCont)
 %       2019-08-21: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+diary(fullfile(outputFolder, 'LogFile.txt'));
 % Check that OspreyCoreg has been run before
 if ~MRSCont.flags.didCoreg
     msg = 'Trying to segment data, but voxel masks have not been created yet. Run OspreyCoreg first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);
 end
 
 warning('off','all');
 
 % Version, toolbox check and updating log file
-MRSCont.ver.CheckSeg             = '1.0.0 Seg';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckSeg '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-[~] = osp_Toolbox_Check ('OspreySeg',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreySeg',MRSCont.flags.isGUI);
 
 % Set up SPM for batch processing
 spm('defaults','fmri');
@@ -58,20 +56,20 @@ end
 %% Loop over all datasets
 refSegTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
     msg = sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID, [reverseStr, msg]);
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
         drawnow
     end    
     
-    if ((MRSCont.flags.didSeg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'seg') && (kk > length(MRSCont.seg.tissue.fGM))) || ~isfield(MRSCont.ver, 'Seg') || ~strcmp(MRSCont.ver.Seg,MRSCont.ver.CheckSeg))
+    if ~(MRSCont.flags.didSeg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'seg') && (kk > length(MRSCont.seg.tissue.fGM))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
     
         %%% 1. CHECK WHETHER SEGMENTATION HAS BEEN RUN BEFORE %%%
@@ -91,7 +89,7 @@ for kk = 1:MRSCont.nDatasets
                 niftiFile = fullfile(MRSCont.files_nii{kk}, niftiList.name);
             otherwise
                 msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
+                fprintf(msg);
                 error(msg);                  
         end
 
@@ -267,7 +265,6 @@ for kk = 1:MRSCont.nDatasets
         end
     end 
 end
-fprintf('... done.\n');
 time = toc(refSegTime);
 if MRSCont.flags.isGUI     
     try
@@ -276,9 +273,8 @@ if MRSCont.flags.isGUI
     catch
     end
 end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fprintf('... done.\n Elapsed time %f seconds\n',time);
 MRSCont.runtime.Seg = time;
-fclose(fileID); %close log file
 %% Create table and csv file
 tissueTypes = {'fGM','fWM','fCSF'};
 %Loop over voxels (for DualVoxel)
@@ -292,7 +288,7 @@ end
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didSeg           = 1;
-MRSCont.ver.Seg             = '1.0.0 Seg';
+diary off
 
 % Save the output structure to the output folder
 % Determine output folder

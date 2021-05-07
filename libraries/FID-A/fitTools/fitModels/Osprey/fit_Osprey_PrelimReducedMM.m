@@ -60,7 +60,7 @@ reducedBasisSet     = fit_selectMetabs(basisSet, metabList, fitMM);
 nMets = length(reducedBasisSet.name);
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.2);
+[splineArray]       = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.2);
 nSplines            = size(splineArray,2);
 
 

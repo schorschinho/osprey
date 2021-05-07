@@ -31,20 +31,19 @@ close all;
 %% Get the data (loop over all datasets)
 refLoadTime = tic;
 reverseStr = '';
+fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    fprintf(fileID,[reverseStr, msg]);
+    msg = sprintf('\nLoading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    fprintf([reverseStr, msg]);
     if MRSCont.flags.isGUI        
         set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
     end
     
-    if ((MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~isfield(MRSCont.ver, 'Load') || ~strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad))
+    if ~(MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
         % Read in the raw metabolite data. Since the GE P-file loader needs
         % to know the number of sub-spectra (e.g. from spectral editing), the
         % type of sequence needs to be differentiated here already.
@@ -59,14 +58,12 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.raw_ref_uncomb{kk}  = raw_ref;
     end
 end
-fprintf('... done.\n');
 time = toc(refLoadTime);
 if MRSCont.flags.isGUI        
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-fclose(fileID);
+fprintf('... done.\n Elapsed time %f seconds\n',time);
 % Set flag
 MRSCont.flags.coilsCombined     = 0;
 MRSCont.runtime.Load = time;

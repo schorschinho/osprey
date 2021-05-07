@@ -29,7 +29,7 @@ if MRSCont.flags.isPRIAM == 1
         end
         if MRSCont.flags.isUnEdited
             [procMRSCont] = osp_processUnEdited(procMRSCont);
-        elseif MRSCont.flags.isMEGA           
+        elseif MRSCont.flags.isMEGA
             [procMRSCont] = osp_processMEGA(procMRSCont);
         elseif MRSCont.flags.isHERMES
             [procMRSCont] = osp_processHERMES(procMRSCont);
@@ -40,17 +40,17 @@ if MRSCont.flags.isPRIAM == 1
             msg = 'No flag set for sequence type!';
             fprintf(fileID,msg);
             error(msg);
-        end  
+        end
         if x == 1
             outMRSCont.processed = procMRSCont.processed;
             outMRSCont.runtime.Proc = procMRSCont.runtime.Proc;
             outMRSCont.QM = procMRSCont.QM;
         else
            SubSpecNames = fieldnames(outMRSCont.processed);
-           NoSubSpec = length(fieldnames(outMRSCont.processed)); 
-           for ss = 1 : NoSubSpec % Loop over Subspec 
+           NoSubSpec = length(fieldnames(outMRSCont.processed));
+           for ss = 1 : NoSubSpec % Loop over Subspec
                for kk = 1 :MRSCont.nDatasets
-                    outMRSCont.processed.(SubSpecNames{ss}){kk} = op_addVoxel(outMRSCont.processed.(SubSpecNames{ss}){kk},procMRSCont.processed.(SubSpecNames{ss}){kk},x);                
+                    outMRSCont.processed.(SubSpecNames{ss}){kk} = op_addVoxel(outMRSCont.processed.(SubSpecNames{ss}){kk},procMRSCont.processed.(SubSpecNames{ss}){kk},x);
                end
            end
            outMRSCont.runtime.Proc = outMRSCont.runtime.Proc + procMRSCont.runtime.Proc;
@@ -65,16 +65,16 @@ if MRSCont.flags.isPRIAM == 1
                             outMRSCont = rmfield(outMRSCont, fields{f});
                             outMRSCont.(fields{f}){1} = temp;
                             outMRSCont.(fields{f}){x} = procMRSCont.(fields{f});
-                    end            
+                    end
                 end
             end
         end
-    end    
+    end
 
-elseif MRSCont.flags.isMRSI == 1     
+elseif MRSCont.flags.isMRSI == 1
     for x = 1 : XVox
         for y = 1 : YVox
-            for z = 1 : ZVox 
+            for z = 1 : ZVox
                 for kk = 1 :MRSCont.nDatasets
                     if ZVox <=1
                         procMRSCont.raw{kk} = op_takeVoxel(MRSCont.raw{kk},[x y]);
@@ -125,7 +125,7 @@ elseif MRSCont.flags.isMRSI == 1
                     if ~strcmp(MRSCont.opts.MoCo.target, 'none')
                         [procMRSCont_no_MoCo] = osp_processUnEdited(procMRSCont_no_MoCo);
                     end
-                elseif MRSCont.flags.isMEGA           
+                elseif MRSCont.flags.isMEGA
                     [procMRSCont] = osp_processMEGA(procMRSCont);
                     if ~strcmp(MRSCont.opts.MoCo.target, 'none')
                         [procMRSCont_no_MoCo] = osp_processMEGA(procMRSCont_no_MoCo);
@@ -145,7 +145,7 @@ elseif MRSCont.flags.isMRSI == 1
                     msg = 'No flag set for sequence type!';
                     fprintf(fileID,msg);
                     error(msg);
-                end  
+                end
                 if (x == 1) && (y == 1) && (z == 1)
                     outMRSCont.processed = procMRSCont.processed;
                     outMRSCont.QM = procMRSCont.QM;
@@ -155,8 +155,8 @@ elseif MRSCont.flags.isMRSI == 1
                     end
                 else
                     SubSpecNames = fieldnames(outMRSCont.processed);
-                    NoSubSpec = length(fieldnames(outMRSCont.processed)); 
-                    for ss = 1 : NoSubSpec % Loop over Subspec 
+                    NoSubSpec = length(fieldnames(outMRSCont.processed));
+                    for ss = 1 : NoSubSpec % Loop over Subspec
                         for kk = 1 :MRSCont.nDatasets
                             if ZVox <=1
                                 outMRSCont.processed.(SubSpecNames{ss}){kk} = op_addVoxel(outMRSCont.processed.(SubSpecNames{ss}){kk},procMRSCont.processed.(SubSpecNames{ss}){kk},[x y]);
@@ -196,7 +196,7 @@ elseif MRSCont.flags.isMRSI == 1
                                         outMRSCont.(fields{f}){1,1,1} = temp;
                                         outMRSCont.(fields{f}){x,y,z} = procMRSCont.(fields{f});
                                     end
-                                end %Initial cell aray set up           
+                                end %Initial cell aray set up
                             end %inital struct set up
                             if ~strcmp(MRSCont.opts.MoCo.target, 'none')
                                 if isfield(outMRSCont,fields{f})
@@ -220,7 +220,7 @@ elseif MRSCont.flags.isMRSI == 1
                                             outMRSCont.([fields{f} '_no_MoCo']){1,1,1} = temp;
                                             outMRSCont.([fields{f} '_no_MoCo']){x,y,z} = procMRSCont_no_MoCo.(fields{f});
                                         end
-                                    end %Initial cell aray set up           
+                                    end %Initial cell aray set up
                                 end %inital struct set up
                             end
                         end % Fields in QM struct
@@ -228,5 +228,5 @@ elseif MRSCont.flags.isMRSI == 1
             end %zVox
         end %yVox
     end % xVox
-end %isMRSI  
+end %isMRSI
 end

@@ -51,9 +51,9 @@ basisSet.fids = ifft(fftshift(basisSet.specs,1),[],1);
 t = basisSet.t;
 
 % Create an array of normalized cubic baseline spline basis functions.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
+[splineArray]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
 if length(fitParams.beta_j)>size(splineArray,2)
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
+[splineArray]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
 end
 
 % Apply phasing to the spline basis functions

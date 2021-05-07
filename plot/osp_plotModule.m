@@ -82,22 +82,8 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', colormapfig.Background);
     MRSCont.flags.isGUI = 1;
-    switch Module
-        case 'OspreyLoad'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
-        case 'OspreyProcess'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
-        case 'OspreyFit'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
-        case 'OspreyCoreg'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
-        case 'OspreySeg'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg ' ' MRSCont.ver.Seg]; 
-        case 'OspreyOverview'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
-        otherwise
-            Title = '';
-    end
+
+    Title = MRSCont.ver.Osp;
             
     Frame = uix.Panel('Parent',out, 'Padding', 1, 'Title', Title,...
                                  'FontName', 'Arial', 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground,...
@@ -317,6 +303,13 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
         case 'OspreyFit' %Fit
              outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyFit');
             [~,filename,~]  = fileparts(MRSCont.files{kk});
+            
+            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit 
+                which = which;
+            else %Is concatenated and not water/reference
+                spec = which;
+                which = 'conc';               
+            end
 
             Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
             set(input_figure, 'Heights', [-0.12 -0.88]);
@@ -406,7 +399,11 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
 %%%  5. VISUALIZATION PART OF THIS TAB %%%
 %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotFit(MRSCont, kk,Style,which);
+            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit 
+                temp = osp_plotFit(MRSCont, kk,Style);
+            else %Is concatenated and not water/reference
+                temp = osp_plotFit(MRSCont, kk,Style,1,spec);              
+            end
             ViewAxes = gca();
             set(ViewAxes, 'Parent', Plot );
             close( temp );

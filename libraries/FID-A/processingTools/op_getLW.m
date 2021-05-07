@@ -1,17 +1,17 @@
 % op_getLW.m
 % Jamie Near, McGill University 2014.
-% 
+%
 % USAGE:
 % [FWHM]=op_getLW(in,Refppmmin,Refppmmax,zpfactor);
-% 
+%
 % DESCRIPTION:
-% Estimates the linewidth of a reference peak in the spectrum.  By default, 
+% Estimates the linewidth of a reference peak in the spectrum.  By default,
 % the reference peak is water, between 4.4 and 5.0 ppm.  Two methods are
 % used to estimate the linewidth:  1.  FWHM is measured by simply taking the
 % full width at half max of the reference peak.  2.  The FWHM is measured by
 % fitting the reference peak to a lorentzian lineshape and determine the FWHM of the
 % best fit.  The output FWHM is given by the average of these two measures.
-% 
+%
 % INPUTS:
 % in         = input spectrum in structure format.
 % Refppmmin  = Min of frequency range (ppm) in which to search for reference peak.
@@ -53,9 +53,10 @@ maxRef=real(Refwindow(maxRef_index));
 if ~isempty(maxRef) && ~(sum(maxRef) == 0) && ~(length(maxRef) > 1)
     gtHalfMax=find(abs(real(Refwindow)) >= 0.5*abs(maxRef));
 
-    FWHM1=abs(ppmwindow(gtHalfMax(1)) - ppmwindow(gtHalfMax(end)));
-    FWHM1=FWHM1*(42.577*in.Bo);  %Assumes proton.
+gtHalfMax=find(abs(real(Refwindow)) >= 0.5*abs(maxRef));
 
+FWHM1=abs(ppmwindow(gtHalfMax(1)) - ppmwindow(gtHalfMax(end)));
+FWHM1=FWHM1*(42.577*in.Bo);  %Assumes proton.
 
 
 %METHOD 2:  FIT WATER PEAK TO DETERMINE FWHM PARAM
@@ -68,15 +69,15 @@ while sat=='n'
     parsGuess(3)=waterFreq; %FREQUENCY
     parsGuess(4)=0; %Baseline Offset
     parsGuess(5)=0; %Phase
-    
+
     yGuess=op_lorentz(parsGuess,ppmwindow);
     parsFit=nlinfit(ppmwindow,real(Refwindow'),@op_lorentz,parsGuess);
     yFit=op_lorentz(parsFit,ppmwindow);
-    
+
 %     figure;
 %     plot(ppmwindow,Refwindow,'.',ppmwindow,yGuess,':',ppmwindow,yFit);
 %     legend('data','guess','fit');
-%     
+%
     sat='y';
 %     sat=input('are you satisfied with fit? y/n [y] ','s');
 %     if isempty(sat)
@@ -92,8 +93,4 @@ end
 FWHM2=abs(parsFit(2));
 FWHM2=FWHM2*(42.577*in.Bo);  %Assumes Proton.
 
-else
-    FWHM1 = 0;
-    FWHM2 = 0;
-end
-FWHM=mean([FWHM1 FWHM2]);  
+FWHM=mean([FWHM1 FWHM2]);
