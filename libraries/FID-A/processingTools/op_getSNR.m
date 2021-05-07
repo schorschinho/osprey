@@ -1,12 +1,12 @@
 % op_getSNR.m
 % Jamie Near, McGill University 2014.
-% 
+%
 % USAGE:
 % [SNR]=op_getSNR(in,NAAppmmin,NAAppmmax,noiseppmmin,noiseppmmax);
-% 
+%
 % DESCRIPTION:
 % Find the SNR of the NAA peak in a spectrum.
-% 
+%
 % INPUTS:
 % in             = input data in matlab structure format
 % NAAppmmin      = min of frequncy range in which to search for NAA peak.
@@ -38,7 +38,7 @@ if nargin<5
 end
 
 
-%FIRST FIND THE NAA SIGNAL INTENSITY.  USE THE MAX PEAK HEIGHT OF THE 
+%FIRST FIND THE NAA SIGNAL INTENSITY.  USE THE MAX PEAK HEIGHT OF THE
 %MAGNITUDE SPECTRUM INSIDE THE DESIRED SPECTRAL RANGE:
 NAAwindow=in.specs(in.ppm>NAAppmmin & in.ppm<NAAppmmax);
 ppmwindow=in.ppm(in.ppm>NAAppmmin & in.ppm<NAAppmmax);
@@ -72,7 +72,7 @@ noisesd=std(real(noise));
 %SNR=maxNAA/noisesd
 SNR=signal/noisesd;
 
-%For out of volume MRSI 
+%For out of volume MRSI
 if isempty(SNR) || isnan(sum(SNR)) || length(SNR) > 1
     SNR = 0;
 end

@@ -55,7 +55,7 @@ function [fitParamsStep2] = fit_OspreyPrelimStep2MM(dataToFit, resBasisSet, minK
 [EXT2, SDT2, SDSH]  = fit_setExpectValues(dataToFit, resBasisSet);
 
 % Create an array of normalized cubic baseline spline basis functions.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
+[splineArray]       = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
 nSplines            = size(splineArray,2);
 
 

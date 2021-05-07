@@ -328,6 +328,7 @@ fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
 t_hdr_value = fread(fid, image_te, 'integer*4');
 hdr.TE = t_hdr_value(image_te)/1e3;
 hdr.TR = t_hdr_value(image_tr)/1e3;
+hdr.version = rdbm_rev_num;
 
 % Spectro prescan pfiles
 if npoints == 1 && nrows == 1

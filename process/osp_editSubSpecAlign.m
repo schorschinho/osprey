@@ -396,7 +396,5 @@ b = real(fftshift(fft(y2,[],1),1));
 % return difference vector over defined frequency range
 DIFF = a - b;
 out = DIFF(freqLim);
-if isnan(out(1))
-    out(isnan(out)) = 0;
-end
+
 end

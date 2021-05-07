@@ -25,35 +25,17 @@ fids=in1.fids(:,:,:,:,:,:,:,:,:);
 
 %change the dims variables
 dims = in1.dims;
-if length(index)==1 
-    if ~isfield(dims, 'Xvoxels')
-        dims.Xvoxels=length(size(fids));
-    else if dims.Xvoxels == 0
-            dims.Xvoxels=length(size(fids));
-        end
-    end
+if length(index)==1 && ~isfield(dims, 'Xvoxels')
+    dims.Xvoxels=length(size(fids));
 end
-if length(index)==2 
-    if ~isfield(dims, 'Xvoxels')
-        dims.Xvoxels=length(size(fids));
-        dims.Yvoxels=length(size(fids))+1;    
-    else if dims.Xvoxels == 0
-            dims.Xvoxels=length(size(fids));
-            dims.Yvoxels=length(size(fids))+1; 
-        end
-    end
+if length(index)==2 && ~isfield(dims, 'Xvoxels')
+    dims.Xvoxels=length(size(fids));
+    dims.Yvoxels=length(size(fids))+1;    
 end
-if length(index)==3 
-    if ~isfield(dims, 'Xvoxels')
-        dims.Xvoxels=length(size(fids));
-        dims.Yvoxels=length(size(fids))+1;
-        dims.Zvoxels=length(size(fids))+2;    
-    else if dims.Xvoxels == 0
-            dims.Xvoxels=length(size(fids));
-            dims.Yvoxels=length(size(fids))+1;
-            dims.Zvoxels=length(size(fids))+2; 
-        end
-    end        
+if length(index)==3 && ~isfield(dims, 'Xvoxels')
+    dims.Xvoxels=length(size(fids));
+    dims.Yvoxels=length(size(fids))+1;
+    dims.Zvoxels=length(size(fids))+2;    
 end
 
 %PRIAM data

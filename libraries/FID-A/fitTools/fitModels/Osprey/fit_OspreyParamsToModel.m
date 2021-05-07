@@ -66,10 +66,11 @@ refShift    = fitParams.refShift; % Reference shift applied to the data during f
 lineShape = lineShape/sum(lineShape);
 
 % Create an array of normalized cubic baseline spline basis functions.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
+[splineArray]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
 if length(fitParams.beta_j)>size(splineArray,2)
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
+[splineArray]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
 end
+
 %%% 2. APPLY THE NON-LINEAR PARAMETERS %%%
 % Run the time-domain operations on the metabolite basis functions
 % (frequency shift, Lorentzian dampening, Gaussian dampening, zero phase shift)

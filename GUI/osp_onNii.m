@@ -6,7 +6,7 @@ function osp_onNii( ~, ~,gui)
 %   USAGE:
 %       osp_onNii( ~, ~ ,gui);
 %
-%   INPUT:      gui      = gui class containing all handles and the MRSCont
+%   INPUT:      gui      = gui class containing all handles and the MRSCont 
 %
 %   OUTPUT:     Changes in gui parameters and MRSCont are written into the
 %               gui class
@@ -27,7 +27,7 @@ function osp_onNii( ~, ~,gui)
 %
 
     fprintf('Opening external nii viever...\n');
-    MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
+    MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class    
     if  ~((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI))
         if exist(MRSCont.coreg.vol_mask{gui.controls.Selected}.fname, 'file')
             nii_viewer(MRSCont.files_nii{gui.controls.Selected}, MRSCont.coreg.vol_mask{gui.controls.Selected}.fname);
@@ -42,7 +42,7 @@ function osp_onNii( ~, ~,gui)
              nii_viewer(MRSCont.files_nii{gui.controls.Selected}, {[MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, '.gz'],[MRSCont.coreg.vol_mask{gui.controls.Selected}{2}.fname, '.gz']})
             end
         end
-
+        
     end
     fprintf('... done.\n');
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
