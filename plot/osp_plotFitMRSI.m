@@ -97,16 +97,16 @@ end
 
 if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
     fitRangePPM = MRSCont.opts.fit.rangeWater;
-    basisSet    = MRSCont.fit.resBasisSet{1, 1}.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
+    basisSet    = MRSCont.fit.resBasisSet.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
 else if strcmp(which_spec, 'conc')
         fitRangePPM = MRSCont.opts.fit.range;
-        basisSet    = MRSCont.fit.resBasisSet{1, 1}.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
+        basisSet    = MRSCont.fit.resBasisSet.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
     else if strcmp(which_spec, 'off')
             fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet{1, 1}.(which_spec){kk};
+            basisSet    = MRSCont.fit.resBasisSet.(which_spec){kk};
         else
             fitRangePPM = MRSCont.opts.fit.range;
-            basisSet    = MRSCont.fit.resBasisSet{1, 1}.(which_spec){kk};
+            basisSet    = MRSCont.fit.resBasisSet.(which_spec){kk};
         end
     end
 end        
@@ -268,7 +268,7 @@ else
     out = figure('Visible','off');
 end
 
-shift = 0.30;
+shift = 0.075;
 for y = 1 : YVox
     for x = 1 : XVox
         if mask
@@ -330,7 +330,7 @@ end
 if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
-    text(gca, 0, -0.1, [MRSCont.ver.Osp ' ' MRSCont.ver.Pro],'Color', colormap.Foreground);
+    text(gca, 0, -0.1, [MRSCont.ver.Osp],'Color', colormap.Foreground);
     imshow(I, map);
     axis off;
 end

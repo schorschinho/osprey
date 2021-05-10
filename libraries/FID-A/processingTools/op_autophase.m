@@ -64,6 +64,9 @@ ppmindex=find(abs(in_zp.specs(:,dimNum))==max(abs(in_zp.specs(:,dimNum))));
 %now do automatic zero-order phase correction (Use Creatine Peak):
 ph0=-phase(in_zp.specs(ppmindex,dimNum))*180/pi;
 
+if length(ph0) > 1
+    ph0 = ph0(1);
+end
 %Now phase shift the dataset so that the desired peak has the correct phase:
 phShft = ph0 + ph;
 out=op_addphase(in,phShft);
