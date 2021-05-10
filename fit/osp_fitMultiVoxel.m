@@ -1,9 +1,12 @@
 function [outMRSCont] = osp_fitMultiVoxel(MRSCont)
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 metFitTime = tic;
 outMRSCont= MRSCont;
 fitMRSCont = MRSCont;
-reverseStr = '';
+if MRSCont.flags.isGUI
+    progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
+end
 %% Get infos to set up a loop to process all voxels
 if MRSCont.flags.isPRIAM == 1
     XVox = MRSCont.raw{1}.nXvoxels;
@@ -64,10 +67,18 @@ if MRSCont.flags.isPRIAM == 1
     time = toc(metFitTime);
     outMRSCont.runtime.FitMet = time;
 elseif MRSCont.flags.isMRSI == 1
+    vox = 1;
     %Fit center of MRSI first for inital guess parameters
-   cx = round(XVox/2);
-   cy = round(YVox/2);
-   cz = round(ZVox/2);
+    if isfield( MRSCont, 'mask')
+        [r, c] = find(MRSCont.mask{1}== 1);
+        cx = round(mean(r));
+        cy = round(mean(c));
+        cz = round(ZVox/2);
+    else
+       cx = round(XVox/2);
+       cy = round(YVox/2);
+       cz = round(ZVox/2);
+    end
 
    for ss = 1 : NoSubSpec % Loop over Subspec
        for kk = 1 :MRSCont.nDatasets
@@ -78,8 +89,7 @@ elseif MRSCont.flags.isMRSI == 1
            end
        end
    end
-    msg = sprintf('\nFitting center voxel (%d, %d, %d) of the MRSI dataset...\n', cx, cy, cz);
-    fprintf([reverseStr, msg]);
+    fprintf('\nFitting center voxel (%d, %d, %d) of the MRSI dataset...\n', cx, cy, cz);
 
     if MRSCont.flags.isUnEdited
         [fitMRSCont] = osp_fitUnEdited(fitMRSCont);
@@ -131,18 +141,12 @@ elseif MRSCont.flags.isMRSI == 1
    MRSCont.fit.MRSIfitPriors = fitMRSCont.fit;
     % Fit all remaining voxels
     for z = 1 : ZVox
-        for nVox = 2 : 64
+         for nVox = 2 : XVox*YVox
            [x,y] = osp_spiral(nVox);
            x = x+cx;
            y = y+cy;
-           msg = sprintf('\nFitting metabolite spectra from kx %d out of %d total x phase steps...\n', x, XVox);
-            fprintf([reverseStr, msg]);
-            msg = sprintf('\nFitting metabolite spectra from ky  %d out of %d total y phase steps...\n', y, YVox);
-            fprintf([reverseStr, msg]);
-            msg = sprintf('\nFitting metabolite spectra from slice %d out of %d total slices...\n', z, ZVox);
-            fprintf([reverseStr, msg]);
-            msg = sprintf('\nFitting metabolite spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
-            fprintf([reverseStr, msg]);
+           
+            [~] = printLog('OspreyFit',[kk,vox],[MRSCont.nDatasets, XVox*YVox*ZVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
              try
              if MRSCont.mask{kk}(x,y)
@@ -192,6 +196,7 @@ elseif MRSCont.flags.isMRSI == 1
              end
              catch
              end
+             vox = vox+1;
         end
     end
     time = toc(metFitTime);
@@ -199,4 +204,9 @@ elseif MRSCont.flags.isMRSI == 1
     outMRSCont.fit.basisSet = MRSCont.fit.basisSet;
     outMRSCont.fit.scale = MRSCont.fit.scale;
 end
+    time = toc(metFitTime);
+    [~] = printLog('MRSIdone',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+    outMRSCont.runtime.FitMet = time;
+    outMRSCont.fit.basisSet = MRSCont.fit.basisSet;
+    outMRSCont.fit.scale = MRSCont.fit.scale;
 end

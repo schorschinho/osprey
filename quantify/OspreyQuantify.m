@@ -160,19 +160,17 @@ MRSCont = addMetabComb(MRSCont, getResults);
 
 %% Loop over all datasets
 QuantifyTime = tic;
-reverseStr = '';
+if MRSCont.flags.isGUI
+    progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
+end
 fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 end
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, msg]);
-    if MRSCont.flags.isGUI  && isfield(progressText,'String')      
-        set(progressText,'String' ,sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end
+    [~] = printLog('OspreyQuant',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
     metsName = MRSCont.quantify.metabs; % just for the names

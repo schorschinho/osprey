@@ -46,8 +46,8 @@ for this_kx = 1:size(on_spec_k_1,1)
         %disp(sprintf('Eliminating bad k-space points of %d of %d.', count_k, 3*size(on_spec_k_1,2)*size(on_spec_k_1,3)))
         ppm_axis = linspace(-1000,1000,1024*spec_zfill)/128 + 4.68;
         if this_kx == 7 && this_ky == 6
-            this_kx
-            this_ky
+            this_kx;
+            this_ky;
         end
         % Water approximate range
         met_start_wat = find(round(ppm_axis*100)/100 == 4.4);

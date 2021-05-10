@@ -56,6 +56,11 @@ switch fitWhich
         str = 'w';
 end
 
+if MRSCont.flags.isGUI
+    progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
+end
 %%  Construct the basis functions and the spectrum that is to be fit.
 if MRSCont.flags.isPRIAM == 1
     XVox = MRSCont.raw{1}.nXvoxels;
@@ -84,26 +89,37 @@ if MRSCont.flags.isPRIAM == 1
     end
 elseif MRSCont.flags.isMRSI == 1
     fitOpts.isMRSI = 1;
-   reverseStr = '';
-   cx = round(XVox/2);
-   cy = round(YVox/2);
-   cz = round(ZVox/2);
+    if isfield( MRSCont, 'mask')
+        [r, c] = find(MRSCont.mask{1}== 1);
+        cx = round(mean(r));
+        cy = round(mean(c));
+        cz = round(ZVox/2);
+    else
+       cx = round(XVox/2);
+       cy = round(YVox/2);
+       cz = round(ZVox/2);
+    end
+   if ZVox <=1
+        dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},[cx,cy]);  
+    else
+        dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},[cx,cy,cz]); 
+   end
+    dataToFit = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+    [fitParamsWater, resBasisSetWater]  = fit_runFitWater(dataToFit, basisSet, fitModel, fitOpts);
+    if ZVox <=1
+        MRSCont.fit.resBasisSet{cx,cy}.(str).water{kk}      = resBasisSetWater;
+        MRSCont.fit.results{cx,cy}.(str).fitParams{kk}   = fitParamsWater;
+    else  % 3D MRSI data
+        MRSCont.fit.resBasisSet{cx,cy,cz}.(str).water{kk}      = resBasisSetWater;
+        MRSCont.fit.results{cx,cy,cz}.(str).fitParams{kk}   = fitParamsWater;
+    end
+   
     % Fit all voxels
     for z = 1 : ZVox 
-        for nVox = 1 : (XVox * YVox)
-            [x,y] = osp_spiral(nVox);
-            x = x+cx;
-            y = y+cy;
-            msg = sprintf('\nFitting water spectra from kx %d out of %d total x phase steps...\n', x, XVox);
-            fprintf([reverseStr, msg]);
-            msg = sprintf('\nFitting water spectra from ky  %d out of %d total y phase steps...\n', y, YVox);
-            fprintf([reverseStr, msg]);
-            msg = sprintf('\nFitting water spectra from slice %d out of %d total slices...\n', z, ZVox);
-            fprintf([reverseStr, msg]);
-            msg = sprintf('\nFitting water spectra from voxel %d out of %d total voxels...\n', nVox, XVox*YVox*ZVox);
-            fprintf([reverseStr, msg]);
-            try
-                if MRSCont.mask{kk}(x,y)
+        for x = 1 : XVox 
+            for y = 1 : YVox 
+            [~] = printLog('OspreyFitWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+                try
                     for kk = 1 :MRSCont.nDatasets
                         if ZVox <=1
                             dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},[x,y]);  
@@ -123,18 +139,16 @@ elseif MRSCont.flags.isMRSI == 1
                         MRSCont.fit.resBasisSet{x,y,z}.(str).water{kk}      = resBasisSetWater;
                         MRSCont.fit.results{x,y,z}.(str).fitParams{kk}   = fitParamsWater;
                     end
-                else
+
+                catch
                     if ZVox <=1
-                        MRSCont.fit.resBasisSet{x,y}.(str).water{kk}      = MRSCont.fit.resBasisSet{cx,cy}.(str).water{kk};
                         MRSCont.fit.results{x,y}.(str).fitParams{kk}   = MRSCont.fit.results{cx,cy}.(str).fitParams{kk};
                         MRSCont.fit.results{x,y}.(str).fitParams{kk}.ampl = 0;
                     else  % 3D MRSI data
-                        MRSCont.fit.resBasisSet{x,y,z}.(str).water{kk}      = MRSCont.fit.resBasisSet{cx,cy,cz}.(str).water{kk};
                         MRSCont.fit.results{x,y,z}.(str).fitParams{kk}   = MRSCont.fit.results{cx,cy,cz}.(str).fitParams{kk};
                         MRSCont.fit.results{x,y,z}.(str).fitParams{kk}.ampl = 0;
                     end
                 end
-            catch
             end
         end
     end

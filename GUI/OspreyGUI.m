@@ -386,6 +386,11 @@ classdef OspreyGUI < handle
                                     'Parent', gui.layout.controlPanel, 'String',gui.layout.RedFileList(:) , ...
                                     'Value', gui.controls.Selected, 'Interruptible', 'on', 'BusyAction', 'cancel', ...
                                     'ForegroundColor',gui.colormap.Foreground, 'TooltipString', 'Select a file you want to inspect.');
+            if MRSCont.flags.isMRSI
+                gui.layout.MRSILocPanel = uix.Panel('Parent', gui.layout.leftMenu, 'Title', 'Voxel Location','BackgroundColor',gui.colormap.Background);
+                set(gui.layout.MRSILocPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold', 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground);
+                set(gui.layout.leftMenu,'Heights',[-.08,-.3,-0.1,-.2])
+            end                        
         %% Create the display panel tab row
 
             gui.layout.tabs = uix.TabPanel('Parent', gui.layout.mainLayout, 'Padding', 3, 'FontName', 'Arial','Visible','off',...

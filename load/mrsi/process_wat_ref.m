@@ -1,11 +1,11 @@
 function [k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft] = process_wat_ref(this_file, k_zfill, seq_type)
 
-disp('Opening water reference data.')
+fprintf('\nOpening water reference data.');
 
 endian = 'l';
 type = 'float';
 
-disp('Reading scan parameters.')
+disp('Reading water scan parameters.')
 fname_scan_params = [this_file(1:(end-4)),'list'];
 scan_params = textread(fname_scan_params, '%s');
 % Find the data lines and ignore the noise channels.
@@ -17,7 +17,7 @@ offset = str2num(scan_params{data_lines(1) + 20});
 tot_offsets = (str2num(tot_offset_idx{1}) - offset)/8192 + 1; % All offsets divided by 8192 bytes.
 
 
-disp('Reading data.')
+disp('Reading water data.')
 fp=fopen(this_file, 'rb', endian);
 
 fseek(fp, offset, -1); % Start reading from the offset

@@ -41,7 +41,7 @@ try
 catch
    progressText = [];
 end
-fileID = fopen(fullfile(fitOpts.outputFolder, 'LogFile.txt'),'a+');
+
 
 dataToFit               = op_zeropad(dataToFit, 2);
 % Resample basis set to match data resolution and frequency range
@@ -59,8 +59,7 @@ minKnotSpacingPPM       = fitOpts.bLineKnotSpace; % this is the DKNTMN parameter
 % Determine initial coarse frequency shift from cross-correlation with
 % landmark delta functions for NAA, Cr, Cho.
 if ~isfield(dataToFit,'refShift') %NO referenceing so far
-    disp('Running initial referencing...');
-    fprintf(fileID,'Running initial referencing...\n');
+    fprintf('\nRunning initial referencing...');
     if ~isempty(progressText) 
         String = get(progressText,'String');
             set(progressText,'String' ,sprintf([String(1,:) '\nRunning initial referencing...\n']));
@@ -70,8 +69,7 @@ if ~isfield(dataToFit,'refShift') %NO referenceing so far
     % Apply initial referencing shift
     dataToFitRef = op_freqshift(dataToFit, -refShift);
 else %Referencing was performed on another Subspec or the center voxel (MRSI)
-    disp('Initial was performed on another Subspec or the center voxel (MRSI)...');
-    fprintf(fileID,'Initial was performed on another Subspec or the center voxel (MRSI)...\n');
+    fprintf('\nInitial was performed on another Subspec or the center voxel (MRSI)...');
     if ~isempty(progressText) 
         String = get(progressText,'String');
         set(progressText,'String' ,sprintf([String(1,:) '\nInitial was performed on another Subspec or the center voxel (MRSI)...\n']));
@@ -101,8 +99,7 @@ end
 % (Worth exploring in future versions by passing the starting values for
 % the phase corrections as arguments.)
 if ~isfield(fitOpts, 'MRSIpriors')
-    disp('Running preliminary analysis with reduced basis set...');
-    fprintf(fileID,'Running preliminary analysis with reduced basis set...\n');
+    fprintf('\nRunning preliminary analysis with reduced basis set...');
     if ~isempty(progressText) 
         String = get(progressText,'String');
         set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
@@ -110,8 +107,7 @@ if ~isfield(fitOpts, 'MRSIpriors')
     end
     [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
 else
-    disp('Take priors from center voxel...');
-    fprintf(fileID,'Take priors from center voxel...\n');
+    fprintf(fileID,'\nTake priors from center voxel...');
     if ~isempty(progressText) 
         String = get(progressText,'String');
         set(progressText,'String' ,sprintf([String(1,:)  '\nTake priors from center voxel...\n']));
@@ -131,8 +127,7 @@ end
 % In the final step of the preliminary analysis, the full basis set is used
 % with the full LCModel (except for baseline regularization) to obtain
 % the final optimal starting values.
-disp('Running final preliminary analysis step with full basis set...');
-fprintf(fileID,'Running final preliminary analysis step with full basis set...\n');
+fprintf('\nRunning final preliminary analysis step with full basis set...\n');
 if ~isempty(progressText) 
     String = get(progressText,'String');
     set(progressText,'String' ,sprintf([String(1,:)  '\nRunning final preliminary analysis step with full basis set...\n']));

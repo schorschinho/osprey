@@ -45,7 +45,9 @@ function osp_updateQuantifyWindow(gui)
             set(gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(2).Children.Children.Children(4),'String',gui.controls.act_z)
             set(gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(2).Children.Children.Children(5),'String',gui.controls.act_y)
             set(gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(2).Children.Children.Children(6),'String',gui.controls.act_x)
-            gui.Plot.quant = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(1);
+            gui.Plot.quantMainBox = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(1);            
+            gui.Plot.quantHBox = gui.Plot.quantMainBox.Children(1);
+            gui.Plot.quantMRSImap = gui.Plot.quantHBox.Children(1).Children(2);
             gui.InfoText.quant = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(1).Children;
             StatText = ['Metabolite maps and fits of ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style ...
                          '\nSelected subspecs: ' gui.quant.Names.Model{gui.quant.Selected.Model} 'Selected voxel for fit display ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y)];
@@ -115,7 +117,7 @@ function osp_updateQuantifyWindow(gui)
             set( temp, 'Parent', gui.Plot.quant ); %Update table
             set(gui.upperBox.quant.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]); %Update info Title
        else
-           temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y]); %Create figure
+           temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.quant.Names.Model{gui.quant.Selected.Model},[gui.controls.act_x gui.controls.act_y]); %Create figure
            ViewAxes = gca();
            
             delete(gui.Plot.quantHBox.Children(2).Children)
@@ -131,20 +133,39 @@ function osp_updateQuantifyWindow(gui)
             
             nominator = [];
             denominator = [];
-            % Go thrugh the checkbox list
-            for idx = 1: gui.quant.Number.Metabs  
-                    if gui.Plot.quantNodesNominator(idx).Checked
-                       nominator{end+1} =  gui.Plot.quantNodesNominator(idx).Name;
+            % Go through the checkbox list
+            for idx = 1: gui.quant.Number.Model 
+                for idx2 = 1 : length(gui.quant.Names.Metabs.(gui.quant.Names.Model{idx}))
+                    if ~isempty(gui.Plot.MetabNodesNominator{idx,idx2}) 
+                        if gui.Plot.MetabNodesNominator{idx,idx2}.Checked
+                            nominator{end+1} =  gui.Plot.MetabNodesNominator{idx,idx2}.Name;
+                        end
                     end
-                    if gui.Plot.quantNodesDenominator(idx).Checked
-                        denominator{end+1} =  gui.Plot.quantNodesDenominator(idx).Name;
+                    if ~isempty(gui.Plot.MetabNodesDenominator{idx,idx2})
+                        if gui.Plot.MetabNodesDenominator{idx,idx2}.Checked
+                            denominator{end+1} =  gui.Plot.MetabNodesDenominator{idx,idx2}.Name;
+                        end
                     end
+                end
             end
             if isempty(nominator)
                 nominator{1} = 'NAA';
             end
-            
-            temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Style,gui.fit.Style, nominator, denominator);
+            nominator_spec = [];
+            denominator_spec = [];
+            for idx = 1: length(gui.Plot.quantNodesNominator)
+                if gui.Plot.quantNodesNominator{idx}.PartiallyChecked
+                    nominator_spec{end+1} =  gui.Plot.quantNodesNominator{idx}.Name;
+                end
+                if gui.Plot.quantNodesDenominator{idx}.PartiallyChecked
+                    denominator_spec{end+1} =  gui.Plot.quantNodesDenominator{idx}.Name;
+                end
+            end
+            if ~isempty(denominator_spec)
+                temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, nominator_spec{1},denominator_spec{1}, nominator, denominator);
+            else
+                temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, nominator_spec{1},[], nominator, denominator);
+            end
             ViewAxes = gca();
             drawnow
             set( gui.Plot.quantMRSImap.Children, 'ColorData', ViewAxes.ColorData );
