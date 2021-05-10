@@ -244,8 +244,8 @@ else
                                       'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                       'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
             % Creates layout for plotting and data control
-            gui.Plot.quant.MainBox = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background);
-            gui.Plot.quantHBox = uix.HBox('Parent', gui.Plot.quant.MainBox,'BackgroundColor',gui.colormap.Background);
+            gui.Plot.quantMainBox = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background);
+            gui.Plot.quantHBox = uix.HBox('Parent', gui.Plot.quantMainBox,'BackgroundColor',gui.colormap.Background);
             gui.Plot.quantVBox = uix.VBox('Parent', gui.Plot.quantHBox,'BackgroundColor',gui.colormap.Background);
             gui.Plot.quantMRSImap = uix.VBox('Parent', gui.Plot.quantVBox,'BackgroundColor',gui.colormap.Background);
                 
@@ -264,11 +264,15 @@ else
                 set(gui.Plot.quantList,'CheckboxClickedCallback',{@osp_MRSImapListChangedFcn,gui})
                 set(gui.Plot.quantList.Root,'Name','');
                 set(gui.Plot.quantList.Root,'CheckboxVisible',0);
-                gui.Plot.quantNominator = uiw.widget.CheckboxTreeNode('Name','nominator','Parent',gui.Plot.quantList.Root);
-                gui.Plot.quantDenominator = uiw.widget.CheckboxTreeNode('Name','denominator','Parent',gui.Plot.quantList.Root);
-                for idx = 1: gui.quant.Number.Metabs  
-                    gui.Plot.quantNodesNominator(idx) = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Metabs{idx},'Parent',gui.Plot.quantNominator);
-                    gui.Plot.quantNodesDenominator(idx) = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Metabs{idx},'Parent',gui.Plot.quantDenominator);
+                gui.Plot.quantNominator{1} = uiw.widget.CheckboxTreeNode('Name','nominator','Parent',gui.Plot.quantList.Root);
+                gui.Plot.quantDenominator{1} = uiw.widget.CheckboxTreeNode('Name','denominator','Parent',gui.Plot.quantList.Root);
+                for idx = 1: gui.quant.Number.Model 
+                    gui.Plot.quantNodesNominator{idx} = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Model{idx},'Parent',gui.Plot.quantNominator{1});
+                    gui.Plot.quantNodesDenominator{idx} = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Model{idx},'Parent',gui.Plot.quantDenominator{1});
+                    for idx2 = 1 : length(gui.quant.Names.Metabs.(gui.quant.Names.Model{idx}))
+                        gui.Plot.MetabNodesNominator{idx,idx2} = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Metabs.(gui.quant.Names.Model{idx}){idx2},'Parent',gui.Plot.quantNodesNominator{idx});
+                        gui.Plot.MetabNodesDenominator{idx,idx2} = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Metabs.(gui.quant.Names.Model{idx}){idx2},'Parent',gui.Plot.quantNodesDenominator{idx});
+                    end
                 end
                 set( gui.Plot.quantVBox, 'Heights', [-0.7 -0.3]);
 

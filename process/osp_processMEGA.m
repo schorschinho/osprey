@@ -42,19 +42,13 @@ end
 
 %% Loop over all datasets
 refProcessTime = tic;
-reverseStr = '';
-fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end    
+    [~] = printLog('OspreyProcess',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);     
     
     if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp) 
         %%% 1. GET RAW DATA %%%
@@ -342,6 +336,8 @@ for kk = 1:MRSCont.nDatasets
             end
             if ~MRSCont.flags.isMRSI
                 [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            else
+                [raw_w,~]=op_autophase(raw_w,2,2*4.68);
             end
             [raw_w,~]                   = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
             MRSCont.processed.w{kk}     = raw_w;                            % Save back to MRSCont container
@@ -378,11 +374,8 @@ for kk = 1:MRSCont.nDatasets
     end
 end
 time = toc(refProcessTime);
-if MRSCont.flags.isGUI        
-    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-    pause(1);
-end
-fprintf('... done.\n Elapsed time %f seconds\n',time);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+
 
 %%% 11. SET FLAGS %%%
 MRSCont.flags.avgsAligned   = 1;

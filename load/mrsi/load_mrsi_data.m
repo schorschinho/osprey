@@ -1,4 +1,6 @@
-function [off_spec_no_lb,on_spec_no_lb] = load_mrsi_data(FileName, PathName,lb, spec_zfill, k_zfill, seq_type, water_filter, k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft, wat_file)
+function [MRSCont] = load_mrsi_data(MRSCont)
+%[off_spec_no_lb,on_spec_no_lb] = load_mrsi_data(FileName, PathName,lb, spec_zfill, k_zfill, seq_type, water_filter, k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft, wat_file)
+
 %% [off_spec_no_lb,on_spec_no_lb] = load_mrsi_data(MRSCont)
 %   This functions load data/list MRSI data (k-space) and performs motion correction
 %   Motion correciton is based on correlation coefficents between motion
@@ -15,27 +17,27 @@ function [off_spec_no_lb,on_spec_no_lb] = load_mrsi_data(FileName, PathName,lb, 
 %       spec_zfill   = zero filling factor, for Osprey we are exporting
 %       k_zfill      = zero filling facotor for k space
 %       spectra without zero filling
-%       seq_type      = sequence type used in the MRSI acqusiton
+%       seq_type      = sequence type used in the MRSI acqusiton 
 %                       OPTIONS:    - PRESS
 %                                   - Water Reference
 %                                   - SE multislice
 %                                   - water multislice
 %                                   - MEGA-PRESS
-%                                   - MEGA multislice
+%                                   - MEGA multislice 
 %                                   - HERMES
 %                                   - HERMES lip sup
 %       water_filter  = flag for HSVD water removal
 %       k_fft2_wat_ref = no idea what this is
 %       k_fft2_wat_ref_no_k_zfill = no idea what this is
 %       k_sort_b4_2dfft = no idea what this is
-%       wat_file      = water reference scan file
+%       wat_file      = water reference scan file 
 %
 %   OUTPUTS:
 %       [off_spec_no_lb,on_spec_no_lb]     = corrected on and off spectra
 %
 %   AUTHOR:
 %       Dr. Kimberly Chan
-%
+%       
 %       Dr.Helge Zoellner (Johns Hopkins University, 2021-01-01)
 %       hzoelln2@jhmi.edu
 %
@@ -58,26 +60,26 @@ warning('off','all');
 fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 if MRSCont.flags.hasMM %re_mm adding functionality to load MM data
     if ((length(MRSCont.files_mm) == 1) && (MRSCont.nDatasets>1))   %re_mm seems like specificy one MM file for a batch is also an option to plan to accomodate
-        for kk=2:MRSCont.nDatasets %re_mm
+        for kk=2:MRSCont.nDatasets %re_mm 
             MRSCont.files_mm{kk} = MRSCont.files_mm{1}; % re_mm allowable to specify one MM file for the whole batch
-        end %re_mm
-    end   %re_mm
-    if ((length(MRSCont.files_mm) ~= MRSCont.nDatasets) )   %re_mm
-        msg = 'Number of specified MM files does not match number of specified metabolite files.'; %re_mm
+        end %re_mm 
+    end   %re_mm 
+    if ((length(MRSCont.files_mm) ~= MRSCont.nDatasets) )   %re_mm 
+        msg = 'Number of specified MM files does not match number of specified metabolite files.'; %re_mm 
         fprintf(fileID,msg);
         error(msg);
-    end   %re_mm
-end   %re_mm
+    end   %re_mm 
+end   %re_mm 
 if MRSCont.flags.hasRef
     if length(MRSCont.files_ref) ~= MRSCont.nDatasets
-        msg = 'Number of specified reference files does not match number of specified metabolite files.'; %re_mm
+        msg = 'Number of specified reference files does not match number of specified metabolite files.'; %re_mm 
         fprintf(fileID,msg);
         error(msg);
     end
 end
 if MRSCont.flags.hasWater
     if length(MRSCont.files_w) ~= MRSCont.nDatasets
-        msg = 'Number of specified water files does not match number of specified metabolite files.'; %re_mm
+        msg = 'Number of specified water files does not match number of specified metabolite files.'; %re_mm 
         fprintf(fileID,msg);
         error(msg);
     end
@@ -85,27 +87,23 @@ end
 
 %% Get the data (loop over all datasets)
 refLoadTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
-for kk = 1:MRSCont.nDatasets
 
+for kk = 1:MRSCont.nDatasets
+    
     if MRSCont.flags.hasWater
+         [~] = printLog('OspreyLoadWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
         [k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft] = process_wat_ref(MRSCont.files_w{kk}, k_zfill, 'water reference');
     end
-
-    msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    fprintf(fileID,[reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    if MRSCont.flags.isGUI
-        set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-    end
-
+    
+    [~] = printLog('OspreyLoad',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+    
     if ((MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~isfield(MRSCont.ver, 'Load') || ~strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad))
-
+        
         % Read in the raw metabolite data. Since the Philips DATA loader needs
         % to know the number of sub-spectra (e.g. from spectral editing), the
         % type of sequence needs to be differentiated here already.
@@ -114,42 +112,53 @@ for kk = 1:MRSCont.nDatasets
         else
             statFile = [];
         end
-        disp('Opening data.')
+        fprintf('\nOpening data.');
         filename = MRSCont.files{kk};
 
-tic
-disp('Opening data.')
-this_file = [PathName, FileName];
+
+
+        endian = 'l';
+        type = 'float';
+
+        disp('Reading scan parameters.')
+        fname_scan_params = [filename(1:(end-4)),'list'];
+        scan_params = textread(fname_scan_params, '%s');
+        % Find the data lines and ignore the noise channels.
+        data_lines = find(strcmp(scan_params,'STD'));
+        tot_offset_idx = scan_params(data_lines(end) + 20); % last STD + 20 more offsets
+        data_lines = data_lines(3:end); % ignore first 4 STDs.
+        offset = str2num(scan_params{data_lines(1) + 20});
+
+        tot_offsets = (str2num(tot_offset_idx{1}) - offset)/8192 + 1; % All offsets divided by 8192 bytes.
+
+
+        disp('Reading data.')
+        fp=fopen(filename, 'rb', endian);
+
+        fseek(fp, offset, -1); % Start reading from the offset
+
+        data_raw = fread(fp, 2048*tot_offsets, type); % 1024 real points, 2048 complex points
+                                               % size of each floating point. (unsigned
+                                               % integer?
+        data=data_raw(1:2:end,:)+1i*data_raw(2:2:end,:); % Points alternate between real and complex
+        data = reshape(data,[1024, tot_offsets]); % Reshape back to 1024 points by 8384 offsets.
 
 
 
-endian = 'l';
-type = 'float';
-
-disp('Reading scan parameters.')
-fname_scan_params = [this_file(1:(end-4)),'list'];
-scan_params = textread(fname_scan_params, '%s');
-% Find the data lines and ignore the noise channels.
-data_lines = find(strcmp(scan_params,'STD'));
-tot_offset_idx = scan_params(data_lines(end) + 20); % last STD + 20 more offsets
-data_lines = data_lines(3:end); % ignore first 4 STDs.
-offset = str2num(scan_params{data_lines(1) + 20});
-
-tot_offsets = (str2num(tot_offset_idx{1}) - offset)/8192 + 1; % All offsets divided by 8192 bytes.
-
-
-disp('Reading data.')
-fp=fopen(this_file, 'rb', endian);
-
-fseek(fp, offset, -1); % Start reading from the offset
-
-data_raw = fread(fp, 2048*tot_offsets, type); % 1024 real points, 2048 complex points
-                                       % size of each floating point. (unsigned
-                                       % integer?
-data=data_raw(1:2:end,:)+1i*data_raw(2:2:end,:); % Points alternate between real and complex
-data = reshape(data,[1024, tot_offsets]); % Reshape back to 1024 points by 8384 offsets.
-
-
+        coil = zeros(1,length(data_lines - 1));
+        kx = coil;
+        ky = coil;
+        avg = coil;
+        sign = coil;
+        loc = coil;
+        count = 0;
+        all_count = kx;
+        for dl = 1:(length(data_lines))
+            if dl == length(data_lines)
+                this_dl = cellfun(@str2num,{scan_params{(data_lines(dl)+1):(data_lines(dl)+20)}});
+            else
+                this_dl = cellfun(@str2num,{scan_params{(data_lines(dl)+1):(data_lines(dl + 1)-1)}});
+            end
 
             count = count + 1;
             all_count(dl) = count;
@@ -163,14 +172,14 @@ data = reshape(data,[1024, tot_offsets]); % Reshape back to 1024 points by 8384 
             sign(dl) = this_dl(13);
         end
 
-kx_tot = max(kx) - min(kx) + 1;
-ky_tot = max(ky) - min(ky) + 1;
+        kx_tot = max(kx) - min(kx) + 1;
+        ky_tot = max(ky) - min(ky) + 1;
 
         x_tot = k_zfill*kx_tot;
         y_tot = k_zfill*ky_tot;
-
+        
         %Get averages HZ
-        averages = (max(avg) + 1)/2;
+        averages = (max(avg) + 1)/2; 
 
         if (strcmp(seq_type, 'MEGA multislice') || strcmp(seq_type, 'SE multislice'))
             k_sort_on = zeros(max(loc), kx_tot, ky_tot, max(coil) + 1, 1024);
@@ -178,12 +187,17 @@ ky_tot = max(ky) - min(ky) + 1;
             k_sort_on = zeros(kx_tot, ky_tot, max(coil) + 1, 1024);
             k_sort = zeros(kx_tot, ky_tot, max(coil) + 1, 1024,max(avg) + 1);
         end
-
+        
         %Create a struct instead
         count_sort = zeros(size(k_sort,1), size(k_sort,2));
 
+        if (strcmp(seq_type, 'HERMES') || strcmp(seq_type, 'HERMES lip sup'))
+            k_sort_on1_on2 = zeros(kx_tot, ky_tot, max(coil) + 1, 1024);
+            k_sort_on1_off2 = k_sort_on1_on2;
+            k_sort_off1_on2 = k_sort_on1_on2;
+            k_sort_off1_off2 = k_sort_on1_on2;
+        end
 
-disp('Reorganizing k-space locations.')
 
         disp('Reorganizing k-space locations.')
 
@@ -195,12 +209,12 @@ disp('Reorganizing k-space locations.')
         % Rearrange k-space values (so no negative indices)
         for dl = 1:(length(data_lines))
             this_kx = kx(dl) + abs(min(kx)) + 1;
-            this_ky = ky(dl) + abs(min(ky)) + 1;
+            this_ky = ky(dl) + abs(min(ky)) + 1; 
 
             this_avg = avg(dl);
             this_coil = coil(dl);
             this_loc = loc(dl);
-        %
+        %   
             if this_kx ~= last_kx || this_ky ~= last_ky
                 k_count = k_count + 1;
                 last_kx = this_kx;
@@ -209,7 +223,7 @@ disp('Reorganizing k-space locations.')
             end
 
             if strcmp(seq_type, 'MEGA-PRESS')        % MEGA-PRESS
-                k_sort(this_kx, this_ky, this_coil + 1, :,this_avg+1) = data(:,dl);
+                k_sort(this_kx, this_ky, this_coil + 1, :,this_avg+1) = data(:,dl); 
             elseif strcmp(seq_type, 'HERMES')        % HERMES
                 switch this_avg
                     case 0
@@ -228,7 +242,7 @@ disp('Reorganizing k-space locations.')
                     case 1
                        k_sort_off1_off2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
                     case 2
-                       k_sort_on1_on2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
+                       k_sort_on1_on2(this_kx, this_ky, this_coil + 1, :) = data(:,dl); 
                     case 3
                        k_sort_off1_on2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
                 end
@@ -252,14 +266,14 @@ disp('Reorganizing k-space locations.')
                     case 3
                         k_sort_off2(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
                 end
-            elseif strcmp(seq_type, 'SE multislice')        % SE Multislice, default is 3 slices
+            elseif strcmp(seq_type, 'SE multislice')        % SE Multislice, default is 3 slices   
                 k_sort_off(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
                 k_sort_on(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
                 k_sort_off2(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
                 k_sort_on2(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
         end
         end
-         if strcmp(seq_type, 'MEGA-PRESS')
+         if strcmp(seq_type, 'MEGA-PRESS') 
              k_merge_on = k_sort(:,:,:,:,1:2:end);
              k_merge_off = k_sort(:,:,:,:,2:2:end);
              k_sort = cat(6,k_merge_on,k_merge_off);
@@ -287,9 +301,9 @@ disp('Reorganizing k-space locations.')
            k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
            k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
         end
-        k_ph_corr_on = zeros(size(k_sort,1),size(k_sort,2));
+        k_ph_corr_on = zeros(size(k_sort,1),size(k_sort,2)); 
         %Here we need an automated phase adjustment HZ
-        k_ph_corr_off = ones(size(k_sort,1),size(k_sort,2)) * 1;
+        k_ph_corr_off = ones(size(k_sort,1),size(k_sort,2)) * 1; 
         k_ph_merge_on = repmat(k_ph_corr_on, [1 1 size(k_sort,5)]);
        k_ph_merge_off = repmat(k_ph_corr_off, [1 1 size(k_sort,5)]);
        k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
@@ -333,7 +347,7 @@ disp('Reorganizing k-space locations.')
                 wat_off_peak1 = squeeze(k_sort_off(:,:,:,:,1));
                 wat_on_peak2 = squeeze(k_sort_on2(:,:,:,:,1));
                 wat_off_peak2 = squeeze(k_sort_off2(:,:,:,:,1));
-            end
+            end   
         end
 
         if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
@@ -345,16 +359,16 @@ disp('Reorganizing k-space locations.')
                 wat_peak = repmat(wat_peak, [1 1 1 averages subspecs 1024]);
                 wat_peak = permute(wat_peak,[1 2 3 6 4 5]);
             end
-
+            
         else
-           % Phase each coil before summing over the channels.
+           % Phase each coil before summing over the channels.           
             wat_on_peak1 = repmat(wat_on_peak1, [1 1 1 1 1024]);
             wat_off_peak1 = repmat(wat_off_peak1, [1 1 1 1 1024]);
             wat_on_peak2 = repmat(wat_on_peak2, [1 1 1 1 1024]);
             wat_off_peak2 = repmat(wat_off_peak2, [1 1 1 1 1024]);
         end
-
-        k_sort_phased = k_sort.*conj(wat_peak)./abs(wat_peak);
+        
+        k_sort_phased = k_sort.*conj(wat_peak)./abs(wat_peak); 
 
 
         if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
@@ -365,7 +379,7 @@ disp('Reorganizing k-space locations.')
             k_sort_on_phased2 = squeeze(sum(k_sort_on_phased2,4));
             k_sort_off_phased2 = squeeze(sum(k_sort_off_phased2,4));
         end
-        %
+        % 
 
         if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
              k_sort_phased_k = k_sort_phased;
@@ -375,7 +389,7 @@ disp('Reorganizing k-space locations.')
                 size(k_sort_phased_k,2)]))), [2 3 1]);
 
             % Form spectra in k-space.
-
+            
             spec_k = fftshift(fft(squeeze(k_sort_phased_k).*exp_lb,1024*spec_zfill,3),3);
 
             % -------------- Motion Correction Identify ------------%
@@ -383,12 +397,12 @@ disp('Reorganizing k-space locations.')
             % ------------------------------------------------------%
 
             if strcmp(seq_type, 'MEGA-PRESS')
-
+                
                 if strcmp(MRSCont.opts.MoCo.target, 'none')
                 % If I don't want to delete k-space data or correct something HZ
-                   k_ph_corr = zeros(size(k_sort,1),size(k_sort,2),size(k_sort,5),size(k_sort,6));
-
-                else if strcmp(MRSCont.opts.MoCo.target, 'full')
+                   k_ph_corr = zeros(size(k_sort,1),size(k_sort,2),size(k_sort,5),size(k_sort,6));  
+                
+                else if strcmp(MRSCont.opts.MoCo.target, 'full')                                  
                     [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
                     ~, ~, ~, ~,...
                     k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
@@ -396,16 +410,16 @@ disp('Reorganizing k-space locations.')
                     off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
                                                                                                                 spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
-                    else
+                    else                                                                                   
                         [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
                         ~, ~, ~, ~,...
                         k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
                         on1_replace_track, off1_replace_track, on2_replace_track, ...
                         off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph_water(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
-                                                                                                                spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
-
-                    end
+                                                                                                                spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);                                                                                              
+                   
+                    end     
                    on_replace_track = cat(3, on1_replace_track,on2_replace_track);
                    off_replace_track = cat(3, off1_replace_track,off2_replace_track);
                    replace_track = cat(4,on_replace_track,off_replace_track);
@@ -417,9 +431,9 @@ disp('Reorganizing k-space locations.')
                    k_ph_merge_on = cat(3, k_ph_corr_on1,k_ph_corr_on2);
                    k_ph_merge_off = cat(3, k_ph_corr_off1,k_ph_corr_off2);
                    k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
-
+                               
                 end
-
+                                                                                                                                                                                                                                                                                                                 
             end
         else
             k_sort_on_phased_k1 = k_sort_on_phased1;
@@ -430,7 +444,7 @@ disp('Reorganizing k-space locations.')
             sz_k_sort = size(k_sort_off_phased_k2);
             exp_lb = permute(squeeze((repmat(exp(-(lb*pi*(1:1024))/1024), [1 1 1 sz_k_sort(1:3)]))), [2 3 4 1]);
 
-            % fft the fIDs
+            % fft the fIDs 
             on_spec_k_1 = (fftshift(fft(squeeze(k_sort_on_phased_k1).*exp_lb,1024*spec_zfill,4),4));
             off_spec_k_1 = (fftshift(fft(squeeze(k_sort_off_phased_k1).*exp_lb,1024*spec_zfill,4),4));
             on_spec_k_2 = (fftshift(fft(squeeze(k_sort_on_phased_k2).*exp_lb,1024*spec_zfill,4),4));
@@ -486,9 +500,9 @@ disp('Reorganizing k-space locations.')
 
                 for t_idx = 1:size(k_sort_on1_on2, 4) % Each point in time
                     k_fft2_on1_on2(:,:,c_idx, t_idx) =  fft2(squeeze(k_sort_on1_on2(:,:,c_idx,t_idx)),x_tot,y_tot); % zerofill k-space
-                    k_fft2_on1_off2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on1_off2(:,:,c_idx,t_idx)),x_tot,y_tot);
+                    k_fft2_on1_off2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on1_off2(:,:,c_idx,t_idx)),x_tot,y_tot); 
                     k_fft2_off1_on2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off1_on2(:,:,c_idx,t_idx)),x_tot,y_tot);
-                    k_fft2_off1_off2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off1_off2(:,:,c_idx,t_idx)),x_tot,y_tot);
+                    k_fft2_off1_off2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off1_off2(:,:,c_idx,t_idx)),x_tot,y_tot); 
                 end
             end
 
@@ -556,7 +570,7 @@ disp('Reorganizing k-space locations.')
                 end
 
                 k_fft2_no_MoCo = squeeze(sum(k_fft2_phased,3));
-
+                
             end
             % For each point in time and coil take the 2D fft
             sz_k_sort = size(k_sort);
@@ -568,9 +582,9 @@ disp('Reorganizing k-space locations.')
 
             % -------------- Motion Correction Phase ------------%
             % Phase correction (for motion) here                 %
-            % ---------------------------------------------------%
+            % ---------------------------------------------------% 
             k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 size(k_sort,3) size(k_sort, 4)]);
-            k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 5 6 3 4]);
+            k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 5 6 3 4]);  
             k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
 
 
@@ -595,7 +609,7 @@ disp('Reorganizing k-space locations.')
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
                 k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));
             end
-
+            
             k_fft2 = squeeze(sum(k_fft2_phased,3));
 
         else % MEGA multislice, order: slice, kx, ky, coil, data
@@ -643,9 +657,9 @@ disp('Reorganizing k-space locations.')
                     for s_idx = 1:3
                         count_ft = count_ft + 1;
                         k_fft2_on(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot); % zerofill k-space
-                        k_fft2_on2(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on2(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot);
+                        k_fft2_on2(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on2(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot); 
                         k_fft2_off(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot);
-                        k_fft2_off2(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off2(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot);
+                        k_fft2_off2(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off2(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot); 
                     end
                 end
                 disp(sprintf('Elapsed time is %0.1f minutes.', t2/60))
@@ -680,7 +694,7 @@ disp('Reorganizing k-space locations.')
             k_fft2_off = squeeze(sum(k_fft2_off_phased,4));
             k_fft2_off2 = squeeze(sum(k_fft2_off2_phased,4));
         end
- %%
+ %%       
         if (strcmp(seq_type, 'HERMES') || strcmp(seq_type, 'HERMES lip sup'))
             on1_on2_spec = fftshift(fft(k_fft2_on1_on2,1024,3));
             on1_off2_spec = fftshift(fft(k_fft2_on1_off2,1024,3));
@@ -690,14 +704,14 @@ disp('Reorganizing k-space locations.')
 
         else
             if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multislice') && ~strcmp(seq_type, 'SE multislice'))
-                spec = fftshift(fft(k_fft2,1024,3));
+                spec = fftshift(fft(k_fft2,1024,3));               
                 spec(isnan(spec)) = 0 + 1i*0;
                 if MRSCont.flags.hasWater
-                    specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,1024,3));
+                    specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,1024,3));               
                     specs_w(isnan(specs_w)) = 0 + 1i*0;
                 end
                 if ~strcmp(MRSCont.opts.MoCo.target, 'none')
-                    specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,1024,3));
+                    specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,1024,3));               
                     specs_no_MoCo(isnan(specs_no_MoCo)) = 0 + 1i*0;
                 end
 
@@ -723,89 +737,115 @@ disp('Reorganizing k-space locations.')
                 off_spec_no_lb = (off_spec_nolb_1 + off_spec_nolb_2)/2;
                 on_spec_no_lb = (on_spec_nolb_1 + on_spec_nolb_2)/2;
 
-            end
+            end    
         end
     end
+    
+   % Now we need to bring everything into the Osprey struct format
+   % Extract information from SPAR files that is not in DATA/LIST
+    hasSPAR = 0;
+    [~,~,ext] = fileparts(filename);
+    % Get the appropriate raw_act.spar
+    spar_file = strrep(filename,ext, '_raw_act.spar'); % it's automatically case-insensitive
 
-    motion_corr_lb = 5;
-    exp_lb = permute(squeeze((repmat(exp(-(motion_corr_lb*pi*(1:1024))/1024), [1 1 size(k_sort_on_phased2,1)...
-        size(k_sort_on_phased2,2)]))), [2 3 1]);
-
-    % Form spectra in k-space.
-
-    on_spec_k_1 = fftshift(fft(squeeze(k_sort_on_phased_k1).*exp_lb,1024*spec_zfill,3),3);
-    off_spec_k_1 = fftshift(fft(squeeze(k_sort_off_phased_k1).*exp_lb,1024*spec_zfill,3),3);
-    on_spec_k_2 = fftshift(fft(squeeze(k_sort_on_phased_k2).*exp_lb,1024*spec_zfill,3),3);
-    off_spec_k_2 = fftshift(fft(squeeze(k_sort_off_phased_k2).*exp_lb,1024*spec_zfill,3),3);
-
-    % -------------- Motion Correction Identify ------------%
-    % Identify motion & phase corrections                   %
-    % ------------------------------------------------------%
-
-    if strcmp(seq_type, 'MEGA-PRESS')
-
-%         % Remove only
-%         [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-%         on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2] = motion_correct_mrsi_full(k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-%                                                                                     on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-%                                                                                     spec_zfill, seq_type, kx_tot, ky_tot);
-
-        % If I don't want to delete k-space data or correct something HZ
-%            k_ph_corr_on1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-%            k_ph_corr_on2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-%            k_ph_corr_off1 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-%            k_ph_corr_off2 = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
-%
-
-        % Remove + phase - Used in paper
-        [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-        on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-        k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
-        on1_replace_track, off1_replace_track, on2_replace_track, ...
-        off2_replace_track, zero_replace_track, k_space_locs, corr_options]  = motion_correct_mrsi_full_ph(k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-                                                                                                        on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-                                                                                                        spec_zfill, seq_type, kx_tot, ky_tot);
-
-%         % Remove + phase streamlined
-%         [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-%         on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-%         k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
-%         on1_replace_track, off1_replace_track, on2_replace_track, ...
-%         off2_replace_track, zero_replace_track, k_space_locs]  = motion_correct_mrsi_ph_streamline2(k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-%                                                                                                         on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-%                                                                                                         spec_zfill, seq_type, kx_tot, ky_tot);
+    if ~isfile(spar_file)
+        spar_file = strrep(filename,ext, '_raw_act.SPAR'); % it's automatically case-insensitive
     end
-else
-    k_sort_on_phased_k1 = k_sort_on_phased1;
-    k_sort_off_phased_k1 = k_sort_off_phased1;
-    k_sort_on_phased_k2 = k_sort_on_phased2;
-    k_sort_off_phased_k2 = k_sort_off_phased2;
-
-    sz_k_sort = size(k_sort_off_phased_k2);
-    exp_lb = permute(squeeze((repmat(exp(-(lb*pi*(1:1024))/1024), [1 1 1 sz_k_sort(1:3)]))), [2 3 4 1]);
-
-    % fft the fIDs
-    on_spec_k_1 = (fftshift(fft(squeeze(k_sort_on_phased_k1).*exp_lb,1024*spec_zfill,4),4));
-    off_spec_k_1 = (fftshift(fft(squeeze(k_sort_off_phased_k1).*exp_lb,1024*spec_zfill,4),4));
-    on_spec_k_2 = (fftshift(fft(squeeze(k_sort_on_phased_k2).*exp_lb,1024*spec_zfill,4),4));
-    off_spec_k_2 = (fftshift(fft(squeeze(k_sort_off_phased_k2).*exp_lb,1024*spec_zfill,4),4));
-    if strcmp(seq_type, 'MEGA multislice')
-        %k_ph_corr_on1, k_ph_corr_off1, k_ph_corr_on2, k_ph_corr_off2,...
-        [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-         on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2] = motion_correct_mrsi(k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-                                                                                    on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-                                                                                    spec_zfill, seq_type, kx_tot, ky_tot);
+    if ~isfile(spar_file)    
+        if ~isempty(statFile) % Has stat csv file
+            statCSV = readtable(statFile, 'Delimiter', ',','ReadVariableNames',1); % Load it
+            name = statCSV.Properties.VariableNames;
+            tr_idx = find(strcmp(name,'tr'));
+            if isempty(tr_idx)
+                tr_idx = find(strcmp(name,'TR'));
+            end
+            te_idx = find(strcmp(name,'te'));        
+            if isempty(te_idx)
+                te_idx = find(strcmp(name,'TE'));
+            end
+            sw_idx = find(strcmp(name,'sw'));        
+            if isempty(sw_idx)
+                sw_idx = find(strcmp(name,'SW'));
+            end 
+            Larmor_idx = find(strcmp(name,'Larmor')); 
+            date_idx = find(strcmp(name,'date'));    
+            seq_idx = find(strcmp(name,'seq')); 
+            if ~isempty(tr_idx) && ~isempty(te_idx) && ~isempty(sw_idx) && ~isempty(Larmor_idx)
+                tr = statCSV{kk,tr_idx};
+                te = statCSV{kk,te_idx}; 
+                sw = statCSV{kk,sw_idx}; 
+                Larmor = statCSV{kk,Larmor_idx}; 
+                if ~isempty(date_idx)
+                    date = statCSV{kk,date_idx}{1};
+                else
+                    date = '';
+                end
+                if ~isempty(seq_idx)
+                    seq = statCSV{kk,seq_idx}{1};
+                else
+                    seq = 'PRESS'; % Let's assume it is a PRESS sequence 
+                end
+            else
+                msg = 'You need a SPAR file that has the same name as the .data/.list file with the extension _raw_act.spar. Otherwise you can supply TR, TE, SW (spectralwidth), Larmor (larmor frequency in MHz), and seq (localization) in the stat.csv file.';
+                error(msg);    
+            end
+        else
+            msg = 'You need a SPAR file that has the same name as the .data/.list file with the extension _raw_act.spar. Otherwise you can supply TR, TE, SW (spectralwidth), and Larmor (larmor frequency in MHz), and seq (localization) in the stat.csv file.';
+            error(msg);          
+        end
+    else
+        hasSPAR = 1;    
     end
-end
+
+    if hasSPAR
+        % Open spar file and read parameters
+        sparname = fopen(spar_file,'r');
+        sparheader = textscan(sparname, '%s');
+        sparheader = sparheader{1};
+        sparidx=find(ismember(sparheader, 'repetition_time')==1); % TR
+        tr = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'echo_time')==1); % TE
+        te = str2double(sparheader{sparidx+2}); % 
+        sparidx=find(ismember(sparheader, 'synthesizer_frequency')==1); % F0
+        Larmor = str2double(sparheader{sparidx+2})/1e6;
+        sparidx=find(ismember(sparheader, 'sample_frequency')==1); % readout bandwidth
+        sw = str2double(sparheader{sparidx+2});
+
+        % Read voxel geometry information.
+        % THIS IS IN THE ORDER LR-AP-FH
+        sparidx=find(ismember(sparheader, 'scan_date')==1); % voxel size 
+        date = sparheader{sparidx+2};
+        sparidx=find(ismember(sparheader, 'scan_id')==1); % voxel size 
+        seq = sparheader{sparidx+2};
+        sparidx=find(ismember(sparheader, 'lr_size')==1); % voxel size 
+        geometry.size.lr = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'ap_size')==1);
+        geometry.size.ap = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'cc_size')==1);
+        geometry.size.cc = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'lr_off_center')==1); % voxel center offset
+        geometry.pos.lr = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'ap_off_center')==1);
+        geometry.pos.ap = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'cc_off_center')==1);
+        geometry.pos.cc = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'lr_angulation')==1); % voxel angulation (radians)
+        geometry.rot.lr = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'ap_angulation')==1);
+        geometry.rot.ap = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'cc_angulation')==1);
+        geometry.rot.cc = str2double(sparheader{sparidx+2});
+        fclose(sparname);
+    end
 
 
-
+    
 
 
 
     %Find the magnetic field strength:
     Bo=Larmor/42.577;
-    %Now create a record of the dimensions of the data array.
+    %Now create a record of the dimensions of the data array.  
     dims.t=1;
     dims.coils=0;
     dims.averages=2;
@@ -832,17 +872,6 @@ end
         out.nYvoxels = ky_tot;
         out.nZvoxels = 1;
 
-    % Phase each coil before summing over the channels.
-    k_fft2_on1_on2_wat = repmat(k_fft2_on1_on2_wat, [1 1 1 1024]);
-    k_fft2_on1_off2_wat = repmat(k_fft2_on1_off2_wat, [1 1 1 1024]);
-    k_fft2_off1_on2_wat = repmat(k_fft2_off1_on2_wat, [1 1 1 1024]);
-    k_fft2_off1_off2_wat = repmat(k_fft2_off1_off2_wat, [1 1 1 1024]);
-
-    if isempty(k_fft2_wat_ref)
-        k_fft2_on1_on2_phased = k_fft2_on1_on2.*conj(k_fft2_on1_on2_wat)./abs(k_fft2_on1_on2_wat);
-        k_fft2_on1_off2_phased = k_fft2_on1_off2.*conj(k_fft2_on1_off2_wat)./abs(k_fft2_on1_off2_wat);
-        k_fft2_off1_on2_phased = k_fft2_off1_on2.*conj(k_fft2_off1_on2_wat)./abs(k_fft2_off1_on2_wat);
-        k_fft2_off1_off2_phased = k_fft2_off1_off2.*conj(k_fft2_off1_off2_wat)./abs(k_fft2_off1_off2_wat);
     else
         dims.subSpecs=0;
     end
@@ -862,7 +891,7 @@ end
             ky_dim = kx_dim + 1;
         end
         specs_w = permute(specs_w, [t_dim kx_dim ky_dim]);
-        dims_w.extras=0;
+        dims_w.extras=0;  
         dims_w.Xvoxels=2;
         dims_w.Yvoxels=3;
         %Adding MultiVoxelInfo
@@ -871,13 +900,7 @@ end
         out_w.nZvoxels = 1;
     end
 
-    k_fft2_on1_on2 = squeeze(sum(k_fft2_on1_on2_phased,3));
-    k_fft2_on1_off2 = squeeze(sum(k_fft2_on1_off2_phased,3));
-    k_fft2_off1_on2 = squeeze(sum(k_fft2_off1_on2_phased,3));
-    k_fft2_off1_off2 = squeeze(sum(k_fft2_off1_off2_phased,3));
-
-elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multislice') && ~strcmp(seq_type, 'SE multislice'))
-
+    
     if mod(size(specs,dims.t),2)==0
         %disp('Length of vector is even.  Doing normal conversion');
         fids=ifft(fftshift(specs,dims.t),[],dims.t);
@@ -911,17 +934,17 @@ elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multisl
 
     %Now get relevant scan parameters:*****************************
 
-    wat_k_space_on = sum(wat_k_space_on,3);
-    wat_k_space_on2 = sum(wat_k_space_on2,3);
-    wat_k_space_off = sum(wat_k_space_off,3);
-    wat_k_space_off2 = sum(wat_k_space_off2,3);
+    %Get Spectral width and Dwell Time
+    spectralwidth=sw;
+    dwelltime=1/spectralwidth;
 
+    %Get TxFrq
+    txfrq=Larmor*1e6;
 
-    %wat_map = squeeze(abs(fftshift(sum(k_fft2_on_wat,3))));
 
     %Find the number of averages.  'averages' will specify the current number
     %of averages in the dataset as it is processed, which may be subject to
-    %change.  'rawAverages' will specify the original number of acquired
+    %change.  'rawAverages' will specify the original number of acquired 
     %averages in the dataset, which is unchangeable.
     %FOR WATER SUPPRESSED DATA:
     if dims.subSpecs ~=0
@@ -933,12 +956,13 @@ elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multisl
             rawAverages=sz(dims.subSpecs);
         end
     else
-        k_fft2_on_phased = k_fft2_on.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-        k_fft2_on2_phased = k_fft2_on2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-        k_fft2_off_phased = k_fft2_off.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-        k_fft2_off2_phased = k_fft2_off2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-
-        parameters.wat_file = wat_file;
+        if dims.averages~=0
+            averages=sz(dims.averages);
+            rawAverages=averages;
+        else
+            averages=1;
+            rawAverages=1;
+        end
     end
 
     %FOR WATER UNSUPPRESSED DATA:
@@ -960,36 +984,20 @@ elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multisl
                 rawAverages_w=1;
             end
         end
-        t2 = toc;
-        disp(sprintf('Elapsed time is %0.1f minutes.', t2/60))
     end
 
 
-    wat_k_space_on = sum(wat_k_space_on,4);
-    wat_k_space_on2 = sum(wat_k_space_on2,4);
-    wat_k_space_off = sum(wat_k_space_off,4);
-    wat_k_space_off2 = sum(wat_k_space_off2,4);
-
-    % Phase each coil before summing over the channels.
-    k_fft2_on_wat = repmat(k_fft2_on_wat, [1 1 1 1 1024]);
-    k_fft2_on2_wat = repmat(k_fft2_on2_wat, [1 1 1 1 1024]);
-    k_fft2_off_wat = repmat(k_fft2_off_wat, [1 1 1 1 1024]);
-    k_fft2_off2_wat = repmat(k_fft2_off2_wat, [1 1 1 1 1024]);
-
-    if isempty(k_fft2_wat_ref)
-        k_fft2_on_phased = k_fft2_on.*conj(k_fft2_on_wat)./abs(k_fft2_on_wat);
-        k_fft2_on2_phased = k_fft2_on2.*conj(k_fft2_on2_wat)./abs(k_fft2_on2_wat);
-        k_fft2_off_phased = k_fft2_off.*conj(k_fft2_off_wat)./abs(k_fft2_off_wat);
-        k_fft2_off2_phased = k_fft2_off2.*conj(k_fft2_off2_wat)./abs(k_fft2_off2_wat);
-
-        parameters.wat_file = [];
+    %Find the number of subspecs.  'subspecs' will specify the current number
+    %of subspectra in the dataset as it is processed, which may be subject to
+    %change.  'rawSubspecs' will specify the original number of acquired 
+    %subspectra in the dataset, which is unchangeable.
+    %FOR WATER SUPPRESSED DATA:
+    if dims.subSpecs ~=0
+        subspecs=sz(dims.subSpecs);
+        rawSubspecs=subspecs;
     else
-        k_fft2_on_phased = k_fft2_on.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-        k_fft2_on2_phased = k_fft2_on2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-        k_fft2_off_phased = k_fft2_off.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-        k_fft2_off2_phased = k_fft2_off2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-
-        parameters.wat_file = wat_file;
+        subspecs=1;
+        rawSubspecs=subspecs;
     end
 
     %FOR WATER UNSUPPRESSED DATA:
@@ -1001,6 +1009,46 @@ elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multisl
             subspecs_w=1;
             rawSubspecs_w=subspecs_w;
         end
+    end
+
+    %****************************************************************
+
+    %Calculate t and ppm arrays using the calculated parameters:
+    f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
+    ppm=f/(Bo*42.577);
+
+    % Philips data assumes the center frequency to be 4.68 ppm:
+    centerFreq = 4.68;
+    ppm=ppm + centerFreq;
+
+    t=[0:dwelltime:(sz(1)-1)*dwelltime];
+
+
+    %FOR WATER SUPPRESSED DATA
+    %FILLING IN DATA STRUCTURE
+    out.fids=fids;
+    out.specs=specs;
+    out.sz=sz;
+    out.ppm=ppm;  
+    out.t=t;    
+    out.spectralwidth=spectralwidth;
+    out.dwelltime=dwelltime;
+    out.txfrq=txfrq;
+    out.date=date;
+    out.dims=dims;
+    out.Bo=Bo;
+    out.averages=averages;
+    out.rawAverages=rawAverages;
+    out.subspecs=subspecs;
+    out.rawSubspecs=rawSubspecs;
+    out.seq=seq;
+    out.te=te;
+    out.tr=tr;
+    out.pointsToLeftshift=0;
+    out.centerFreq = centerFreq;
+    if hasSPAR
+        out.geometry = geometry;
+    end
 
     %FILLING IN THE FLAGS
     out.flags.writtentostruct=1;
@@ -1024,12 +1072,12 @@ elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multisl
     else
         out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
     end
-
+    
     if ~strcmp(MRSCont.opts.MoCo.target,'none')
-        MRSCont.MoCo{kk}.k_ph_corr = k_ph_corr;
-        MRSCont.MoCo{kk}.replace_track = replace_track;
-        MRSCont.MoCo{kk}.zero_replace_track = zero_replace_track;
-        MRSCont.MoCo{kk}.corr_options = corr_options;
+        MRSCont.MoCo{kk}.k_ph_corr = k_ph_corr;  
+        MRSCont.MoCo{kk}.replace_track = replace_track;  
+        MRSCont.MoCo{kk}.zero_replace_track = zero_replace_track;  
+        MRSCont.MoCo{kk}.corr_options = corr_options;          
     end
 
     MRSCont.raw{kk} = out;
@@ -1044,8 +1092,8 @@ elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multisl
         out_w.fids=fids_w;
         out_w.specs=specs_w;
         out_w.sz=sz_w;
-        out_w.ppm=ppm;
-        out_w.t=t;
+        out_w.ppm=ppm;  
+        out_w.t=t;    
         out_w.spectralwidth=spectralwidth;
         out_w.dwelltime=dwelltime;
         out_w.txfrq=txfrq;
@@ -1064,14 +1112,7 @@ elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multisl
         if hasSPAR
             out_w.geometry = geometry;
         end
-    else
-        count = 0;
-        for s_idx = 1:3
-            for x = 1:size(k_fft2_on,2)
-                for y = 1:size(k_fft2_on,3)
 
-                    count = count + 1;
-                    disp(sprintf('Removing water of %d of %d.', count, 3*x_tot*y_tot))
 
         %FILLING IN THE FLAGS
         out_w.flags.writtentostruct=1;
@@ -1092,79 +1133,19 @@ elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multisl
             out_w.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
         end
         MRSCont.raw_w{kk} = out_w;
-    end
+    end        
 end
-% ------------------------------------------------------------------------------------------
 
-
-exp_lb = permute(squeeze((repmat(exp(-(lb*pi*(1:1024))/1024), [1 1 x_tot y_tot]))), [2 3 1]);
-
-if (strcmp(seq_type, 'HERMES') || strcmp(seq_type, 'HERMES lip sup'))
-    on1_on2_spec = fftshift(fft(k_fft2_on1_on2.*exp_lb,1024*spec_zfill,3));
-    on1_off2_spec = fftshift(fft(k_fft2_on1_off2.*exp_lb,1024*spec_zfill,3));
-    off1_on2_spec = fftshift(fft(k_fft2_off1_on2.*exp_lb,1024*spec_zfill,3));
-    off1_off2_spec = fftshift(fft(k_fft2_off1_off2.*exp_lb,1024*spec_zfill,3));
-    cho_im_off = zeros(size(on1_on2_spec,1),size(on1_on2_spec,2));
-
-else
-    if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multislice') && ~strcmp(seq_type, 'SE multislice'))
-        on_spec1 = fftshift(fft(k_fft2_on.*exp_lb,1024*spec_zfill,3));
-        off_spec1 = fftshift(fft(k_fft2_off.*exp_lb,1024*spec_zfill,3));
-        on_spec2 = fftshift(fft(k_fft2_on2.*exp_lb,1024*spec_zfill,3));
-        off_spec2 = fftshift(fft(k_fft2_off2.*exp_lb,1024*spec_zfill,3));
-
-%         off_spec_nolb_1 = fftshift(fft(k_fft2_off,1024*spec_zfill,3));
-%         off_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024*spec_zfill,3));
-%         on_spec_nolb_1 = fftshift(fft(k_fft2_off,1024*spec_zfill,3));
-%         on_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024*spec_zfill,3));
-
-        % I don't want zerofiling to be happening
-        % These shoudl be the corrected spectra, but this is not working
-        off_spec_nolb_1 = fftshift(fft(k_fft2_off,1024,3));
-        off_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024,3));
-        on_spec_nolb_1 = fftshift(fft(k_fft2_off,1024,3));
-        on_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024,3));
-
-        %Therefore I'm overwriting the recently 'corrected' specctra with
-        %the uncorrected ones
-%         on_spec_nolb_1 = fftshift(fft(squeeze(k_sort_on_phased_k1),1024,3),3);
-%         off_spec_nolb_1 = fftshift(fft(squeeze(k_sort_off_phased_k1),1024,3),3);
-%         on_spec_nolb_2 = fftshift(fft(squeeze(k_sort_on_phased_k2),1024,3),3);
-%         off_spec_nolb_2 = fftshift(fft(squeeze(k_sort_off_phased_k2),1024,3),3);
-
-        on_spec_nolb_1(isnan(on_spec_nolb_1)) = 0 + 1i*0;
-        off_spec_nolb_1(isnan(off_spec_nolb_1)) = 0 + 1i*0;
-        on_spec_nolb_2(isnan(on_spec_nolb_2)) = 0 + 1i*0;
-        off_spec_nolb_2(isnan(off_spec_nolb_2)) = 0 + 1i*0;
-
-        
-        on_spec = (on_spec1 + on_spec2)/2;
-        off_spec = (off_spec1 + off_spec2)/2;
-        off_spec_no_lb = (off_spec_nolb_1 + off_spec_nolb_2)/2;
-        on_spec_no_lb = (on_spec_nolb_1 + on_spec_nolb_2)/2;
-    else
-        exp_lb = permute(squeeze((repmat(exp(-(lb*pi*(1:1024))/1024), [1 1 3 x_tot y_tot]))), [2 3 4 1]);
-        on_spec1 = fftshift(fft(k_fft2_on.*exp_lb,1024*spec_zfill,4));
-        off_spec1 = fftshift(fft(k_fft2_off.*exp_lb,1024*spec_zfill,4));
-        on_spec2 = fftshift(fft(k_fft2_on2.*exp_lb,1024*spec_zfill,4));
-        off_spec2 = fftshift(fft(k_fft2_off2.*exp_lb,1024*spec_zfill,4));
-
-        off_spec_nolb_1 = fftshift(fft(k_fft2_off,1024*spec_zfill,4));
-        off_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024*spec_zfill,4));
-        on_spec_nolb_1 = fftshift(fft(k_fft2_off,1024*spec_zfill,4));
-        on_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024*spec_zfill,4));
-
-        on_spec_nolb_1(isnan(on_spec_nolb_1)) = 0 + 1i*0;
-        off_spec_nolb_1(isnan(off_spec_nolb_1)) = 0 + 1i*0;
-        on_spec_nolb_2(isnan(on_spec_nolb_2)) = 0 + 1i*0;
-        off_spec_nolb_2(isnan(off_spec_nolb_2)) = 0 + 1i*0;
-
-        on_spec = (on_spec1 + on_spec2)/2;
-        off_spec = (off_spec1 + off_spec2)/2;
-        off_spec_no_lb = (off_spec_nolb_1 + off_spec_nolb_2)/2;
-        on_spec_no_lb = (on_spec_nolb_1 + on_spec_nolb_2)/2;
-
-    end
+fprintf('... done.\n');
+time = toc(refLoadTime);
+if MRSCont.flags.isGUI        
+    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+    pause(1);
 end
+fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fclose(fileID);
+% Set flag
+MRSCont.flags.coilsCombined     = 1;
+MRSCont.runtime.Load = time;
 
 end

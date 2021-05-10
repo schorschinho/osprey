@@ -293,7 +293,7 @@ if exist('MultiVoxel','var')
             warning('Multi voxel must be ''PRIAM'' or ''MRSI''in the job file, and has been set to ''single voxel'' (default).');
     end
     if ~isfield(MRSCont.opts, 'MoCo')
-        MRSCont.opts.MoCo.target = 'full';
+        MRSCont.opts.MoCo.target = 'none';
         MRSCont.opts.MoCo.thresh.thresh = 0.8;
         MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
         MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;    
