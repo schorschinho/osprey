@@ -97,7 +97,7 @@ if  (MRSCont.flags.isMRSI == 1)
     for nom = 1 : length(nominator)
         nominator_map = nominator_map + MRSCont.quantify.amplMets{kk}.(nominator_spec).(nominator{nom});
     end
-    if ~isempty(denominator)
+    if ~isempty(denominator) && ~isempty(denominator_spec)
         for denom = 1 : length(denominator)
             denominator_map = denominator_map + MRSCont.quantify.amplMets{kk}.(denominator_spec).(denominator{denom});
         end
@@ -138,7 +138,7 @@ heatmap(map,'Colormap',colormap);
 
 % heatmap(map,'Colormap',gray);
 
-caxis(out.Children,[0 1]);
+caxis(out.Children,[0 2]);
 colorbar off
 
 %%% 7. DESIGN FINETUNING %%%

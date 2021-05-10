@@ -143,16 +143,16 @@ if (MRSCont.flags.isPRIAM == 1) || (MRSCont.flags.isMRSI == 1)
     else
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
             fitRangePPM = MRSCont.opts.fit.rangeWater;
-            basisSet    = MRSCont.fit.resBasisSet{VoxelIndex(1), VoxelIndex(2)}.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
+            basisSet    = MRSCont.fit.resBasisSet.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
         else if strcmp(which_spec, 'conc')
                 fitRangePPM = MRSCont.opts.fit.range;
-                basisSet    = MRSCont.fit.resBasisSet{VoxelIndex(1), VoxelIndex(2)}.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
+                basisSet    = MRSCont.fit.resBasisSet.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
             else if strcmp(which_spec, 'off')
                     fitRangePPM = MRSCont.opts.fit.range;
-                    basisSet    = MRSCont.fit.resBasisSet{VoxelIndex(1), VoxelIndex(2)}.(which_spec){kk};
+                    basisSet    = MRSCont.fit.resBasisSet.(which_spec){kk};
                 else
                     fitRangePPM = MRSCont.opts.fit.range;
-                    basisSet    = MRSCont.fit.resBasisSet{VoxelIndex(1), VoxelIndex(2)}.(which_spec){kk};
+                    basisSet    = MRSCont.fit.resBasisSet.(which_spec){kk};
                 end
             end
         end

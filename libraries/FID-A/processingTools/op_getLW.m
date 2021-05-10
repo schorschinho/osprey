@@ -53,44 +53,47 @@ maxRef=real(Refwindow(maxRef_index));
 if ~isempty(maxRef) && ~(sum(maxRef) == 0) && ~(length(maxRef) > 1)
     gtHalfMax=find(abs(real(Refwindow)) >= 0.5*abs(maxRef));
 
-gtHalfMax=find(abs(real(Refwindow)) >= 0.5*abs(maxRef));
 
-FWHM1=abs(ppmwindow(gtHalfMax(1)) - ppmwindow(gtHalfMax(end)));
-FWHM1=FWHM1*(42.577*in.Bo);  %Assumes proton.
+    FWHM1=abs(ppmwindow(gtHalfMax(1)) - ppmwindow(gtHalfMax(end)));
+    FWHM1=FWHM1*(42.577*in.Bo);  %Assumes proton.
 
 
-%METHOD 2:  FIT WATER PEAK TO DETERMINE FWHM PARAM
-sat='n';
-waterFreq=ppmwindow(maxRef_index);
-while sat=='n'
-    parsGuess=zeros(1,5);
-    parsGuess(1)=maxRef; %AMPLITUDE
-    parsGuess(2)=(5*in.Bo/3)/(42.577*in.Bo); %FWHM.  Assumes Proton.  LW = 5/3 Hz/T.
-    parsGuess(3)=waterFreq; %FREQUENCY
-    parsGuess(4)=0; %Baseline Offset
-    parsGuess(5)=0; %Phase
+    %METHOD 2:  FIT WATER PEAK TO DETERMINE FWHM PARAM
+    sat='n';
+    waterFreq=ppmwindow(maxRef_index);
+    while sat=='n'
+        parsGuess=zeros(1,5);
+        parsGuess(1)=maxRef; %AMPLITUDE
+        parsGuess(2)=(5*in.Bo/3)/(42.577*in.Bo); %FWHM.  Assumes Proton.  LW = 5/3 Hz/T.
+        parsGuess(3)=waterFreq; %FREQUENCY
+        parsGuess(4)=0; %Baseline Offset
+        parsGuess(5)=0; %Phase
 
-    yGuess=op_lorentz(parsGuess,ppmwindow);
-    parsFit=nlinfit(ppmwindow,real(Refwindow'),@op_lorentz,parsGuess);
-    yFit=op_lorentz(parsFit,ppmwindow);
+        yGuess=op_lorentz(parsGuess,ppmwindow);
+        parsFit=nlinfit(ppmwindow,real(Refwindow'),@op_lorentz,parsGuess);
+        yFit=op_lorentz(parsFit,ppmwindow);
 
-%     figure;
-%     plot(ppmwindow,Refwindow,'.',ppmwindow,yGuess,':',ppmwindow,yFit);
-%     legend('data','guess','fit');
-%
-    sat='y';
-%     sat=input('are you satisfied with fit? y/n [y] ','s');
-%     if isempty(sat)
-%         sat='y';
-%     end
-%     if sat=='n';
-%         waterFreq=input('input new water frequency guess: ');
-%     end
+    %     figure;
+    %     plot(ppmwindow,Refwindow,'.',ppmwindow,yGuess,':',ppmwindow,yFit);
+    %     legend('data','guess','fit');
+    %
+        sat='y';
+    %     sat=input('are you satisfied with fit? y/n [y] ','s');
+    %     if isempty(sat)
+    %         sat='y';
+    %     end
+    %     if sat=='n';
+    %         waterFreq=input('input new water frequency guess: ');
+    %     end
 
+    end
+
+
+    FWHM2=abs(parsFit(2));
+    FWHM2=FWHM2*(42.577*in.Bo);  %Assumes Proton.
+else
+    FWHM1 = 0;
+    FWHM2 = 0;
 end
-
-
-FWHM2=abs(parsFit(2));
-FWHM2=FWHM2*(42.577*in.Bo);  %Assumes Proton.
 
 FWHM=mean([FWHM1 FWHM2]);
