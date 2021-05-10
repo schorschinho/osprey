@@ -5,7 +5,7 @@ static_spec = find(to_phase == 0);
 
 % Try all phases from 5 to 355 (avoiding 0 degrees)
 %ph = 5:5:355;
-ph = 0:359;
+ph = 0:180;
 move_spec_w_ph_wat = all_spec_wat(find(to_phase),:);
 %move_spec_w_ph_lip = all_spec_lip(find(to_phase),:);
 

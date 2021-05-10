@@ -42,19 +42,13 @@ end
 
 %% Loop over all datasets
 refProcessTime = tic;
-reverseStr = '';
-fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end    
+    [~] = printLog('OspreyProcess',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);     
     
     if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp) 
         %%% 1. GET RAW DATA %%%
@@ -92,7 +86,13 @@ for kk = 1:MRSCont.nDatasets
             % data may have linewidth lower than the simulated basis set
             % data.
             raw = op_filter(raw, 2);
-            [raw, fs, phs, weights, driftPre, driftPost]   = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,0.5,4.2);
+                switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                    case 'none'
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,1); % Align and average  
+                    otherwise
+                        [raw, fs, phs, weights, driftPre, driftPost]   = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,0,0.5,4.2);
+                end
+            
             end
             raw.specReg.fs              = fs; % save align parameters
             raw.specReg.phs             = phs; % save align parameters
@@ -251,9 +251,10 @@ for kk = 1:MRSCont.nDatasets
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
         
-        if MRSCont.opts.L1NormAlign
+        switch MRSCont.opts.SubSpecAlignment
+            case 'L1Norm'
             [raw_A, raw_B]  = osp_editSubSpecAlignLNorm(raw_A, raw_B);
-        else        
+            case 'L2Norm'
             [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);
         end
         
@@ -333,7 +334,11 @@ for kk = 1:MRSCont.nDatasets
                 [raw_w,~,~]             = op_alignAverages(raw_w,1,'n');    % Align averages
                 raw_w                   = op_averaging(raw_w);              % Average
             end
-            [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            if ~MRSCont.flags.isMRSI
+                [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            else
+                [raw_w,~]=op_autophase(raw_w,2,2*4.68);
+            end
             [raw_w,~]                   = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
             MRSCont.processed.w{kk}     = raw_w;                            % Save back to MRSCont container
         end
@@ -352,7 +357,7 @@ for kk = 1:MRSCont.nDatasets
         end
         % Calculate some spectral quality metrics here;
         for ss = 1 : length(SubSpec)          
-            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk});       
+            MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2));       
             MRSCont.QM.FWHM.(SubSpec{ss})(kk)   = op_getLW(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2)); % in Hz       
             if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w'))
                 MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift_SubSpecAlign + refShift_final;       
@@ -369,11 +374,8 @@ for kk = 1:MRSCont.nDatasets
     end
 end
 time = toc(refProcessTime);
-if MRSCont.flags.isGUI        
-    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-    pause(1);
-end
-fprintf('... done.\n Elapsed time %f seconds\n',time);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+
 
 %%% 11. SET FLAGS %%%
 MRSCont.flags.avgsAligned   = 1;

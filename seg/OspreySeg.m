@@ -55,20 +55,13 @@ end
 
 %% Loop over all datasets
 refSegTime = tic;
-reverseStr = '';
-fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
-for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Segmenting structural image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end    
-    
+for kk = 1:MRSCont.nDatasets  
+     [~] = printLog('OspreySeg',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     if ~(MRSCont.flags.didSeg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'seg') && (kk > length(MRSCont.seg.tissue.fGM))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
     
@@ -96,9 +89,15 @@ for kk = 1:MRSCont.nDatasets
         
         % Get the input file name
         [T1dir, T1name, T1ext]  = fileparts(niftiFile);
-         segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
+        if strcmp(T1ext,'.gz')
+            T1name = strrep(T1name, '.nii','');
+            T1ext = '.nii';
+        end
+
+        segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
+         segFileGM               = fullfile(T1dir, ['c1' T1name T1ext '.gz']);
         % If a GM-segmented file doesn't exist, start the segmentation
-        if ~exist(segFileGM,'file') && ~exist(strrep(segFileGM,'.gz',''),'file')
+        if ~exist(segFile,'file')
             %Uncompress .nii.gz if needed
             if strcmp(T1ext,'.gz')
                 gunzip(niftiFile);
@@ -107,20 +106,19 @@ for kk = 1:MRSCont.nDatasets
                 segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
             end           
             createSegJob(niftiFile);
-        else if strcmp(T1ext,'.gz')
-                if exist(fullfile(T1dir, ['c1' T1name '.gz']),'file')
+        else
+                if exist(fullfile(T1dir, ['c1' T1name '.nii.gz']),'file')
                     gunzip(segFileGM);
-                    gunzip(fullfile(T1dir, ['c2' T1name T1ext]));
-                    gunzip(fullfile(T1dir, ['c3' T1name T1ext]));                 
+                    gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
+                    gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
                 end
                 T1ext = strrep(T1ext,'.gz','');
-                segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
-            end
         end
 
 
         %%% 2. CREATE MASKED TISSUE MAPS %%%
         % Define file names
+        segFileGM   = fullfile(T1dir, ['c1' T1name T1ext]);
         segFileWM   = fullfile(T1dir, ['c2' T1name T1ext]);
         segFileCSF  = fullfile(T1dir, ['c3' T1name T1ext]);
         % Load volumes
@@ -190,7 +188,44 @@ for kk = 1:MRSCont.nDatasets
             CSF_voxmask_vol     = CSFvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
             vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
 
+            % For MRSI data
+            if MRSCont.flags.isMRSI
+                GM_MRSI=spm_vol(GMvol);
+                GM_MRSI=spm_read_vols(GM_MRSI);
+                
+                WM_MRSI=spm_vol(WMvol);
+                WM_MRSI=spm_read_vols(WM_MRSI);
+                
+                CSF_MRSI=spm_vol(CSFvol);
+                CSF_MRSI=spm_read_vols(CSF_MRSI);
+                
+                brain = (GM_MRSI > 0.5 | WM_MRSI > 0.5 | CSF_MRSI > 0.5);
+                
+                
+                
+                if ~exist(MRSCont.coreg.vol_image{kk}.fname,'file')
+                    gunzip([MRSCont.coreg.vol_image{kk}.fname, '.gz']);
+                end
+                if ~exist(MRSCont.coreg.vol_mask{kk}.fname,'file')
+                    gunzip([MRSCont.coreg.vol_mask{kk}.fname, '.gz']);
+                end
 
+                Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);
+                Vmask=spm_read_vols(Vmask);
+                
+                brain = brain .* Vmask;
+                brain = imresize3(double(brain),[MRSCont.raw{kk}.nYvoxels,MRSCont.raw{kk}.nXvoxels,size(brain,3)]);
+                brain = sum(brain,3);
+                brain(brain<(max(max(brain))/10)) = 0;
+                brain(brain > 0) = 1;
+                MRSCont.mask{kk} = brain';
+                if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
+                    delete(MRSCont.coreg.vol_mask{kk}.fname);
+                end
+                if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
+                    delete(MRSCont.coreg.vol_image{kk}.fname);
+                end
+            end
             %%% 3. DETERMINE FRACTIONAL TISSUE VOLUMES %%%
             % Sum image intensities over the entire masked tissue specific volume
             GMsum  = sum(sum(sum(vol_GMMask.private.dat(:,:,:))));
@@ -228,14 +263,7 @@ for kk = 1:MRSCont.nDatasets
     end 
 end
 time = toc(refSegTime);
-if MRSCont.flags.isGUI     
-    try
-        set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-        pause(1);
-    catch
-    end
-end
-fprintf('... done.\n Elapsed time %f seconds\n',time);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 MRSCont.runtime.Seg = time;
 %% Create table and csv file
 tissueTypes = {'fGM','fWM','fCSF'};

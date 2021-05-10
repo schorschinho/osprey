@@ -81,15 +81,15 @@ if [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 1]
         % If both water reference and short-TE water data have been
         % provided, use the one with shorter echo time.
         qtfyH2O     = 1;
-        waterType   = 'w';
+        getResults{end+1} = 'w';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 0]
         % If only one type of water data has been provided, use it.
         qtfyH2O     = 1;
-        waterType   = 'ref';
+        getResults{end+1} = 'ref';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [0 1]
         % If only one type of water data has been provided, use it.
         qtfyH2O     = 1;
-        waterType   = 'w';
+        getResults{end+1} = 'w';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [0 0]
         % If no water ref has been provided, only tCr ratios can be
         % provided.
@@ -131,11 +131,25 @@ end
 dim = size(MRSCont.fit.results);
 
 % Add combinations of metabolites to the basisset
-for ll = 1:length(getResults)
-    if length(dim) == 2
-        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1}.(getResults{ll}){1,1}.name;
+if qtfyH2O
+    water = 1;
+else
+    water = 0;
+end
+
+for ll = 1:length(getResults) - water
+    if length(dim) == 2        
+        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
     else
-        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1,1}.(getResults{ll}){1,1}.name;
+        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
+    end
+end
+
+if qtfyH2O
+    if length(dim) == 2        
+        MRSCont.quantify.metabs.(getResults{end}) = MRSCont.fit.resBasisSet.(getResults{end}).water{1,1}.name;
+    else
+        MRSCont.quantify.metabs.(getResults{end}) = MRSCont.fit.resBasisSet.(getResults{end}).water{1,1}.name;
     end
 end
 
@@ -165,18 +179,14 @@ end
 
 %% Loop over all datasets
 QuantifyTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
+
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, msg]);
-    if MRSCont.flags.isGUI  && isfield(progressText,'String')      
-        set(progressText,'String' ,sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end
+    [~] = printLog('OspreyQuant',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
 %     metsName = MRSCont.quantify.metabs; % just for the names

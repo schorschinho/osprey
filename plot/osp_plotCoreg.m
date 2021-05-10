@@ -81,6 +81,16 @@ three_plane_img(:,1:size_max)              = image_center(img_t, size_max);
 three_plane_img(:,size_max+(1:size_max))   = image_center(img_s, size_max);
 three_plane_img(:,size_max*2+(1:size_max)) = image_center(img_c, size_max);
 
+
+if ~MRSCont.flags.didSeg
+    if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
+        delete(MRSCont.coreg.vol_mask{kk}.fname);
+    end
+    if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
+        delete(MRSCont.coreg.vol_image{kk}.fname);
+    end
+end
+
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
 

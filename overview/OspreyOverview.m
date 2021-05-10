@@ -124,7 +124,6 @@ NoFit = length(FitNames);
 %%% 3. INTERPOLATION & NORMALIZATION %%%
 % Starting with the processed data 
 OverviewTime = tic;
-reverseStr = '';
 
 %Progress text for the GUI
 if MRSCont.flags.isGUI
@@ -147,10 +146,11 @@ else
     Voxels = 1;
     MRSCont.overview.Osprey.all_data_voxel_1 = MRSCont.processed;
 end
-
+fprintf('\n');
+fprintf('Gathering spectra from subspectrum %d out of %d total subspectra...', 1, NoSubSpec);
 for rr = 1 : Voxels
     for ss = 1 : NoSubSpec % Loop over Subspec
-        msg = sprintf('Gathering spectra from subspectrum %d out of %d total subspectra...\n', ss, NoSubSpec);
+        msg = sprintf('Gathering spectra from subspectrum %d out of %d total subspectra...', ss, NoSubSpec);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
         if MRSCont.flags.isGUI && isfield(progressText,'String')
@@ -209,18 +209,18 @@ for rr = 1 : Voxels
     end
 end
 
-fprintf('... done.\n');
+fprintf('\n... done.\n');
 if MRSCont.flags.isGUI && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.'));
     pause(1);
 end
-reverseStr = '';
+
 
 % Apply the same stpes to the fits
-
+fprintf('Gathering fit models from fit %d out of %d total fits...', 1, NoFit);
 for rr = 1 : Voxels%Loop over
     for sf = 1 : NoFit %Loop over all fits
-        msg = sprintf('Gathering fit models from fit %d out of %d total fits...\n', sf, NoFit);
+        msg = sprintf('Gathering fit models from fit %d out of %d total fits...', sf, NoFit);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
         if MRSCont.flags.isGUI && isfield(progressText,'String')
@@ -586,12 +586,11 @@ for rr = 1 : Voxels%Loop over
         end
     end
 end
-fprintf('... done.\n');
+fprintf('\n... done.\n');
 if MRSCont.flags.isGUI  && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.'));
     pause(1);
 end
-reverseStr = '';
 
 for rr = 1 : Voxels
     for sf = 1 : NoFit
@@ -604,9 +603,10 @@ end
 
 %Interpolating models if needed to allow the calculation of mean and SD
 %models
+fprintf('Interpolating fit models from fit %d out of %d total fits...', 1, NoFit);
 for rr = 1 : Voxels
     for sf = 1 : NoFit % loop over all fits
-        msg = sprintf('Interpolating fit models from fit %d out of %d total fits...\n', sf, NoFit);
+        msg = sprintf('Interpolating fit models from fit %d out of %d total fits...', sf, NoFit);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
         if MRSCont.flags.isGUI && isfield(progressText,'String')
@@ -683,16 +683,16 @@ for rr = 1 : Voxels
     end
 end
 
-fprintf('... done.\n');
+fprintf('\n... done.\n');
 if MRSCont.flags.isGUI  && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('... done.'));
     pause(1);
 end
-reverseStr = '';
 
 %%% 3. SCALING DATA  %%%
 %Normalizing the data according to the scale value of the fit and normalize
 %the models according to the tCr/tNAA amplitudes
+fprintf('\nScaling data from dataset %d out of %d total datasets...', 1, MRSCont.nDatasets);
 for rr = 1 : Voxels
     for kk = 1 : MRSCont.nDatasets
         if Voxels < 2
@@ -700,11 +700,11 @@ for rr = 1 : Voxels
         else
             scale                 = MRSCont.fit.scale{kk};                        
         end
-        msg = sprintf('Scaling data from dataset %d out of %d total datasetss...\n', kk, MRSCont.nDatasets);
+        msg = sprintf('Scaling data from dataset %d out of %d total datasets...', kk, MRSCont.nDatasets);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
         if MRSCont.flags.isGUI && isfield(progressText,'String')
-            set(progressText,'String' ,sprintf('Scaling data from dataset %d out of %d total datasetss...\n', kk, MRSCont.nDatasets));
+            set(progressText,'String' ,sprintf('Scaling data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
             drawnow
         end
         if isfield(MRSCont, 'quantify')

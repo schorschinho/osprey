@@ -45,7 +45,7 @@ end
 if nargin<6
     switch which_spec
         case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
-            ppmmax = 4.5;
+            ppmmax = 6;
         case {'ref', 'w'}
             ppmmax = 2*4.68;
         otherwise
@@ -61,7 +61,12 @@ if nargin<6
                 error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
         end
         if nargin<4
-            VoxelIndex = 1; 
+            if MRSCont.flags.isPRIAM
+                VoxelIndex = 1; 
+            end
+            if MRSCont.flags.isMRSI
+                VoxelIndex = [1 1]; 
+            end
             if nargin < 3
                 which_spec = 'A';
                 if nargin < 2

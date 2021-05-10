@@ -89,7 +89,7 @@ if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(M
             set ( temp, 'BackgroundColor',gui.colormap.Background);
             set( temp, 'Parent', gui.Plot.quant);
         end
-else       
+elseif  (MRSCont.flags.isPRIAM && isfield(MRSCont.flags,'isPRIAM'))    
 
 % All the information from the Raw data is read out here
         for t = 1 : gui.quant.Number.Model %Loop over fits
@@ -187,6 +187,116 @@ else
             set ( temp, 'BackgroundColor',gui.colormap.Background);
             set( temp, 'Parent', gui.Plot.quant);
         end 
+else
+    for t = 1 : gui.quant.Number.Model %Loop over fits
+        gui.upperBox.quant.box = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
+                gui.upperBox.quant.upperLeftButtons = uix.Panel('Parent', gui.upperBox.quant.box, ...
+                                         'Padding', 5, 'Title', ['Navigate voxel'],...
+                                         'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                         'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+                gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.quant.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
+                gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
+                gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','X:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Y:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Z:',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
+                set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
+                set(gui.controls.b_left_z,'Callback',{@osp_onLeftZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_left_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_left_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_left_z.Enable = 'off';
+                end
+                gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
+                set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
+                set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});
+                if gui.info.nXvoxels <= 1
+                    gui.controls.b_right_x.Enable = 'off';
+                end
+                if gui.info.nYvoxels <= 1
+                    gui.controls.b_right_y.Enable = 'off';
+                end
+                if gui.info.nZvoxels <= 1
+                    gui.controls.b_right_z.Enable = 'off';
+                end   
+                set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
+            gui.upperBox.quant.Info = uix.Panel('Parent', gui.upperBox.quant.box, 'Padding', 5, ...
+                                      'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
+                                      'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                      'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            % Creates layout for plotting and data control
+            gui.Plot.quantMainBox = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background);
+            gui.Plot.quantHBox = uix.HBox('Parent', gui.Plot.quantMainBox,'BackgroundColor',gui.colormap.Background);
+            gui.Plot.quantVBox = uix.VBox('Parent', gui.Plot.quantHBox,'BackgroundColor',gui.colormap.Background);
+            gui.Plot.quantMRSImap = uix.VBox('Parent', gui.Plot.quantVBox,'BackgroundColor',gui.colormap.Background);
+                
+                if ~strcmp(gui.fit.Style,'w') && ~strcmp(gui.fit.Style,'ref')
+                    temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Style,gui.fit.Style, {'NAA'}, []);
+                else
+                    temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Style,gui.fit.Style, {'H2O'}, []);
+                end
+                ViewAxes = gca();
+                drawnow
+                set( ViewAxes, 'Parent', gui.Plot.quantMRSImap );
+                close(temp)
+%                {@osp_MRSImapListChangedFcn,gui}
+                gui.Plot.quantList = uiw.widget.CheckboxTree('Parent',gui.Plot.quantVBox,...
+                    'Units', 'normalized','Position', [0 0 1 1]);
+                set(gui.Plot.quantList,'CheckboxClickedCallback',{@osp_MRSImapListChangedFcn,gui})
+                set(gui.Plot.quantList.Root,'Name','');
+                set(gui.Plot.quantList.Root,'CheckboxVisible',0);
+                gui.Plot.quantNominator{1} = uiw.widget.CheckboxTreeNode('Name','nominator','Parent',gui.Plot.quantList.Root);
+                gui.Plot.quantDenominator{1} = uiw.widget.CheckboxTreeNode('Name','denominator','Parent',gui.Plot.quantList.Root);
+                for idx = 1: gui.quant.Number.Model 
+                    gui.Plot.quantNodesNominator{idx} = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Model{idx},'Parent',gui.Plot.quantNominator{1});
+                    gui.Plot.quantNodesDenominator{idx} = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Model{idx},'Parent',gui.Plot.quantDenominator{1});
+                    for idx2 = 1 : length(gui.quant.Names.Metabs.(gui.quant.Names.Model{idx}))
+                        gui.Plot.MetabNodesNominator{idx,idx2} = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Metabs.(gui.quant.Names.Model{idx}){idx2},'Parent',gui.Plot.quantNodesNominator{idx});
+                        gui.Plot.MetabNodesDenominator{idx,idx2} = uiw.widget.CheckboxTreeNode('Name',gui.quant.Names.Metabs.(gui.quant.Names.Model{idx}){idx2},'Parent',gui.Plot.quantNodesDenominator{idx});
+                    end
+                end
+                set( gui.Plot.quantVBox, 'Heights', [-0.7 -0.3]);
+
+                temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y]); %Create figure
+                ViewAxes = gca();
+                set(ViewAxes, 'Parent',  gui.Plot.quantHBox );
+                close( temp );
+            set( gui.Plot.quantHBox, 'Widths', [-0.5 -0.5]);
+            set(gui.layout.(gui.layout.quantifyTabhandles{t}), 'Heights', [-0.1 -0.9]);
+                              
+            % Get parameter from file to fill the info panel
+           StatText = ['Metabolite maps of: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style ...
+                         '\nSelected subspecs: ' gui.quant.Names.Model{gui.quant.Selected.Model} ];
+                     gui.InfoText.quant  = uicontrol('Parent',gui.upperBox.quant.Info,'style','text',...
+                'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            set(gui.upperBox.quant.box, 'Width', [-0.1 -0.9]);
+            set(gui.Plot.quantHBox.Children(2), 'Units', 'normalized');
+            set(gui.Plot.quantHBox.Children(2), 'OuterPosition', [0.17,0.02,0.7,0.9]);
+            
+            
+            
+    end
+    
 end
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

@@ -218,9 +218,10 @@ if ~isfield(MRSCont.opts, 'UnstableWater')
     MRSCont.opts.UnstableWater = 0;
 end
 
-if ~isfield(MRSCont.opts, 'L1NormAlign')
-    MRSCont.opts.L1NormAlign = 0;
+if ~isfield(MRSCont.opts, 'SubSpecAlignment')
+    MRSCont.opts.SubSpecAlignment = 'L2Norm';
 end
+
 
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
 % Parse the sequence type entry
@@ -290,6 +291,20 @@ if exist('MultiVoxel','var')
             MRSCont.flags.isMRSI = 1;
         otherwise
             warning('Multi voxel must be ''PRIAM'' or ''MRSI''in the job file, and has been set to ''single voxel'' (default).');
+    end
+    if ~isfield(MRSCont.opts, 'MoCo')
+        MRSCont.opts.MoCo.target = 'none';
+        MRSCont.opts.MoCo.thresh.thresh = 0.8;
+        MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
+        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;    
+    end
+    if ~isfield(MRSCont.opts.MoCo, 'target')
+        MRSCont.opts.MoCo.target = 'full';
+    end
+    if ~isfield(MRSCont.opts.MoCo, 'thresh')
+        MRSCont.opts.MoCo.thresh.thresh = 0.8;
+        MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
+        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;  
     end
 end
 
