@@ -423,7 +423,7 @@ classdef OspreyGUI < handle
         % been completed:
             gui.controls.waitbar = waitbar(0,'Start','Name','Loading your MRS Container');
             waitbar(0,gui.controls.waitbar,'Loading your raw spectra')
-            if (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)) && isfield(MRSCont.ver, 'Load') && strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad)) % Was data loaded at all that can be looked at?
+            if (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) % Was data loaded at all that can be looked at?
                 osp_iniLoadWindow(gui);
                 if MRSCont.flags.isMRSI
                     gui.layout.LocPanel = uix.HBox('Parent', gui.layout.MRSILocPanel, 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
