@@ -1,4 +1,4 @@
-function out = osp_plotProcessMRSI(MRSCont, kk, which_spec, ppmmin, ppmmax,mask, lb,shift_factor,add_text,add_No_MoCo)
+function out = osp_plotProcessMRSI(MRSCont, kk, which_spec,which_slice, ppmmin, ppmmax,mask, lb,shift_factor,add_text,add_No_MoCo)
 %% out = osp_plotProcessMRSI(MRSCont, kk, which, ppmmin, ppmmax)
 %   Creates a figure showing processed data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *processed and
@@ -42,40 +42,43 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 10
+if nargin < 11
     add_No_MoCo = 0;
-    if nargin < 9
+    if nargin < 10
     add_text = 0;
-        if nargin < 8
+        if nargin < 9
             shift_factor = 2;
-            if nargin < 7
+            if nargin < 8
                 lb = 0;
-                if nargin < 6
+                if nargin < 7
                     mask = 1;
-                    if nargin<5
-                        switch which_spec
-                            case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
-                                ppmmax = 5;
-                            case {'ref', 'w'}
-                                ppmmax = 2*4.68;
-                            otherwise
-                                error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-                        end
-                        if nargin<4
+                        if nargin < 6
+                        which_slice = 1;
+                        if nargin<5
                             switch which_spec
-                                case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum'}
-                                    ppmmin = 0.2;
-                                case {'ref', 'w','mm'}
-                                    ppmmin = 0;
+                                case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
+                                    ppmmax = 5;
+                                case {'ref', 'w'}
+                                    ppmmax = 2*4.68;
                                 otherwise
                                     error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                             end
-                            if nargin < 3
-                                which_spec = 'A';
-                                if nargin < 2
-                                    kk = 1;
-                                    if nargin<1
-                                        error('ERROR: no input Osprey container specified.  Aborting!!');
+                            if nargin<4
+                                switch which_spec
+                                    case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum'}
+                                        ppmmin = 0.2;
+                                    case {'ref', 'w','mm'}
+                                        ppmmin = 0;
+                                    otherwise
+                                        error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+                                end
+                                if nargin < 3
+                                    which_spec = 'A';
+                                    if nargin < 2
+                                        kk = 1;
+                                        if nargin<1
+                                            error('ERROR: no input Osprey container specified.  Aborting!!');
+                                        end
                                     end
                                 end
                             end
@@ -137,7 +140,7 @@ for y = 1 : YVox
     procDataLineToPlot = [];
     zeroDataLineToPlot = [];
     for x = 1 : XVox
-         procData=op_takeVoxel(MRSCont.processed.(which_spec){kk},[x, y]);
+         procData=op_takeVoxel(MRSCont.processed.(which_spec){kk},[x, y,which_slice]);
          if ~(lb == 0)
             [procData,~]=op_filter(procData,lb);
          end
@@ -153,7 +156,7 @@ if add_No_MoCo
     for y = 1 : YVox  
     procNoMoCoDataLineToPlot = [];
         for x = 1 : XVox
-             procNoMoCoData=op_takeVoxel(MRSCont.processed_no_MoCo.(which_spec){kk},[x, y]);
+             procNoMoCoData=op_takeVoxel(MRSCont.processed_no_MoCo.(which_spec){kk},[x, y,which_slice]);
              if ~(lb == 0)
                 [procNoMoCoData,~]=op_filter(procNoMoCoData,lb);
              end
@@ -176,11 +179,11 @@ end
 
 
 shift = abs(yLim(1)) + abs(yLim(2));
-shift = shift/ shift_factor;
+shift = shift* shift_factor;
 for y = 1 : YVox
     for x = 1 : XVox
         if mask
-            if MRSCont.mask{kk}(x,y)
+            if MRSCont.mask{kk}(y,x,which_slice)
                 plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint);
                 hold on
                 if add_text
@@ -207,9 +210,9 @@ for y = 1 : YVox
                
                 
             else
-                plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),procDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint)
-                hold on
-                plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint);              
+%                 plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),procDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint)
+%                 hold on
+%                 plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint);              
                 
             end
         else

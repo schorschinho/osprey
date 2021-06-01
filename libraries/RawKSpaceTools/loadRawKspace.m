@@ -260,7 +260,7 @@ end
 
 function kspace = loadListFile(listfile)
 %kspace = loadListfile(filepath)
-headers = 'typ mix   dyn   card  echo  loca  chan  extr1 extr2 ky    kz    n.a.  aver  sign  rf    grad  enc   rtop  rr    size   offset';
+headers = 'typ mix   dyn   card  echo  loca  chan  extr1 extr2 kx    ky    kz  aver  sign  rf    grad  enc   rtop  rr    size   offset';
 headers = textscan(headers,'%s');
 headers = headers{1}(:)';
 [nrofheaderlines, kspace_properties] = getNrofheaderlines(listfile);

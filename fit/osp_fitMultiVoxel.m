@@ -70,7 +70,7 @@ elseif MRSCont.flags.isMRSI == 1
     vox = 1;
     %Fit center of MRSI first for inital guess parameters
     if isfield( MRSCont, 'mask')
-        [r, c] = find(MRSCont.mask{1}== 1);
+        [r, c] = find(MRSCont.mask{1}(:,:,round(ZVox/2))== 1);
         cx = round(mean(r));
         cy = round(mean(c));
         cz = round(ZVox/2);
@@ -149,7 +149,7 @@ elseif MRSCont.flags.isMRSI == 1
             [~] = printLog('OspreyFit',[kk,vox],[MRSCont.nDatasets, XVox*YVox*ZVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
              try
-             if MRSCont.mask{kk}(x,y)
+             if MRSCont.mask{kk}(x,y,z)
                for ss = 1 : NoSubSpec % Loop over Subspec
                    for kk = 1 :MRSCont.nDatasets
                        if ZVox <=1
