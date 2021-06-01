@@ -55,6 +55,10 @@ for kk = 1:MRSCont.nDatasets
                 case 'SDAT'
                     raw = op_sortMRSIsdat(MRSCont.raw{kk});
                     MRSCont.raw{kk}      = raw;
+                    if MRSCont.flags.hasWater
+                        raw_w = op_sortMRSIsdat(MRSCont.raw_w{kk});
+                        MRSCont.raw_w{kk}      = raw_w;
+                    end
                 otherwise
                     msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                     fprintf(fileID,msg);

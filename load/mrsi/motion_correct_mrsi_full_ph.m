@@ -35,6 +35,9 @@ k_space_locs = zeros(size(k_sort_on2,1),size(k_sort_on2,2));
 
 % Keep track of which options get triggered:
 corr_options = [];
+
+dims = size(k_sort_on);
+n_points = dims(end);
     
 % Eliminate bad averages.
 count_k = 0;
@@ -44,14 +47,14 @@ for this_kx = 1:size(on_spec_k_1,1)
     for this_ky = 1:size(on_spec_k_1,2)
         count_k = count_k + 1;
         %disp(sprintf('Eliminating bad k-space points of %d of %d.', count_k, 3*size(on_spec_k_1,2)*size(on_spec_k_1,3)))
-        ppm_axis = linspace(-1000,1000,1024*spec_zfill)/128 + 4.68;
+        ppm_axis = linspace(-1000,1000,n_points*spec_zfill)/128 + 4.68;
         if this_kx == 7 && this_ky == 6
             this_kx;
             this_ky;
         end
         % Water approximate range
-        met_start_wat = find(round(ppm_axis*100)/100 == 4.4);
-        met_end_wat = find(round(ppm_axis*100)/100 == 5.2);
+        met_start_wat = find(round(ppm_axis*100)/100 >= 4.4);
+        met_end_wat = find(round(ppm_axis*100)/100 <= 5.2);
         if length(met_start_wat) > 1
             met_start_wat = met_start_wat(1);
         end
@@ -60,23 +63,23 @@ for this_kx = 1:size(on_spec_k_1,1)
         end
 
         % Lipid approximate range
-        met_start_lip = find(round(ppm_axis*100)/100 == 0);
-        met_end_lip = find(round(ppm_axis*100)/100 == 2.5);
-        if length(met_start_wat) > 1
+        met_start_lip = find(round(ppm_axis*100)/100 >= 0);
+        met_end_lip = find(round(ppm_axis*100)/100 <= 2.5);
+        if length(met_start_lip) > 1
             met_start_lip = met_start_lip(1);
         end
-        if length(met_end_wat) > 1
+        if length(met_end_lip) > 1
             met_end_lip = met_end_lip(end);
         end
 
         
         % Cr Cho approximate range
-        met_start_crcho = find(round(ppm_axis*100)/100 == 2.8);
-        met_end_crcho = find(round(ppm_axis*100)/100 == 3.5);
-        if length(met_start_wat) > 1
+        met_start_crcho = find(round(ppm_axis*100)/100 >= 2.8);
+        met_end_crcho = find(round(ppm_axis*100)/100 <= 3.5);
+        if length(met_end_crcho) > 1
             met_start_crcho = met_start_crcho(1);
         end
-        if length(met_end_wat) > 1
+        if length(met_end_crcho) > 1
             met_end_crcho = met_end_crcho(end);
         end
 

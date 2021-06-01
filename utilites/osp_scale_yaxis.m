@@ -34,8 +34,8 @@ function MRSCont = osp_scale_yaxis(MRSCont,Module)
                 Range = zeros(2,MRSCont.nDatasets);
                 for kk = 1 : MRSCont.nDatasets
                     temp_spec = op_freqrange(MRSCont.raw_w{kk}, ppmmin, ppmmax);
-                    Range(1,kk) = op_findMaxMedian(temp_spec);
-                    Range(2,kk) = op_findMinMedian(temp_spec);             
+                    Range(1,kk) = op_findMaxMedian(temp_spec,1);
+                    Range(2,kk) = op_findMinMedian(temp_spec,1);             
                 end
                 MRSCont.plot.load.w.max = Range(1,:);
                 MRSCont.plot.load.w.min = Range(2,:);
