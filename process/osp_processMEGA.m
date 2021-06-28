@@ -62,6 +62,11 @@ for kk = 1:MRSCont.nDatasets
         % pre-averaged, i.e. in some older RDA and DICOM files (which should, 
         % generally, not be used).
             if ~MRSCont.flags.isPhantom
+                if MRSCont.flags.isMRSI
+                    if MRSCont.opts.MoCo.lb > 0
+                        raw = op_filter(raw, MRSCont.opts.MoCo.lb);
+                    end
+                end
                 switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
                     case 'RobSpecReg'
                         [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini); % Align and average
@@ -85,7 +90,7 @@ for kk = 1:MRSCont.nDatasets
             % Finally, apply some linebroadening. High-quality in-vitro
             % data may have linewidth lower than the simulated basis set
             % data.
-            raw = op_filter(raw, 2);
+            raw = op_filter(raw, 6);
                 switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
                     case 'none'
                         [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,1); % Align and average  
@@ -256,6 +261,8 @@ for kk = 1:MRSCont.nDatasets
             [raw_A, raw_B]  = osp_editSubSpecAlignLNorm(raw_A, raw_B);
             case 'L2Norm'
             [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);
+            otherwise
+                
         end
         
 

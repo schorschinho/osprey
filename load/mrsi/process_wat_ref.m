@@ -20,10 +20,10 @@ function [k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft] = process_
     n_points = data.kspace_properties.F_resolution(1);
      % Determine number of data points per scan
     kz_tot = data.kspace_properties.number_of_locations(1);
+    % Determine number of data points per scan
+    kx_tot = abs(data.kspace_properties.kx_range(1)) + abs(data.kspace_properties.kx_range(2)) +1 ;
      % Determine number of data points per scan
-    kx_tot = data.kspace_properties.X_resolution(1);
-     % Determine number of data points per scan
-    ky_tot = data.kspace_properties.Y_resolution(1);
+    ky_tot = abs(data.kspace_properties.ky_range(1)) + abs(data.kspace_properties.ky_range(2)) +1 ;
     
     if kz_tot > 1
         seq_type = 'MEGA multislice';

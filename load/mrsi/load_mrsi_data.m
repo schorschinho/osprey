@@ -48,7 +48,6 @@ function [MRSCont] = load_mrsi_data(MRSCont)
 %   HISTORY:
 %       2021-02-01: Adaptions for Osprey.
 %%
-lb = 5;
 spec_zfill =2;
 k_zfill = 1;
 seq_type = 'MEGA-PRESS';
@@ -141,9 +140,9 @@ for kk = 1:MRSCont.nDatasets
      % Determine number of data points per scan
     kz_tot = data.kspace_properties.number_of_locations(1);
      % Determine number of data points per scan
-    kx_tot = data.kspace_properties.X_resolution(1);
+    kx_tot = abs(data.kspace_properties.kx_range(1)) + abs(data.kspace_properties.kx_range(2)) +1 ;
      % Determine number of data points per scan
-    ky_tot = data.kspace_properties.Y_resolution(1);
+    ky_tot = abs(data.kspace_properties.ky_range(1)) + abs(data.kspace_properties.ky_range(2)) +1 ;
     
     if kz_tot > 1
         seq_type = 'MEGA multislice';
@@ -564,7 +563,7 @@ for kk = 1:MRSCont.nDatasets
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
             else
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-                k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));
+%                 k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));
             end
             
             k_fft2 = squeeze(sum(k_fft2_phased,3));
@@ -607,6 +606,7 @@ for kk = 1:MRSCont.nDatasets
                     k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
                 else
                     k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
+                    k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,4));
                 end
 
                     k_fft2_no_MoCo = squeeze(sum(k_fft2_phased,4));
@@ -655,7 +655,7 @@ for kk = 1:MRSCont.nDatasets
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
             else
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-                k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,4));
+%                 k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,4));
             end
 
             k_fft2 = squeeze(sum(k_fft2_phased,4));
