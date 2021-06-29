@@ -427,7 +427,7 @@ classdef OspreyGUI < handle
                 osp_iniLoadWindow(gui);
                 if MRSCont.flags.isMRSI
                     gui.layout.LocPanel = uix.HBox('Parent', gui.layout.MRSILocPanel, 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
-                    temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x]);
+                    temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x gui.controls.act_z]);
                     ViewAxes = gca();
                     drawnow
                     set( ViewAxes, 'Parent', gui.layout.LocPanel );

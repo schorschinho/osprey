@@ -48,10 +48,13 @@ function [MRSCont] = load_mrsi_data(MRSCont)
 %   HISTORY:
 %       2021-02-01: Adaptions for Osprey.
 %%
-lb = 5;
 spec_zfill =2;
 k_zfill = 1;
 seq_type = 'MEGA-PRESS';
+k_ph_corr = [];  
+replace_track = [];  
+zero_replace_track = [];  
+corr_options = [];  
 
 %%
 % Close any remaining open figures
@@ -113,170 +116,91 @@ for kk = 1:MRSCont.nDatasets
             statFile = [];
         end
         fprintf('\nOpening data.');
+        
+       
+        
         filename = MRSCont.files{kk};
+        [data] = loadRawKspace(filename);
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Determine dimensions of the acquisition
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    % Determine number of channels
+    n_coils = length(unique(data.chan));
+    
+    % Determine number of mixes
+    n_mixes = length(unique(data.mix));
+    
+    % Determine number of averages per mix
+    n_averages = data.kspace_properties.number_of_signal_averages;
 
+    % Determine number of data points per scan
+    n_points = data.kspace_properties.F_resolution(1);
+     % Determine number of data points per scan
+    kz_tot = data.kspace_properties.number_of_locations(1);
+     % Determine number of data points per scan
+    kx_tot = abs(data.kspace_properties.kx_range(1)) + abs(data.kspace_properties.kx_range(2)) +1 ;
+     % Determine number of data points per scan
+    ky_tot = abs(data.kspace_properties.ky_range(1)) + abs(data.kspace_properties.ky_range(2)) +1 ;
+    
+    if kz_tot > 1
+        seq_type = 'MEGA multislice';
+    end
+    
+    data.kx = data.kx + abs(min(data.kx)) + 1;
+    data.ky = data.ky + abs(min(data.ky)) + 1;
+    data.loca = data.loca + abs(min(data.loca)) + 1;
+    data.aver = data.aver + 1;
+    data.chan = data.chan + 1;
+    
+            
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Start splitting the list of total scans into its parts:
+    % Noise scans, water-suppressed scans, and water-unsuppressed scans.
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    noise_line = sum(strcmp(data.typ,'NOI'));
+    
+    % Separate the water-suppressed from the water-unsuppressed scans.
+    % Water-suppressed scans have the data type 'STD' and mix index 0:
+    isdata = strcmp(data.typ,'STD') & (data.mix == 0);
+    data_matrix = cell2mat(data.complexdata(isdata));
 
-        endian = 'l';
-        type = 'float';
-
-        disp('Reading scan parameters.')
-        fname_scan_params = [filename(1:(end-4)),'list'];
-        scan_params = textread(fname_scan_params, '%s');
-        % Find the data lines and ignore the noise channels.
-        data_lines = find(strcmp(scan_params,'STD'));
-        tot_offset_idx = scan_params(data_lines(end) + 20); % last STD + 20 more offsets
-        data_lines = data_lines(3:end); % ignore first 4 STDs.
-        offset = str2num(scan_params{data_lines(1) + 20});
-
-        tot_offsets = (str2num(tot_offset_idx{1}) - offset)/8192 + 1; % All offsets divided by 8192 bytes.
-
-
-        disp('Reading data.')
-        fp=fopen(filename, 'rb', endian);
-
-        fseek(fp, offset, -1); % Start reading from the offset
-
-        data_raw = fread(fp, 2048*tot_offsets, type); % 1024 real points, 2048 complex points
-                                               % size of each floating point. (unsigned
-                                               % integer?
-        data=data_raw(1:2:end,:)+1i*data_raw(2:2:end,:); % Points alternate between real and complex
-        data = reshape(data,[1024, tot_offsets]); % Reshape back to 1024 points by 8384 offsets.
-
-
-
-        coil = zeros(1,length(data_lines - 1));
-        kx = coil;
-        ky = coil;
-        avg = coil;
-        sign = coil;
-        loc = coil;
-        count = 0;
-        all_count = kx;
-        for dl = 1:(length(data_lines))
-            if dl == length(data_lines)
-                this_dl = cellfun(@str2num,{scan_params{(data_lines(dl)+1):(data_lines(dl)+20)}});
-            else
-                this_dl = cellfun(@str2num,{scan_params{(data_lines(dl)+1):(data_lines(dl + 1)-1)}});
-            end
-
-            count = count + 1;
-            all_count(dl) = count;
-            loc(dl) = this_dl(5) + 1;
-            coil(dl) = this_dl(6);
-%             kx(dl) = this_dl(9);
-%             ky(dl) = this_dl(10);
-            kx(dl) = this_dl(10);
-            ky(dl) = this_dl(9);
-            avg(dl) = this_dl(12);
-            sign(dl) = this_dl(13);
-        end
-
-        kx_tot = max(kx) - min(kx) + 1;
-        ky_tot = max(ky) - min(ky) + 1;
-
-        x_tot = k_zfill*kx_tot;
-        y_tot = k_zfill*ky_tot;
-        
-        %Get averages HZ
-        averages = (max(avg) + 1)/2; 
-
-        if (strcmp(seq_type, 'MEGA multislice') || strcmp(seq_type, 'SE multislice'))
-            k_sort_on = zeros(max(loc), kx_tot, ky_tot, max(coil) + 1, 1024);
+    disp('Reorganizing k-space locations.')
+   if (strcmp(seq_type, 'MEGA multislice') || strcmp(seq_type, 'SE multislice'))
+            k_sort = zeros(kz_tot,kx_tot, ky_tot, n_coils, n_points,n_averages);
         else
-            k_sort_on = zeros(kx_tot, ky_tot, max(coil) + 1, 1024);
-            k_sort = zeros(kx_tot, ky_tot, max(coil) + 1, 1024,max(avg) + 1);
-        end
+            k_sort_on = zeros(kx_tot, ky_tot, n_coils, n_points);
+            k_sort = zeros(kx_tot, ky_tot,n_coils, n_points,n_averages);
+    end
         
-        %Create a struct instead
-        count_sort = zeros(size(k_sort,1), size(k_sort,2));
-
-        if (strcmp(seq_type, 'HERMES') || strcmp(seq_type, 'HERMES lip sup'))
-            k_sort_on1_on2 = zeros(kx_tot, ky_tot, max(coil) + 1, 1024);
-            k_sort_on1_off2 = k_sort_on1_on2;
-            k_sort_off1_on2 = k_sort_on1_on2;
-            k_sort_off1_off2 = k_sort_on1_on2;
-        end
-
-
-        disp('Reorganizing k-space locations.')
-
-        k_count = 0;
-
-        last_kx = 500;
-        last_ky = 500;
-
         % Rearrange k-space values (so no negative indices)
-        for dl = 1:(length(data_lines))
-            this_kx = kx(dl) + abs(min(kx)) + 1;
-            this_ky = ky(dl) + abs(min(ky)) + 1; 
-
-            this_avg = avg(dl);
-            this_coil = coil(dl);
-            this_loc = loc(dl);
-        %   
-            if this_kx ~= last_kx || this_ky ~= last_ky
-                k_count = k_count + 1;
-                last_kx = this_kx;
-                last_ky = this_ky;
-                count_sort(this_kx, this_ky) = k_count;
-            end
-
+        for dl = 1:size(data_matrix,1)            
             if strcmp(seq_type, 'MEGA-PRESS')        % MEGA-PRESS
-                k_sort(this_kx, this_ky, this_coil + 1, :,this_avg+1) = data(:,dl); 
+                k_sort(data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
             elseif strcmp(seq_type, 'HERMES')        % HERMES
-                switch this_avg
-                    case 0
-                       k_sort_off1_on2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                    case 1
-                       k_sort_on1_off2(this_kx, this_ky, this_coil + 1, :) = data(:,dl); %x
-                    case 2
-                       k_sort_on1_on2(this_kx, this_ky, this_coil + 1, :) = data(:,dl); %x
-                    case 3
-                       k_sort_off1_off2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                end
+                 k_sort(data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
             elseif strcmp(seq_type, 'HERMES lip sup')        % HERMES lipid suppression
-                switch this_avg
-                    case 0
-                       k_sort_on1_off2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                    case 1
-                       k_sort_off1_off2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                    case 2
-                       k_sort_on1_on2(this_kx, this_ky, this_coil + 1, :) = data(:,dl); 
-                    case 3
-                       k_sort_off1_on2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                end
+                 k_sort(data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
             elseif strcmp(seq_type, 'PRESS')
-                switch this_avg
-                    case 0
-                        k_sort_off(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                        k_sort_on(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                    case 1
-                        k_sort_off2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                        k_sort_on2(this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                end
+                 k_sort(data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
             elseif strcmp(seq_type, 'MEGA multislice')        % MEGA Multislice, default is 3 slices
-                switch this_avg
-                    case 0
-                        k_sort_on(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                    case 1
-                        k_sort_off(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                    case 2
-                        k_sort_on2(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                    case 3
-                        k_sort_off2(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                end
+                k_sort(data.loca(dl+noise_line),data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
             elseif strcmp(seq_type, 'SE multislice')        % SE Multislice, default is 3 slices   
-                k_sort_off(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                k_sort_on(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                k_sort_off2(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
-                k_sort_on2(this_loc,this_kx, this_ky, this_coil + 1, :) = data(:,dl);
+                k_sort(data.loca(dl+noise_line),data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
         end
         end
          if strcmp(seq_type, 'MEGA-PRESS') 
              k_merge_on = k_sort(:,:,:,:,1:2:end);
              k_merge_off = k_sort(:,:,:,:,2:2:end);
              k_sort = cat(6,k_merge_on,k_merge_off);
+             n_averages = n_averages/2;
+         end
+         if strcmp(seq_type, 'MEGA multislice') 
+             k_merge_on = k_sort(:,:,:,:,:,1:2:end);
+             k_merge_off = k_sort(:,:,:,:,:,2:2:end);
+             k_sort = cat(7,k_merge_on,k_merge_off);
+              n_averages = n_averages/2;
          end
          dimensions = size(k_sort);
          subspecs = dimensions(end);
@@ -289,17 +213,22 @@ for kk = 1:MRSCont.nDatasets
         % Apply a Hanning filter on k-space data to improve the PSF
 
         if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
-            hanning_x = repmat(hanning(kx_tot), [1 ky_tot max(coil) + 1 1024]);
-            hanning_y = permute(repmat(hanning(ky_tot), [1 kx_tot max(coil) + 1 1024]), [2 1 3 4]);
+            hanning_x = repmat(hanning(kx_tot), [1 ky_tot n_coils n_points]);
+            hanning_y = permute(repmat(hanning(ky_tot), [1 kx_tot n_coils n_points]), [2 1 3 4]);
         else
-            hanning_x = repmat(hanning(kx_tot), [1 max(loc) ky_tot max(coil) + 1 1024]);
-            hanning_y = permute(repmat(hanning(ky_tot), [1 kx_tot max(loc) max(coil) + 1 1024]), [3 2 1 4 5]);
+            hanning_x = repmat(hanning(kx_tot), [1 kz_tot ky_tot n_coils n_points]);
+            hanning_y = permute(repmat(hanning(ky_tot), [1 kx_tot kz_tot n_coils n_points]), [3 2 1 4 5]);
             hanning_x = permute(hanning_x, [2 1 3 4 5]);
         end
 
         for ss = 1 :  subspecs
-           k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
-           k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
+            if ~strcmp(seq_type, 'MEGA multislice')
+               k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
+               k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
+            else
+               k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
+               k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
+            end
         end
         k_ph_corr_on = zeros(size(k_sort,1),size(k_sort,2)); 
         %Here we need an automated phase adjustment HZ
@@ -333,39 +262,36 @@ for kk = 1:MRSCont.nDatasets
         if MRSCont.flags.hasWater
             if (strcmp(seq_type, 'MEGA multislice') || strcmp(seq_type, 'SE multislice'))
 
-                wat_on_peak1 = squeeze(k_sort_b4_2dfft(:,:,:,:,1));
-                wat_off_peak1 = squeeze(k_sort_b4_2dfft(:,:,:,:,1));
-                wat_on_peak2 = squeeze(k_sort_b4_2dfft(:,:,:,:,1));
-                wat_off_peak2 = squeeze(k_sort_b4_2dfft(:,:,:,:,1));
+                wat_peak = squeeze(k_fft2_wat_ref_no_k_zfill(:,:,:,:,1));
             else
                 wat_peak = squeeze(k_fft2_wat_ref_no_k_zfill(:,:,:,1));
             end
         else
             wat_peak = squeeze(k_sort(:,:,:,1,:,:));
             if (strcmp(seq_type, 'MEGA multislice') || strcmp(seq_type, 'SE multislice'))
-                wat_on_peak1 = squeeze(k_sort_on(:,:,:,:,1));
-                wat_off_peak1 = squeeze(k_sort_off(:,:,:,:,1));
-                wat_on_peak2 = squeeze(k_sort_on2(:,:,:,:,1));
-                wat_off_peak2 = squeeze(k_sort_off2(:,:,:,:,1));
+                wat_peak = squeeze(k_sort(:,:,:,:,1,:,:));
             end   
         end
 
         if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
             % Phase each coil before summing over the channels.
             if ~MRSCont.flags.hasWater
-                wat_peak = repmat(wat_peak, [1 1 1 1 1 1024]);
+                wat_peak = repmat(wat_peak, [1 1 1 1 1 n_points]);
                 wat_peak = permute(wat_peak,[1 2 3 6 4 5]);
             else
-                wat_peak = repmat(wat_peak, [1 1 1 averages subspecs 1024]);
+                wat_peak = repmat(wat_peak, [1 1 1 n_averages subspecs n_points]);
                 wat_peak = permute(wat_peak,[1 2 3 6 4 5]);
             end
             
         else
-           % Phase each coil before summing over the channels.           
-            wat_on_peak1 = repmat(wat_on_peak1, [1 1 1 1 1024]);
-            wat_off_peak1 = repmat(wat_off_peak1, [1 1 1 1 1024]);
-            wat_on_peak2 = repmat(wat_on_peak2, [1 1 1 1 1024]);
-            wat_off_peak2 = repmat(wat_off_peak2, [1 1 1 1 1024]);
+            % Phase each coil before summing over the channels.
+            if ~MRSCont.flags.hasWater
+                wat_peak = repmat(wat_peak, [1 1 1 1 1 1 n_points]);
+                wat_peak = permute(wat_peak,[1 2 3 4 7 5 6]);
+            else
+                wat_peak = repmat(wat_peak, [1 1 1 1 n_averages subspecs n_points]);
+                wat_peak = permute(wat_peak,[1 2 3 4 7 5 6]);
+            end
         end
         
         k_sort_phased = k_sort.*conj(wat_peak)./abs(wat_peak); 
@@ -374,23 +300,21 @@ for kk = 1:MRSCont.nDatasets
         if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
             k_sort_phased = squeeze(sum(k_sort_phased,3));
         else
-            k_sort_on_phased1 = squeeze(sum(k_sort_on_phased1,4));
-            k_sort_off_phased1 = squeeze(sum(k_sort_off_phased1,4));
-            k_sort_on_phased2 = squeeze(sum(k_sort_on_phased2,4));
-            k_sort_off_phased2 = squeeze(sum(k_sort_off_phased2,4));
+            k_sort_phased = squeeze(sum(k_sort_phased,4));
         end
-        % 
+        % Let's store the uncorrected k-space data
+        k_sort_no_MoCo = k_sort;
 
         if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
              k_sort_phased_k = k_sort_phased;
 
             motion_corr_lb = 5;
-            exp_lb = permute(squeeze((repmat(exp(-(motion_corr_lb*pi*(1:1024))/1024), [1 1 size(k_sort_phased_k,1)...
+            exp_lb = permute(squeeze((repmat(exp(-(motion_corr_lb*pi*(1:n_points))/n_points), [1 1 size(k_sort_phased_k,1)...
                 size(k_sort_phased_k,2)]))), [2 3 1]);
 
             % Form spectra in k-space.
             
-            spec_k = fftshift(fft(squeeze(k_sort_phased_k).*exp_lb,1024*spec_zfill,3),3);
+            spec_k = fftshift(fft(squeeze(k_sort_phased_k).*exp_lb,n_points*spec_zfill,3),3);
 
             % -------------- Motion Correction Identify ------------%
             % Identify motion & phase corrections                   %
@@ -410,16 +334,30 @@ for kk = 1:MRSCont.nDatasets
                     off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
                                                                                                                 spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
-                    else                                                                                   
+                                                                                                            
+                            k_ph_merge_on = cat(3, k_ph_corr_on1,k_ph_corr_on2);
+                           k_ph_merge_off = cat(3, k_ph_corr_off1,k_ph_corr_off2);
+                           k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
+                    else if strcmp(MRSCont.opts.MoCo.target, 'fullNoPhase')  
+                            [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
+                            ~, ~, ~, ~,replace_track] = motion_correct_mrsi_full(k_sort(:,:,:,:,:,1,1), k_sort(:,:,:,:,:,2,1), k_sort(:,:,:,:,:,1,2), k_sort(:,:,:,:,:,2,2),...
+                                                                                                        spec_k(:,:,:,:,1,1), spec_k(:,:,:,:,2,1), spec_k(:,:,:,:,1,2), spec_k(:,:,:,:,2,2),...
+                                                                                                        spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
+                                k_ph_corr = zeros(size(k_sort,1),size(k_sort,2),size(k_sort,5),size(k_sort,6));  
+                        else
                         [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
                         ~, ~, ~, ~,...
                         k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
                         on1_replace_track, off1_replace_track, on2_replace_track, ...
                         off2_replace_track, zero_replace_track, ~, corr_options]  = motion_correct_mrsi_full_ph_water(k_sort(:,:,:,:,1,1), k_sort(:,:,:,:,2,1), k_sort(:,:,:,:,1,2), k_sort(:,:,:,:,2,2),...
                                                                                                                 spec_k(:,:,:,1,1), spec_k(:,:,:,2,1), spec_k(:,:,:,1,2), spec_k(:,:,:,2,2),...
-                                                                                                                spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);                                                                                              
+                                                                                                                spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);       
+                            k_ph_merge_on = cat(3, k_ph_corr_on1,k_ph_corr_on2);
+                           k_ph_merge_off = cat(3, k_ph_corr_off1,k_ph_corr_off2);
+                           k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
                    
-                    end     
+                        end     
+                    end
                    on_replace_track = cat(3, on1_replace_track,on2_replace_track);
                    off_replace_track = cat(3, off1_replace_track,off2_replace_track);
                    replace_track = cat(4,on_replace_track,off_replace_track);
@@ -428,34 +366,52 @@ for kk = 1:MRSCont.nDatasets
                    k_sort_merge_off = cat(5, k_sort_off,k_sort_off2);
                    k_sort = cat(6,k_sort_merge_on,k_sort_merge_off);
 
-                   k_ph_merge_on = cat(3, k_ph_corr_on1,k_ph_corr_on2);
-                   k_ph_merge_off = cat(3, k_ph_corr_off1,k_ph_corr_off2);
-                   k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
+                  
                                
                 end
                                                                                                                                                                                                                                                                                                                  
             end
         else
-            k_sort_on_phased_k1 = k_sort_on_phased1;
-            k_sort_off_phased_k1 = k_sort_off_phased1;
-            k_sort_on_phased_k2 = k_sort_on_phased2;
-            k_sort_off_phased_k2 = k_sort_off_phased2;
+            k_sort_phased_k = k_sort_phased;
 
-            sz_k_sort = size(k_sort_off_phased_k2);
-            exp_lb = permute(squeeze((repmat(exp(-(lb*pi*(1:1024))/1024), [1 1 1 sz_k_sort(1:3)]))), [2 3 4 1]);
+            motion_corr_lb = 5;
+            exp_lb = permute(squeeze((repmat(exp(-(motion_corr_lb*pi*(1:n_points))/n_points), [1 1 size(k_sort_phased_k,1) size(k_sort_phased_k,2) size(k_sort_phased_k,3)]))), [2 3 4 1]);
 
-            % fft the fIDs 
-            on_spec_k_1 = (fftshift(fft(squeeze(k_sort_on_phased_k1).*exp_lb,1024*spec_zfill,4),4));
-            off_spec_k_1 = (fftshift(fft(squeeze(k_sort_off_phased_k1).*exp_lb,1024*spec_zfill,4),4));
-            on_spec_k_2 = (fftshift(fft(squeeze(k_sort_on_phased_k2).*exp_lb,1024*spec_zfill,4),4));
-            off_spec_k_2 = (fftshift(fft(squeeze(k_sort_off_phased_k2).*exp_lb,1024*spec_zfill,4),4));
+            % Form spectra in k-space.
+            
+            spec_k = fftshift(fft(squeeze(k_sort_phased_k).*exp_lb,n_points*spec_zfill,4),4);
+
             if strcmp(seq_type, 'MEGA multislice')
-                %k_ph_corr_on1, k_ph_corr_off1, k_ph_corr_on2, k_ph_corr_off2,...
+                if strcmp(MRSCont.opts.MoCo.target, 'fullNoPhase')  
                 [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-                 on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2] = motion_correct_mrsi(k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
-                                                                                            on_spec_k_1, on_spec_k_2, off_spec_k_1, off_spec_k_2,...
-                                                                                            spec_zfill, seq_type, kx_tot, ky_tot);
+                ~, ~, ~, ~,replace_track] = motion_correct_mrsi_full(k_sort(:,:,:,:,:,1,1), k_sort(:,:,:,:,:,2,1), k_sort(:,:,:,:,:,1,2), k_sort(:,:,:,:,:,2,2),...
+                                                                                            spec_k(:,:,:,:,1,1), spec_k(:,:,:,:,2,1), spec_k(:,:,:,:,1,2), spec_k(:,:,:,:,2,2),...
+                                                                                            spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
+                else
+                
+                [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
+                    ~,~,~,~,...
+                 k_ph_corr_on1, k_ph_corr_on2, k_ph_corr_off1, k_ph_corr_off2,...
+                on1_replace_track, off1_replace_track, on2_replace_track, ...
+                off2_replace_track, zero_replace_track, ~, corr_options] = motion_correct_mrsi(k_sort(:,:,:,:,:,1,1), k_sort(:,:,:,:,:,2,1), k_sort(:,:,:,:,:,1,2), k_sort(:,:,:,:,:,2,2),...
+                                                                                            spec_k(:,:,:,:,1,1), spec_k(:,:,:,:,2,1), spec_k(:,:,:,:,1,2), spec_k(:,:,:,:,2,2),...
+                                                                                            spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
+                                                                                        
+                    on_replace_track = cat(3, on1_replace_track,on2_replace_track);
+                    off_replace_track = cat(3, off1_replace_track,off2_replace_track);
+                    replace_track = cat(4,on_replace_track,off_replace_track);
+                    
+                   k_ph_merge_on = cat(4, k_ph_corr_on1,k_ph_corr_on2);
+                   k_ph_merge_off = cat(4, k_ph_corr_off1,k_ph_corr_off2);
+                   k_ph_corr = cat(5,k_ph_merge_on,k_ph_merge_off);
+                end
+                
             end
+            
+           k_sort_merge_on = cat(6, k_sort_on,k_sort_on2);
+           k_sort_merge_off = cat(6, k_sort_off,k_sort_off2);
+           k_sort = cat(7,k_sort_merge_on,k_sort_merge_off);
+                     
         end
 
 
@@ -465,16 +421,16 @@ for kk = 1:MRSCont.nDatasets
             sz_k_sort_on = size(k_sort_on1_on2);
             sz_k_sort_off = size(k_sort_off1_off2);
 
-            k_fft2_on1_on2 = zeros([x_tot,y_tot,sz_k_sort_on(3:end)]);
-            k_fft2_on1_off2 = zeros([x_tot,y_tot,sz_k_sort_off(3:end)]);
-            k_fft2_off1_on2 = zeros([x_tot,y_tot,sz_k_sort_on(3:end)]);
-            k_fft2_off1_off2 = zeros([x_tot,y_tot,sz_k_sort_off(3:end)]);
+            k_fft2_on1_on2 = zeros([kx_tot,ky_tot,sz_k_sort_on(3:end)]);
+            k_fft2_on1_off2 = zeros([kx_tot,ky_tot,sz_k_sort_off(3:end)]);
+            k_fft2_off1_on2 = zeros([kx_tot,ky_tot,sz_k_sort_on(3:end)]);
+            k_fft2_off1_off2 = zeros([kx_tot,ky_tot,sz_k_sort_off(3:end)]);
 
             sz_k_on = size(k_sort_on1_on2);
-            k_fft2_on1_on2_wat = zeros([x_tot,y_tot, sz_k_on(3)]);
-            k_fft2_on1_off2_wat = zeros([x_tot,y_tot, sz_k_on(3)]);
-            k_fft2_off1_on2_wat = zeros([x_tot,y_tot, sz_k_on(3)]);
-            k_fft2_off1_off2_wat = zeros([x_tot,y_tot, sz_k_on(3)]);
+            k_fft2_on1_on2_wat = zeros([kx_tot,ky_tot, sz_k_on(3)]);
+            k_fft2_on1_off2_wat = zeros([kx_tot,ky_tot, sz_k_on(3)]);
+            k_fft2_off1_on2_wat = zeros([kx_tot,ky_tot, sz_k_on(3)]);
+            k_fft2_off1_off2_wat = zeros([kx_tot,ky_tot, sz_k_on(3)]);
 
             wat_k_space_on1_on2 = zeros(sz_k_on(1:3));
             wat_k_space_on1_off2 = zeros(sz_k_on(1:3));
@@ -488,10 +444,10 @@ for kk = 1:MRSCont.nDatasets
                 wat_off1_on2_peak = squeeze(k_sort_off1_on2(:,:,c_idx,1));
                 wat_off1_off2_peak = squeeze(k_sort_off1_off2(:,:,c_idx,1));
 
-                k_fft2_on1_on2_wat(:,:,c_idx) = fft2(wat_on1_on2_peak, x_tot,y_tot);
-                k_fft2_on1_off2_wat(:,:,c_idx) = fft2(wat_on1_off2_peak, x_tot,y_tot);
-                k_fft2_off1_on2_wat(:,:,c_idx) = fft2(wat_off1_on2_peak, x_tot,y_tot);
-                k_fft2_off1_off2_wat(:,:,c_idx) = fft2(wat_off1_off2_peak, x_tot,y_tot);
+                k_fft2_on1_on2_wat(:,:,c_idx) = fft2(wat_on1_on2_peak, kx_tot,ky_tot);
+                k_fft2_on1_off2_wat(:,:,c_idx) = fft2(wat_on1_off2_peak, kx_tot,ky_tot);
+                k_fft2_off1_on2_wat(:,:,c_idx) = fft2(wat_off1_on2_peak, kx_tot,ky_tot);
+                k_fft2_off1_off2_wat(:,:,c_idx) = fft2(wat_off1_off2_peak, kx_tot,ky_tot);
 
                 wat_k_space_on1_on2(:,:,c_idx) = wat_on1_on2_peak.*conj(wat_on1_on2_peak)./abs(wat_on1_on2_peak);
                 wat_k_space_on1_off2(:,:,c_idx) = wat_on1_off2_peak.*conj(wat_on1_off2_peak)./abs(wat_on1_off2_peak);
@@ -499,10 +455,10 @@ for kk = 1:MRSCont.nDatasets
                 wat_k_space_off1_off2(:,:,c_idx) = wat_off1_off2_peak.*conj(wat_off1_off2_peak)./abs(wat_off1_off2_peak);
 
                 for t_idx = 1:size(k_sort_on1_on2, 4) % Each point in time
-                    k_fft2_on1_on2(:,:,c_idx, t_idx) =  fft2(squeeze(k_sort_on1_on2(:,:,c_idx,t_idx)),x_tot,y_tot); % zerofill k-space
-                    k_fft2_on1_off2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on1_off2(:,:,c_idx,t_idx)),x_tot,y_tot); 
-                    k_fft2_off1_on2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off1_on2(:,:,c_idx,t_idx)),x_tot,y_tot);
-                    k_fft2_off1_off2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off1_off2(:,:,c_idx,t_idx)),x_tot,y_tot); 
+                    k_fft2_on1_on2(:,:,c_idx, t_idx) =  fft2(squeeze(k_sort_on1_on2(:,:,c_idx,t_idx)),kx_tot,ky_tot); % zerofill k-space
+                    k_fft2_on1_off2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on1_off2(:,:,c_idx,t_idx)),kx_tot,ky_tot); 
+                    k_fft2_off1_on2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off1_on2(:,:,c_idx,t_idx)),kx_tot,ky_tot);
+                    k_fft2_off1_off2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off1_off2(:,:,c_idx,t_idx)),kx_tot,ky_tot); 
                 end
             end
 
@@ -516,10 +472,10 @@ for kk = 1:MRSCont.nDatasets
             %wat_map = squeeze(abs(fftshift(sum(k_fft2_on_wat,3))));
 
             % Phase each coil before summing over the channels.
-            k_fft2_on1_on2_wat = repmat(k_fft2_on1_on2_wat, [1 1 1 1024]);
-            k_fft2_on1_off2_wat = repmat(k_fft2_on1_off2_wat, [1 1 1 1024]);
-            k_fft2_off1_on2_wat = repmat(k_fft2_off1_on2_wat, [1 1 1 1024]);
-            k_fft2_off1_off2_wat = repmat(k_fft2_off1_off2_wat, [1 1 1 1024]);
+            k_fft2_on1_on2_wat = repmat(k_fft2_on1_on2_wat, [1 1 1 n_points]);
+            k_fft2_on1_off2_wat = repmat(k_fft2_on1_off2_wat, [1 1 1 n_points]);
+            k_fft2_off1_on2_wat = repmat(k_fft2_off1_on2_wat, [1 1 1 n_points]);
+            k_fft2_off1_off2_wat = repmat(k_fft2_off1_off2_wat, [1 1 1 n_points]);
 
             if isempty(k_fft2_wat_ref)
                 k_fft2_on1_on2_phased = k_fft2_on1_on2.*conj(k_fft2_on1_on2_wat)./abs(k_fft2_on1_on2_wat);
@@ -541,24 +497,24 @@ for kk = 1:MRSCont.nDatasets
         elseif (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice'))
             if ~strcmp(MRSCont.opts.MoCo.target, 'none') % Here we are store the non corrected data
                 % For each point in time and coil take the 2D fft
-                sz_k_sort = size(k_sort);
-                k_fft2 = zeros([x_tot,y_tot,sz_k_sort(3:end)]);
+                sz_k_sort = size(k_sort_no_MoCo);
+                k_fft2 = zeros([kx_tot,ky_tot,sz_k_sort(3:end)]);
                 sz_k_on = size(k_sort_on);
-                k_fft2_wat = zeros([x_tot,y_tot, sz_k_sort(3), sz_k_sort(5:end)]);
+                k_fft2_wat = zeros([kx_tot,ky_tot, sz_k_sort(3), sz_k_sort(5:end)]);
                 wat_k_space = zeros([sz_k_on(1:3), sz_k_sort(5:end)]);
 
                 disp('Taking Fourier transforms of non corrected data.')
                 for c_idx = 1:size(k_sort_on,3) % Each coil
-                    wat_peak = squeeze(k_sort(:,:,c_idx,1,:,:));
-                    k_fft2_wat(:,:,c_idx,:,:) = fft2(wat_peak, x_tot,y_tot);
+                    wat_peak = squeeze(k_sort_no_MoCo(:,:,c_idx,1,:,:));
+                    k_fft2_wat(:,:,c_idx,:,:) = fft2(wat_peak, kx_tot,ky_tot);
                     wat_k_space(:,:,c_idx,:,:) = wat_peak.*conj(wat_peak)./abs(wat_peak);
                     for t_idx = 1:size(k_sort_on, 4) % Each point in time
-                        k_fft2(:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort(:,:,c_idx,t_idx,:,:)),x_tot,y_tot); % zerofill k-space
+                        k_fft2(:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort_no_MoCo(:,:,c_idx,t_idx,:,:)),kx_tot,ky_tot); % zerofill k-space
                     end
                 end
 
                 % Phase each coil before summing over the channels.
-                k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 1024]);
+                k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 n_points]);
                 k_fft2_wat = permute(k_fft2_wat,[1 2 3 6 4 5]);
 
 
@@ -574,9 +530,9 @@ for kk = 1:MRSCont.nDatasets
             end
             % For each point in time and coil take the 2D fft
             sz_k_sort = size(k_sort);
-            k_fft2 = zeros([x_tot,y_tot,sz_k_sort(3:end)]);
+            k_fft2 = zeros([kx_tot,ky_tot,sz_k_sort(3:end)]);
             sz_k_on = size(k_sort_on);
-            k_fft2_wat = zeros([x_tot,y_tot, sz_k_sort(3), sz_k_sort(5:end)]);
+            k_fft2_wat = zeros([kx_tot,ky_tot, sz_k_sort(3), sz_k_sort(5:end)]);
             wat_k_space = zeros([sz_k_on(1:3), sz_k_sort(5:end)]);
 
 
@@ -591,15 +547,15 @@ for kk = 1:MRSCont.nDatasets
             disp('Taking Fourier transforms.')
             for c_idx = 1:size(k_sort_on,3) % Each coil
                 wat_peak = squeeze(k_sort(:,:,c_idx,1,:,:));
-                k_fft2_wat(:,:,c_idx,:,:) = fft2(wat_peak, x_tot,y_tot);
+                k_fft2_wat(:,:,c_idx,:,:) = fft2(wat_peak, kx_tot,ky_tot);
                 wat_k_space(:,:,c_idx,:,:) = wat_peak.*conj(wat_peak)./abs(wat_peak);
                 for t_idx = 1:size(k_sort_on, 4) % Each point in time
-                    k_fft2(:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort(:,:,c_idx,t_idx,:,:)),x_tot,y_tot); % zerofill k-space
+                    k_fft2(:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort(:,:,c_idx,t_idx,:,:)),kx_tot,ky_tot); % zerofill k-space
                 end
             end
 
             % Phase each coil before summing over the channels.
-            k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 1024]);
+            k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 n_points]);
             k_fft2_wat = permute(k_fft2_wat,[1 2 3 6 4 5]);
 
 
@@ -607,135 +563,137 @@ for kk = 1:MRSCont.nDatasets
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
             else
                 k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-                k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));
+%                 k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));
             end
             
             k_fft2 = squeeze(sum(k_fft2_phased,3));
 
         else % MEGA multislice, order: slice, kx, ky, coil, data
 %%
-            sz_k_sort_on = size(k_sort_on);
-            sz_k_sort_off = size(k_sort_off);
+            if ~strcmp(MRSCont.opts.MoCo.target, 'none') % Here we are store the non corrected data            
+                % For each point in time and coil take the 2D fft
+                    sz_k_sort = size(k_sort);
+                    k_fft2 = zeros([3, kx_tot,ky_tot,sz_k_sort(4:end)]);
+                    sz_k_on = size(k_sort_on);
+                    k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4), sz_k_sort(6:end)]);
+                    wat_k_space = zeros([3, sz_k_on(2:4), sz_k_sort(6:end)]);
 
-            k_fft2_on = zeros([3,x_tot,y_tot,sz_k_sort_on(4:end)]);
-            k_fft2_on2 = zeros([3,x_tot,y_tot,sz_k_sort_on(4:end)]);
-            k_fft2_off = zeros([3,x_tot,y_tot,sz_k_sort_off(4:end)]);
-            k_fft2_off2 = zeros([3,x_tot,y_tot,sz_k_sort_off(4:end)]);
 
-            sz_k_on = size(k_sort_on);
-            k_fft2_on_wat = zeros([3,x_tot,y_tot, sz_k_on(4)]);
-            k_fft2_on2_wat = zeros([3,x_tot,y_tot, sz_k_on(4)]);
-            k_fft2_off_wat = zeros([3,x_tot,y_tot, sz_k_on(4)]);
-            k_fft2_off2_wat = zeros([3,x_tot,y_tot, sz_k_on(4)]);
+                disp('Taking Fourier transforms of non corrected data.')
+                count_ft = 0;
+                for c_idx = 1:size(k_sort_on,4) % Each coil
+                    wat_peak = squeeze(k_sort_no_MoCo(:,:,:,c_idx,1,:,:));
 
-            wat_k_space_on = zeros(sz_k_on(1:4));
-            wat_k_space_on2 = zeros(sz_k_on(1:4));
-            wat_k_space_off = zeros(sz_k_on(1:4));
-            wat_k_space_off2 = zeros(sz_k_on(1:4));
+                    for s_idx = 1:3
+                        k_fft2_wat(s_idx,:,:,c_idx,:,:) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
+                    end
 
+                    wat_k_space(:,:,:,c_idx,:,:) = wat_peak.*conj(wat_peak)./abs(wat_peak);
+
+                    for t_idx = 1:size(k_sort_on, 5) % Each point in time
+                        for s_idx = 1:3
+                            k_fft2(s_idx,:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort_no_MoCo(s_idx,:,:,c_idx,t_idx,:,:)),kx_tot,ky_tot); % zerofill k-space
+                        end
+                    end
+                end
+
+
+                % Phase each coil before summing over the channels.
+                k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 1 n_points]);
+                k_fft2_wat = permute(k_fft2_wat,[1 2 3 4 7 5 6]);
+
+                 if ~MRSCont.flags.hasWater
+                    k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
+                else
+                    k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
+                    k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,4));
+                end
+
+                    k_fft2_no_MoCo = squeeze(sum(k_fft2_phased,4));
+            end
+            % For each point in time and coil take the 2D fft
+                sz_k_sort = size(k_sort);
+                k_fft2 = zeros([3, kx_tot,ky_tot,sz_k_sort(4:end)]);
+                sz_k_on = size(k_sort_on);
+                k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4), sz_k_sort(6:end)]);
+                wat_k_space = zeros([3, sz_k_on(2:4), sz_k_sort(6:end)]);
+               
+                 % -------------- Motion Correction Phase ------------%
+                % Phase correction (for motion) here                 %
+                % ---------------------------------------------------% 
+                
+                if ~strcmp(MRSCont.opts.MoCo.target, 'fullNoPhase')  
+                    k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 1 size(k_sort,4) size(k_sort, 5)]);
+                    k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 3 6 7 4 5]);  
+                    k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
+                end
+                
             disp('Taking Fourier transforms.')
             count_ft = 0;
             for c_idx = 1:size(k_sort_on,4) % Each coil
-                wat_on_peak = squeeze(k_sort_on(:,:,:,c_idx,1));
-                wat_on2_peak = squeeze(k_sort_on2(:,:,:,c_idx,1));
-                wat_off_peak = squeeze(k_sort_off(:,:,:,c_idx,1));
-                wat_off2_peak = squeeze(k_sort_off2(:,:,:,c_idx,1));
+                wat_peak = squeeze(k_sort(:,:,:,c_idx,1,:,:));
 
                 for s_idx = 1:3
-                    k_fft2_on_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_on_peak(s_idx,:,:)), x_tot,y_tot);
-                    k_fft2_on2_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_on2_peak(s_idx,:,:)), x_tot,y_tot);
-                    k_fft2_off_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_off_peak(s_idx,:,:)), x_tot,y_tot);
-                    k_fft2_off2_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_off2_peak(s_idx,:,:)), x_tot,y_tot);
+                    k_fft2_wat(s_idx,:,:,c_idx,:,:) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
                 end
 
-                wat_k_space_on(:,:,:,c_idx) = wat_on_peak.*conj(wat_on_peak)./abs(wat_on_peak);
-                wat_k_space_on2(:,:,:,c_idx) = wat_on2_peak.*conj(wat_on2_peak)./abs(wat_on2_peak);
-                wat_k_space_off(:,:,:,c_idx) = wat_off_peak.*conj(wat_off_peak)./abs(wat_off_peak);
-                wat_k_space_off2(:,:,:,c_idx) = wat_off2_peak.*conj(wat_off2_peak)./abs(wat_off2_peak);
+                wat_k_space(:,:,:,c_idx,:,:) = wat_peak.*conj(wat_peak)./abs(wat_peak);
 
                 for t_idx = 1:size(k_sort_on, 5) % Each point in time
                     for s_idx = 1:3
-                        count_ft = count_ft + 1;
-                        k_fft2_on(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot); % zerofill k-space
-                        k_fft2_on2(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_on2(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot); 
-                        k_fft2_off(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot);
-                        k_fft2_off2(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort_off2(s_idx,:,:,c_idx,t_idx)),x_tot,y_tot); 
+                        k_fft2(s_idx,:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort(s_idx,:,:,c_idx,t_idx,:,:)),kx_tot,ky_tot); % zerofill k-space
                     end
                 end
-                disp(sprintf('Elapsed time is %0.1f minutes.', t2/60))
             end
 
-
-            wat_k_space_on = sum(wat_k_space_on,4);
-            wat_k_space_on2 = sum(wat_k_space_on2,4);
-            wat_k_space_off = sum(wat_k_space_off,4);
-            wat_k_space_off2 = sum(wat_k_space_off2,4);
 
             % Phase each coil before summing over the channels.
-            k_fft2_on_wat = repmat(k_fft2_on_wat, [1 1 1 1 1024]);
-            k_fft2_on2_wat = repmat(k_fft2_on2_wat, [1 1 1 1 1024]);
-            k_fft2_off_wat = repmat(k_fft2_off_wat, [1 1 1 1 1024]);
-            k_fft2_off2_wat = repmat(k_fft2_off2_wat, [1 1 1 1 1024]);
+            k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 1 n_points]);
+            k_fft2_wat = permute(k_fft2_wat,[1 2 3 4 7 5 6]);
 
-            if isempty(k_fft2_wat_ref)
-                k_fft2_on_phased = k_fft2_on.*conj(k_fft2_on_wat)./abs(k_fft2_on_wat);
-                k_fft2_on2_phased = k_fft2_on2.*conj(k_fft2_on2_wat)./abs(k_fft2_on2_wat);
-                k_fft2_off_phased = k_fft2_off.*conj(k_fft2_off_wat)./abs(k_fft2_off_wat);
-                k_fft2_off2_phased = k_fft2_off2.*conj(k_fft2_off2_wat)./abs(k_fft2_off2_wat);
+             if ~MRSCont.flags.hasWater
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
             else
-                k_fft2_on_phased = k_fft2_on.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-                k_fft2_on2_phased = k_fft2_on2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-                k_fft2_off_phased = k_fft2_off.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
-                k_fft2_off2_phased = k_fft2_off2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat_ref)./abs(k_fft2_wat_ref);
+%                 k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,4));
             end
 
-            k_fft2_on = squeeze(sum(k_fft2_on_phased,4));
-            k_fft2_on2 = squeeze(sum(k_fft2_on2_phased,4));
-            k_fft2_off = squeeze(sum(k_fft2_off_phased,4));
-            k_fft2_off2 = squeeze(sum(k_fft2_off2_phased,4));
+            k_fft2 = squeeze(sum(k_fft2_phased,4));
+
         end
  %%       
         if (strcmp(seq_type, 'HERMES') || strcmp(seq_type, 'HERMES lip sup'))
-            on1_on2_spec = fftshift(fft(k_fft2_on1_on2,1024,3));
-            on1_off2_spec = fftshift(fft(k_fft2_on1_off2,1024,3));
-            off1_on2_spec = fftshift(fft(k_fft2_off1_on2,1024,3));
-            off1_off2_spec = fftshift(fft(k_fft2_off1_off2,1024,3));
+            on1_on2_spec = fftshift(fft(k_fft2_on1_on2,n_points,3));
+            on1_off2_spec = fftshift(fft(k_fft2_on1_off2,n_points,3));
+            off1_on2_spec = fftshift(fft(k_fft2_off1_on2,n_points,3));
+            off1_off2_spec = fftshift(fft(k_fft2_off1_off2,n_points,3));
             cho_im_off = zeros(size(on1_on2_spec,1),size(on1_on2_spec,2));
 
         else
             if (~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'Water multislice') && ~strcmp(seq_type, 'SE multislice'))
-                spec = fftshift(fft(k_fft2,1024,3));               
+                spec = fftshift(fft(k_fft2,n_points,3));               
                 spec(isnan(spec)) = 0 + 1i*0;
                 if MRSCont.flags.hasWater
-                    specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,1024,3));               
+                    specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,n_points,3));               
                     specs_w(isnan(specs_w)) = 0 + 1i*0;
                 end
                 if ~strcmp(MRSCont.opts.MoCo.target, 'none')
-                    specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,1024,3));               
+                    specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,n_points,3));               
                     specs_no_MoCo(isnan(specs_no_MoCo)) = 0 + 1i*0;
                 end
 
             else
-                exp_lb = permute(squeeze((repmat(exp(-(lb*pi*(1:1024))/1024), [1 1 3 x_tot y_tot]))), [2 3 4 1]);
-                on_spec1 = fftshift(fft(k_fft2_on.*exp_lb,1024*spec_zfill,4));
-                off_spec1 = fftshift(fft(k_fft2_off.*exp_lb,1024*spec_zfill,4));
-                on_spec2 = fftshift(fft(k_fft2_on2.*exp_lb,1024*spec_zfill,4));
-                off_spec2 = fftshift(fft(k_fft2_off2.*exp_lb,1024*spec_zfill,4));
-
-                off_spec_nolb_1 = fftshift(fft(k_fft2_off,1024*spec_zfill,4));
-                off_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024*spec_zfill,4));
-                on_spec_nolb_1 = fftshift(fft(k_fft2_off,1024*spec_zfill,4));
-                on_spec_nolb_2 = fftshift(fft(k_fft2_off2,1024*spec_zfill,4));
-
-                on_spec_nolb_1(isnan(on_spec_nolb_1)) = 0 + 1i*0;
-                off_spec_nolb_1(isnan(off_spec_nolb_1)) = 0 + 1i*0;
-                on_spec_nolb_2(isnan(on_spec_nolb_2)) = 0 + 1i*0;
-                off_spec_nolb_2(isnan(off_spec_nolb_2)) = 0 + 1i*0;
-
-                on_spec = (on_spec1 + on_spec2)/2;
-                off_spec = (off_spec1 + off_spec2)/2;
-                off_spec_no_lb = (off_spec_nolb_1 + off_spec_nolb_2)/2;
-                on_spec_no_lb = (on_spec_nolb_1 + on_spec_nolb_2)/2;
+                spec = fftshift(fft(k_fft2,n_points,4));               
+                spec(isnan(spec)) = 0 + 1i*0;
+                
+                if MRSCont.flags.hasWater
+                    specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,n_points,4));               
+                    specs_w(isnan(specs_w)) = 0 + 1i*0;
+                end
+                if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,n_points,4));               
+                    specs_no_MoCo(isnan(specs_no_MoCo)) = 0 + 1i*0;
+                end
 
             end    
         end
@@ -845,7 +803,8 @@ for kk = 1:MRSCont.nDatasets
 
     %Find the magnetic field strength:
     Bo=Larmor/42.577;
-    %Now create a record of the dimensions of the data array.  
+    %Now create a record of the dimensions of the data array. 
+    
     dims.t=1;
     dims.coils=0;
     dims.averages=2;
@@ -859,18 +818,32 @@ for kk = 1:MRSCont.nDatasets
             kx_dim = kx_dim(1);
             ky_dim = kx_dim + 1;
         end
+        if kz_tot > 1
+            kz_dim = find(sz==kz_tot);
+        end
         if subspecs == 2
-            specs = permute(spec, [t_dim 4 5 kx_dim ky_dim]);
-            if ~strcmp(MRSCont.opts.MoCo.target, 'none')
-                specs_no_MoCo = permute(specs_no_MoCo, [t_dim 4 5 kx_dim ky_dim]);
+            if kz_tot <= 1
+                specs = permute(spec, [t_dim 4 5 kx_dim ky_dim]);
+                if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    specs_no_MoCo = permute(specs_no_MoCo, [t_dim 4 5 kx_dim ky_dim]);
+                end
+                dims.Xvoxels=4;
+                dims.Yvoxels=5;
+            else
+                specs = permute(spec, [t_dim 5 6 kx_dim ky_dim kz_dim]);
+                if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    specs_no_MoCo = permute(specs_no_MoCo, [t_dim 5 6 kx_dim ky_dim kz_dim]);
+                end
+                dims.Xvoxels=4;
+                dims.Yvoxels=5;
+                dims.Zvoxels=6;
             end
         end
-        dims.Xvoxels=4;
-        dims.Yvoxels=5;
+        
         %Adding MultiVoxelInfo
         out.nXvoxels = kx_tot;
         out.nYvoxels = ky_tot;
-        out.nZvoxels = 1;
+        out.nZvoxels = kz_tot;
 
     else
         dims.subSpecs=0;
@@ -886,19 +859,31 @@ for kk = 1:MRSCont.nDatasets
         [~,t_dim] = max(sz);
         kx_dim = find(sz==kx_tot);
         ky_dim = find(sz==ky_tot);
+        if kz_tot > 1
+            kz_dim = find(sz==kz_tot);
+        end
         if kx_tot == ky_tot
             kx_dim = kx_dim(1);
             ky_dim = kx_dim + 1;
         end
-        specs_w = permute(specs_w, [t_dim kx_dim ky_dim]);
+        if kz_tot <= 1
+            specs_w = permute(specs_w, [t_dim kx_dim ky_dim]);
+            dims_w.Xvoxels=2;
+            dims_w.Yvoxels=3;
+        else
+            specs_w = permute(specs_w, [t_dim kx_dim ky_dim kz_dim]);
+            dims_w.Xvoxels=2;
+            dims_w.Yvoxels=3;
+            dims_w.Zvoxels=4;
+        end
         dims_w.extras=0;  
-        dims_w.Xvoxels=2;
-        dims_w.Yvoxels=3;
+        
         %Adding MultiVoxelInfo
         out_w.nXvoxels = kx_tot;
         out_w.nYvoxels = ky_tot;
-        out_w.nZvoxels = 1;
+        out_w.nZvoxels = kz_tot;
     end
+    
 
     
     if mod(size(specs,dims.t),2)==0
@@ -942,10 +927,10 @@ for kk = 1:MRSCont.nDatasets
     txfrq=Larmor*1e6;
 
 
-    %Find the number of averages.  'averages' will specify the current number
+    %Find the number of n_averages.  'n_averages' will specify the current number
     %of averages in the dataset as it is processed, which may be subject to
     %change.  'rawAverages' will specify the original number of acquired 
-    %averages in the dataset, which is unchangeable.
+    %n_averages in the dataset, which is unchangeable.
     %FOR WATER SUPPRESSED DATA:
     if dims.subSpecs ~=0
         if dims.averages~=0
@@ -968,7 +953,7 @@ for kk = 1:MRSCont.nDatasets
     %FOR WATER UNSUPPRESSED DATA:
     if MRSCont.flags.hasWater
         if dims_w.subSpecs ~=0
-            if dims_w.averages~=0
+            if dims_w.n_averages~=0
                 averages_w=sz_w(dims_w.averages)*sz(dims_w.subSpecs);
                 rawAverages_w=averages_w;
             else
@@ -1058,7 +1043,7 @@ for kk = 1:MRSCont.nDatasets
     out.flags.zeropadded=0;
     out.flags.freqcorrected=0;
     out.flags.phasecorrected=0;
-    if averages == 1
+    if n_averages == 1
         out.flags.averaged=1;
     else
         out.flags.averaged=0;

@@ -26,7 +26,12 @@ function out=op_takeVoxel(in,index);
 % if (in.flags.MultiVoxel==0)
 %     error('ERROR:  This is not a multi voxel dataset!  Aborting!');
 % end
-
+if ~isfield(in.dims,'Zvoxels')
+    index = index(1:2);
+end
+if ~isfield(in.dims,'Yvoxels')
+    index = index(1);
+end
 %PRIAM data
 if length(index)==1
     if in.dims.Xvoxels==0

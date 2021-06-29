@@ -107,7 +107,7 @@ if ~isfield(fitOpts, 'MRSIpriors')
     end
     [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
 else
-    fprintf(fileID,'\nTake priors from center voxel...');
+    fprintf('\nTake priors from center voxel...');
     if ~isempty(progressText) 
         String = get(progressText,'String');
         set(progressText,'String' ,sprintf([String(1,:)  '\nTake priors from center voxel...\n']));

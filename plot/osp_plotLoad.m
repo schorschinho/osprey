@@ -163,7 +163,7 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
         if ~exist('VoxelIndex') && (MRSCont.flags.isPRIAM == 1)
             VoxelIndex = 1;
         elseif ~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)
-            VoxelIndex = [1 1];  
+            VoxelIndex = [1 1 1];  
         end
         
     switch which

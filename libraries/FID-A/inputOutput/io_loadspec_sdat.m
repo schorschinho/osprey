@@ -37,7 +37,14 @@ dims.t          = find(data_size == header.samples);
 dims.averages   = find(data_size == header.rows);
 dims.coils      = 0; % SDAT is already coil-combined
 % Now arrange in the standard order (samples-avgs-subspecs):
-data = permute(data ,[dims.t dims.averages]);
+if (isfield(header, 'nr_of_slices_for_multislice') && header.nr_of_slices_for_multislice > 1) && (isfield(header, 'dim2_pnts') && header.dim2_pnts' > 1)
+    data = permute(data ,[dims.t dims.averages dims.Zvoxels]);  
+    dims.Zvoxels = 3;
+else
+    data = permute(data ,[dims.t dims.averages]);    
+end
+
+
 dims.t = 1;
 dims.averages = 2;
 dims.extras = 0;

@@ -102,7 +102,7 @@ for kk = 1:MRSCont.nDatasets
             if strcmp(T1ext,'.gz')
                 gunzip(niftiFile);
                 niftiFile = strrep(niftiFile,'.gz','');
-                T1ext = strrep(T1ext,'.gz','');
+                T1ext = '.nii';
                 segFileGM               = fullfile(T1dir, ['c1' T1name T1ext]);
             end           
             createSegJob(niftiFile);
@@ -214,11 +214,24 @@ for kk = 1:MRSCont.nDatasets
                 Vmask=spm_read_vols(Vmask);
                 
                 brain = brain .* Vmask;
-                brain = imresize3(double(brain),[MRSCont.raw{kk}.nYvoxels,MRSCont.raw{kk}.nXvoxels,size(brain,3)]);
-                brain = sum(brain,3);
-                brain(brain<(max(max(brain))/10)) = 0;
-                brain(brain > 0) = 1;
-                MRSCont.mask{kk} = brain';
+                
+                non_zero = zeros(size(brain,3),1);
+                for i = 1 : size(brain,3)
+                    if sum(sum(brain(:,:,i))) > 0
+                        non_zero(i) = 1;
+                    end
+
+                end
+                non_zero_slice = find(non_zero);
+                brain_vox = brain(:,:,non_zero_slice(1):non_zero_slice(end));
+                brain_vox = imresize3(double(brain_vox),[MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels,MRSCont.raw{kk}.nZvoxels]);
+                brain_vox(brain_vox<(max(max(brain_vox))/200)) = 0;
+                brain_vox(brain_vox > 0) = 1;
+                brain_vox_rot = zeros(size(brain_vox,2),size(brain_vox,1),size(brain_vox,3));
+                for i = 1 : size(brain_vox,3)
+                	brain_vox_rot(:,:,i) = rot90(brain_vox(:,:,i));   
+                end
+                MRSCont.mask{kk} = brain_vox_rot;
                 if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
                     delete(MRSCont.coreg.vol_mask{kk}.fname);
                 end
