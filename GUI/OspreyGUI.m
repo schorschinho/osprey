@@ -53,6 +53,7 @@ classdef OspreyGUI < handle
         Plot % plot struct
         InfoText % info text struct (left side of fit plot)
         Results % result struct (fit results)
+        flags; % Store flags 
     end
 
     methods
@@ -88,6 +89,9 @@ classdef OspreyGUI < handle
 
         % Set GM plot to on
         gui.controls.GM = 1;
+        
+        %Load flags
+        gui.flags = MRSCont.flags;
 
         %Setting up inital values for the gui control variables
         %Global controls
@@ -239,6 +243,12 @@ classdef OspreyGUI < handle
                 gui.overview.Selected.Corr = 1;
                 gui.overview.Selected.CorrChoice = 1;
                 gui.overview.Names.QM = {'SNR','FWHM (ppm)'};
+                
+                if ~MRSCont.flags.didFit %Get variables regarding the fitting
+                    gui.fit.Number = length(fieldnames(MRSCont.processed));
+                    gui.fit.Names = fieldnames(MRSCont.processed);
+                end
+                
             end
             gui.waitbar.overall = MRSCont.flags.didLoadData+MRSCont.flags.didProcess+MRSCont.flags.didFit+MRSCont.flags.didCoreg+MRSCont.flags.didSeg+MRSCont.flags.didQuantify+MRSCont.flags.didOverview;
             gui.waitbar.step = 1/ gui.waitbar.overall;
@@ -457,26 +467,27 @@ classdef OspreyGUI < handle
                 osp_iniQuantifyWindow(gui);
             end
             waitbar(gui.waitbar.step*7,gui.controls.waitbar,'Loading your overview');
-            if MRSCont.flags.didOverview && (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) % Has data fitting been run?
+            if MRSCont.flags.didOverview && (isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) % Has data fitting been run?
                 osp_iniOverviewWindow(gui);
                 set(gui.layout.overviewTab, 'SelectionChangedFcn',{@osp_OverviewTabChangedFcn,gui});
                 set(gui.controls.pop_specsOvPlot,'callback',{@osp_pop_specsOvPlot_Call,gui});
                 set(gui.controls.pop_meanOvPlot,'callback',{@osp_pop_meanOvPlot_Call,gui});
-                set(gui.controls.pop_quantOvPlot,'callback',{@osp_pop_quantOvPlot_Call,gui});
-                set(gui.controls.pop_distrOvQuant,'callback',{@osp_pop_distrOvQuant_Call,gui});
-                set(gui.controls.pop_distrOvMetab,'callback',{@osp_pop_distrOvMetab_Call,gui});
-                set(gui.controls.pop_corrOvQuant,'callback',{@osp_pop_corrOvQuant_Call,gui});
-                set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui});
-                set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
-                set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
+                if isfield(gui.controls,'pop_quantOvPlot')
+                    set(gui.controls.pop_quantOvPlot,'callback',{@osp_pop_quantOvPlot_Call,gui});
+                    set(gui.controls.pop_distrOvQuant,'callback',{@osp_pop_distrOvQuant_Call,gui});
+                    set(gui.controls.pop_distrOvMetab,'callback',{@osp_pop_distrOvMetab_Call,gui});
+                    set(gui.controls.pop_corrOvQuant,'callback',{@osp_pop_corrOvQuant_Call,gui});
+                    set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui});
+                    set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
+                    set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
+                    set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
+                    set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
+                    set(gui.controls.check_distrOv,'callback',{@osp_check_distrOv_Call,gui});
+                end                
+                set(gui.controls.check_meanOvPlot,'callback',{@osp_check_meanOvPlot_Call,gui});                
                 set(gui.controls.check_specsOvPlot,'callback',{@osp_check_specsOvPlot_Call,gui});
-                set(gui.controls.check_meanOvPlot,'callback',{@osp_check_meanOvPlot_Call,gui});
-                set(gui.controls.check_distrOv,'callback',{@osp_check_distrOv_Call,gui});
                 set(gui.controls.b_save_specOvTab,'Callback',{@osp_onPrint,gui});
                 set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
-                set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
-                set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
-
             end
             gui.layout.tabs.Selection  = 1;
             if ~MRSCont.flags.didLoadData %Turn of Listbox if data has not been loaded

@@ -62,6 +62,23 @@ if exist([GM '.gz'], 'file')
     gunzip([GM '.gz']);
     gunzip([WM '.gz']);
     gunzip([CSF '.gz']);
+else
+    if length(path_split) > 2
+        saveName = ['jobServer_' path_split{end} '_' filename_voxel];
+    end
+
+    segDestination = fullfile(MRSCont.outputFolder, 'SegMaps');
+
+    VoxelNum = ['_Voxel_' num2str(VoxelIndex)];
+
+    GM  = fullfile(segDestination, [saveName VoxelNum '_GM.nii']);
+    WM  = fullfile(segDestination, [saveName VoxelNum '_WM.nii']);
+    CSF = fullfile(segDestination, [saveName VoxelNum '_CSF.nii']);
+    if exist([GM '.gz'], 'file')
+        gunzip([GM '.gz']);
+        gunzip([WM '.gz']);
+        gunzip([CSF '.gz']);
+    end
 end
 
 if ~exist(GM, 'file') % This is just for combability of older Osprey versions

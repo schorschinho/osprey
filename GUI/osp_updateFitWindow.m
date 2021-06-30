@@ -199,7 +199,11 @@ function osp_updateFitWindow(gui)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl)
-                        NameText = [NameText, [MRSCont.fit.resBasisSet{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                        try
+                            NameText = [NameText, [MRSCont.fit.resBasisSet{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                        catch
+                            NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,1}.name{m} ': \n']];
+                        end
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                     set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
