@@ -249,10 +249,10 @@ else
             gui.Plot.quantVBox = uix.VBox('Parent', gui.Plot.quantHBox,'BackgroundColor',gui.colormap.Background);
             gui.Plot.quantMRSImap = uix.VBox('Parent', gui.Plot.quantVBox,'BackgroundColor',gui.colormap.Background);
                 
-                if ~strcmp(gui.fit.Style,'w') && ~strcmp(gui.fit.Style,'ref')
-                    temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Style,gui.fit.Style, {'NAA'}, []);
+                if ~strcmp(gui.fit.Names{gui.fit.Selected},'w') && ~strcmp(gui.fit.Names{gui.fit.Selected},'ref')
+                    temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Names{gui.fit.Selected},gui.fit.Names{gui.fit.Selected}, {'NAA'}, []);
                 else
-                    temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Style,gui.fit.Style, {'H2O'}, []);
+                    temp = osp_plotMRSImap(MRSCont, gui.controls.Selected, gui.fit.Names{gui.fit.Selected},gui.fit.Names{gui.fit.Selected}, {'H2O'}, []);
                 end
                 ViewAxes = gca();
                 drawnow
@@ -276,7 +276,7 @@ else
                 end
                 set( gui.Plot.quantVBox, 'Heights', [-0.7 -0.3]);
 
-                temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y]); %Create figure
+                temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Names{gui.fit.Selected},[gui.controls.act_x gui.controls.act_y gui.controls.act_z]); %Create figure
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent',  gui.Plot.quantHBox );
                 close( temp );

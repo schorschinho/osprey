@@ -118,7 +118,11 @@ fprintf(fid,'|--|--| \n');
 fprintf(fid,'|a. Analysis software | %s| \n', MRSCont.ver.Osp); % Here we need something for cases without fitting was done
 fprintf(fid,'|b. Processing steps deviating from Osprey | %s| \n', 'None');
 if MRSCont.flags.isUnEdited
-    strings = fieldnames(MRSCont.quantify.tables.A);
+    try
+        strings = fieldnames(MRSCont.quantify.tables.A);
+    catch
+        strings = fieldnames(MRSCont.quantify.tables.off);
+    end
 end
 if MRSCont.flags.isMEGA
     strings = fieldnames(MRSCont.quantify.tables.off);
