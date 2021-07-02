@@ -128,7 +128,7 @@ for i = 1 : length(LCMparam.NOMIT)
     fprintf(fid,'\n CHOMIT(%i) = ''%s''',i, LCMparam.NOMIT{i});
 end
 fprintf(fid,'\n NAMREL = ''%s''',LCMparam.NAMREL);
-fprintf(fid,'\n CONREL = %5.2f',LCMparam.CONREL);
+% fprintf(fid,'\n CONREL = %5.2f',LCMparam.CONREL);
 fprintf(fid,'\n DOECC = %s',LCMparam.DOECC);
 fprintf(fid,'\n LTABLE = %i',7);
 fprintf(fid,'\n LCSV = %i',11);
