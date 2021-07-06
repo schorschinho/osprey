@@ -142,7 +142,7 @@ for kk = 1:MRSCont.nDatasets
                     switch MRSCont.datatype
                         case 'P'
                             % Load the DICOM folder provided in the job file                           
-                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
+                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, MRSCont.files_nii{kk}, maskFile);
                         otherwise
                             msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                             fprintf(msg);
