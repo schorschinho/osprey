@@ -36,14 +36,9 @@ function [MRSCont] = OspreyQuantify(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyFit has been run before
-if ~MRSCont.flags.didFit
-    msg = 'Trying to quantify data, but data have not been modelled yet. Run OspreyFit first.';
-    fprintf(msg);
-    error(msg);    
-end
 
-% Version check and updating log file
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyQuantify');
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyQuantify',MRSCont.flags.isGUI);
 
 

@@ -31,16 +31,10 @@ function [MRSCont] = OspreySeg(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyCoreg has been run before
-if ~MRSCont.flags.didCoreg
-    msg = 'Trying to segment data, but voxel masks have not been created yet. Run OspreyCoreg first.';
-    fprintf(msg);
-    error(msg);
-end
 
 warning('off','all');
-
-% Version, toolbox check and updating log file
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreySeg');
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreySeg',MRSCont.flags.isGUI);
 
 % Set up SPM for batch processing

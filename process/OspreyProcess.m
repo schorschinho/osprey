@@ -30,16 +30,10 @@ function [MRSCont] = OspreyProcess(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(msg);
-    error(msg);
-end
 
-
-% Version, toolbox check and updating log file
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyProcess');
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyProcess',MRSCont.flags.isGUI);
 
 
 % Post-process raw data depending on sequence type

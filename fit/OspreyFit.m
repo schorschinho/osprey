@@ -30,27 +30,17 @@ function [MRSCont] = OspreyFit(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to fit data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(msg);
-    error(msg);
-end
 
-% Check that OspreyProcess has been run before
-if ~MRSCont.flags.didProcess
-    msg = 'Trying to fit data, but loaded data has not been process yet. Run OspreyProcess first.';
-    fprintf(msg);
-    error(msg);
-end
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 else
     progressText = '';
 end
+
 %% Load fit settings, prepare data and pass it on to the fitting algorithm
 
-% Version, toolbox check and updating log file
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyFit');
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyFit',MRSCont.flags.isGUI);
 MRSCont.runtime.Fit = 0;
 

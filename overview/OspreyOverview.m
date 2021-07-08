@@ -29,14 +29,9 @@ function [MRSCont] = OspreyOverview(MRSCont)
 %%% 1. PARSE INPUT ARGUMENTS %%%
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Fall back to defaults if not provided
-if ~MRSCont.flags.didProcess
-    msg = 'Trying to create data overview, but data have not been processed yet. Run at least OspreyProcess first.';
-    fprintf(msg);
-    error(msg);
-end
 
-% Version check and updating log file
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyOverview');
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyOverview',MRSCont.flags.isGUI);
 
 

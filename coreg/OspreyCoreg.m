@@ -33,17 +33,11 @@ function [MRSCont] = OspreyCoreg(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(msg);
-    error(msg);
-end
 
-% Version, toolbox check and updating log file
 warning('off','all');
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
-
 
 
 % Set up saving location
