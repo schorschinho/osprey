@@ -30,23 +30,17 @@ function [MRSCont] = OspreyFit(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to fit data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(msg);
-    error(msg);
-end
 
-% Check that OspreyProcess has been run before
-if ~MRSCont.flags.didProcess
-    msg = 'Trying to fit data, but loaded data has not been process yet. Run OspreyProcess first.';
-    fprintf(msg);
-    error(msg);
+if MRSCont.flags.isGUI
+    progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 
 %% Load fit settings, prepare data and pass it on to the fitting algorithm
 
-% Version, toolbox check and updating log file
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyFit');
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyFit',MRSCont.flags.isGUI);
 MRSCont.runtime.Fit = 0;
 
@@ -77,23 +71,13 @@ else
 end
 
 %% Perform water reference and short-TE water fit
-if MRSCont.flags.isGUI
-    progressText = MRSCont.flags.inProgress;
-end
+
 % If water reference exists, fit it
 if MRSCont.flags.hasRef
     refFitTime = tic;
-    reverseStr = '';
-    fprintf('\n');
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
-        msg = sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-        reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf([reverseStr, msg]);
-        if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('Fitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-            drawnow
-        end
+        [~] = printLog('OspreyFitRef',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
         if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
         end
@@ -111,36 +95,25 @@ end
 % If short TE water reference exists, fit it
 if MRSCont.flags.hasWater
     waterFitTime = tic;
-    reverseStr = '';   
-    fprintf('\n');
     % Loop over all the datasets here
     for kk = 1:MRSCont.nDatasets
-        msg = sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-        reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf([reverseStr, msg]);
-        if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('Fitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-            drawnow
-        end
+        [~] = printLog('OspreyFitWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
         if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
         end
     end
     time = toc(waterFitTime);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-        pause(1);
-    end
     fprintf('... done.\n Elapsed time %f seconds\n',time);
     MRSCont.runtime.FitWater = time;
     MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
 end
 MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
-fprintf('Full fit time %f seconds\n',MRSCont.runtime.Fit);
+[~] = printLog('Fulldone',MRSCont.runtime.Fit,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
-    osp_scale_yaxis(MRSCont,'OspreyLoad');   
+    MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad'); 
+    MRSCont.fit.resBasisSet = MRSCont.fit.resBasisSet{2,2};
 end
 %% Store  and print some QM parameters
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI

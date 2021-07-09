@@ -194,6 +194,7 @@ out.geometry.size = [];
 out.geometry.size.dim1 = temp(1);
 out.geometry.size.dim2 = temp(2);
 out.geometry.size.dim3 = temp(3);
+out.software = ['Rev_number ' GEhdr.version];
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;

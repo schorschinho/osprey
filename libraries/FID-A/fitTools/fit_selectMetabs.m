@@ -38,7 +38,7 @@ if nargin<3
     fitMM = 1;
 end
 % Save all available metabolite names in a cell
-all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','CrCH2','EtOH','GABA','GPC','GSH','Glc','Gln' ...
+all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','CrCH2','EA','EtOH','GABA','GPC','GSH','Glc','Gln' ...
     ,'Glu','Gly','HCar','H2O','Ins','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
     ,'Scyllo','Ser','Tau','Tyros'};
 
@@ -67,7 +67,7 @@ switch fitMM
     case 2
     all_MMs = {'MMexp'};   
     otherwise
-    all_MMs = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20','MM37','MM38','MM40'};
+    all_MMs = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
 end
 % Check which of these are available in the basis set
 MMsInBasisSet = basisSetIn.name;

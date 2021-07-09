@@ -479,8 +479,6 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                 else
                     ax=get(temp,'Parent');
                     copyobj(ax.Children, fig_hold.Children(1));
-                    close_fig= get(ax,'Parent');
-                    close(close_fig);
                 end
 
             end

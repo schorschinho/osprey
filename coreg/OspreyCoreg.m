@@ -33,17 +33,12 @@ function [MRSCont] = OspreyCoreg(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(msg);
-    error(msg);
-end
-
-% Version, toolbox check and updating log file
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
 
 warning('off','all');
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
+
 
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'VoxelMasks');
@@ -53,19 +48,13 @@ end
 
 %% Loop over all datasets
 refCoregTime = tic;
-reverseStr = '';
-fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('\nCoregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end
+    [~] = printLog('OspreyCoreg',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     if ~(MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         % Get the input file name
@@ -109,13 +98,18 @@ for kk = 1:MRSCont.nDatasets
                 vol_image = spm_vol(MRSCont.files_nii{kk});
                 switch MRSCont.datatype
                     case 'SDAT'
-                        [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                         if ~MRSCont.flags.isMRSI % SVS coregistration
+                            [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                         else
+                              [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,2);
+%                                MRSCont.coreg.vol_mask_mrsi{kk} = vol_mask_mrsi;
+                         end
                     case 'DATA'
                         if isfield(MRSCont.raw{kk}, 'geometry')
                             if ~MRSCont.flags.isPRIAM % SVS coregistration
-                                [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
-                            else  %DualVoxel coregistration
-                                [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                            else 
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
                             end
                         else
                         msg = 'Philips DATA files do not contain voxel geometry information.';
@@ -142,7 +136,7 @@ for kk = 1:MRSCont.nDatasets
                     switch MRSCont.datatype
                         case 'P'
                             % Load the DICOM folder provided in the job file                           
-                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
+                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, MRSCont.files_nii{kk}, maskFile);
                         otherwise
                             msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                             fprintf(msg);
@@ -169,11 +163,7 @@ for kk = 1:MRSCont.nDatasets
     end
 end
 time = toc(refCoregTime);
-if MRSCont.flags.isGUI        
-    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-    pause(1);
-end
-fprintf('... done.\n Elapsed time %f seconds\n',time);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 MRSCont.runtime.Coreg = time;
 %% Clean up and save
 % Set exit flags and version

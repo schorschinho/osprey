@@ -29,7 +29,7 @@
 % vol_mask  = SPM volume of the coregistered voxel mask.
 % T1_max    = maximum intensity of the image volume.
 
-function [vol_mask, T1_max, voxel_ctr] = coreg_sdat(in, vol_image, maskFile,DualVoxel)
+function [vol_mask, T1_max, voxel_ctr, vol_mask_mrsi] = coreg_sdat(in, vol_image, maskFile,DualVoxel)
 
 if nargin < 4
     DualVoxel = 0;
@@ -210,7 +210,11 @@ end
 if exist('vol_mask_out','var')
     vol_mask = vol_mask_out;
 end
-
+if exist('vol_mask_out_mrsi','var')
+    vol_mask_mrsi = vol_mask_out_mrsi;
+else
+    vol_mask_mrsi = [];
+end
 % Reactivate MATLAB warnings
 warning('on','MATLAB:nearlySingularMatrix');
 warning('on','MATLAB:qhullmx:InternalWarning');

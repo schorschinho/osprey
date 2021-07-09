@@ -50,19 +50,19 @@ minKnotSpacingPPM       = fitOpts.bLineKnotSpace; % this is the DKNTMN parameter
 %%% 2. INITIAL REFERENCING %%%
 % Determine initial coarse frequency shift from cross-correlation with
 % landmark delta functions for NAA, Cr, Cho.
-if ~isfield(dataToFit,'refShift') %NO referenceing so far
+% if ~isfield(dataToFit,'refShift') %NO referenceing so far
     disp('Running initial referencing...');
-    [refShift, refFWHM] = fit_OspreyReferencingMM(dataToFit);
+    [refShift, ~] = fit_OspreyReferencingMM(dataToFit);
     refFWHM = dataToFit.refFWHM;
     % Apply initial referencing shift
     dataToFitRef = op_freqshift(dataToFit, -refShift);
-else %Referencing was performed on another Subspec
-    disp('Initial was performed on another Subspec...');
-    refShift = dataToFit.refShift;
-    refFWHM = dataToFit.refFWHM;
-    % Apply initial referencing shift
-    dataToFitRef = op_freqshift(dataToFit, -refShift);
-end
+% else %Referencing was performed on another Subspec
+%     disp('Initial was performed on another Subspec...');
+%     refShift = dataToFit.refShift;
+%     refFWHM = dataToFit.refFWHM;
+%     % Apply initial referencing shift
+%     dataToFitRef = op_freqshift(dataToFit, -refShift);
+% end
 
 %%% 3. PRELIMINARY ANALYSIS STEP 1 %%%
 % In step 1 of the preliminary analysis, a reduced basis set (Cr, Glu, Ins,

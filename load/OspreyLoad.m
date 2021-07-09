@@ -94,6 +94,16 @@ switch MRSCont.vendor
                 fprintf(msg);
                 error(msg);
         end
+    case 'Bruker'
+        switch MRSCont.datatype
+            case 'fid'
+                [MRSCont] = osp_LoadBrukerFid(MRSCont);
+            otherwise
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(msg);
+                error(msg);
+        end
+                
     otherwise
         msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
         fprintf(msg);
@@ -122,7 +132,7 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
 else
     MRSCont.plot.load.match = 0; % Scaling between datasets is turned off by default
 end
-osp_scale_yaxis(MRSCont,'OspreyLoad');
+MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad');
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didLoadData           = 1;

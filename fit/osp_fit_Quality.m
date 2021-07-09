@@ -2,7 +2,9 @@
 %   This function calculates the relative amplitude of the residual
 %   compared to the standard deviation of the noise. This is one of the
 %   seven quality control parameters defined in the MRS consensus paper by
-%   Wilson et al. ( https://doi.org/10.1002/mrm.27742). 
+%   Wilson et al. ( https://doi.org/10.1002/mrm.27742). The original
+%   desciption can be found in Barros & Slotboom
+%   (https://doi.org/10.1016/j.ab.2017.01.017)
 %
 %   USAGE:
 %       [MRSCont]=osp_fit_Quality(MRSCont);
@@ -158,8 +160,7 @@ for sf = 1 : NoFit %Loop over all fits
     P=polyfit(ppmwindow2,noisewindow,2);
     noise=noisewindow-polyval(P,ppmwindow2); 
     
-    range = [max(ModelOutput.residual) min(ModelOutput.residual)];
-    MRSCont.QM.relAmpl.(dataPlotNames{sf})(kk) = (range(1)-range(2))/std(real(noise));
+    MRSCont.QM.relAmpl.(dataPlotNames{sf})(kk) = sum(ModelOutput.residual.^2)/(std(real(noise))^2 * length(ModelOutput.residual));
     
     end
 end

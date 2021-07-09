@@ -27,19 +27,13 @@ function [MRSCont] = osp_fitHERCULES(MRSCont)
 
 % Loop over all the datasets here
 metFitTime = tic;
-reverseStr = '';
-fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-            drawnow
-    end
+    [~] = printLog('OspreyFit',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     
     %%% 1. DETERMINE THE FITTING STYLE %%%
     % Extract fit options
@@ -125,6 +119,21 @@ for kk = 1:MRSCont.nDatasets
             basisSetConc = MRSCont.fit.basisSet;
             basisSetConc.fids = basisSetConc.fids(:,:,5:7);
             basisSetConc.specs = basisSetConc.specs(:,:,5:7);
+            
+            basisSetSum = MRSCont.fit.basisSet;
+            basisSetSum.fids = basisSetSum.fids(:,:,7);
+            basisSetSum.specs = basisSetSum.specs(:,:,7);
+            
+            basisSetDiff1 = MRSCont.fit.basisSet;
+            basisSetDiff1.fids = basisSetDiff1.fids(:,:,5);
+            basisSetDiff1.specs = basisSetDiff1.specs(:,:,5);      
+            if isfield(fitOpts, 'coMM3') && ~strcmp(fitOpts.coMM3, 'none')
+                [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetSum,fitOpts);
+            end
+            
+            basisSetConc.fids(:,:,1) = basisSetDiff1.fids(:,:);
+            basisSetConc.specs(:,:,1) = basisSetDiff1.specs(:,:);
+            
             for rr = 1:length(dataToFit)
                 dataToFit{rr}   = op_ampScale(dataToFit{rr}, 1/MRSCont.fit.scale{kk});
             end
@@ -137,19 +146,9 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.fit.results.conc.fitParams{kk} = fitParamsConc;
         end
     end
-
-            
-    %% end time counter
-    if isequal(kk, MRSCont.nDatasets)            
-        time = toc(metFitTime);
-        if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-            pause(1);
-        end
-        fprintf('... done.\n Elapsed time %f seconds\n',time);
-        MRSCont.runtime.FitMet = time;        
-    end
 end
 
-
+time = toc(metFitTime);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+MRSCont.runtime.FitMet = time;
 end

@@ -28,19 +28,13 @@ function [MRSCont] = osp_fitUnEdited(MRSCont)
 
 % Loop over all the datasets here
 metFitTime = tic;
-reverseStr = '';
-fprintf('\n');
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf([reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-            drawnow
-    end
+     [~] = printLog('OspreyFit',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     
     if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
         % Apply scaling factor to the data
@@ -106,17 +100,8 @@ for kk = 1:MRSCont.nDatasets
         end                                         % re_mm
     end
 
-    % end time counter
-    if isequal(kk, MRSCont.nDatasets)
-        time = toc(metFitTime);
-        if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-            pause(1);
-        end
-        fprintf('... done.\n Elapsed time %f seconds\n',time);
-        MRSCont.runtime.FitMet = time;
-    end
 end
-
-
+time = toc(metFitTime);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+MRSCont.runtime.FitMet = time;
 end

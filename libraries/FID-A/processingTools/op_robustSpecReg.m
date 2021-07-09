@@ -305,9 +305,14 @@ for mm=1:numSubSpecs
         end
     end
     d = nanmedian(D);
+    if isnan(sum(d))        
+        d(isnan(d)) = 1;
+    end
     w{mm} = 1./d.^2;
     w{mm} = w{mm}/sum(w{mm});
     w{mm} = repmat(w{mm}, [size(DataToWeight,1) 1]);
+    
+    
     
     % Apply the weighting
 fids_out(:,:,mm) = w{mm} .* DataToWeight;

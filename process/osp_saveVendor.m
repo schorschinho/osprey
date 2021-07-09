@@ -55,7 +55,8 @@ switch MRSCont.vendor
         % outputFolder = 'PFiles';
         return
     otherwise
-        error('Vendor not supported. Please contact the Gannet team (gabamrs@gmail.com).');
+        warning('Saving processed data in %s format is currently not supported. Please contact the Gannet team (gabamrs@gmail.com).', MRSCont.vendor);
+        return
 end
 
 

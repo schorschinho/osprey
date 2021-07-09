@@ -30,16 +30,10 @@ function [MRSCont] = OspreyProcess(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(msg);
-    error(msg);
-end
 
-
-% Version, toolbox check and updating log file
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyProcess');
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyProcess',MRSCont.flags.isGUI);
 
 
 % Post-process raw data depending on sequence type
@@ -93,8 +87,7 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
 else
     MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
 end
-osp_scale_yaxis(MRSCont,'OspreyLoad');
-
+MRSCont = osp_scale_yaxis(MRSCont,'OspreyProcess');
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess    = 1;
@@ -119,14 +112,14 @@ elseif MRSCont.flags.isHERMES
     subspec = {'sum'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end    
+    end
 elseif MRSCont.flags.isHERCULES
     % For now, process HERCULES like HERMES data
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'sum'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end    
+    end
 else
     msg = 'No flag set for sequence type!';
     fprintf(fileID,msg);
@@ -144,7 +137,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
 end
 
 % Optional:  Create all pdf figures
-if MRSCont.opts.savePDF 
+if MRSCont.opts.savePDF
     osp_plotAllPDF(MRSCont, 'OspreyProcess')
 end
 
