@@ -1097,11 +1097,15 @@ if MRSCont.flags.didFit
             names = fields(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]));
             for g = 1 : length(names) %loop over groups
                     if MRSCont.flags.isUnEdited
-                        %Find the ppm of the maximum peak magnitude within the given range:
-                        ppmindex=find(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['mean_data_' [FitNames{sf} '_' dataPlotNames{sf}]])(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])>1.9 & MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])<2.1)==max(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['mean_data_' [FitNames{sf} '_' dataPlotNames{sf}]])(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])>1.9 & MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])<2.1)));
-                        ppmrange=MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])>1.9 & MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])<2.1);
-                        ppmmax=ppmrange(ppmindex);
-                        refShift=(ppmmax-2.013);
+                        if strcmp(FitNames{sf}, 'off')
+                            %Find the ppm of the maximum peak magnitude within the given range:
+                            ppmindex=find(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['mean_data_' [FitNames{sf} '_' dataPlotNames{sf}]])(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])>1.9 & MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])<2.1)==max(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['mean_data_' [FitNames{sf} '_' dataPlotNames{sf}]])(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])>1.9 & MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])<2.1)));
+                            ppmrange=MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])(MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])>1.9 & MRSCont.overview.Osprey.(['sort_fit_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' [FitNames{sf} '_' dataPlotNames{sf}]])<2.1);
+                            ppmmax=ppmrange(ppmindex);
+                            refShift=(ppmmax-2.013);
+                        else
+                            refShift = 0;
+                        end
                     end
                     if MRSCont.flags.isMEGA
                         if isfield(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]), 'conc_diff1')
