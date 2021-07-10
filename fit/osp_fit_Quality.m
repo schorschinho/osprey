@@ -43,7 +43,7 @@ shift = 0;
 %Getting the final model names (needed for concatenated fits)
 for sf = 1 : NoFit
     switch MRSCont.opts.fit.method
-        case 'Osprey'
+        case {'Osprey', 'LCModel'}
             switch FitNames{sf}
                 case 'off'
                     dataPlotNames{sf} = 'A';
@@ -98,10 +98,11 @@ end
 FitNames = tempFitNames;
 NoFit = length(FitNames);
 
-% Apply the same stpes to the fits
+% Apply the same steps to the fits
 for sf = 1 : NoFit %Loop over all fits
     for kk = 1 : MRSCont.nDatasets %Loop over all datasets
         switch MRSCont.opts.fit.method %Which model was used
+            
             case 'Osprey'
                 if ~(strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w')) % Not the water model           
                     fitRangePPM = MRSCont.opts.fit.range;
@@ -127,6 +128,7 @@ for sf = 1 : NoFit %Loop over all fits
                         [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
                     end            
                 end
+                
            case 'OspreyNoLS'
                 if ~(strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w')) % Not the water model           
                     fitRangePPM = MRSCont.opts.fit.range;
@@ -151,8 +153,15 @@ for sf = 1 : NoFit %Loop over all fits
                     else
                         [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
                     end            
-                end     
+                end
+                
+            case 'LCModel'
+                dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
+                [ModelOutput] = fit_LCModelParamsToModel(fitParams);
+                
         end
+        
     %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
     noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
     ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';

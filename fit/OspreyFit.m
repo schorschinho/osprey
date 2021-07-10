@@ -37,11 +37,11 @@ else
     progressText = '';
 end
 
-%% Load fit settings, prepare data and pass it on to the fitting algorithm
-
+% ----- Load fit settings and fit the metabolite data -----
 % Checking for version, toolbox, and previously run modules
 osp_CheckRunPreviousModule(MRSCont, 'OspreyFit');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyFit',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyFit',MRSCont.flags.isGUI);
+% Start timer
 MRSCont.runtime.Fit = 0;
 
 % Initialise the fit - this step includes:
@@ -49,7 +49,8 @@ MRSCont.runtime.Fit = 0;
 % - Apply settings on which metabolites/MM/lipids to include in the fit
 % - Check for inconsistencies between basis set and data
 [MRSCont] = osp_fitInitialise(MRSCont);
-MRSCont.opts.fit.outputFolder = outputFolder;
+%MRSCont.opts.fit.outputFolder = outputFolder;
+
 % Call the fit functions (depending on sequence type)
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     if MRSCont.flags.isUnEdited
@@ -70,54 +71,64 @@ else
     [MRSCont] = osp_fitMultiVoxel(MRSCont);
 end
 
-%% Perform water reference and short-TE water fit
 
-% If water reference exists, fit it
-if MRSCont.flags.hasRef
-    refFitTime = tic;
-    % Loop over all the datasets here
-    for kk = 1:MRSCont.nDatasets
-        [~] = printLog('OspreyFitRef',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
-        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
-            [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
+% ----- Perform water reference and short-TE water fit -----
+% The water signal is automatically integrated when the LCModel fit option is
+% being used. In Osprey, we explicitly model the water data with a
+% dedicated simulated water basis function.
+if strcmpi(MRSCont.opts.fit.method, 'Osprey')
+  
+    % If water reference exists, fit it
+    if MRSCont.flags.hasRef
+        refFitTime = tic;
+        % Loop over all the datasets here
+        for kk = 1:MRSCont.nDatasets
+            [~] = printLog('OspreyFitRef',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+            if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+                [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
+            end
         end
+        time = toc(refFitTime);
+        if MRSCont.flags.isGUI
+            set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+            pause(1);
+        end
+        fprintf('... done.\n Elapsed time %f seconds\n',time);
+        MRSCont.runtime.FitRef = time;
+        MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
     end
-    time = toc(refFitTime);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-        pause(1);
+    
+    % If short TE water reference exists, fit it
+    if MRSCont.flags.hasWater
+        waterFitTime = tic;
+        % Loop over all the datasets here
+        for kk = 1:MRSCont.nDatasets
+            [~] = printLog('OspreyFitWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+            if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+                [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
+            end
+        end
+        time = toc(waterFitTime);
+        fprintf('... done.\n Elapsed time %f seconds\n',time);
+        MRSCont.runtime.FitWater = time;
+        MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
     end
-    fprintf('... done.\n Elapsed time %f seconds\n',time);
-    MRSCont.runtime.FitRef = time;
-    MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
+    
+    MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
+    [~] = printLog('Fulldone',MRSCont.runtime.Fit,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+
 end
 
-% If short TE water reference exists, fit it
-if MRSCont.flags.hasWater
-    waterFitTime = tic;
-    % Loop over all the datasets here
-    for kk = 1:MRSCont.nDatasets
-        [~] = printLog('OspreyFitWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
-        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
-            [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
-        end
-    end
-    time = toc(waterFitTime);
-    fprintf('... done.\n Elapsed time %f seconds\n',time);
-    MRSCont.runtime.FitWater = time;
-    MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
-end
-MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
-[~] = printLog('Fulldone',MRSCont.runtime.Fit,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
     MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad'); 
     MRSCont.fit.resBasisSet = MRSCont.fit.resBasisSet{2,2};
 end
+
 %% Store  and print some QM parameters
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-    [MRSCont]=osp_fit_Quality(MRSCont);
+    [MRSCont] = osp_fit_Quality(MRSCont);
 
     % Store data quality measures in csv file
     if MRSCont.flags.isUnEdited
@@ -164,7 +175,7 @@ end
 MRSCont.flags.didFit           = 1;
 
 diary off
-% Delete redundant resBasiset entries
+% Delete redundant resBasisSet entries
 % FitNames = fieldnames(MRSCont.fit.results);
 % NoFit = length(fieldnames(MRSCont.fit.results));
 % for sf = 1 : NoFit
@@ -185,7 +196,7 @@ end
 
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
-    osp_plotAllPDF(MRSCont, 'OspreyFit')
+    osp_plotAllPDF(MRSCont, 'OspreyFit');
 end
 
 if MRSCont.flags.isGUI
