@@ -34,36 +34,36 @@ end
 %Test OspreyJob
 function testOspreyJob(~)
 
-    dir = strrep(which('debug/jobPRESS.m'),'jobPRESS.m','derivatives');
+    dir = strrep(which(['debug' filesep 'jobPRESS.m']),'jobPRESS.m','derivatives');
     if ~isempty(dir)
         delete(fullfile(dir,'jobPRESS.mat'));
         delete(fullfile(dir,'LogFile.txt'));
     end
-    MRSCont = OspreyJob(which('debug/jobPRESS.m'),0,'11');
+    MRSCont = OspreyJob(which(['debug' filesep 'jobPRESS.m']),0,'11');
     addpath(dir);
 end
 
 %Test OspreyLoad
 function testOspreyLoad(~)
-    load(which('debug/derivatives/jobPRESS.mat'));
+    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
     MRSCont = OspreyLoad(MRSCont);
 end
 
 %Test OspreyProcess
 function testOspreyProcess(~)
-    load(which('debug/derivatives/jobPRESS.mat'));
+    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
     MRSCont = OspreyProcess(MRSCont);
 end
 
 %Test OspreyFit
 function testOspreyFit(~)
-    load(which('debug/derivatives/jobPRESS.mat'));
+    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
     MRSCont = OspreyFit(MRSCont);
 end
 
 %Test OspreyCoreg
 function testOspreyCoreg(~)
-    load(which('debug/derivatives/jobPRESS.mat'));
+    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
     if ~isempty(MRSCont.files_nii)
         MRSCont = OspreyCoreg(MRSCont);
     end
@@ -71,12 +71,12 @@ end
 
 %Test OspreyQuantify
 function testOspreyQuantify(~)
-    load(which('debug/derivatives/jobPRESS.mat'));
+    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
     MRSCont = OspreyQuantify(MRSCont);
 end
 
 %Test OspreyOverview
 function testOspreyOverview(~)
-    load(which('debug/derivatives/jobPRESS.mat'));
+    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
     MRSCont = OspreyOverview(MRSCont);
 end

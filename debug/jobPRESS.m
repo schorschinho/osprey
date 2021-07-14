@@ -128,15 +128,15 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {which('debug/rawdata_CI/sub-01/mrs/sub-01_press/sub-01_press_act_noID.sdat'),...
-               which('debug/rawdata_CI/sub-02/mrs/sub-02_press/sub-02_press_act_noID.sdat')};
+files       = {which(['debug' filesep 'rawdata_CI' filesep 'sub-01' filesep 'mrs' filesep 'sub-01_press' filesep 'sub-01_press_act_noID.sdat']),...
+               which(['debug' filesep 'rawdata_CI' filesep 'sub-02' filesep 'mrs' filesep 'sub-02_press' filesep 'sub-02_press_act_noID.sdat'])};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {which('debug/rawdata_CI/sub-01/mrs/sub-01_press_ref/sub-01_press_ref_noID.sdat'),...
-               which('debug/rawdata_CI/sub-02/mrs/sub-02_press_ref/sub-02_press_ref_noID.sdat')};
+files_ref   = {which(['debug' filesep 'rawdata_CI' filesep 'sub-01' filesep 'mrs' filesep 'sub-01_press_ref' filesep 'sub-01_press_ref_noID.sdat']),...
+               which(['debug' filesep 'rawdata_CI' filesep 'sub-02' filesep 'mrs' filesep 'sub-02_press_ref' filesep 'sub-02_press_ref_noID.sdat'])};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
@@ -150,8 +150,8 @@ files_mm     = {};
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {which('debug/rawdata_CI/sub-01/anat/sub-01_T1w.nii.gz'),...
-               which('debug/rawdata_CI/sub-02/anat/sub-02_T1w.nii.gz')};
+files_nii   = {which(['debug' filesep 'rawdata_CI' filesep 'sub-01' filesep 'anat' filesep 'sub-01_T1w.nii.gz']),...
+               which(['debug' filesep 'rawdata_CI' filesep 'sub-02' filesep 'anat' filesep 'sub-02_T1w.nii.gz'])};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -165,6 +165,6 @@ files_nii   = {which('debug/rawdata_CI/sub-01/anat/sub-01_T1w.nii.gz'),...
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = strrep(which('debug/jobPRESS.m'),'jobPRESS.m','derivatives');
+outputFolder = strrep(which(['debug' filesep 'jobPRESS.m']),'jobPRESS.m','derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
