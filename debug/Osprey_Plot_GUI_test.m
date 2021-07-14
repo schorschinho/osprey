@@ -34,7 +34,7 @@ end
 
 %Test OspreyGUI
 function testOspreyGUI(~)
-    folder_path = strrep(which('debug/UnitTest.m'),'UnitTest.m','derivatives');
+    folder_path = strrep(which(['debug' filesep 'UnitTest.m']),'UnitTest.m','derivatives');
     filestruct =  dir([folder_path filesep '*.mat']);
     load([filestruct.folder filesep filestruct.name]);
     gui = OspreyGUI(MRSCont);

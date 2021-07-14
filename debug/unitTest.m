@@ -50,14 +50,14 @@ else
         rt{2} = table(results{2});    
     end
 
-    dir = strrep(which(['debug/job' sequence '.m']),['job' sequence '.m'],'rawdata_CI/sub-01/anat');
+    dir = strrep(which(['debug' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-01' filesep 'anat']);
     delete(fullfile(dir,'c1sub-01_T1w.nii.gz'));
     delete(fullfile(dir,'c2sub-01_T1w.nii.gz'));
     delete(fullfile(dir,'c3sub-01_T1w.nii.gz'));
     delete(fullfile(dir,'sub-01_T1w.nii'));
     delete(fullfile(dir,'sub-01_T1w_seg8.mat'));
     
-    dir = strrep(which(['debug/job' sequence '.m']),['job' sequence '.m'],'rawdata_CI/sub-02/anat');
+    dir = strrep(which(['debug' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-02' filesep 'anat']);
     delete(fullfile(dir,'c1sub-02_T1w.nii.gz'));
     delete(fullfile(dir,'c2sub-02_T1w.nii.gz'));
     delete(fullfile(dir,'c3sub-02_T1w.nii.gz'));
@@ -65,7 +65,7 @@ else
     delete(fullfile(dir,'sub-02_T1w_seg8.mat'));
 end
 
-dir = strrep(which(['debug/job' sequence '.m']),['job' sequence '.m'],'derivatives');
+dir = strrep(which(['debug' filesep 'job' sequence '.m']),['job' sequence '.m'],'derivatives');
 rmdir(dir,'s')
 
 warning('on','all')
