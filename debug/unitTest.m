@@ -1,11 +1,10 @@
-function [results,rt] = unitTest
-%% unitTest.m
-%   This function performs a unit test based on the jobTesting.m file in the
-%   debug folder. All Osprey modules are tested in dependence of the
-%   included dataset. Currently only command line calls of Opsrey are
-%   tested. You can change the jobTesting.m file according to your desired
-%   needs. The results unittest class includes detailed information about
-%   the performance.
+function [results,rt] = UnitTest(segmentation,sequence,GUItest)
+%% quickUnitTest.m
+%   This function performs a quick unit test of the command line calls of
+%   Osprey. It is based on two Philips datasets of the Big GABA paper, which
+%   include a complete quantification of PRESS, MEGA-PRESS and HERMES
+%   spectra. The results are stored in MATLAB unittest class format. The 
+%   derivatives (see output folders) should also be checked.
 %
 %   USAGE:
 %       [results,rt] = unitTest
@@ -26,12 +25,48 @@ function [results,rt] = unitTest
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %
 %   HISTORY:
-%       2020-06-03: First version of the code.
+%       2020-06-04: First version of the code.
 
-%% Call commandline tests
-% You may want to change the input within the jobTesting file in the
-% osprey/debug folder.
 
-results = runtests('unitTestOspreyConsole.m');
-rt = table(results)
+%% Run jobFile with all Osprey modules 
+warning('off','all')
+if segmentation == 0     
+    % Run fast unit test without segmentation   
+    results{1} = runtests(['Osp_' sequence '_CL_no_Seg.m'])
+    rt{1} = table(results{1});
+    
+    if GUItest
+        results{2} = runtests('Osprey_Plot_GUI_test.m')
+        rt{2} = table(results{2});    
+    end
+else
+    % Run unit test with segmentation   
+    results{1} = runtests(['Osp_' sequence '_CL_w_Seg.m'])
+    rt{1} = table(results{1});
+    
+    
+    if GUItest
+        results{2} = runtests('Osprey_Plot_GUI_test.m')
+        rt{2} = table(results{2});    
+    end
+
+    dir = strrep(which(['debug/job' sequence '.m']),['job' sequence '.m'],'rawdata_CI/sub-01/anat');
+    delete(fullfile(dir,'c1sub-01_T1w.nii.gz'));
+    delete(fullfile(dir,'c2sub-01_T1w.nii.gz'));
+    delete(fullfile(dir,'c3sub-01_T1w.nii.gz'));
+    delete(fullfile(dir,'sub-01_T1w.nii'));
+    delete(fullfile(dir,'sub-01_T1w_seg8.mat'));
+    
+    dir = strrep(which(['debug/job' sequence '.m']),['job' sequence '.m'],'rawdata_CI/sub-02/anat');
+    delete(fullfile(dir,'c1sub-02_T1w.nii.gz'));
+    delete(fullfile(dir,'c2sub-02_T1w.nii.gz'));
+    delete(fullfile(dir,'c3sub-02_T1w.nii.gz'));
+    delete(fullfile(dir,'sub-02_T1w.nii'));
+    delete(fullfile(dir,'sub-02_T1w_seg8.mat'));
+end
+
+dir = strrep(which(['debug/job' sequence '.m']),['job' sequence '.m'],'derivatives');
+rmdir(dir,'s')
+
+warning('on','all')
 end
