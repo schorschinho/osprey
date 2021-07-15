@@ -9,7 +9,6 @@ trigger:
 pool: 'Default'
 
 - script: |
-   cd debug/
    matlab -nojvm -nodisplay -nosplash -r "pushTest; quit"
    echo Successfully run my first MATLAB CI!
  displayName: 'Unit Tests'
