@@ -10,5 +10,5 @@ pool: 'Default'
 
 steps:
 - script: |
-   matlab -nojvm -nodisplay -nosplash -r "disp('Hello from Matlab!'); quit"
+   matlab -nojvm -nodisplay -nosplash -logfile output.log -r "disp('Hello from Matlab!'); quit"
   displayName: 'Unit Tests'
