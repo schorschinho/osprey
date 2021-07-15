@@ -6,9 +6,10 @@
 trigger:
 - azure-pipelines
 
-pool: 'Default'
-
+Pool: 'Default'
+      
+     steps:
 - script: |
-   matlab -nojvm -nodisplay -nosplash -r "pushTest; quit"
+   matlab -nojvm -nodisplay -nosplash -r "disp('Hello from Matlab!'); quit"
    echo Successfully run my first MATLAB CI!
  displayName: 'Unit Tests'
