@@ -1,4 +1,4 @@
-matlab -nojva=m -nosplash -nodisplay -wait -logfile matlab-output.txt -r pushTest
+matlab -nojvm -nosplash -nodisplay -wait -logfile matlab-output.txt -r pushTest
 type matlab-output.txt
 
 set content=
