@@ -8,8 +8,8 @@ trigger:
 
 pool: 'Default'
 
-steps:
 - script: |
-   - cd debug
-   - Github_Hook.cmd
-  displayName: 'Unit Tests'
+   cd debug\
+   matlab -nojvm -nodisplay -nosplash -r "pushTest; quit"
+   echo Successfully run my first MATLAB CI!
+ displayName: 'Unit Tests'
