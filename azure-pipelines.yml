@@ -1,0 +1,15 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- azure-pipelines
+
+pool: 'Default'
+
+steps:
+- script: |
+   matlab -nojvm -nodisplay -nosplash -r "disp('Hello from Matlab!'); quit"
+   echo Successfully run my first MATLAB CI!
+ displayName: 'Unit Tests'
