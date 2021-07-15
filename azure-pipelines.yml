@@ -10,6 +10,6 @@ pool: 'Default'
 
 steps:
 - script: |
-   matlab -nojvm -nodisplay -nosplash -r "UnitTest(0,'PRESS',1); quit"
-   echo Successfully run my first MATLAB CI!
+   - cd debug
+   - Github_Hook.cmd
   displayName: 'Unit Tests'
