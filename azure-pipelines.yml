@@ -6,9 +6,14 @@
 trigger:
 - azure-pipelines
 
-pool: 'Default'
+pool:
+  vmImage: ubuntu-latest
 
-steps: |
-   matlab -nojvm -nodisplay -nosplash -r "disp('Hello from Matlab!'); quit"
-   echo Successfully run my first MATLAB CI!
- displayName: 'Unit Tests'
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
