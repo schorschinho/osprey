@@ -10,5 +10,5 @@ pool: 'Default'
 
 steps:
 - script: |
-   matlab -nojvm -nodisplay -wait -nosplash -r " pushTest; quit"
+   matlab -nodisplay -wait -nosplash -r " pushTest; quit"
   displayName: 'Unit Tests'
