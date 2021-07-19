@@ -10,6 +10,5 @@ pool: 'Default'
 
 steps:
 - script: |
-   - cd debug
-   - Github_Hook.cmd
+   matlab -nojvm -nodisplay -wait -nosplash -r " pushTest; quit"
   displayName: 'Unit Tests'
