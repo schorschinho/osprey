@@ -10,5 +10,5 @@ pool: 'Default'
 
 steps:
 - script: |
-   matlab -nojvm -nodisplay -nosplash -logfile output.log -r "disp('Hello from Matlab!'); quit"
+   matlab -nojvm -nodisplay -nosplash -r "fileID = fopen('C:\Users\Helge Zoellner\Documents\MATLAB\exp.txt','w');fprintf(fileID,'Hello from Matlab!');fclose(fileID); quit"
   displayName: 'Unit Tests'
