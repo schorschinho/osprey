@@ -5,7 +5,7 @@ exit_code = 1;
 [result,rt] = unitTest(0,'PRESS',0)
 
 % check the result
-if sum(result{1}.Failed) == 0 && sum(result{1}.Incomplete) == 0
+if sum(rt{1}.Failed) == 0 && sum(rt{1}.Incomplete) == 0
     exit_code = 0;
 end
 
