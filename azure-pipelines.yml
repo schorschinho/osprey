@@ -10,5 +10,5 @@ pool: 'Default'
 
 steps:
 - script: |
-   echo Hello from CMD! > C:\Users\Helge Zoellner\Documents\MATLAB\exp.txt
+   matlab -nojvm -nodisplay -nosplash -r "fileID = fopen('C:\Users\Helge Zoellner\Documents\MATLAB\exp.txt','w');fprintf(fileID,'Hello from Matlab!');fclose(fileID); quit"
   displayName: 'Unit Tests'
