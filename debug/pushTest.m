@@ -2,7 +2,7 @@
 exit_code = 1;
 
 % MATLAB runs the test
-[result,rt] = UnitTest(0,'PRESS',0)
+[result,rt] = unitTest(0,'PRESS',0)
 
 % check the result
 if sum(result{1}.Failed) == 0 && sum(result{1}.Incomplete) == 0
