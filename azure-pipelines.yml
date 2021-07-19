@@ -10,5 +10,5 @@ pool: 'Default'
 
 steps:
 - script: |
-   matlab -nojvm -nodisplay -wait -nosplash -logfile C:\Users\Helge Zoellner\Documents\MATLAB\output.log -r " [results,rt] = UnitTest(0,'PRESS',0); quit"
+   matlab -nojvm -nodisplay -wait -nosplash -logfile C:\Users\Helge Zoellner\Documents\MATLAB\output.log -r " pushTest; quit"
   displayName: 'Unit Tests'
