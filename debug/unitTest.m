@@ -1,4 +1,4 @@
-function [results,rt] = UnitTest(segmentation,sequence,GUItest)
+function [results,rt] = unitTest(segmentation,sequence,GUItest)
 %% quickUnitTest.m
 %   This function performs a quick unit test of the command line calls of
 %   Osprey. It is based on two Philips datasets of the Big GABA paper, which
