@@ -3,8 +3,13 @@
 # Starts with a quick Single Subject PRESS test
 # If the first stage is successful a Full PRESS job is triggered
 
-trigger: [ develop ]
-pr: [ develop ]
+trigger:
+  branches:
+    include:
+      - develop
+    exclude:
+      - master
+
 
 pool: 'Default'
 
