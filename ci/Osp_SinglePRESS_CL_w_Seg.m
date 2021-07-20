@@ -1,6 +1,6 @@
 %% unitTest.m
 %   This function performs a command line unit test based on the jobTesting.m file in the
-%   debug folder. All Osprey modules are tested in dependence of the
+%   ci folder. All Osprey modules are tested in dependence of the
 %   included dataset. You can change the jobTesting.m file according to your desired
 %   needs. The results unittest class includes detailed information about
 %   the performance.
@@ -25,7 +25,7 @@
 %   HISTORY:
 %       2020-06-03: First version of the code.
 %% 1. Call all modules with a functiontests array %%%
-function tests = Osp_PRESS_CL_w_Seg
+function tests = Osp_SinglePRESS_CL_w_Seg
 % unitTestOspreyCommandLine
     tests = functiontests(localfunctions);
 end
@@ -34,36 +34,36 @@ end
 %Test OspreyJob
 function testOspreyJob(~)
 
-    dir = strrep(which(['debug' filesep 'jobPRESS.m']),'jobPRESS.m','derivatives');
+    dir = strrep(which(['ci' filesep 'jobSinglePRESS.m']),'jobSinglePRESS.m','derivatives');
     if ~isempty(dir)
-        delete(fullfile(dir,'jobPRESS.mat'));
+        delete(fullfile(dir,'jobSinglePRESS.mat'));
         delete(fullfile(dir,'LogFile.txt'));
     end
-    MRSCont = OspreyJob(which(['debug' filesep 'jobPRESS.m']),0,'11');
+    MRSCont = OspreyJob(which(['ci' filesep 'jobSinglePRESS.m']),0,'11');
     addpath(dir);
 end
 
 %Test OspreyLoad
 function testOspreyLoad(~)
-    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
+    load(which(['ci' filesep 'derivatives' filesep 'jobSinglePRESS.mat']));
     MRSCont = OspreyLoad(MRSCont);
 end
 
 %Test OspreyProcess
 function testOspreyProcess(~)
-    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
+    load(which(['ci' filesep 'derivatives' filesep 'jobSinglePRESS.mat']));
     MRSCont = OspreyProcess(MRSCont);
 end
 
 %Test OspreyFit
 function testOspreyFit(~)
-    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
+    load(which(['ci' filesep 'derivatives' filesep 'jobSinglePRESS.mat']));
     MRSCont = OspreyFit(MRSCont);
 end
 
 %Test OspreyCoreg
 function testOspreyCoreg(~)
-    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
+    load(which(['ci' filesep 'derivatives' filesep 'jobSinglePRESS.mat']));
     if ~isempty(MRSCont.files_nii)
         MRSCont = OspreyCoreg(MRSCont);
     end
@@ -71,7 +71,7 @@ end
 
 %Test OspreySegment
 function testOspreySegment(~)
-    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
+    load(which(['ci' filesep 'derivatives' filesep 'jobSinglePRESS.mat']));
     if ~isempty(MRSCont.files_nii)
         MRSCont = OspreySeg(MRSCont);
     end
@@ -79,12 +79,12 @@ end
 
 %Test OspreyQuantify
 function testOspreyQuantify(~)
-    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
+    load(which(['ci' filesep 'derivatives' filesep 'jobSinglePRESS.mat']));
     MRSCont = OspreyQuantify(MRSCont);
 end
 
 %Test OspreyOverview
 function testOspreyOverview(~)
-    load(which(['debug' filesep 'derivatives' filesep 'jobPRESS.mat']));
+    load(which(['ci' filesep 'derivatives' filesep 'jobSinglePRESS.mat']));
     MRSCont = OspreyOverview(MRSCont);
 end

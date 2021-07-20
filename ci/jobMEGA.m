@@ -1,5 +1,5 @@
-%% jobTesting.m
-%   This function is a jobTesting.m file .
+%% jobMEGAPRESSrawdata_CI.m
+%   This function is a jobMEGAPRESSrawdata_CI.m file .
 %
 %   A valid Osprey job contains four distinct classes of items:
 %       1. basic information on the MRS sequence used
@@ -67,13 +67,13 @@
 %%% 1. SPECIFY SEQUENCE INFORMATION %%%
 
 % Specify sequence type
-seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
+seqType = 'MEGA';           % OPTIONS:    - 'unedited' (default)
                                 %             - 'MEGA'
                                 %             - 'HERMES'
                                 %             - 'HERCULES'
 
 % Specify editing targets
-editTarget = {'none'};            % OPTIONS:    - {'none'} (default if 'unedited')
+editTarget = {'GABA'};            % OPTIONS:    - {'none'} (default if 'unedited')
                                 %             - {'GABA'}, {'GSH'}  (for 'MEGA')
                                 %             - {'GABA, 'GSH}, {'GABA, GSH, EtOH'} (for 'HERMES')
                                 %             - {'HERCULES1'}, {'HERCULES2'} (for 'HERCULES')
@@ -103,7 +103,7 @@ opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
 
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
 % (only available for the Osprey fitting method)
-opts.fit.style              = 'Concatenated';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
+opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
                                                 %           - 'Separate' - will fit DIFF and OFF separately
 
 % Determine fitting range (in ppm) for the metabolite and water spectra
@@ -128,19 +128,20 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {which(['debug' filesep 'rawdata_CI' filesep 'sub-01' filesep 'mrs' filesep 'sub-01_press' filesep 'sub-01_press_act_noID.sdat']),...
-               which(['debug' filesep 'rawdata_CI' filesep 'sub-02' filesep 'mrs' filesep 'sub-02_press' filesep 'sub-02_press_act_noID.sdat'])};
+files       = {which('ci/rawdata_CI/sub-01/mrs/sub-01_megapress/sub-01_megapress_act_noID.sdat'),...
+               which('ci/rawdata_CI/sub-02/mrs/sub-02_megapress/sub-02_megapress_act_noID.sdat')};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {which(['debug' filesep 'rawdata_CI' filesep 'sub-01' filesep 'mrs' filesep 'sub-01_press_ref' filesep 'sub-01_press_ref_noID.sdat']),...
-               which(['debug' filesep 'rawdata_CI' filesep 'sub-02' filesep 'mrs' filesep 'sub-02_press_ref' filesep 'sub-02_press_ref_noID.sdat'])};
+files_ref   = {which('ci/rawdata_CI/sub-01/mrs/sub-01_megapress_ref/sub-01_megapress_ref_noID.sdat'),...
+               which('ci/rawdata_CI/sub-02/mrs/sub-02_megapress_ref/sub-02_megapress_ref_noID.sdat')};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {};
+files_w     = {which('ci/rawdata_CI/sub-01/mrs/sub-01_press_ref/sub-01_press_ref_noID.sdat'),...
+               which('ci/rawdata_CI/sub-02/mrs/sub-02_press_ref/sub-02_press_ref_noID.sdat')};
 
 % Specify metabolite-nulled data for quantification
 % (OPTIONAL)
@@ -150,8 +151,8 @@ files_mm     = {};
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {which(['debug' filesep 'rawdata_CI' filesep 'sub-01' filesep 'anat' filesep 'sub-01_T1w.nii.gz']),...
-               which(['debug' filesep 'rawdata_CI' filesep 'sub-02' filesep 'anat' filesep 'sub-02_T1w.nii.gz'])};
+files_nii   = {which('ci/rawdata_CI/sub-01/anat/sub-01_T1w.nii.gz'),...
+               which('ci/rawdata_CI/sub-02/anat/sub-02_T1w.nii.gz')};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -165,6 +166,6 @@ files_nii   = {which(['debug' filesep 'rawdata_CI' filesep 'sub-01' filesep 'ana
 
 % Specify output folder
 % (MANDATORY)
-outputFolder = strrep(which(['debug' filesep 'jobPRESS.m']),'jobPRESS.m','derivatives');
+outputFolder = strrep(which('ci/jobMEGA.m'),'jobMEGA.m','derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

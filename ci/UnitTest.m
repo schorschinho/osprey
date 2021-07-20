@@ -1,4 +1,4 @@
-function [results,rt] = UnitTest(segmentation,sequence,GUItest)
+function [results,rt] = UnitTest(sequence,segmentation,GUItest)
 %% quickUnitTest.m
 %   This function performs a quick unit test of the command line calls of
 %   Osprey. It is based on two Philips datasets of the Big GABA paper, which
@@ -32,41 +32,70 @@ function [results,rt] = UnitTest(segmentation,sequence,GUItest)
 warning('off','all')
 if segmentation == 0     
     % Run fast unit test without segmentation   
-    results{1} = runtests(['Osp_' sequence '_CL_no_Seg.m'])
+    results{1} = runtests(['Osp_' sequence '_CL_no_Seg.m']);
     rt{1} = table(results{1});
     
     if GUItest
-        results{2} = runtests('Osprey_Plot_GUI_test.m')
+        results{2} = runtests('Osprey_Plot_GUI_test.m');
         rt{2} = table(results{2});    
     end
-else
+    
+    if ~strcmp(sequence,'SinglePRESS') 
+        dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],'derivatives');
+        rmdir(dir,'s')
+    end
+
+else if segmentation == 1
     % Run unit test with segmentation   
-    results{1} = runtests(['Osp_' sequence '_CL_w_Seg.m'])
+    results{1} = runtests(['Osp_' sequence '_CL_w_Seg.m']);
     rt{1} = table(results{1});
     
     
     if GUItest
-        results{2} = runtests('Osprey_Plot_GUI_test.m')
+        results{2} = runtests('Osprey_Plot_GUI_test.m');
         rt{2} = table(results{2});    
     end
 
-    dir = strrep(which(['debug' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-01' filesep 'anat']);
+    dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-01' filesep 'anat']);
     delete(fullfile(dir,'c1sub-01_T1w.nii.gz'));
     delete(fullfile(dir,'c2sub-01_T1w.nii.gz'));
     delete(fullfile(dir,'c3sub-01_T1w.nii.gz'));
     delete(fullfile(dir,'sub-01_T1w.nii'));
     delete(fullfile(dir,'sub-01_T1w_seg8.mat'));
     
-    dir = strrep(which(['debug' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-02' filesep 'anat']);
+    dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-02' filesep 'anat']);
     delete(fullfile(dir,'c1sub-02_T1w.nii.gz'));
     delete(fullfile(dir,'c2sub-02_T1w.nii.gz'));
     delete(fullfile(dir,'c3sub-02_T1w.nii.gz'));
     delete(fullfile(dir,'sub-02_T1w.nii'));
     delete(fullfile(dir,'sub-02_T1w_seg8.mat'));
+    
+    dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],'derivatives');
+    rmdir(dir,'s')
+
+    else
+        % Run unit test with segmentation   
+    if   strcmp(sequence,'SinglePRESS') 
+        results{1} = runtests(['Osp_' sequence '_CL_Seg_downstream.m']);
+        rt{1} = table(results{1});
+        
+        results{2} = runtests('Osprey_Plot_GUI_test.m');
+        rt{2} = table(results{2});    
+
+        dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-01' filesep 'anat']);
+        delete(fullfile(dir,'c1sub-01_T1w.nii.gz'));
+        delete(fullfile(dir,'c2sub-01_T1w.nii.gz'));
+        delete(fullfile(dir,'c3sub-01_T1w.nii.gz'));
+        delete(fullfile(dir,'sub-01_T1w.nii'));
+        delete(fullfile(dir,'sub-01_T1w_seg8.mat'));
+        
+        dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],'derivatives');
+        rmdir(dir,'s')
+    end
+        
 end
 
-dir = strrep(which(['debug' filesep 'job' sequence '.m']),['job' sequence '.m'],'derivatives');
-rmdir(dir,'s')
+
 
 warning('on','all')
 end

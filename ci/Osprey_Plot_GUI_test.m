@@ -1,6 +1,6 @@
 %% unitTest.m
 %   This function performs a command line unit test based on the jobTesting.m file in the
-%   debug folder. All Osprey modules are tested in dependence of the
+%   ci folder. All Osprey modules are tested in dependence of the
 %   included dataset. You can change the jobTesting.m file according to your desired
 %   needs. The results unittest class includes detailed information about
 %   the performance.
@@ -34,7 +34,7 @@ end
 
 %Test OspreyGUI
 function testOspreyGUI(~)
-    folder_path = strrep(which(['debug' filesep 'UnitTest.m']),'UnitTest.m','derivatives');
+    folder_path = strrep(which(['ci' filesep 'UnitTest.m']),'UnitTest.m','derivatives');
     filestruct =  dir([folder_path filesep '*.mat']);
     load([filestruct.folder filesep filestruct.name]);
     gui = OspreyGUI(MRSCont);
