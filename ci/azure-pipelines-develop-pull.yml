@@ -9,15 +9,15 @@ pr: [ develop ]
 pool: 'Default'
 
 stages:
-- stage: PRESS
+- stage: Stage_1
   jobs:
   - job: PRESS
     steps:
     - script: matlab -nodisplay -wait -nosplash -r "addpath(genpath('C:\CI-agent\_work\1\s')); SinglePRESS; quit"
       displayName: 'Single Subject PRESS without Segmentation & GUI'
 
-- stage: PRESSdownstream
-  dependsOn: PRESS
+- stage: Stage_2
+  dependsOn: Stage_1
   jobs:
   - job: PRESSdownstream
     steps:
