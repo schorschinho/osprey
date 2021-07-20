@@ -8,13 +8,17 @@ trigger:
 
 pool: 'Default'
 
-
 stages:
 - stage: FullPRESS
-   matlab -nodisplay -wait -nosplash -r " FullPRESS; quit"
-  displayName: 'Multi Subject PRESS with Segmentation & GUI'
+  jobs:
+  - job: FullPRESS
+    steps:
+    - script: matlab -nodisplay -wait -nosplash -r " FullPRESS; quit"
+      displayName: 'Full PRESS with Segmentation & GUI'
 
 - stage: FullMEGA
-  dependsOn: FullPRESS
-   matlab -nodisplay -wait -nosplash -r " FullMEGA; quit"
-  displayName: 'Multi Subject MEGA with Segmentation & GUI'
+  jobs:
+  - job: FullMEGA
+    steps:
+    - script: matlab -nodisplay -wait -nosplash -r " FullMEGA; quit"
+      displayName: 'Full MEGA add Segmentation & GUI'
