@@ -8,7 +8,13 @@ trigger:
 
 pool: 'Default'
 
-steps:
-- script: |
-   matlab -nodisplay -wait -nosplash -r " pushTest; quit"
-  displayName: 'Unit Tests'
+
+stages:
+- stage: SinglePRESS
+   matlab -nodisplay -wait -nosplash -r " SinglePRESS; quit"
+  displayName: 'Single Subject PRESS without Segmentation & GUI'
+  
+- stage: FullPRESS
+  dependsOn: SinglePRESS
+   matlab -nodisplay -wait -nosplash -r " FullPRESS; quit"
+  displayName: 'Multi Subject PRESS with Segmentation & GUI'
