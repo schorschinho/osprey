@@ -3,8 +3,12 @@
 # Starts with a quick Full PRESS job
 # If the first stage is successful a Full MEGA job is triggered
 
-trigger: [ master ]
-pr: [ master ]
+trigger:
+  branches:
+    include:
+      - master
+    exclude:
+      - develop
 
 pool: 'Default'
 
