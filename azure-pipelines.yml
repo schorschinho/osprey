@@ -1,7 +1,7 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Pull request CI pipeline for Osprey
+# Triggers for each pull request into the develop branch
+# Starts with a quick Single Subject PRESS test
+# If the first stage is successful a Full PRESS job is triggered
 
 trigger:
 - develop
@@ -13,7 +13,7 @@ stages:
 - stage: SinglePRESS
    matlab -nodisplay -wait -nosplash -r " SinglePRESS; quit"
   displayName: 'Single Subject PRESS without Segmentation & GUI'
-  
+
 - stage: FullPRESS
   dependsOn: SinglePRESS
    matlab -nodisplay -wait -nosplash -r " FullPRESS; quit"
