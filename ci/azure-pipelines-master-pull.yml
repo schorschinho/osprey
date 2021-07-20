@@ -9,14 +9,14 @@ pr: [ master ]
 pool: 'Default'
 
 stages:
-- stage: FullPRESS
+- stage: Stage_1
   jobs:
   - job: FullPRESS
     steps:
     - script: matlab -nodisplay -wait -nosplash -r "addpath(genpath('C:\CI-agent\_work\2\s')); FullPRESS; quit"
       displayName: 'Full PRESS with Segmentation & GUI'
 
-- stage: FullMEGA
+- stage: Stage_2
   jobs:
   - job: FullMEGA
     steps:
