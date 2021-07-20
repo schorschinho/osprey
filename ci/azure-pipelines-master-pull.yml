@@ -13,12 +13,12 @@ stages:
   jobs:
   - job: FullPRESS
     steps:
-    - script: matlab -nodisplay -wait -nosplash -r " FullPRESS; quit"
+    - script: matlab -nodisplay -wait -nosplash -r "addpath(genpath('C:\CI-agent\_work\2\s')); FullPRESS; quit"
       displayName: 'Full PRESS with Segmentation & GUI'
 
 - stage: FullMEGA
   jobs:
   - job: FullMEGA
     steps:
-    - script: matlab -nodisplay -wait -nosplash -r " FullMEGA; quit"
+    - script: matlab -nodisplay -wait -nosplash -r "addpath(genpath('C:\CI-agent\_work\2\s')); FullMEGA; quit"
       displayName: 'Full MEGA add Segmentation & GUI'
