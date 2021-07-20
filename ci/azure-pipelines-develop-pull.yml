@@ -13,7 +13,7 @@ stages:
   jobs:
   - job: PRESS
     steps:
-    - script: matlab -nodisplay -wait -nosplash -r " SinglePRESS; quit"
+    - script: matlab -nodisplay -wait -nosplash -r "addpath('C:\CI-agent\_work\1\s'); SinglePRESS; quit"
       displayName: 'Single Subject PRESS without Segmentation & GUI'
 
 - stage: PRESSdownstream
@@ -21,5 +21,5 @@ stages:
   jobs:
   - job: PRESSdownstream
     steps:
-    - script: matlab -nodisplay -wait -nosplash -r " SinglePRESSdownstream; quit"
+    - script: matlab -nodisplay -wait -nosplash -r "addpath('C:\CI-agent\_work\1\s'); SinglePRESSdownstream; quit"
       displayName: 'Single Subject PRESS add Segmentation & GUI'
