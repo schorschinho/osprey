@@ -10,11 +10,11 @@ pool: 'Default'
 
 
 stages:
-- stage: SinglePRESS
+- stage: PRESS
    matlab -nodisplay -wait -nosplash -r " SinglePRESS; quit"
   displayName: 'Single Subject PRESS without Segmentation & GUI'
 
-- stage: FullPRESS
-  dependsOn: SinglePRESS
-   matlab -nodisplay -wait -nosplash -r " FullPRESS; quit"
-  displayName: 'Multi Subject PRESS with Segmentation & GUI'
+- stage: PRESSdownstream
+  dependsOn: PRESS
+   matlab -nodisplay -wait -nosplash -r " FullPRESSdownstream; quit"
+  displayName: 'Single Subject PRESS add Segmentation & GUI'
