@@ -1,0 +1,20 @@
+# Pull request CI pipeline for Osprey
+# Triggers for each pull request into the master branch
+# Starts with a quick Full PRESS job
+# If the first stage is successful a Full MEGA job is triggered
+
+trigger:
+- master
+
+pool: 'Default'
+
+
+stages:
+- stage: FullPRESS
+   matlab -nodisplay -wait -nosplash -r " FullPRESS; quit"
+  displayName: 'Multi Subject PRESS with Segmentation & GUI'
+
+- stage: FullMEGA
+  dependsOn: FullPRESS
+   matlab -nodisplay -wait -nosplash -r " FullMEGA; quit"
+  displayName: 'Multi Subject MEGA with Segmentation & GUI'

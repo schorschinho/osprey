@@ -1,0 +1,20 @@
+# Pull request CI pipeline for Osprey
+# Triggers for each pull request into the develop branch
+# Starts with a quick Single Subject PRESS test
+# If the first stage is successful a Full PRESS job is triggered
+
+trigger:
+- develop
+
+pool: 'Default'
+
+
+stages:
+- stage: SinglePRESS
+   matlab -nodisplay -wait -nosplash -r " SinglePRESS; quit"
+  displayName: 'Single Subject PRESS without Segmentation & GUI'
+
+- stage: FullPRESS
+  dependsOn: SinglePRESS
+   matlab -nodisplay -wait -nosplash -r " FullPRESS; quit"
+  displayName: 'Multi Subject PRESS with Segmentation & GUI'
