@@ -18,13 +18,13 @@ stages:
   jobs:
   - job: PRESS
     steps:
-    - script: matlab -nodisplay -wait -nosplash -batch "addpath(genpath('C:\CI-agent\_work\1\s')); FullPRESS; quit"
-      displayName: 'Single Subject PRESS without Segmentation & GUI'
+    - script: matlab -nodisplay -wait -nosplash -batch "addpath(genpath('C:\CI-agent\_work\2\s')); FullPRESS; quit"
+      displayName: 'Full PRESS with Segmentation & GUI'
 
 - stage: Stage_2
   dependsOn: Stage_1
   jobs:
   - job: MEGA
     steps:
-    - script: matlab -nodisplay -wait -nosplash -batch "addpath(genpath('C:\CI-agent\_work\1\s')); MEGAPRESS; quit"
-      displayName: 'Single Subject PRESS add Segmentation & GUI'
+    - script: matlab -nodisplay -wait -nosplash -batch "addpath(genpath('C:\CI-agent\_work\2\s')); MEGAPRESS; quit"
+      displayName: 'Full MEGA with Segmentation & GUI'
