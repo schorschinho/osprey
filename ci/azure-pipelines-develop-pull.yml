@@ -18,7 +18,7 @@ stages:
   jobs:
   - job: PRESS
     steps:
-    - script: matlab -nodisplay -wait -nosplash -r "addpath(genpath('C:\CI-agent\_work\1\s')); exit_code = SinglePRESS; assert(exit_code > 0); quit"
+    - script: matlab -nodisplay -wait -nosplash -r "addpath(genpath('C:\CI-agent\_work\1\s')); exit_code = SinglePRESS; quit"
       displayName: 'Single Subject PRESS without Segmentation & GUI'
 
 - stage: Stage_2
@@ -26,5 +26,5 @@ stages:
   jobs:
   - job: PRESSdownstream
     steps:
-    - script: matlab -nodisplay -wait -nosplash -r "addpath(genpath('C:\CI-agent\_work\1\s')); exit_code = SinglePRESSdownstream; assert(exit_code > 0); quit"
+    - script: matlab -nodisplay -wait -nosplash -r "addpath(genpath('C:\CI-agent\_work\1\s')); exit_code = SinglePRESSdownstream; quit"
       displayName: 'Single Subject PRESS add Segmentation & GUI'
