@@ -45,7 +45,7 @@ end
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
 [MRSCont] = OspreySettings;
 
-HorribleBug
+
 %%% 2. CHECK JOB INPUT FILE FORMAT %%%
 [~,~,ext] = fileparts(jobFile);
 switch ext
