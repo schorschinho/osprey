@@ -26,5 +26,5 @@ stages:
   jobs:
   - job: MEGA
     steps:
-    - script: matlab -nodisplay -wait -nosplash -batch "addpath(genpath('C:\CI-agent\_work\2\s')); MEGAPRESS; quit"
+    - script: matlab -nodisplay -wait -nosplash -batch "addpath(genpath('C:\CI-agent\_work\2\s')); FullMEGA; quit"
       displayName: 'Full MEGA with Segmentation & GUI'
