@@ -317,7 +317,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             if  ~strcmp (which, 'ref') && ~strcmp (which, 'w') %Metabolite data?
                 StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ...
-                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(which){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.resBasisSet.(which){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.nMM) ...
+                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(which).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.resBasisSet.(which).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).nMM) ...
                         ' scale: '  num2str(MRSCont.fit.scale{kk})];
             else if strcmp (which, 'ref') %Reference data?
             StatText = ['Reference Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
@@ -347,7 +347,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl) %Names and Amplitudes
-                        NameText = [NameText, [MRSCont.fit.resBasisSet.(Style){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.name{m} ': \n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet.(Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                 else %Water/reference fit but this should never happen in this loop
@@ -372,7 +372,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl) %Names and Amplitudes
-                        NameText = [NameText, [MRSCont.fit.resBasisSet.(Style){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.name{m} ': \n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet.(Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                     set(Results, 'Title', ['Raw Water Ratio']);

@@ -59,8 +59,13 @@ for ii=1:nBasisFcts
     basisSet.specs(:,ii) = basisSet.specs(:,ii) .* exp(1i*ph0) .* exp(1i*ph1*2*pi.*f)';    
 end
 basisSet.fids = ifft(fftshift(basisSet.specs,1),[],1);
+
+% Cut out the frequency range of the spectrum to be fit
+dataToFit   = op_ampScale(dataToFit, 1/scale);
+dataToFit   = op_freqrange(dataToFit, fitRangePPMWater(1), fitRangePPMWater(end));
+
 % Cut out the frequency range of the basis set
-basisSet = op_freqrange(basisSet,fitRangePPMWater(1),fitRangePPMWater(end));
+basisSet = op_freqrange(basisSet,fitRangePPMWater(1),fitRangePPMWater(end),dataToFit.sz(1));
 
 
 %%% 3. APPLY THE LINEAR PARAMETERS %%%
@@ -69,9 +74,6 @@ A = [real(basisSet.specs)];
 completeFit = A * ampl;
 
 % Calculate the residual
-% Cut out the frequency range of the spectrum to be fit
-dataToFit   = op_ampScale(dataToFit, 1/scale);
-dataToFit   = op_freqrange(dataToFit, fitRangePPMWater(1), fitRangePPMWater(end));
 % Use only the real part to fit here
 data        = [real(dataToFit.specs)]; % data
 ppm         = dataToFit.ppm;
