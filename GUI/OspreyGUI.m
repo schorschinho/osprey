@@ -259,7 +259,7 @@ classdef OspreyGUI < handle
             outputFolder = MRSCont.outputFolder;
         %% Create the overall figure
             gui.figure = figure('Name', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on','Menu', 'none',...
-                                'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
+                                'ToolBar', 'none', 'HandleVisibility', 'on', 'Renderer', 'painters', 'Color', gui.colormap.Background);
             setappdata(gui.figure,'MRSCont',MRSCont);
         % Resize such that width is 1.2941 * height (1.2941 is the ratio
         % between width and height of standard US letter size (11x8.5 in).

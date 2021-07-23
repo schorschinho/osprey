@@ -236,13 +236,13 @@ if MRSCont.flags.didFit
                         % if water, use the water model
                         fitRangePPM = MRSCont.opts.fit.rangeWater;
                         if Voxels < 2
-                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{kk};
                             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
                             % Get the fit parameters
                             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                         else
-                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water{kk};
                             dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
+                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);                            
                             % Get the fit parameters
                             fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
                         end
@@ -265,13 +265,13 @@ if MRSCont.flags.didFit
                     else % if metabolite or MM data, use the metabolite model           
                         fitRangePPM = MRSCont.opts.fit.range;
                         if Voxels < 2
-                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
-                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};                            
                         else
-                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}){kk};
                            dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
                            fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk}; 
+                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
                         end
                         % Pack up into structs to feed into the reconstruction functions
                         inputData.dataToFit                 = dataToPlot;
@@ -416,9 +416,17 @@ if MRSCont.flags.didFit
                 case 'OspreyAsym'
                         if strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w') % Water model 
                         % if water, use the water model
-                        fitRangePPM = MRSCont.opts.fit.rangeWater;
-                        basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{kk};
-                        dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                       if Voxels < 2
+                            dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                            % Get the fit parameters
+                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
+                        else
+                            dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
+                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);                            
+                            % Get the fit parameters
+                            fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
+                        end
                         % Get the fit parameters
                         fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                         % Pack up into structs to feed into the reconstruction functions
@@ -436,13 +444,15 @@ if MRSCont.flags.didFit
                     else % if metabolite or MM data, use the metabolite model           
                         fitRangePPM = MRSCont.opts.fit.range;
                         if Voxels < 2
-                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
-                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                            % Get the fit parameters
+                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                         else
-                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}){kk};
-                           dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
-                           fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk}; 
+                            dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
+                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);                            
+                            % Get the fit parameters
+                            fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
                         end
                         % Pack up into structs to feed into the reconstruction functions
                         inputData.dataToFit                 = dataToPlot;
