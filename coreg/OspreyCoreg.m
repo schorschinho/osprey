@@ -155,11 +155,18 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.T1_max{kk}    = T1_max;
         MRSCont.coreg.voxel_ctr{kk} = voxel_ctr;
         
+        if MRSCont.flags.addImages
+            [MRSCont.coreg.three_plane_img{kk}] = osp_extract_three_plane_image(vol_image, vol_mask,voxel_ctr,T1_max);
+        end
+        
         %Delete .nii file if a .nii.gz
          if strcmp(T1ext,'.gz')
             delete(MRSCont.files_nii{kk});
             MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.nii','.nii.gz');
-        end
+         end
+         gzip(vol_mask.fname);
+         delete(vol_mask.fname);
+            
     end
 end
 time = toc(refCoregTime);
