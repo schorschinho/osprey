@@ -141,13 +141,13 @@ fprintf(fid,'|c. Output measure | %s \n', outs);
 outs = '';
 br = 1;
 if MRSCont.flags.isUnEdited
-    includeMetabs = MRSCont.fit.resBasisSet.off{1, 1}.name;
+    includeMetabs = MRSCont.fit.resBasisSet.off.(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
 end
 if MRSCont.flags.isMEGA
-    includeMetabs = MRSCont.fit.resBasisSet.diff1{1, 1}.name;
+    includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
 end
 if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    includeMetabs = MRSCont.fit.resBasisSet.diff1{1, 1}.name;
+    includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
 end
 for ss = 1 : length(includeMetabs)
     if br < 10

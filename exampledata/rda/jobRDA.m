@@ -98,8 +98,8 @@ opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (defa
 
 % Which algorithm do you want to align the sub spectra? L2 norm
 % optimazation is the default. This is only used for edited MRS!
-opts.SubSpecAlignment = 'L2norm';               % OPTIONS:    - 'L2norm' (default)
-                                                %             - 'L1norm'
+opts.SubSpecAlignment = 'L2Norm';               % OPTIONS:    - 'L2Norm' (default)
+                                                %             - 'L1Norm'
                                                 %             - 'none'  
                                                 
 % Save LCModel-exportable files for each spectrum?

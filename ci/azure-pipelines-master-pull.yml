@@ -1,0 +1,30 @@
+# Pull request CI pipeline for Osprey
+# Triggers for each pull request into the develop branch
+# Starts with a full PRESS job
+# If the first stage is successful a Full MEGA job is triggered
+
+trigger:
+  branches:
+    include:
+      - master
+    exclude:
+      - develop
+
+
+pool: 'Default'
+
+stages:
+- stage: Stage_1
+  jobs:
+  - job: PRESS
+    steps:
+    - script: matlab -nodisplay -wait -nosplash -batch "addpath(genpath('C:\CI-agent\_work\2\s')); FullPRESS; quit"
+      displayName: 'Full PRESS with Segmentation & GUI'
+
+- stage: Stage_2
+  dependsOn: Stage_1
+  jobs:
+  - job: MEGA
+    steps:
+    - script: matlab -nodisplay -wait -nosplash -batch "addpath(genpath('C:\CI-agent\_work\2\s')); FullMEGA; quit"
+      displayName: 'Full MEGA with Segmentation & GUI'
