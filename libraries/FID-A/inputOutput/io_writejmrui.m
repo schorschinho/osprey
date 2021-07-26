@@ -54,7 +54,9 @@ fprintf(fid,'\nTransmitterFrequency: %4.6E',in.txfrq);
 fprintf(fid,'\nMagneticField: %4.6E',Bo);
 fprintf(fid,'\nTypeOfNucleus: %1.0E',Nuc);
 fprintf(fid,'\nNameOfPatient: %s',PatName);
-fprintf(fid,'\nDateOfExperiment: %i',in.date);
+if isfield(in, 'date')
+    fprintf(fid,'\nDateOfExperiment: %i',in.date);
+end
 fprintf(fid,'\nSpectrometer: %s',scanner);
 fprintf(fid,'\nAdditionalInfo: %s\n\n\n',addinfo);
 fprintf(fid,'Signal and FFT\n');

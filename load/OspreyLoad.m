@@ -103,7 +103,18 @@ switch MRSCont.vendor
                 fprintf(msg);
                 error(msg);
         end
-                
+    
+    case ''
+        % We left the vendor field empty for NIfTI-MRS data
+        switch MRSCont.datatype
+            case 'NIfTI-MRS'
+                [MRSCont] = osp_LoadNII(MRSCont);
+            otherwise
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(msg);
+                error(msg);
+        end
+        
     otherwise
         msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
         fprintf(msg);
@@ -112,7 +123,7 @@ end
 
 % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-    if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1
+    if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1 || ~MRSCont.flags.coilsCombined
         [MRSCont] = osp_combineCoils(MRSCont);
     else
         if ~strcmp(MRSCont.datatype, 'TWIX')

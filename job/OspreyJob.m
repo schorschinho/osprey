@@ -154,6 +154,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Vendor-specific files (SDAT/SPAR, RDA, P) will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.saveVendor = 1;
     end
+    if isfield(jobStruct,'saveNII')
+        MRSCont.opts.saveNII = jobStruct(1).saveNII;
+    else
+        fprintf('NIfTI-MRS files will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.saveNII = 0;
+    end
     if isfield(jobStruct,'includeMetabs')
         opts.fit.includeMetabs = jobStruct(1).includeMetabs;
     else
