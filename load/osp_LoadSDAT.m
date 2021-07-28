@@ -71,7 +71,11 @@ for kk = 1:MRSCont.nDatasets
         if MRSCont.flags.isUnEdited
             raw         = io_loadspec_sdat(MRSCont.files{kk},1);
         elseif MRSCont.flags.isMEGA
-            raw         = io_loadspec_sdat(MRSCont.files{kk},2);
+            if ~MRSCont.flags.isMRSI
+                raw         = io_loadspec_sdat(MRSCont.files{kk},2);
+            else
+                raw         = io_loadspec_sdat(MRSCont.files{kk},1);
+            end
         elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
             raw         = io_loadspec_sdat(MRSCont.files{kk},4);
         end

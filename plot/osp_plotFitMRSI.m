@@ -1,4 +1,4 @@
-function out = osp_plotFitMRSI(MRSCont, kk, which_spec,conc,mask)
+function out = osp_plotFitMRSI(MRSCont, kk, which_spec,conc,mask,ppmmin, ppmmax)
 %% out = osp_plotFitMRSI(MRSCont, kk, which, ppmmin, ppmmax)
 %   Creates a figure showing processed data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *processed and
@@ -46,21 +46,26 @@ end
 fitMethod   = MRSCont.opts.fit.method;
 fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
-
-if nargin<5
-    mask = 1;
-    if nargin<4
-        conc = 'diff1'; 
-        if nargin < 3
-            which_spec = 'off';
-            if nargin < 2
-                kk = 1;
-                if nargin<1
-                    error('ERROR: no input Osprey container specified.  Aborting!!');
+if nargin<7
+    ppmmax = nan;
+    if nargin<6
+        ppmmin = nan;
+        if nargin<5
+            mask = 1;
+            if nargin<4
+                conc = 'diff1'; 
+                if nargin < 3
+                    which_spec = 'off';
+                    if nargin < 2
+                        kk = 1;
+                        if nargin<1
+                            error('ERROR: no input Osprey container specified.  Aborting!!');
+                        end
+                    end
                 end
             end
         end
-end
+    end
 end
 
 
@@ -182,10 +187,17 @@ end
 
 XVox = MRSCont.raw{kk}.nXvoxels;
 YVox = MRSCont.raw{kk}.nYvoxels;  
+if ~isnan(ppmmin) || ~isnan(ppmmax)
+    ModelOutput.ppm = ModelOutput.ppm(ModelOutput.ppm > ppmmin & ModelOutput.ppm < ppmmax);
+    ModelOutput.data = ModelOutput.data(ModelOutput.ppm > ppmmin & ModelOutput.ppm < ppmmax);
+end
+
 npoints = length(ModelOutput.data);
 procDataMarixToPlot = zeros((npoints+50) * XVox,YVox);
 FitMarixToPlot = zeros((npoints+50) * XVox,YVox);
 ResMarixToPlot = zeros((npoints+50) * XVox,YVox);
+
+AmplMatrix = zeros(XVox,YVox);
 
 ppmLineToPlot = [];
 for x = 1 : XVox
@@ -209,6 +221,8 @@ for y = 1 : YVox
         end
          inputData.dataToFit                 = dataToPlot;
          fitParams   = MRSCont.fit.results{x, y}.(which_spec).fitParams{kk};
+         AmplMatrix(x,y)   = MRSCont.fit.results{x, y}.(which_spec).fitParams{kk}.ampl(5);;
+         
          switch fitMethod
             % Depending on whether metabolite or water data are to be
             % displayed, create the plots via different models
@@ -248,10 +262,17 @@ for y = 1 : YVox
                         [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
                     end
                 end        
-        end
-         procDataLineToPlot = vertcat(procDataLineToPlot,ModelOutput.data,ones(50,1)*nan);
-         FitLineToPlot = vertcat(FitLineToPlot,ModelOutput.completeFit,ones(50,1)*nan);
-         ResLineToPlot = vertcat(ResLineToPlot,ModelOutput.residual,ones(50,1)*nan);
+         end
+        
+         if ~isnan(ppmmin) || ~isnan(ppmmax)
+             procDataLineToPlot = vertcat(procDataLineToPlot,ModelOutput.data(ModelOutput.ppm > ppmmin & ModelOutput.ppm < ppmmax),ones(50,1)*nan);
+             FitLineToPlot = vertcat(FitLineToPlot,ModelOutput.completeFit(ModelOutput.ppm > ppmmin & ModelOutput.ppm < ppmmax),ones(50,1)*nan);
+             ResLineToPlot = vertcat(ResLineToPlot,ModelOutput.residual(ModelOutput.ppm > ppmmin & ModelOutput.ppm < ppmmax),ones(50,1)*nan);
+         else
+             procDataLineToPlot = vertcat(procDataLineToPlot,ModelOutput.data,ones(50,1)*nan);
+             FitLineToPlot = vertcat(FitLineToPlot,ModelOutput.completeFit,ones(50,1)*nan);
+             ResLineToPlot = vertcat(ResLineToPlot,ModelOutput.residual,ones(50,1)*nan);
+         end
     end
     procDataMarixToPlot(:,y) = procDataLineToPlot;
     FitMarixToPlot(:,y) = FitLineToPlot;
@@ -268,24 +289,25 @@ else
     out = figure('Visible','off');
 end
 
-shift = 0.075;
+shift = 0.15;
 for y = 1 : YVox
     for x = 1 : XVox
         if mask
-            if MRSCont.mask{kk}(x,y)
+            if MRSCont.mask{kk}(y,x)
                 plot((x-1)*(npoints+50)+1:x*(npoints+50),procDataMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y,'Color',colormap.Foreground);
                 plot((x-1)*(npoints+50)+1:x*(npoints+50),FitMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y,'Color',colormap.Accent);
                 plot((x-1)*(npoints+50)+1:x*(npoints+50),ResMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y+shift/2,'Color',colormap.Foreground);
                 hold on
                 text((x-1)*(npoints+50)+1, procDataMarixToPlot((x-1)*(npoints+50)+1,y)+shift*y-shift/10, num2str(fitRangePPM(1)), 'Color', colormap.ForegroundTint);
                 text(x*(npoints+50)-50, procDataMarixToPlot((x-1)*(npoints+50)+1,y)+shift*y-shift/10, num2str(fitRangePPM(2)), 'Color', colormap.ForegroundTint);
+%                 text((x-1)*(npoints+75)+1, procDataMarixToPlot((x-1)*(npoints+50)+1,y)+shift*y-shift/10, num2str(round(AmplMatrix(x,y),2)), 'Color', colormap.Foreground);
             end
         else
             plot((x-1)*(npoints+50)+1:x*(npoints+50),procDataMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y,'Color',colormap.Foreground);
             plot((x-1)*(npoints+50)+1:x*(npoints+50),procDataMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y,'Color',colormap.Foreground);
             plot((x-1)*(npoints+50)+1:x*(npoints+50),ResMarixToPlot((x-1)*(npoints+50)+1:x*(npoints+50),y)+shift*y+shift/10,'Color',colormap.Foreground);
             text((x-1)*(npoints+50)+1, procDataMarixToPlot((x-1)*(npoints+50)+1,y)+shift*y-shift/10, num2str(fitRangePPM(1)), 'Color', colormap.ForegroundTint);
-                text(x*(npoints+50)-50, procDataMarixToPlot((x-1)*(npoints+50)+1,y)+shift*y-shift/10, num2str(fitRangePPM(2)), 'Color', colormap.ForegroundTint);
+            text(x*(npoints+50)-50, procDataMarixToPlot((x-1)*(npoints+50)+1,y)+shift*y-shift/10, num2str(fitRangePPM(2)), 'Color', colormap.ForegroundTint);
             hold on
         end
     end

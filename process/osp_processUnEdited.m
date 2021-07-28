@@ -88,9 +88,6 @@ for kk = 1:MRSCont.nDatasets
             % data may have linewidth lower than the simulated basis set
             % data.
             raw = op_filter(raw, 2);
-            if MRSCont.flags.hasRef
-                raw_ref = op_filter(raw_ref, 2);
-            end
         end
         
         %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
@@ -136,6 +133,10 @@ for kk = 1:MRSCont.nDatasets
                 raw_ref.flags.averaged  = 1;
                 raw_ref.dims.averages   = 0;
             end
+            
+            if MRSCont.flags.hasRef && MRSCont.flags.isPhantom
+                raw_ref = op_filter(raw_ref, 2);
+            end
                         
             if MRSCont.flags.hasMM
                 [raw_mm,~]                   = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
@@ -165,19 +166,21 @@ for kk = 1:MRSCont.nDatasets
         %%% 6. REMOVE RESIDUAL WATER %%%
         % Define different water removal frequency ranges, depending on
         % whether this is phantom data
-        if MRSCont.flags.isPhantom
+         if MRSCont.flags.isPhantom
             waterRemovalFreqRange = [4.5 5];
-            fracFID = 0.2;
+            fracFID = 0.5;
         else
             waterRemovalFreqRange = [4.5 4.9];
             fracFID = 0.75;
-        end
-        % Apply iterative water filter
-        raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+         end
         
+        raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
         if MRSCont.flags.hasMM %re_mm
             raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
         end
+
+        
+        
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
         %%% DATA

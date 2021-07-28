@@ -50,7 +50,12 @@ function [MRSCont] = load_mrsi_data(MRSCont)
 %%
 spec_zfill =2;
 k_zfill = 1;
-seq_type = 'MEGA-PRESS';
+if MRSCont.flags.isUnEdited
+   seq_type = 'SE multislice';
+end
+if MRSCont.flags.isMEGA
+   seq_type = 'MEGA-PRESS';
+end
 k_ph_corr = [];  
 replace_track = [];  
 zero_replace_track = [];  
@@ -144,7 +149,7 @@ for kk = 1:MRSCont.nDatasets
      % Determine number of data points per scan
     ky_tot = abs(data.kspace_properties.ky_range(1)) + abs(data.kspace_properties.ky_range(2)) +1 ;
     
-    if kz_tot > 1
+    if kz_tot > 1 && MRSCont.flags.isMEGA
         seq_type = 'MEGA multislice';
     end
     
@@ -203,7 +208,11 @@ for kk = 1:MRSCont.nDatasets
               n_averages = n_averages/2;
          end
          dimensions = size(k_sort);
-         subspecs = dimensions(end);
+         if ~strcmp(seq_type, 'SE multislice')
+            subspecs = dimensions(end);
+         else
+             subspecs = 1;
+         end
 
 
         % ------------------------------------------------------------------------------------------
@@ -221,25 +230,38 @@ for kk = 1:MRSCont.nDatasets
             hanning_x = permute(hanning_x, [2 1 3 4 5]);
         end
 
-        for ss = 1 :  subspecs
-            if ~strcmp(seq_type, 'MEGA multislice')
-               k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
-               k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
+        if subspecs > 1
+            for ss = 1 :  subspecs
+                if ~strcmp(seq_type, 'MEGA multislice')
+                   k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
+                   k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
+                else
+                   k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
+                   k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
+                end
+            end
+        else
+            if ~strcmp(seq_type, 'SE multislice')
+               k_sort(:,:,:,:,:) =  (k_sort(:,:,:,:,:).*hanning_x).*hanning_y;
+               k_sort(:,:,:,:,:) =  (k_sort(:,:,:,:,:).*hanning_x).*hanning_y;
             else
-               k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
-               k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
+               k_sort(:,:,:,:,:,:) =  (k_sort(:,:,:,:,:,:).*hanning_x).*hanning_y;
+               k_sort(:,:,:,:,:,:) =  (k_sort(:,:,:,:,:,:).*hanning_x).*hanning_y;
             end
         end
-        k_ph_corr_on = zeros(size(k_sort,1),size(k_sort,2)); 
-        %Here we need an automated phase adjustment HZ
-        k_ph_corr_off = ones(size(k_sort,1),size(k_sort,2)) * 1; 
-        k_ph_merge_on = repmat(k_ph_corr_on, [1 1 size(k_sort,5)]);
-       k_ph_merge_off = repmat(k_ph_corr_off, [1 1 size(k_sort,5)]);
-       k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
+        
+        if ~strcmp(seq_type, 'SE multislice')
+            k_ph_corr_on = zeros(size(k_sort,1),size(k_sort,2)); 
+            %Here we need an automated phase adjustment HZ
+            k_ph_corr_off = ones(size(k_sort,1),size(k_sort,2)) * 1; 
+            k_ph_merge_on = repmat(k_ph_corr_on, [1 1 size(k_sort,5)]);
+           k_ph_merge_off = repmat(k_ph_corr_off, [1 1 size(k_sort,5)]);
+           k_ph_corr = cat(4,k_ph_merge_on,k_ph_merge_off);
 
-        k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 size(k_sort,3) size(k_sort, 4)]);
-        k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 5 6 3 4]);
-        k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
+            k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 size(k_sort,3) size(k_sort, 4)]);
+            k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 5 6 3 4]);
+            k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
+        end
 
 
         if (strcmp(seq_type, 'HERMES') || strcmp(seq_type, 'HERMES lip sup'))
@@ -407,10 +429,12 @@ for kk = 1:MRSCont.nDatasets
                 end
                 
             end
-            
-           k_sort_merge_on = cat(6, k_sort_on,k_sort_on2);
-           k_sort_merge_off = cat(6, k_sort_off,k_sort_off2);
-           k_sort = cat(7,k_sort_merge_on,k_sort_merge_off);
+           
+           if ~strcmp(seq_type, 'SE multislice') 
+               k_sort_merge_on = cat(6, k_sort_on,k_sort_on2);
+               k_sort_merge_off = cat(6, k_sort_off,k_sort_off2);
+               k_sort = cat(7,k_sort_merge_on,k_sort_merge_off);
+           end
                      
         end
 

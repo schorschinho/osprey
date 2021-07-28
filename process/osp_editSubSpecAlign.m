@@ -131,7 +131,7 @@ x0(2,:) = [f0 0];
 % between the sub-spectra. In this case, we use the Choline peak.
 if unstableWater
 
-    freqLim(1,:) = freq <= 3.22+0.09 & freq >= 3.22-0.09;
+    freqLim(1,:) = freq <= 3.22+0.08 & freq >= 3.22-0.08;
     [~,i] = max([abs(real(inA.specs(freqLim(1,:)))) abs(real(inB.specs(freqLim(1,:))))]);
     freq2 = freq(freqLim(1,:));
     maxFreq = freq2(i);

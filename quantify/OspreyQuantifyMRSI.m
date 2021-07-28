@@ -127,8 +127,11 @@ if ~exist(saveDestination,'dir')
     mkdir(saveDestination);
 end
 
-%Find dimensionality of MRSI acquisition
-dim = size(MRSCont.fit.results);
+%Find dimensionality of metabolite MRSI acquisition
+dim  = [MRSCont.raw{1}.nXvoxels MRSCont.raw{1}.nYvoxels MRSCont.raw{1}.nZvoxels]; 
+if dim(3) == 1
+    dim = dim(1:2);
+end
 
 % Add combinations of metabolites to the basisset
 if qtfyH2O
@@ -154,7 +157,7 @@ if qtfyH2O
 end
 
 for kk = 1:MRSCont.nDatasets
-    for ll = 1:length(getResults)
+    for ll = 1:length(getResults)  - water
         for mm = 1:length(MRSCont.quantify.metabs.(getResults{ll}))
             if length(dim) == 2
                 for x = 1 : dim(1)
@@ -174,8 +177,30 @@ for kk = 1:MRSCont.nDatasets
         end
     end
 end
-% MRSCont = addMetabComb(MRSCont, getResults);
 
+%Find dimensionality of metabolite MRSI acquisition
+dim  = [MRSCont.raw_w{1}.nXvoxels MRSCont.raw_w{1}.nYvoxels MRSCont.raw_w{1}.nZvoxels]; 
+if dim(3) == 1
+    dim = dim(1:2);
+end
+
+for kk = 1:MRSCont.nDatasets
+    if length(dim) == 2
+        for x = 1 : dim(1)
+            for y = 1 : dim(2)
+                MRSCont.quantify.amplMets{kk}.w.H2O(x,y) = MRSCont.fit.results{x,y}.w.fitParams{kk}.ampl(1);
+            end % Y voxel
+        end % X voxel
+    else
+        for z = 1 : dim(3)
+            for x = 1 : dim(1)
+                for y = 1 : dim(2)
+                    MRSCont.quantify.amplMets{kk}.w.H2O(x,y) = MRSCont.fit.results{x,y,z}.w.fitParams{kk}.ampl(1);
+                end % Y voxel
+            end % X voxel  
+        end % slices
+    end
+end
 
 %% Loop over all datasets
 QuantifyTime = tic;
