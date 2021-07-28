@@ -191,12 +191,8 @@ for rr = 1:size(vox_ctr_coor,3)
     % Write the SPM volume to disk
     if ~isstruct(DualVoxel) 
         vol_mask = spm_write_vol(vol_mask,mask);
-        gzip(vol_mask.fname);
-        delete(vol_mask.fname);
     else % For PRIAM data store two voxel masks
         vol_mask_out{rr} = spm_write_vol(vol_mask,mask);
-        gzip(vol_mask.fname);
-        delete(vol_mask.fname);
     end
 
     % Store voxel centre for output figure

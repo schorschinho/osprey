@@ -39,68 +39,50 @@ if nargin < 3
 end
 
 %%% 2. LOAD DATA TO PLOT %%%
-% Load T1 image, mask volume, T1 max value, and voxel center
-[~,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
-[~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
-[~,~,fileext_mask]   = fileparts(MRSCont.coreg.vol_mask{kk}.fname);
+if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 1))
+    % Load T1 image, mask volume, T1 max value, and voxel center
+    [~,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
+    [~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
+    [~,~,fileext_mask]   = fileparts(MRSCont.coreg.vol_mask{kk}.fname);
 
-if ~exist(MRSCont.coreg.vol_image{kk}.fname,'file')
-    gunzip([MRSCont.coreg.vol_image{kk}.fname, '.gz']);
-end
-if ~exist(MRSCont.coreg.vol_mask{kk}.fname,'file')
-    gunzip([MRSCont.coreg.vol_mask{kk}.fname, '.gz']);
-end
+    if ~exist(MRSCont.coreg.vol_image{kk}.fname,'file')
+        gunzip([MRSCont.coreg.vol_image{kk}.fname, '.gz']);
+    end
+    if ~exist(MRSCont.coreg.vol_mask{kk}.fname,'file')
+        gunzip([MRSCont.coreg.vol_mask{kk}.fname, '.gz']);
+    end
 
-Vimage=spm_vol(MRSCont.coreg.vol_image{kk}.fname);
-if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
-    Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);    
-    voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
+    %%% 3. SET UP THREE PLANE IMAGE %%%
+    if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+        [three_plane_img] = osp_extract_three_plane_image(MRSCont.coreg.vol_image{kk}.fname, MRSCont.coreg.vol_mask{kk}.fname,MRSCont.coreg.voxel_ctr{kk},MRSCont.coreg.T1_max{kk});
+    else
+        [three_plane_img] = osp_extract_three_plane_image(MRSCont.coreg.vol_image{kk}.fname, MRSCont.coreg.vol_mask{kk}{VoxelIndex}.fname,MRSCont.coreg.voxel_ctr{kk}(:,:,VoxelIndex),MRSCont.coreg.T1_max{kk});
+    end
+
+    if ~MRSCont.flags.didSeg
+        if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
+            delete(MRSCont.coreg.vol_mask{kk}.fname);
+        end
+        if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
+            delete(MRSCont.coreg.vol_image{kk}.fname);
+        end
+    end
+
+    %%% 4. SET UP FIGURE LAYOUT %%%
+    % Generate a new figure and keep the handle memorized
+
+    if ~MRSCont.flags.didSeg
+        if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
+            delete(MRSCont.coreg.vol_mask{kk}.fname);
+        end
+        if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
+            delete(MRSCont.coreg.vol_image{kk}.fname);
+        end
+    end
 else
-    Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}{VoxelIndex}.fname);    
-    voxel_ctr = MRSCont.coreg.voxel_ctr{kk}(:,:,VoxelIndex); 
-end
-
-%%% 3. SET UP THREE PLANE IMAGE %%%
-% Generate three plane image for the output
-% Transform structural image and co-registered voxel mask from voxel to
-% world space for output (MM: 180221)
-[img_t,img_c,img_s] = voxel2world_space(Vimage,voxel_ctr);
-[mask_t,mask_c,mask_s] = voxel2world_space(Vmask,voxel_ctr);
-
-img_t = flipud(img_t/MRSCont.coreg.T1_max{kk});
-img_c = flipud(img_c/MRSCont.coreg.T1_max{kk});
-img_s = flipud(img_s/MRSCont.coreg.T1_max{kk});
-
-img_t = img_t + 0.225*flipud(mask_t);
-img_c = img_c + 0.225*flipud(mask_c);
-img_s = img_s + 0.225*flipud(mask_s);
-
-size_max = max([max(size(img_t)) max(size(img_c)) max(size(img_s))]);
-three_plane_img = zeros([size_max 3*size_max]);
-three_plane_img(:,1:size_max)              = image_center(img_t, size_max);
-three_plane_img(:,size_max+(1:size_max))   = image_center(img_s, size_max);
-three_plane_img(:,size_max*2+(1:size_max)) = image_center(img_c, size_max);
-
-
-if ~MRSCont.flags.didSeg
-    if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
-        delete(MRSCont.coreg.vol_mask{kk}.fname);
-    end
-    if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
-        delete(MRSCont.coreg.vol_image{kk}.fname);
-    end
-end
-
-%%% 4. SET UP FIGURE LAYOUT %%%
-% Generate a new figure and keep the handle memorized
-
-if ~MRSCont.flags.didSeg
-    if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
-        delete(MRSCont.coreg.vol_mask{kk}.fname);
-    end
-    if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
-        delete(MRSCont.coreg.vol_image{kk}.fname);
-    end
+    [~,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
+    [~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
+    three_plane_img = MRSCont.coreg.three_plane_img{kk};
 end
 
 

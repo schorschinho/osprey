@@ -68,10 +68,21 @@ classdef OspreyGUI < handle
         %% Initialize variables
         % Close any remaining open figures & add folders
             close all;
-            diary(fullfile(MRSCont.outputFolder, 'LogFile.txt'));
             [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
             gui.folder.allFolders      = strsplit(settingsFolder, filesep);
             gui.folder.ospFolder       = strjoin(gui.folder.allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
+            MRSCont.flags.moved = 0;
+            if isfile(fullfile(MRSCont.outputFolder, 'LogFile.txt'))
+                MRSCont.flags.moved = 0;
+                diary(fullfile(MRSCont.outputFolder, 'LogFile.txt'));
+            else %The MRSContainer has been moved, so we will store the the diary in the GUI folder
+                diary(fullfile(gui.folder.ospFolder, 'LogFile.txt'));
+                MRSCont.flags.moved = 1;
+                if (isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0))
+                    MRSCont.flags.didCoreg = 0;
+                    MRSCont.flags.didSeg = 0;
+                end
+            end
             diary off
         % Toolbox check
             if isfield(MRSCont.flags,'isToolChecked')
@@ -259,7 +270,7 @@ classdef OspreyGUI < handle
             outputFolder = MRSCont.outputFolder;
         %% Create the overall figure
             gui.figure = figure('Name', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on','Menu', 'none',...
-                                'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
+                                'ToolBar', 'none', 'HandleVisibility', 'on', 'Renderer', 'painters', 'Color', gui.colormap.Background);
             setappdata(gui.figure,'MRSCont',MRSCont);
         % Resize such that width is 1.2941 * height (1.2941 is the ratio
         % between width and height of standard US letter size (11x8.5 in).
@@ -337,8 +348,10 @@ classdef OspreyGUI < handle
         % Coregister button
             gui.layout.b_coreg = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','CoRegister','Enable','off','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_coreg,'Units','Normalized','Position',[0.1 0.59 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image))) && (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))
-                gui.layout.b_coreg.Enable = 'on';
+            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image))) && (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))               
+                if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0) && MRSCont.flags.moved)
+                    gui.layout.b_coreg.Enable = 'on';
+                end
             end
             set(gui.layout.b_coreg,'Callback',{@osp_onCoreg,gui}, 'TooltipString', 'Call OspreyCoreg');
             if MRSCont.flags.hasSPM == 0
@@ -348,7 +361,9 @@ classdef OspreyGUI < handle
             gui.layout.b_segm = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Segment','Enable','off','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_segm,'Units','Normalized','Position',[0.1 0.51 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
             if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didSeg == 1  && isfield(MRSCont, 'seg') && (gui.controls.nDatasets >= length(MRSCont.seg.tissue.fGM(:,1)))) && (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image)))
-                gui.layout.b_segm.Enable = 'on';
+                if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0) && MRSCont.flags.moved)
+                    gui.layout.b_segm.Enable = 'on';
+                end
             end
             set(gui.layout.b_segm,'Callback',{@osp_onSeg,gui}, 'TooltipString', 'Call OspreySeg');
             if MRSCont.flags.hasSPM == 0
@@ -380,7 +395,9 @@ classdef OspreyGUI < handle
             gui.layout.controlPanel = uix.Panel('Parent', gui.layout.leftMenu, 'Title', 'MRS Container','BackgroundColor',gui.colormap.Background);
             set(gui.layout.controlPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold', 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground);
             gui.layout.fileList = MRSCont.files;
-            [~, ~] = osp_detDataType(MRSCont);
+            if ~MRSCont.flags.moved
+                [~, ~] = osp_detDataType(MRSCont);
+            end
             SepFileList = cell(1,length(MRSCont.files));
             gui.layout.RedFileList = cell(1,length(MRSCont.files));
             gui.layout.OnlyFileList = cell(1,length(MRSCont.files));

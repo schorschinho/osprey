@@ -134,9 +134,9 @@ end
 % Add combinations of metabolites to the basisset
 for ll = 1:length(getResults)
     if ~iscell(MRSCont.fit.results) %Is SVS
-       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
+       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
     else %Is DualVoxel
-       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1}.(getResults{ll}){1,1}.name;
+       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1}.(getResults{ll}).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
     end
 end
 

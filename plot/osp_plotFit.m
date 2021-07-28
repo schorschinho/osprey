@@ -131,7 +131,7 @@ switch fitMethod
                     dataToPlot=op_takeVoxel(MRSCont.processed.(which_spec){kk},VoxelIndex);
                 end
             end
-            
+
             if (MRSCont.flags.isPRIAM == 1)
                 if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
                     fitRangePPM = MRSCont.opts.fit.rangeWater;
@@ -175,8 +175,8 @@ switch fitMethod
                     dataToPlot  = MRSCont.processed.(which_spec){kk};
                 end
             end
-            
-            
+
+
             if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
                 fitRangePPM = MRSCont.opts.fit.rangeWater;
                 basisSet    = MRSCont.fit.resBasisSet.(which_spec).water{MRSCont.info.(which_spec).unique_ndatapoint_indsort(kk)};
@@ -193,11 +193,11 @@ switch fitMethod
                 end
             end
         end
-        
-        
-        
+
+
+
         % Get the fit parameters
-        
+
         if (MRSCont.flags.isPRIAM == 1)
             fitParams   = MRSCont.fit.results{VoxelIndex}.(which_spec).fitParams{kk};
         elseif (MRSCont.flags.isMRSI == 1)
@@ -224,18 +224,18 @@ switch fitMethod
         inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
         inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
         inputSettings.concatenated.Subspec  = conc;
-        
+
     case 'LCModel'
         fitRangePPM = MRSCont.opts.fit.range;
-        
+
         % We do not store separate fit parameters for the water fit;
         % instead, we have saved the unsuppressed water area in the 'off'
         % parameter set.
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
-            
+
             % Do nothing for now. We'll load the water spectrum in the next
             % step.
-            
+
         else
             % Get the fit parameters; they will be passed to the model
             % output in the next step
@@ -246,9 +246,9 @@ switch fitMethod
             else
                 fitParams   = MRSCont.fit.results.(which_spec).fitParams{kk};
             end
-            
+
         end
-        
+
 end
 
 %%% 3. PREPARE LINES TO DISPLAY %%%
@@ -306,7 +306,7 @@ switch fitMethod
             % etc.
             [ModelOutput] = fit_LCModelParamsToModel(fitParams);
         end
-        
+
 end
 
 %re_mm
@@ -333,7 +333,7 @@ switch fitMethod
         end
     case 'LCModel'
         % Number of metabolites and lipid/MM basis functions
-        nBasisFct = length(fitParams.name);      
+        nBasisFct = length(fitParams.name);
 end
 
 
@@ -429,33 +429,33 @@ if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
         %         stag = max(abs(mean(max(real(appliedBasisSet.specs)))), abs(mean(min(real(appliedBasisSet.specs))))) * MRSCont.fit.scale{kk};
         stag = maxPlot *  2.5 / nBasisFct;
         % Loop over all basis functions
-        
+
         for rr = 1:nBasisFct
             % Instead of a MATLAB legend, annotate each line separately with the
             % name of the metabolite
             plot(ppm, (indivPlots(:,rr) - rr*stag)/maxPlot, 'Color', MRSCont.colormap.Foreground);
             text(fitRangePPM(1), (- rr*stag)/maxPlot, basisSetNames{rr}, 'FontSize', 10,'Color', MRSCont.colormap.Foreground);
         end
-        
+
         % Preliminary formatting; might need some more stability here, or
         % differentiation based on sequence type
         set(gca, 'YLim', [(-nBasisFct-1)*stag/maxPlot  1]);
         hold off;
-        
+
     else
         % If not staggered, plots will simply be made with distinguishable
         % colors
         colours = distinguishable_colors(nBasisFct);
-        
+
         % Loop over all basis functions
         for rr = 1:nBasisFct
             plot(ppm, indivPlots(:,rr)/maxPlot, 'Color', colours(rr,:), 'LineWidth', 1);
         end
         legend([newline, basisSetNames], 'Orientation', 'horizontal');
         hold off
-        
+
     end
-    
+
 else
     % Preliminary formatting; might need some more stability here, or
     % differentiation based on sequence type
@@ -463,7 +463,7 @@ else
     hold off;
     % If water is being shown, show a simple legend
     %legend('Data', 'Fit', 'Residual');
-    
+
 end
 
 

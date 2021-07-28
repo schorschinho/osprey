@@ -3,7 +3,7 @@ function [MRSCont] = OspreyFit(MRSCont)
 %   This function performs spectral fitting on MRS data loaded previously
 %   using OspreyLoad.
 %
-%   The method of fit, fitting range, included metabolites and other 
+%   The method of fit, fitting range, included metabolites and other
 %   settings are set in the job file.
 %
 %   USAGE:
@@ -18,8 +18,8 @@ function [MRSCont] = OspreyFit(MRSCont)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-24)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -77,7 +77,7 @@ end
 % being used. In Osprey, we explicitly model the water data with a
 % dedicated simulated water basis function.
 if strcmpi(MRSCont.opts.fit.method, 'Osprey')
-  
+
     % If water reference exists, fit it
     if MRSCont.flags.hasRef
         refFitTime = tic;
@@ -97,7 +97,7 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
         MRSCont.runtime.FitRef = time;
         MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
     end
-    
+
     % If short TE water reference exists, fit it
     if MRSCont.flags.hasWater
         waterFitTime = tic;
@@ -113,7 +113,7 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
         MRSCont.runtime.FitWater = time;
         MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
     end
-    
+
     MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
     [~] = printLog('Fulldone',MRSCont.runtime.Fit,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 
@@ -122,7 +122,7 @@ end
 
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
-    MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad'); 
+    MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad');
     MRSCont.fit.resBasisSet = MRSCont.fit.resBasisSet{2,2};
 end
 
@@ -144,14 +144,14 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
             relRessum = MRSCont.QM.relAmpl.sum';
             relResdiff1 = MRSCont.QM.relAmpl.diff1';
             MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1;        
-        end        
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+        end
     elseif MRSCont.flags.isHERMES
             relRessum = MRSCont.QM.relAmpl.sum';
             relResdiff1 = MRSCont.QM.relAmpl.diff1';
             relResdiff2 = MRSCont.QM.relAmpl.diff2';
             MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1; 
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
             MRSCont.QM.tables.relResdiff2 = relResdiff2;
     elseif MRSCont.flags.isHERCULES
         % For now, process HERCULES like HERMES data
@@ -159,8 +159,8 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
             relResdiff1 = MRSCont.QM.relAmpl.diff1';
             relResdiff2 = MRSCont.QM.relAmpl.diff2';
             MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1; 
-            MRSCont.QM.tables.relResdiff2 = relResdiff2;    
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+            MRSCont.QM.tables.relResdiff2 = relResdiff2;
     else
         msg = 'No flag set for sequence type!';
         fprintf(msg);
@@ -175,16 +175,25 @@ end
 MRSCont.flags.didFit           = 1;
 
 diary off
-% Delete redundant resBasisSet entries
-% FitNames = fieldnames(MRSCont.fit.results);
-% NoFit = length(fieldnames(MRSCont.fit.results));
-% for sf = 1 : NoFit
-%     if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
-%         MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(MRSCont.info.A.unique_ndatapoint_ind);
-%     else
-%         MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_ind); 
-%     end
-% end
+%Delete redundant resBasiset entries
+if ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+    FitNames = fieldnames(MRSCont.fit.results);
+    NoFit = length(fieldnames(MRSCont.fit.results));
+    for sf = 1 : NoFit
+        if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
+            MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(MRSCont.info.A.unique_ndatapoint_spectralwidth_ind);
+            for combs = 1 : length(MRSCont.info.A.unique_ndatapoint_spectralwidth_ind)
+                resBasisSetNew.(FitNames{sf}).([MRSCont.info.A.unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf}){combs};
+            end
+        else
+            MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind);
+            for combs = 1 : length(MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind)
+                resBasisSetNew.(FitNames{sf}).water.([MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf}).water{combs};
+            end
+        end
+    end
+    MRSCont.fit.resBasisSet = resBasisSetNew;
+end
 
 % Save the output structure to the output folder
 % Determine output folder

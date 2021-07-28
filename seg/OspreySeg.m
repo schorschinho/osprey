@@ -241,6 +241,11 @@ for kk = 1:MRSCont.nDatasets
             WMsum  = sum(sum(sum(vol_WMMask.private.dat(:,:,:))));
             CSFsum = sum(sum(sum(vol_CSFMask.private.dat(:,:,:))));
             
+            % Save three plane image to container
+            if MRSCont.flags.addImages                
+                [MRSCont.seg.img_montage{kk},MRSCont.seg.size_vox_t(kk)] = osp_extract_three_plane_image_seg(niftiFile, vol_mask,vol_GMMask,vol_WMMask,vol_CSFMask,MRSCont.coreg.voxel_ctr{kk},MRSCont.coreg.T1_max{kk});
+            end
+            
             %Compress nifit and delete uncompressed files
             gzip(vol_GMMask.fname);
             delete(vol_GMMask.fname);
@@ -255,8 +260,8 @@ for kk = 1:MRSCont.nDatasets
             gzip(CSFvol.fname);
             delete(CSFvol.fname);
             delete(vol_mask.fname);
-            gzip(niftiFile)
-            delete(vol_mask.fname);
+            gzip(MRSCont.coreg.vol_image{kk}.fname)
+            delete(MRSCont.coreg.vol_image{kk}.fname);
 
 
 
@@ -269,7 +274,8 @@ for kk = 1:MRSCont.nDatasets
             % Save normalized fractional tissue volumes to MRSCont
             MRSCont.seg.tissue.fGM(kk,rr)  = fGM;
             MRSCont.seg.tissue.fWM(kk,rr)  = fWM;
-            MRSCont.seg.tissue.fCSF(kk,rr) = fCSF;
+            MRSCont.seg.tissue.fCSF(kk,rr) = fCSF;            
+            
         end
     end 
 end

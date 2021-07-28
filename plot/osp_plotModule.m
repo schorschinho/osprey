@@ -128,24 +128,24 @@ Geom = fieldnames(MRSCont.raw{1,1}.geometry.size);
 % steps is defined below.
 
 switch Module
-    
+
     %%% --- 2a. OspreyLoad --- %%%
     case 'OspreyLoad'
         outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyLoad');
         [~,filename,~]  = fileparts(MRSCont.files{kk});
-        
+
         % Grid for Plot and Data control sliders
         if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) % HBox for HERMES/HERCULES
             Plot = uix.HBox('Parent', input_figure, 'BackgroundColor',colormapfig.Background, 'Units', 'normalized');
         else
             Plot = uix.VBox('Parent', input_figure, 'BackgroundColor',colormapfig.Background, 'Units', 'normalized');
         end
-        
+
         % Information text panel
         InfoText  = uicontrol('Parent',Info,'style','text',...
             'FontSize', 12, 'FontName', 'Arial','ForegroundColor', colormapfig.Foreground,...
             'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',colormapfig.Background);
-        
+
         % Get some information about the data from MRSCont to fill the info panel
         if strcmp(which,'mets') %Is metabolite data?
             StatText = ['Metabolite Data -> Sequence: ' Seq '; B0: ' num2str(MRSCont.raw{1,kk}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,kk}.te) ' / ' num2str(MRSCont.raw{1,kk}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,kk}.spectralwidth) ' Hz'...
@@ -165,11 +165,11 @@ switch Module
             end
         end
         set(InfoText, 'String', sprintf(StatText));
-        
+
         %%% 2aa. VISUALIZATION PART OF OSPREYLOAD %%%
         % osp_plotLoad is used to visualize the raw data. Number of subplots
         % depends on the number of subspectra of the sequence
-        
+
         if strcmp(which,'mets') %Metabolite data/tab
             outputFile      = [filename '_OspreyLoad_mets.pdf'];
             temp = osp_plotLoad(MRSCont, kk,'mets' );
@@ -205,9 +205,9 @@ switch Module
                 set(multiBload.Children(1), 'Units', 'normalized')
                 set(multiBload.Children(1), 'OuterPosition', [0,0,1,1])
                 set(multiAload.Children(1), 'Units', 'normalized')
-                set(multiAload.Children(1), 'OuterPosition', [0,0,1,1])      
+                set(multiAload.Children(1), 'OuterPosition', [0,0,1,1])
             end
-            
+
         else if strcmp(which,'ref') %ref data/tab
                 temp = osp_plotLoad(MRSCont, kk,'ref' );
                 ViewAxes = gca();
@@ -220,12 +220,12 @@ switch Module
                 outputFile      = [filename '_OspreyLoad_w.pdf'];
             end
         end
-        
+
         set(input_figure, 'Heights', [-0.1 -0.9]);
         % Get rid of the Load figure
         close( temp );
-        
-        
+
+
     %%% --- 2b. OspreyProcess --- %%%
     case 'OspreyProcess'
         outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyProcess');
@@ -278,7 +278,7 @@ switch Module
                 end
             end
         end
-        
+
         % Get parameter from file to fill the info panel
         if (strcmp(which,'A') || strcmp(which,'B') || strcmp(which,'C') || strcmp(which,'D') || strcmp(which,'diff1') || strcmp(which,'diff2') || strcmp(which,'sum'))
             StatText = ['Metabolite Data -> SNR(' SNR '): '  num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM: '...
@@ -298,7 +298,7 @@ switch Module
         InfoText  = uicontrol('Parent',Info,'style','text','FontSize', 12, 'FontName', 'Arial',...
             'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
-        
+
         %%% 2bb. VISUALIZATION PART OF OSPREYPROCESS %%%
         %osp_plotProcess is used to visualize the processed spectra
         temp = osp_plotProcess(MRSCont, kk,which); % Create figure
@@ -309,7 +309,7 @@ switch Module
         proOut = uix.VBox('Parent', Plot,'Padding', 5, 'BackgroundColor',colormapfig.Background);
         proDrift = uix.VBox('Parent', proOut, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',colormapfig.Background);
         proAlgn = uix.VBox('Parent', proOut, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',colormapfig.Background);
-        
+
         set( temp.Children(1), 'Parent', proDrift );
         set( temp.Children(1), 'Parent', proAlgn );
         set( temp.Children(1), 'Parent', proPost );
@@ -326,13 +326,13 @@ switch Module
         set(proDrift.Children,'Children',flipud(proDrift.Children.Children));
         set(proAlgn.Children(1), 'Units', 'normalized')
         set(proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
-        
+
         outputFile      = [filename '_OspreyProcess_' which '.pdf'];
-        
-        
+
+
      %%% --- 2c. OspreyFit --- %%%
     case 'OspreyFit'
-        
+
         % For this visualization, we will have to make a few
         % distinctions upfront since the modeling algorithms (LCModel
         % vs. Osprey) do not always return the same kinds of data, or they
@@ -363,18 +363,18 @@ switch Module
                  % Larger fonts for the results
                 resultsFontSize = 11;
         end
-        
+
         % Build output folder filename
         outputFolder    = fullfile(MRSCont.outputFolder, 'Figures', 'OspreyFit');
         [~,filename,~]  = fileparts(MRSCont.files{kk});
-        
+
         if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit
             which = which;
         else %Is concatenated and not water/reference
             spec = which;
             which = 'conc';
         end
-        
+
         Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
         set(input_figure, 'Heights', [-0.12 -0.88]);
         % Get parameter from file to fill the info panel
@@ -391,7 +391,7 @@ switch Module
                     '\n' waterFitRangeString];
             end
         end
-        
+
         %%% 2.cc FILLING FITTED AMPLITUDE PANEL %%%
         % Creates the panel on the right side with the fitted amplitudes
         InfoText  = uicontrol('Parent',Info,'style','text',...
@@ -417,7 +417,7 @@ switch Module
             Style = 'conc';
             RawAmpl = MRSCont.fit.results.(Style).fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk};
         end
-        
+
         if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
             if ~(strcmp(Style, 'ref') || strcmp(Style, 'w')) %Metabolite fit
                 NameText    = [''];
@@ -429,7 +429,7 @@ switch Module
                     if strcmp(MRSCont.opts.fit.method, 'LCModel')
                         CRLBText = [CRLBText, [num2str(CRLB(m), '%i') '%%\n']];
                     end
-                
+
                 end
             else %Water/reference fit but this should never happen in this loop
                 NameText = ['Water: ' ];
@@ -468,7 +468,7 @@ switch Module
                     if strcmp(MRSCont.opts.fit.method, 'LCModel')
                         CRLBText = [CRLBText, [num2str(CRLB(m), '%i') '%%\n']];
                     end
-                
+
                 end
                 set(Results, 'Title', ['Raw Water Ratio']);
                 FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',colormapfig.Background);
@@ -483,7 +483,7 @@ switch Module
                         'FontSize', resultsFontSize, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(CRLBText),...
                         'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
                 end
-                
+
             else %Water/reference fit
                 NameText = ['Water: ' ];
                 RawAmplText = [num2str(RawAmpl,'%1.2e')];
@@ -497,7 +497,7 @@ switch Module
                     'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
             end
         end
-        
+
         %%%  5. VISUALIZATION PART OF THIS TAB %%%
         %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
         temp = figure( 'Visible', 'off' );
@@ -509,31 +509,31 @@ switch Module
         ViewAxes = gca();
         set(ViewAxes, 'Parent', Plot );
         close( temp );
-        
+
         set(Plot,'Widths', [-0.16 -0.84]);
         set(Plot.Children(2), 'Units', 'normalized');
         set(Plot.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
         outputFile      = [filename '_OspreyFit_' Style '_' which '.pdf'];
-        
-        
+
+
     case {'OspreyCoreg','OspreySeg'} %Coreg/Seg
         outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyCoregSeg');
         [~,filename,~]  = fileparts(MRSCont.files{kk});
-        
+
         % Creates layout for plotting and data control
         Plot = uix.HBox('Parent', input_figure,'BackgroundColor',colormapfig.Background);
         set(input_figure, 'Heights', [-0.1 -0.9]);
         % Get parameter from file to fill the info panel
-        
+
         StatText = ['Metabolite Data -> Sequence: ' Seq '; B0: ' num2str(MRSCont.raw{1,kk}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,kk}.te) ' / ' num2str(MRSCont.raw{1,kk}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,kk}.spectralwidth) ' Hz'...
             '\nraw subspecs: ' num2str(MRSCont.raw{1,kk}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,kk}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,kk}.averages)...
             '; Sz: ' num2str(MRSCont.raw{1,kk}.sz) '; dimensions: ' num2str(MRSCont.raw{1,kk}.geometry.size.(Geom{1})) ' x ' num2str(MRSCont.raw{1,kk}.geometry.size.(Geom{2})) ' x ' num2str(MRSCont.raw{1,kk}.geometry.size.(Geom{3})) ' mm = '...
             num2str(MRSCont.raw{1,kk}.geometry.size.(Geom{1}) * MRSCont.raw{1,kk}.geometry.size.(Geom{2}) * MRSCont.raw{1,kk}.geometry.size.(Geom{3})/1000) ' ml'];
-        
+
         InfoText  = uicontrol('Parent',Info,'style','text',...
             'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
-        
+
         %%% 2.VISUALIZATION PART OF THIS TAB %%%
         % In this case osp_plotCoreg or osp_plotSegment is used to visualize the
         % coregistration or the segmentation
@@ -567,7 +567,7 @@ switch Module
         end
         StatText = ['Sequence: ' Seq '; Number of subjects: ' num2str(MRSCont.nDatasets) '; Number of Groups: ' num2str(MRSCont.overview.NoGroups) '\n'...
             'Distribution: ' groupString '\n'];
-        
+
         InfoText  = uicontrol('Parent',Info,'style','text',...
             'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
@@ -584,7 +584,7 @@ switch Module
                 ax=get(temp,'Parent');
                 copyobj(ax.Children, fig_hold.Children(1));
             end
-            
+
         end
         set(fig_hold.Children, 'Parent', Plot );
     case 'OspreyMeanOverview' %MeanOverview
@@ -595,7 +595,7 @@ switch Module
         end
         StatText = ['Sequence: ' Seq '; Number of subjects: ' num2str(MRSCont.nDatasets) '; Number of Groups: ' num2str(MRSCont.overview.NoGroups) '\n'...
             'Distribution: ' groupString '\n'];
-        
+
         InfoText  = uicontrol('Parent',Info,'style','text',...
             'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
@@ -621,8 +621,8 @@ switch Module
         set(fig_hold.Children,'Children',flipud(fig_hold.Children.Children));
         set(fig_hold.Children, 'Parent', Plot );
         close(fig_hold);
-        
-        
+
+
     case 'OspreyRaincloudOverview' %Raincloud plot
         set(Info,'Title', 'Descriptive Information');
         groupString = '';
@@ -631,7 +631,7 @@ switch Module
         end
         StatText = ['Sequence: ' Seq '; Number of subjects: ' num2str(MRSCont.nDatasets) '; Number of Groups: ' num2str(MRSCont.overview.NoGroups) '\n'...
             'Distribution: ' groupString '\n'];
-        
+
         InfoText  = uicontrol('Parent',Info,'style','text',...
             'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
@@ -656,7 +656,7 @@ switch Module
         end
         StatText = ['Sequence: ' Seq '; Number of subjects: ' num2str(MRSCont.nDatasets) '; Number of Groups: ' num2str(MRSCont.overview.NoGroups) '\n'...
             'Distribution: ' groupString '\n'];
-        
+
         InfoText  = uicontrol('Parent',Info,'style','text',...
             'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
@@ -685,13 +685,13 @@ switch Module
                 end
             end
         end
-        
+
         delete( fig_hold.Children(1));
         delete( fig_hold.Children(1));
         set(fig_hold.Children,'Children',flipud(fig_hold.Children.Children));
         set(fig_hold.Children, 'Parent', Plot );
         close(fig_hold);
-        
+
 end
 set(out,'Renderer','painters','Menu','none','Toolbar','none');
 
