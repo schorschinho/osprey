@@ -45,16 +45,15 @@ end
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
 [MRSCont] = OspreySettings;
 
-
 %%% 2. CHECK JOB INPUT FILE FORMAT %%%
-last3char   = jobFile((end-2):end);
-last2char   = jobFile((end-1):end);
-if strcmpi(last2char,'.m')
-    jobFileFormat = 'm';
-elseif strcmpi(last3char,'csv')
-    jobFileFormat = 'csv';
-else
-    error('Unrecognized job file datatype. Job files need to end in .CSV or .M');
+[~,~,ext] = fileparts(jobFile);
+switch ext
+    case '.m'
+        jobFileFormat = 'm';
+    case '.csv'
+        jobFileFormat = 'csv';
+    otherwise
+        error('Unrecognized job file datatype. Job files need to end in .CSV or .M');
 end
 
 
@@ -391,9 +390,9 @@ MRSCont.colormap        = colormap;
 MRSCont.flags.isGUI     = GUI;
 
 %%% 7. SET FLAGS AND VERSION %%%
-MRSCont.flags.didLoadJob    = 1;
+MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 1.0.1';
+MRSCont.ver.Osp             = 'Osprey 1.0.2';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

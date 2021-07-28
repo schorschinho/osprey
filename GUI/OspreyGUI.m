@@ -53,6 +53,7 @@ classdef OspreyGUI < handle
         Plot % plot struct
         InfoText % info text struct (left side of fit plot)
         Results % result struct (fit results)
+        flags; % Store flags 
     end
 
     methods
@@ -67,10 +68,21 @@ classdef OspreyGUI < handle
         %% Initialize variables
         % Close any remaining open figures & add folders
             close all;
-            diary(fullfile(MRSCont.outputFolder, 'LogFile.txt'));
             [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
             gui.folder.allFolders      = strsplit(settingsFolder, filesep);
             gui.folder.ospFolder       = strjoin(gui.folder.allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
+            MRSCont.flags.moved = 0;
+            if isfile(fullfile(MRSCont.outputFolder, 'LogFile.txt'))
+                MRSCont.flags.moved = 0;
+                diary(fullfile(MRSCont.outputFolder, 'LogFile.txt'));
+            else %The MRSContainer has been moved, so we will store the the diary in the GUI folder
+                diary(fullfile(gui.folder.ospFolder, 'LogFile.txt'));
+                MRSCont.flags.moved = 1;
+                if (isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0))
+                    MRSCont.flags.didCoreg = 0;
+                    MRSCont.flags.didSeg = 0;
+                end
+            end
             diary off
         % Toolbox check
             if isfield(MRSCont.flags,'isToolChecked')
@@ -83,11 +95,15 @@ classdef OspreyGUI < handle
                 load(fullfile(gui.folder.ospFolder,'GUI','SPMpath.mat'),'SPMpath')
                 gui.folder.spmversion = SPMpath;
             end
+                   
        % Load selected colormap
-            gui.colormap = MRSCont.colormap;
+        gui.colormap = MRSCont.colormap;
 
         % Set GM plot to on
         gui.controls.GM = 1;
+        
+        %Load flags
+        gui.flags = MRSCont.flags;
 
         %Setting up inital values for the gui control variables
         %Global controls
@@ -239,6 +255,12 @@ classdef OspreyGUI < handle
                 gui.overview.Selected.Corr = 1;
                 gui.overview.Selected.CorrChoice = 1;
                 gui.overview.Names.QM = {'SNR','FWHM (ppm)'};
+                
+                if ~MRSCont.flags.didFit %Get variables regarding the fitting
+                    gui.fit.Number = length(fieldnames(MRSCont.processed));
+                    gui.fit.Names = fieldnames(MRSCont.processed);
+                end
+                
             end
             gui.waitbar.overall = MRSCont.flags.didLoadData+MRSCont.flags.didProcess+MRSCont.flags.didFit+MRSCont.flags.didCoreg+MRSCont.flags.didSeg+MRSCont.flags.didQuantify+MRSCont.flags.didOverview;
             gui.waitbar.step = 1/ gui.waitbar.overall;
@@ -248,7 +270,7 @@ classdef OspreyGUI < handle
             outputFolder = MRSCont.outputFolder;
         %% Create the overall figure
             gui.figure = figure('Name', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on','Menu', 'none',...
-                                'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', gui.colormap.Background);
+                                'ToolBar', 'none', 'HandleVisibility', 'on', 'Renderer', 'painters', 'Color', gui.colormap.Background);
             setappdata(gui.figure,'MRSCont',MRSCont);
         % Resize such that width is 1.2941 * height (1.2941 is the ratio
         % between width and height of standard US letter size (11x8.5 in).
@@ -298,7 +320,7 @@ classdef OspreyGUI < handle
         % Load button
             gui.layout.b_load = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Load data','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_load,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-            if  (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp))
+            if  (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))
                 gui.layout.b_load.Enable = 'off';
             end
             set(gui.layout.b_load,'Callback',{@osp_onLoad,gui}, 'TooltipString', 'Call OspreyLoad');
@@ -306,9 +328,9 @@ classdef OspreyGUI < handle
         % Process button
             gui.layout.b_proc = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Process data','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_proc,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-            if (MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp))
+            if (MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A)))
                 gui.layout.b_proc.Enable = 'off';
-            else if ~(MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp))
+            else if ~(MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))
                     gui.layout.b_proc.Enable = 'off';
                 end
             end
@@ -316,9 +338,9 @@ classdef OspreyGUI < handle
         % Fit button
             gui.layout.b_fit = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Model data','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_fit,'Units','Normalized','Position',[0.1 0.67 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp))
+            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)))
                 gui.layout.b_fit.Enable = 'off';
-            else if ~(MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp))
+            else if ~(MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A)))
                     gui.layout.b_fit.Enable = 'off';
                 end
             end
@@ -326,8 +348,10 @@ classdef OspreyGUI < handle
         % Coregister button
             gui.layout.b_coreg = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','CoRegister','Enable','off','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_coreg,'Units','Normalized','Position',[0.1 0.59 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) && (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))
-                gui.layout.b_coreg.Enable = 'on';
+            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image))) && (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))               
+                if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0) && MRSCont.flags.moved)
+                    gui.layout.b_coreg.Enable = 'on';
+                end
             end
             set(gui.layout.b_coreg,'Callback',{@osp_onCoreg,gui}, 'TooltipString', 'Call OspreyCoreg');
             if MRSCont.flags.hasSPM == 0
@@ -336,8 +360,10 @@ classdef OspreyGUI < handle
         % Segment button
             gui.layout.b_segm = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Segment','Enable','off','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_segm,'Units','Normalized','Position',[0.1 0.51 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
-            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didSeg == 1  && isfield(MRSCont, 'seg') && (gui.controls.nDatasets >= length(MRSCont.seg.tissue.fGM(:,1))) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) && (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image)))
-                gui.layout.b_segm.Enable = 'on';
+            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didSeg == 1  && isfield(MRSCont, 'seg') && (gui.controls.nDatasets >= length(MRSCont.seg.tissue.fGM(:,1)))) && (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image)))
+                if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0) && MRSCont.flags.moved)
+                    gui.layout.b_segm.Enable = 'on';
+                end
             end
             set(gui.layout.b_segm,'Callback',{@osp_onSeg,gui}, 'TooltipString', 'Call OspreySeg');
             if MRSCont.flags.hasSPM == 0
@@ -348,7 +374,7 @@ classdef OspreyGUI < handle
             set(gui.layout.b_quant,'Units','Normalized','Position',[0.1 0.43 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
             if MRSCont.flags.didQuantify
                 gui.layout.b_quant.Enable = 'off';
-            else if ~(MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp))
+            else if ~(MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) )
                     gui.layout.b_quant.Enable = 'off';
                 end
             end
@@ -369,7 +395,9 @@ classdef OspreyGUI < handle
             gui.layout.controlPanel = uix.Panel('Parent', gui.layout.leftMenu, 'Title', 'MRS Container','BackgroundColor',gui.colormap.Background);
             set(gui.layout.controlPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold', 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground);
             gui.layout.fileList = MRSCont.files;
-            [~, ~] = osp_detDataType(MRSCont);
+            if ~MRSCont.flags.moved
+                [~, ~] = osp_detDataType(MRSCont);
+            end
             SepFileList = cell(1,length(MRSCont.files));
             gui.layout.RedFileList = cell(1,length(MRSCont.files));
             gui.layout.OnlyFileList = cell(1,length(MRSCont.files));
@@ -423,7 +451,7 @@ classdef OspreyGUI < handle
         % been completed:
             gui.controls.waitbar = waitbar(0,'Start','Name','Loading your MRS Container');
             waitbar(0,gui.controls.waitbar,'Loading your raw spectra')
-            if (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) % Was data loaded at all that can be looked at?
+            if (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw))) % Was data loaded at all that can be looked at?
                 osp_iniLoadWindow(gui);
                 if MRSCont.flags.isMRSI
                     gui.layout.LocPanel = uix.HBox('Parent', gui.layout.MRSILocPanel, 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
@@ -436,19 +464,19 @@ classdef OspreyGUI < handle
                 set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
             end
             waitbar(gui.waitbar.step,gui.controls.waitbar,'Loading your processed spectra');
-            if (MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) % Has data been processed?
+            if (MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A))) % Has data been processed?
                 set(gui.layout.tabs, 'Visible','on');
                 osp_iniProcessWindow(gui);
                 set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
                 set(gui.layout.tabs, 'Visible','off');
             end
             waitbar(gui.waitbar.step*2,gui.controls.waitbar,'Loading your fits');
-            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) % Has data fitting been run?
+            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) ) % Has data fitting been run?
                 osp_iniFitWindow(gui);
                 set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint,gui});
             end
             waitbar(gui.waitbar.step*3,gui.controls.waitbar,'Loading your image operations');
-            if (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image))  && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) % Have coreg/segment masks been created?
+            if (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image))) % Have coreg/segment masks been created?
                 osp_iniCoregWindow(gui);
                 set(gui.controls.b_save_coregTab,'Callback',{@osp_onPrint,gui});
             end
@@ -457,26 +485,27 @@ classdef OspreyGUI < handle
                 osp_iniQuantifyWindow(gui);
             end
             waitbar(gui.waitbar.step*7,gui.controls.waitbar,'Loading your overview');
-            if MRSCont.flags.didOverview && (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) && strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)) % Has data fitting been run?
+            if MRSCont.flags.didOverview && (isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale))) % Has data fitting been run?
                 osp_iniOverviewWindow(gui);
                 set(gui.layout.overviewTab, 'SelectionChangedFcn',{@osp_OverviewTabChangedFcn,gui});
                 set(gui.controls.pop_specsOvPlot,'callback',{@osp_pop_specsOvPlot_Call,gui});
                 set(gui.controls.pop_meanOvPlot,'callback',{@osp_pop_meanOvPlot_Call,gui});
-                set(gui.controls.pop_quantOvPlot,'callback',{@osp_pop_quantOvPlot_Call,gui});
-                set(gui.controls.pop_distrOvQuant,'callback',{@osp_pop_distrOvQuant_Call,gui});
-                set(gui.controls.pop_distrOvMetab,'callback',{@osp_pop_distrOvMetab_Call,gui});
-                set(gui.controls.pop_corrOvQuant,'callback',{@osp_pop_corrOvQuant_Call,gui});
-                set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui});
-                set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
-                set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
+                if isfield(gui.controls,'pop_quantOvPlot')
+                    set(gui.controls.pop_quantOvPlot,'callback',{@osp_pop_quantOvPlot_Call,gui});
+                    set(gui.controls.pop_distrOvQuant,'callback',{@osp_pop_distrOvQuant_Call,gui});
+                    set(gui.controls.pop_distrOvMetab,'callback',{@osp_pop_distrOvMetab_Call,gui});
+                    set(gui.controls.pop_corrOvQuant,'callback',{@osp_pop_corrOvQuant_Call,gui});
+                    set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui});
+                    set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
+                    set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
+                    set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
+                    set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
+                    set(gui.controls.check_distrOv,'callback',{@osp_check_distrOv_Call,gui});
+                end                
+                set(gui.controls.check_meanOvPlot,'callback',{@osp_check_meanOvPlot_Call,gui});                
                 set(gui.controls.check_specsOvPlot,'callback',{@osp_check_specsOvPlot_Call,gui});
-                set(gui.controls.check_meanOvPlot,'callback',{@osp_check_meanOvPlot_Call,gui});
-                set(gui.controls.check_distrOv,'callback',{@osp_check_distrOv_Call,gui});
                 set(gui.controls.b_save_specOvTab,'Callback',{@osp_onPrint,gui});
                 set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
-                set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
-                set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
-
             end
             gui.layout.tabs.Selection  = 1;
             if ~MRSCont.flags.didLoadData %Turn of Listbox if data has not been loaded
@@ -493,6 +522,14 @@ classdef OspreyGUI < handle
             set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});
             set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});
             set(gui.layout.ListBox,'Callback', {@osp_onListSelection,gui},'KeyPressFcn',{@osp_WindowKeyDown,gui}, 'KeyReleaseFcn', {@osp_WindowKeyUp,gui});
+            
+            % Show warning if the version is different
+           if ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)  
+                opts.WindowStyle = 'replace';
+                opts.Interpreter = 'tex';
+                f = errordlg('The Osprey version of your MRS container is different from the Osprey version you are using. Please consider re-running the analysis to ensure full functionality.','Version mismatch',opts);           
+           end
+
         end
     end
 end                                                      % End of class definition

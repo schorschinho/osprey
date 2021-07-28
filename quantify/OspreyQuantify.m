@@ -36,14 +36,9 @@ function [MRSCont] = OspreyQuantify(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyFit has been run before
-if ~MRSCont.flags.didFit
-    msg = 'Trying to quantify data, but data have not been modelled yet. Run OspreyFit first.';
-    fprintf(msg);
-    error(msg);    
-end
 
-% Version check and updating log file
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyQuantify');
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyQuantify',MRSCont.flags.isGUI);
 
 
@@ -139,9 +134,9 @@ end
 % Add combinations of metabolites to the basisset
 for ll = 1:length(getResults)
     if ~iscell(MRSCont.fit.results) %Is SVS
-       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
+       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
     else %Is DualVoxel
-       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1}.(getResults{ll}){1,1}.name;
+       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1}.(getResults{ll}).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
     end
 end
 

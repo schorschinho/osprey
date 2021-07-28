@@ -119,6 +119,21 @@ for kk = 1:MRSCont.nDatasets
             basisSetConc = MRSCont.fit.basisSet;
             basisSetConc.fids = basisSetConc.fids(:,:,5:7);
             basisSetConc.specs = basisSetConc.specs(:,:,5:7);
+            
+            basisSetSum = MRSCont.fit.basisSet;
+            basisSetSum.fids = basisSetSum.fids(:,:,7);
+            basisSetSum.specs = basisSetSum.specs(:,:,7);
+            
+            basisSetDiff1 = MRSCont.fit.basisSet;
+            basisSetDiff1.fids = basisSetDiff1.fids(:,:,5);
+            basisSetDiff1.specs = basisSetDiff1.specs(:,:,5);      
+            if isfield(fitOpts, 'coMM3') && ~strcmp(fitOpts.coMM3, 'none')
+                [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetSum,fitOpts);
+            end
+            
+            basisSetConc.fids(:,:,1) = basisSetDiff1.fids(:,:);
+            basisSetConc.specs(:,:,1) = basisSetDiff1.specs(:,:);
+            
             for rr = 1:length(dataToFit)
                 dataToFit{rr}   = op_ampScale(dataToFit{rr}, 1/MRSCont.fit.scale{kk});
             end

@@ -85,7 +85,7 @@ for kk = 1:MRSCont.nDatasets
             % referencing steps are performed in the later stages of
             % post-processing and modelling, but we want the prominent singlets
             % to appear within 0.1 ppm of their expected in-vivo positions.
-            phantomShiftPPM = 0.15 * raw.txfrq*1e-6;
+            phantomShiftPPM = 0.2 * raw.txfrq*1e-6;
             raw = op_freqshift(raw, -phantomShiftPPM);
             % Finally, apply some linebroadening. High-quality in-vitro
             % data may have linewidth lower than the simulated basis set
@@ -243,18 +243,22 @@ for kk = 1:MRSCont.nDatasets
 
         %%% 5. BUILD SUM AND DIFF SPECTRA %%%
         % Correct the frequency axis so that Cr appears at 3.027 ppm
-        [raw_A,~]       = op_phaseCrCho(raw_A, 1);
-        [raw_B,~]       = op_phaseCrCho(raw_B, 1);
-        temp_spec   = op_addScans(raw_A,raw_B);  
-        [refShift_SubSpecAlign, ~] = osp_CrChoReferencing(temp_spec);
-        % Apply initial referencing shift
-        raw_A = op_freqshift(raw_A, -refShift_SubSpecAlign);
-        raw_B = op_freqshift(raw_B, -refShift_SubSpecAlign);
-        % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
-        % with the negative phase of that fit
-        [raw_A,~]       = op_phaseCrCho(raw_A, 1);
-        % Align the sub-spectra to one another by minimizing the difference
-        % between the common 'reporter' signals.
+        if ~MRSCont.flags.isMRSI
+            [raw_A,~]       = op_phaseCrCho(raw_A, 1);
+            [raw_B,~]       = op_phaseCrCho(raw_B, 1);
+            temp_spec   = op_addScans(raw_A,raw_B);  
+            [refShift_SubSpecAlign, ~] = osp_CrChoReferencing(temp_spec);
+            % Apply initial referencing shift
+            raw_A = op_freqshift(raw_A, -refShift_SubSpecAlign);
+            raw_B = op_freqshift(raw_B, -refShift_SubSpecAlign);
+            % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+            % with the negative phase of that fit
+            [raw_A,ph]       = op_phaseCrCho(raw_A, 1);
+            % Align the sub-spectra to one another by minimizing the difference
+            % between the common 'reporter' signals.
+        else
+            refShift_SubSpecAlign =0;
+        end
         
         switch MRSCont.opts.SubSpecAlignment
             case 'L1Norm'
@@ -262,7 +266,9 @@ for kk = 1:MRSCont.nDatasets
             case 'L2Norm'
             [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);
             otherwise
-                
+                if ~MRSCont.flags.isMRSI
+                    raw_B     = op_addphase(raw_B, -ph*180/pi, 0, raw_B.centerFreq, 1); 
+                end
         end
         
 
@@ -297,7 +303,7 @@ for kk = 1:MRSCont.nDatasets
         % whether this is phantom data
         if MRSCont.flags.isPhantom
             waterRemovalFreqRange = [4.5 5];
-            fracFID = 0.2;
+            fracFID = 0.5;
         else
             waterRemovalFreqRange = [4.5 4.9];
             fracFID = 0.75;
@@ -307,6 +313,7 @@ for kk = 1:MRSCont.nDatasets
         raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
         diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
         Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+       
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
         % Reference resulting data correctly and consistently

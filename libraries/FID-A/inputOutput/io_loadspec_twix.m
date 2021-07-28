@@ -477,8 +477,12 @@ end
 
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
-elseif isSiemens
-    leftshift = twix_obj.image.freeParam(1);
+elseif isSiemens    
+    if ~strcmp(version,'ve')
+        leftshift = twix_obj.image.freeParam(1);
+    else
+       leftshift = twix_obj.image.iceParam(5,1); 
+    end        
 elseif isMinn
     try
         leftshift = twix_obj.image.iceParam(5,1);
@@ -529,7 +533,7 @@ if isfield(twix_obj.hdr.Config,'Nucleus')
     out.nucleus = twix_obj.hdr.Config.Nucleus  ;
 end
 if isfield(twix_obj.hdr.Dicom,'SoftwareVersions')
-    out.software = [version ' ' twix_obj.hdr.DicomSoftwareVersions];
+    out.software = [version ' ' twix_obj.hdr.Dicom.SoftwareVersions];
 else
     out.software = version;
 end

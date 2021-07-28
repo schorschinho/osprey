@@ -63,7 +63,10 @@ end
 
 if MRSCont.flags.didSeg
         map = MRSCont.mask{kk};
-        map = map(:,:,VoxelIndex(3));
+        try
+            map = map(:,:,VoxelIndex(3));
+        catch
+        end
         map = map'; 
         map(map > 0) = 0.5;
 else if ~MRSCont.flags.didQuantify
@@ -102,7 +105,7 @@ map(VoxelIndex(2),VoxelIndex(1)) = 1;
 if size(map,3) <= 1
     map = map';
 else
-    map = squeeze(map(:,:,1))'
+    map = squeeze(map(:,:,1))';
 end
 
 %%% 4. SET UP FIGURE LAYOUT %%%

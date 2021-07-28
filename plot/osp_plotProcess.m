@@ -45,7 +45,7 @@ end
 if nargin<6
     switch which_spec
         case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
-            ppmmax = 6;
+            ppmmax = 4.2;
         case {'ref', 'w'}
             ppmmax = 2*4.68;
         otherwise

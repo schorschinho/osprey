@@ -1,4 +1,4 @@
-function out = osp_plotProcessMRSI(MRSCont, kk, which_spec,which_slice, ppmmin, ppmmax,mask, lb,shift_factor,add_text,add_No_MoCo)
+function out = osp_plotProcessMRSI(MRSCont, kk, which_spec,which_slice, ppmmin, ppmmax,mask, lb,x_shift,y_shift_factor,add_text,add_No_MoCo)
 %% out = osp_plotProcessMRSI(MRSCont, kk, which, ppmmin, ppmmax)
 %   Creates a figure showing processed data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *processed and
@@ -42,42 +42,45 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 11
+if nargin < 12
     add_No_MoCo = 0;
-    if nargin < 10
-    add_text = 0;
-        if nargin < 9
-            shift_factor = 2;
-            if nargin < 8
-                lb = 0;
-                if nargin < 7
-                    mask = 1;
-                        if nargin < 6
-                        which_slice = 1;
-                        if nargin<5
-                            switch which_spec
-                                case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
-                                    ppmmax = 5;
-                                case {'ref', 'w'}
-                                    ppmmax = 2*4.68;
-                                otherwise
-                                    error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-                            end
-                            if nargin<4
+    if nargin < 11       
+        add_text = 0;
+        if nargin < 10       
+            y_shift_factor = 2;
+            if nargin < 9
+                x_shift = 10;
+                if nargin < 8
+                    lb = 0;
+                    if nargin < 7
+                        mask = 1;
+                            if nargin < 6
+                            which_slice = 1;
+                            if nargin<5
                                 switch which_spec
-                                    case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum'}
-                                        ppmmin = 0.2;
-                                    case {'ref', 'w','mm'}
-                                        ppmmin = 0;
+                                    case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum','mm'}
+                                        ppmmax = 5;
+                                    case {'ref', 'w'}
+                                        ppmmax = 2*4.68;
                                     otherwise
                                         error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                                 end
-                                if nargin < 3
-                                    which_spec = 'A';
-                                    if nargin < 2
-                                        kk = 1;
-                                        if nargin<1
-                                            error('ERROR: no input Osprey container specified.  Aborting!!');
+                                if nargin<4
+                                    switch which_spec
+                                        case {'A', 'B', 'C', 'D', 'diff1', 'diff2','diff3', 'sum'}
+                                            ppmmin = 0.2;
+                                        case {'ref', 'w','mm'}
+                                            ppmmin = 0;
+                                        otherwise
+                                            error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+                                    end
+                                    if nargin < 3
+                                        which_spec = 'A';
+                                        if nargin < 2
+                                            kk = 1;
+                                            if nargin<1
+                                                error('ERROR: no input Osprey container specified.  Aborting!!');
+                                            end
                                         end
                                     end
                                 end
@@ -112,14 +115,43 @@ XVox = MRSCont.raw{kk}.nXvoxels;
 YVox = MRSCont.raw{kk}.nYvoxels;  
 procData=op_takeVoxel(MRSCont.processed.(which_spec){kk},[1, 1]);
 procData     = op_freqrange(procData,ppmmin,ppmmax);
-procDataMarixToPlot = zeros((procData.sz(1)+50) * XVox,YVox);
+procDataMarixToPlot = zeros((procData.sz(1)+x_shift) * XVox,YVox);
 zeroDataMarixToPlot = procDataMarixToPlot;
 if add_No_MoCo
     procNoMoCoDataMarixToPlot = procDataMarixToPlot;
 end
-ppmLineToPlot = [];
-for x = 1 : XVox
-    ppmLineToPlot = horzcat(ppmLineToPlot, fliplr(procData.ppm),ones(1,50)*nan);
+
+ppmLineToPlot = fliplr(procData.ppm);
+
+
+ppm5 =1;
+ppm4 = ppm5;
+ppm3 = ppm5;
+ppm2 = ppm5;
+ppm1 = ppm5;
+ppm0 = ppm5;
+
+[~,ppm5_ind] = min(abs(ppmLineToPlot -5));
+[~,ppm4_ind] = min(abs(ppmLineToPlot -4));
+[~,ppm3_ind] = min(abs(ppmLineToPlot -3));
+[~,ppm2_ind] = min(abs(ppmLineToPlot -2));
+[~,ppm1_ind] = min(abs(ppmLineToPlot -1));
+[~,ppm0_ind] = min(abs(ppmLineToPlot -0));
+
+if floor(ppmLineToPlot(1)) < 5
+    ppm5 = 0;
+end
+
+if round(ppmLineToPlot(end)) > 2
+    ppm2 = 0;
+    ppm1 = 0;
+    ppm0 = 0;
+else if round(ppmLineToPlot(end)) > 1
+        ppm1 = 0;
+        ppm0 = 0;
+    else
+        ppm0 = 0;
+    end   
 end
 
 
@@ -145,8 +177,8 @@ for y = 1 : YVox
             [procData,~]=op_filter(procData,lb);
          end
          procData     = op_freqrange(procData,ppmmin,ppmmax);
-         procDataLineToPlot = vertcat(procDataLineToPlot,real(procData.specs)/Norm,ones(50,1)*nan);
-         zeroDataLineToPlot = vertcat(zeroDataLineToPlot,zeros(length(procData.specs),1),ones(50,1)*nan);
+         procDataLineToPlot = vertcat(procDataLineToPlot,real(procData.specs)/Norm,ones(x_shift,1)*nan);
+         zeroDataLineToPlot = vertcat(zeroDataLineToPlot,zeros(length(procData.specs),1),ones(x_shift,1)*nan);
     end
     procDataMarixToPlot(:,y) = procDataLineToPlot;
     zeroDataMarixToPlot(:,y) = zeroDataLineToPlot;
@@ -161,7 +193,7 @@ if add_No_MoCo
                 [procNoMoCoData,~]=op_filter(procNoMoCoData,lb);
              end
              procData     = op_freqrange(procNoMoCoData,ppmmin,ppmmax);
-             procNoMoCoDataLineToPlot = vertcat(procNoMoCoDataLineToPlot,real(procData.specs)/Norm,ones(50,1)*nan);
+             procNoMoCoDataLineToPlot = vertcat(procNoMoCoDataLineToPlot,real(procData.specs)/Norm,ones(x_shift,1)*nan);
         end
         procNoMoCoDataMarixToPlot(:,y) = procNoMoCoDataLineToPlot;
     end
@@ -179,48 +211,67 @@ end
 
 
 shift = abs(yLim(1)) + abs(yLim(2));
-shift = shift* shift_factor;
+shift = shift* y_shift_factor;
 for y = 1 : YVox
     for x = 1 : XVox
         if mask
             if MRSCont.mask{kk}(y,x,which_slice)
-                plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint);
+                plot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),y)+shift*y,'Color',colormap.ForegroundTint);
                 hold on
                 if add_text
-                    text((x-1)*(procData.sz(1)+50)+1, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/18, num2str(ppmmin), 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/18, num2str(ppmmax), 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50-procData.sz(1)/2, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/18, num2str((ppmmax-ppmmin)/2), 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50-(procData.sz(1)/4)*3, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/18, num2str((ppmmax-ppmmin)/4), 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50-(procData.sz(1)/4), zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/18, num2str(((ppmmax-ppmmin)/4)*3), 'Color', colormap.ForegroundTint);
+                    text((x-1)*(procData.sz(1)+x_shift)+1, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/18, num2str(ppmmin), 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/18, num2str(ppmmax), 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-procData.sz(1)/2, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/18, num2str((ppmmax-ppmmin)/2), 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-(procData.sz(1)/4)*3, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/18, num2str((ppmmax-ppmmin)/4), 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-(procData.sz(1)/4), zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/18, num2str(((ppmmax-ppmmin)/4)*3), 'Color', colormap.ForegroundTint);
 
-                    text((x-1)*(procData.sz(1)+50)+1, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50-procData.sz(1)/2, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50-(procData.sz(1)/4)*3, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50-(procData.sz(1)/4), zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
-                    text(x*(procData.sz(1)+50)-50-(procData.sz(1)/8), zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint,'FontSize',8);
-                    text(x*(procData.sz(1)+50)-50-(procData.sz(1)/8)*3, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint,'FontSize',8);
-                    text(x*(procData.sz(1)+50)-50-(procData.sz(1)/8)*5, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint,'FontSize',8);
-                    text(x*(procData.sz(1)+50)-50-(procData.sz(1)/8)*7, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint,'FontSize',8);
+                    text((x-1)*(procData.sz(1)+x_shift)+1, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-procData.sz(1)/2, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-(procData.sz(1)/4)*3, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-(procData.sz(1)/4), zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-(procData.sz(1)/8), zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint,'FontSize',8);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-(procData.sz(1)/8)*3, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint,'FontSize',8);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-(procData.sz(1)/8)*5, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint,'FontSize',8);
+                    text(x*(procData.sz(1)+x_shift)-x_shift-(procData.sz(1)/8)*7, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y, 'I', 'Color', colormap.ForegroundTint,'FontSize',8);
                 end
                  if add_No_MoCo
-                    plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),procNoMoCoDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint);
+                    plot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),procNoMoCoDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),y)+shift*y,'Color',colormap.ForegroundTint);
                  end
-                plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),procDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.Foreground);                                   
+                plot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),procDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),y)+shift*y,'Color',colormap.Foreground);                                   
                
                 
             else
-%                 plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),procDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint)
+%                 plot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),procDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),y)+shift*y,'Color',colormap.ForegroundTint)
 %                 hold on
-%                 plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.ForegroundTint);              
+%                 plot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),y)+shift*y,'Color',colormap.ForegroundTint);              
                 
             end
         else
-            plot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),procDataMarixToPlot((x-1)*(procData.sz(1)+50)+1:x*(procData.sz(1)+50),y)+shift*y,'Color',colormap.Foreground);
+            plot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),y)+shift*y,'Color',colormap.ForegroundTint);
+            plot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),procDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),y)+shift*y,'Color',colormap.Foreground);
+            if add_No_MoCo
+                plot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),procNoMoCoDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1:x*(procData.sz(1)+x_shift),y)+shift*y,'Color',colormap.ForegroundTint);
+             end
             if add_text
-            text((x-1)*(procData.sz(1)+50)+1, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/15, num2str(ppmmin), 'Color', colormap.ForegroundTint);
-                text(x*(procData.sz(1)+50)-50, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/15, num2str(ppmmax), 'Color', colormap.ForegroundTint);
-                text(x*(procData.sz(1)+50)-50-procData.sz(1)/2, zeroDataMarixToPlot((x-1)*(procData.sz(1)+50)+1,y)+shift*y-shift/15, num2str((ppmmax-ppmmin)/2), 'Color', colormap.ForegroundTint);
+                if ppm5
+                    text(x*(procData.sz(1)+x_shift)-x_shift-ppm5_ind, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/15, num2str(round(ppmLineToPlot(ppm5_ind),2)), 'Color', colormap.ForegroundTint);
+                end
+                if ppm4
+                    text(x*(procData.sz(1)+x_shift)-x_shift-ppm4_ind, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/15, num2str(round(ppmLineToPlot(ppm4_ind),2)), 'Color', colormap.ForegroundTint);
+                end
+                if ppm3
+                    text(x*(procData.sz(1)+x_shift)-x_shift-ppm3_ind, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/15, num2str(round(ppmLineToPlot(ppm3_ind),2)), 'Color', colormap.ForegroundTint);
+                end
+                if ppm2
+                    text(x*(procData.sz(1)+x_shift)-x_shift-ppm2_ind, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/15, num2str(round(ppmLineToPlot(ppm2_ind),2)), 'Color', colormap.ForegroundTint);
+                end
+                if ppm1
+                    text(x*(procData.sz(1)+x_shift)-x_shift-ppm1_ind, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/15, num2str(round(ppmLineToPlot(ppm1_ind),2)), 'Color', colormap.ForegroundTint);
+                end
+                if ppm0
+                    text(x*(procData.sz(1)+x_shift)-x_shift-ppm0_ind, zeroDataMarixToPlot((x-1)*(procData.sz(1)+x_shift)+1,y)+shift*y-shift/15, num2str(round(ppmLineToPlot(ppm0_ind),2)), 'Color', colormap.ForegroundTint);
+                end
             end
             hold on
         end

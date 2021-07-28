@@ -33,17 +33,11 @@ function [MRSCont] = OspreyCoreg(MRSCont)
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(msg);
-    error(msg);
-end
 
-% Version, toolbox check and updating log file
 warning('off','all');
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
-
 
 
 % Set up saving location
@@ -142,7 +136,7 @@ for kk = 1:MRSCont.nDatasets
                     switch MRSCont.datatype
                         case 'P'
                             % Load the DICOM folder provided in the job file                           
-                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
+                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, MRSCont.files_nii{kk}, maskFile);
                         otherwise
                             msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                             fprintf(msg);
@@ -161,11 +155,18 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.T1_max{kk}    = T1_max;
         MRSCont.coreg.voxel_ctr{kk} = voxel_ctr;
         
+        if MRSCont.flags.addImages
+            [MRSCont.coreg.three_plane_img{kk}] = osp_extract_three_plane_image(vol_image, vol_mask,voxel_ctr,T1_max);
+        end
+        
         %Delete .nii file if a .nii.gz
          if strcmp(T1ext,'.gz')
             delete(MRSCont.files_nii{kk});
             MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.nii','.nii.gz');
-        end
+         end
+         gzip(vol_mask.fname);
+         delete(vol_mask.fname);
+            
     end
 end
 time = toc(refCoregTime);

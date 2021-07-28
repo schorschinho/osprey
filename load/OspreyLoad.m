@@ -94,6 +94,16 @@ switch MRSCont.vendor
                 fprintf(msg);
                 error(msg);
         end
+    case 'Bruker'
+        switch MRSCont.datatype
+            case 'fid'
+                [MRSCont] = osp_LoadBrukerFid(MRSCont);
+            otherwise
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(msg);
+                error(msg);
+        end
+                
     otherwise
         msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
         fprintf(msg);
