@@ -26,6 +26,7 @@ function osp_onProc( ~, ~ ,gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
     MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class 
+    set(gui.figure,'HandleVisibility','off');
     gui.layout.tabs.TabEnables{2} = 'on';
     gui.layout.tabs.Selection  = 2;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
@@ -36,6 +37,7 @@ function osp_onProc( ~, ~ ,gui)
     gui.process.Number = length(fieldnames(MRSCont.processed));
     gui.process.Names = fieldnames(MRSCont.processed);
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
+    set(gui.figure,'HandleVisibility','on');
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    
     osp_iniProcessWindow(gui);
     gui.layout.b_proc.Enable = 'off';

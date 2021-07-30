@@ -26,6 +26,7 @@ function [gui] = osp_onLoad( ~, ~ ,gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE DATA %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
+    set(gui.figure,'HandleVisibility','off');
     gui.layout.tabs.Selection  = 1;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYLOAD %%%
@@ -58,6 +59,7 @@ function [gui] = osp_onLoad( ~, ~ ,gui)
     end
     gui.load.Names.Geom = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
+    set(gui.figure,'HandleVisibility','on');
 %%% 3. INITIALIZE OUTPUT WINDOW %%%     
     osp_iniLoadWindow(gui);
     gui.layout.b_load.Enable = 'off';
