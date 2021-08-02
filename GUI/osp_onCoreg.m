@@ -26,6 +26,7 @@ function osp_onCoreg( ~, ~ ,gui)
 %       2020-01-16: First version of the code.
 %%% 1. DELETE OLD PLOTS %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
+    set(gui.figure,'HandleVisibility','off');
     if isfield(gui.Results, 'coreg')
         if length(gui.layout.coregTab.Children) == 3
                 delete( gui.layout.coregTab.Children(1) );
@@ -45,6 +46,7 @@ function osp_onCoreg( ~, ~ ,gui)
     MRSCont = OspreyCoreg(MRSCont);    
     delete(gui.layout.dummy);
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
+    set(gui.figure,'HandleVisibility','on');
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    
     osp_iniCoregWindow(gui);
     gui.layout.b_coreg.Enable = 'off';

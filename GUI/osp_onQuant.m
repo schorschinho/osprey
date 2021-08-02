@@ -26,6 +26,7 @@ function osp_onQuant( ~, ~ ,gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
+    set(gui.figure,'HandleVisibility','off');
     gui.layout.tabs.Selection  = 5;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYQUANTIFY %%%    
@@ -73,5 +74,5 @@ function osp_onQuant( ~, ~ ,gui)
     set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
     set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
     gui.layout.b_quant.Enable = 'off';
-
+    set(gui.figure,'HandleVisibility','on');
 end % onQuant
