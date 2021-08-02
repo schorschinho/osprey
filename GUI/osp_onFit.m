@@ -26,6 +26,7 @@ function osp_onFit( ~, ~ ,gui)
 %       2020-01-16: First version of the code.
 %%% 1. DELETE OLD PLOTS %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class  
+    set(gui.figure,'HandleVisibility','off');
     gui.layout.tabs.Selection  = 3;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYFIT %%%
@@ -95,6 +96,7 @@ function osp_onFit( ~, ~ ,gui)
         end        
     end
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
+    set(gui.figure,'HandleVisibility','on');
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    
     osp_iniFitWindow(gui);
     gui.layout.b_fit.Enable = 'off';

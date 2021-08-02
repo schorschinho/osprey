@@ -29,7 +29,8 @@ function osp_onSave( ~, ~,gui)
     % Determine output folder
     refProcessTime = tic;
     fprintf('Saving MRS container...\n');
-    MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class    
+    MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class  
+    set(gui.figure,'HandleVisibility','off');
     outputFolder    = MRSCont.outputFolder;
     outputFile      = MRSCont.outputFile;
     if ~exist(outputFolder,'dir')
@@ -40,5 +41,6 @@ function osp_onSave( ~, ~,gui)
     MRSCont.flags.isGUI = 1;
     fprintf('... done.\n');
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
+    set(gui.figure,'HandleVisibility','on');
     toc(refProcessTime);
 end % onExit
