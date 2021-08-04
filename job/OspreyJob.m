@@ -202,7 +202,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Adding macromolecule and lipid basis functions to the fit (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.fitMM = 1;
     end
-
+    if isfield(jobStruct,'basisSetFile')
+        MRSCont.opts.fit.basisSetFile = jobStruct(1).basisSetFile;
+    end
+    if isfield(jobStruct,'controlFile')
+        MRSCont.opts.fit.controlFile = jobStruct(1).controlFile;
+    end
 end
 
 if exist('opts','var')
@@ -258,8 +263,12 @@ switch seqType
         MRSCont.flags.isHERCULES    = 1;
         MRSCont.opts.editTarget             = editTarget;
         MRSCont.opts.fit.style = opts.fit.style;
+    case 'dwMRS'
+        MRSCont.flags.isDWMRS       = 1;
+        MRSCont.opts.editTarget             = {'none'};;
+        MRSCont.opts.fit.style = opts.fit.style;
     otherwise
-        error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
+        error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', ''HERCULES'' or ''dwMRS''.');
 end
 
 % Parse the data scenario entry

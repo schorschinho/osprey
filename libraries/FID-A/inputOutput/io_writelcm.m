@@ -75,7 +75,9 @@ fprintf(fid,' $SEQPAR');
 %fprintf(fid,'sig(real)\tsig(imag)\tfft(real)\tfft(imag)\n');
 %fprintf(fid,'Signal 1 out of %i in file\n',datsets);
 fprintf(fid,'\n ECHOT= %2.2f',te);
-fprintf(fid,'\n SEQ= ''%s''', in.seq);
+if isfield(in, 'seq')
+    fprintf(fid,'\n SEQ= ''%s''', in.seq);
+end
 fprintf(fid,'\n HZPPPM= %5.6f',in.txfrq/1e6);
 fprintf(fid,'\n NUNFIL= %i',in.sz(1));
 fprintf(fid,'\n DELTAT= %5.6f' ,dwelltime);
