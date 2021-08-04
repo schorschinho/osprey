@@ -178,6 +178,15 @@ switch MRSCont.opts.fit.method
             error('For LCModel fitting, please explicitly specify a .BASIS file in the job file (opts.fit.basisSetFile = ''FILE'').');
         end
         
+        % Read in the user-supplied control file (if there is one)
+        if isfield(MRSCont.opts.fit,'basisSetFile') 
+            if ~isempty(MRSCont.opts.fit.basisSetFile)
+                LCMparam = osp_readlcm_control(MRSCont.opts.fit.basisSetFile);
+            else
+                error('The field ''opts.fit.basisSetFile'' in the job file is specified, but empty.')
+            end
+        end
+        
         for kk = 1:MRSCont.nDatasets
             LCMparam = osp_lcmcontrol_params(MRSCont.flags.isMEGA);
             MRSCont       = osp_writelcm_control(MRSCont, kk, 'A', LCMparam);

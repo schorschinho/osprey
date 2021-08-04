@@ -33,28 +33,21 @@ if ~in.flags.addedrcvrs
 end
 
 
-% datsets=1;
-% zop=0;
-% t0=0;
-  Bo=in.Bo;
-  hzppm=42.577*Bo;
-  dwelltime=in.dwelltime;
-  
-  % Calculate the voxel volume from certain fields
-  if isfield(in.geometry.size,'ap') % Philips 
-      % Philips has names attached to the fields
-      vol = in.geometry.size.ap * in.geometry.size.lr * in.geometry.size.cc;
-  elseif isfield(in.geometry.size,'VoIThickness') % Siemens
-      % Siemens has other names attached to the fields
-      vol = in.geometry.size.VoI_RoFOV * in.geometry.size.VoI_PeFOV * in.geometry.size.VoIThickness;
-  else %GE
-      % For GE data, there is currently no designation
-      vol = in.geometry.size.dim1 * in.geometry.size.dim2 * in.geometry.size.dim3;
-  end
-% Nuc=0;
-% PatName='No Name';
-% scanner='TrioTim';
-% addinfo='jnear';
+Bo=in.Bo;
+hzppm=42.577*Bo;
+dwelltime=in.dwelltime;
+
+% Calculate the voxel volume from certain fields
+if isfield(in.geometry.size,'ap') % Philips
+    % Philips has names attached to the fields
+    vol = in.geometry.size.ap * in.geometry.size.lr * in.geometry.size.cc;
+elseif isfield(in.geometry.size,'VoIThickness') % Siemens
+    % Siemens has other names attached to the fields
+    vol = in.geometry.size.VoI_RoFOV * in.geometry.size.VoI_PeFOV * in.geometry.size.VoIThickness;
+else %GE
+    % For GE data, there is currently no designation
+    vol = in.geometry.size.dim1 * in.geometry.size.dim2 * in.geometry.size.dim3;
+end
 
 
 RF=zeros(in.sz(in.dims.t),2);
@@ -82,7 +75,9 @@ fprintf(fid,' $SEQPAR');
 %fprintf(fid,'sig(real)\tsig(imag)\tfft(real)\tfft(imag)\n');
 %fprintf(fid,'Signal 1 out of %i in file\n',datsets);
 fprintf(fid,'\n ECHOT= %2.2f',te);
-fprintf(fid,'\n SEQ= ''%s''', in.seq);
+if isfield(in, 'seq')
+    fprintf(fid,'\n SEQ= ''%s''', in.seq);
+end
 fprintf(fid,'\n HZPPPM= %5.6f',in.txfrq/1e6);
 fprintf(fid,'\n NUNFIL= %i',in.sz(1));
 fprintf(fid,'\n DELTAT= %5.6f' ,dwelltime);
