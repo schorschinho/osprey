@@ -140,18 +140,12 @@ end
 if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveJMRUI(MRSCont);
 end
-
 % Optional: write edited files to vendor specific format files readable to
 % LCModel and jMRUI
 % SPAR/SDAT if Philips
 % RDA if Siemens
 if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveVendor(MRSCont);
-end
-
-% Optional: write edited files to NIfTI-MRS format
-if MRSCont.opts.saveNII && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-    [MRSCont] = osp_saveNII(MRSCont);
 end
 
 % Save the output structure to the output folder

@@ -26,7 +26,7 @@ function varargout = nii_tool(cmd, varargin)
 % Detail for each command is described below.
 % 
 % oldVal = nii_tool('default', 'version', 1, 'rgb_dim', 1);
-% oldVal = nii_tool('default', nstruct('version', 1, 'rgb_dim', 1));
+% oldVal = nii_tool('default', struct('version', 1, 'rgb_dim', 1));
 % 
 % - Set/query default NIfTI version and/or rgb_dim. To check the setting, run
 % nii_tool('default') without other input. The input for 'default' command can

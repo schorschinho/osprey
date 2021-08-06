@@ -16,7 +16,7 @@
 % in	= input data in matlab structure format.  
 %
 % OUTPUTS:
-% refShift_ind_ini   = Vector with initial frequency shifts
+% refShift_ind_ini   = Vector with inital frequency shifts
 %
 %
 % AUTHOR:
@@ -31,8 +31,7 @@
 %
 %   HISTORY:
 %       2021-02-11: First version of the code.
-function [refShift_ind_ini] = op_preref(raw, seq)
-
+function [refShift_ind_ini]=op_preref(raw,seq)
 if nargin < 2
     seq = 'unedited';
 end

@@ -58,21 +58,9 @@ for n=1:in.sz(in.dims.coils);
         case 'w'
             coilcombos.sig(n)=abs(in.fids(point,n,1,1));
         case 'h'
-            S(n)=abs(in.fids(point,n,1,1));
-            
-            % Get noise from frequency domain because it is easier to
-            % detrend
-            noiseppmmin = -2.5;
-            noiseppmmax = -0.5;
-            
-            noisewindow=in.specs(in.ppm>noiseppmmin & in.ppm<noiseppmmax,n,1,1);
-            ppmwindow2=in.ppm(in.ppm>noiseppmmin & in.ppm<noiseppmmax)';
-            
-            P=polyfit(ppmwindow2,noisewindow,2);
-            noise=noisewindow-polyval(P,ppmwindow2);
-
-            N(n)=std(noise);
-            coilcombos.sig(n)=S(n)./(N(n).^2);
+            S=max(abs(in.fids(:,n,1,1)));
+            N=std(in.fids(end-100:end,n,1,1));
+            coilcombos.sig(n)=(S/(N.^2));
     end
 end
 
