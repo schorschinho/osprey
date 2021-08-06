@@ -12,6 +12,9 @@ function [MRSCont] = osp_saveLCM(MRSCont)
 %   is produced, independent of the type of sequence. In all cases, the
 %   water scan will be the sum of all water-unsuppressed scans.
 %
+%   If multiple spectra (e.g. with different diffusion weightings) are
+%   provided, separate .RAW files will be produced for each of them.
+%
 %   USAGE:
 %       [MRSCont] = osp_saveLCM(MRSCont);
 %
@@ -50,16 +53,21 @@ end
 % Loop over all datasets
 for kk = 1:MRSCont.nDatasets
     
-    % Write LCModel .RAW files depending on sequence type
-    % Get TE and the input file name
-    te                  = MRSCont.processed.A{kk}.te;
-    [path,filename,~]   = fileparts(MRSCont.files{kk});
-    
-    % For batch analysis, get the last two sub-folders (e.g. site and
-    % subject) to augment the filename, avoiding duplicate output filenames
-    path_split          = regexp(path,filesep,'split');
-    if length(path_split) > 2
-        name = [path_split{end-1} '_' path_split{end} '_' filename];
+    % Extract shared information for most datatypes here; for dw-MRS, there
+    % is a second layer of cells that we have to loop over as well.
+    if ~MRSCont.flags.isDWMRS
+        % Write LCModel .RAW files depending on sequence type
+        % Get TE and the input file name
+        te                  = MRSCont.processed.A{kk}.te;
+        [path,filename,~]   = fileparts(MRSCont.files{kk});
+        
+        % For batch analysis, get the last two sub-folders (e.g. site and
+        % subject) to augment the filename, avoiding duplicate output filenames
+        path_split          = regexp(path,filesep,'split');
+        if length(path_split) > 2
+            name = [path_split{end-1} '_' path_split{end} '_' filename];
+        end
+        
     end
     
     % Set up complete output filename strings, then write LCM .RAW files.
@@ -107,6 +115,33 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.opts.fit.lcmodel.outfileDiff1{kk}   = outfileDiff1;
         MRSCont.opts.fit.lcmodel.outfileDiff2{kk}   = outfileDiff2;
         MRSCont.opts.fit.lcmodel.outfileSum{kk}     = outfileSum;
+        
+    elseif MRSCont.flags.isDWMRS
+        
+        % Determine number of diffusion-weighted spectra
+        nDW = length(MRSCont.processed.A{kk});
+        % Get the b values
+        bVals = MRSCont.raw{1}.nii_mrs.hdr_ext.dim_6_header.Bval;
+        
+        for dd = 1:nDW
+                [path,filename,ext]       = fileparts(MRSCont.files{kk});
+                if strcmp(ext, '.gz')
+                    % If compressed, remove the .nii part as well
+                    filename = strrep(filename, '.nii', '');
+                end
+            
+            % For batch analysis, get the last two sub-folders (e.g. site and
+            % subject) to augment the filename, avoiding duplicate output filenames
+            path_split          = regexp(path,filesep,'split');
+            if length(path_split) > 2
+                name = [path_split{end-1} '_' path_split{end} '_' filename];
+            end
+            te              = MRSCont.processed.A{kk}{dd}.te;
+            outfile         = fullfile(saveDestination,'metabs', [name '_bVal' num2str(bVals(dd)) '_LCM_A.RAW']);
+            RF              = io_writelcm(MRSCont.processed.A{kk}{dd},outfile,te);
+            
+            MRSCont.opts.fit.lcmodel.outfileA{kk}{dd} = outfile;
+        end
         
     else
         error('No flag set for sequence type!');

@@ -27,6 +27,7 @@ MRSCont.flags.isHERMES      = 0;
 MRSCont.flags.isHERCULES    = 0;
 MRSCont.flags.isPRIAM       = 0;
 MRSCont.flags.isMRSI        = 0;
+MRSCont.flags.isDWMRS       = 0;
 MRSCont.flags.addImages        = 0;
 MRSCont.opts.savePDF                = 0;
 MRSCont.opts.saveLCM                = 0;

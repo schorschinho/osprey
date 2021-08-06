@@ -35,7 +35,7 @@ end
 
 %% Define order based on the supplied files and the sequence type
 
-if MRSCont.flags.isUnEdited
+if MRSCont.flags.isUnEdited || MRSCont.flags.isDWMRS
     numberstring = ['1' num2str(MRSCont.flags.hasMM) num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
     switch numberstring
         case '1000'

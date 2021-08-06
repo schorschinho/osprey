@@ -47,6 +47,8 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     elseif MRSCont.flags.isHERCULES
         % For now, process HERCULES like HERMES data
         [MRSCont] = osp_processHERCULES(MRSCont);
+    elseif MRSCont.flags.isDWMRS
+        [MRSCont] = osp_processDW(MRSCont);
     else
         msg = 'No flag set for sequence type!';
         fprintf(msg);
@@ -61,14 +63,20 @@ end
 % Gather some more information from the processed data;
 SubSpecNames = fieldnames(MRSCont.processed);
 NoSubSpec = length(fieldnames(MRSCont.processed));
-for ss = 1 : NoSubSpec
-    for kk = 1 : MRSCont.nDatasets
+if iscell(MRSCont.processed.A{1})
+    NoExtras = length(MRSCont.processed.A{1});
+else
+    for ss = 1 : NoSubSpec
+        for kk = 1 : MRSCont.nDatasets
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
-            temp_sz_sw{1,kk} = ['np_sw_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1)) '_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth)];   
+            temp_sz_sw{1,kk} = ['np_sw_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1)) '_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth)];
+        end
+        [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth_ind,~]  = unique(temp_sz_sw,'Stable');
+        [MRSCont.info.(SubSpecNames{ss}).max_ndatapoint,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind] = max(temp_sz);
     end
-    [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth_ind,~]  = unique(temp_sz_sw,'Stable');
-    [MRSCont.info.(SubSpecNames{ss}).max_ndatapoint,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind] = max(temp_sz);
 end
+
+
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 % Creates y-axis range to align the process plots between datasets
 
@@ -77,7 +85,11 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
 else
     MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
 end
-MRSCont = osp_scale_yaxis(MRSCont,'OspreyProcess');
+
+if ~MRSCont.flags.isDWMRS
+    MRSCont = osp_scale_yaxis(MRSCont,'OspreyProcess');
+end
+
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess    = 1;
@@ -110,13 +122,19 @@ elseif MRSCont.flags.isHERCULES
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
     end
+elseif MRSCont.flags.isDWMRS
+    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl'};
+    subspec = {'A'};
+    if MRSCont.flags.hasRef
+        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl'};
+    end
 else
     msg = 'No flag set for sequence type!';
     fprintf(fileID,msg);
     error(msg);
 end
 
-if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI && ~MRSCont.flags.isDWMRS
     if ~MRSCont.flags.hasRef
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
     else
@@ -127,7 +145,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
 end
 
 % Optional:  Create all pdf figures
-if MRSCont.opts.savePDF
+if MRSCont.opts.savePDF && ~MRSCont.flags.isDWMRS
     osp_plotAllPDF(MRSCont, 'OspreyProcess')
 end
 
@@ -137,7 +155,7 @@ if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
 end
 
 % Optional: write edited files to jMRUI .txt files
-if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI && ~MRSCont.flags.isDWMRS
     [MRSCont] = osp_saveJMRUI(MRSCont);
 end
 
@@ -145,12 +163,12 @@ end
 % LCModel and jMRUI
 % SPAR/SDAT if Philips
 % RDA if Siemens
-if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI && ~MRSCont.flags.isDWMRS
     [MRSCont] = osp_saveVendor(MRSCont);
 end
 
 % Optional: write edited files to NIfTI-MRS format
-if MRSCont.opts.saveNII && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if MRSCont.opts.saveNII && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI && ~MRSCont.flags.isDWMRS
     [MRSCont] = osp_saveNII(MRSCont);
 end
 

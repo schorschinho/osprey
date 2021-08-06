@@ -179,18 +179,67 @@ switch MRSCont.opts.fit.method
         end
         
         % Read in the user-supplied control file (if there is one)
-        if isfield(MRSCont.opts.fit,'basisSetFile') 
-            if ~isempty(MRSCont.opts.fit.basisSetFile)
-                LCMparam = osp_readlcm_control(MRSCont.opts.fit.basisSetFile);
+        if isfield(MRSCont.opts.fit,'controlFile') 
+            if ~isempty(MRSCont.opts.fit.controlFile)
+                % Load all control parameters
+                LCMparam = osp_readlcm_control(MRSCont.opts.fit.controlFile);
+                
+                % Make some changes to the control file that will apply to
+                % ALL control files
+                LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'filps', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'filcsv', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'filcoo', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' MRSCont.opts.fit.basisSetFile '''']);
+                LCMparam = osp_editControlParameters(LCMparam, 'savdir', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'lcsi_sav_1', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'lcsi_sav_2', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'filcsi_sav_1', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'filcsi_sav_2', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'ndslic', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'ndrows', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'ndcols', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'islice', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'irowst', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'irowen', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'icolst', '');
+                LCMparam = osp_editControlParameters(LCMparam, 'icolen', '');
+                
+                % The LPS parameter appears to break the postscript file
+                % production for some weird reason, remove it here.
+                LCMparam = osp_editControlParameters(LCMparam, 'lps', '');
+                
+                
+                % Now loop over all datasets
+                for kk = 1:MRSCont.nDatasets
+                    LCMparam = osp_editControlParameters(LCMparam, 'srcraw', ['''' MRSCont.files{kk} '''']);
+                    
+                    % Loop over number of diffusion-weighted spectra and
+                    % create a control file for each spectrum that needs to
+                    % be fit
+                    nDW = length(MRSCont.opts.fit.lcmodel.outfileA{kk});
+                    for dd = 1:nDW
+                        
+                        % Write control file
+                        MRSCont = osp_writelcm_control(MRSCont, kk, dd, 'A', LCMparam);
+                    end
+                    
+                end
+                
             else
-                error('The field ''opts.fit.basisSetFile'' in the job file is specified, but empty.')
+                error('The field ''opts.fit.controlFile'' in the job file is specified, but empty.')
+            end
+            
+        else
+            % If the field does not exist, write default control parameters
+            for kk = 1:MRSCont.nDatasets
+                LCMparam = osp_lcmcontrol_params(MRSCont.flags.isMEGA);
+                MRSCont       = osp_writelcm_control(MRSCont, kk, 'A', LCMparam);
             end
         end
         
-        for kk = 1:MRSCont.nDatasets
-            LCMparam = osp_lcmcontrol_params(MRSCont.flags.isMEGA);
-            MRSCont       = osp_writelcm_control(MRSCont, kk, 'A', LCMparam);
-        end
+
         
 end
 

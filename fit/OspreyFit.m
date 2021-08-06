@@ -24,9 +24,6 @@ function [MRSCont] = OspreyFit(MRSCont)
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
-%
-%   HISTORY:
-%       2019-02-24: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
@@ -49,7 +46,6 @@ MRSCont.runtime.Fit = 0;
 % - Apply settings on which metabolites/MM/lipids to include in the fit
 % - Check for inconsistencies between basis set and data
 [MRSCont] = osp_fitInitialise(MRSCont);
-%MRSCont.opts.fit.outputFolder = outputFolder;
 
 % Call the fit functions (depending on sequence type)
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
@@ -62,6 +58,8 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     elseif MRSCont.flags.isHERCULES
         % For now, fit HERCULES like HERMES data
         [MRSCont] = osp_fitHERCULES(MRSCont);
+    elseif MRSCont.flags.isDWMRS
+        [MRSCont] = osp_fitDWMRS(MRSCont);
     else
         msg = 'No flag set for sequence type!';
         fprintf(msg);
@@ -83,7 +81,7 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
         refFitTime = tic;
         % Loop over all the datasets here
         for kk = 1:MRSCont.nDatasets
-            [~] = printLog('OspreyFitRef',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+            [~] = printLog('OspreyFitRef', kk, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI);
             if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
                 [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
             end
@@ -126,7 +124,7 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
     MRSCont.fit.resBasisSet = MRSCont.fit.resBasisSet{2,2};
 end
 
-%% Store  and print some QM parameters
+%% Store and print some QM parameters
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_fit_Quality(MRSCont);
 
