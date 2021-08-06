@@ -65,9 +65,9 @@ end
 if MRSCont.flags.isPRIAM == 1
     XVox = MRSCont.raw{1}.nXvoxels;
 else if MRSCont.flags.isMRSI == 1
-        XVox = MRSCont.raw{1}.nXvoxels;
-        YVox = MRSCont.raw{1}.nYvoxels;
-        ZVox = MRSCont.raw{1}.nZvoxels;
+        XVox = MRSCont.raw_w{1}.nXvoxels;
+        YVox = MRSCont.raw_w{1}.nYvoxels;
+        ZVox = MRSCont.raw_w{1}.nZvoxels;
     end
 end
 
@@ -89,16 +89,10 @@ if MRSCont.flags.isPRIAM == 1
     end
 elseif MRSCont.flags.isMRSI == 1
     fitOpts.isMRSI = 1;
-    if isfield( MRSCont, 'mask')
-        [r, c] = find(MRSCont.mask{1}== 1);
-        cx = round(mean(r));
-        cy = round(mean(c));
-        cz = round(ZVox/2);
-    else
-       cx = round(XVox/2);
-       cy = round(YVox/2);
-       cz = round(ZVox/2);
-    end
+
+   cx = round(XVox/2);
+   cy = round(YVox/2);
+   cz = round(ZVox/2);
    if ZVox <=1
         dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},[cx,cy]);  
     else
