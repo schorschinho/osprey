@@ -59,20 +59,24 @@ for rr = 1:length(C)
                 title = [title, C{rr}{kk}];
             end
             LCMparam.title = title;
+            
+        else
+            
+            % If the number of entries in this line is even, proceed, otherwise
+            % throw an error
+            if mod(length(C{rr}),2) == 0
+                % Evaluate pairwise
+                for pp = 1:length(C{rr})/2
+                    P{1} = C{rr}{2*pp-1};
+                    P{2} = C{rr}{2*pp};
+                    LCMparam = parseControlFileLine(LCMparam, P);
+                end
+            else
+                error('Invalid control file line: %s', C{rr});
+            end
+        
         end
         
-        % If the number of entries in this line is even, proceed, otherwise
-        % throw an error
-        if mod(length(C{rr}),2) == 0
-            % Evaluate pairwise
-            for pp = 1:length(C{rr})/2
-                P{1} = C{rr}{2*pp-1};
-                P{2} = C{rr}{2*pp};
-                LCMparam = parseControlFileLine(LCMparam, P);
-            end
-        else
-            error('Invalid control file line: %s', C{rr});
-        end
     end   
 
 end

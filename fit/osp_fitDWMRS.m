@@ -132,7 +132,7 @@ fitParams.residual      = fitParams.data - fitParams.completeFit;
 % The .coord files also contain the individual metabolite fits, BUT only if
 % the estimate is not zero, and the individual metabolite fits include the
 % baseline.
-fitParams.ampl          = zeros(length(fitParams.name), 1);
+fitParams.ampl          = tab.concentration;
 fitParams.indivMets     = zeros(info.n, length(fitParams.name));
 for rr = 1:length(fitParams.name)
     % Check whether a particular metabolite has been fit
@@ -141,7 +141,6 @@ for rr = 1:length(fitParams.name)
     % subtracting the baseline
     if idxMatch
         fitParams.indivMets(:,rr) = spectra_metabolites(:,idxMatch) - fitParams.baseline;
-        fitParams.ampl(rr)        = tab.concentration(idxMatch);
     end
 end
 

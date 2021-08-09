@@ -186,6 +186,7 @@ switch MRSCont.opts.fit.method
                 
                 % Make some changes to the control file that will apply to
                 % ALL control files
+                LCMparam = osp_editControlParameters(LCMparam, 'lprint', '6');
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filps', '');
@@ -206,9 +207,7 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'icolst', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'icolen', '');
                 
-                % The LPS parameter appears to break the postscript file
-                % production for some weird reason, remove it here.
-                LCMparam = osp_editControlParameters(LCMparam, 'lps', '');
+
                 
                 
                 % Now loop over all datasets

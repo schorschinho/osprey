@@ -125,7 +125,7 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
 end
 
 %% Store and print some QM parameters
-if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI && ~MRSCont.flags.isDWMRS
     [MRSCont] = osp_fit_Quality(MRSCont);
 
     % Store data quality measures in csv file
