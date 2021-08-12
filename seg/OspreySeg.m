@@ -183,22 +183,22 @@ for kk = 1:MRSCont.nDatasets
         %%% 4. CHECK WHETHER SEGMENTATION HAS BEEN RUN BEFORE %%%
         % Get the file name of the second T1 from the SPM volume stored in
         % the MRS container
-        [T1_2nd_dir, T1_2nd_name, T1_2nd_ext]  = fileparts(MRSCont.coreg.vol_image_2nd{kk}.fname);
-        segFileGM2nd               = fullfile(T1_2nd_dir, ['c1' T1_2nd_name T1_2nd_ext]);
+        [T1_2nd_dir, T1_2nd_name, T1_2nd_ext]   = fileparts(MRSCont.coreg.vol_image_2nd{kk}.fname);
+        segFileGM2nd                            = fullfile(T1_2nd_dir, ['c1' T1_2nd_name T1_2nd_ext]);
         % If a GM-segmented file doesn't exist, start the segmentation
         if ~exist(segFileGM2nd,'file')
-            createSegJob(niftiFile2nd);
+            createSegJob(fullfile(T1_2nd_dir, [T1_2nd_name T1_2nd_ext]));
         end
         
         
-        %%% 5. CREATE MASKED TISSUE MAPS %%%
+        %%% 5. CREATE MASKED TISSUE MAPS %%%      
         % Define file names
         segFileWM2nd   = fullfile(T1_2nd_dir, ['c2' T1_2nd_name T1_2nd_ext]);
-        segFileCSF2nd  = fullfile(T1_2nd_dir, ['c3' T1_2nd_name T1_2nd_ext]);
+        segFileCSF2nd   = fullfile(T1_2nd_dir, ['c3' T1_2nd_name T1_2nd_ext]);
         % Load volumes
         GMvol2nd  = spm_vol(segFileGM2nd);
         WMvol2nd  = spm_vol(segFileWM2nd);
-        CSFvol2nd = spm_vol(segFileCSF2nd);
+        CSFvol2nd  = spm_vol(segFileCSF2nd);
         % Get the filename of the resliced voxel mask from the SPM volume
         % in the MRSCont container
         vol_mask_2nd = MRSCont.coreg.vol_mask_2nd{kk};
@@ -232,68 +232,89 @@ for kk = 1:MRSCont.nDatasets
         vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
 
         % CSF
-        vol_CSFMask.fname   = fullfile(saveDestination, [saveName '_CSF_2ndT1' maskExt2nd]);
-        vol_CSFMask.descrip = 'CSFmasked_MRS_Voxel_Mask';
-        vol_CSFMask.dim     = vol_mask_2nd.dim;
-        vol_CSFMask.dt      = vol_mask_2nd.dt;
-        vol_CSFMask.mat     = vol_mask_2nd.mat;
+        vol_CSFMask.fname    = fullfile(saveDestination, [saveName '_CSF_2ndT1' maskExt2nd]);
+        vol_CSFMask.descrip  = 'CSFmasked_MRS_Voxel_Mask';
+        vol_CSFMask.dim      = vol_mask_2nd.dim;
+        vol_CSFMask.dt       = vol_mask_2nd.dt;
+        vol_CSFMask.mat      = vol_mask_2nd.mat;
         CSF_voxmask_vol     = CSFvol2nd.private.dat(:,:,:) .* vol_mask_2nd.private.dat(:,:,:);
-        vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
+        vol_CSFMask          = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
         
         
+        %%% 6. DETERMINE FRACTIONAL TISSUE VOLUMES %%%
+        % Sum image intensities over the entire masked tissue specific volume
+        GMsum  = sum(sum(sum(vol_GMMask.private.dat(:,:,:))));
+        WMsum  = sum(sum(sum(vol_WMMask.private.dat(:,:,:))));
+        CSFsum = sum(sum(sum(vol_CSFMask.private.dat(:,:,:))));
+
+        % Normalize
+        fGM  = GMsum / (GMsum + WMsum + CSFsum);
+        fWM  = WMsum / (GMsum + WMsum + CSFsum);
+        fCSF = CSFsum / (GMsum + WMsum + CSFsum);
+
+        % Save normalized fractional tissue volumes to MRSCont
+        MRSCont.seg.tissue.secondT1.fGM(kk)  = fGM;
+        MRSCont.seg.tissue.secondT1.fWM(kk)  = fWM;
+        MRSCont.seg.tissue.secondT1.fCSF(kk) = fCSF;
         
-        %%%%%%%% STOP HERE %%%%%%%%%%
         
-        
-        %%% 6. DETERMINE PET IMAGE INTENSITY %%%
+        %%% 7. DETERMINE PET IMAGE INTENSITY %%%
         % Get the histogram of PET image intensities inside the voxel
-        % Get the input file name
+        % Get the input file name and the PET image
+        vol_image_pet = MRSCont.coreg.vol_image_pet{kk};
         [path,filename,~]   = fileparts(MRSCont.files{kk});
-        [maskDir, maskName, maskExt] = fileparts(vol_mask_2nd.fname);
         % For batch analysis, get the last two sub-folders (e.g. site and
         % subject)
         path_split          = regexp(path,filesep,'split');
         if length(path_split) > 2
             saveName = [path_split{end-1} '_' path_split{end} '_' filename];
         end
-        vol_PETMask.fname    = fullfile(saveDestination, [saveName '_PET' maskExt]);
-        vol_PETMask.descrip  = 'PETmasked_MRS_Voxel_Mask';
-        vol_PETMask.dim      = vol_mask_2nd.dim;
-        vol_PETMask.dt       = vol_mask_2nd.dt;
-        vol_PETMask.mat      = vol_mask_2nd.mat;
-        PET_voxmask_vol      = vol_image_pet.private.dat(:,:,:) .* vol_mask_2nd.private.dat(:,:,:);
-        vol_PETMask          = spm_write_vol(vol_PETMask, PET_voxmask_vol);
         
-        % Get everything greater than zero
-        PETIntensityInVoxel = nonzeros(vol_PETMask.private.dat(:,:,:));
-        rawPETIntensitySum = sum(PETIntensityInVoxel);
-        
-        idx = PETIntensityInVoxel > 0.2;
-        PETIntensityInVoxel = PETIntensityInVoxel(idx);
-        nBins = round(sqrt(length(PETIntensityInVoxel)));           % Number of bins
-        [yIntensity, xIntensity] = hist(PETIntensityInVoxel,nBins);
-        
-        % Initial guesses
-        [maxIntensityInit, maxIndexInit] = max(yIntensity);
-        % Get starting values for linear baseline and offset
-        grad_points = (yIntensity(end) - yIntensity(1)) ./ abs(xIntensity(end) - xIntensity(1));
-        LinearInit = grad_points ./ abs(xIntensity(1) - xIntensity(2));
-        constInit = (yIntensity(end)+yIntensity(1))/2;
-        
-        % Set initials and run model
-        GaussModelInit = [maxIntensityInit -0.2 xIntensity(maxIndexInit) -LinearInit constInit];
-        nlinopts = statset('nlinfit');
-        nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck','off');
-        [GaussModelParams, residPlot] = nlinfit(xIntensity, yIntensity, @GaussModel, GaussModelInit, nlinopts); % re-run for residuals for output figure
-
-        
-        % Save all kinds of estimates
-        MRSCont.seg.pet.rawPETIntensitySum(kk) = rawPETIntensitySum;
-        MRSCont.seg.pet.histogram.xIntensity{kk} = xIntensity;
-        MRSCont.seg.pet.histogram.yIntensity{kk} = yIntensity;
-        MRSCont.seg.pet.histogram.fitParams{kk}  = GaussModelParams;
-        MRSCont.seg.pet.histogram.mostFrequentIntensity(kk)  = GaussModelParams(3);
-        MRSCont.seg.pet.histogram.distFWHM(kk)  = GaussModelParams(2);
+        % Loop over tissue types (for PET, do WM and GM only)
+        tissueTypes = {'GM', 'WM'};
+        tissueMasks = {vol_GMMask, vol_WMMask};
+        for rr = 1:length(tissueTypes)
+            [tissueMaskDir, tissueMaskName, tissueMaskExt] = fileparts(tissueMasks{rr}.fname);
+            vol_PETMask.fname    = fullfile(saveDestination, [saveName '_PET_' tissueTypes{rr} tissueMaskExt]);
+            vol_PETMask.descrip  = ['PETmasked_', tissueTypes{rr}, '_MRS_Voxel_Mask'];
+            vol_PETMask.dim      = tissueMasks{rr}.dim;
+            vol_PETMask.dt       = tissueMasks{rr}.dt;
+            vol_PETMask.mat      = tissueMasks{rr}.mat;
+            PET_voxmask_vol      = vol_image_pet.private.dat(:,:,:) .* tissueMasks{rr}.private.dat(:,:,:);
+            vol_PETMask          = spm_write_vol(vol_PETMask, PET_voxmask_vol);
+            
+            % Get everything greater than zero
+            PETIntensityInVoxel     = nonzeros(vol_PETMask.private.dat(:,:,:));
+            
+            % 1st metric: Raw pixel intensity sum over all voxels
+            rawPETIntensitySum      = sum(PETIntensityInVoxel);
+            
+            % 2nd metric: Create a histogram and determine the maximum of
+            % the pixel intensity distribution
+            idx = PETIntensityInVoxel > 0.2; % cut off on lower end of greyscale range because of many dark pixels
+            PETIntensityInVoxel     = PETIntensityInVoxel(idx);
+            nBins                   = round(sqrt(length(PETIntensityInVoxel)));  % Number of bins
+            [yIntensity, xIntensity] = hist(PETIntensityInVoxel,nBins);
+            % Initial guesses for a Gaussian fit to the histogram
+            [maxIntensityInit, maxIndexInit] = max(yIntensity);
+            % Get starting values for linear baseline and offset
+            grad_points = (yIntensity(end) - yIntensity(1)) ./ abs(xIntensity(end) - xIntensity(1));
+            LinearInit  = grad_points ./ abs(xIntensity(1) - xIntensity(2));
+            constInit   = (yIntensity(end)+yIntensity(1))/2;
+            % Set initials and run model
+            GaussModelInit  = [maxIntensityInit -0.2 xIntensity(maxIndexInit) -LinearInit constInit];
+            nlinopts        = statset('nlinfit');
+            nlinopts        = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck','off');
+            [GaussModelParams, residPlot] = nlinfit(xIntensity, yIntensity, @GaussModel, GaussModelInit, nlinopts); % re-run for residuals for output figure
+            
+            % Save metrics
+            MRSCont.seg.pet.rawPETIntensitySum.(tissueTypes{rr})(kk)                = rawPETIntensitySum;
+            MRSCont.seg.pet.histogram.xIntensity.(tissueTypes{rr}){kk}              = xIntensity;
+            MRSCont.seg.pet.histogram.yIntensity.(tissueTypes{rr}){kk}              = yIntensity;
+            MRSCont.seg.pet.histogram.fitParams.(tissueTypes{rr}){kk}               = GaussModelParams;
+            MRSCont.seg.pet.histogram.mostFrequentIntensity.(tissueTypes{rr})(kk)  = GaussModelParams(3);
+            MRSCont.seg.pet.histogram.distFWHM.(tissueTypes{rr})(kk)                = abs(GaussModelParams(2));
+        end
         
     end
 end
@@ -311,9 +332,14 @@ fclose(fileID); %close log file
 
 
 %% Create table and csv file
-tissueTypes = {'fGM','fWM','fCSF'};
-tissue = horzcat(MRSCont.seg.tissue.fGM',MRSCont.seg.tissue.fWM',MRSCont.seg.tissue.fCSF');
-MRSCont.seg.tables = array2table(tissue,'VariableNames',tissueTypes);
+if MRSCont.flags.hasSecondT1
+    tissueTypes         = {'fGM','fWM','fCSF', 'fGM_secondT1', 'fWM_secondT1', 'fCSF_secondT1'};
+    tissue              = horzcat(MRSCont.seg.tissue.fGM',MRSCont.seg.tissue.fWM',MRSCont.seg.tissue.fCSF', MRSCont.seg.tissue.secondT1.fGM', MRSCont.seg.tissue.secondT1.fWM', MRSCont.seg.tissue.secondT1.fCSF');
+else
+    tissueTypes         = {'fGM','fWM','fCSF'};
+    tissue              = horzcat(MRSCont.seg.tissue.fGM',MRSCont.seg.tissue.fWM',MRSCont.seg.tissue.fCSF');
+end
+MRSCont.seg.tables  = array2table(tissue,'VariableNames',tissueTypes);
 writetable(MRSCont.seg.tables,[saveDestination  filesep 'TissueFractions.csv']);
 
 

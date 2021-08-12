@@ -1,10 +1,10 @@
-function out = osp_plotCoregPET(MRSCont, kk)
-%% out = osp_plotCoregPET(MRSCont, kk)
-%   Creates a figure showing coregistration between the PET image and the 
+function out = osp_plotSegmentPET(MRSCont, kk)
+%% out = osp_plotSegmentPET(MRSCont, kk)
+%   Creates a figure showing segmentation of the PET image and the 
 %   MRS voxel stored in an Osprey data container
 %
 %   USAGE:
-%       out = osp_plotCoregPET(MRSCont, kk, GUI)
+%       out = osp_plotSegmentPET(MRSCont, kk)
 %
 %   OUTPUTS:
 %       out     = MATLAB figure handle
@@ -22,7 +22,7 @@ function out = osp_plotCoregPET(MRSCont, kk)
 
 % Check that OspreyCoreg has been run before
 if ~MRSCont.flags.didCoreg
-    error('Trying to plot coregistration data, but data has not been processed yet. Run OspreyCoreg first.')
+    error('Trying to plot segmentation data, but data has not been processed yet. Run OspreyCoreg first.')
 end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
@@ -75,7 +75,7 @@ else
     title(['Coregistration with PET: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
-axesHandles.coregImage = subplot(2, 1, 1);
+axesHandles.coregImage = subplot(2, 2, [1,2]);
 imagesc(axesHandles.coregImage, three_plane_img);
 colormap('gray');
 caxis([0 1])
@@ -89,38 +89,38 @@ else
 end
 
 %%% 5. ADD PET IMAGE INTENSITY DISTRIBUTION PLOT %%%
-% Extract the parameters from the MRSCont
-axesHandles.IntensityDistributionPlot = subplot(2, 1, 2);
-rawPETIntensitySum      = MRSCont.coreg.pet.metrics.rawPETIntensitySum(kk);
-xIntensity              = MRSCont.coreg.pet.histogram.xIntensity{kk};
-yIntensity              = MRSCont.coreg.pet.histogram.yIntensity{kk};
-GaussModelParams        = MRSCont.coreg.pet.histogram.fitParams{kk};
-mostFrequentIntensity   = MRSCont.coreg.pet.histogram.mostFrequentIntensity(kk);
-distSD                  = MRSCont.coreg.pet.histogram.distSD(kk);
-% Evaluate model
-yFit = GaussModel(GaussModelParams,xIntensity);
-plot(xIntensity, yIntensity, 'LineWidth', 1, 'Color', MRSCont.colormap.Foreground, 'Parent', axesHandles.IntensityDistributionPlot);
-hold on;
-plot(xIntensity, yFit, 'LineWidth', 1.6, 'Color', MRSCont.colormap.Accent, 'Parent', axesHandles.IntensityDistributionPlot);
-hold off;
-if ~MRSCont.flags.isGUI
-    title('PET image intensity distribution and Gaussian fit', 'Interpreter', 'none','FontSize', 16);
-else
-    title('PET image intensity distribution and Gaussian fit', 'Interpreter', 'none','FontSize', 16, 'Color', MRSCont.colormap.Foreground);
+tissueTypes = {'GM', 'WM'};
+for rr = 1:length(tissueTypes)
+    % Navigate to the appropriate subplot tile
+    axesHandles.IntensityDistributionPlot{rr} = subplot(2, 2, 2+rr);
+    % Extract the parameters from the MRSCont
+    rawPETIntensitySum      = MRSCont.seg.pet.rawPETIntensitySum.(tissueTypes{rr})(kk);
+    xIntensity              = MRSCont.seg.pet.histogram.xIntensity.(tissueTypes{rr}){kk};
+    yIntensity              = MRSCont.seg.pet.histogram.yIntensity.(tissueTypes{rr}){kk};
+    GaussModelParams        = MRSCont.seg.pet.histogram.fitParams.(tissueTypes{rr}){kk};
+    mostFrequentIntensity   = MRSCont.seg.pet.histogram.mostFrequentIntensity.(tissueTypes{rr})(kk);
+    distFWHM                = MRSCont.seg.pet.histogram.distFWHM.(tissueTypes{rr})(kk);
+    % Evaluate model
+    yFit = GaussModel(GaussModelParams,xIntensity);
+    plot(xIntensity, yIntensity, 'LineWidth', 1, 'Color', MRSCont.colormap.Foreground, 'Parent', axesHandles.IntensityDistributionPlot{rr});
+    hold on;
+    plot(xIntensity, yFit, 'LineWidth', 1.6, 'Color', MRSCont.colormap.Accent, 'Parent', axesHandles.IntensityDistributionPlot{rr});
+    hold off;
+    if ~MRSCont.flags.isGUI
+        title([tissueTypes{rr} ' PET image intensity distribution and Gaussian fit'], 'Interpreter', 'none','FontSize', 16);
+    else
+        title([tissueTypes{rr} ' PET image intensity distribution and Gaussian fit'], 'Interpreter', 'none','FontSize', 16, 'Color', MRSCont.colormap.Foreground);
+    end
+    set(axesHandles.IntensityDistributionPlot{rr}, 'LineWidth', 1, 'TickDir', 'out');
+    set(axesHandles.IntensityDistributionPlot{rr}, 'FontSize', 16);
+    set(axesHandles.IntensityDistributionPlot{rr}, 'Units', 'normalized');
+    box off;
+    xlab = [tissueTypes{rr} ' PET Image Intensity (a.u.)'];
+    ylab = 'Number of pixels';
+    %legend(axesHandles.IntensityDistributionPlot, 'Image data', 'Gaussian fit');
+    xlabel(axesHandles.IntensityDistributionPlot{rr}, xlab, 'FontSize', 16);
+    ylabel(axesHandles.IntensityDistributionPlot{rr}, ylab, 'FontSize', 16);
 end
-set(axesHandles.IntensityDistributionPlot, 'LineWidth', 1, 'TickDir', 'out');
-set(axesHandles.IntensityDistributionPlot, 'FontSize', 16);
-set(axesHandles.IntensityDistributionPlot, 'Units', 'normalized');
-% Determine the plot limits
-lowestXValue = min(cell2mat(MRSCont.coreg.pet.histogram.xIntensity));
-highestXValue = max(cell2mat(MRSCont.coreg.pet.histogram.xIntensity));
-set(axesHandles.IntensityDistributionPlot, 'xLim', [lowestXValue highestXValue]);
-box off;
-xlab = 'PET Image Intensity (a.u.)';
-ylab = 'Number of pixels';
-%legend(axesHandles.IntensityDistributionPlot, 'Image data', 'Gaussian fit');
-xlabel(axesHandles.IntensityDistributionPlot, xlab, 'FontSize', 16);
-ylabel(axesHandles.IntensityDistributionPlot, ylab, 'FontSize', 16);
 
 %%% 6. ADD OSPREY LOGO %%%
 if ~MRSCont.flags.isGUI

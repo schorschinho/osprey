@@ -1,10 +1,11 @@
-function F = GaussModel(x,freq)
-% Function for Gauss Model 
+function F = GaussModel(params,x)
+% Function for Gaussian distribution model with linear baseline term
 
 % x(1) = gaussian amplitude
-% x(2) = 1/(2*sigma^2)
-% x(3) = centre freq of peak
+% x(2) = sigma (standard deviation)
+% x(3) = mu (mean), ie center of distribution
 % x(4) = amplitude of linear baseline
 % x(5) = constant amplitude offset
 
-F = x(1)*exp(x(2)*(freq-x(3)).*(freq-x(3)))+x(4)*(freq-x(3))+x(5);
+F = params(1)/(params(2)*sqrt(2*pi)) * exp(-(1/2)*((x-params(3))/params(2)).^2) + (params(4)*(x-params(3))+params(5));
+end

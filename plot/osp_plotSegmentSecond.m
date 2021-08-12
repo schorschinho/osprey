@@ -1,7 +1,7 @@
-function out = osp_plotSegment(MRSCont, kk)
-%% out = osp_plotSegment(MRSCont, kk)
-%   Creates a figure showing output from the segmentation routine
-%   stored in an Osprey data container
+function out = osp_plotSegmentSecond(MRSCont, kk)
+%% out = osp_plotSegmentSecond(MRSCont, kk)
+%   Creates a figure showing output from the segmentation routine of a
+%   second T1 image stored in an Osprey data container
 %
 %   USAGE:
 %       out = osp_plotSegment(MRSCont, kk)
@@ -38,7 +38,7 @@ end
 % Load T1 image, mask volume, T1 max value, and voxel center
 % Get the input file name
 [path_voxel,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
-[~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
+[~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image_2nd{kk}.fname);
 % For batch analysis, get the last two sub-folders (e.g. site and
 % subject)
 path_split          = regexp(path_voxel,filesep,'split');
@@ -47,19 +47,20 @@ if length(path_split) > 2
 end
 
 segDestination = fullfile(MRSCont.outputFolder, 'SegMaps');
-GM  = fullfile(segDestination, [saveName '_GM.nii']);
-WM  = fullfile(segDestination, [saveName '_WM.nii']);
-CSF = fullfile(segDestination, [saveName '_CSF.nii']);
+GM  = fullfile(segDestination, [saveName '_GM_2ndT1.nii']);
+WM  = fullfile(segDestination, [saveName '_WM_2ndT1.nii']);
+CSF = fullfile(segDestination, [saveName '_CSF_2ndT1.nii']);
 
 vol_GM_mask  = spm_vol(GM);
 vol_WM_mask  = spm_vol(WM);
 vol_CSF_mask = spm_vol(CSF);
 
-Vimage=spm_vol(MRSCont.coreg.vol_image{kk}.fname);
+Vimage=spm_vol(MRSCont.coreg.vol_image_2nd{kk}.fname);
 
-Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);
+Vmask=spm_vol(MRSCont.coreg.vol_mask_2nd{kk}.fname);
 
 voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
+
 %%% 3. SET UP THREE PLANE IMAGE %%%
 % Generate three plane image for the output
 % Transform structural image and co-registered voxel mask from voxel to
@@ -91,19 +92,19 @@ axis equal;
 axis tight;
 axis off;
 if ~MRSCont.flags.isGUI
-    title(['Segmentation: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
+    title(['Segmentation of secondary T1: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16);
 else
-    title(['Segmentation: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
+    title(['Segmentation of secondary T1: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
 
 %%% 5. ADD TISSUE COMPOSITION %%%
 text(floor(size(vox_t,2)/2), size(img_montage,1)-15, 'voxel fraction', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
-tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fGM(kk));
+tmp1 = sprintf('%.2f', MRSCont.seg.tissue.secondT1.fGM(kk));
 text(floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
-tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fWM(kk));
+tmp1 = sprintf('%.2f', MRSCont.seg.tissue.secondT1.fWM(kk));
 text(2*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
-tmp1 = sprintf('%.2f', MRSCont.seg.tissue.fCSF(kk));
+tmp1 = sprintf('%.2f', MRSCont.seg.tissue.secondT1.fCSF(kk));
 text(3*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), size(img_montage,1)-15, tmp1, 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 
 %%% 6. ADD OSPREY LOGO %%%
