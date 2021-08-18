@@ -78,7 +78,7 @@ end
 function callLCModel(MRSCont, controlFile)
 % Wrapper function for LCModel binary
 
-callLCMCommand = [fullfile(MRSCont.ospFolder, 'libraries', 'LCModel') filesep 'lcmodel < ' controlFile ];
+callLCMCommand = ['"' fullfile(MRSCont.ospFolder, 'libraries', 'LCModel') filesep 'lcmodel" < "' controlFile '"'];
 system(callLCMCommand);
 
 end
