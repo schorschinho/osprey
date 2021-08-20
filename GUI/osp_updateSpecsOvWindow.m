@@ -30,12 +30,12 @@ function osp_updateSpecsOvWindow(gui)
         if gui.controls.GM == 0
             for g = 1 :  gui.overview.Number.Groups %Loop over groups
                 temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind);
-                    ax=get(temp,'Parent');
+                    ax=get(temp,'Children');
                     copyobj(ax.Children, gui.Plot.specsOv.Children(2));
             end
         else
            temp = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind);
-            ax=get(temp,'Parent');
+            ax=get(temp,'Children');
             copyobj(ax.Children, gui.Plot.specsOv.Children(2));          
         end
         switch Selection{1}
@@ -48,5 +48,11 @@ function osp_updateSpecsOvWindow(gui)
             otherwise
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+        end
+        h = findall(groot,'Type','figure');
+        for ff = 1 : length(h)
+            if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
+                close(h(ff))
+            end
         end
 end

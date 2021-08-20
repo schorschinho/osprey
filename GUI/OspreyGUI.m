@@ -69,7 +69,8 @@ classdef OspreyGUI < handle
         %% Initialize variables
         % Close any remaining open figures & add folders
             close all;
-            gui.font = 'Arial';
+            font=osp_platform('fonts');
+            gui.font = font.helvetica;
             [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
             gui.folder.allFolders      = strsplit(settingsFolder, filesep);
             gui.folder.ospFolder       = strjoin(gui.folder.allFolders(1:end-1), filesep); % parent folder (= Osprey folder)

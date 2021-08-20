@@ -334,6 +334,8 @@ switch fitMethod
     case 'LCModel'
         % Number of metabolites and lipid/MM basis functions
         nBasisFct = length(fitParams.name);
+        nComb   = sum(~cellfun(@isempty, strfind(fitParams.name, '_')));
+        nBasisFct =  nBasisFct - nComb; % We don't plot the combinations
 end
 
 
@@ -376,6 +378,8 @@ switch fitMethod
             baseline    = ModelOutput.baseline;
             indivPlots  = ModelOutput.indivMets;
             basisSetNames = fitParams.name;
+            indivPlots(:,contains(basisSetNames,'_')) = [];
+            basisSetNames(contains(basisSetNames,'_')) = [];
         end
 
 end

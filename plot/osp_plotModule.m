@@ -345,7 +345,7 @@ switch Module
                 nMM     = sum(~cellfun(@isempty, strfind(basisNames, 'MM')));
                 nMMLip  = nLip + nMM;
                 nMets   = length(basisNames) - nMMLip;
-                nComb   = sum(~cellfun(@isempty, strfind(basisNames, '+')));
+                nComb   = sum(~cellfun(@isempty, strfind(basisNames, '_')));
                 % No info panel string for the water fit range
                 waterFitRangeString = '';
                 % Where are the metabolite names stored?
@@ -437,7 +437,6 @@ switch Module
                     if strcmp(MRSCont.opts.fit.method, 'LCModel')
                         CRLBText = [CRLBText, [num2str(CRLB(m), '%i') '%%\n']];
                     end
-
                 end
             else %Water/reference fit but this should never happen in this loop
                 NameText = ['Water: ' ];
