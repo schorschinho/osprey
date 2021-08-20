@@ -102,13 +102,16 @@ MRSCont.fit.basisSet = [];
 
 % Check if automated basis set pick worked, otherwise the basis set from
 % the user folder is loaded.
-if isempty(MRSCont.opts.fit.basisSetFile)
-    addpath( which('fit/basissets'));
-    MRSCont.opts.fit.basisSetFile = which('fit/basissets/user/BASIS_noMM.mat');
+if isfield(MRSCont.opts.fit, 'basisSetFile') && ~strcmpi(MRSCont.opts.fit.method, 'LCModel')
     if isempty(MRSCont.opts.fit.basisSetFile)
-        error('There is no appropriate basis set to model your data. Please supply a sufficient basis set in Osprey .mat format in the fit/basissets/user/BASIS_MM.mat file! Or supply a .BASIS file for LCMOdel ');
-    else
-        ext = 1;
+        addpath(which('fit/basissets'));
+        MRSCont.opts.fit.basisSetFile = which('fit/basissets/user/BASIS_noMM.mat');
+        if isempty(MRSCont.opts.fit.basisSetFile)
+            error('There is no appropriate basis set to model your data. Please supply a sufficient basis set in Osprey .mat format in the fit/basissets/user/BASIS_MM.mat file! Or supply a .BASIS file for LCModel ');
+        else
+            ext = 1;
+        end
+        
     end
 end
 
