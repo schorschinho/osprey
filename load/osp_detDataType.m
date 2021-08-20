@@ -107,6 +107,9 @@ for kk = 1:length(files)
             buffer.vendor{kk}       = 'Siemens';
             buffer.datatype{kk}     = 'TWIX';
         elseif strcmpi(ext,'.RAW')
+            buffer.vendor{kk}       = 'LCModel';
+            buffer.datatype{kk}     = 'RAW';
+        elseif strcmpi(ext,'.LAB')
             buffer.vendor{kk}       = 'Philips';
             buffer.datatype{kk}     = 'RAW';
         elseif strcmpi(ext,'.SDAT')

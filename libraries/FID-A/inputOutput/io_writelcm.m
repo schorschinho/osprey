@@ -3,11 +3,11 @@
 %
 % USAGE:
 % RF=io_writelcm(in,outfile,te);
-% 
+%
 % DESCRIPTION:
 % Takes MRS data in matlab structure format and writes it to a text file
 % that can be read by LCModel.
-% 
+%
 % INPUTS:
 % in         = input data in matlab structure format.
 % outfile    = Desired filename of output text file.
@@ -15,7 +15,7 @@
 %
 % OUTPUTS:
 % RF         = Same as input.  Not used.  The primary output of this
-%                function is a text file in LCModel raw format. 
+%                function is a text file in LCModel raw format.
 
 function RF=io_writelcm(in,outfile,te);
 %function RF=writelcm(in,outfile,te);
@@ -33,28 +33,25 @@ if ~in.flags.addedrcvrs
 end
 
 
-% datsets=1;
-% zop=0;
-% t0=0;
-  Bo=in.Bo;
-  hzppm=42.577*Bo;
-  dwelltime=in.dwelltime;
-  
-  % Calculate the voxel volume from certain fields
-  if isfield(in.geometry.size,'ap') % Philips 
-      % Philips has names attached to the fields
-      vol = in.geometry.size.ap * in.geometry.size.lr * in.geometry.size.cc;
-  elseif isfield(in.geometry.size,'VoIThickness') % Siemens
-      % Siemens has other names attached to the fields
-      vol = in.geometry.size.VoI_RoFOV * in.geometry.size.VoI_PeFOV * in.geometry.size.VoIThickness;
-  else %GE
-      % For GE data, there is currently no designation
-      vol = in.geometry.size.dim1 * in.geometry.size.dim2 * in.geometry.size.dim3;
-  end
-% Nuc=0;
-% PatName='No Name';
-% scanner='TrioTim';
-% addinfo='jnear';
+Bo=in.Bo;
+hzppm=42.577*Bo;
+dwelltime=in.dwelltime;
+
+% Calculate the voxel volume from certain fields
+if isfield(in.geometry.size,'ap') % Philips
+    % Philips has names attached to the fields
+    vol = in.geometry.size.ap * in.geometry.size.lr * in.geometry.size.cc;
+elseif isfield(in.geometry.size,'VoIThickness') % Siemens
+    % Siemens has other names attached to the fields
+    vol = in.geometry.size.VoI_RoFOV * in.geometry.size.VoI_PeFOV * in.geometry.size.VoIThickness;
+else %GE
+    % For GE data, there is currently no designation
+    vol = in.geometry.size.dim1 * in.geometry.size.dim2 * in.geometry.size.dim3;
+end
+% Avoid zero volume
+if vol == 0
+    vol = 1000.0;
+end
 
 
 RF=zeros(in.sz(in.dims.t),2);

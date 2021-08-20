@@ -1,8 +1,8 @@
 function [MRSCont] = OspreyLoad(MRSCont)
 %% [MRSCont] = OspreyLoad(MRSCont)
 %   This function loads the raw MRS data from all major vendors.
-%   Data is read from the provided input filenames. It is shaped according 
-%   to the type of sequence (un-edited data, MEGA-edited (ON/OFF), 
+%   Data is read from the provided input filenames. It is shaped according
+%   to the type of sequence (un-edited data, MEGA-edited (ON/OFF),
 %   HERMES/HERCULES (A/B/C/D), etc.).
 %
 %   USAGE:
@@ -17,8 +17,8 @@ function [MRSCont] = OspreyLoad(MRSCont)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-19)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -32,7 +32,7 @@ if ~isempty(MRSCont.files)
     MRSCont.flags.hasFiles = 1;
 end
 if ~isempty(MRSCont.files_mm)       %re_mm adding functionality to load MM data
-    MRSCont.flags.hasMM = 1;        %re_mm 
+    MRSCont.flags.hasMM = 1;        %re_mm
 end                                 %re_mm
 if ~isempty(MRSCont.files_ref)
     MRSCont.flags.hasRef = 1;
@@ -77,7 +77,7 @@ switch MRSCont.vendor
                 else
                     [MRSCont] = load_mrsi_data(MRSCont);
                 end
-            case 'RAW'
+            case 'LAB'
                 error('Support for Philips RAW/LAB/SIN files coming soon!');
                 %[MRSCont] = osp_LoadRAW(MRSCont);
             otherwise
@@ -103,7 +103,27 @@ switch MRSCont.vendor
                 fprintf(msg);
                 error(msg);
         end
-                
+    case 'LCModel'
+        switch MRSCont.datatype
+            case 'RAW'
+                [MRSCont] = osp_LoadRAW(MRSCont);
+            otherwise
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(msg);
+                error(msg);
+        end
+
+    case ''
+        % We left the vendor field empty for NIfTI-MRS data
+        switch MRSCont.datatype
+            case 'NIfTI-MRS'
+                [MRSCont] = osp_LoadNII(MRSCont);
+            otherwise
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(msg);
+                error(msg);
+        end
+
     otherwise
         msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
         fprintf(msg);
@@ -112,7 +132,7 @@ end
 
 % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-    if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1
+    if sum(strcmp(MRSCont.datatype, {'DATA', 'LAB', 'P'})) == 1 || ~MRSCont.flags.coilsCombined
         [MRSCont] = osp_combineCoils(MRSCont);
     else
         if ~strcmp(MRSCont.datatype, 'TWIX')

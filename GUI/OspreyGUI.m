@@ -160,7 +160,10 @@ classdef OspreyGUI < handle
                         gui.load.Names.Seq =['MRSI ' MRSCont.vendor];
                     end
                 end
-                gui.load.Names.Geom = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
+                try
+                    gui.load.Names.Geom = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
+                catch
+                end
             end
 
             if MRSCont.flags.isPRIAM
