@@ -46,20 +46,20 @@ gui.layout.fitTab.TabTitles  = gui.fit.Names;
 for t = 1 : gui.fit.Number %Loop over fits
     Selection = gui.fit.Names{t};
     % Parameter shown in the info panel on top
-    gui.upperBox.fit.box = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
+    gui.upperBox.fit.box{t} = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
     if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
         gui.upperBox.fit.upperLeftButtons = uix.Panel('Parent', gui.upperBox.fit.box, ...
             'Padding', 5, 'Title', ['Navigate voxel'],...
-            'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
             'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
         gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.fit.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
         gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
         gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','X:',...
-            'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Y:',...
-            'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Z:',...
-            'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
         gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
         gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
@@ -76,11 +76,11 @@ for t = 1 : gui.fit.Number %Loop over fits
             gui.controls.b_left_z.Enable = 'off';
         end
         gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-            'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-            'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-            'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
         gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
         gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
@@ -98,26 +98,26 @@ for t = 1 : gui.fit.Number %Loop over fits
         end
         set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
     end
-    gui.upperBox.fit.Info = uix.Panel('Parent',  gui.upperBox.fit.box, ...
+    gui.upperBox.fit.Info{t} = uix.Panel('Parent',  gui.upperBox.fit.box{t}, ...
         'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
-        'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,'BackgroundColor',...
+        'FontName', gui.font,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',...
         gui.colormap.Background,'ForegroundColor',gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-    gui.upperBox.fit.upperButtons = uix.Panel('Parent', gui.upperBox.fit.box, ...
+    gui.upperBox.fit.upperButtons = uix.Panel('Parent', gui.upperBox.fit.box{t}, ...
         'Padding', 5, 'Title', ['Save'],...
-        'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
         'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-    gui.controls.b_save_fitTab = uicontrol('Parent',gui.upperBox.fit.upperButtons,'Style','PushButton');
+    gui.controls.b_save_fitTab{t} = uicontrol('Parent',gui.upperBox.fit.upperButtons,'Style','PushButton');
     [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
     [img2] = imresize(img, 0.1);
-    set(gui.controls.b_save_fitTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-    set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint,gui});
+    set(gui.controls.b_save_fitTab{t},'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+    set(gui.controls.b_save_fitTab{t},'Callback',{@osp_onPrint,gui});
     if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-        set(gui.upperBox.fit.box, 'Width', [-0.12 -0.78 -0.1]);
+        set(gui.upperBox.fit.box{t}, 'Width', [-0.12 -0.78 -0.1]);
     else
-        set(gui.upperBox.fit.box, 'Width', [-0.9 -0.1]);
+        set(gui.upperBox.fit.box{t}, 'Width', [-0.9 -0.1]);
     end
     % Creates layout for plotting and data control
-    gui.Plot.fit = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
+    gui.Plot.fit{t} = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
         'Padding', 5,'BackgroundColor',gui.colormap.Background);
     set(gui.layout.(gui.layout.fitTabhandles{t}), 'Heights', [-0.1 -0.9]);
     if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w') %Is not concateneted or is reference/water fit
@@ -125,8 +125,20 @@ for t = 1 : gui.fit.Number %Loop over fits
     else %Is concatenated and not water/reference
         gui.fit.Style = 'conc';
     end
+    
+    
     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+         switch MRSCont.opts.fit.method
+                case 'LCModel'
+                    if strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w')
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.h2oarea .* MRSCont.fit.scale{1,gui.controls.Selected};
+                    else
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
+                        CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.CRLB;
+                    end
+                case 'Osprey'
+                    RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
+        end
         ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
         ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
         if ~strcmp(gui.fit.Names{t}, 'ref') && ~strcmp(gui.fit.Names{t}, 'w')
@@ -134,7 +146,17 @@ for t = 1 : gui.fit.Number %Loop over fits
             refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
         end
     elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
-        RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+         switch MRSCont.opts.fit.method
+                case 'LCModel'
+                    if strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w')
+                        RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.h2oarea .* MRSCont.fit.scale{gui.controls.Selected};
+                    else
+                        RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+                        CRLB    = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.CRLB;
+                    end
+                case 'Osprey'
+                    RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+        end
         ph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
         ph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
         if ~strcmp(gui.fit.Names{t}, 'ref') && ~strcmp(gui.fit.Names{t}, 'w')
@@ -142,13 +164,54 @@ for t = 1 : gui.fit.Number %Loop over fits
             refFWHM = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
         end
     else
-        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+        switch MRSCont.opts.fit.method
+                case 'LCModel'
+                    if strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w')
+                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.h2oarea .* MRSCont.fit.scale{gui.controls.Selected};
+                    else
+                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+                        CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.CRLB;
+                    end
+                case 'Osprey'
+                    RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+        end
         ph0 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
         ph1 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
         if ~strcmp(gui.fit.Names{t}, 'ref') && ~strcmp(gui.fit.Names{t}, 'w')
             refShift = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
             refFWHM = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
         end
+    end
+    
+    % For this visualization, we will have to make a few
+    % distinctions upfront since the modeling algorithms (LCModel
+    % vs. Osprey) do not always return the same kinds of data, or they
+    % return them in different formats.
+    switch MRSCont.opts.fit.method
+        case 'LCModel'
+            % Number of metabolites and lipid/MM basis functions
+            basisNames = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.name;
+            nLip    = sum(~cellfun(@isempty, strfind(basisNames, 'Lip')));
+            nMM     = sum(~cellfun(@isempty, strfind(basisNames, 'MM')));
+            nMMLip  = nLip + nMM;
+            nMets   = length(basisNames) - nMMLip;
+            nComb   = sum(~cellfun(@isempty, strfind(basisNames, '_')));
+            % No info panel string for the water fit range
+            waterFitRangeString = '';
+            % Where are the metabolite names stored?
+            basisSetNames = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.name;
+            % Smaller fonts for the results
+            resultsFontSize = 8;
+        case 'Osprey'
+            % Number of metabolites and lipid/MM basis functions
+            nMets   = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets;
+            nMMLip  = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM;
+            % Additional info panel string for the water fit range
+            waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
+            % Where are the metabolite names stored?
+            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name;
+             % Larger fonts for the results
+            resultsFontSize = 11;
     end
 
 
@@ -157,78 +220,103 @@ for t = 1 : gui.fit.Number %Loop over fits
         StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t},...
             '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f'),...
             'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
-            ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.basisSet.nMets) '; Number of MM/lipids: ' num2str(MRSCont.fit.basisSet.nMM) ...
+            ' ppm\nNumber of metabolites: ' num2str(nMets) '; Number of MM/lipids: ' num2str(nMMLip) ...
             ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected})];
     else if strcmp (Selection, 'ref') %Reference data?
             StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t},...
-                '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
+                '\n' waterFitRangeString];
         else %Is water data
             StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t},...
-                '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
+                '\n' waterFitRangeString];
         end
     end
 
     %%% 4. FILLING FITTED AMPLITUDE PANEL %%%
     % Creates the panel on the right side with the fitted ammplitudes
-    gui.InfoText.fit  = uicontrol('Parent',gui.upperBox.fit.Info,'style','text',...
-        'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+    gui.InfoText.fit{t}  = uicontrol('Parent',gui.upperBox.fit.Info{t},'style','text',...
+        'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-    gui.Results.fit = uix.Panel('Parent', gui.Plot.fit,...
-        'Title', ['Raw Amplitudes'],'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,...
+    gui.Results.fit{t} = uix.Panel('Parent', gui.Plot.fit{t},...
+        'Title', ['Raw Amplitudes'],'FontName', gui.font,'HighlightColor', gui.colormap.Foreground,...
         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
 
     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
         if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
             if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
-                NameText = [''];
+                NameText    = [''];
                 RawAmplText = [''];
+                CRLBText    = [''];
                 for m = 1 : length(RawAmpl) %Names and Amplitudes
-                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                    NameText = [NameText, [basisSetNames{m} ' \n']];
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                    if strcmp(MRSCont.opts.fit.method, 'LCModel')
+                        CRLBText = [CRLBText, [num2str(CRLB(m), '%i') '%%\n']];
+                    end
+
                 end
             else %Water/reference fit but this should never happen in this loop
                 NameText = ['Water: ' ];
                 RawAmplText = [num2str(RawAmpl,'%1.2e')];
             end
-            set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-            gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+            set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+            gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
             gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            if strcmp(MRSCont.opts.fit.method, 'LCModel')
+                gui.Results.FitTextCRLB  = uicontrol('Parent',gui.Results.FitText,'style','text',...
+                    'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(CRLBText),...
+                    'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            end
         else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
             if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
-                if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
-                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
-                else
-                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                switch MRSCont.opts.fit.method
+                    case 'Osprey'
+                        if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{kk});
+                        else
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{kk});
+                        end
+                    case 'LCModel'
                 end
                 NameText = [''];
                 RawAmplText = [''];
+                CRLBText    = [''];
                 for m = 1 : length(RawAmpl) %Names and Amplitudes
-                    NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                    NameText = [NameText, [basisSetNames{m} ' \n']];
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                    if strcmp(MRSCont.opts.fit.method, 'LCModel')
+                        CRLBText = [CRLBText, [num2str(CRLB(m), '%i') '%%\n']];
+                    end
+
                 end
-                set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
-                gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                
+                set(gui.Results.fit{t}, 'Title', ['Raw Water Ratio']);
+                gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                    'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                    'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                if strcmp(MRSCont.opts.fit.method, 'LCModel')
+                    gui.Results.FitTextCRLB  = uicontrol('Parent',gui.Results.FitText,'style','text',...
+                        'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(CRLBText),...
+                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                end
             else %Water/reference fit
                 NameText = ['Water: ' ];
                 RawAmplText = [num2str(RawAmpl,'%1.2e')];
                 set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-                gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                    'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                    'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             end
         end
@@ -245,13 +333,13 @@ for t = 1 : gui.fit.Number %Loop over fits
                 NameText = ['Water: ' ];
                 RawAmplText = [num2str(RawAmpl,'%1.2e')];
             end
-            set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-            gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+            set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+            gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
             gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
             if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
@@ -263,11 +351,11 @@ for t = 1 : gui.fit.Number %Loop over fits
 
  %%% 4. FILLING FITTED AMPLITUDE PANEL %%%
  % Creates the panel on the right side with the fitted ammplitudes
-            gui.InfoText.fit  = uicontrol('Parent',gui.upperBox.fit.Info,'style','text',...
-                                        'FontSize', 12, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+            gui.InfoText.fit{t}  = uicontrol('Parent',gui.upperBox.fit.Info,'style','text',...
+                                        'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
                                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-            gui.Results.fit = uix.Panel('Parent', gui.Plot.fit,...
-                                       'Title', ['Raw Amplitudes'],'FontName', 'Arial','HighlightColor', gui.colormap.Foreground,...
+            gui.Results.fit{t} = uix.Panel('Parent', gui.Plot.fit,...
+                                       'Title', ['Raw Amplitudes'],'FontName', gui.font,'HighlightColor', gui.colormap.Foreground,...
                                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
 
             if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
@@ -283,13 +371,13 @@ for t = 1 : gui.fit.Number %Loop over fits
                        NameText = ['Water: ' ];
                        RawAmplText = [num2str(RawAmpl,'%1.2e')];
                     end
-                    set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                         gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                         gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
                     if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
@@ -304,24 +392,24 @@ for t = 1 : gui.fit.Number %Loop over fits
                             NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                             RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                         end
-                        set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
-                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                        set(gui.Results.fit{t}, 'Title', ['Raw Water Ratio']);
+                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                         gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                         gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     else %Water/reference fit
                        NameText = ['Water: ' ];
                        RawAmplText = [num2str(RawAmpl,'%1.2e')];
-                       set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-                       gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                       set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+                       gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                        gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                       'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                        gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                       'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     end
                 end
@@ -338,13 +426,13 @@ for t = 1 : gui.fit.Number %Loop over fits
                        NameText = ['Water: ' ];
                        RawAmplText = [num2str(RawAmpl,'%1.2e')];
                     end
-                    set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                         gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                         gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
                     if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
@@ -359,24 +447,24 @@ for t = 1 : gui.fit.Number %Loop over fits
                             NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                             RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                         end
-                        set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
-                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                        set(gui.Results.fit{t}, 'Title', ['Raw Water Ratio']);
+                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                         gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                         gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     else %Water/reference fit
                        NameText = ['Water: ' ];
                        RawAmplText = [num2str(RawAmpl,'%1.2e')];
-                       set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-                       gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                       set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+                       gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                        gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                       'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                        gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                       'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     end
                 end
@@ -393,13 +481,13 @@ for t = 1 : gui.fit.Number %Loop over fits
                        NameText = ['Water: ' ];
                        RawAmplText = [num2str(RawAmpl,'%1.2e')];
                     end
-                    set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                    set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                         gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                         gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
                     if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
@@ -418,35 +506,35 @@ for t = 1 : gui.fit.Number %Loop over fits
                             end
                             RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                         end
-                        set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
-                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                        set(gui.Results.fit{t}, 'Title', ['Raw Water Ratio']);
+                        gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                         gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                         gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                        'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                         'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     else %Water/reference fit
                        NameText = ['Water: ' ];
                        RawAmplText = [num2str(RawAmpl,'%1.2e')];
-                       set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-                       gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                       set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+                       gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                        gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                       'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                        gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                       'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                       'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     end
                 end                    
             end
-            set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-            gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+            set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+            gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
             gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
         else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
             if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
@@ -465,26 +553,27 @@ for t = 1 : gui.fit.Number %Loop over fits
                     end
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                 end
-                set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
-                gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                set(gui.Results.fit{t}, 'Title', ['Raw Water Ratio']);
+                gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                    'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                    'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             else %Water/reference fit
                 NameText = ['Water: ' ];
                 RawAmplText = [num2str(RawAmpl,'%1.2e')];
-                set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
-                gui.Results.FitText = uix.HBox('Parent', gui.Results.fit, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+                set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
+                gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                    'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
-                    'FontSize', 11, 'FontName', 'Arial','HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                    'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             end
+        end
         end
     end
     %%%  5. VISUALIZATION PART OF THIS TAB %%%
@@ -498,12 +587,18 @@ for t = 1 : gui.fit.Number %Loop over fits
         temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y],Selection); %Create figure
     end
     ViewAxes = gca();
-    set(ViewAxes, 'Parent', gui.Plot.fit );
+    set(ViewAxes, 'Parent', gui.Plot.fit{t} );
     close( temp );
 
-    set(gui.Plot.fit,'Widths', [-0.16 -0.84]);
-    set(gui.Plot.fit.Children(2), 'Units', 'normalized');
-    set(gui.Plot.fit.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
+    set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);
+    set(gui.Plot.fit{t}.Children(2), 'Units', 'normalized');
+    set(gui.Plot.fit{t}.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
+end
+h = findall(groot,'Type','figure');
+for ff = 1 : length(h)
+    if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
+        close(h(ff))
+    end
 end
 setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

@@ -504,7 +504,7 @@ if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
 end
 hold(ax_raw, 'off');
 title(ax_raw, 'Pre-alignment', 'Color', colormap.Foreground);
-xlabel(ax_raw, 'Frequency (ppm)', 'Color', colormap.Foreground)
+xlabel(ax_raw, 'chemical shift (ppm)', 'Color', colormap.Foreground)
 if MRSCont.flags.isGUI
     set(ax_raw, 'YColor', colormap.Background);
     set(ax_raw,'YTickLabel',{})
@@ -721,7 +721,7 @@ if ~(strcmp(which_spec,'w') || strcmp(which_spec,'ref'))
 end
 hold(ax_aligned, 'off');
 title(ax_aligned, 'Post-alignment', 'Color', colormap.Foreground);
-xlabel(ax_aligned, 'Frequency (ppm)', 'Color', colormap.Foreground)
+xlabel(ax_aligned, 'chemical shift (ppm)', 'Color', colormap.Foreground)
 if MRSCont.flags.isGUI
     set(ax_aligned, 'YColor', colormap.Background);
     set(ax_aligned,'YTickLabel',{})
@@ -812,7 +812,7 @@ if MRSCont.plot.processed.match == 0
 else
     title(ax_proc, 'Aligned, averaged, and scaled', 'Color', colormap.Foreground);
 end
-xlabel(ax_proc, 'Frequency (ppm)', 'Color', colormap.Foreground)
+xlabel(ax_proc, 'chemical shift (ppm)', 'Color', colormap.Foreground)
 if MRSCont.flags.isGUI
     set(ax_proc, 'YColor', colormap.Background);
     set(ax_proc,'YTickLabel',{})
@@ -928,7 +928,7 @@ else
 end
     xlabel(ax_drift, 'Averages', 'Color', colormap.Foreground);
     ylabel(ax_drift, 'Cr frequency (ppm)', 'Color', colormap.Foreground);
-    title(ax_drift, 'Frequency drift', 'Color', colormap.Foreground);        
+    title(ax_drift, 'chemical shift drift', 'Color', colormap.Foreground);        
 
 
 %%% 8. DESIGN FINETUNING %%%

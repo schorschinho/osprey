@@ -256,6 +256,11 @@ switch seqType
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
 
+% AUtomatically chekc whehther LCModel is used and turn on RAW export
+if strcmp(opts.fit.method, 'LCModel')
+    MRSCont.opts.saveLCM = 1;
+end
+
 % Parse the data scenario entry
 if exist('dataScenario','var')
     switch dataScenario

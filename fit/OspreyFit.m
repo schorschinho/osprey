@@ -115,9 +115,11 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
     end
 
     MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
-    [~] = printLog('Fulldone',MRSCont.runtime.Fit,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
-
+    
+else
+    MRSCont.runtime.Fit =  MRSCont.runtime.FitMet;
 end
+[~] = printLog('Fulldone',MRSCont.runtime.Fit,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 
 
 %% If DualVoxel or MRSI we want to extract y-axis scaling

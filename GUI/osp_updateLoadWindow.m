@@ -24,17 +24,13 @@ function osp_updateLoadWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
-        gui.upperBox.data.Info = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(2);
         if (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
             set(gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
             set(gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
             set(gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
         end
-        gui.InfoText.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(2).Children;
         % Grid for Plot and Data control sliders
-        gui.Plot.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected});
-        gui.controls.b_save_RawTab = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(1).Children;
-        gui.layout.EmptyPlot.data = 0;
+         gui.layout.EmptyPlot.data = 0;
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
         if gui.load.Selected == 1 %Is metabolite data?
@@ -77,14 +73,14 @@ function osp_updateLoadWindow(gui)
             end    %re_mm
 
         end
-        if ~isfield(MRSCont.flags,'isPRIAM') && ~isfield(MRSCont.flags,'isMRSI') && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-            set(gui.InfoText.data, 'String',sprintf(StatText))
+        if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            set(gui.InfoText.data{gui.load.Selected}, 'String',sprintf(StatText))
         elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             StatText = ['Voxel ' num2str(gui.controls.act_x) ': ' StatText];
-            set(gui.InfoText.data, 'String',sprintf(StatText))
+            set(gui.InfoText.data{gui.load.Selected}, 'String',sprintf(StatText))
         else
             StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ' ' num2str(gui.controls.act_z) ': ' StatText];
-            set(gui.InfoText.data, 'String',sprintf(StatText))
+            set(gui.InfoText.data{gui.load.Selected}, 'String',sprintf(StatText))
         end
 
 
@@ -100,22 +96,22 @@ function osp_updateLoadWindow(gui)
             end
             if MRSCont.flags.isUnEdited %Is UnEdited?
                 ViewAxes = gca();
-                delete(gui.Plot.data.Children(1).Children(1).Children)
-                set(gui.Plot.data.Children(1).Children(1), 'XLim', ViewAxes.XLim)
-                set(gui.Plot.data.Children(1).Children(1), 'YLim', ViewAxes.YLim)
-                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                set(gui.Plot.data.Children(1).Children(1).Title, 'String', ViewAxes.Title.String)
+                delete(gui.Plot.data{gui.load.Selected}.Children(1).Children)
+                set(gui.Plot.data{gui.load.Selected}.Children, 'XLim', ViewAxes.XLim)
+                set(gui.Plot.data{gui.load.Selected}.Children, 'YLim', ViewAxes.YLim)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children);
+                set(gui.Plot.data{gui.load.Selected}.Children.Title, 'String', ViewAxes.Title.String)
             end
             if MRSCont.flags.isMEGA %Is MEGA?
-                delete(gui.Plot.data.Children(1).Children(1).Children)
-                delete(gui.Plot.data.Children(1).Children(2).Children)
-                set(gui.Plot.data.Children(1).Children(2), 'XLim', temp.Children(2).XLim)
-                set(gui.Plot.data.Children(1).Children(1), 'XLim', temp.Children(1).XLim)
-                set(gui.Plot.data.Children(1).Children(2), 'YLim', temp.Children(2).YLim)
-                set(gui.Plot.data.Children(1).Children(1), 'YLim', temp.Children(1).YLim)
-                set(temp.Children(2).Children, 'Parent', gui.Plot.data.Children(1).Children(2));
-                set(temp.Children(1).Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                set(gui.Plot.data.Children(1).Children(2).Title, 'String', temp.Children(2).Title.String)
+                delete(gui.Plot.data{gui.load.Selected}.Children(1).Children)
+                delete(gui.Plot.data{gui.load.Selected}.Children(2).Children)
+                set(gui.Plot.data{gui.load.Selected}.Children(2), 'XLim', temp.Children(2).XLim)
+                set(gui.Plot.data{gui.load.Selected}.Children(1), 'XLim', temp.Children(1).XLim)
+                set(gui.Plot.data{gui.load.Selected}.Children(2), 'YLim', temp.Children(2).YLim)
+                set(gui.Plot.data{gui.load.Selected}.Children(1), 'YLim', temp.Children(1).YLim)
+                set(temp.Children(2).Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children(2));
+                set(temp.Children(1).Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children(1));
+                set(gui.Plot.data{gui.load.Selected}.Children(2).Title, 'String', temp.Children(2).Title.String)
             end
             if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) % Is HERMES/HERCULES
                try
@@ -150,10 +146,10 @@ function osp_updateLoadWindow(gui)
                             temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm',[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                     end
                 ViewAxes = gca();
-                delete(gui.Plot.data.Children(1).Children(1).Children)
-                set(  gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
-                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                set(  gui.Plot.data.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
+                delete(gui.Plot.data{gui.load.Selected}.Children(1).Children(1).Children)
+                set(  gui.Plot.data{gui.load.Selected}.Children(1).Children(1), 'XLim',ViewAxes.XLim)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children(1).Children(1));
+                set(  gui.Plot.data{gui.load.Selected}.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
                 end %re_mm
                 if gui.load.Selected == 3 %ref data/tab %re_mm
                     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
@@ -164,10 +160,10 @@ function osp_updateLoadWindow(gui)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                     end
                 ViewAxes = gca();
-                delete(gui.Plot.data.Children(1).Children(1).Children)
-                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                set(gui.Plot.data.Children(1).Children(1).Title, 'String', ViewAxes.Title.String);
-                set(gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim);
+                delete(gui.Plot.data{gui.load.Selected}.Children.Children)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children);
+                set(gui.Plot.data{gui.load.Selected}.Children.Title, 'String', ViewAxes.Title.String);
+                set(gui.Plot.data{gui.load.Selected}.Children, 'XLim',ViewAxes.XLim);
                 end %re_mm
                 if gui.load.Selected == 4 %ref data/tab %re_mm
                     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
@@ -178,10 +174,10 @@ function osp_updateLoadWindow(gui)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                     end
                 ViewAxes = gca();
-                delete(gui.Plot.data.Children(1).Children(1).Children)
-                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                set(  gui.Plot.data.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
-                set(  gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
+                delete(gui.Plot.data{gui.load.Selected}.Children(1).Children)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children(1));
+                set(  gui.Plot.data{gui.load.Selected}.Children(1).Title, 'String',ViewAxes.Title.String)
+                set(  gui.Plot.data{gui.load.Selected}.Children(1), 'XLim',ViewAxes.XLim)
                 end
                         else %re_mm
             if gui.load.Selected == 2 %Is Ref data/tab?
@@ -192,10 +188,10 @@ function osp_updateLoadWindow(gui)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',gui.controls.act_x);
                     end
                     ViewAxes = gca();
-                    delete(gui.Plot.data.Children(1).Children(1).Children)
-                    set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                    set(gui.Plot.data.Children(1).Children(1).Title, 'String', ViewAxes.Title.String)
-                    set(gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
+                    delete(gui.Plot.data{gui.load.Selected}.Children(1).Children)
+                    set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children(1));
+                    set(gui.Plot.data{gui.load.Selected}.Children(1).Title, 'String', ViewAxes.Title.String)
+                    set(gui.Plot.data{gui.load.Selected}.Children(1), 'XLim',ViewAxes.XLim)
                 elseif MRSCont.flags.hasWater
                     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
@@ -205,10 +201,10 @@ function osp_updateLoadWindow(gui)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                     end
                     ViewAxes = gca();
-                    delete(gui.Plot.data.Children(1).Children(1).Children)
-                    set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                    set(  gui.Plot.data.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
-                    set(  gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
+                    delete(gui.Plot.data{gui.load.Selected}.Children(1).Children)
+                    set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children(1));
+                    set(  gui.Plot.data{gui.load.Selected}.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
+                    set(  gui.Plot.data{gui.load.Selected}.Children(1).Children(1), 'XLim',ViewAxes.XLim)
                 end
             else %Is water data/tab?
                 if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
@@ -219,15 +215,21 @@ function osp_updateLoadWindow(gui)
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                 end
                 ViewAxes = gca();
-                delete(gui.Plot.data.Children(1).Children(1).Children)
-                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                set(  gui.Plot.data.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
-                set(  gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
+                delete(gui.Plot.data{gui.load.Selected}.Children(1).Children)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children(1));
+                set(  gui.Plot.data{gui.load.Selected}.Children(1).Title, 'String',ViewAxes.Title.String)
+                set(  gui.Plot.data{gui.load.Selected}.Children(1), 'XLim',ViewAxes.XLim)
             end
                         end
         end
         % Get rid of the Load figure
         close( temp );
+        h = findall(groot,'Type','figure');
+        for ff = 1 : length(h)
+            if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
+                close(h(ff))
+            end
+        end
 
         % If it is Multivoxel data we have to update the Voxel Position
         % window
@@ -238,7 +240,7 @@ function osp_updateLoadWindow(gui)
             set( gui.layout.LocPanel.Children,'ColorData', ViewAxes.ColorData );
             close(temp)
         end
-        set(gui.upperBox.data.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}] );
-        set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
+        set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}] );
+        set(gui.controls.b_save_RawTab{gui.load.Selected},'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

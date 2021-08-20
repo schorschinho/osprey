@@ -46,7 +46,10 @@ cb(3,:) = cb(4,:);
 cb(4,:) = temp;
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
+% Get the fit method and style
+fitMethod   = MRSCont.opts.fit.method;
 fitStyle    = MRSCont.opts.fit.style;
+
 % Fall back to defaults if not provided
 if nargin<7
 ylab='';
@@ -83,6 +86,14 @@ else
     sort_fit = 'sort_fit_voxel_1';
 end
 
+% Create a fitMethod-specific theme
+switch fitMethod
+    case 'Osprey'
+        colorFit  = MRSCont.colormap.Accent;
+    case 'LCModel'
+        colorFit  = 'r';
+end
+
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract normalized spectra and fits
 if isnumeric(g)
@@ -117,14 +128,20 @@ if MRSCont.flags.didFit
                 MM_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_fittMM_' fit '_' which_spec]);
                 end
             case {'ref','w'}
-                fit = which_spec;
-                fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' fit '_' which_spec]);
-                fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' fit '_' which_spec]);
-                data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' fit '_' which_spec]);
-                data_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_data_' fit '_' which_spec]);
-                residual_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_res_' fit '_' which_spec]);
-                residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' fit '_' which_spec]);
-                ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' fit '_' which_spec]);
+                if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
+                    fit = which_spec;
+                    fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' fit '_' which_spec]);
+                    fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' fit '_' which_spec]);
+                    data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' fit '_' which_spec]);
+                    data_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_data_' fit '_' which_spec]);
+                    residual_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_res_' fit '_' which_spec]);
+                    residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' fit '_' which_spec]);
+                    ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' fit '_' which_spec]);
+                else
+                    data_mean = MRSCont.overview.Osprey.(sort_data).(GroupString).(['mean_' which_spec]);
+                    data_sd = MRSCont.overview.Osprey.(sort_data).(GroupString).(['sd_' which_spec]);
+                    ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);                        
+                end
             case {'mm'}
     %             name = 'mm';
     %             data_mean = MRSCont.overview.Osprey.sort_data.(GroupString).(['mean_' which_spec]);
@@ -265,6 +282,8 @@ else
     ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);            
 end
 
+[~,min_ppm_index] = min(ppm);
+
 if ~exist('name', 'var')
     name = which_spec;
 end
@@ -303,8 +322,6 @@ if length(data_sd) > 1
     data_yl = data_mean - data_sd;
 end
     
-
-
 if exist('fit_mean', 'var') && length(fit_sd) > 1
     fit_yu = fit_mean + fit_sd;
     fit_yl = fit_mean - fit_sd;
@@ -352,7 +369,7 @@ if MRSCont.flags.isGUI
     end
 
     if exist('fit_mean', 'var')
-        plot(ppm,fit_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1.5); %Fit
+        plot(ppm,fit_mean+shift ,'color', colorFit, 'LineWidth', 1.5); %Fit
         if ~group
             plot(ppm,residual_mean+shift+ max(maxshift +  abs(min(residual_mean))) ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);  %Residual
         else
@@ -365,7 +382,7 @@ if MRSCont.flags.isGUI
     end
 
     if exist('MM_mean', 'var')
-        plot(ppm,MM_mean+baseline_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %MM Baseline
+        plot(ppm,MM_mean+baseline_mean+shift ,'color', colorFit, 'LineWidth', 1); %MM Baseline
     end
 
     plot(ppm,data_mean+shift ,'color',cb(g,:), 'LineWidth', 2); % Data
@@ -381,12 +398,12 @@ if MRSCont.flags.isGUI
     if exist('fit_mean', 'var')
         if ~group
             plot(ppm, (zeros(1,length(ppm))), 'Color',MRSCont.colormap.Foreground); % Zeroline
-            text(ppm(1)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
+            text(ppm(min_ppm_index)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
             plot(ppm, (zeros(1,length(ppm)) + max(maxshift)), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
             plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean)))), 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
             plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue
-            text(ppm(1)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
-            text(ppm(1)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
+            text(ppm(min_ppm_index)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
+            text(ppm(min_ppm_index)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
         end
     end
 else
@@ -395,8 +412,8 @@ else
             plot(ppm, (zeros(1,length(ppm)) + max(maxshift)), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
             plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean)))), 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
             plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue
-            text(ppm(1)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
-            text(ppm(1)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
+            text(ppm(min_ppm_index)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
+            text(ppm(min_ppm_index)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
         end
     end
     if exist('residual_mean', 'var')
@@ -409,11 +426,11 @@ else
     end
     plot(ppm,data_mean+shift ,'color',cb(g,:), 'LineWidth', 2); % Data
     if exist('fit_mean', 'var')
-        plot(ppm,fit_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %Fit
+        plot(ppm,fit_mean+shift ,'color', colorFit, 'LineWidth', 1); %Fit
         if ~group
             plot(ppm,residual_mean+shift+ max(maxshift +  abs(min(residual_mean))) ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);  %Residual
             plot(ppm, (zeros(1,length(ppm))), 'Color',MRSCont.colormap.Foreground); % Zeroline
-            text(ppm(1)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
+            text(ppm(min_ppm_index)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
         else
             plot(ppm,residual_mean+shift-maxshift_abs*0.3 ,'color', cb(g,:), 'LineWidth', 1);  %Residual
         end
@@ -422,7 +439,7 @@ else
             plot(ppm,baseline_mean+shift ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1); %Baseline
     end
     if exist('MM_mean', 'var')
-        plot(ppm,MM_mean+baseline_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %MM Baseline
+        plot(ppm,MM_mean+baseline_mean+shift ,'color', colorFit, 'LineWidth', 1); %MM Baseline
     end
     
     if strcmp(which_spec,'mm') % re_mm 
@@ -685,7 +702,7 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
         end
 
         if exist('fit_mean', 'var')
-            plot(ppm,fit_mean+shift ,'color', MRSCont.colormap.Accent, 'LineWidth', 1.5); %Fit
+            plot(ppm,fit_mean+shift ,'color', colorFit, 'LineWidth', 1.5); %Fit
             if ~group
                 plot(ppm,residual_mean+shift+ max(maxshift +  abs(min(residual_mean))),':' ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);  %Residual
             else
@@ -698,7 +715,7 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
         end
 
         if exist('MM_mean', 'var')
-            plot(ppm,MM_mean+baseline_mean+shift,':'  ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %MM Baseline
+            plot(ppm,MM_mean+baseline_mean+shift,':'  ,'color', colorFit, 'LineWidth', 1); %MM Baseline
         end
 
         plot(ppm,data_mean+shift,':'  ,'color',cb(g,:), 'LineWidth', 2); % Data
@@ -714,12 +731,12 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
         if exist('fit_mean', 'var')
             if ~group
                 plot(ppm, (zeros(1,length(ppm))), 'Color',MRSCont.colormap.Foreground); % Zeroline
-                text(ppm(1)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
+                text(ppm(min_ppm_index)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
                 plot(ppm, (zeros(1,length(ppm)) + max(maxshift)),':' , 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
                 plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean)))),':' , 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
                 plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))),':' , 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue
-                text(ppm(1)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
-                text(ppm(1)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
+                text(ppm(min_ppm_index)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
+                text(ppm(min_ppm_index)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
             end
         end
     else
@@ -728,8 +745,8 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                 plot(ppm, (zeros(1,length(ppm)) + max(maxshift)), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Maximum Data
                 plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean)))),':' , 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
                 plot(ppm, (zeros(1,length(ppm)) + max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue
-                text(ppm(1)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
-                text(ppm(1)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
+                text(ppm(min_ppm_index)-0.05, 0 + max(maxshift +  abs(min(residual_mean))), '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline Residual text
+                text(ppm(min_ppm_index)-0.05, (0 +max(maxshift +  abs(min(residual_mean))) + abs(max(residual_mean))), [num2str(100/max(fit_mean)*abs(max(residual_mean)),'%10.1f') '%'], 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Max Residue text
             end
         end
         if exist('residual_mean', 'var')
@@ -742,11 +759,11 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
         end
         plot(ppm,data_mean+shift,':'  ,'color',cb(g,:), 'LineWidth', 2); % Data
         if exist('fit_mean', 'var')
-            plot(ppm,fit_mean+shift,':'  ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %Fit
+            plot(ppm,fit_mean+shift,':'  ,'color', colorFit, 'LineWidth', 1); %Fit
             if ~group
                 plot(ppm,residual_mean+shift+ max(maxshift +  abs(min(residual_mean))),':'  ,'color', MRSCont.colormap.Foreground, 'LineWidth', 1);  %Residual
                 plot(ppm, (zeros(1,length(ppm))), 'Color',MRSCont.colormap.Foreground); % Zeroline
-                text(ppm(1)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
+                text(ppm(min_ppm_index)-0.05, 0, '0', 'FontSize', 10,'Color',MRSCont.colormap.Foreground); %Zeroline text
             else
                 plot(ppm,residual_mean+shift-maxshift_abs*0.3,':'  ,'color', cb(g,:), 'LineWidth', 1);  %Residual
             end
@@ -755,7 +772,7 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                 plot(ppm,baseline_mean+shift,':'  ,'color', MRSCont.colormap.LightAccent, 'LineWidth', 1); %Baseline
         end
         if exist('MM_mean', 'var')
-            plot(ppm,MM_mean+baseline_mean+shift,':'  ,'color', MRSCont.colormap.Accent, 'LineWidth', 1); %MM Baseline
+            plot(ppm,MM_mean+baseline_mean+shift,':'  ,'color', colorFit, 'LineWidth', 1); %MM Baseline
         end
 
         if strcmp(which_spec,'mm') % re_mm 

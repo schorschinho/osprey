@@ -125,20 +125,15 @@ MRSCont = getappdata(gui.figure,'MRSCont');
    switch gui.layout.tabs.Selection
         case 1 %Load tab
         gui.layout.ListBox.Enable = 'on';
-        gui.InfoText.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children;
-        gui.Plot.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected});
         set(gui.layout.rawTab, 'selection', gui.load.Selected);
         osp_updateLoadWindow(gui);
         case 2 %Process tab
         gui.layout.ListBox.Enable = 'on';
-        gui.InfoText.pro = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
         gui.Plot.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected});
         set(gui.layout.proTab, 'selection', gui.process.Selected);
         osp_updateProWindow(gui);
         case 3 %Fit tab
         gui.layout.ListBox.Enable = 'on';
-        gui.InfoText.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children;
-        gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected});
         set(gui.layout.fitTab, 'selection', gui.fit.Selected);
         osp_updateFitWindow(gui);
         case 4 %Coreg Tab

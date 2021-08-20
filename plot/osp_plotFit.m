@@ -82,7 +82,7 @@ if nargin<9
     if nargin<8
         ylab='';
         if nargin<7
-            xlab='Frequency (ppm)';
+            xlab='chemical shift (ppm)';
             if nargin<6
                 stagFlag = 1;
                 if nargin<5
@@ -347,11 +347,11 @@ switch fitMethod
         linewidthResidual = 1;
         colorBaseline = MRSCont.colormap.LightAccent;
     case 'LCModel'
-        colorData = 'k';
+        colorData = MRSCont.colormap.Foreground;
         colorFit  = 'r';
         linewidthFit = 1.2;
         linewidthResidual = 0.5;
-        colorBaseline = 'k';
+        colorBaseline = MRSCont.colormap.Foreground;
 end
 
 % Unpack the ModelOutput struct

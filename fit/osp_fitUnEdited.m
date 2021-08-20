@@ -35,10 +35,10 @@ else
 end
 for kk = 1:MRSCont.nDatasets
     
-    [~] = printLog('OspreyFit', kk, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI);
         
     % ----- Osprey fit pipeline -----
     if strcmpi(MRSCont.opts.fit.method, 'Osprey')
+        [~] = printLog('OspreyFit', kk, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI);    
         
         if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             % Apply scaling factor to the data
@@ -106,6 +106,8 @@ for kk = 1:MRSCont.nDatasets
         
         % ----- LCModel wrapper fit pipeline -----
     elseif strcmpi(MRSCont.opts.fit.method, 'LCModel')
+        [~] = printLog('OspreyFit', kk, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI,1);
+    
         
         % Put the scale to be 1 for now. Might have to adjust.
         MRSCont.fit.scale{kk} = 1;
@@ -171,8 +173,22 @@ fitParams.CRLB      = tab.SDpct;
 fitParams.relConc   = tab.relative_conc;
 fitParams.ph0       = tab.ph0;
 fitParams.ph1       = tab.ph1;
-fitParams.FWHM      = tab.fwhm;
+fitParams.refShift  = tab.refShift;
+fitParams.refFWHM      = tab.fwhm;
 fitParams.SNR       = tab.snr;
+
+%Remove the - in -CrCH2 because it interferes with the downstream functions
+idx = find(strcmp(fitParams.name,'-CrCH2'));
+if ~isempty(idx)
+    fitParams.name{idx} = 'CrCH2';
+end
+%Remove the + in combinations because it interferes with the downstream functions
+idx = find(contains(fitParams.name,'+'));
+if ~isempty(idx)
+    for combs = 1 :  length(idx)
+        fitParams.name{idx(combs)} = strrep(fitParams.name{idx(combs)},'+','_');
+    end
+end
 
 % Read the spectrum, fit, and baseline from the .coord files
 [ spectra, spectra_metabolites, x_ppm, info ] = mrs_readLcmodelCOORD( [MRSCont.opts.fit.lcmodel.(lcmOutputFile){kk} '.coord'] );
@@ -185,7 +201,6 @@ fitParams.residual      = fitParams.data - fitParams.completeFit;
 % The .coord files also contain the individual metabolite fits, BUT only if
 % the estimate is not zero, and the individual metabolite fits include the
 % baseline.
-fitParams.ampl          = zeros(length(fitParams.name), 1);
 fitParams.indivMets     = zeros(info.n, length(fitParams.name));
 for rr = 1:length(fitParams.name)
     % Check whether a particular metabolite has been fit
@@ -194,13 +209,16 @@ for rr = 1:length(fitParams.name)
     % subtracting the baseline
     if idxMatch
         fitParams.indivMets(:,rr) = spectra_metabolites(:,idxMatch) - fitParams.baseline;
-        fitParams.ampl(rr)        = tab.concentration(idxMatch);
     end
 end
-
+% Store amplitudes regardless whether the are fit or not
+fitParams.ampl        = tab.concentration';
+    
 % Read the raw area of the unsuppressed water peak from the .print file
 infoPrint = mrs_readLcmodelPRINT( [MRSCont.opts.fit.lcmodel.(lcmOutputFile){kk} '.print'] );
-fitParams.h2oarea = infoPrint.h2oarea;
+if isfield(infoPrint,'h2oarea')
+    fitParams.h2oarea = infoPrint.h2oarea;
+end
 
 
   
