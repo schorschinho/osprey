@@ -175,7 +175,41 @@ switch MRSCont.opts.fit.method
         % basis sets to LCModel format.
         % (GO 07/08/2021)
         if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile))
-            error('For LCModel fitting, please explicitly specify a .BASIS file in the job file (opts.fit.basisSetFile = ''FILE'').');
+            
+            % The only exception are LCModel sptype settings (like lipid-8)
+            % which don't use external basis functions at all.
+            % These modes, however, still require a dummy basis set to be
+            % input.
+            %
+            % Intercept these cases here
+            % Read in the user-supplied control file (if there is one)
+            if isfield(MRSCont.opts.fit,'controlFile')
+                if ~isempty(MRSCont.opts.fit.controlFile)
+                    % Load all control parameters
+                    LCMparam = osp_readlcm_control(MRSCont.opts.fit.controlFile);
+                    
+                    if isfield(LCMparam, 'sptype')
+                        switch LCMparam.sptype
+                            case {'''lipid-8''', '''liver-11''', '''breast-8''', '''only-cho-2'''}
+                                % Use any .basis file that comes with Osprey. It
+                                % doesn't matter which - we only need a dummy
+                                % input. (LCModel manual, Sec 9.3)
+                                basisSetFile = which('3T_PRESS_Philips_35ms_noMM.BASIS');
+                            otherwise
+                                basisSetFile = LCMparam.filbas;
+                        end
+                    end
+                    
+                end
+            else
+                error('For LCModel fitting, please explicitly specify a .BASIS file in the job file (opts.fit.basisSetFile = ''FILE'').');
+            end
+
+        else
+            
+            % If a basis set file is supplied, use it.
+            basisSetFile = MRSCont.opts.fit.basisSetFile;
+        
         end
         
         % Read in the user-supplied control file (if there is one)
@@ -187,12 +221,14 @@ switch MRSCont.opts.fit.method
                 % Make some changes to the control file that will apply to
                 % ALL control files
                 LCMparam = osp_editControlParameters(LCMparam, 'lprint', '6');
+                LCMparam = osp_editControlParameters(LCMparam, 'lcoord', '9');
+                LCMparam = osp_editControlParameters(LCMparam, 'ltable', '7');
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filps', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filcsv', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filcoo', '');
-                LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' MRSCont.opts.fit.basisSetFile '''']);
+                LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' basisSetFile '''']);
                 LCMparam = osp_editControlParameters(LCMparam, 'savdir', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsi_sav_1', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsi_sav_2', '');
@@ -212,7 +248,7 @@ switch MRSCont.opts.fit.method
                 
                 % Now loop over all datasets
                 for kk = 1:MRSCont.nDatasets
-                    LCMparam = osp_editControlParameters(LCMparam, 'srcraw', ['''' MRSCont.files{kk} '''']);
+                    
                     
                     % Loop over number of diffusion-weighted spectra and
                     % create a control file for each spectrum that needs to
@@ -231,10 +267,37 @@ switch MRSCont.opts.fit.method
             end
             
         else
+            
             % If the field does not exist, write default control parameters
             for kk = 1:MRSCont.nDatasets
-                LCMparam = osp_lcmcontrol_params(MRSCont.flags.isMEGA);
-                MRSCont       = osp_writelcm_control(MRSCont, kk, 'A', LCMparam);
+                LCMparam = [];
+                LCMparam = osp_editControlParameters(LCMparam, 'srcraw', ['''' MRSCont.files{kk} '''']);
+                LCMparam = osp_editControlParameters(LCMparam, 'lprint', '6');
+                LCMparam = osp_editControlParameters(LCMparam, 'lcoord', '9');
+                LCMparam = osp_editControlParameters(LCMparam, 'ltable', '7');
+                LCMparam = osp_editControlParameters(LCMparam, 'key', '210387309');
+                LCMparam = osp_editControlParameters(LCMparam, 'owner', '''Osprey processed spectra''');
+                LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' basisSetFile '''']);
+                LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.15');
+                LCMparam = osp_editControlParameters(LCMparam, 'dows', '''T''');
+                LCMparam = osp_editControlParameters(LCMparam, 'atth2o', '1');
+                LCMparam = osp_editControlParameters(LCMparam, 'attmet', '1');
+                LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
+                LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
+                LCMparam = osp_editControlParameters(LCMparam, 'wdline', '0');
+                LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'PCh+GPC','Cr+PCr','NAA+NAAG','Glu+Gln','Glc+Tau'});
+                LCMparam = osp_editControlParameters(LCMparam, 'nomit', {'Gly','Ser'});
+                LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''Cr+PCr''');
+                LCMparam = osp_editControlParameters(LCMparam, 'doecc', '''F''');
+                
+                % Loop over number of sub-spectra and
+                % create a control file for each spectrum that needs to
+                % be fit
+                nDW = length(MRSCont.opts.fit.lcmodel.outfileA{kk});
+                for dd = 1:nDW 
+                    % Write control file
+                    MRSCont = osp_writelcm_control(MRSCont, kk, dd, 'A', LCMparam);
+                end
             end
         end
         

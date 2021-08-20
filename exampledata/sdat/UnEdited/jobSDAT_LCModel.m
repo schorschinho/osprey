@@ -115,7 +115,7 @@ opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                                                                 
 % Save processed spectra in NIfTI-MRS format?
-opts.saveNII                = 1;                % OPTIONS:    - 0 (no, default)
+opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Select the metabolites to be included in the basis set as a cell array,

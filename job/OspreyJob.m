@@ -350,18 +350,28 @@ else
 end
 if exist('files_mm','var')   %re_mm Adding functionality for MM
     MRSCont.files_mm = files_mm;   %re_mm
+else
+    MRSCont.files_mm = {};
 end   %re_mm
 if exist('files_ref','var')
     MRSCont.files_ref = files_ref;
+else
+    MRSCont.files_ref = {};
 end
 if exist('files_w','var')
     MRSCont.files_w = files_w;
+else
+    MRSCont.files_w = {};
 end
 if exist('files_nii','var')
     MRSCont.files_nii = files_nii;
+else
+    MRSCont.files_nii = {};
 end
 if exist('files_sense','var')
     MRSCont.files_sense = files_sense;
+else
+    MRSCont.files_sense = {};
 end
 if exist('outputFolder','var')
     MRSCont.outputFolder = outputFolder;
