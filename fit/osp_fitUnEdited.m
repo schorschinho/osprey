@@ -136,7 +136,9 @@ end
 function callLCModel(MRSCont, controlFile)
 % Wrapper function for LCModel binary
 
-callLCMCommand = [fullfile(MRSCont.ospFolder, 'libraries', 'LCModel') filesep 'lcmodel < ' controlFile];
+% Path to LCModel binary
+pathLCModelBinary = fullfile(MRSCont.ospFolder, 'libraries', 'LCModel', 'lcmodel');
+callLCMCommand = ['"' pathLCModelBinary '" < "' controlFile '"'];
 system(callLCMCommand);
 
 end
@@ -174,7 +176,7 @@ fitParams.relConc   = tab.relative_conc;
 fitParams.ph0       = tab.ph0;
 fitParams.ph1       = tab.ph1;
 fitParams.refShift  = tab.refShift;
-fitParams.refFWHM      = tab.fwhm;
+fitParams.refFWHM   = tab.fwhm;
 fitParams.SNR       = tab.snr;
 
 %Remove the - in -CrCH2 because it interferes with the downstream functions
@@ -185,7 +187,7 @@ end
 %Remove the + in combinations because it interferes with the downstream functions
 idx = find(contains(fitParams.name,'+'));
 if ~isempty(idx)
-    for combs = 1 :  length(idx)
+    for combs = 1 : length(idx)
         fitParams.name{idx(combs)} = strrep(fitParams.name{idx(combs)},'+','_');
     end
 end
