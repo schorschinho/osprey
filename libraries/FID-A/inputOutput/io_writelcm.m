@@ -48,6 +48,10 @@ else %GE
     % For GE data, there is currently no designation
     vol = in.geometry.size.dim1 * in.geometry.size.dim2 * in.geometry.size.dim3;
 end
+% Avoid zero volume
+if vol == 0
+    vol = 1000.0;
+end
 
 
 RF=zeros(in.sz(in.dims.t),2);

@@ -77,7 +77,7 @@ switch MRSCont.vendor
                 else
                     [MRSCont] = load_mrsi_data(MRSCont);
                 end
-            case 'RAW'
+            case 'LAB'
                 error('Support for Philips RAW/LAB/SIN files coming soon!');
                 %[MRSCont] = osp_LoadRAW(MRSCont);
             otherwise
@@ -103,6 +103,16 @@ switch MRSCont.vendor
                 fprintf(msg);
                 error(msg);
         end
+        
+    case 'LCModel'
+        switch MRSCont.datatype
+            case 'RAW'
+                [MRSCont] = osp_LoadRAW(MRSCont);
+            otherwise
+                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                fprintf(msg);
+                error(msg);
+        end
     
     case ''
         % We left the vendor field empty for NIfTI-MRS data
@@ -123,7 +133,7 @@ end
 
 % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-    if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1 || ~MRSCont.flags.coilsCombined
+    if sum(strcmp(MRSCont.datatype, {'DATA', 'LAB', 'P'})) == 1 || ~MRSCont.flags.coilsCombined
         [MRSCont] = osp_combineCoils(MRSCont);
     else
         if ~strcmp(MRSCont.datatype, 'TWIX')
