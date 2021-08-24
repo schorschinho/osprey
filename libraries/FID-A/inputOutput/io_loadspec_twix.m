@@ -386,20 +386,32 @@ end
 
 %Now reorder the fids for the Universal MEGA implementation 
 if strcmp(seq,'MEGAPRESS') && isUniversal
-    fids_A = fids(:,:,1:2:end);
-    fids_B = fids(:,:,2:2:end);
-    fids = cat(4,fids_A,fids_B);
-    dims.subSpecs=4;
+    % Can only do this if we have more than one row, which might not be the
+    % case (e.g. for water)
+    if size(fids,3) > 1
+        fids_A = fids(:,:,1:2:end);
+        fids_B = fids(:,:,2:2:end);
+        fids = cat(4,fids_A,fids_B);
+        dims.subSpecs=4;
+    else
+        dims.subSpecs=0;
+    end
 end
 
 %Now reorder the fids for the Universal HERMES/HERCULES implementation 
 if strcmp(seq,'HERMES') || strcmp(seq,'HERCULES')
-    fids_A = fids(:,:,1:4:end);
-    fids_B = fids(:,:,2:4:end);
-    fids_C = fids(:,:,3:4:end);
-    fids_D = fids(:,:,4:4:end);
-    fids = cat(4,fids_A,fids_B,fids_C,fids_D);
-    dims.subSpecs=4;
+    % Can only do this if we have more than one row, which might not be the
+    % case (e.g. for water)
+    if size(fids,3) > 1
+        fids_A = fids(:,:,1:4:end);
+        fids_B = fids(:,:,2:4:end);
+        fids_C = fids(:,:,3:4:end);
+        fids_D = fids(:,:,4:4:end);
+        fids = cat(4,fids_A,fids_B,fids_C,fids_D);
+        dims.subSpecs=4;
+    else
+        dims.subSpecs=0;
+    end
 end
 
 %Now get the size of the data array:
