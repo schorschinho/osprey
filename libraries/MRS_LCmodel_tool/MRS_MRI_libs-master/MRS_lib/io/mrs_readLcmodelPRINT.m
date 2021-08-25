@@ -51,6 +51,16 @@ function [info ] = mrs_readLcmodelPRINT( fileName )
                 info.iniFWHM= str2double(str_temp{1}{3});
         end        
     end
+    
+    for i=1:no_lines
+        line=f{1}{i};
+        inital_ind = strfind(line, 'Area of unsuppressed water peak');
+        if ~isempty(inital_ind)
+            str_temp = textscan(line, '%s', 'delimiter', '=');
+            info.h2oarea = str2double(str_temp{1}{2});  
+        end
+    end
+    
 
 end
 

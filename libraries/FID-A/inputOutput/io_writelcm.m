@@ -3,11 +3,11 @@
 %
 % USAGE:
 % RF=io_writelcm(in,outfile,te);
-% 
+%
 % DESCRIPTION:
 % Takes MRS data in matlab structure format and writes it to a text file
 % that can be read by LCModel.
-% 
+%
 % INPUTS:
 % in         = input data in matlab structure format.
 % outfile    = Desired filename of output text file.
@@ -15,7 +15,7 @@
 %
 % OUTPUTS:
 % RF         = Same as input.  Not used.  The primary output of this
-%                function is a text file in LCModel raw format. 
+%                function is a text file in LCModel raw format.
 
 function RF=io_writelcm(in,outfile,te);
 %function RF=writelcm(in,outfile,te);
@@ -47,6 +47,11 @@ elseif isfield(in.geometry.size,'VoIThickness') % Siemens
 else %GE
     % For GE data, there is currently no designation
     vol = in.geometry.size.dim1 * in.geometry.size.dim2 * in.geometry.size.dim3;
+end
+
+% Avoid zero volume
+if vol == 0
+    vol = 1000.0;
 end
 
 

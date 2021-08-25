@@ -1,4 +1,4 @@
-function [msg] = printLog(Module,kk,nDatasets,progressText,GUI,MRSI)
+function [msg] = printLog(Module,kk,nDatasets,progressText,GUI,MRSI,LCModel)
 %% [MRSCont] = printLog(MRSCont)
 %   This function allows you to rebase your derviatives folder and files in
 %   case you have processed them on another machine
@@ -25,7 +25,9 @@ function [msg] = printLog(Module,kk,nDatasets,progressText,GUI,MRSI)
 %   HISTORY:
 %       2021-05-06: First version of the code.
 
-
+if nargin < 7
+    LCModel = 0;
+end
 msg = '';
 %% Load
  
@@ -89,13 +91,24 @@ if strcmp(Module,'OspreyProcess') && MRSI && size(kk,2) > 1
 end
 %% Fit
 if strcmp(Module,'OspreyFit') && ~MRSI 
+    if ~LCModel
         msg = sprintf('\nFitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
         fprintf(msg);
+    else if kk == 1
+            msg = sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+            fprintf(msg);
+        else
+            msg = sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+            reverseStr = repmat(sprintf('\b'), 1, length(msg));
+            fprintf([reverseStr, msg]);
+         end
+    end
     if GUI        
         set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets));
         drawnow
     end   
 end
+
 if strcmp(Module,'OspreyFit') && MRSI && size(kk,2) > 1
      if kk(1) == 1   &&  kk(2) == 1
         msg = sprintf('\nFitting metabolite spectra from voxel %5i out of %5i from dataset %3i out of %3i total datasets...\n',kk(2),nDatasets(2), kk(1), nDatasets(1));

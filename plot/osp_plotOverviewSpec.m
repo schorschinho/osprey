@@ -210,7 +210,7 @@ else % Is fit?
     end
 end
 
-
+out = figure;
 
 %%% 3. PLOT DATA %%%
 if length(which_spec)>4
@@ -218,7 +218,7 @@ if length(which_spec)>4
         if ~strcmp(which_spec(1:4),'Fit:')
             maxshift_abs = max(abs(data{1}.specs));
             shift = maxshift_abs * shift;
-            out = plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+            plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
             hold on;
             for kk = 2 : length(data)
                 plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
@@ -226,7 +226,7 @@ if length(which_spec)>4
             if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                 maxshift_abs = max(abs(data2{1}.specs));
                 shift = maxshift_abs * shift + maxshift_abs*0.15;
-                out = plot(data2{1}.ppm,data2{1}.specs+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
+                plot(data2{1}.ppm,data2{1}.specs+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
                 hold on;
                 for kk = 2 : length(data2)
                     plot(data2{kk}.ppm,data2{kk}.specs+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
@@ -235,7 +235,7 @@ if length(which_spec)>4
         else
             maxshift_abs = max(abs(data{1}.fit));
             shift = maxshift_abs * shift;
-            out = plot(data{1}.ppm,data{1}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
+            plot(data{1}.ppm,data{1}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
             hold on;
             for kk = 2 : length(data)
                 plot(data{kk}.ppm,data{kk}.fit+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
@@ -243,7 +243,7 @@ if length(which_spec)>4
             if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                 maxshift_abs = max(abs(data2{1}.fit));
                 shift = maxshift_abs * shift+ maxshift_abs*0.15;
-                out = plot(data2{1}.ppm,data2{1}.fit+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
+                plot(data2{1}.ppm,data2{1}.fit+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
                 hold on;
                 for kk = 2 : length(data2)
                     plot(data2{kk}.ppm,data2{kk}.fit+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
@@ -253,7 +253,7 @@ if length(which_spec)>4
     else %re_mm
         maxshift_abs = max(abs(data{1}.MM_clean));
         shift = maxshift_abs * shift;
-        out = plot(data{1}.ppm,data{1}.MM_clean+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        plot(data{1}.ppm,data{1}.MM_clean+shift ,'color', cb(g,:), 'LineWidth', 1); %data
         hold on;
         for kk = 2 : length(data)
             plot(data{kk}.ppm,data{kk}.MM_clean+shift ,'color', cb(g,:), 'LineWidth', 1); %data
@@ -261,7 +261,7 @@ if length(which_spec)>4
         if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             maxshift_abs = max(abs(data2{1}.MM_clean));
             shift = maxshift_abs * shift+ maxshift_abs*0.15;
-            out = plot(data2{1}.ppm,data2{1}.MM_clean+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
+            plot(data2{1}.ppm,data2{1}.MM_clean+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
             hold on;
             for kk = 2 : length(data2)
                 plot(data2{kk}.ppm,data2{kk}.MM_clean+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
@@ -271,7 +271,7 @@ if length(which_spec)>4
 else
         maxshift_abs = max(abs(data{1}.specs));
         shift = maxshift_abs * shift;
-        out = plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+        plot(data{1}.ppm,data{1}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
         hold on;
         for kk = 2 : length(data)
             plot(data{kk}.ppm,data{kk}.specs+shift ,'color', cb(g,:), 'LineWidth', 1); %data
@@ -279,7 +279,7 @@ else
         if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             maxshift_abs = max(abs(data2{1}.specs));
             shift = maxshift_abs * shift+ maxshift_abs*0.15;
-            out = plot(data2{1}.ppm,data2{1}.specs+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
+            plot(data2{1}.ppm,data2{1}.specs+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data
             hold on;
             for kk = 2 : length(data2)
                 plot(data2{kk}.ppm,data2{kk}.specs+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %data

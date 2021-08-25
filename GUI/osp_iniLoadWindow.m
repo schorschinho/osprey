@@ -60,7 +60,7 @@ function osp_iniLoadWindow(gui)
         gui.layout.EmptydataPlot = 0;
  %%% 2. CREATING SUB TABS FOR THIS TAB %%%
  % In this case one tab for each subspec (A,B,C,D,ref,water)
-            gui.layout.metabLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background,'Spacing',5);
+            gui.layout.metabLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background,'Spacing',5,'Tag','metabLoTab');
             gui.layout.rawTab.TabWidth   = 115;
             gui.layout.rawTab.Selection  = 1;
             gui.layout.rawTabhandles = {'metabLoTab'};
@@ -70,29 +70,29 @@ function osp_iniLoadWindow(gui)
             end
             if gui.controls.Number == 2
                 if MRSCont.flags.hasRef
-                    gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
+                    gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background,'Tag','refLoTab');
                     gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;
                     gui.layout.rawTab.TabEnables = {'on', 'on'};
                     gui.layout.rawTabhandles = {'metabLoTab', 'refLoTab'};
                 end
                 if MRSCont.flags.hasWater
-                    gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
+                    gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background,'Tag','wLoTab');
                     gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;
                     gui.layout.rawTab.TabEnables = {'on', 'on'};
                     gui.layout.rawTabhandles = {'metabLoTab', 'wLoTab'};
                 end
             end
             if gui.controls.Number == 3
-                gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background);
-                gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);
+                gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background,'Tag','refLoTab');
+                gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background,'Tag','wLoTab');
                 gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;
                 gui.layout.rawTab.TabEnables = {'on', 'on','on'};
                 gui.layout.rawTabhandles = {'metabLoTab', 'refLoTab', 'wLoTab'};
             end
             if gui.controls.Number == 4 %re_mm
-                gui.layout.mmLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background);%re_mm
-                gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background);%re_mm
-                gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background);%re_mm
+                gui.layout.mmLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background,'Tag','mmLoTab');%re_mm
+                gui.layout.refLoTab = uix.VBox('Parent', gui.layout.rawTab,  'BackgroundColor',gui.colormap.Background,'Tag','refLoTab');%re_mm
+                gui.layout.wLoTab = uix.VBox('Parent', gui.layout.rawTab, 'BackgroundColor',gui.colormap.Background,'Tag','wLoTab');%re_mm
                 gui.layout.rawTab.TabTitles  = gui.load.Names.Spec;%re_mm
                 gui.layout.rawTab.TabEnables = {'on', 'on','on','on'};%re_mm
                 gui.layout.rawTabhandles = {'metabLoTab', 'mmLoTab', 'refLoTab', 'wLoTab'};%re_mm
@@ -101,23 +101,23 @@ function osp_iniLoadWindow(gui)
  % All the information from the Raw data is read out here
         for t = gui.controls.Number : -1 : 1 % Loop over subspectra & tabs
             % Parameter shown in the info panel on top
-            gui.upperBox.data.box = uix.HBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}),'BackgroundColor',gui.colormap.Background, 'Spacing',5);
+            gui.upperBox.data.box{t} = uix.HBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}),'BackgroundColor',gui.colormap.Background, 'Spacing',5);
             if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                gui.upperBox.data.upperLeftButtons = uix.Panel('Parent', gui.upperBox.data.box, ...
+                gui.upperBox.data.box{t} = uix.Panel('Parent', gui.upperBox.data.box{t}, ...
                                          'Padding', 5, 'Title', ['Navigate voxel'],...
-                                         'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                         'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                          'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-                gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.data.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
-                gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
-                gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','X:',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Y:',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Z:',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
-                gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
-                gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.Buttonbox{t} = uix.HBox('Parent',gui.upperBox.data.box{t}, 'BackgroundColor',gui.colormap.Background);
+                gui.controls.navigate_RawTab{t} = uix.Grid('Parent',gui.controls.Buttonbox{t},'BackgroundColor',gui.colormap.Background);
+                gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','X:',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','Y:',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','Z:',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
                 set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
                 set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
                 set(gui.controls.b_left_z,'Callback',{@osp_onLeftZ,gui});
@@ -130,15 +130,15 @@ function osp_iniLoadWindow(gui)
                 if gui.info.nZvoxels <= 1
                     gui.controls.b_left_z.Enable = 'off';
                 end
-                gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-                gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
-                gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
-                gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','1',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','1',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','1',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
                 set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
                 set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
                 set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});   
@@ -151,34 +151,34 @@ function osp_iniLoadWindow(gui)
                 if gui.info.nZvoxels <= 1
                     gui.controls.b_right_z.Enable = 'off';
                 end                
-                set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
+                set( gui.controls.navigate_RawTab{t}, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
             end
-            gui.upperBox.data.Info = uix.Panel('Parent', gui.upperBox.data.box, ...
+            gui.upperBox.data.Info{t} = uix.Panel('Parent', gui.upperBox.data.box{t}, ...
                                      'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
-                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                      'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-            gui.upperBox.data.upperButtons = uix.Panel('Parent', gui.upperBox.data.box, ...
+            gui.upperBox.data.upperButtons = uix.Panel('Parent', gui.upperBox.data.box{t}, ...
                                      'Padding', 5, 'Title', ['Save'],...
-                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                      'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-            gui.controls.b_save_RawTab = uicontrol('Parent',gui.upperBox.data.upperButtons,'Style','PushButton');
+            gui.controls.b_save_RawTab{t} = uicontrol('Parent',gui.upperBox.data.upperButtons,'Style','PushButton');
             [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.10);
-            set(gui.controls.b_save_RawTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-            set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
+            set(gui.controls.b_save_RawTab{t},'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+            set(gui.controls.b_save_RawTab{t},'Callback',{@osp_onPrint,gui});
             if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                set(gui.upperBox.data.box, 'Width', [-0.12 -0.78 -0.1]);
+                set(gui.upperBox.data.box{t}, 'Width', [-0.12 -0.78 -0.1]);
             else
-                set(gui.upperBox.data.box, 'Width', [-0.9 -0.1]);
+                set(gui.upperBox.data.box{t}, 'Width', [-0.9 -0.1]);
             end
             % Grid for Plot and Data control sliders
             if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) % HBox for HERMES/HERCULES
-                gui.Plot.data = uix.HBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
+                gui.Plot.data{t} = uix.HBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
             else
-                gui.Plot.data = uix.VBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
+                gui.Plot.data{t} = uix.VBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}), 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
             end
-            gui.InfoText.data  = uicontrol('Parent',gui.upperBox.data.Info,'style','text',...
-                                          'FontSize', 12, 'FontName', 'Arial','ForegroundColor', gui.colormap.Foreground,...
+            gui.InfoText.data{t}  = uicontrol('Parent',gui.upperBox.data.Info{t},'style','text',...
+                                          'FontSize', 12, 'FontName', gui.font,'ForegroundColor', gui.colormap.Foreground,...
                                           'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',gui.colormap.Background);
             set(gui.layout.(gui.layout.rawTabhandles{t}), 'Heights', [-0.1 -0.9]);
 
@@ -205,7 +205,7 @@ function osp_iniLoadWindow(gui)
            set(gui.InfoText.data, 'String', sprintf(StatText));
         else
             StatText = ['Voxel ' num2str(gui.controls.act_x) ': '  StatText];
-            set(gui.InfoText.data, 'String', sprintf(StatText));
+            set(gui.InfoText.data{t}, 'String', sprintf(StatText));
         end
         
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
@@ -216,29 +216,29 @@ function osp_iniLoadWindow(gui)
             temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
             if MRSCont.flags.isUnEdited % One window for UnEdited
                 ViewAxes = gca();
-                set( ViewAxes, 'Parent', gui.Plot.data );
+                set( ViewAxes, 'Parent', gui.Plot.data{t} );
             end
             if MRSCont.flags.isMEGA %Two windows for MEGA
-                set( temp.Children(2), 'Parent', gui.Plot.data );
-                set( temp.Children(1), 'Parent', gui.Plot.data );
-                set(gui.Plot.data,'Heights', [-0.49 -0.49]);
-                set(gui.Plot.data.Children(2), 'Units', 'normalized')
-                set(gui.Plot.data.Children(2), 'OuterPosition', [0,0.5,1,0.5])
-                set(gui.Plot.data.Children(1), 'Units', 'normalized')
-                set(gui.Plot.data.Children(1), 'OuterPosition', [0,0,1,0.5])
+                set( temp.Children(2), 'Parent', gui.Plot.data{t} );
+                set( temp.Children(1), 'Parent', gui.Plot.data{t} );
+                set(gui.Plot.data{t},'Heights', [-0.49 -0.49]);
+                set(gui.Plot.data{t}.Children(2), 'Units', 'normalized')
+                set(gui.Plot.data{t}.Children(2), 'OuterPosition', [0,0.5,1,0.5])
+                set(gui.Plot.data{t}.Children(1), 'Units', 'normalized')
+                set(gui.Plot.data{t}.Children(1), 'OuterPosition', [0,0,1,0.5])
             end
             if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Four windows for HERMES/HERCULES
-                gui.layout.multiACload = uix.VBox('Parent', gui.Plot.data, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                gui.layout.multiACload = uix.VBox('Parent', gui.Plot.data{t}, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     gui.layout.multiAload = uix.VBox('Parent', gui.layout.multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
                     gui.layout.multiCload = uix.VBox('Parent', gui.layout.multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                gui.layout.multiBDload = uix.VBox('Parent', gui.Plot.data,'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                gui.layout.multiBDload = uix.VBox('Parent', gui.Plot.data{t},'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     gui.layout.multiBload = uix.VBox('Parent', gui.layout.multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
                     gui.layout.multiDload = uix.VBox('Parent', gui.layout.multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
                 set( temp.Children(1), 'Parent', gui.layout.multiDload );
                 set( temp.Children(1), 'Parent', gui.layout.multiCload );
                 set( temp.Children(1), 'Parent', gui.layout.multiBload );
                 set( temp.Children(1), 'Parent', gui.layout.multiAload );
-                set(gui.Plot.data,'Width', [-0.49 -0.49]);
+                set(gui.Plot.data{t},'Width', [-0.49 -0.49]);
                 set(gui.layout.multiDload.Children(1), 'Units', 'normalized')
                 set(gui.layout.multiDload.Children(1), 'OuterPosition', [0,0,1,1])
                 set(gui.layout.multiCload.Children(1), 'Units', 'normalized')
@@ -254,7 +254,7 @@ function osp_iniLoadWindow(gui)
                 if t == 2 %ref data/tab %re_mm
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm'); %re_mm
                     ViewAxes = gca(); %re_mm
-                    set( ViewAxes, 'Parent', gui.Plot.data ); %re_mm
+                    set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
                 end %re_mm
                 if t == 3 %ref data/tab %re_mm
                     if MRSCont.flags.hasRef%re_mm
@@ -263,34 +263,40 @@ function osp_iniLoadWindow(gui)
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w'); %re_mm
                     end%re_mm
                     ViewAxes = gca(); %re_mm
-                    set( ViewAxes, 'Parent', gui.Plot.data ); %re_mm
+                    set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
                 end %re_mm
                 if t == 4 %ref data/tab %re_mm
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w'); %re_mm
                     ViewAxes = gca(); %re_mm
-                    set( ViewAxes, 'Parent', gui.Plot.data ); %re_mm
+                    set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
                 end %re_mm
             else %re_mm
                 if t == 2 %ref data/tab
                     if MRSCont.flags.hasRef
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
                         ViewAxes = gca();
-                        set( ViewAxes, 'Parent', gui.Plot.data );
+                        set( ViewAxes, 'Parent', gui.Plot.data{t} );
                     elseif MRSCont.flags.hasWater
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
                         ViewAxes = gca();
-                        set( ViewAxes, 'Parent', gui.Plot.data );
+                        set( ViewAxes, 'Parent', gui.Plot.data{t} );
                     end
                 else %water data/tab has only one window all the time
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
                     ViewAxes = gca();
-                    set(ViewAxes, 'Parent', gui.Plot.data );
+                    set(ViewAxes, 'Parent', gui.Plot.data{t} );
                 end
             end %re_mm
         end
 
         % Get rid of the Load figure
-        close( temp );
+        close( temp );        
+        end
+        h = findall(groot,'Type','figure');
+        for ff = 1 : length(h)
+            if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
+                close(h(ff))
+            end
         end
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

@@ -32,9 +32,6 @@ function osp_onListSelection( src, ~,gui)
             case 1
                 osp_updateLoadWindow(gui);
             case 2
-                gui.InfoText.pro = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
-                % Grid for Plot and Data control sliders
-                gui.Plot.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected});
                 osp_updateProWindow(gui);
             case 3
                 osp_updateFitWindow(gui);

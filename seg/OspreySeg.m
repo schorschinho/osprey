@@ -82,8 +82,8 @@ for kk = 1:MRSCont.nDatasets
 
         
         % Get the input file name
-        [T1dir, T1name, T1ext]  = fileparts(niftiFile);
-        if strcmp(T1ext,'.gz')
+        [T1dir, T1name, T1extini]  = fileparts(niftiFile);
+        if strcmp(T1extini,'.gz')
             T1name = strrep(T1name, '.nii','');
         end
 
@@ -91,14 +91,14 @@ for kk = 1:MRSCont.nDatasets
         % If a GM-segmented file doesn't exist, start the segmentation
         if ~exist(segFile,'file')
             %Uncompress .nii.gz if needed
-            if strcmp(T1ext,'.gz')
+            if strcmp(T1extini,'.gz')
                 gunzip(niftiFile);
-                niftiFile = strrep(niftiFile,'.gz','');
-                T1ext = '.nii';
-            end           
+                niftiFile = strrep(niftiFile,'.gz','');                
+            end  
+            T1ext = '.nii';
             createSegJob(niftiFile);
         else
-            if strcmp(T1ext,'.gz')
+            if strcmp(T1extini,'.gz')
                 gunzip(niftiFile);
                 niftiFile = strrep(niftiFile,'.gz','');
                 T1ext = '.nii';
@@ -108,7 +108,7 @@ for kk = 1:MRSCont.nDatasets
                 gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
                 gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
             end
-            T1ext = strrep(T1ext,'.gz','');
+            T1ext = strrep(T1extini,'.gz','');
         end
 
 
@@ -260,8 +260,11 @@ for kk = 1:MRSCont.nDatasets
             gzip(CSFvol.fname);
             delete(CSFvol.fname);
             delete(vol_mask.fname);
-            gzip(MRSCont.coreg.vol_image{kk}.fname)
-            delete(MRSCont.coreg.vol_image{kk}.fname);
+            
+            if strcmp(T1extini,'.gz')
+                gzip(MRSCont.coreg.vol_image{kk}.fname)
+                delete(MRSCont.coreg.vol_image{kk}.fname);
+            end
 
 
 

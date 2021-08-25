@@ -54,6 +54,7 @@ classdef OspreyGUI < handle
         InfoText % info text struct (left side of fit plot)
         Results % result struct (fit results)
         flags; % Store flags 
+        font; % Stores font type
     end
 
     methods
@@ -68,6 +69,8 @@ classdef OspreyGUI < handle
         %% Initialize variables
         % Close any remaining open figures & add folders
             close all;
+            font=osp_platform('fonts');
+            gui.font = font.helvetica;
             [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
             gui.folder.allFolders      = strsplit(settingsFolder, filesep);
             gui.folder.ospFolder       = strjoin(gui.folder.allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
@@ -157,7 +160,10 @@ classdef OspreyGUI < handle
                         gui.load.Names.Seq =['MRSI ' MRSCont.vendor];
                     end
                 end
-                gui.load.Names.Geom = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
+                try
+                    gui.load.Names.Geom = fieldnames(MRSCont.raw{1,1}.geometry.size); %Get variables regarding voxel geometry
+                catch
+                end
             end
 
             if MRSCont.flags.isPRIAM
@@ -268,43 +274,51 @@ classdef OspreyGUI < handle
             %Version check and updating log file
             MRSCont.flags.isGUI = 1;
             outputFolder = MRSCont.outputFolder;
-        %% Create the overall figure
-            gui.figure = figure('Name', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on','Menu', 'none',...
+        
+            %% Create the overall figure            
+            gui.figure = figure('Name', 'Osprey', 'Tag', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on','Menu', 'none',...
                                 'ToolBar', 'none', 'HandleVisibility', 'on', 'Renderer', 'painters', 'Color', gui.colormap.Background);
             setappdata(gui.figure,'MRSCont',MRSCont);
+            % Delete old waitbar first
+            h = findall(groot,'Type','figure');
+            for ff = 1 : length(h)
+                if ~(strcmp(h(ff).Tag, 'Osprey'))
+                    close(h(ff))
+                end
+            end
         % Resize such that width is 1.2941 * height (1.2941 is the ratio
         % between width and height of standard US letter size (11x8.5 in).
             screenSize      = get(0,'ScreenSize');
             canvasSize      = screenSize;
-            canvasSize(4)   = screenSize(4) * 0.9;
-            canvasSize(3)   = canvasSize(4) * (11/8.5);
+            canvasSize(4)   = screenSize(4) * 1;
+            canvasSize(3)   = canvasSize(3) * (0.9);
             canvasSize(2)   = (screenSize(4) - canvasSize(4))/2;
             canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
             set(gui.figure, 'Position', canvasSize);
 
         % Create the main horizontal box division between menu (left) and display
         % panel tabs (right)
-            gui.layout.mainLayout = uix.HBox('Parent', gui.figure,'BackgroundColor',gui.colormap.Background);
+            gui.layout.mainLayout = uix.HBox('Parent', gui.figure,'BackgroundColor',gui.colormap.Background,'Tag','MainBox');
         % Create the left-side menu
-            gui.layout.leftMenu = uix.VBox('Parent',gui.layout.mainLayout, 'Padding',4,'Spacing', 2,'BackgroundColor',gui.colormap.Background);
-            gui.layout.Buttonbox = uix.HBox('Parent',gui.layout.leftMenu, 'BackgroundColor',gui.colormap.Background);
-            gui.layout.b_about = uicontrol(gui.layout.Buttonbox,'Style','PushButton');
+            gui.layout.leftMenu = uix.VBox('Parent',gui.layout.mainLayout, 'Padding',4,'Spacing', 2,'BackgroundColor',gui.colormap.Background,'Tag','LeftMenu');
+            gui.layout.Buttonbox = uix.HBox('Parent',gui.layout.leftMenu, 'BackgroundColor',gui.colormap.Background,'Tag','LeftButtonBox');
+            gui.layout.b_about = uicontrol(gui.layout.Buttonbox,'Style','PushButton','Tag','AboutButton');
             [img, ~, ~] = imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.08);
             set(gui.layout.b_about,'CData', img2, 'TooltipString', 'Contact developers via mail');
             set(gui.layout.b_about,'Callback',{@osp_onOsp});
 
 
-           gui.layout.Infobuttons = uix.VButtonBox('Parent',gui.layout.Buttonbox,'BackgroundColor',gui.colormap.Background);
+           gui.layout.Infobuttons = uix.VButtonBox('Parent',gui.layout.Buttonbox,'BackgroundColor',gui.colormap.Background,'Tag','InfoButtonBox');
         % Divide into the upper panel containing the Osprey logo button
 
-           gui.layout.b_pub = uicontrol(gui.layout.Infobuttons,'Style','PushButton');
+           gui.layout.b_pub = uicontrol(gui.layout.Infobuttons,'Style','PushButton','Tag','InfoButton');
            [img, ~, ~] = imread('PubMed.png', 'BackgroundColor', gui.colormap.Background);
            [img2] = imresize(img, 0.06);
            set(gui.layout.b_pub,'CData', img2, 'TooltipString', 'Cite these papers when using Osprey');
            set(gui.layout.b_pub,'Callback',{@osp_onPub});
 
-            gui.layout.b_git = uicontrol(gui.layout.Infobuttons,'Style','PushButton');
+            gui.layout.b_git = uicontrol(gui.layout.Infobuttons,'Style','PushButton','Tag','GitHubButton');
            [img, ~, ~] = imread('GitHubB.png', 'BackgroundColor', gui.colormap.Background);
            [img2] = imresize(img, 0.07);
            set(gui.layout.b_git,'CData', img2, 'TooltipString', 'Keep yourself updated and request/develop new features on GitHub');
@@ -314,12 +328,12 @@ classdef OspreyGUI < handle
            set(gui.layout.Buttonbox, 'Width', [-0.5 -0.5]);
         %% Create left menu
             gui.layout.p2 = uix.VButtonBox('Parent', gui.layout.leftMenu, 'Spacing', 3, ...
-                            'BackgroundColor',gui.colormap.Background);
+                            'BackgroundColor',gui.colormap.Background,'Tag','ButtonBoxModules');
             set(gui.layout.leftMenu, 'Heights', [-0.2 -0.8]);
             set(gui.layout.p2, 'ButtonSize', [300 60]);
         % Load button
             gui.layout.b_load = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Load data','Enable','on','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_load,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_load,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','LoadButton');
             if  (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))
                 gui.layout.b_load.Enable = 'off';
             end
@@ -327,7 +341,7 @@ classdef OspreyGUI < handle
             set(gui.layout.b_load,'Tag','Load');
         % Process button
             gui.layout.b_proc = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Process data','Enable','on','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_proc,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_proc,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','ProcButton');
             if (MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A)))
                 gui.layout.b_proc.Enable = 'off';
             else if ~(MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))
@@ -337,7 +351,7 @@ classdef OspreyGUI < handle
             set(gui.layout.b_proc,'Callback',{@osp_onProc,gui}, 'TooltipString', 'Call OspreyProcess');
         % Fit button
             gui.layout.b_fit = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Model data','Enable','on','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_fit,'Units','Normalized','Position',[0.1 0.67 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_fit,'Units','Normalized','Position',[0.1 0.67 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','FitButton');
             if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)))
                 gui.layout.b_fit.Enable = 'off';
             else if ~(MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A)))
@@ -347,7 +361,7 @@ classdef OspreyGUI < handle
             set(gui.layout.b_fit,'Callback',{@osp_onFit,gui}, 'TooltipString', 'Call OspreyFit');
         % Coregister button
             gui.layout.b_coreg = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','CoRegister','Enable','off','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_coreg,'Units','Normalized','Position',[0.1 0.59 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_coreg,'Units','Normalized','Position',[0.1 0.59 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','CoregButton');
             if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image))) && (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw)))               
                 if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0) && MRSCont.flags.moved)
                     gui.layout.b_coreg.Enable = 'on';
@@ -359,7 +373,7 @@ classdef OspreyGUI < handle
             end
         % Segment button
             gui.layout.b_segm = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Segment','Enable','off','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_segm,'Units','Normalized','Position',[0.1 0.51 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_segm,'Units','Normalized','Position',[0.1 0.51 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','SegButton');
             if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didSeg == 1  && isfield(MRSCont, 'seg') && (gui.controls.nDatasets >= length(MRSCont.seg.tissue.fGM(:,1)))) && (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image)))
                 if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0) && MRSCont.flags.moved)
                     gui.layout.b_segm.Enable = 'on';
@@ -371,7 +385,7 @@ classdef OspreyGUI < handle
             end
         % Quantify button
             gui.layout.b_quant = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Quantify','Enable','on','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_quant,'Units','Normalized','Position',[0.1 0.43 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_quant,'Units','Normalized','Position',[0.1 0.43 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','QuantifyButton');
             if MRSCont.flags.didQuantify
                 gui.layout.b_quant.Enable = 'off';
             else if ~(MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) )
@@ -381,19 +395,20 @@ classdef OspreyGUI < handle
             set(gui.layout.b_quant,'Callback',{@osp_onQuant,gui}, 'TooltipString', 'Call OspreyQuantify');
         % DeIdentify button
             gui.layout.b_deid = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','DeIdentify','Enable','off','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_deid,'Units','Normalized','Position',[0.1 0.2 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_deid,'Units','Normalized','Position',[0.1 0.2 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','DeIndentButton');
             set(gui.layout.b_deid,'Callback',{@gui_deid,gui,MRSCont}, 'TooltipString', 'DeIndentify');
         % Save button
             gui.layout.b_save = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Save MRSCont','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_save,'Units','Normalized','Position',[0.1 0 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_save,'Units','Normalized','Position',[0.1 0 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','SaveButton');
             set(gui.layout.b_save,'Callback',{@osp_onSave,gui}, 'TooltipString', 'Save MRSCont as .mat-file');
         % Exit button
             gui.layout.b_exit = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Exit','ForegroundColor', gui.colormap.Foreground);
-            set(gui.layout.b_exit,'Units','Normalized','Position',[0.1 0 0.8 0.08], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold');
+            set(gui.layout.b_exit,'Units','Normalized','Position',[0.1 0 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','ExitButton');
             set(gui.layout.b_exit,'Callback',{@osp_onExit,gui}, 'TooltipString', 'See you next time!');
         % Create list of files for the Listbox
             gui.layout.controlPanel = uix.Panel('Parent', gui.layout.leftMenu, 'Title', 'MRS Container','BackgroundColor',gui.colormap.Background);
-            set(gui.layout.controlPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold', 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground);
+            set(gui.layout.controlPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold',...
+                'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground,'Tag','SubjectListPanel');
             gui.layout.fileList = MRSCont.files;
             if ~MRSCont.flags.moved
                 [~, ~] = osp_detDataType(MRSCont);
@@ -410,36 +425,38 @@ classdef OspreyGUI < handle
                 gui.layout.OnlyFileList{i} = [SepFileList{i}{end}];
             end
             clear SepFileList
-            gui.layout.ListBox = uicontrol('Style', 'list','BackgroundColor', 'w','FontName', 'Arial','BackgroundColor',gui.colormap.Background, ...
+            gui.layout.ListBox = uicontrol('Style', 'list','BackgroundColor', 'w','FontName', gui.font,'BackgroundColor',gui.colormap.Background, ...
                                     'Parent', gui.layout.controlPanel, 'String',gui.layout.RedFileList(:) , ...
                                     'Value', gui.controls.Selected, 'Interruptible', 'on', 'BusyAction', 'cancel', ...
-                                    'ForegroundColor',gui.colormap.Foreground, 'TooltipString', 'Select a file you want to inspect.');
+                                    'ForegroundColor',gui.colormap.Foreground, 'TooltipString', 'Select a file you want to inspect.','Tag','SubjectListBox');
             if MRSCont.flags.isMRSI
                 gui.layout.MRSILocPanel = uix.Panel('Parent', gui.layout.leftMenu, 'Title', 'Voxel Location','BackgroundColor',gui.colormap.Background);
-                set(gui.layout.MRSILocPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold', 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground);
+                set(gui.layout.MRSILocPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold',...
+                    'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground,'Tag','MRSIVoxelPanel');
                 set(gui.layout.leftMenu,'Heights',[-.08,-.3,-0.1,-.2])
             end                        
         %% Create the display panel tab row
 
-            gui.layout.tabs = uix.TabPanel('Parent', gui.layout.mainLayout, 'Padding', 3, 'FontName', 'Arial','Visible','off',...
+            gui.layout.tabs = uix.TabPanel('Parent', gui.layout.mainLayout, 'Padding', 3, 'FontName', gui.font,'Visible','off',...
                             'FontSize', 16,'BackgroundColor',gui.colormap.Background,...
-                            'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+                            'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
+                            'Tag','MainTabPanel');
             gui.layout.rawTab      = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
-                                            'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
+                                            'FontName', gui.font, 'TabLocation','bottom','FontSize', 10,'Tag','RawTab');
             gui.layout.proTab      = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
-                                        'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
+                                        'FontName', gui.font, 'TabLocation','bottom','FontSize', 10,'Tag','ProTab');
             gui.layout.fitTab      = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
-                                        'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
+                                        'FontName', gui.font, 'TabLocation','bottom','FontSize', 10,'Tag','FitTab');
             gui.layout.coregTab    = uix.VBox('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background);
             gui.layout.quantifyTab = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
-                                        'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
+                                        'FontName', gui.font, 'TabLocation','bottom','FontSize', 10,'Tag','QuantTab');
             gui.layout.overviewTab = uix.TabPanel('Parent', gui.layout.tabs, 'BackgroundColor',gui.colormap.Background,...
                                             'ForegroundColor', gui.colormap.Foreground, 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground,...
-                                        'FontName', 'Arial', 'TabLocation','bottom','FontSize', 10);
+                                        'FontName', gui.font, 'TabLocation','bottom','FontSize', 10,'Tag','OverviewTab');
             gui.layout.tabs.TabTitles  = {'Raw', 'Processed', 'LC model', 'Cor/Seg', 'Quantified','Overview'};
             gui.layout.tabs.TabWidth   = 115;
             gui.layout.tabs.Selection  = 1;
@@ -454,26 +471,26 @@ classdef OspreyGUI < handle
             if (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.raw))) % Was data loaded at all that can be looked at?
                 osp_iniLoadWindow(gui);
                 if MRSCont.flags.isMRSI
-                    gui.layout.LocPanel = uix.HBox('Parent', gui.layout.MRSILocPanel, 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized');
+                    gui.layout.LocPanel = uix.HBox('Parent', gui.layout.MRSILocPanel, 'BackgroundColor',gui.colormap.Background, 'Units', 'normalized','Tag','MRSILocPlot');
                     temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x gui.controls.act_z]);
                     ViewAxes = gca();
                     drawnow
                     set( ViewAxes, 'Parent', gui.layout.LocPanel );
                     close(temp)
                 end
-                set(gui.controls.b_save_RawTab,'Callback',{@osp_onPrint,gui});
+                set(gui.controls.b_save_RawTab{gui.load.Selected},'Callback',{@osp_onPrint,gui});
             end
             waitbar(gui.waitbar.step,gui.controls.waitbar,'Loading your processed spectra');
             if (MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets >= length(MRSCont.processed.A))) % Has data been processed?
                 set(gui.layout.tabs, 'Visible','on');
                 osp_iniProcessWindow(gui);
-                set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
+                set(gui.controls.b_save_proTab{gui.load.Selected},'Callback',{@osp_onPrint,gui});
                 set(gui.layout.tabs, 'Visible','off');
             end
             waitbar(gui.waitbar.step*2,gui.controls.waitbar,'Loading your fits');
             if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets >= length(MRSCont.fit.scale)) ) % Has data fitting been run?
                 osp_iniFitWindow(gui);
-                set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint,gui});
+                set(gui.controls.b_save_fitTab{gui.load.Selected},'Callback',{@osp_onPrint,gui});
             end
             waitbar(gui.waitbar.step*3,gui.controls.waitbar,'Loading your image operations');
             if (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets >= length(MRSCont.coreg.vol_image))) % Have coreg/segment masks been created?

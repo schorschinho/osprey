@@ -30,9 +30,7 @@ function [MRSCont] = osp_saveLCM(MRSCont)
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
-%
-%   HISTORY:
-%       2019-03-07: First version of the code.
+
 
 % Close any remaining open figures
 close all;
@@ -48,25 +46,29 @@ end
 if MRSCont.flags.hasWater && ~exist(fullfile(saveDestination,'w'),'dir')
     mkdir(fullfile(saveDestination,'w'));
 end  
-%%% 1 Export files
-LCMparam = osp_lcmcontrol_params(MRSCont.flags.isMEGA);
+
 % Loop over all datasets
 for kk = 1:MRSCont.nDatasets
     
     % Write LCModel .RAW files depending on sequence type
     % Get TE and the input file name
     te                  = MRSCont.processed.A{kk}.te;
-    [path,filename,~]       = fileparts(MRSCont.files{kk});
+    [path,filename,~]   = fileparts(MRSCont.files{kk});
+    
     % For batch analysis, get the last two sub-folders (e.g. site and
-    % subject)
+    % subject) to augment the filename, avoiding duplicate output filenames
     path_split          = regexp(path,filesep,'split');
     if length(path_split) > 2
         name = [path_split{end-1} '_' path_split{end} '_' filename];
     end
+    
+    % Set up complete output filename strings, then write LCM .RAW files.
     if MRSCont.flags.isUnEdited
         outfile         = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfile,te);
-        RF              = osp_writelcm_control(MRSCont,kk,'A',LCMparam);
+        
+        MRSCont.opts.fit.lcmodel.outfileA{kk} = outfile;
+        
     elseif MRSCont.flags.isMEGA
         outfileA        = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfileA,te);
@@ -74,9 +76,14 @@ for kk = 1:MRSCont.nDatasets
         RF              = io_writelcm(MRSCont.processed.B{kk},outfileB,te);
         outfileDiff1    = fullfile(saveDestination,'metabs', [name '_LCM_DIFF1.RAW']);
         RF              = io_writelcm(MRSCont.processed.diff1{kk},outfileDiff1,te);
-        RF              = osp_writelcm_control(MRSCont,kk,'diff1',LCMparam);
         outfileSum      = fullfile(saveDestination,'metabs', [name '_LCM_SUM.RAW']);
         RF              = io_writelcm(MRSCont.processed.sum{kk},outfileSum,te);
+        
+        MRSCont.opts.fit.lcmodel.outfileA{kk}       = outfileA;
+        MRSCont.opts.fit.lcmodel.outfileB{kk}       = outfileB;
+        MRSCont.opts.fit.lcmodel.outfileDiff1{kk}   = outfileDiff1;
+        MRSCont.opts.fit.lcmodel.outfileSum{kk}     = outfileSum;
+        
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
         outfileA        = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
         RF              = io_writelcm(MRSCont.processed.A{kk},outfileA,te);
@@ -92,8 +99,18 @@ for kk = 1:MRSCont.nDatasets
         RF              = io_writelcm(MRSCont.processed.diff2{kk},outfileDiff2,te);
         outfileSum      = fullfile(saveDestination,'metabs', [name '_LCM_SUM.RAW']);
         RF              = io_writelcm(MRSCont.processed.sum{kk},outfileSum,te);
+        
+        MRSCont.opts.fit.lcmodel.outfileA{kk}       = outfileA;
+        MRSCont.opts.fit.lcmodel.outfileB{kk}       = outfileB;
+        MRSCont.opts.fit.lcmodel.outfileC{kk}       = outfileC;
+        MRSCont.opts.fit.lcmodel.outfileD{kk}       = outfileD;
+        MRSCont.opts.fit.lcmodel.outfileDiff1{kk}   = outfileDiff1;
+        MRSCont.opts.fit.lcmodel.outfileDiff2{kk}   = outfileDiff2;
+        MRSCont.opts.fit.lcmodel.outfileSum{kk}     = outfileSum;
+        
     else
         error('No flag set for sequence type!');
+        
     end
     
     % Check if reference scans exist, if so, write LCM .RAW file
@@ -107,29 +124,40 @@ for kk = 1:MRSCont.nDatasets
             te_ref                      = MRSCont.processed.ref{kk}.te;
             [path_ref,filename_ref,~]   = fileparts(MRSCont.files_ref{kk});
         end
+        
         % For batch analysis, get the last two sub-folders (e.g. site and
-        % subject)
+        % subject) to augment the filename, avoiding duplicate output filenames
         path_ref_split          = regexp(path_ref,filesep,'split');
         if length(path_ref_split) > 2
             name_ref = [path_ref_split{end-1} '_' path_ref_split{end} '_' filename_ref];
         end
+        
+        % Set up complete output filename strings, then write LCM .RAW files.
         outfileRef      = fullfile(saveDestination,'ref', [name_ref '_LCM_REF.RAW']);
         RF              = io_writelcm(MRSCont.processed.ref{kk},outfileRef,te_ref);
+        
+        MRSCont.opts.fit.lcmodel.outfileRef{kk}     = outfileRef;
+        
     end
     
-    % Now do the same for the (short-TE) water signal
+    % Check if short-TE water scans exist, if so, write LCM .RAW file
     if MRSCont.flags.hasWater
         % Get TE and the input file name
         te_w                = MRSCont.processed.w{kk}.te;
         [path_w,filename_w,~]   = fileparts(MRSCont.files_w{kk});
+        
         % For batch analysis, get the last two sub-folders (e.g. site and
-        % subject)
+        % subject) to augment the filename, avoiding duplicate output filenames
         path_w_split          = regexp(path_w,filesep,'split');
         if length(path_w_split) > 2
             name_w = [path_w_split{end-1} '_' path_w_split{end} '_' filename_w];
         end
+        
+        % Set up complete output filename strings, then write LCM .RAW files.
         outfileW        = fullfile(saveDestination,'w', [name_w '_LCM_W.RAW']);
         RF              = io_writelcm(MRSCont.processed.w{kk},outfileW,te_w);
+        
+        MRSCont.opts.fit.lcmodel.outfileW{kk}     = outfileW;
     end
 
 end

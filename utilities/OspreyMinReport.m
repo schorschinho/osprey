@@ -140,26 +140,32 @@ end
 fprintf(fid,'|c. Output measure | %s \n', outs);
 outs = '';
 br = 1;
-if MRSCont.flags.isUnEdited
-    includeMetabs = MRSCont.fit.resBasisSet.off.(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
-end
-if MRSCont.flags.isMEGA
-    includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
-end
-if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
-end
-for ss = 1 : length(includeMetabs)
-    if br < 10
-        outs = [outs includeMetabs{ss}];        
-    else
-        outs = [outs includeMetabs{ss}  ',<br>']; 
-        br = 1;
+if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
+    if MRSCont.flags.isUnEdited
+        includeMetabs = MRSCont.fit.resBasisSet.off.(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
     end
-    if ss ~= length(includeMetabs) && br ~= 1
-        outs = [outs ','];
+    if MRSCont.flags.isMEGA
+        includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
     end
-    br = br + 1;
+    if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
+        includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
+    end
+    for ss = 1 : length(includeMetabs)
+        if br < 10
+            outs = [outs includeMetabs{ss}];        
+        else
+            outs = [outs includeMetabs{ss}  ',<br>']; 
+            br = 1;
+        end
+        if ss ~= length(includeMetabs) && br ~= 1
+            outs = [outs ','];
+        end
+        br = br + 1;
+    end
+else
+    if MRSCont.flags.isUnEdited
+        includeMetabs = MRSCont.fit.results.off.fitParams{1, 1}.name;
+    end
 end
 fprintf(fid,'|d. Quantification references and assumptions, fitting model assumptions| Basis set list:<br> %s <br>Fitting method: %s basline knot spacing %.2f ppm\n', outs,MRSCont.opts.fit.method,MRSCont.opts.fit.bLineKnotSpace );
 fprintf(fid,'\n \n');

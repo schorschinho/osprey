@@ -594,6 +594,33 @@ if MRSCont.flags.didFit
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = nan;
                         end
                     end
+                case 'LCModel'                                  
+                            if (MRSCont.flags.isPRIAM == 1)
+                                fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
+                            else
+                                fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
+                            end
+                            % Get the LCModel plots we previously extracted from .coord
+                            % etc.
+                            [ModelOutput] = fit_LCModelParamsToModel(fitParams);
+                            
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit      = ModelOutput.completeFit;
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.baseline      = ModelOutput.baseline;
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm      =  ModelOutput.ppm';
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res      = ModelOutput.residual;
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = ModelOutput.data;
+                            for n = 1 : size(ModelOutput.indivMets,2) % loop over basis functions
+                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.(['fit' fitParams.name{n}])  = ModelOutput.indivMets(:,n);
+                            end
+                             % tMM = all MM functions
+                            if MRSCont.opts.fit.fitMM == 1
+                                %Find all MM or Lip functions that are not
+                                %combined
+                                idx_tMM = horzcat(find(contains(fitParams.name,'MM')), find(contains(fitParams.name,'Lip')));
+                                if ~isempty(idx_tMM)
+                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittMM  = sum(ModelOutput.indivMets(:,idx_tMM),2);
+                                end                               
+                            end
                 end
             end
         end
@@ -732,11 +759,11 @@ if MRSCont.flags.didFit
                              end
                         end
                     end %re_mm
-                    if MRSCont.flags.hasRef
+                    if MRSCont.flags.hasRef &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                         MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs/scale;
                         MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit;
                     end
-                    if MRSCont.flags.hasWater
+                    if MRSCont.flags.hasWater &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                         MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs/scale;
                         MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit;
                     end
@@ -792,11 +819,11 @@ if MRSCont.flags.didFit
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).B{1,kk}.specs= MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).B{1,kk}.specs/scale;
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).diff1{1,kk}.specs= MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).diff1{1,kk}.specs/scale;
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).sum{1,kk}.specs= MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).sum{1,kk}.specs/scale;
-                            if MRSCont.flags.hasRef
+                            if MRSCont.flags.hasRef && ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                                 MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs/scale;
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit;
                             end
-                            if MRSCont.flags.hasWater
+                            if MRSCont.flags.hasWater &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                                 MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs/scale;
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit;
                             end
@@ -834,11 +861,11 @@ if MRSCont.flags.didFit
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).diff2_diff2{1,kk}.res= MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).diff2_diff2{1,kk}.res/scale;
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).sum_sum{1,kk}.res= MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).sum_sum{1,kk}.res/scale;
                         end
-                        if MRSCont.flags.hasRef
+                        if MRSCont.flags.hasRef &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs/scale;
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit/scale;
                         end
-                        if MRSCont.flags.hasWater
+                        if MRSCont.flags.hasWater &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs/scale;
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit/scale;
                         end
@@ -935,6 +962,7 @@ for i = 1 : MRSCont.nDatasets
     SepFileList{i} =  split(MRSCont.files{i}, filesep);
     subject{i} = [SepFileList{i}{end-1}]; % Create subject name list
 end
+
 if MRSCont.flags.hasStatfile % Has stat csv file
     statCSV = readtable(MRSCont.file_stat, 'Delimiter', ',','ReadVariableNames',1); % Load it
     name = statCSV.Properties.VariableNames;
