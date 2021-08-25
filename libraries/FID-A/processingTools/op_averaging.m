@@ -23,12 +23,8 @@ end
 if in.dims.averages==0 || in.averages<2
     %DO NOTHING
     warning('Just one average found. Returning input without modification!');
-        %change the dims variables.
-    if in.dims.t>in.dims.averages
-        dims.t=in.dims.t-1;
-    else
-        dims.t=in.dims.t;
-    end
+    %change the dims variables.
+    dims.t=in.dims.t;
     if in.dims.coils>in.dims.averages
         dims.coils=in.dims.coils-1;
     else

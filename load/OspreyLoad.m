@@ -112,7 +112,6 @@ switch MRSCont.vendor
                 fprintf(msg);
                 error(msg);
         end
-
     case ''
         % We left the vendor field empty for NIfTI-MRS data
         switch MRSCont.datatype
@@ -123,7 +122,6 @@ switch MRSCont.vendor
                 fprintf(msg);
                 error(msg);
         end
-
     otherwise
         msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
         fprintf(msg);
