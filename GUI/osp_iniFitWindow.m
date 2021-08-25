@@ -204,12 +204,22 @@ for t = 1 : gui.fit.Number %Loop over fits
             resultsFontSize = 8;
         case 'Osprey'
             % Number of metabolites and lipid/MM basis functions
-            nMets   = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets;
-            nMMLip  = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM;
+            nMets   = MRSCont.fit.basisSet.nMets;
+            nMMLip  = MRSCont.fit.basisSet.nMM;
             % Additional info panel string for the water fit range
             waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
             % Where are the metabolite names stored?
-            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name;
+            if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
+                basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(MRSCont.processed.A{1}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+            else if strcmp(gui.fit.Style, 'conc')
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{1}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                else if strcmp(gui.fit.Style, 'off')
+                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{1}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                    else
+                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{1}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                    end
+                end
+            end
              % Larger fonts for the results
             resultsFontSize = 11;
     end
@@ -276,9 +286,9 @@ for t = 1 : gui.fit.Number %Loop over fits
                 switch MRSCont.opts.fit.method
                     case 'Osprey'
                         if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
-                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{kk});
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                         else
-                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{kk});
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                         end
                     case 'LCModel'
                 end
@@ -310,7 +320,7 @@ for t = 1 : gui.fit.Number %Loop over fits
             else %Water/reference fit
                 NameText = ['Water: ' ];
                 RawAmplText = [num2str(RawAmpl,'%1.2e')];
-                set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
+                set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
                 gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
                     'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...

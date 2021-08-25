@@ -73,12 +73,22 @@ function osp_updateFitWindow(gui)
                 resultsFontSize = 9;
             case 'Osprey'
                 % Number of metabolites and lipid/MM basis functions
-                nMets   = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(1,gui.controls.Selected)}.nMets;
-                nMMLip  = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(1,gui.controls.Selected)}.nMM;
+                nMets   = MRSCont.fit.basisSet.nMets;
+                nMMLip  = MRSCont.fit.basisSet.nMM;
                 % Additional info panel string for the water fit range
                 waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 % Where are the metabolite names stored?
-                basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(1,gui.controls.Selected)}.name;
+                if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                else if strcmp(gui.fit.Style, 'conc')
+                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                    else if strcmp(gui.fit.Style, 'off')
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                        else
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                        end
+                    end
+                end
                  % Larger fonts for the results
                 resultsFontSize = 11;
         end
@@ -168,11 +178,11 @@ function osp_updateFitWindow(gui)
                         '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f') 'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
                         ' ppm\nNumber of metabolites: ' num2str(nMets) '; Number of MM/lipids: ' num2str(nMMLip) ...
                         ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected}) '; initial ph0: ' num2str(iniph0,'%1.2f') 'deg; initial ph1: ' num2str(iniph1,'%1.2f') 'deg'];
-        else if strcmp (which, 'ref') %Reference data?
-                StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
+        else if strcmp (Selection, 'ref') %Reference data?
+                StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
                     '\n' waterFitRangeString];
             else %Is water data
-                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
+                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
                     '\n' waterFitRangeString];
             end
         end
@@ -207,9 +217,9 @@ function osp_updateFitWindow(gui)
                     switch MRSCont.opts.fit.method
                     case 'Osprey'
                         if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
-                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{kk});
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                         else
-                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{kk});
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                         end
                         case 'LCModel'
                     end
