@@ -31,6 +31,7 @@ MRSCont.flags.addImages        = 0;
 MRSCont.opts.savePDF                = 0;
 MRSCont.opts.saveLCM                = 0;
 MRSCont.opts.savejMRUI              = 0;
+MRSCont.opts.saveNII              = 0;
 MRSCont.opts.saveVendor             = 0;
 MRSCont.opts.fit.includeMetabs      = {'default'};      % Options: 'default', 'full', custom set       
 MRSCont.opts.fit.method             = 'Osprey';         % Options: 'Osprey' (default), 'LCModel'
