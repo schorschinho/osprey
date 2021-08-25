@@ -112,10 +112,16 @@ opts.savejMRUI              = 0;                % OPTIONS:    - 0 (no, default)
 opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
+% Save processed spectra in NIfTI-MRS format?
+opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+                                                
+% Save PDF output for all Osprey modules and subjects?
+opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)                                                 
+                                                
 % Choose the fitting algorithm
 opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
-                                                %           - 'AQSES' (planned)
-                                                %           - 'TARQUIN' (planned)
 
 % Select the metabolites to be included in the basis set as a cell array,
 % with entries separates by commas.
