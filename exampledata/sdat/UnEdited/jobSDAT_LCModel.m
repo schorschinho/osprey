@@ -117,6 +117,10 @@ opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
 % Save processed spectra in NIfTI-MRS format?
 opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
+
+% Save PDF output for all Osprey modules and subjects?
+opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)                                                        
                                                 
 % Select the metabolites to be included in the basis set as a cell array,
 % with entries separates by commas.
@@ -155,7 +159,10 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 %%% ----- LCMODEL FITTING OPTIONS -----
 % Specify LCModel-format basis set (.BASIS)
+% If no basis set file is provided Osprey will generate the .BASIS file
+% from Osprey's database
 opts.fit.basisSetFile       = which('3T_PRESS_Philips_35ms_noMM.BASIS');
+
 
 % Specify LCModel-type control file (.CONTROL) 
 % This is optional: If you leave this field blank, Osprey will create a
