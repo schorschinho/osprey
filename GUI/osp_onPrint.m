@@ -275,12 +275,22 @@ function osp_onPrint( ~, ~ ,gui)
                     resultsFontSize = 6;
                 case 'Osprey'
                     % Number of metabolites and lipid/MM basis functions
-                    nMets   = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMets;
-                    nMMLip  = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.nMM;
+                    nMets   = MRSCont.fit.basisSet.nMets;
+                    nMMLip  = MRSCont.fit.basisSet.nMM;
                     % Additional info panel string for the water fit range
                     waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                     % Where are the metabolite names stored?
-                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name;
+                    if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                else if strcmp(gui.fit.Style, 'conc')
+                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                    else if strcmp(gui.fit.Style, 'off')
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                        else
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                        end
+                    end
+                end
                      % Larger fonts for the results
                     resultsFontSize = 11;
             end
@@ -299,7 +309,7 @@ function osp_onPrint( ~, ~ ,gui)
                             CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.CRLB;
                         end
                     case 'Osprey'
-                        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk};
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
                 end
             else %Is concatenated and not water/reference
                 gui.fit.Style = 'conc';
