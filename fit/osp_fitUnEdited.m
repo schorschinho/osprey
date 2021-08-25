@@ -117,7 +117,31 @@ for kk = 1:MRSCont.nDatasets
         if ~exist(fullfile(MRSCont.outputFolder, 'LCMoutput'), 'dir')
             mkdir(fullfile(MRSCont.outputFolder, 'LCMoutput'));
         end
-        callLCModel(MRSCont, MRSCont.opts.fit.lcmodel.controlfileA{kk});
+        
+        
+        % Find the path to LCModel binary
+        pathLCModelBinaryStruct = osp_platform('lcmodel');
+        pathLCModelBinary = fullfile(MRSCont.ospFolder, 'libraries', 'LCModel',pathLCModelBinaryStruct.os,pathLCModelBinaryStruct.osver,['LCModel_' pathLCModelBinaryStruct.os,'_',pathLCModelBinaryStruct.osver]);
+        switch  pathLCModelBinaryStruct.os
+            case 'macos'
+                bin = 'lcmodel';
+            case 'unix'
+                bin = 'lcmodel';
+            case 'win'
+                bin = 'LCModel.exe';
+        end
+        
+        if ~exist([pathLCModelBinary filesep bin],'file') %Unzip binary
+            unzip([pathLCModelBinary filesep bin '.zip'],[pathLCModelBinary filesep]);
+        end
+        
+        if ~exist([pathLCModelBinary filesep bin],'file') %Binary is still missing
+            error('ERROR: No LCModel binary found.  Aborting!!');
+        else
+            addpath(which('libraries/LCModel'));
+        end    
+        
+        callLCModel(MRSCont, MRSCont.opts.fit.lcmodel.controlfileA{kk},[pathLCModelBinary filesep bin]);
          
         % Save the parameters and information about the basis set
         MRSCont.fit.results.off.fitParams{kk} = readLCMFitParams(MRSCont, 'A', kk);
@@ -133,11 +157,9 @@ MRSCont.runtime.FitMet = time;
 end
 
 
-function callLCModel(MRSCont, controlFile)
+function callLCModel(MRSCont, controlFile,pathLCModelBinary)
 % Wrapper function for LCModel binary
 
-% Path to LCModel binary
-pathLCModelBinary = fullfile(MRSCont.ospFolder, 'libraries', 'LCModel', 'lcmodel');
 callLCMCommand = ['"' pathLCModelBinary '" < "' controlFile '"'];
 system(callLCMCommand);
 

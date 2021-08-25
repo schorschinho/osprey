@@ -124,6 +124,14 @@ case 'desktop'                                       %-Return desktop usage
 %==========================================================================
 varargout = {PLATFORM.desktop};
 
+case 'comp'                                          %-Return system
+%==========================================================================
+varargout = {PLATFORM.comp};
+
+case 'lcmodel'                                       %-LCModel binaries
+%==========================================================================
+varargout = {PLATFORM.LCModel};
+
     otherwise                                       %-Unknown Action string
 %==========================================================================
 error('Unknown Action string')
@@ -183,6 +191,9 @@ if ~issup
     error([comp ' not supported architecture for ' spm('Ver')]);
 end
 
+%-Set computer
+%--------------------------------------------------------------------------
+PLATFORM.comp = comp;
 
 %-Set byte ordering
 %--------------------------------------------------------------------------
@@ -244,6 +255,20 @@ switch comp
         PLATFORM.font.times     = 'Times New Roman';
         PLATFORM.font.courier   = 'Courier New';
         PLATFORM.font.symbol    = 'Symbol';
+end
+
+%-LCModel binary
+%--------------------------------------------------------------------------
+switch comp
+    case {'MAC','MACI','MACI64'}
+        PLATFORM.LCModel.os        = 'macos';
+        PLATFORM.LCModel.osver     = 'catalina';
+    case {'GLNX86','GLNXA64'}
+        PLATFORM.LCModel.os        = 'unix';
+        PLATFORM.LCModel.osver     = 'Linux';
+    case {'PCWIN','PCWIN64'}
+        PLATFORM.LCModel.os        = 'win';
+        PLATFORM.LCModel.osver     = 'win10';
 end
 
 
