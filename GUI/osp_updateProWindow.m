@@ -24,9 +24,7 @@ function osp_updateProWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class 
-        gui.controls.b_save_proTab = gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(1).Children;
-        gui.upperBox.pro.Info = gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(2);
-        if (isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) && (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+         if (isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) && (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
             set(gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z);
             set(gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y);
             set(gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x);
@@ -102,7 +100,7 @@ function osp_updateProWindow(gui)
             end      
         end
 
-        set(gui.upperBox.pro.Info.Children, 'String',sprintf(StatText));
+        set(gui.InfoText.pro{gui.process.Selected}, 'String',sprintf(StatText));
         
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
         if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
@@ -141,7 +139,7 @@ function osp_updateProWindow(gui)
             set( gui.layout.LocPanel.Children,'ColorData', ViewAxes.ColorData );
             close(temp)
         end
-        set(gui.upperBox.pro.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]);
-        set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
+        set(gui.upperBox.pro.Info{gui.process.Selected},'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]);
+        set(gui.controls.b_save_proTab{gui.process.Selected},'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class 
 end

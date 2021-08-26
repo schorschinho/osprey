@@ -218,20 +218,20 @@ function osp_iniProcessWindow(gui)
         for t = length(gui.layout.proTabhandles) : -1 : 1 %Loop over subspecs/tabs
             ind=find(ismember(gui.layout.proTabhandles,[gui.process.Names{t} 'ProTab']));
             gui.layout.proTab.Selection  = ind;
-            gui.upperBox.pro.box = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
+            gui.upperBox.pro.box{ind} = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
             if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                gui.upperBox.data.upperLeftButtons = uix.Panel('Parent', gui.upperBox.pro.box, ...
+                gui.upperBox.data.upperLeftButtons = uix.Panel('Parent', gui.upperBox.pro.box{ind}, ...
                                          'Padding', 5, 'Title', ['Navigate voxel'],...
-                                         'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                         'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                          'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
                 gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.data.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
                 gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
                 gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','X:',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Y:',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Z:',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
                 gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
                 gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
@@ -249,11 +249,11 @@ function osp_iniProcessWindow(gui)
                 end
                 
                 gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
-                    'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                 gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
                 gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
                 gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
@@ -271,26 +271,26 @@ function osp_iniProcessWindow(gui)
                 end   
                 set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
             end
-            gui.upperBox.pro.Info = uix.Panel('Parent', gui.upperBox.pro.box, ...
+            gui.upperBox.pro.Info{ind} = uix.Panel('Parent', gui.upperBox.pro.box{ind}, ...
                 'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
-                'HighlightColor', gui.colormap.Foreground,'FontName', 'Arial', 'BackgroundColor',...
+                'HighlightColor', gui.colormap.Foreground,'FontName', gui.font, 'BackgroundColor',...
                 gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-            gui.upperBox.pro.upperButtons = uix.Panel('Parent', gui.upperBox.pro.box, ...
+            gui.upperBox.pro.upperButtons = uix.Panel('Parent', gui.upperBox.pro.box{ind}, ...
                                      'Padding', 5, 'Title', ['Save'],...
-                                     'FontName', 'Arial', 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                     'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                      'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-            gui.controls.b_save_proTab = uicontrol('Parent',gui.upperBox.pro.upperButtons,'Style','PushButton');
+            gui.controls.b_save_proTab{ind} = uicontrol('Parent',gui.upperBox.pro.upperButtons,'Style','PushButton');
             [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.1);
-            set(gui.controls.b_save_proTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-            set(gui.controls.b_save_proTab,'Callback',{@osp_onPrint,gui});
+            set(gui.controls.b_save_proTab{ind},'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+            set(gui.controls.b_save_proTab{ind},'Callback',{@osp_onPrint,gui});
             if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                set(gui.upperBox.pro.box, 'Width', [-0.12 -0.78 -0.1]);
+                set(gui.upperBox.pro.box{ind}, 'Width', [-0.12 -0.78 -0.1]);
             else
-                set(gui.upperBox.pro.box, 'Width', [-0.9 -0.1]);   
+                set(gui.upperBox.pro.box{ind}, 'Width', [-0.9 -0.1]);   
             end
             % Creates layout for plotting and data control
-            gui.Plot.pro = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}), ...
+            gui.Plot.pro{ind} = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}), ...
                 'Padding', 5,'BackgroundColor', gui.colormap.Background);
             set(gui.layout.(gui.layout.proTabhandles{ind}), 'Heights', [-0.1 -0.9]);
             % Get parameter from file to fill the info panel
@@ -361,8 +361,8 @@ function osp_iniProcessWindow(gui)
                     end
                 end
             end
-            gui.InfoText.pro  = uicontrol('Parent',gui.upperBox.pro.Info,'style','text',...
-                                         'FontSize', 12, 'FontName', 'Arial',...
+            gui.InfoText.pro{ind}  = uicontrol('Parent',gui.upperBox.pro.Info{ind},'style','text',...
+                                         'FontSize', 12, 'FontName', gui.font,...
                                          'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
                                          'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
 
@@ -370,10 +370,10 @@ function osp_iniProcessWindow(gui)
  %osp_plotProcess is used to visualize the processed spectra
             temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{t}); % Create figure
             %Subplots are distributed here
-                gui.layout.proSpecs = uix.VBox('Parent', gui.Plot.pro, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                gui.layout.proSpecs = uix.VBox('Parent', gui.Plot.pro{t}, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     gui.layout.proPre = uix.VBox('Parent', gui.layout.proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
                     gui.layout.proPost = uix.VBox('Parent', gui.layout.proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                gui.layout.proOut = uix.VBox('Parent', gui.Plot.pro,'Padding', 5, 'BackgroundColor',gui.colormap.Background);
+                gui.layout.proOut = uix.VBox('Parent', gui.Plot.pro{t},'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     gui.layout.proDrift = uix.VBox('Parent', gui.layout.proOut, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
                     gui.layout.proAlgn = uix.VBox('Parent', gui.layout.proOut, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
 
@@ -383,7 +383,7 @@ function osp_iniProcessWindow(gui)
             set( temp.Children(1), 'Parent', gui.layout.proPre );
             close( temp );
 %%% 5. DATA CONTROLS FOR THIS TAB %%%
-            set(gui.Plot.pro,'Widths', [-0.49 -0.49]);
+            set(gui.Plot.pro{t},'Widths', [-0.49 -0.49]);
             set(gui.layout.proPre.Children(1), 'Units', 'normalized')
             set(gui.layout.proPre.Children(1), 'OuterPosition', [0,0,1,1])
             set(gui.layout.proPost.Children(1), 'Units', 'normalized')
@@ -393,5 +393,11 @@ function osp_iniProcessWindow(gui)
             set(gui.layout.proAlgn.Children(1), 'Units', 'normalized')
             set(gui.layout.proAlgn.Children(1), 'OuterPosition', [0,0,1,1])
         end
+    h = findall(groot,'Type','figure');
+    for ff = 1 : length(h)
+        if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
+            close(h(ff))
+        end
+    end
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

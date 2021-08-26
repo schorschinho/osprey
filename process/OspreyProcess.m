@@ -64,20 +64,10 @@ NoSubSpec = length(fieldnames(MRSCont.processed));
 for ss = 1 : NoSubSpec
     for kk = 1 : MRSCont.nDatasets
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
-            temp_sw(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth;
+            temp_sz_sw{1,kk} = ['np_sw_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1)) '_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth)];   
     end
-    [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_ind,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_indsort]  = unique(temp_sz,'Stable');
+    [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth_ind,~]  = unique(temp_sz_sw,'Stable');
     [MRSCont.info.(SubSpecNames{ss}).max_ndatapoint,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind] = max(temp_sz);
-    temp_sw_store = temp_sw;
-    for np = 1 : length(MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint)
-        [max_ind] = find(temp_sz==MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint(np));
-        temp_sw(max_ind) = nan;
-        [MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np},MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np},MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_indsort{np}]  = unique(temp_sw,'Stable');
-        nanind = isnan(MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np});
-        MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np}(isnan(MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np}(1:end))) = [];
-        MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np}(nanind ==1) = [];
-        temp_sw = temp_sw_store;
-    end
 end
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 % Creates y-axis range to align the process plots between datasets
@@ -150,12 +140,18 @@ end
 if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveJMRUI(MRSCont);
 end
+
 % Optional: write edited files to vendor specific format files readable to
 % LCModel and jMRUI
 % SPAR/SDAT if Philips
 % RDA if Siemens
 if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveVendor(MRSCont);
+end
+
+% Optional: write edited files to NIfTI-MRS format
+if MRSCont.opts.saveNII && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+    [MRSCont] = osp_saveNII(MRSCont);
 end
 
 % Save the output structure to the output folder

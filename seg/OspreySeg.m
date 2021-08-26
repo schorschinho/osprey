@@ -82,8 +82,8 @@ for kk = 1:MRSCont.nDatasets
 
         
         % Get the input file name
-        [T1dir, T1name, T1ext]  = fileparts(niftiFile);
-        if strcmp(T1ext,'.gz')
+        [T1dir, T1name, T1extini]  = fileparts(niftiFile);
+        if strcmp(T1extini,'.gz')
             T1name = strrep(T1name, '.nii','');
         end
 
@@ -91,24 +91,26 @@ for kk = 1:MRSCont.nDatasets
         % If a GM-segmented file doesn't exist, start the segmentation
         if ~exist(segFile,'file')
             %Uncompress .nii.gz if needed
-            if strcmp(T1ext,'.gz')
+            if strcmp(T1extini,'.gz')
                 gunzip(niftiFile);
-                niftiFile = strrep(niftiFile,'.gz','');
-                T1ext = '.nii';
-            end           
+                niftiFile = strrep(niftiFile,'.gz','');                
+            end  
+            T1ext = '.nii';
             createSegJob(niftiFile);
         else
-            if strcmp(T1ext,'.gz')
+            if strcmp(T1extini,'.gz')
                 gunzip(niftiFile);
                 niftiFile = strrep(niftiFile,'.gz','');
                 T1ext = '.nii';
+            else
+                T1ext = T1extini;
             end  
             if exist(fullfile(T1dir, ['c1' T1name '.nii.gz']),'file')
                 gunzip(fullfile(T1dir, ['c1' T1name T1ext '.gz']));
                 gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
                 gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
             end
-            T1ext = strrep(T1ext,'.gz','');
+            T1ext = '.nii';
         end
 
 
@@ -241,6 +243,11 @@ for kk = 1:MRSCont.nDatasets
             WMsum  = sum(sum(sum(vol_WMMask.private.dat(:,:,:))));
             CSFsum = sum(sum(sum(vol_CSFMask.private.dat(:,:,:))));
             
+            % Save three plane image to container
+            if MRSCont.flags.addImages                
+                [MRSCont.seg.img_montage{kk},MRSCont.seg.size_vox_t(kk)] = osp_extract_three_plane_image_seg(niftiFile, vol_mask,vol_GMMask,vol_WMMask,vol_CSFMask,MRSCont.coreg.voxel_ctr{kk},MRSCont.coreg.T1_max{kk});
+            end
+            
             %Compress nifit and delete uncompressed files
             gzip(vol_GMMask.fname);
             delete(vol_GMMask.fname);
@@ -255,8 +262,11 @@ for kk = 1:MRSCont.nDatasets
             gzip(CSFvol.fname);
             delete(CSFvol.fname);
             delete(vol_mask.fname);
-            gzip(niftiFile)
-            delete(vol_mask.fname);
+            
+            if strcmp(T1extini,'.gz')
+                gzip(MRSCont.coreg.vol_image{kk}.fname)
+                delete(MRSCont.coreg.vol_image{kk}.fname);
+            end
 
 
 
@@ -269,7 +279,8 @@ for kk = 1:MRSCont.nDatasets
             % Save normalized fractional tissue volumes to MRSCont
             MRSCont.seg.tissue.fGM(kk,rr)  = fGM;
             MRSCont.seg.tissue.fWM(kk,rr)  = fWM;
-            MRSCont.seg.tissue.fCSF(kk,rr) = fCSF;
+            MRSCont.seg.tissue.fCSF(kk,rr) = fCSF;            
+            
         end
     end 
 end

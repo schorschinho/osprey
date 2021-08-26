@@ -107,6 +107,9 @@ for kk = 1:length(files)
             buffer.vendor{kk}       = 'Siemens';
             buffer.datatype{kk}     = 'TWIX';
         elseif strcmpi(ext,'.RAW')
+            buffer.vendor{kk}       = 'LCModel';
+            buffer.datatype{kk}     = 'RAW';
+        elseif strcmpi(ext,'.LAB')
             buffer.vendor{kk}       = 'Philips';
             buffer.datatype{kk}     = 'RAW';
         elseif strcmpi(ext,'.SDAT')
@@ -115,8 +118,13 @@ for kk = 1:length(files)
         elseif strcmpi(ext,'.DATA')
             buffer.vendor{kk}       = 'Philips';
             buffer.datatype{kk}     = 'DATA';
+        elseif strcmpi(ext,'.gz') || strcmpi(ext,'.nii')
+            % For now, leave the vendor field empty; we'll fill it while
+            % loading the actual data.
+            buffer.vendor{kk}       = '';
+            buffer.datatype{kk}     = 'NIfTI-MRS';
         else
-            retMsg = 'Unrecognized datatype. Filenames need to end in .7 .SDAT .DATA .RAW .RDA .IMA .DCM or .DAT!';
+            retMsg = 'Unrecognized datatype. Filenames need to end in .7 .SDAT .DATA .RAW .RDA .IMA .DCM .DAT .GZ or .NII.GZ!';
             fprintf(retMsg);
         end
     end

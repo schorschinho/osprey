@@ -132,12 +132,18 @@ end
 
 
 % Add combinations of metabolites to the basisset
+
 for ll = 1:length(getResults)
-    if ~iscell(MRSCont.fit.results) %Is SVS
-       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
-    else %Is DualVoxel
-       MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1}.(getResults{ll}){1,1}.name;
+    if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
+        if ~iscell(MRSCont.fit.results) %Is SVS
+           MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
+        else %Is DualVoxel
+           MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1}.(getResults{ll}).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
+        end
+    else
+        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.results.off.fitParams{1, 1}.name;
     end
+
 end
 
 for kk = 1:MRSCont.nDatasets
@@ -150,6 +156,7 @@ for kk = 1:MRSCont.nDatasets
         end
     end
 end
+
 MRSCont = addMetabComb(MRSCont, getResults);
 
 
@@ -189,11 +196,33 @@ for kk = 1:MRSCont.nDatasets
 
     %%% 3. GET WATER-SCALED, TISSUE-UNCORRECTED RATIOS %%%
     if qtfyH2O
-        if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
-            amplWater = MRSCont.fit.results.(waterType).fitParams{kk}.ampl;
-        else %Is DualVoxel
-           amplWater(:,1) = MRSCont.fit.results{1}.(waterType).fitParams{kk}.ampl;
-           amplWater(:,2) = MRSCont.fit.results{2}.(waterType).fitParams{kk}.ampl;
+        if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
+            if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
+                amplWater = MRSCont.fit.results.(waterType).fitParams{kk}.ampl;
+            else %Is DualVoxel
+               amplWater(:,1) = MRSCont.fit.results{1}.(waterType).fitParams{kk}.ampl;
+               amplWater(:,2) = MRSCont.fit.results{2}.(waterType).fitParams{kk}.ampl;
+            end
+        else
+            % Get WCONC, ATTMET, and ATTH2O from control file 
+            LCMparam = osp_readlcm_control(MRSCont.opts.fit.lcmodel.controlfileA{kk});
+            if isfield(LCMparam, 'WCONC') % User-supplied WCONC           
+                amplWater = str2double(LCMparam.WCONC);
+            else
+                amplWater = 35880; %LCModel default WCONC assumes pure WM
+            end
+            
+            if isfield(LCMparam, 'ATTMET') % User-supplied ATTMET           
+                amplWater = amplWater * str2double(LCMparam.ATTMET);
+            else
+                 %Do nothing as LCModel default ATTMET is 1
+            end
+            
+            if isfield(LCMparam, 'ATTH2O') % User-supplied ATTH2O           
+                amplWater = amplWater / str2double(LCMparam.ATTH2O);
+            else
+                amplWater = amplWater / 0.7; %LCModel default ATTH2O is 0.7
+            end
         end
 
         % Get repetition times
@@ -317,133 +346,135 @@ end
 
 %%% Add combinations of metabolites %%%
 function MRSCont = addMetabComb(MRSCont, getResults)
-%% Loop over all datasets
-for kk = 1:MRSCont.nDatasets
-    % tNAA NAA+NAAG
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'NAA'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'NAAG'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tNAA'));
-            if isempty(idx_3)
-                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tNAA';
-            end
-            idx_tNAA = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tNAA'));
-            tNAA = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tNAA,:) = tNAA;
-
-        end
-    end
-    % Glx Glu+Gln
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glu'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Gln'));   
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glx'));
-            if isempty(idx_3)
-                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'Glx';
-            end
-            idx_Glx = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glx'));
-            Glx = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_Glx,:) = Glx;
-        end
-    end
-    % tCho GPC+PCh
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GPC'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCh'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCho'));
-            if isempty(idx_3)
-                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tCho';
-            end
-            idx_tCho = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCho'));
-            tCho = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCho,:) = tCho;
-        end
-    end
-    % tCr Cr+PCr
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Cr'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCr'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
-            if isempty(idx_3)
-                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tCr';
-            end
-            idx_tCr = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
-            tCr = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCr,:) = tCr;
-        end
-    end
-    % tCr Cr+PCr
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Cr'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCr'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
-            if isempty(idx_3)
-                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tCr';
-            end
-            idx_tCr = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
-            tCr = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCr,:) = tCr;
-        end
-    end
-    %PE+EA
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PE'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'EA'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tEA'));
-            if isempty(idx_3)
-                MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tEA';
-            end
-            idx_tEA = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tEA'));
-            tEA = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
-            MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tEA,:) = tEA;
-        end
-    end
-    %GABA+coMM3
-    if strcmp(MRSCont.opts.fit.coMM3, '1to1GABA') % fixed GABA coMM3 model
-        for ll = 1:length(getResults)        
-            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
-            if  ~isempty(idx_1)
-                idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
+    %% Loop over all datasets
+    for kk = 1:MRSCont.nDatasets
+        % tNAA NAA+NAAG
+        for ll = 1:length(getResults)
+            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'NAA'));
+            idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'NAAG'));
+            if  ~isempty(idx_1) && ~isempty(idx_2)
+                idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tNAA'));
                 if isempty(idx_3)
-                    MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GABAplus';
+                    MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tNAA';
                 end
-                idx_GABAp = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
-                GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:);
-                MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GABAp,:) = GABAp;
+                idx_tNAA = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tNAA'));
+                tNAA = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tNAA,:) = tNAA;
+
             end
-        end        
-    else if strcmp(MRSCont.opts.fit.coMM3, '3to2MM') % fixed MM09 coMM3 model
-             for ll = 1:length(getResults)
+        end
+        % Glx Glu+Gln
+        for ll = 1:length(getResults)
+            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glu'));
+            idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Gln'));   
+            if  ~isempty(idx_1) && ~isempty(idx_2)
+                idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glx'));
+                if isempty(idx_3)
+                    MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'Glx';
+                end
+                idx_Glx = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glx'));
+                Glx = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_Glx,:) = Glx;
+            end
+        end
+        % tCho GPC+PCh
+        for ll = 1:length(getResults)
+            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GPC'));
+            idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCh'));
+            if  ~isempty(idx_1) && ~isempty(idx_2)
+                idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCho'));
+                if isempty(idx_3)
+                    MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tCho';
+                end
+                idx_tCho = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCho'));
+                tCho = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCho,:) = tCho;
+            end
+        end
+        % tCr Cr+PCr
+        for ll = 1:length(getResults)
+            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Cr'));
+            idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCr'));
+            if  ~isempty(idx_1) && ~isempty(idx_2)
+                idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
+                if isempty(idx_3)
+                    MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tCr';
+                end
+                idx_tCr = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
+                tCr = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCr,:) = tCr;
+            end
+        end
+        % tCr Cr+PCr
+        for ll = 1:length(getResults)
+            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Cr'));
+            idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCr'));
+            if  ~isempty(idx_1) && ~isempty(idx_2)
+                idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
+                if isempty(idx_3)
+                    MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tCr';
+                end
+                idx_tCr = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tCr'));
+                tCr = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tCr,:) = tCr;
+            end
+        end
+        %PE+EA
+        for ll = 1:length(getResults)
+            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PE'));
+            idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'EA'));
+            if  ~isempty(idx_1) && ~isempty(idx_2)
+                idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tEA'));
+                if isempty(idx_3)
+                    MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'tEA';
+                end
+                idx_tEA = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'tEA'));
+                tEA = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_tEA,:) = tEA;
+            end
+        end
+        %GABA+coMM3
+        if strcmp(MRSCont.opts.fit.coMM3, '1to1GABA') % fixed GABA coMM3 model
+            for ll = 1:length(getResults)        
                 idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
-                idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'MM09'));
-                if  ~isempty(idx_1) && ~isempty(idx_2)
+                if  ~isempty(idx_1)
                     idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
                     if isempty(idx_3)
                         MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GABAplus';
                     end
                     idx_GABAp = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
-                    GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                    GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:);
                     MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GABAp,:) = GABAp;
                 end
-            end              
-        else % Models with a separate comMM3 function or without a co-edited MM function         
-            for ll = 1:length(getResults)
-                idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
-                idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'MM3co'));
-                if  ~isempty(idx_1) && ~isempty(idx_2)
-                    idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
-                    if isempty(idx_3)
-                        MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GABAplus';
+            end        
+        else if strcmp(MRSCont.opts.fit.coMM3, '3to2MM') % fixed MM09 coMM3 model
+                 for ll = 1:length(getResults)
+                    idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
+                    idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'MM09'));
+                    if  ~isempty(idx_1) && ~isempty(idx_2)
+                        idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                        if isempty(idx_3)
+                            MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GABAplus';
+                        end
+                        idx_GABAp = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                        GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                        MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GABAp,:) = GABAp;
                     end
-                    idx_GABAp = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
-                    GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
-                    MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GABAp,:) = GABAp;
+                end              
+            else % Models with a separate comMM3 function or without a co-edited MM function         
+                for ll = 1:length(getResults)
+                    idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
+                    idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'MM3co'));
+                    if  ~isempty(idx_1) && ~isempty(idx_2)
+                        idx_3 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                        if isempty(idx_3)
+                            MRSCont.quantify.metabs.(getResults{ll}){length(MRSCont.quantify.metabs.(getResults{ll}))+1} = 'GABAplus';
+                        end
+                        idx_GABAp = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABAplus'));
+                        GABAp = MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_1,:) + MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_2,:);
+                        MRSCont.quantify.amplMets{kk}.(getResults{ll})(idx_GABAp,:) = GABAp;
+                    end
                 end
             end
         end

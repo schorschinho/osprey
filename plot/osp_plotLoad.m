@@ -95,7 +95,7 @@ if nargin<10
     if nargin<9
         ylab='';
         if nargin<8
-            xlab='Frequency (ppm)';
+            xlab='chemical shift (ppm)';
             if nargin<7
                 switch which
                     case 'mets'

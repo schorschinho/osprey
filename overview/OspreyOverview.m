@@ -236,13 +236,13 @@ if MRSCont.flags.didFit
                         % if water, use the water model
                         fitRangePPM = MRSCont.opts.fit.rangeWater;
                         if Voxels < 2
-                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{kk};
                             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
                             % Get the fit parameters
                             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                         else
-                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water{kk};
                             dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
+                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);                            
                             % Get the fit parameters
                             fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
                         end
@@ -265,13 +265,13 @@ if MRSCont.flags.didFit
                     else % if metabolite or MM data, use the metabolite model           
                         fitRangePPM = MRSCont.opts.fit.range;
                         if Voxels < 2
-                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
-                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};                            
                         else
-                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}){kk};
                            dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
                            fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk}; 
+                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
                         end
                         % Pack up into structs to feed into the reconstruction functions
                         inputData.dataToFit                 = dataToPlot;
@@ -416,9 +416,17 @@ if MRSCont.flags.didFit
                 case 'OspreyAsym'
                         if strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w') % Water model 
                         % if water, use the water model
-                        fitRangePPM = MRSCont.opts.fit.rangeWater;
-                        basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water{kk};
-                        dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                       if Voxels < 2
+                            dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                            % Get the fit parameters
+                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
+                        else
+                            dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
+                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);                            
+                            % Get the fit parameters
+                            fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
+                        end
                         % Get the fit parameters
                         fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                         % Pack up into structs to feed into the reconstruction functions
@@ -436,13 +444,15 @@ if MRSCont.flags.didFit
                     else % if metabolite or MM data, use the metabolite model           
                         fitRangePPM = MRSCont.opts.fit.range;
                         if Voxels < 2
-                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
-                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                            % Get the fit parameters
+                            fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                         else
-                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}){kk};
-                           dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
-                           fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk}; 
+                            dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
+                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);                            
+                            % Get the fit parameters
+                            fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
                         end
                         % Pack up into structs to feed into the reconstruction functions
                         inputData.dataToFit                 = dataToPlot;
@@ -584,6 +594,33 @@ if MRSCont.flags.didFit
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = nan;
                         end
                     end
+                case 'LCModel'                                  
+                            if (MRSCont.flags.isPRIAM == 1)
+                                fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
+                            else
+                                fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
+                            end
+                            % Get the LCModel plots we previously extracted from .coord
+                            % etc.
+                            [ModelOutput] = fit_LCModelParamsToModel(fitParams);
+                            
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fit      = ModelOutput.completeFit;
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.baseline      = ModelOutput.baseline;
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.ppm      =  ModelOutput.ppm';
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.res      = ModelOutput.residual;
+                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.data      = ModelOutput.data;
+                            for n = 1 : size(ModelOutput.indivMets,2) % loop over basis functions
+                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.(['fit' fitParams.name{n}])  = ModelOutput.indivMets(:,n);
+                            end
+                             % tMM = all MM functions
+                            if MRSCont.opts.fit.fitMM == 1
+                                %Find all MM or Lip functions that are not
+                                %combined
+                                idx_tMM = horzcat(find(contains(fitParams.name,'MM')), find(contains(fitParams.name,'Lip')));
+                                if ~isempty(idx_tMM)
+                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).([FitNames{sf} '_' dataPlotNames{sf}]){1,kk}.fittMM  = sum(ModelOutput.indivMets(:,idx_tMM),2);
+                                end                               
+                            end
                 end
             end
         end
@@ -722,11 +759,11 @@ if MRSCont.flags.didFit
                              end
                         end
                     end %re_mm
-                    if MRSCont.flags.hasRef
+                    if MRSCont.flags.hasRef &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                         MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs/scale;
                         MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit;
                     end
-                    if MRSCont.flags.hasWater
+                    if MRSCont.flags.hasWater &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                         MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs/scale;
                         MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit;
                     end
@@ -782,11 +819,11 @@ if MRSCont.flags.didFit
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).B{1,kk}.specs= MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).B{1,kk}.specs/scale;
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).diff1{1,kk}.specs= MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).diff1{1,kk}.specs/scale;
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).sum{1,kk}.specs= MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).sum{1,kk}.specs/scale;
-                            if MRSCont.flags.hasRef
+                            if MRSCont.flags.hasRef && ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                                 MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs/scale;
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit;
                             end
-                            if MRSCont.flags.hasWater
+                            if MRSCont.flags.hasWater &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                                 MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs/scale;
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit;
                             end
@@ -824,11 +861,11 @@ if MRSCont.flags.didFit
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).diff2_diff2{1,kk}.res= MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).diff2_diff2{1,kk}.res/scale;
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).sum_sum{1,kk}.res= MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).sum_sum{1,kk}.res/scale;
                         end
-                        if MRSCont.flags.hasRef
+                        if MRSCont.flags.hasRef &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).ref{1,kk}.specs/scale;
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).ref_ref{1,kk}.fit/scale;
                         end
-                        if MRSCont.flags.hasWater
+                        if MRSCont.flags.hasWater &&  ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                             MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs =  MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).w{1,kk}.specs/scale;
                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit =  MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).w_w{1,kk}.fit/scale;
                         end
@@ -925,6 +962,7 @@ for i = 1 : MRSCont.nDatasets
     SepFileList{i} =  split(MRSCont.files{i}, filesep);
     subject{i} = [SepFileList{i}{end-1}]; % Create subject name list
 end
+
 if MRSCont.flags.hasStatfile % Has stat csv file
     statCSV = readtable(MRSCont.file_stat, 'Delimiter', ',','ReadVariableNames',1); % Load it
     name = statCSV.Properties.VariableNames;

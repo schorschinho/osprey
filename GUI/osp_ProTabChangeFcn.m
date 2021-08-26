@@ -26,8 +26,6 @@ function osp_ProTabChangeFcn(src,~,gui)
 %%% 1. GET HANDLES %%%
     % User selected tab refreshs plot
     gui.process.Selected = src.Selection;
-    % Parameter shown in the info panel on top
-    gui.InfoText.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children;
     % Grid for Plot
     gui.layout.proPlot = gui.layout.(gui.layout.proTabhandles{gui.process.Selected});
     gui.layout.proPre = gui.layout.proPlot.Children(1).Children(2).Children(2);
