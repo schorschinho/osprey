@@ -102,13 +102,15 @@ for kk = 1:MRSCont.nDatasets
                 gunzip(niftiFile);
                 niftiFile = strrep(niftiFile,'.gz','');
                 T1ext = '.nii';
+            else
+                T1ext = T1extini;
             end  
             if exist(fullfile(T1dir, ['c1' T1name '.nii.gz']),'file')
                 gunzip(fullfile(T1dir, ['c1' T1name T1ext '.gz']));
                 gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
                 gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
             end
-            T1ext = strrep(T1extini,'.gz','');
+            T1ext = '.nii';
         end
 
 

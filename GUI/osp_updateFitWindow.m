@@ -79,13 +79,13 @@ function osp_updateFitWindow(gui)
                 waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 % Where are the metabolite names stored?
                 if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{gui.controls.Selected}.spectralwidth)]).name;
                 else if strcmp(gui.fit.Style, 'conc')
-                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{gui.controls.Selected}.spectralwidth)]).name;
                     else if strcmp(gui.fit.Style, 'off')
-                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{gui.controls.Selected}.spectralwidth)]).name;
                         else
-                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{gui.controls.Selected}.spectralwidth)]).name;
                         end
                     end
                 end

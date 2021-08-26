@@ -75,6 +75,10 @@ colormapfig.Background = [255/255 254/255 254/255];
 colormapfig.LightAccent = [110/255 136/255 164/255];
 colormapfig.Foreground = [11/255 71/255 111/255];
 colormapfig.Accent = [11/255 71/255 111/255];
+% Determine font accorind to os
+font=osp_platform('fonts');
+font = font.helvetica;
+
 
 % Create main window with fixed size
 screenSize      = get(0,'ScreenSize');
@@ -86,19 +90,19 @@ canvasSize(1)   = (screenSize(3) - canvasSize(3))/2;
 out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none', ...
              'Position', canvasSize, 'ToolBar', 'none', ...
              'HandleVisibility', 'off', 'Renderer', 'painters', ...
-             'Color', colormapfig.Background);
+             'Color', colormapfig.Background, 'Tag','MainFigure');
 MRSCont.flags.isGUI = 1;
 Title = MRSCont.ver.Osp;
 
 Frame = uix.Panel('Parent', out, 'Padding', 1, 'Title', Title, ...
-                  'FontName', gui.font, 'BackgroundColor', colormapfig.Background, ...
+                  'FontName', font, 'BackgroundColor', colormapfig.Background, ...
                   'ForegroundColor', colormapfig.Foreground, ...
                   'HighlightColor', colormapfig.Background, ...
                   'ShadowColor', colormapfig.Background);
 input_figure = uix.VBox('Parent', Frame,  'BackgroundColor',colormapfig.Background, 'Spacing', 5);
 box = uix.HBox('Parent', input_figure,'BackgroundColor',colormapfig.Background, 'Spacing',6);
 Info = uix.Panel('Parent',box, 'Padding', 5, 'Title', MRSCont.files{kk},...
-                 'FontName', gui.font, 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground,...
+                 'FontName', font, 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground,...
                  'HighlightColor', colormapfig.Foreground, 'ShadowColor', colormapfig.Foreground);
 LogoFig = figure('Visible','off');
 [I, map] = imread('osprey.gif','gif');
@@ -143,7 +147,7 @@ switch Module
 
         % Information text panel
         InfoText  = uicontrol('Parent',Info,'style','text',...
-            'FontSize', 12, 'FontName', gui.font,'ForegroundColor', colormapfig.Foreground,...
+            'FontSize', 12, 'FontName', font,'ForegroundColor', colormapfig.Foreground,...
             'HorizontalAlignment', 'left', 'String', '', 'BackgroundColor',colormapfig.Background);
 
         % Get some information about the data from MRSCont to fill the info panel
@@ -295,7 +299,7 @@ switch Module
                     ' ppm / Hz'];
             end
         end
-        InfoText  = uicontrol('Parent',Info,'style','text','FontSize', 12, 'FontName', gui.font,...
+        InfoText  = uicontrol('Parent',Info,'style','text','FontSize', 12, 'FontName', font,...
             'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
 
@@ -354,21 +358,33 @@ switch Module
                 resultsFontSize = 6;
             case 'Osprey'
                 % Number of metabolites and lipid/MM basis functions
-                nMets   = MRSCont.fit.resBasisSet.(which){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.nMets;
-                nMMLip  = MRSCont.fit.resBasisSet.(which){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.nMM;
+                nMets   = MRSCont.fit.basisSet.nMets;
+                nMMLip  = MRSCont.fit.basisSet.nMM;
                 % Additional info panel string for the water fit range
                 waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 % Where are the metabolite names stored?
-                basisSetNames = MRSCont.fit.resBasisSet.(which){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.name;
+                if strcmp(which, 'ref') || strcmp(which, 'w')
+                    basisSetNames = MRSCont.fit.resBasisSet.(which).water.(['np_sw_' num2str(MRSCont.processed.A{kk}.sz(1)) '_' num2str(MRSCont.processed.A{kk}.spectralwidth)]).name;
+                else if strcmp(which, 'conc')
+                        basisSetNames = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.A{kk}.sz(1)) '_' num2str(MRSCont.processed.A{kk}.spectralwidth)]).name;
+                    else if strcmp(which, 'off')
+                            basisSetNames = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.A{kk}.sz(1)) '_' num2str(MRSCont.processed.A{kk}.spectralwidth)]).name;
+                        else
+                            basisSetNames = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.A{kk}.sz(1)) '_' num2str(MRSCont.processed.A{kk}.spectralwidth)]).name;
+                        end
+                    end
+                end
                  % Larger fonts for the results
                 resultsFontSize = 11;
         end
         
-        ph0 = MRSCont.fit.results.(which).fitParams{1,gui.controls.Selected}.ph0;
-        ph1 = MRSCont.fit.results.(which).fitParams{1,gui.controls.Selected}.ph1;
+        
+        ph0 = MRSCont.fit.results.(which).fitParams{1,kk}.ph0;
+        ph1 = MRSCont.fit.results.(which).fitParams{1,kk}.ph1;
+        
         if ~strcmp(which, 'ref') && ~strcmp(which, 'w')
-            refShift = MRSCont.fit.results.(which).fitParams{1,gui.controls.Selected}.refShift;
-            refFWHM = MRSCont.fit.results.(which).fitParams{1,gui.controls.Selected}.refFWHM;
+            refShift = MRSCont.fit.results.(which).fitParams{1,kk}.refShift;
+            refFWHM = MRSCont.fit.results.(which).fitParams{1,kk}.refFWHM;
         end
 
         % Build output folder filename
@@ -386,11 +402,11 @@ switch Module
         set(input_figure, 'Heights', [-0.12 -0.88]);
         % Get parameter from file to fill the info panel
         if  ~strcmp (which, 'ref') && ~strcmp (which, 'w') %Metabolite data?
-            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
+            StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
             '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f'),...
             'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
             ' ppm\nNumber of metabolites: ' num2str(nMets) '; Number of MM/lipids: ' num2str(nMMLip) ...
-            ' scale: '  num2str(MRSCont.fit.scale{gui.controls.Selected})];
+            ' scale: '  num2str(MRSCont.fit.scale{kk})];
         else if strcmp (which, 'ref') %Reference data?
                 StatText = ['Reference Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
                     '\n' waterFitRangeString];
@@ -403,10 +419,10 @@ switch Module
         %%% 2.cc FILLING FITTED AMPLITUDE PANEL %%%
         % Creates the panel on the right side with the fitted amplitudes
         InfoText  = uicontrol('Parent',Info,'style','text',...
-            'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+            'FontSize', 12, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
         Results = uix.Panel('Parent', Plot,...
-            'Title', ['Raw Amplitudes'],'FontName', gui.font,'HighlightColor', colormapfig.Foreground,...
+            'Title', ['Raw Amplitudes'],'FontName', font,'HighlightColor', colormapfig.Foreground,...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground, 'ShadowColor', colormapfig.Foreground);
         if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit
             Style = which;
@@ -445,14 +461,14 @@ switch Module
             set(Results, 'Title', ['Raw Amplitudes']);
             FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',colormapfig.Background);
             FitTextNames  = uicontrol('Parent',FitText,'style','text',...
-                'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                'FontSize', resultsFontSize, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
             FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
-                'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                'FontSize', resultsFontSize, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
             if strcmp(MRSCont.opts.fit.method, 'LCModel')
                 FitTextCRLB  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(CRLBText),...
+                    'FontSize', resultsFontSize, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(CRLBText),...
                     'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
             end
         else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
@@ -480,14 +496,14 @@ switch Module
                 set(Results, 'Title', ['Raw Water Ratio']);
                 FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',colormapfig.Background);
                 FitTextNames  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                    'FontSize', resultsFontSize, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                     'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
                 FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                    'FontSize', resultsFontSize, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                     'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
                 if strcmp(MRSCont.opts.fit.method, 'LCModel')
                     FitTextCRLB  = uicontrol('Parent',FitText,'style','text',...
-                        'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(CRLBText),...
+                        'FontSize', resultsFontSize, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(CRLBText),...
                         'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
                 end
 
@@ -497,10 +513,10 @@ switch Module
                 set(Results, 'Title', ['Raw Amplitudes']);
                 FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',colormapfig.Background);
                 FitTextNames  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                    'FontSize', resultsFontSize, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
                     'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
                 FitTextAmpl  = uicontrol('Parent',FitText,'style','text',...
-                    'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                    'FontSize', resultsFontSize, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                     'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
             end
         end
@@ -538,7 +554,7 @@ switch Module
             num2str(MRSCont.raw{1,kk}.geometry.size.(Geom{1}) * MRSCont.raw{1,kk}.geometry.size.(Geom{2}) * MRSCont.raw{1,kk}.geometry.size.(Geom{3})/1000) ' ml'];
 
         InfoText  = uicontrol('Parent',Info,'style','text',...
-            'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+            'FontSize', 12, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
 
         %%% 2.VISUALIZATION PART OF THIS TAB %%%
@@ -576,7 +592,7 @@ switch Module
             'Distribution: ' groupString '\n'];
 
         InfoText  = uicontrol('Parent',Info,'style','text',...
-            'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+            'FontSize', 12, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
         Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
         set(input_figure, 'Heights', [-0.1 -0.9]);
@@ -585,13 +601,18 @@ switch Module
         for g = 1 :  MRSCont.overview.NoGroups %Loop over groups
             temp = osp_plotOverviewSpec(MRSCont, which, g, 0.1);
             if g == 1
-                temp = get(temp,'Parent');
-                fig_hold = get(temp,'Parent');
+                fig_hold = temp;
+                set(fig_hold,'Tag','fig_hold');
             else
-                ax=get(temp,'Parent');
-                copyobj(ax.Children, fig_hold.Children(1));
+                ViewAxes=get(temp,'Children');
+                copyobj(ViewAxes.Children, fig_hold.Children(1));
+                h = findall(groot,'Type','figure');
+                for ff = 1 : length(h)
+                    if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar') ||  strcmp(h(ff).Tag, 'fig_hold') ||  strcmp(h(ff).Tag, 'MainFigure'))
+                        close(h(ff))
+                    end
+                end
             end
-
         end
         set(fig_hold.Children, 'Parent', Plot );
     case 'OspreyMeanOverview' %MeanOverview
@@ -604,7 +625,7 @@ switch Module
             'Distribution: ' groupString '\n'];
 
         InfoText  = uicontrol('Parent',Info,'style','text',...
-            'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+            'FontSize', 12, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
         Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
         set(input_figure, 'Heights', [-0.1 -0.9]);
@@ -640,7 +661,7 @@ switch Module
             'Distribution: ' groupString '\n'];
 
         InfoText  = uicontrol('Parent',Info,'style','text',...
-            'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+            'FontSize', 12, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
         Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
         set(input_figure, 'Heights', [-0.1 -0.9]);
@@ -665,7 +686,7 @@ switch Module
             'Distribution: ' groupString '\n'];
 
         InfoText  = uicontrol('Parent',Info,'style','text',...
-            'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
+            'FontSize', 12, 'FontName', font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground);
         Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
         set(input_figure, 'Heights', [-0.1 -0.9]);
@@ -715,5 +736,10 @@ out.PaperSize = [fig_pos(3) fig_pos(4)];
 
 % print(out,fullfile(outputFolder,outputFile),'-dpdf') % then print it
 saveas(out,fullfile(outputFolder,outputFile),'pdf');
-close(out);
+h = findall(groot,'Type','figure');
+for ff = 1 : length(h)
+    if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar') || strcmp(h(ff).Tag, 'MainFigure'))
+        close(h(ff))
+    end
+end
 end
