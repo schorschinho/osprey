@@ -1,7 +1,11 @@
 function exportCSV (MRSCont,saveDestination,getResults)
-quants = {'amplMets','tCr','rawWaterScaled','CSFWaterScaled','TissCorrWaterScaled','AlphaCorrWaterScaled','AlphaCorrWaterScaledGroupNormed'};
+if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
+    quants = {'amplMets','tCr','rawWaterScaled','CSFWaterScaled','TissCorrWaterScaled','AlphaCorrWaterScaled','AlphaCorrWaterScaledGroupNormed'};
+else
+    quants = {'amplMets','tCr','rawWaterScaled','CSFWaterScaled','TissCorrWaterScaled','AlphaCorrWaterScaled','AlphaCorrWaterScaledGroupNormed','CRLB','h2oarea'};
+end
 for ll = 1:length(getResults)
-    for q = 1 : length(fieldnames(MRSCont.quantify.tables.(getResults{ll})))
+    for q = 1 : length(quants)
         if isfield(MRSCont.quantify.tables.(getResults{ll}), quants(q))
             if isstruct(MRSCont.quantify.tables.(getResults{ll}).(quants{q})) % To make export work on older MRSContainer
                 if ~MRSCont.flags.isPRIAM
