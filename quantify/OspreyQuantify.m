@@ -328,6 +328,7 @@ if qtfyAlpha
     [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaled', getResults(1));
     [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaledGroupNormed', getResults(1));
 end
+%Generate tables from LCModel specific outputs
 if strcmp(MRSCont.opts.fit.method, 'LCModel')
     [MRSCont] = osp_createTable(MRSCont,'CRLB', getResults);
     [MRSCont] = osp_createTable(MRSCont,'h2oarea', getResults);
