@@ -157,6 +157,20 @@ for kk = 1:MRSCont.nDatasets
     end
 end
 
+if strcmp(MRSCont.opts.fit.method, 'LCModel')
+    for kk = 1:MRSCont.nDatasets
+        if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
+            MRSCont.quantify.CRLB{kk}.(getResults{ll}) = MRSCont.fit.results.(getResults{ll}).fitParams{kk}.CRLB';
+            MRSCont.quantify.h2oarea{kk}.(getResults{ll}) = MRSCont.fit.results.(getResults{ll}).fitParams{kk}.h2oarea;
+        else %Is DualVoxel
+            MRSCont.quantify.CRLB{kk}.(getResults{ll})(:,1) = MRSCont.fit.results{1}.(getResults{ll}).fitParams{kk}.CRLB';
+           MRSCont.quantify.CRLB{kk}.(getResults{ll})(:,2) = MRSCont.fit.results{2}.(getResults{ll}).fitParams{kk}.CRLB';
+           MRSCont.quantify.h2oarea{kk}.(getResults{ll})(:,1) = MRSCont.fit.results{1}.(getResults{ll}).fitParams{kk}.h2oarea;
+           MRSCont.quantify.h2oarea{kk}.(getResults{ll})(:,2) = MRSCont.fit.results{2}.(getResults{ll}).fitParams{kk}.h2oarea;
+        end        
+    end
+end
+
 MRSCont = addMetabComb(MRSCont, getResults);
 
 
@@ -313,6 +327,10 @@ end
 if qtfyAlpha
     [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaled', getResults(1));
     [MRSCont] = osp_createTable(MRSCont,'AlphaCorrWaterScaledGroupNormed', getResults(1));
+end
+if strcmp(MRSCont.opts.fit.method, 'LCModel')
+    [MRSCont] = osp_createTable(MRSCont,'CRLB', getResults);
+    [MRSCont] = osp_createTable(MRSCont,'h2oarea', getResults);
 end
 %% Clean up and save
 % Set exit flags
@@ -861,7 +879,7 @@ end
 %%% Function to create metabolite overview in MATLAB table format %%%
 function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
     if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWaterScaledGroupNormed'))
-        if ~strcmp(qtfyType, 'amplMets')
+        if ~(strcmp(qtfyType, 'amplMets') || strcmp(qtfyType, 'CRLB') ||strcmp(qtfyType, 'h2oarea') )
             % Extract metabolite names from basisset
             for ll = 1:length(getResults)
             names = MRSCont.quantify.metabs.(getResults{ll});
@@ -882,8 +900,12 @@ function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
             end
         else
             % Extract metabolite names from basisset
-            for ll = 1:length(getResults)
-                names = MRSCont.quantify.metabs.(getResults{ll});
+            for ll = 1:length(getResults)   
+                if (strcmp(qtfyType, 'amplMets') || strcmp(qtfyType, 'CRLB'))
+                    names = MRSCont.quantify.metabs.(getResults{ll});
+                else
+                    names = {'h2oarea'};
+                end
                 for rr = 1  : size(MRSCont.quantify.(qtfyType){1}.(getResults{ll}),2)
                     conc = zeros(MRSCont.nDatasets,length(names));
 
