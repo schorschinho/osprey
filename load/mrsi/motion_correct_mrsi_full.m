@@ -55,7 +55,11 @@ if strcmp(seq_type, 'MEGA multislice')
             if length(met_end_crcho) > 1
                 met_end_crcho = met_end_crcho(end);
             end
-
+            
+            
+                if (s_idx == 2) && (this_kx ==7)  && (this_ky ==7)
+                    s_idx
+                end
                 % Reduce ON/OFF spectra into water, lipid, and Cr/Cho
                 % ranges.
                 this_on1_wat = squeeze(on_spec_k_1(s_idx, this_kx, this_ky, met_start_wat:met_end_wat));

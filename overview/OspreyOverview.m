@@ -853,10 +853,14 @@ else
     [MRSCont] = osp_fitInitialise(MRSCont);
     for rr = 1 : Voxels
         for kk = 1 : MRSCont.nDatasets
-            if Voxels < 2
-                scale                 = MRSCont.fit.scale{kk};
+            if ~(isfield(MRSCont.flags, 'simulated') && MRSCont.flags.simulated)
+                if Voxels < 2
+                    scale                 = MRSCont.fit.scale{kk};
+                else
+                    scale                 = MRSCont.fit.scale{kk};                        
+                end
             else
-                scale                 = MRSCont.fit.scale{kk};                        
+                scale                 = 1; 
             end
             msg = sprintf('Scaling data from dataset %d out of %d total datasets...', kk, MRSCont.nDatasets);
             reverseStr = repmat(sprintf('\b'), 1, length(msg));
