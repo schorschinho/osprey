@@ -114,7 +114,7 @@ er = sum(abs(spec-spec_model).^2)/length(spec);
 
 
 % Model the water signal 
-wppm = (freqs)/(in.txfrq/1000000)+in.centerFreq;
+wppm = -(freqs)/(in.txfrq/1000000)+in.centerFreq;
 water = find(wppm>wlim(1) & wppm<wlim(2)); % find the frequencies components associated with water
 % water = find(min(freqs));
 % water = find(freqs>72 & freqs<76); % find the frequencies components associated with water

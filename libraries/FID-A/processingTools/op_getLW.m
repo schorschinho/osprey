@@ -38,7 +38,9 @@ if nargin<4
 end
 
 %in=io_readlcmraw(filestring,'dat');
-in=op_zeropad(in,zpfactor);
+if zpfactor > 0
+    in=op_zeropad(in,zpfactor);
+end
 
 %FIRST FIND FWHM USING TWO METHODS:
 

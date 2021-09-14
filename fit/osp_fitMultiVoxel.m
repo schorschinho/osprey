@@ -137,6 +137,9 @@ elseif MRSCont.flags.isMRSI == 1
             end
         end
     end
+    ph0(1) = fitMRSCont.fit.results.off.fitParams{kk}.ph0;
+    ph1(1)= fitMRSCont.fit.results.off.fitParams{kk}.ph1;
+    gaussLB(1) = fitMRSCont.fit.results.off.fitParams{kk}.gaussLB;
 
    MRSCont.fit.MRSIfitPriors = fitMRSCont.fit;
     % Fit all remaining voxels
