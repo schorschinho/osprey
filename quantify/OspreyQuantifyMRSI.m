@@ -169,7 +169,7 @@ for kk = 1:MRSCont.nDatasets
                 for z = 1 : dim(3)
                     for x = 1 : dim(1)
                         for y = 1 : dim(2)
-                            MRSCont.quantify.amplMets{kk}.(getResults{ll})(x,y,z) = MRSCont.fit.results{x,y,z}.(getResults{ll}).fitParams{kk}.ampl;
+                            MRSCont.quantify.amplMets{kk}.(getResults{ll}).(MRSCont.quantify.metabs.(getResults{ll}){mm})(x,y,z) = MRSCont.fit.results{x,y,z}.(getResults{ll}).fitParams{kk}.ampl(mm);
                         end % Y voxel
                     end % X voxel  
                 end % slices
@@ -195,7 +195,7 @@ for kk = 1:MRSCont.nDatasets
         for z = 1 : dim(3)
             for x = 1 : dim(1)
                 for y = 1 : dim(2)
-                    MRSCont.quantify.amplMets{kk}.w.H2O(x,y) = MRSCont.fit.results{x,y,z}.w.fitParams{kk}.ampl(1);
+                    MRSCont.quantify.amplMets{kk}.w.H2O(x,y,z) = MRSCont.fit.results{x,y,z}.w.fitParams{kk}.ampl(1);
                 end % Y voxel
             end % X voxel  
         end % slices
