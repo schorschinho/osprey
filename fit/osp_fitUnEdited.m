@@ -72,6 +72,7 @@ for kk = 1:MRSCont.nDatasets
             % Extract fit options
             fitOpts_mm    = MRSCont.opts.fit;
             fitModel_mm    = fitOpts.method;
+            fitOpts_mm.sequence = 'unedited';
             %Specify a reduced basis set for MM modeling
             %basisSet_mm    = MRSCont.fit.basisSet;
             %Reduce the size of the basis set
@@ -85,7 +86,7 @@ for kk = 1:MRSCont.nDatasets
             % Generate the list of basis functions that are supposed to be included in
             % the basis set
             % To do: Interface with interactive user input
-            metabList_mm = fit_createMetabListMM;
+            metabList_mm = fit_createMetabListMM('unedited');
             % Collect MMfit flag from the options determined in the job file
             fitMM = MRSCont.opts.fit.fitMM;
             % Create the modified basis set
