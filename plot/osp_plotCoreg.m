@@ -94,6 +94,10 @@ else
 end
 
 imagesc(three_plane_img);
+
+three_plane_img_size = size(three_plane_img);
+text(15, floor(three_plane_img_size(1)/2), 'L', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
+text(three_plane_img_size(2)-15, floor(three_plane_img_size(1)/2), 'R', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 colormap('gray');
 caxis([0 1])
 axis equal;

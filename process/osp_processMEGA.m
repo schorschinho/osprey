@@ -54,6 +54,18 @@ for kk = 1:MRSCont.nDatasets
         %%% 1. GET RAW DATA %%%
         raw         = MRSCont.raw{kk};                                          % Get the kk-th dataset
         
+        %%% 1B. GET MM DATA %%% 
+        if MRSCont.flags.hasMM
+            raw_mm                         = MRSCont.raw_mm{kk};              % Get the kk-th dataset 
+            if raw_mm.averages > 1 && raw_mm.flags.averaged == 0 %
+                [raw_mm,~,~]               = op_alignAverages(raw_mm, 1, 'n'); %
+                raw_mm                     = op_averaging(raw_mm);            % Average 
+            else %re_mm
+                raw_mm.flags.averaged  = 1; %re_mm
+                raw_mm.dims.averages   = 0; %re_mm
+            end    
+        end  %re_mm
+        
         if raw.averages > 1 && raw.flags.averaged == 0
         % Calculate starting values for spectral registration
         [refShift_ind_ini]=op_preref(raw,'MEGA');
@@ -135,6 +147,16 @@ for kk = 1:MRSCont.nDatasets
             raw_A   = op_takeaverages(raw,1:2:raw.averages);    % Get first subspectrum
             raw_B   = op_takeaverages(raw,2:2:raw.averages);    % Get second subspectrum
         end
+        
+        if MRSCont.flags.hasMM     
+            if raw.subspecs == 2
+                raw_mm_A   = op_takesubspec(raw_mm,1);                    % Get first subspectrum
+                raw_mm_B   = op_takesubspec(raw_mm,2);                    % Get second subspectrum
+            else
+                raw_mm_A   = op_takeaverages(raw_mm,1:2:raw_mm.averages);    % Get first subspectrum
+                raw_mm_B   = op_takeaverages(raw_mm,2:2:raw_mm.averages);    % Get second subspectrum
+            end
+        end 
 
         %%% 2. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
         % If there are reference scans, perform the same operations
@@ -157,9 +179,44 @@ for kk = 1:MRSCont.nDatasets
             end
            [raw_A,~]               = op_eccKlose(raw_A, raw_ref);
            [raw_B,raw_ref]         = op_eccKlose(raw_B, raw_ref);        % Klose eddy current correction
+           
 
             [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}   = raw_ref;                          % Save back to MRSCont container
+        end
+        
+         %%% 9. GET SHORT-TE WATER DATA %%%
+        if MRSCont.flags.hasWater
+            % Some formats end up having subspectra in their reference scans
+            % (e.g. Philips), as well as empty lines. Intercept these cases
+            % here.
+            raw_w                       = MRSCont.raw_w{kk};                % Get the kk-th dataset
+            if raw_w.subspecs > 1
+                raw_w_A                 = op_takesubspec(raw_w,1);
+                [raw_w_A]               = op_rmempty(raw_w_A);              % Remove empty lines
+                raw_w_B                 = op_takesubspec(raw_w,2);
+                [raw_w_A]               = op_rmempty(raw_w_A);              % Remove empty lines
+                raw_w                   = op_concatAverages(raw_w_A,raw_w_B);
+            end
+            if ~raw_w.flags.averaged
+                [raw_w,~,~]             = op_alignAverages(raw_w,1,'n');    % Align averages
+                raw_w                   = op_averaging(raw_w);              % Average
+            end
+            if ~MRSCont.flags.isMRSI
+                [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            else
+                [raw_w,~]=op_autophase(raw_w,2,2*4.68);
+            end
+
+            
+            if MRSCont.flags.hasMM   
+               [raw_mm_A,~]               = op_eccKlose(raw_mm_A, raw_w);
+                [raw_mm_B,~]         = op_eccKlose(raw_mm_B, raw_w);        % Klose eddy current correction
+            end  %re_mm
+
+            % Save back to MRSCont container            
+            [raw_w,~]                   = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
+            MRSCont.processed.w{kk}     = raw_w;      
         end
         
          %%% 2a. PHANTOM-SPECIFIC PRE-PROCESSING %%%
@@ -203,7 +260,19 @@ for kk = 1:MRSCont.nDatasets
         if polResidCr < 0
             raw_B = op_ampScale(raw_B,-1);
         end
-
+        
+        if MRSCont.flags.hasMM
+            raw_mm_A_Cr    = op_freqrange(raw_mm_A,3.7,4.1);
+            polResidCr  = abs(max(real(raw_mm_A_Cr.specs))) - abs(min(real(raw_mm_A_Cr.specs)));
+            if polResidCr < 0
+                raw_mm_A = op_ampScale(raw_mm_A,-1);
+            end
+            raw_mm_B_Cr    = op_freqrange(raw_mm_B,3.7,4.1);
+            polResidCr  = abs(max(real(raw_mm_B_Cr.specs))) - abs(min(real(raw_mm_B_Cr.specs)));
+            if polResidCr < 0
+                raw_mm_B = op_ampScale(raw_mm_B,-1);
+            end
+        end
 
         %%% 4. DETERMINE ON/OFF STATUS
         % Classify the two sub-spectra such that the OFF spectrum is stored to
@@ -271,6 +340,21 @@ for kk = 1:MRSCont.nDatasets
                 end
         end
         
+        if MRSCont.flags.hasMM 
+            diff1_mm           = op_addScans(raw_mm_B,raw_mm_A,1);
+            [diff1_mm,~]          = op_autophase(diff1_mm,0.5,1.1);
+            [refShift_mm, ~] = fit_OspreyReferencingMM(diff1_mm);
+            [raw_mm_A]             = op_freqshift(raw_mm_A,-refShift_mm);            % Reference spectra by cross-correlation
+            [raw_mm_B]             = op_freqshift(raw_mm_B,-refShift_mm);            % Reference spectra by cross-correlation
+%             switch MRSCont.opts.SubSpecAlignment
+%                 case 'L1Norm'
+%                 [raw_mm_A, raw_mm_B]  = osp_editSubSpecAlignLNorm(raw_mm_A, raw_mm_B);
+%                  [raw_mm_A, raw_mm_B] = osp_editSubSpecAlignGauss09(raw_mm_A, raw_mm_B);
+%                 case 'L2Norm'
+%                 [raw_mm_A, raw_mm_B]  = osp_editSubSpecAlign(raw_mm_A, raw_mm_B, target,MRSCont.opts.UnstableWater);
+%             end
+         end
+        
 
         
         % Create the sum spectrum
@@ -295,6 +379,16 @@ for kk = 1:MRSCont.nDatasets
         diff1.specReg.phs = phs;
         diff1.specReg.weights = weights;
         
+        if MRSCont.flags.hasMM 
+            Sum_mm             = op_addScans(raw_mm_A,raw_mm_B);
+            diff1_mm           = op_addScans(raw_mm_B,raw_mm_A,1);
+            if switchOrder
+            diff1_mm.flags.orderswitched = 1;
+            else
+                diff1_mm.flags.orderswitched = 0;
+            end
+        end
+        
         %%% 6. REMOVE RESIDUAL WATER %%%
         % Remove water and correct back to baseline.
         % The spectra sometimes become NaNs after filtering with too many
@@ -305,7 +399,7 @@ for kk = 1:MRSCont.nDatasets
             waterRemovalFreqRange = [4.5 5];
             fracFID = 0.5;
         else
-            waterRemovalFreqRange = [4.5 4.9];
+            waterRemovalFreqRange = [4.2 8];
             fracFID = 0.75;
         end
         % Apply iterative water filter
@@ -313,6 +407,12 @@ for kk = 1:MRSCont.nDatasets
         raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
         diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
         Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+        if MRSCont.flags.hasMM
+            raw_mm_A = op_iterativeWaterFilter(raw_mm_A, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+            raw_mm_B = op_iterativeWaterFilter(raw_mm_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+            diff1_mm = op_iterativeWaterFilter(diff1_mm, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+            Sum_mm = op_iterativeWaterFilter(Sum_mm, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+        end
        
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
@@ -322,6 +422,18 @@ for kk = 1:MRSCont.nDatasets
         [raw_B]             = op_freqshift(raw_B,-refShift_final);            % Apply same shift to edit-OFF
         [diff1]             = op_freqshift(diff1,-refShift_final);            % Apply same shift to diff1
         [Sum]               = op_freqshift(Sum,-refShift_final);              % Apply same shift to sum
+        if MRSCont.flags.hasMM
+            [diff1_mm,~]          = op_autophase(diff1_mm,0.5,1.1);
+            [refShift_mm, ~] = fit_OspreyReferencingMM(diff1_mm);
+            [raw_mm_A]             = op_freqshift(raw_mm_A,-refShift_mm);            % Reference spectra by cross-correlation
+            [raw_mm_B]             = op_freqshift(raw_mm_B,-refShift_mm);            % Reference spectra by cross-correlation
+            [diff1_mm]             = op_freqshift(diff1_mm,-refShift_mm);            % Reference spectra by cross-correlation
+            [Sum_mm]             = op_freqshift(Sum_mm,-refShift_mm);            % Reference spectra by cross-correlation
+            MRSCont.processed.A_mm{kk}       = raw_mm_A;                          % Save back to MRSCont container  %re_mm
+            MRSCont.processed.B_mm{kk}       = raw_mm_B;                          % Save back to MRSCont container  %re_mm           
+            MRSCont.processed.diff1_mm{kk}       = diff1_mm;                          % Save back to MRSCont container  %re_mm
+            MRSCont.processed.sum_mm{kk}       = Sum_mm;                          % Save back to MRSCont container  %re_mm
+        end
 
 
         %%% 8. SAVE BACK TO MRSCONT CONTAINER
@@ -331,31 +443,31 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.sum{kk}   = Sum;                                      % Save sum back to MRSCont container
 
 
-        %%% 9. GET SHORT-TE WATER DATA %%%
-        if MRSCont.flags.hasWater
-            % Some formats end up having subspectra in their reference scans
-            % (e.g. Philips), as well as empty lines. Intercept these cases
-            % here.
-            raw_w                       = MRSCont.raw_w{kk};                % Get the kk-th dataset
-            if raw_w.subspecs > 1
-                raw_w_A                 = op_takesubspec(raw_w,1);
-                [raw_w_A]               = op_rmempty(raw_w_A);              % Remove empty lines
-                raw_w_B                 = op_takesubspec(raw_w,2);
-                [raw_w_A]               = op_rmempty(raw_w_A);              % Remove empty lines
-                raw_w                   = op_concatAverages(raw_w_A,raw_w_B);
-            end
-            if ~raw_w.flags.averaged
-                [raw_w,~,~]             = op_alignAverages(raw_w,1,'n');    % Align averages
-                raw_w                   = op_averaging(raw_w);              % Average
-            end
-            if ~MRSCont.flags.isMRSI
-                [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
-            else
-                [raw_w,~]=op_autophase(raw_w,2,2*4.68);
-            end
-            [raw_w,~]                   = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
-            MRSCont.processed.w{kk}     = raw_w;                            % Save back to MRSCont container
-        end
+%         %%% 9. GET SHORT-TE WATER DATA %%%
+%         if MRSCont.flags.hasWater
+%             % Some formats end up having subspectra in their reference scans
+%             % (e.g. Philips), as well as empty lines. Intercept these cases
+%             % here.
+%             raw_w                       = MRSCont.raw_w{kk};                % Get the kk-th dataset
+%             if raw_w.subspecs > 1
+%                 raw_w_A                 = op_takesubspec(raw_w,1);
+%                 [raw_w_A]               = op_rmempty(raw_w_A);              % Remove empty lines
+%                 raw_w_B                 = op_takesubspec(raw_w,2);
+%                 [raw_w_A]               = op_rmempty(raw_w_A);              % Remove empty lines
+%                 raw_w                   = op_concatAverages(raw_w_A,raw_w_B);
+%             end
+%             if ~raw_w.flags.averaged
+%                 [raw_w,~,~]             = op_alignAverages(raw_w,1,'n');    % Align averages
+%                 raw_w                   = op_averaging(raw_w);              % Average
+%             end
+%             if ~MRSCont.flags.isMRSI
+%                 [raw_w,~]                   = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+%             else
+%                 [raw_w,~]=op_autophase(raw_w,2,2*4.68);
+%             end
+%             [raw_w,~]                   = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
+%             MRSCont.processed.w{kk}     = raw_w;                            % Save back to MRSCont container
+%         end
 
 
         %%% 10. QUALITY CONTROL PARAMETERS %%%
@@ -387,6 +499,7 @@ for kk = 1:MRSCont.nDatasets
       
     end
 end
+
 time = toc(refProcessTime);
 [~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 

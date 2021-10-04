@@ -93,7 +93,7 @@ for kk = 1:MRSCont.nDatasets
                     [raw_mm_A]             = op_rmempty(raw_mm_A);            % Remove empty linesv
                     raw_mm_B               = op_takesubspec(raw_mm,2); %re_mm
                     [raw_mm_B]             = op_rmempty(raw_mm_B);            % Remove empty lines %re_mm
-                    raw_mm                 = op_concatAverages(raw_mm_A,raw_mm_B); %re_mm
+%                     raw_mm                 = op_concatAverages(raw_mm_A,raw_mm_B); %re_mm
                 else %re_mm
                     [raw_mm] = op_rmempty(raw_mm); %re_mm
                 end %re_mm
