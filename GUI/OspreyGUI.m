@@ -395,7 +395,7 @@ classdef OspreyGUI < handle
             gui.layout.controlPanel = uix.Panel('Parent', gui.layout.leftMenu, 'Title', 'MRS Container','BackgroundColor',gui.colormap.Background);
             set(gui.layout.controlPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', 'Arial', 'FontWeight', 'Bold', 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground);
             gui.layout.fileList = MRSCont.files;
-            if ~MRSCont.flags.moved && ~(isfield(MRSCont.flags, 'simulated') && ~MRSCont.flags.simulated)
+            if ~MRSCont.flags.moved
                 [~, ~] = osp_detDataType(MRSCont);
             end
             SepFileList = cell(1,length(MRSCont.files));

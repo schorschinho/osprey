@@ -149,47 +149,11 @@ function osp_updateLoadWindow(gui)
                           else
                             temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm',[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                     end
-                if MRSCont.flags.isUnEdited %Is UnEdited?
-                    ViewAxes = gca();
-                    delete(gui.Plot.data.Children(1).Children(1).Children)
-                    set(gui.Plot.data.Children(1).Children(1), 'XLim', ViewAxes.XLim)
-                    set(gui.Plot.data.Children(1).Children(1), 'YLim', ViewAxes.YLim)
-                    set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                    set(gui.Plot.data.Children(1).Children(1).Title, 'String', ViewAxes.Title.String)
-                end
-                if MRSCont.flags.isMEGA %Is MEGA?
-                    delete(gui.Plot.data.Children(1).Children(1).Children)
-                    delete(gui.Plot.data.Children(1).Children(2).Children)
-                    set(gui.Plot.data.Children(1).Children(2), 'XLim', temp.Children(2).XLim)
-                    set(gui.Plot.data.Children(1).Children(1), 'XLim', temp.Children(1).XLim)
-                    set(gui.Plot.data.Children(1).Children(2), 'YLim', temp.Children(2).YLim)
-                    set(gui.Plot.data.Children(1).Children(1), 'YLim', temp.Children(1).YLim)
-                    set(temp.Children(2).Children, 'Parent', gui.Plot.data.Children(1).Children(2));
-                    set(temp.Children(1).Children, 'Parent', gui.Plot.data.Children(1).Children(1));
-                    set(gui.Plot.data.Children(1).Children(2).Title, 'String', temp.Children(2).Title.String)
-                end
-                if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) % Is HERMES/HERCULES
-                   try
-                        delete(gui.layout.multiAload.Children.Children)
-                        delete(gui.layout.multiBload.Children.Children)
-                        delete(gui.layout.multiCload.Children.Children)
-                        delete(gui.layout.multiDload.Children.Children)
-                   catch
-                   end
-                    %Fill window with new content
-                    set(  gui.layout.multiDload.Children, 'XLim', temp.Children(1).XLim);
-                    set(  gui.layout.multiDload.Children, 'YLim', temp.Children(1).YLim);
-                    set( temp.Children(1).Children, 'Parent', gui.layout.multiDload.Children ); % Update drift plot
-                    set(  gui.layout.multiCload.Children, 'XLim', temp.Children(2).XLim);
-                    set(  gui.layout.multiCload.Children, 'YLim', temp.Children(2).YLim);
-                    set( temp.Children(2).Children, 'Parent', gui.layout.multiCload.Children ); % Update aligned and averaged plot
-                    set(  gui.layout.multiBload.Children, 'XLim', temp.Children(3).XLim);
-                    set(  gui.layout.multiBload.Children, 'YLim', temp.Children(3).YLim);
-                    set( temp.Children(3).Children, 'Parent', gui.layout.multiBload.Children ); % Update post alignment plot
-                    set(  gui.layout.multiAload.Children, 'XLim', temp.Children(4).XLim);
-                    set(  gui.layout.multiAload.Children, 'YLim', temp.Children(4).YLim);
-                    set( temp.Children(4).Children, 'Parent', gui.layout.multiAload.Children ); % Update pre alignment plot
-                end
+                ViewAxes = gca();
+                delete(gui.Plot.data.Children(1).Children(1).Children)
+                set(  gui.Plot.data.Children(1).Children(1), 'XLim',ViewAxes.XLim)
+                set(ViewAxes.Children, 'Parent', gui.Plot.data.Children(1).Children(1));
+                set(  gui.Plot.data.Children(1).Children(1).Title, 'String',ViewAxes.Title.String)
                 end %re_mm
                 if gui.load.Selected == 3 %ref data/tab %re_mm
                     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)

@@ -38,20 +38,12 @@ x = ppm;
 y = zeros(size(x));
 
 % Set up delta functions
-[a,b] = min((abs(x-0.93)));
-% [c,d] = min((abs(x-2.01)));
-% [e,f] = min((abs(x-3.9)));
+[a,b] = min((abs(x-0.9)));
+[c,d] = min((abs(x-3.03)));
+[e,f] = min((abs(x-3.9)));
 y(b) = 1;
-% y(d) = 1;
-% y(f) = 1;
-% 
-% [a,b] = min((abs(x-0.9)));
-% [c,d] = min((abs(x-3.03)));
-% [e,f] = min((abs(x-3.9)));
-% y(b) = 1;
-% y(d) = -1;
-% y(f) = 1;
-
+y(d) = -1;
+y(f) = 1;
 
 % Plot cross-correlation function, normalize it to its maximum
 r = xcorr(realspec,y)';

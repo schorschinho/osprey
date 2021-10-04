@@ -1,4 +1,4 @@
-function out = osp_plotMRSImap(MRSCont, kk,slice, nominator_spec,denominator_spec, nominator, denominator, upsample,figTitle)
+function out = osp_plotMRSImap(MRSCont, kk, nominator_spec,denominator_spec, nominator, denominator, upsample,figTitle)
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   Creates a figure showing data stored in an Osprey data container, as
 %   well as the fit to it, the baseline, the residual, and contributions
@@ -44,23 +44,20 @@ end
 fitMethod   = MRSCont.opts.fit.method;
 fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
-if nargin < 8
+if nargin < 7
     upsample = 1;
-    if nargin<7
+    if nargin<6
         denominator = [];
-        if nargin<6
+        if nargin<5
             nominator = {'Cr', 'PCr'}; 
-            if nargin<5
+            if nargin<4
                 denominator_spec = 'none'; 
-                if nargin < 4
+                if nargin < 3
                     nominator_spec = 'off';
-                    if nargin < 3
-                        slice = 1;
-                        if nargin < 2
-                            kk = 1;
-                            if nargin<1
-                                error('ERROR: no input Osprey container specified.  Aborting!!');
-                            end
+                    if nargin < 2
+                        kk = 1;
+                        if nargin<1
+                            error('ERROR: no input Osprey container specified.  Aborting!!');
                         end
                     end
                 end
@@ -139,8 +136,6 @@ if ~(sum(size(mask) == size(map)) == 0)
     map = mask .* map;
 end
 
-map = map(:,:,slice);
-
 if upsample > 1
     map = imresize(map,sz_map .* upsample);
 end
@@ -157,7 +152,7 @@ heatmap(rot90(map,2),'Colormap',colormap);
 
 % heatmap(map,'Colormap',gray);
 
-caxis(out.Children,[0 map_mean]);
+% caxis(out.Children,[0 map_mean]);
 % colorbar off
 
 %%% 7. DESIGN FINETUNING %%%
