@@ -145,8 +145,7 @@ vol_mask.descrip = 'MRS_voxel_mask';
 vol_mask = spm_write_vol(vol_mask,mask);
 
 % Store voxel centre for output figure
-% VoxOffs(1:2) = -VoxOffs(1:2); Apparently, this is not necessary for GE
-% niftis (HZ 20201102)
+% VoxOffs(1:2) = -VoxOffs(1:2); %Apparently, this is not necessary for GE niftis (HZ 20201102)
 voxel_ctr = VoxOffs;
 
 % Reactivate MATLAB warnings

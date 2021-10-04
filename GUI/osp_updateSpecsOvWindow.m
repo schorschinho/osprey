@@ -34,7 +34,10 @@ function osp_updateSpecsOvWindow(gui)
                     figpl = get(ax,'Parent');
                     copyobj(ax.Children, gui.Plot.specsOv.Children(2));
                     % Get rid of the Load figure
-                    close( figpl );
+                    try
+                        close( figpl );
+                    catch
+                    end
             end
         else
            temp = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind);
@@ -42,7 +45,10 @@ function osp_updateSpecsOvWindow(gui)
             figpl = get(ax,'Parent');
             copyobj(ax.Children, gui.Plot.specsOv.Children(2));
             % Get rid of the Load figure
-            close( figpl );           
+             try
+                close( figpl );
+            catch
+            end           
         end
         switch Selection{1}
             case {'A','B','C','D','diff1','diff2','sum','MM','MM_clean'}        

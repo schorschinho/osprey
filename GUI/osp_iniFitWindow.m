@@ -182,7 +182,7 @@ function osp_iniFitWindow(gui)
                         NameText = [''];
                         RawAmplText = [''];
                         for m = 1 : length(RawAmpl) %Names and Amplitudes
-                            NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                            NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                             RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                         end
                     else %Water/reference fit but this should never happen in this loop
