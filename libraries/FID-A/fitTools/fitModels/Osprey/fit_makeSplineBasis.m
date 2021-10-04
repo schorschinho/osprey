@@ -10,17 +10,9 @@
 %
 % The array contains the real part of the cubic splines in the (:,:,1)
 % dimension, and the imaginary part in the (:,:,2) dimension.
-%
-% The matrix G is the regularizor matrix specified in Eq (3.13) in the
-% original publication of the CONTIN algorithm behind LCModel:
-% Provencher, Comp Phys Comm 27:213-227 (1982)
-% and the LCModel paper itself:
-% Provencher, Magn Reson Med 30:672-679 (1993).
 % 
 % OUTPUTS:
 % splineArray = Matrix containing all cubic baseline spline functions.
-% G           = Matrix containing the integral over the squared second
-%               derivatives of the baseline functions
 %
 % INPUTS:
 % dataToFit   = FID-A data structure
@@ -28,10 +20,10 @@
 %               e.g. [0.5 4.0]
 % dkntmn      = Scalar denoting the minimal baseline knot spacing in ppm
 %               (this is the hidden DKNTMN parameter in LCModel)
-% plot        = Boolean whether spline generation is supposed to be plotted
+% plotFlag    = Boolean whether spline generation is supposed to be plotted
 %               (Default = 0)
 
-function [splineArray, G] = fit_makeSplineBasis(dataToFit, fitRangePPM, dkntmn, plotFlag);
+function [splineArray] = fit_makeSplineBasis(dataToFit, fitRangePPM, dkntmn, plotFlag)
 
 % Parse input arguments
 if nargin < 4
@@ -59,7 +51,7 @@ nKnotsActual = nKnotsNominal + 4;
 
 % Generate an extended range so that we can create all the splines,
 % including the one that lap over the edges of the actual fit range
-nPtsBaseLineExtended = (nKnotsActual-1)*length(baselineRange)/(nKnotsNominal-3);
+nPtsBaseLineExtended = (nKnotsActual-1)*length(baselineRange)/(nKnotsNominal-1);
 baselineRangeExtended = linspace(1, round(nPtsBaseLineExtended), round(nPtsBaseLineExtended));
 
 % Generate a B-form cubic B-spline such that we have nSegments of cubic
@@ -68,14 +60,90 @@ knotLocations = linspace(1, length(baselineRangeExtended), nKnotsActual);
 nSegmentsActual = nKnotsActual - 4;
 beta_j = zeros(1,nSegmentsActual);
 
-% Loop over number of segments to generate all basis functions
-for rr = 1:length(beta_j)
-    beta_j(:) = 0;
-    beta_j(rr) = 1;
-    bFormSpline{rr} = spmak(knotLocations, beta_j);
-    % Evaluate spline
-    splineBasisFunctionMatrix(:,rr) = fnval(bFormSpline{rr}, baselineRangeExtended);
+% Previously, we used specific functions only available in the Curve
+% Fitting Toolbox (spmak, fnval) to generate the splines. We can get around
+% the need for the curve fitting toolbox if we generate them separately.
+% % Loop over number of segments to generate all basis functions
+% for rr = 1:length(beta_j)
+%     beta_j(:) = 0;
+%     beta_j(rr) = 1;
+%     bFormSpline{rr} = spmak(knotLocations, beta_j);
+%     % Evaluate spline
+%     splineBasisFunctionMatrix(:,rr) = fnval(bFormSpline{rr}, baselineRangeExtended);
+% end
+
+% In the following, we recursively create the cubic (n = 4) B-spline basis
+% functions. 
+% See "Definition" under https://en.wikipedia.org/wiki/B-spline.
+% This has been double-checked against the output from the MATLAB 'spmak'
+% and 'fnval'functions that were previously used.
+
+% First, for k = 1. We could do this probably more elegantly, but we only
+% need to do it for four recursive iterations.
+for ii = 1:length(knotLocations)-1
+    for xx = 1:length(baselineRangeExtended) 
+        if xx >= knotLocations(ii) && xx < knotLocations(ii+1)
+            Bi1(xx, ii) = 1;
+        else
+            Bi1(xx, ii) = 0;
+        end
+    end
 end
+
+for ii = 1:length(knotLocations)-1
+    for xx = 1:length(baselineRangeExtended)
+        if knotLocations(ii) ~= knotLocations(ii+1)
+            wi1(xx,ii) = (xx-knotLocations(ii))/(knotLocations(ii+1) - knotLocations(ii));
+        else
+            wi1(xx,ii) = 0;
+        end
+    end
+end
+
+% k = 2
+for ii = 1:length(knotLocations)-2
+    for xx = 1:length(baselineRangeExtended)
+        Bi2(xx,ii) = wi1(xx,ii).*Bi1(xx,ii) + (1-wi1(xx,ii+1)).*Bi1(xx,ii+1);
+    end
+end
+
+for ii = 1:length(knotLocations)-2
+    for xx = 1:length(baselineRangeExtended)
+        if knotLocations(ii) ~= knotLocations(ii+2)
+            wi2(xx,ii) = (xx-knotLocations(ii))/(knotLocations(ii+2) - knotLocations(ii));
+        else
+            wi2(xx,ii) = 0;
+        end
+    end
+end
+
+% k = 3
+for ii = 1:length(knotLocations)-3
+    for xx = 1:length(baselineRangeExtended)
+        Bi3(xx,ii) = wi2(xx,ii).*Bi2(xx,ii) + (1-wi2(xx,ii+1)).*Bi2(xx,ii+1);
+    end
+end
+
+% n = 2
+for ii = 1:length(knotLocations)-3
+    for xx = 1:length(baselineRangeExtended)
+        if knotLocations(ii) ~= knotLocations(ii+3)
+            wi3(xx,ii) = (xx-knotLocations(ii))/(knotLocations(ii+3) - knotLocations(ii));
+        else
+            wi3(xx,ii) = 0;
+        end
+    end
+end
+
+% k = 4
+for ii = 1:length(knotLocations)-4
+    for xx = 1:length(baselineRangeExtended)
+        Bi4(xx,ii) = wi3(xx,ii).*Bi3(xx,ii) + (1-wi3(xx,ii+1)).*Bi3(xx,ii+1);
+    end
+end
+
+% Copy over into the array we previously used to store the splines in.
+splineBasisFunctionMatrix = Bi4;
 
 % visualize
 if plotFlag
@@ -83,7 +151,6 @@ if plotFlag
     hold;
     for rr = 1:length(beta_j)
         plot(baselineRangeExtended, rr + splineBasisFunctionMatrix(:,rr));
-        plot(knotLocations, rr + fnval(bFormSpline{rr}, knotLocations), 'x');
     end
     hold off;
 end
@@ -98,55 +165,19 @@ splineBasisFunctionMatrix(:,:,2) = -imag(splineBasisFunctionMatrix_Hilb);
 warning off
 % Now cut the functions out only between the nominal knots
 for rr = 1:length(beta_j)
-    splineInnerBasisFunctionMatrix(:,rr,:) = splineBasisFunctionMatrix(knotLocations(4):1:knotLocations(end-3),rr,:);
+    splineInnerBasisFunctionMatrix(:,rr,:) = splineBasisFunctionMatrix(knotLocations(3):1:knotLocations(end-2),rr,:);
 end
 warning on
+
 % visualize
 if plotFlag
     figure
     hold;
     for rr = 1:length(beta_j)
-        plot(knotLocations(4):1:knotLocations(end-3), rr + splineInnerBasisFunctionMatrix(:,rr));
-        plot(knotLocations, rr + fnval(bFormSpline{rr}, knotLocations), 'x');
+        plot(knotLocations(3):1:knotLocations(end-2), rr + splineInnerBasisFunctionMatrix(:,rr));
     end
     hold off;
 end
-
-% Now generate the second derivatives of the real parts
-for rr = 1:length(beta_j)
-    bFormSpline1stDeriv{rr} = fnder(bFormSpline{rr});
-    bFormSpline2ndDeriv{rr} = fnder(bFormSpline1stDeriv{rr});
-    % Evaluate spline
-    spline2ndDerivMatrix(:,rr) = fnval(bFormSpline2ndDeriv{rr}, knotLocations(4):1:knotLocations(end-3));
-end
-% visualize
-if plotFlag
-    figure
-    hold;
-    for rr = 1:length(beta_j)
-        plot(knotLocations(4):1:knotLocations(end-3), spline2ndDerivMatrix(:,rr));
-        plot(knotLocations, fnval(bFormSpline2ndDeriv{rr}, knotLocations), 'x');
-    end
-    hold off;
-end
-
-% Now generate the G matrix
-G = zeros(length(beta_j));
-for ii = 1:length(beta_j)
-    for jj = 1:length(beta_j)
-        y = spline2ndDerivMatrix(:,ii) .* spline2ndDerivMatrix(:,jj);
-        G(ii,jj) = trapz(knotLocations(4):1:knotLocations(end-3), y);
-    end
-end
-
-% % Now test with an example
-% beta_j = [2.083E-01   1.770E-01   1.455E-01   1.131E-01   8.091E-02   5.232E-02   2.836E-02   9.195E-03  -2.912E-03  -9.074E-03  -9.486E-03  -6.413E-03  -7.256E-04   7.255E-03   1.698E-02   2.800E-02   4.057E-02   5.314E-02];
-% alphaB = 7.289E-01;
-% regB = norm(alphaB*sqrtm(G)*sqrt((length(baselineRange)/length(knotLocations))^3)*beta_j')^2;
-% calculate with actual number of points!!! this will lead you to the way
-% that the number of points and knots is absorbed into the regularization
-% parameter
-
 
 % Return variables
 splineArray = splineInnerBasisFunctionMatrix;

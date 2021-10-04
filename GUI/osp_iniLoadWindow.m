@@ -253,41 +253,8 @@ function osp_iniLoadWindow(gui)
             if MRSCont.flags.hasMM %re_mm
                 if t == 2 %ref data/tab %re_mm
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm'); %re_mm
-                    if MRSCont.flags.isUnEdited % One window for UnEdited
-                        ViewAxes = gca();
-                        set( ViewAxes, 'Parent', gui.Plot.data );
-                    end
-                    if MRSCont.flags.isMEGA %Two windows for MEGA
-                        set( temp.Children(2), 'Parent', gui.Plot.data );
-                        set( temp.Children(1), 'Parent', gui.Plot.data );
-                        set(gui.Plot.data,'Heights', [-0.49 -0.49]);
-                        set(gui.Plot.data.Children(2), 'Units', 'normalized')
-                        set(gui.Plot.data.Children(2), 'OuterPosition', [0,0.5,1,0.5])
-                        set(gui.Plot.data.Children(1), 'Units', 'normalized')
-                        set(gui.Plot.data.Children(1), 'OuterPosition', [0,0,1,0.5])
-                    end
-                    if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Four windows for HERMES/HERCULES
-                        gui.layout.multiACload = uix.VBox('Parent', gui.Plot.data, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
-                            gui.layout.multiAload = uix.VBox('Parent', gui.layout.multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                            gui.layout.multiCload = uix.VBox('Parent', gui.layout.multiACload,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                        gui.layout.multiBDload = uix.VBox('Parent', gui.Plot.data,'Padding', 5, 'BackgroundColor',gui.colormap.Background);
-                            gui.layout.multiBload = uix.VBox('Parent', gui.layout.multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                            gui.layout.multiDload = uix.VBox('Parent', gui.layout.multiBDload, 'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);
-                        set( temp.Children(1), 'Parent', gui.layout.multiDload );
-                        set( temp.Children(1), 'Parent', gui.layout.multiCload );
-                        set( temp.Children(1), 'Parent', gui.layout.multiBload );
-                        set( temp.Children(1), 'Parent', gui.layout.multiAload );
-                        set(gui.Plot.data,'Width', [-0.49 -0.49]);
-                        set(gui.layout.multiDload.Children(1), 'Units', 'normalized')
-                        set(gui.layout.multiDload.Children(1), 'OuterPosition', [0,0,1,1])
-                        set(gui.layout.multiCload.Children(1), 'Units', 'normalized')
-                        set(gui.layout.multiCload.Children(1), 'OuterPosition', [0,0,1,1])
-                        set(gui.layout.multiBload.Children(1), 'Units', 'normalized')
-                        set(gui.layout.multiBload.Children(1), 'OuterPosition', [0,0,1,1])
-                        set(gui.layout.multiAload.Children(1), 'Units', 'normalized')
-                        set(gui.layout.multiAload.Children(1), 'OuterPosition', [0,0,1,1])
-
-                    end
+                    ViewAxes = gca(); %re_mm
+                    set( ViewAxes, 'Parent', gui.Plot.data ); %re_mm
                 end %re_mm
                 if t == 3 %ref data/tab %re_mm
                     if MRSCont.flags.hasRef%re_mm

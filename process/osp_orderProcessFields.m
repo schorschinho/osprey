@@ -59,24 +59,16 @@ if MRSCont.flags.isUnEdited
     end
         
 elseif MRSCont.flags.isMEGA
-    numberstring = ['1' num2str(MRSCont.flags.hasMM) num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
+    numberstring = ['1' num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
     switch numberstring
-        case '1000'
+        case '100'
             sortstring = {'A','B','diff1','sum'}; 
-        case '1100'
-            sortstring = {'A','B','diff1','sum','A_mm','B_mm','diff1_mm','sum_mm'};
-        case '1001'
-            sortstring = {'A','B','diff1','sum','w'};
-        case '1010'
+        case '110'
             sortstring = {'A','B','diff1','sum','ref'};
-        case '1011'
-            sortstring = {'A','B','diff1','sum','ref','w'};     
-        case '1110'
-            sortstring = {'A','B','diff1','sum','A_mm','B_mm','diff1_mm','sum_mm','ref'};
-        case '1101'
-            sortstring = {'A','B','diff1','sum','A_mm','B_mm','diff1_mm','sum_mm','w'};
-        case '1111'
-            sortstring = {'A','B','diff1','sum','A_mm','B_mm','diff1_mm','sum_mm','ref','w'};       
+        case '101'
+            sortstring = {'A','B','diff1','sum','w'};
+        case '111'
+            sortstring = {'A','B','diff1','sum','ref','w'};
         otherwise
             msg = 'Something is wrong in the processing!';
             fprintf(fileID,msg);
