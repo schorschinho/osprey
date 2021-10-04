@@ -36,14 +36,14 @@ function [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitPa
 dataToFit     = inputData.dataToFit;
 dataToFit     = op_zeropad(dataToFit, 2); % zero-fill for LCModel
 basisSet      = inputData.basisSet;
-if (length(fitParams.ampl) == 3)
-    basisSet      = inputData.basisSet_mm;
-    fitParams.freqShift = repmat(fitParams.freqShift,[basisSet.nMets+basisSet.nMM 1]);
-    fitParams.lorentzLB = repmat(fitParams.lorentzLB,[basisSet.nMets+basisSet.nMM 1]);
-    %dummy=fitParams.ampl;   
-    %fitParams.ampl=zeros([basisSet.nMets+basisSet.nMM 1]);
-    %fitParams.ampl([3 4 13])=dummy;
-end
+% if (length(fitParams.ampl) == 2)
+%     basisSet      = inputData.basisSet_mm;
+%     fitParams.freqShift = repmat(fitParams.freqShift,[basisSet.nMets+basisSet.nMM 1]);
+%     fitParams.lorentzLB = repmat(fitParams.lorentzLB,[basisSet.nMets+basisSet.nMM 1]);
+%     %dummy=fitParams.ampl;   
+%     %fitParams.ampl=zeros([basisSet.nMets+basisSet.nMM 1]);
+%     %fitParams.ampl([3 4 13])=dummy;
+% end
 % ... settings:
 fitRangePPM         = inputSettings.fitRangePPM;
 minKnotSpacingPPM   = inputSettings.minKnotSpacingPPM;

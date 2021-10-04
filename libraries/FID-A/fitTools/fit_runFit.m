@@ -37,6 +37,10 @@ end
 switch fitModel
     case 'Osprey'
         [fitParams, resBasisSet] = fit_Osprey(dataToFit, basisSet, fitOpts);
+    case 'OspreyAsym'
+        [fitParams, resBasisSet] = fit_OspreyAsym(dataToFit, basisSet, fitOpts);
+    case 'OspreyNoLS'
+        [fitParams, resBasisSet] = fit_OspreyNoLS(dataToFit, basisSet, fitOpts);
 end
 
 end

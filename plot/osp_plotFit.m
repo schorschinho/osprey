@@ -269,6 +269,9 @@ end
 if (strcmp(which_spec, 'mm'))
    Met_corr_spectrum  = sum(ModelOutput.indivMets(:,1:4),2);
 end
+if (strcmp(which_spec, 'diff1_mm'))
+   Met_corr_spectrum  = sum(ModelOutput.indivMets(:,1:2),2);
+end
 
 
 %%% 4. SET UP FIGURE LAYOUT %%%
@@ -323,7 +326,7 @@ plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/
 plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
 plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1); % Max Residue
 
-if (strcmp(which_spec, 'mm'))
+if (contains(which_spec, 'mm'))
    plot(ppm, (dataToPlot + stagData-Met_corr_spectrum)/maxPlot, 'Color',[1 0 0.1]); % Data
 end
 

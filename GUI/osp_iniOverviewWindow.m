@@ -105,7 +105,10 @@ end
                 figpl = get(ax,'Parent');
                 copyobj(ax.Children, gui.Plot.specsOv.Children(2));
                 % Get rid of the Load figure
-                close( figpl );
+                try
+                    close( figpl );
+                catch
+                end
             end
         end
         if gui.load.Selected ==1 %Metabolite data?

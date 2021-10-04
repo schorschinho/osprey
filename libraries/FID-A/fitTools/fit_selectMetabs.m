@@ -67,7 +67,7 @@ switch fitMM
     case 2
     all_MMs = {'MMexp'};   
     otherwise
-    all_MMs = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
+    all_MMs = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20','MM37','MM38','MM40','MM42'};
 end
 % Check which of these are available in the basis set
 MMsInBasisSet = basisSetIn.name;

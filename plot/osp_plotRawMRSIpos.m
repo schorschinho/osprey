@@ -92,7 +92,11 @@ else if ~MRSCont.flags.didQuantify
         map(map < 0.5) = 0;
     end
 else    
-     map = MRSCont.quantify.amplMets{kk}.off.NAA + MRSCont.quantify.amplMets{kk}.off.NAAG;
+    if isfield(MRSCont.quantify.amplMets{kk}.off,'NAA') && isfield(MRSCont.quantify.amplMets{kk}.off,'NAAG')
+        map = MRSCont.quantify.amplMets{kk}.off.NAA + MRSCont.quantify.amplMets{kk}.off.NAAG;
+    else
+        map = MRSCont.quantify.amplMets{kk}.off.NAA;
+    end
     map = map/(max(max(max(map))));
     map(map > 0.1) = 0.5;
     map(map < 0.5) = 0;
