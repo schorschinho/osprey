@@ -163,7 +163,7 @@ for y = coord(2,1) : coord(2,2)
         plot_index = plot_index +1;    
         box off;
         set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLim);
-        set(gca, 'LineWidth', 1, 'TickDir', 'in', 'XMinorTick', 'On','TickLength', [0.03 0.025]);
+        set(gca, 'LineWidth', 1, 'TickDir', 'in', 'XMinorTick', 'Off','TickLength', [0.03 0.025]);
         set(gca, 'XColor', colormap.Foreground, 'YColor', colormap.Foreground);
         
         if x ~= coord(1,1)

@@ -1,4 +1,4 @@
-function out = osp_plotMRSImap(MRSCont, kk,slice, nominator_spec,denominator_spec, nominator, denominator, upsample,figTitle)
+function out = osp_plotMRSImap(MRSCont, kk,slice, nominator_spec,denominator_spec, nominator, denominator, upsample,figTitle,mask)
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   Creates a figure showing data stored in an Osprey data container, as
 %   well as the fit to it, the baseline, the residual, and contributions
@@ -44,22 +44,28 @@ end
 fitMethod   = MRSCont.opts.fit.method;
 fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
-if nargin < 8
-    upsample = 1;
-    if nargin<7
-        denominator = [];
-        if nargin<6
-            nominator = {'Cr', 'PCr'}; 
-            if nargin<5
-                denominator_spec = 'none'; 
-                if nargin < 4
-                    nominator_spec = 'off';
-                    if nargin < 3
-                        slice = 1;
-                        if nargin < 2
-                            kk = 1;
-                            if nargin<1
-                                error('ERROR: no input Osprey container specified.  Aborting!!');
+if nargin < 10
+mask = 0;
+    if nargin < 9
+        figTitle = '';
+        if nargin < 8
+            upsample = 1;
+            if nargin<7
+                denominator = [];
+                if nargin<6
+                    nominator = {'Cr', 'PCr'}; 
+                    if nargin<5
+                        denominator_spec = 'none'; 
+                        if nargin < 4
+                            nominator_spec = 'off';
+                            if nargin < 3
+                                slice = 1;
+                                if nargin < 2
+                                    kk = 1;
+                                    if nargin<1
+                                        error('ERROR: no input Osprey container specified.  Aborting!!');
+                                    end
+                                end
                             end
                         end
                     end
@@ -68,7 +74,7 @@ if nargin < 8
         end
     end
 end
-if nargin<8    
+if nargin<10    
     [~,filen,ext] = fileparts(MRSCont.files{kk});
     nominator_name = '';
     denominator_name = '';
@@ -133,16 +139,23 @@ end
 
 sz_map = size(map);
 
-mask = MRSCont.mask{kk};
-
-if ~(sum(size(mask) == size(map)) == 0)
-    map = mask .* map;
+if mask
+    mask = MRSCont.mask{kk};
+    mask = mask(:,:,slice);
 end
 
 map = map(:,:,slice);
+map = rot90(map);
+
+if mask
+    if ~(sum(size(mask) == size(map)) == 0)
+        map = mask .* map;
+    end
+end
+
 
 if upsample > 1
-    map = imresize(map,sz_map .* upsample);
+    map = imresize(map,sz_map(1:2) .* upsample);
 end
 
 if strcmp(denominator_spec, 'w')

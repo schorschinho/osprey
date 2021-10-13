@@ -260,8 +260,11 @@ for kk = 1:MRSCont.nDatasets
             gzip(CSFvol.fname);
             delete(CSFvol.fname);
             delete(vol_mask.fname);
-            gzip(MRSCont.coreg.vol_image{kk}.fname)
-            delete(MRSCont.coreg.vol_image{kk}.fname);
+            try
+                gzip(MRSCont.coreg.vol_image{kk}.fname)
+                delete(MRSCont.coreg.vol_image{kk}.fname);
+            catch
+            end
 
 
 
