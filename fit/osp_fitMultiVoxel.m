@@ -131,8 +131,13 @@ elseif MRSCont.flags.isMRSI == 1
                     end
                 end
                 if ~((x == cx) && (y == cy) && (z == cz)) % Do not overwrite the center voxel
-                    outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl));
-                    outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j));
+                    if ZVox <=1
+                        outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.ampl));
+                        outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j = zeros(size(outMRSCont.fit.results{x,y}.off.fitParams{1}.beta_j));
+                    else
+                        outMRSCont.fit.results{x,y,z}.off.fitParams{1}.ampl = zeros(size(outMRSCont.fit.results{x,y,z}.off.fitParams{1}.ampl));
+                        outMRSCont.fit.results{x,y,z}.off.fitParams{1}.beta_j = zeros(size(outMRSCont.fit.results{x,y,z}.off.fitParams{1}.beta_j));
+                    end
                 end
             end
         end
@@ -152,7 +157,7 @@ elseif MRSCont.flags.isMRSI == 1
             [~] = printLog('OspreyFit',[kk,vox],[MRSCont.nDatasets, XVox*YVox*ZVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
              try
-             if MRSCont.mask{kk}(x,y,z)
+             if MRSCont.mask{kk}(y,x,z)
                for ss = 1 : NoSubSpec % Loop over Subspec
                    for kk = 1 :MRSCont.nDatasets
                        if ZVox <=1

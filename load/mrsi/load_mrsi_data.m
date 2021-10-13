@@ -847,16 +847,16 @@ for kk = 1:MRSCont.nDatasets
         end
         if subspecs == 2
             if kz_tot <= 1
-                specs = permute(spec, [t_dim 4 5 kx_dim ky_dim]);
+                specs = permute(spec, [t_dim 4 5 ky_dim kx_dim]);
                 if ~strcmp(MRSCont.opts.MoCo.target, 'none')
-                    specs_no_MoCo = permute(specs_no_MoCo, [t_dim 4 5 kx_dim ky_dim]);
+                    specs_no_MoCo = permute(specs_no_MoCo, [t_dim 4 5 ky_dim kx_dim]);
                 end
                 dims.Xvoxels=4;
                 dims.Yvoxels=5;
             else
-                specs = permute(spec, [t_dim 5 6 kx_dim ky_dim kz_dim]);
+                specs = permute(spec, [t_dim 5 6 ky_dim kx_dim kz_dim]);
                 if ~strcmp(MRSCont.opts.MoCo.target, 'none')
-                    specs_no_MoCo = permute(specs_no_MoCo, [t_dim 5 6 kx_dim ky_dim kz_dim]);
+                    specs_no_MoCo = permute(specs_no_MoCo, [t_dim 5 6 ky_dim kx_dim kz_dim]);
                 end
                 dims.Xvoxels=4;
                 dims.Yvoxels=5;
@@ -865,8 +865,8 @@ for kk = 1:MRSCont.nDatasets
         end
         
         %Adding MultiVoxelInfo
-        out.nXvoxels = kx_tot;
-        out.nYvoxels = ky_tot;
+        out.nXvoxels = ky_tot;
+        out.nYvoxels = kx_tot;
         out.nZvoxels = kz_tot;
 
     else
@@ -891,11 +891,11 @@ for kk = 1:MRSCont.nDatasets
             ky_dim = kx_dim + 1;
         end
         if kz_tot <= 1
-            specs_w = permute(specs_w, [t_dim kx_dim ky_dim]);
+            specs_w = permute(specs_w, [t_dim ky_dim kx_dim]);
             dims_w.Xvoxels=2;
             dims_w.Yvoxels=3;
         else
-            specs_w = permute(specs_w, [t_dim kx_dim ky_dim kz_dim]);
+            specs_w = permute(specs_w, [t_dim ky_dim kx_dim kz_dim]);
             dims_w.Xvoxels=2;
             dims_w.Yvoxels=3;
             dims_w.Zvoxels=4;
@@ -903,8 +903,8 @@ for kk = 1:MRSCont.nDatasets
         dims_w.extras=0;  
         
         %Adding MultiVoxelInfo
-        out_w.nXvoxels = kx_tot;
-        out_w.nYvoxels = ky_tot;
+        out_w.nXvoxels = ky_tot;
+        out_w.nYvoxels = kx_tot;
         out_w.nZvoxels = kz_tot;
     end
     
