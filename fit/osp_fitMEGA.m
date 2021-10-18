@@ -27,20 +27,13 @@ function [MRSCont] = osp_fitMEGA(MRSCont)
 
 % Loop over all the datasets here
 metFitTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-            drawnow
-    end
+    [~] = printLog('OspreyFit',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     
     %%% 1. DETERMINE THE FITTING STYLE %%%
     % Extract fit options
@@ -52,7 +45,7 @@ for kk = 1:MRSCont.nDatasets
     % For the separate (classic) MEGA fit, model the EDIT-OFF and DIFF
     % spectra separately.
     if strcmp(fitStyle, 'Separate')
-        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))    
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)  
             %%% 2a. FIT OFF-SPECTRUM
             % Apply scaling factor to the data
             dataToFit   = MRSCont.processed.A{kk};
@@ -90,6 +83,40 @@ for kk = 1:MRSCont.nDatasets
             % Save back the basis set and fit parameters to MRSCont
             MRSCont.fit.resBasisSet.diff1{kk}           = resBasisSetDiff1;
             MRSCont.fit.results.diff1.fitParams{kk} = fitParamsDiff1;
+            
+            %Modeling MM spectra after the main spectrum 
+            if MRSCont.flags.hasMM == 1            
+                dataToFit_mm   = MRSCont.processed.diff1_mm{kk};
+                dataToFit_mm   = op_ampScale(dataToFit_mm, 1/MRSCont.fit.scale{kk});
+                %add some info from the metabolite fit
+                dataToFit_mm.lineShape  = fitParamsOff.lineShape;
+                dataToFit_mm.refFWHM  = fitParamsOff.refFWHM;
+                % Extract fit options
+                fitOpts_mm    = MRSCont.opts.fit;
+                fitModel_mm    = fitOpts.method;
+                fitOpts_mm.sequence = 'MEGA';
+                %Specify a reduced basis set for MM modeling
+                %basisSet_mm    = MRSCont.fit.basisSet;
+                %Reduce the size of the basis set
+
+                %Adjust basis set
+                % Clear existing basis set
+                MRSCont.fit.basisSet_mm = [];
+                basisSet_mm = basisSetDiff1;
+                % Generate the list of basis functions that are supposed to be included in
+                % the basis set
+                % To do: Interface with interactive user input
+                metabList_mm = fit_createMetabListMM('MEGA');
+                % Create the modified basis set
+                basisSet_mm = fit_selectMetabs(basisSet_mm, metabList_mm, 0);
+                 % Call the fit function
+                [fitParams_mm, resBasisSet_mm] = fit_runFitMM(dataToFit_mm, basisSet_mm, fitModel_mm, fitOpts_mm);
+                 % Save back the basis set and fit parameters to MRSCont
+                MRSCont.fit.basisSet_mm                    = basisSet_mm;
+                MRSCont.fit.resBasisSet.diff1_mm{kk}         = resBasisSet_mm;
+                MRSCont.fit.results.diff1_mm.fitParams{kk}   = fitParams_mm;
+            end  
+        
         end
     end
 
@@ -98,7 +125,7 @@ for kk = 1:MRSCont.nDatasets
     % For the concatenated MEGA fit, model the DIFF1 and SUM spectra
     % together.
     if strcmp(fitStyle, 'Concatenated')
-        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.conc.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))            
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.conc.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)          
             %%% 3a. FIT CONCATENATED SPECTRUM
             % Select the difference and sum spectrum to put into the
             % concatenated fit
@@ -133,18 +160,9 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.fit.results.conc.fitParams{kk} = fitParamsConc;
         end
     end           
-    %% end time counter
-    if isequal(kk, MRSCont.nDatasets)       
-        fprintf('... done.\n');       
-        time = toc(metFitTime);
-        if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-            pause(1);
-        end
-        fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-        MRSCont.runtime.FitMet = time;        
-    end
 end
-
+time = toc(metFitTime);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+MRSCont.runtime.FitMet = time;
 
 end

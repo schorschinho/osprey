@@ -35,17 +35,17 @@ function [MRSCont] = OspreyQuantifyMRSI(MRSCont)
 
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
+diary(fullfile(outputFolder, 'LogFile.txt'));
 % Check that OspreyFit has been run before
 if ~MRSCont.flags.didFit
     msg = 'Trying to quantify data, but data have not been modelled yet. Run OspreyFit first.';
-    fprintf(fileID,msg);
+    fprintf(msg);
     error(msg);    
 end
 
 % Version check and updating log file
 MRSCont.ver.Quant             = '1.0.0 Quant';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Quant '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+fprintf(['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Quant '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 
 
 %%% 0. CHECK WHICH QUANTIFICATIONS CAN BE DONE %%%
@@ -81,15 +81,15 @@ if [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 1]
         % If both water reference and short-TE water data have been
         % provided, use the one with shorter echo time.
         qtfyH2O     = 1;
-        waterType   = 'w';
+        getResults{end+1} = 'w';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 0]
         % If only one type of water data has been provided, use it.
         qtfyH2O     = 1;
-        waterType   = 'ref';
+        getResults{end+1} = 'ref';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [0 1]
         % If only one type of water data has been provided, use it.
         qtfyH2O     = 1;
-        waterType   = 'w';
+        getResults{end+1} = 'w';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [0 0]
         % If no water ref has been provided, only tCr ratios can be
         % provided.
@@ -127,20 +127,37 @@ if ~exist(saveDestination,'dir')
     mkdir(saveDestination);
 end
 
-%Find dimensionality of MRSI acquisition
-dim = size(MRSCont.fit.results);
+%Find dimensionality of metabolite MRSI acquisition
+dim  = [MRSCont.raw{1}.nXvoxels MRSCont.raw{1}.nYvoxels MRSCont.raw{1}.nZvoxels]; 
+if dim(3) == 1
+    dim = dim(1:2);
+end
 
 % Add combinations of metabolites to the basisset
-for ll = 1:length(getResults)
-    if length(dim) == 2
-        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1}.(getResults{ll}){1,1}.name;
+if qtfyH2O
+    water = 1;
+else
+    water = 0;
+end
+
+for ll = 1:length(getResults) - water
+    if length(dim) == 2        
+        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
     else
-        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet{1,1,1}.(getResults{ll}){1,1}.name;
+        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
+    end
+end
+
+if qtfyH2O
+    if length(dim) == 2        
+        MRSCont.quantify.metabs.(getResults{end}) = MRSCont.fit.resBasisSet.(getResults{end}).water{1,1}.name;
+    else
+        MRSCont.quantify.metabs.(getResults{end}) = MRSCont.fit.resBasisSet.(getResults{end}).water{1,1}.name;
     end
 end
 
 for kk = 1:MRSCont.nDatasets
-    for ll = 1:length(getResults)
+    for ll = 1:length(getResults)  - water
         for mm = 1:length(MRSCont.quantify.metabs.(getResults{ll}))
             if length(dim) == 2
                 for x = 1 : dim(1)
@@ -152,7 +169,7 @@ for kk = 1:MRSCont.nDatasets
                 for z = 1 : dim(3)
                     for x = 1 : dim(1)
                         for y = 1 : dim(2)
-                            MRSCont.quantify.amplMets{kk}.(getResults{ll})(x,y,z) = MRSCont.fit.results{x,y,z}.(getResults{ll}).fitParams{kk}.ampl;
+                            MRSCont.quantify.amplMets{kk}.(getResults{ll}).(MRSCont.quantify.metabs.(getResults{ll}){mm})(x,y,z) = MRSCont.fit.results{x,y,z}.(getResults{ll}).fitParams{kk}.ampl(mm);
                         end % Y voxel
                     end % X voxel  
                 end % slices
@@ -160,24 +177,41 @@ for kk = 1:MRSCont.nDatasets
         end
     end
 end
-% MRSCont = addMetabComb(MRSCont, getResults);
 
+%Find dimensionality of metabolite MRSI acquisition
+dim  = [MRSCont.raw_w{1}.nXvoxels MRSCont.raw_w{1}.nYvoxels MRSCont.raw_w{1}.nZvoxels]; 
+if dim(3) == 1
+    dim = dim(1:2);
+end
+
+for kk = 1:MRSCont.nDatasets
+    if length(dim) == 2
+        for x = 1 : dim(1)
+            for y = 1 : dim(2)
+                MRSCont.quantify.amplMets{kk}.w.H2O(x,y) = MRSCont.fit.results{x,y}.w.fitParams{kk}.ampl(1);
+            end % Y voxel
+        end % X voxel
+    else
+        for z = 1 : dim(3)
+            for x = 1 : dim(1)
+                for y = 1 : dim(2)
+                    MRSCont.quantify.amplMets{kk}.w.H2O(x,y,z) = MRSCont.fit.results{x,y,z}.w.fitParams{kk}.ampl(1);
+                end % Y voxel
+            end % X voxel  
+        end % slices
+    end
+end
 
 %% Loop over all datasets
 QuantifyTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
+
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID, [reverseStr, msg]);
-    if MRSCont.flags.isGUI  && isfield(progressText,'String')      
-        set(progressText,'String' ,sprintf('Quantifying dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end
+    [~] = printLog('OspreyQuant',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
 %     metsName = MRSCont.quantify.metabs; % just for the names
@@ -265,15 +299,13 @@ for kk = 1:MRSCont.nDatasets
 %         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
 %     end
 end
-fprintf('... done.\n');
 time = toc(QuantifyTime);
 if MRSCont.flags.isGUI && isfield(progressText,'String')      
     set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
     pause(1);
 end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+fprintf('... done.\n Elapsed time %f seconds\n',time);
 MRSCont.runtime.Quantify = time;
-fclose(fileID); %close log file
 %% Create tables
 % Set up readable tables for each quantification.
 % [MRSCont] = osp_createTable(MRSCont,'amplMets', getResults);
@@ -296,6 +328,7 @@ fclose(fileID); %close log file
 %% Clean up and save
 % Set exit flags
 MRSCont.flags.didQuantify           = 1;
+diary off
 % Save the metabolite tables as CSV structure
 % exportCSV (MRSCont,saveDestination, getResults);
 

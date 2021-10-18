@@ -36,14 +36,14 @@ function [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitPa
 dataToFit     = inputData.dataToFit;
 dataToFit     = op_zeropad(dataToFit, 2); % zero-fill for LCModel
 basisSet      = inputData.basisSet;
-if (length(fitParams.ampl) == 3)
-    basisSet      = inputData.basisSet_mm;
-    fitParams.freqShift = repmat(fitParams.freqShift,[basisSet.nMets+basisSet.nMM 1]);
-    fitParams.lorentzLB = repmat(fitParams.lorentzLB,[basisSet.nMets+basisSet.nMM 1]);
-    %dummy=fitParams.ampl;   
-    %fitParams.ampl=zeros([basisSet.nMets+basisSet.nMM 1]);
-    %fitParams.ampl([3 4 13])=dummy;
-end
+% if (length(fitParams.ampl) == 2)
+%     basisSet      = inputData.basisSet_mm;
+%     fitParams.freqShift = repmat(fitParams.freqShift,[basisSet.nMets+basisSet.nMM 1]);
+%     fitParams.lorentzLB = repmat(fitParams.lorentzLB,[basisSet.nMets+basisSet.nMM 1]);
+%     %dummy=fitParams.ampl;   
+%     %fitParams.ampl=zeros([basisSet.nMets+basisSet.nMM 1]);
+%     %fitParams.ampl([3 4 13])=dummy;
+% end
 % ... settings:
 fitRangePPM         = inputSettings.fitRangePPM;
 minKnotSpacingPPM   = inputSettings.minKnotSpacingPPM;
@@ -66,10 +66,11 @@ refShift    = fitParams.refShift; % Reference shift applied to the data during f
 lineShape = lineShape/sum(lineShape);
 
 % Create an array of normalized cubic baseline spline basis functions.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
+[splineArray]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
 if length(fitParams.beta_j)>size(splineArray,2)
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
+[splineArray]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
 end
+
 %%% 2. APPLY THE NON-LINEAR PARAMETERS %%%
 % Run the time-domain operations on the metabolite basis functions
 % (frequency shift, Lorentzian dampening, Gaussian dampening, zero phase shift)

@@ -34,24 +34,16 @@ warning('off','all');
 
 %% Loop over all datasets
 refProcessTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
-    progressbar = waitbar(0,'Start','Name','Osprey Process');
-    waitbar(0,progressbar,sprintf('Processed data from dataset %d out of %d total datasets...\n', 0, MRSCont.nDatasets))
+else
+    progressText = '';
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
+
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end
+    [~] = printLog('OspreyProcess',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     
-    if ((MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~isfield(MRSCont.ver, 'Pro') || ~strcmp(MRSCont.ver.Pro,MRSCont.ver.CheckPro))
+    if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A)))  || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         %%% 1. GET RAW DATA %%%
         raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
@@ -96,9 +88,6 @@ for kk = 1:MRSCont.nDatasets
             % data may have linewidth lower than the simulated basis set
             % data.
             raw = op_filter(raw, 2);
-            if MRSCont.flags.hasRef
-                raw_ref = op_filter(raw_ref, 2);
-            end
         end
         
         %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
@@ -144,6 +133,10 @@ for kk = 1:MRSCont.nDatasets
                 raw_ref.flags.averaged  = 1;
                 raw_ref.dims.averages   = 0;
             end
+            
+            if MRSCont.flags.hasRef && MRSCont.flags.isPhantom
+                raw_ref = op_filter(raw_ref, 2);
+            end
                         
             if MRSCont.flags.hasMM
                 [raw_mm,~]                   = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
@@ -173,19 +166,21 @@ for kk = 1:MRSCont.nDatasets
         %%% 6. REMOVE RESIDUAL WATER %%%
         % Define different water removal frequency ranges, depending on
         % whether this is phantom data
-        if MRSCont.flags.isPhantom
+         if MRSCont.flags.isPhantom
             waterRemovalFreqRange = [4.5 5];
-            fracFID = 0.2;
+            fracFID = 0.5;
         else
             waterRemovalFreqRange = [4.5 4.9];
             fracFID = 0.75;
-        end
-        % Apply iterative water filter
-        raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+         end
         
+        raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
         if MRSCont.flags.hasMM %re_mm
             raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
         end
+
+        
+        
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
         %%% DATA
@@ -200,12 +195,13 @@ for kk = 1:MRSCont.nDatasets
 
         
         % Save back to MRSCont container
-        if strcmp(MRSCont.vendor,'Siemens')
+        if strcmp(MRSCont.vendor,'Siemens') || MRSCont.flags.isMRSI
             % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
             % with the negative phase of that fit
             [raw,globalPhase]       = op_phaseCrCho(raw, 1);
             raw.specReg.phs = raw.specReg.phs - globalPhase*180/pi;
         end
+        
         MRSCont.processed.A{kk}     = raw;
 
 
@@ -219,7 +215,11 @@ for kk = 1:MRSCont.nDatasets
                 raw_w.flags.averaged    = 1;
                 raw_w.dims.averages     = 0;
             end
-            [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            if ~MRSCont.flags.isMRSI
+                [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+            else
+                [raw_w,~]=op_autophase(raw_w,2,2*4.68);
+            end
             [raw_w,~]                       = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
             
             % Apply some linebroadening, if phantom data
@@ -264,19 +264,9 @@ for kk = 1:MRSCont.nDatasets
             end
         end              
     end
-
-    if MRSCont.flags.isGUI        
-        waitbar(kk/MRSCont.nDatasets,progressbar,sprintf('Processed data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets))
-    end
 end
-fprintf('... done.\n');
 time = toc(refProcessTime);
-if MRSCont.flags.isGUI        
-    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-    pause(1);
-end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-fclose(fileID);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
 %%% 10. SET FLAGS %%%
 MRSCont.flags.avgsAligned       = 1;

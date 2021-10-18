@@ -1,3 +1,6 @@
 .DS_Store
 *.m~
-spm12
+jobGUIcreated.m
+derivatives/
+GUI/SPMpath.mat
+exampledata/bruker

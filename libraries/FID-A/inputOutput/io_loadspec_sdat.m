@@ -37,7 +37,15 @@ dims.t          = find(data_size == header.samples);
 dims.averages   = find(data_size == header.rows);
 dims.coils      = 0; % SDAT is already coil-combined
 % Now arrange in the standard order (samples-avgs-subspecs):
-data = permute(data ,[dims.t dims.averages]);
+if (isfield(header, 'nr_of_slices_for_multislice') && header.nr_of_slices_for_multislice > 1) && (isfield(header, 'dim2_pnts') && header.dim2_pnts' > 1)
+     
+    dims.Zvoxels = 3;
+    data = permute(data ,[dims.t dims.averages dims.Zvoxels]); 
+else
+    data = permute(data ,[dims.t dims.averages]);    
+end
+
+
 dims.t = 1;
 dims.averages = 2;
 dims.extras = 0;
@@ -125,7 +133,12 @@ out.tr=tr;
 out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
-
+if isfield(header,'nucleus')
+    out.nucleus = header.nucleus;
+end
+if isfield(header,'equipment_sw_verions')
+    out.software = ['R ' header.equipment_sw_verions];
+end
 %FILLING IN DATA STRUCUTRE FOR SDAT MRSI
 if isfield(header, 'dim2_pnts')
     out.nXvoxels = header.dim2_pnts;

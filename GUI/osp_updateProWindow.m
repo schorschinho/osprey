@@ -110,7 +110,7 @@ function osp_updateProWindow(gui)
         elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,gui.controls.act_x); %Create figure
         else
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,[gui.controls.act_x gui.controls.act_y]); %Create figure
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,[gui.controls.act_x gui.controls.act_y gui.controls.act_z]); %Create figure
         end
         %Delete old content
         delete(gui.layout.proDrift.Children.Children)
@@ -135,7 +135,7 @@ function osp_updateProWindow(gui)
         % If it is Multivoxel data we have to update the Voxel Position
         % window
         if MRSCont.flags.isMRSI 
-            temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x]);
+            temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x gui.controls.act_z]);
             ViewAxes = gca();
             drawnow
             set( gui.layout.LocPanel.Children,'ColorData', ViewAxes.ColorData );

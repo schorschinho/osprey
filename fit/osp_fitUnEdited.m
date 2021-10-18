@@ -28,22 +28,15 @@ function [MRSCont] = osp_fitUnEdited(MRSCont)
 
 % Loop over all the datasets here
 metFitTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('\nFitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-            drawnow
-    end
+     [~] = printLog('OspreyFit',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     
-    if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
+    if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
         % Apply scaling factor to the data
         dataToFit   = MRSCont.processed.A{kk};
         dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
@@ -79,6 +72,7 @@ for kk = 1:MRSCont.nDatasets
             % Extract fit options
             fitOpts_mm    = MRSCont.opts.fit;
             fitModel_mm    = fitOpts.method;
+            fitOpts_mm.sequence = 'unedited';
             %Specify a reduced basis set for MM modeling
             %basisSet_mm    = MRSCont.fit.basisSet;
             %Reduce the size of the basis set
@@ -92,7 +86,7 @@ for kk = 1:MRSCont.nDatasets
             % Generate the list of basis functions that are supposed to be included in
             % the basis set
             % To do: Interface with interactive user input
-            metabList_mm = fit_createMetabListMM;
+            metabList_mm = fit_createMetabListMM('unedited');
             % Collect MMfit flag from the options determined in the job file
             fitMM = MRSCont.opts.fit.fitMM;
             % Create the modified basis set
@@ -107,18 +101,8 @@ for kk = 1:MRSCont.nDatasets
         end                                         % re_mm
     end
 
-    % end time counter
-    if isequal(kk, MRSCont.nDatasets)
-        fprintf('... done.\n');
-        time = toc(metFitTime);
-        if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-            pause(1);
-        end
-        fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-        MRSCont.runtime.FitMet = time;
-    end
 end
-
-
+time = toc(metFitTime);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+MRSCont.runtime.FitMet = time;
 end

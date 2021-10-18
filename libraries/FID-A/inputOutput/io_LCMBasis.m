@@ -45,9 +45,9 @@ ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Ospr
 if nargin < 4
     editTarget = 'none';
     if nargin < 3
-        addMMFlag = 1;
+        sequence = 'unedited';        
         if nargin < 2
-            sequence = 'unedited';
+            addMMFlag = 1;
         end
     end
 end
@@ -71,7 +71,7 @@ for mm = 1 : length(fieldnames(Read))
     if ~isempty(name)
         cRead.(name) = Read.(filenames{mm});
         ind = findstr(Osp_names,name);
-        Osp_names(ind:(ind+length(name))) = [];
+        Osp_names(ind:(ind+length(name))) = [];    
     end
 end
 filenames = fieldnames(cRead);

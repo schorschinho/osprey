@@ -55,13 +55,62 @@ end
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract processed spectra and fit parameters
 %map = zeros(MRSCont.raw{kk}.nXvoxels, MRSCont.raw{kk}.nYvoxels);
-map = squeeze(abs(MRSCont.raw{kk}.fids(1,1,:,:)));
-map = map/(max(max(max(map))));
-map(map > 2 * map(1,1)) = 0.5;
-map(map < 0.5) = 0;
 
-map(VoxelIndex(1),VoxelIndex(2)) = 1;
-map = rot90(map);
+% map = squeeze(abs(MRSCont.raw{kk}.fids(1,1,:,:)));
+% map = map/(max(max(max(map))));
+% map(map > 2 * map(1,1)) = 0.5;
+% map(map < 0.5) = 0;
+
+if MRSCont.flags.didSeg
+        map = MRSCont.mask{kk};
+        try
+            map = map(:,:,VoxelIndex(3));
+        catch
+        end
+        map = map'; 
+        map(map > 0) = 0.5;
+else if ~MRSCont.flags.didQuantify
+    if ~MRSCont.flags.hasWater
+        spec = op_freqrange(MRSCont.raw{kk},4.0,5.5);
+        if MRSCont.flags.isMEGA
+            spec = op_takesubspec(spec,1);
+            spec                 = op_averaging(spec);            % Average
+        end
+        map = squeeze(sum(squeeze(abs(real(spec.specs))),1));
+        map = map/(max(max(max(map))));
+        map(map > 2 * map(1,1)) = 0.5;
+        map(map < 0.5) = 0;
+    else
+        spec = op_freqrange(MRSCont.raw_w{kk},0,4.68*2);
+%         if MRSCont.flags.isMEGA 
+%             spec = op_takesubspec(spec,1);
+%             spec                 = op_averaging(spec);            % Average
+%         end
+        map = squeeze(max(squeeze(abs(real(spec.specs)))));
+        map = map/(max(max(max(map))));
+        map(map > 0.05) = 0.5;
+        map(map < 0.5) = 0;
+    end
+else    
+    if isfield(MRSCont.quantify.amplMets{kk}.off,'NAA') && isfield(MRSCont.quantify.amplMets{kk}.off,'NAAG')
+        map = MRSCont.quantify.amplMets{kk}.off.NAA + MRSCont.quantify.amplMets{kk}.off.NAAG;
+    else
+        map = MRSCont.quantify.amplMets{kk}.off.NAA;
+    end
+    map = map/(max(max(max(map))));
+    map(map > 0.1) = 0.5;
+    map(map < 0.5) = 0;
+end
+    
+end
+
+
+map(VoxelIndex(2),VoxelIndex(1)) = 1;
+if size(map,3) <= 1
+    map = map';
+else
+    map = squeeze(map(:,:,1))';
+end
 
 %%% 4. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized

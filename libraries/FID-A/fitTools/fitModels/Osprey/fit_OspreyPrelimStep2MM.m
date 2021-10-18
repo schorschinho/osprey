@@ -55,7 +55,7 @@ function [fitParamsStep2] = fit_OspreyPrelimStep2MM(dataToFit, resBasisSet, minK
 [EXT2, SDT2, SDSH]  = fit_setExpectValues(dataToFit, resBasisSet);
 
 % Create an array of normalized cubic baseline spline basis functions.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
+[splineArray]       = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
 nSplines            = size(splineArray,2);
 
 
@@ -164,10 +164,10 @@ inputSettings.SDSH          = SDSH';
 % Set the hard box constraints for the parameters
 nMets   = resBasisSet.nMets;
 nMM     = resBasisSet.nMM;
-lb_ph0              = -45; 
-ub_ph0              = +45; % Zero order phase shift [deg]
-lb_ph1              = -10; 
-ub_ph1              = +10; % First order phase shift [deg/ppm]
+lb_ph0              = -7.5; 
+ub_ph0              = +7.5; % Zero order phase shift [deg]
+lb_ph1              = -2.5; 
+ub_ph1              = +2.5; % First order phase shift [deg/ppm]
 lb_gaussLB          = 0; 
 ub_gaussLB          = sqrt(5000); % Gaussian dampening [Hz]
 lb_lorentzLB_mets   = zeros(nMets, 1); 

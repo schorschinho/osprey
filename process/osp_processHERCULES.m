@@ -44,22 +44,15 @@ if nargin < 2
 end
 %% Loop over all datasets
 refProcessTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Processing data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end    
+    [~] = printLog('OspreyProcess',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);  
     
-    if ((MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~isfield(MRSCont.ver, 'Pro') || ~strcmp(MRSCont.ver.Pro,MRSCont.ver.CheckPro))
+    if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
         %%% 1. GET RAW DATA %%%
         raw         = MRSCont.raw{kk};                          % Get the kk-th dataset
 
@@ -327,7 +320,7 @@ for kk = 1:MRSCont.nDatasets
         [raw_A,~] = op_phaseCrCho(raw_A, 1); 
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
-        [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D);
+        [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater);
         % Create the sum spectrum
         Sum     = op_addScans(raw_A,raw_B);
         Sum     = op_addScans(Sum,raw_C);
@@ -466,14 +459,8 @@ for kk = 1:MRSCont.nDatasets
         end
     end         
 end
-fprintf('... done.\n');
 time = toc(refProcessTime);
-if MRSCont.flags.isGUI        
-    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-    pause(1);
-end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-fclose(fileID);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
 %%% 11. SET FLAGS %%%
 MRSCont.flags.avgsAligned   = 1;

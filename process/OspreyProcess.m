@@ -29,20 +29,12 @@ function [MRSCont] = OspreyProcess(MRSCont)
 %       2019-02-19: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(fileID,msg);
-    error(msg);
-end
+diary(fullfile(outputFolder, 'LogFile.txt'));
 
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyProcess');
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyProcess',MRSCont.flags.isGUI);
 
-% Version, toolbox check and updating log file
-MRSCont.ver.CheckPro        = '1.0.0 Pro';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckPro '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-
-[~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
 % Post-process raw data depending on sequence type
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
@@ -57,11 +49,10 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         [MRSCont] = osp_processHERCULES(MRSCont);
     else
         msg = 'No flag set for sequence type!';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 else
-    fclose(fileID);
     [MRSCont] = osp_processMultiVoxel(MRSCont);
 end
 
@@ -73,20 +64,10 @@ NoSubSpec = length(fieldnames(MRSCont.processed));
 for ss = 1 : NoSubSpec
     for kk = 1 : MRSCont.nDatasets
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
-            temp_sw(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth;
+            temp_sz_sw{1,kk} = ['np_sw_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1)) '_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth)];   
     end
-    [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_ind,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_indsort]  = unique(temp_sz,'Stable');
+    [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth_ind,~]  = unique(temp_sz_sw,'Stable');
     [MRSCont.info.(SubSpecNames{ss}).max_ndatapoint,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind] = max(temp_sz);
-    temp_sw_store = temp_sw;
-    for np = 1 : length(MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint)
-        [max_ind] = find(temp_sz==MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint(np));
-        temp_sw(max_ind) = nan;
-        [MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np},MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np},MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_indsort{np}]  = unique(temp_sw,'Stable');
-        nanind = isnan(MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np});
-        MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np}(isnan(MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth{np}(1:end))) = [];
-        MRSCont.info.(SubSpecNames{ss}).unique_spectralwidth_ind{np}(nanind ==1) = [];
-        temp_sw = temp_sw_store;
-    end
 end
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 % Creates y-axis range to align the process plots between datasets
@@ -96,13 +77,12 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
 else
     MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
 end
-osp_scale_yaxis(MRSCont,'OspreyLoad');
+MRSCont = osp_scale_yaxis(MRSCont,'OspreyProcess');
 %% Clean up and save
 % Set exit flags and reorder fields
 MRSCont.flags.didProcess    = 1;
-fclose(fileID);
+diary off
 [MRSCont]                   = osp_orderProcessFields(MRSCont);
-MRSCont.ver.Pro             = '1.0.0 Pro';
 
 % Store data quality measures in csv file
 if MRSCont.flags.isUnEdited
@@ -122,14 +102,14 @@ elseif MRSCont.flags.isHERMES
     subspec = {'sum'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end    
+    end
 elseif MRSCont.flags.isHERCULES
     % For now, process HERCULES like HERMES data
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'sum'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end    
+    end
 else
     msg = 'No flag set for sequence type!';
     fprintf(fileID,msg);
@@ -147,7 +127,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
 end
 
 % Optional:  Create all pdf figures
-if MRSCont.opts.savePDF 
+if MRSCont.opts.savePDF
     osp_plotAllPDF(MRSCont, 'OspreyProcess')
 end
 

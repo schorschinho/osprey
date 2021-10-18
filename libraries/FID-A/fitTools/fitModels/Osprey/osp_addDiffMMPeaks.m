@@ -54,7 +54,7 @@ function [BASISdiff] = osp_addDiffMMPeaks(BASISdiff,BASISoff,fitOpts)
         BASISdiff.nMM = BASISdiff.nMM + 1;
     end 
 
-    if strcmp(fitOpts.coMM3, 'freeGauss') || strcmp(fitOpts.coMM3, 'freeGauss14') || strcmp(fitOpts.coMM3, '1to1GABAsoft')...
+    if strcmp(fitOpts.coMM3, 'freeGauss') || strcmp(fitOpts.coMM3, 'fixedGauss') || strcmp(fitOpts.coMM3, '1to1GABAsoft')...
         || strcmp(fitOpts.coMM3, '2to3GABAsoft') || strcmp(fitOpts.coMM3, '3to2GABAsoft')% free co-edited MM3 model and soft constraints model
         MM3co  = op_gaussianPeak(n,sw,Bo,centerFreq,fitOpts.FWHMcoMM3,3,2*oneProtonArea/gaussianArea);
         MM3co  = op_dccorr(MM3co,'p');

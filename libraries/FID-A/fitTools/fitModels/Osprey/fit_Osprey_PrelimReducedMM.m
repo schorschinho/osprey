@@ -60,7 +60,7 @@ reducedBasisSet     = fit_selectMetabs(basisSet, metabList, fitMM);
 nMets = length(reducedBasisSet.name);
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.2);
+[splineArray]       = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.2);
 nSplines            = size(splineArray,2);
 
 
@@ -100,10 +100,10 @@ inputSettings.fitRangePPM   = fitRangePPM;
 inputSettings.lorentzLB     = lorentzLB;
 
 % Set the hard box constraints for the parameters
-lb_ph0          = -15; 
-ub_ph0          = +15; % Zero order phase shift [deg]
-lb_ph1          = -10; 
-ub_ph1          = +10;  % First order phase shift [deg/ppm]
+lb_ph0          = -5; 
+ub_ph0          = +5; % Zero order phase shift [deg]
+lb_ph1          = -2.5; 
+ub_ph1          = +2.5;  % First order phase shift [deg/ppm]
 lb_gaussLB      = 0; 
 ub_gaussLB      = sqrt(5000); % Gaussian dampening [Hz]
 lb_freqShift    = -5; 

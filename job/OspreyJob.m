@@ -45,16 +45,15 @@ end
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
 [MRSCont] = OspreySettings;
 
-
 %%% 2. CHECK JOB INPUT FILE FORMAT %%%
-last3char   = jobFile((end-2):end);
-last2char   = jobFile((end-1):end);
-if strcmpi(last2char,'.m')
-    jobFileFormat = 'm';
-elseif strcmpi(last3char,'csv')
-    jobFileFormat = 'csv';
-else
-    error('Unrecognized job file datatype. Job files need to end in .CSV or .M');
+[~,~,ext] = fileparts(jobFile);
+switch ext
+    case '.m'
+        jobFileFormat = 'm';
+    case '.csv'
+        jobFileFormat = 'csv';
+    otherwise
+        error('Unrecognized job file datatype. Job files need to end in .CSV or .M');
 end
 
 
@@ -214,6 +213,15 @@ if exist('opts','var')
     end
 end
 
+if ~isfield(MRSCont.opts, 'UnstableWater')
+    MRSCont.opts.UnstableWater = 0;
+end
+
+if ~isfield(MRSCont.opts, 'SubSpecAlignment')
+    MRSCont.opts.SubSpecAlignment = 'L2Norm';
+end
+
+
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
 % Parse the sequence type entry
 switch seqType
@@ -283,6 +291,20 @@ if exist('MultiVoxel','var')
         otherwise
             warning('Multi voxel must be ''PRIAM'' or ''MRSI''in the job file, and has been set to ''single voxel'' (default).');
     end
+    if ~isfield(MRSCont.opts, 'MoCo')
+        MRSCont.opts.MoCo.target = 'none';
+        MRSCont.opts.MoCo.thresh.thresh = 0.8;
+        MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
+        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;    
+    end
+    if ~isfield(MRSCont.opts.MoCo, 'target')
+        MRSCont.opts.MoCo.target = 'full';
+    end
+    if ~isfield(MRSCont.opts.MoCo, 'thresh')
+        MRSCont.opts.MoCo.thresh.thresh = 0.8;
+        MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
+        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;  
+    end
 end
 
 % Parse spectral registration entry
@@ -348,9 +370,9 @@ end
 % Check whether the number of entries is identical
 isUnique = unique(numDataSets);
 if length(isUnique) ~= 1
-    msg = sprintf('''%s'' has %i entries, but ', whichFieldNames{1}, numDataSets(1));
+    msg = fprintf('''%s'' has %i entries, but ', whichFieldNames{1}, numDataSets(1));
     for ll = 2:length(whichFieldNames)
-        msg2 = sprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
+        msg2 = fprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
         msg = strcat(msg,msg2);
     end
 
@@ -368,10 +390,9 @@ MRSCont.colormap        = colormap;
 MRSCont.flags.isGUI     = GUI;
 
 %%% 7. SET FLAGS AND VERSION %%%
-MRSCont.flags.didLoadJob    = 1;
+MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = '1.0.0 Osprey';
-MRSCont.ver.Job             = '1.0.0 job';
+MRSCont.ver.Osp             = 'Osprey 1.0.2';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
@@ -444,18 +465,17 @@ if ~GUI
                         MRSCont.flags.speedUp        = 1;
                     end
              end
-        elseif askOverWriteJob=='y' || askOverWriteJob=='Y'
+        elseif askOverWriteJob=='y' || askOverWriteJob=='Y'            
+            delete(fullfile(outputFolder, 'LogFile.txt'));   
+            diary(fullfile(outputFolder, 'LogFile.txt'));
             disp('Continue with loading new job, overwriting existing job.');
-            fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-            fprintf(fileID,[jobFile '\n']);
-            fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-            fclose(fileID);
+            fprintf([jobFile '\n']);
+            fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
         end
     else
-        fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-        fprintf(fileID,[jobFile '\n']);
-        fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-        fclose(fileID);
+        diary(fullfile(outputFolder, 'LogFile.txt'));
+        fprintf([jobFile '\n']);
+        fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
     end
 else
     opts.Interpreter = 'tex';
@@ -522,17 +542,16 @@ else
                     end
              end
             elseif strcmp(askOverWriteJob, 'Yes')
+                delete(fullfile(outputFolder, 'LogFile.txt'));
+                diary(fullfile(outputFolder, 'LogFile.txt'));
                 disp('Continue with loading new job, overwriting existing job.');
-                fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-                fprintf(fileID,[jobFile '\n']);
-                fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-                fclose(fileID);
+                fprintf([jobFile '\n']);
+                fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
         end
     else
-    fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-    fprintf(fileID,[jobFile '\n']);
-    fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-    fclose(fileID);
+    diary(fullfile(outputFolder, 'LogFile.txt'));
+    fprintf([jobFile '\n']);
+    fprintf(['Timestamp %s ' MRSCont.ver.Osp  '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
     end
 end
 
@@ -545,6 +564,7 @@ save(fullfile(outputFolder, outputFile), 'MRSCont');
 MRSCont = saveMRSCont;
 
 % Close any remaining open figures
+diary off
 close all;
 
 end

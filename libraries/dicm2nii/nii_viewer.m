@@ -2841,8 +2841,13 @@ switch p.lut
         if p.lut ~= 30 % normalized previously
             a = floor(im(:,:,1) * (size(map,1)-1)) + 1; % 1st for bkgrnd
         elseif max(p.nii.img(:)) <= size(map,1)
-            alfa = alfa / max(alfa(:));
-            a = round(im(:,:,1)) + 1; % custom or uint8, round to be safe
+            a = (im(:,:,1) - rg(1)) / (rg(2)-rg(1)); %HZ for viridis map
+            a(a<0) = 0 ; a(a>1) = 1;
+            alfa = a;
+            a = round(a * (size(map,1)-1)) + 1;
+            
+%             alfa = alfa / max(alfa(:));
+%             a = round(im(:,:,1)) + 1; % custom or uint8, round to be safe
         else
             a = (im(:,:,1) - rg(1)) / (rg(2)-rg(1));
             a(a<0) = 0 ; a(a>1) = 1;

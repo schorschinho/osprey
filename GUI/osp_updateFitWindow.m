@@ -66,6 +66,16 @@ function osp_updateFitWindow(gui)
                 iniph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
                 iniph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1; 
             end
+        else
+            RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+            ph0 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
+            ph1 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+            if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
+                refShift = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
+                refFWHM = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM; 
+                iniph0 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
+                iniph1 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1; 
+            end
         end
       
         if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
@@ -89,7 +99,7 @@ function osp_updateFitWindow(gui)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl) %Names and amplitudes
-                        NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                 else %Water fit
@@ -109,7 +119,7 @@ function osp_updateFitWindow(gui)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl)
-                        NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                     set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
@@ -129,7 +139,7 @@ function osp_updateFitWindow(gui)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl) %Names and amplitudes
-                        NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                 else %Water fit
@@ -149,7 +159,7 @@ function osp_updateFitWindow(gui)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl)
-                        NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style){1,MRSCont.info.A.unique_ndatapoint_indsort(gui.controls.Selected)}.name{m} ': \n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                     set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
@@ -163,13 +173,59 @@ function osp_updateFitWindow(gui)
                     set(gui.Results.FitTextAmpl, 'String',sprintf(RawAmplText));
                 end
             end    
+        else
+            if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
+                if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit?
+                    NameText = [''];
+                    RawAmplText = [''];
+                    for m = 1 : length(RawAmpl) %Names and amplitudes
+                        NameText = [NameText, [MRSCont.fit.resBasisSet{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
+                        RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                    end
+                else %Water fit
+                   NameText = ['Water: ' ];
+                   RawAmplText = [num2str(RawAmpl,'%1.2e')];
+                end
+                set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
+                set(gui.Results.FitTextNames, 'String',sprintf(NameText));
+                set(gui.Results.FitTextAmpl, 'String',sprintf(RawAmplText));
+            else %If water/reference data is fitted Raw amplitudes are calculated with regard to water
+                if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit?
+                    if MRSCont.flags.hasRef
+                        RawAmpl = RawAmpl ./ (MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                    else
+                        RawAmpl = RawAmpl ./ (MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                    end
+                    NameText = [''];
+                    RawAmplText = [''];
+                    for m = 1 : length(RawAmpl)
+                        try
+                            NameText = [NameText, [MRSCont.fit.resBasisSet{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
+                        catch
+                            NameText = [NameText, [MRSCont.fit.resBasisSet.(gui.fit.Style){1,1}.name{m} ': \n']];
+                        end
+                        RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
+                    end
+                    set(gui.Results.fit, 'Title', ['Raw Water Ratio']);
+                    set(gui.Results.FitTextNames, 'String',sprintf(NameText));
+                    set(gui.Results.FitTextAmpl, 'String',sprintf(RawAmplText));
+                else %Water fit
+                   NameText = ['Water: \t'];
+                   RawAmplText = [num2str(RawAmpl,'%1.2e')];
+                   set(gui.Results.fit, 'Title', ['Raw Amplitudes']);
+                    set(gui.Results.FitTextNames, 'String',sprintf(NameText));
+                    set(gui.Results.FitTextAmpl, 'String',sprintf(RawAmplText));
+                end
+            end 
         end
 %%%3. VISUALIZATION PART OF THIS TAB %%%
         temp = figure( 'Visible', 'off' );
         if ~isfield(MRSCont.flags,'isPRIAM') && ~isfield(MRSCont.flags,'isMRSI') && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
             temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,Selection); %Create figure
-        else
+        elseif  isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,gui.controls.act_x,Selection); %Create figure
+        else
+            temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y],Selection); %Create figure
         end
 
         ViewAxes = gca();
@@ -183,6 +239,16 @@ function osp_updateFitWindow(gui)
         set(gui.Plot.fit, 'OuterPosition', [0.17,0.02,0.75,0.98])
         % Get rid of the Load figure
         close(temp);
+        
+        % If it is Multivoxel data we have to update the Voxel Position
+        % window
+        if MRSCont.flags.isMRSI 
+            temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x]);
+            ViewAxes = gca();
+            drawnow
+            set( gui.layout.LocPanel.Children,'ColorData', ViewAxes.ColorData );
+            close(temp)
+        end
         set(gui.upperBox.fit.Info.Children(2),'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}] );
         set(gui.controls.b_save_fitTab,'Callback',{@osp_onPrint,gui});
         setappdata(gui.figure,'MRSCont',MRSCont); % Get MRSCont from hidden container in gui class

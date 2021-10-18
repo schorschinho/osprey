@@ -74,10 +74,14 @@ seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
 
 % Specify editing targets
 editTarget = {'none'};          % OPTIONS:    - {'none'} (default if 'unedited')
-                                %             - {'GABA'}, {'GSH'}  (for 'MEGA')
-                                %             - {'GABA, 'GSH}, {'GABA, GSH, EtOH'} (for 'HERMES')
-                                %             - {'HERCULES1'}, {'HERCULES2'} (for 'HERCULES')
-                                
+                                %             - {'GABA'}, {'GSH'}, {'Lac'}, {'PE322'}, {'PE398'}  (for 'MEGA')
+                                %             - {'GABA', 'GSH'}, {'GABA', 'Lac'}, {'NAA', 'NAAG'} (for 'HERMES'and 'HERCULES')
+    
+                                % Specify data scenario
+dataScenario = 'invivo';        % OPTIONS:    - 'invivo' (default)
+                                %             - 'phantom'  
+                                %             - 'PRIAM'  
+                                %             - 'MRSI'                                  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -91,6 +95,12 @@ opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (defa
                                               %             - 'RestrSpecReg'
                                               %             - 'none'                                             
 
+% Which algorithm do you want to align the sub spectra? L2 norm
+% optimazation is the default. This is only used for edited MRS!
+opts.SubSpecAlignment = 'L2Norm';               % OPTIONS:    - 'L2Norm' (default)
+                                                %             - 'L1Norm'
+                                                %             - 'none'  
+                                                
 % Save LCModel-exportable files for each spectrum?
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
@@ -125,7 +135,7 @@ opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (defaul
                                                 %           - 'Separate' - will fit DIFF and OFF separately
 
 % Determine fitting range (in ppm) for the metabolite and water spectra
-opts.fit.range              = [0.2 4.2];        % [ppm] Default: [0.2 4.2]
+opts.fit.range              = [0.5 4];        % [ppm] Default: [0.5 4]
 opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
 
 % Determine the baseline knot spacing (in ppm) for the metabolite spectra
@@ -141,48 +151,115 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
-% When using single-average RDA or DICOM files, specify their
+% When using single-average Siemens RDA or DICOM files, specify their
 % folders instead of single files!
+
+% Clear existing files
+clear files files_ref files_w files_nii files_mm
+
+% Data folder in BIDS format
+% The filparts(which()) comment is needed to find the data on your machine. If you set
+% up the jobFile for your own data you can set a direct path to your data
+% folder e.g., data_folder = /Volumes/MyProject/data/'
+
+data_folder = fileparts(which('exampledata/p/jobP.m')); 
+
+% The following lines perform an automated set-up of the jobFile which
+% takes advatage of the BIDS foramt. If you are not using BIDS (highly
+% recommended) you can look at the definitions below the loop to see how to
+% set up direct path links to your data.
+
+subs       = dir(data_folder);
+subs(1:2)  = [];
+subs       = subs([subs.isdir]);
+subs       = subs(contains({subs.name},'sub'));
+counter    = 1;
+
+for kk = 1:length(subs)
+    % Loop over sessions
+    sess        = dir([subs(kk).folder filesep subs(kk).name]);
+    sess(1:2)   = [];
+    sess        = sess([sess.isdir]);
+    sess        = sess(contains({sess.name},'ses'));
+    for ll = 1:length(sess)
+                
+        % Specify metabolite data
+        % (MANDATORY)
+        dir_metabolite    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_press' filesep '*.7']);
+        files(counter)      = {[dir_metabolite(end).folder filesep dir_metabolite(end).name]};
+        
+        % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
+        % (OPTIONAL)
+        % Leave empty for GE P-files (.7) - these include water reference data by
+        % default.
+        files_ref  = {};
+        
+        % Specify water data for quantification (e.g. short-TE water scan)
+        % (OPTIONAL)
+        files_w     = {};
+
+        % Specify metabolite-nulled data for quantification
+        % (OPTIONAL)
+        files_mm     = {};  
+        
+       % Specify T1-weighted structural imaging data
+        % (OPTIONAL)
+        % Link to single NIfTI (*.nii) files for Siemens and Philips data
+        % Link to DICOM (*.dcm) folders for GE data
+        files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep sess(ll).name '_T1w.nii.gz']};        
+        counter             = counter + 1;
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definitions without using BIDS
+
+% You can always supply direct path to each of the files within
+% the cell array. For example:
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {which('exampledata/p/sub-01/mrs/sub-01_press35/sub-01_press35.7'),...
-               which('exampledata/p/sub-02/mrs/sub-02_press35/sub-02_press35.7')};
+% files(counter)      = {'/Volumes/MyProject/data/sub-01/mrs/PRESS_act.7',...
+%                        '/Volumes/MyProject/data/sub-02/mrs/PRESS_act.7'};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-files_ref   = {};
+% files_ref(counter)      = {};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-files_w     = {};
+% files_w     = {};
 
 % Specify metabolite-nulled data for quantification
 % (OPTIONAL)
-files_mm     = {};  
+% files_mm     = {};  
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
-% Link to single NIfTI (*.nii) files for Siemens and Philips data
-% Link to DICOM (*.dcm) folders for GE data
+% Link to single NIfTI (*.nii.gz or #.nii) files for GE, Siemens and Philips data
+% files_nii  = {'/Volumes/MyProject/data/sub-01/anat/T1w.nii.gz',...
+%               '/Volumes/MyProject/data/sub-02/anat/T1w.nii.gz'};        
 
-files_nii   = {strrep(which('exampledata/p/sub-01/anat/DICOM/I0'),'I0','')...
-               strrep(which('exampledata/p/sub-02/anat/DICOM/I0'),'I0','')};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 4. SPECIFY STAT FILE %%%
+% Supply location of a csv file, which contains possible correlation
+% measures and group variables. Each column must start with the name of the
+% measure. For the grouping variable use 'group' and numbers between 1 and
+% the number of included groups. If no group is supplied the data will be
+% treated as one group. (You can always use the direct path)
 
-
-
+file_stat = '';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% 4. SPECIFY OUTPUT FOLDER %%
+%%% 5. SPECIFY OUTPUT FOLDER %%
 % The Osprey data container will be saved as a *.mat file in the output
 % folder that you specify below. In addition, any exported files (for use
 % with jMRUI, TARQUIN, or LCModel) will be saved in sub-folders.
 
-% Specify output folder
+% Specify output folder (you can always use the direct path)
 % (MANDATORY)
-outputFolder = strrep(which('exampledata/p/jobP.m'),'jobP.m','derivatives');
+outputFolder = fullfile(data_folder, 'derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

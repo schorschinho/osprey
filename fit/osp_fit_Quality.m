@@ -2,7 +2,9 @@
 %   This function calculates the relative amplitude of the residual
 %   compared to the standard deviation of the noise. This is one of the
 %   seven quality control parameters defined in the MRS consensus paper by
-%   Wilson et al. ( https://doi.org/10.1002/mrm.27742). 
+%   Wilson et al. ( https://doi.org/10.1002/mrm.27742). The original
+%   desciption can be found in Barros & Slotboom
+%   (https://doi.org/10.1016/j.ab.2017.01.017)
 %
 %   USAGE:
 %       [MRSCont]=osp_fit_Quality(MRSCont);
@@ -66,7 +68,7 @@ for sf = 1 : NoFit
                     dataPlotNames{sf + shift} = FitNames{sf};
                     tempFitNames{sf + shift} = FitNames{sf};
             end
-        case 'OspreyNoLS'
+        case 'OspreyAsym'
             switch FitNames{sf}
                 case 'off'
                     dataPlotNames{sf} = 'A';
@@ -91,6 +93,31 @@ for sf = 1 : NoFit
                     dataPlotNames{sf + shift} = FitNames{sf};
                     tempFitNames{sf + shift} = FitNames{sf};
             end
+         case 'OspreyNoLS'
+            switch FitNames{sf}
+                case 'off'
+                    dataPlotNames{sf} = 'A';
+                case 'conc'
+                    if MRSCont.flags.isMEGA
+                        dataPlotNames{sf} = 'diff1';
+                        dataPlotNames{sf+1} = 'sum';
+                        tempFitNames{sf} = 'conc';
+                        tempFitNames{sf+1} = 'conc';
+                        shift = 1;
+                    end
+                    if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+                        dataPlotNames{sf} = 'diff1';
+                        dataPlotNames{sf+1} = 'diff2';
+                        dataPlotNames{sf+2} = 'sum';
+                        tempFitNames{sf} = 'conc';
+                        tempFitNames{sf+1} = 'conc';
+                        tempFitNames{sf+2} = 'conc';
+                        shift = 2;
+                    end
+                otherwise
+                    dataPlotNames{sf + shift} = FitNames{sf};
+                    tempFitNames{sf + shift} = FitNames{sf};
+            end   
     end
 end
 FitNames = tempFitNames;
@@ -125,7 +152,32 @@ for sf = 1 : NoFit %Loop over all fits
                         [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
                     end            
                 end
-           case 'OspreyNoLS'
+           case 'OspreyAsym'
+                if ~(strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w')) % Not the water model           
+                    fitRangePPM = MRSCont.opts.fit.range;
+                    basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
+                    dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
+                    % Get the fit parameters
+                    fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
+                    % Pack up into structs to feed into the reconstruction functions
+                    inputData.dataToFit                 = dataToPlot;
+                    inputData.basisSet                  = basisSet;
+                    inputSettings.scale                 = MRSCont.fit.scale{kk};
+                    inputSettings.fitRangePPM           = fitRangePPM;
+                    inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
+                    inputSettings.fitStyle              = MRSCont.opts.fit.style;
+                    inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
+                    inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
+                    inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
+                    inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
+                    inputSettings.concatenated.Subspec  = dataPlotNames{sf};
+                    if strcmp(inputSettings.fitStyle,'Concatenated')
+                        [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
+                    else
+                        [ModelOutput] = fit_OspreyAsymParamsToModel(inputData, inputSettings, fitParams);
+                    end            
+                end     
+            case 'OspreyNoLS'
                 if ~(strcmp((FitNames{sf}), 'ref') || strcmp((FitNames{sf}), 'w')) % Not the water model           
                     fitRangePPM = MRSCont.opts.fit.range;
                     basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}){kk};
@@ -149,7 +201,7 @@ for sf = 1 : NoFit %Loop over all fits
                     else
                         [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
                     end            
-                end     
+                end 
         end
     %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
     noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
@@ -158,8 +210,7 @@ for sf = 1 : NoFit %Loop over all fits
     P=polyfit(ppmwindow2,noisewindow,2);
     noise=noisewindow-polyval(P,ppmwindow2); 
     
-    range = [max(ModelOutput.residual) min(ModelOutput.residual)];
-    MRSCont.QM.relAmpl.(dataPlotNames{sf})(kk) = (range(1)-range(2))/std(real(noise));
+    MRSCont.QM.relAmpl.(dataPlotNames{sf})(kk) = sum(ModelOutput.residual.^2)/(std(real(noise))^2 * length(ModelOutput.residual));
     
     end
 end

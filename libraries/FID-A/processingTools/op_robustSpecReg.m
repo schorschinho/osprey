@@ -26,14 +26,17 @@
 %             weighted  averaging
 
 
-function [out, fs, phs, w, driftPre, driftPost] = op_robustSpecReg(in, seqType, echo, F0, noAlign)
+function [out, fs, phs, w, driftPre, driftPost] = op_robustSpecReg(in, seqType, echo, F0, noAlign,noWeighting)
 
-if nargin <5
-    noAlign = 0;
-    if nargin <4
-        F0 = nan;
-        if nargin < 2
-            echo = 1;    
+if nargin <6
+    noWeighting = 0;
+    if nargin <5
+        noAlign = 0;
+        if nargin <4
+            F0 = nan;
+            if nargin < 2
+                echo = 1;    
+            end
         end
     end
 end
@@ -305,9 +308,17 @@ for mm=1:numSubSpecs
         end
     end
     d = nanmedian(D);
-    w{mm} = 1./d.^2;
+    if isnan(sum(d))        
+        d(isnan(d)) = 1;
+    end
+    if ~noWeighting
+        w{mm} = 1./d.^2;        
+    else
+       w{mm} = ones(size(d)); 
+    end
     w{mm} = w{mm}/sum(w{mm});
     w{mm} = repmat(w{mm}, [size(DataToWeight,1) 1]);
+    
     
     % Apply the weighting
 fids_out(:,:,mm) = w{mm} .* DataToWeight;

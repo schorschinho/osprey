@@ -28,45 +28,39 @@ function [MRSCont] = osp_LoadDICOM(MRSCont)
 % Close any remaining open figures
 close all;
 warning('off','all');
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 if MRSCont.flags.hasMM
     if length(MRSCont.files_mm) ~= MRSCont.nDatasets
         msg = 'Number of specified metabolite-nulled files does not match number of specified metabolite files.';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 end
 if MRSCont.flags.hasRef
     if length(MRSCont.files_ref) ~= MRSCont.nDatasets
         msg = 'Number of specified reference files does not match number of specified metabolite files.';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 end
 if MRSCont.flags.hasWater
     if length(MRSCont.files_w) ~= MRSCont.nDatasets
         msg = 'Number of specified water files does not match number of specified metabolite files.';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 end
 
 %% Get the data (loop over all datasets)
 refLoadTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    fprintf(fileID,[reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-    end    
+    [~] = printLog('OspreyLoad',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);     
     
-    if ((MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~isfield(MRSCont.ver, 'Load') || ~strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad))
+    if ~(MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
         % Read in the raw metabolite data.
         raw = io_loadspec_dicom(MRSCont.files{kk});
         MRSCont.raw{kk}      = raw;
@@ -99,14 +93,8 @@ for kk = 1:MRSCont.nDatasets
         end        
     end
 end
-fprintf('... done.\n');
 time = toc(refLoadTime);
-if MRSCont.flags.isGUI        
-    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-    pause(1);
-end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-fclose(fileID);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 % Set flag
 MRSCont.flags.coilsCombined     = 1;
 MRSCont.runtime.Load = time;

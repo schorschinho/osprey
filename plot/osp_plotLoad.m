@@ -121,7 +121,7 @@ if nargin<10
                     if nargin<5
                         stag = 0;
                         if nargin<4
-                            VoxelIndex = 1;                        
+%                             VoxelIndex = [];                        
                             if nargin < 3
                                 which = 'mets';
                                 if nargin < 2
@@ -151,7 +151,7 @@ if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
     ymin = min(MRSCont.plot.load.(which).min/maxRef);
     ymax = 1.2*max(MRSCont.plot.load.(which).max/maxRef);
     if ymin < 0
-        ymin = 1.5 * ymin;
+        ymin = 3 * ymin;
     else
         ymin = ymin - 0.5*ymax;
     end
@@ -163,7 +163,7 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
         if ~exist('VoxelIndex') && (MRSCont.flags.isPRIAM == 1)
             VoxelIndex = 1;
         elseif ~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)
-            VoxelIndex = [1 1];  
+            VoxelIndex = [1 1 1];  
         end
         
     switch which
@@ -223,18 +223,13 @@ end
 if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref'))
     axesHandles.A  = subplot(2, 1, 1);
     axesHandles.B  = subplot(2, 1, 2);
-    nAvgs = dataToPlot.averages/2;
+    nAvgs = dataToPlot.rawAverages/2;
     hold(axesHandles.A, 'on');
     hold(axesHandles.B, 'on');  
     % Loop over all averages
-    if nAvgs > 1
-        for rr = 1:nAvgs
-            plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-        end
-    else
-        plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,1) + stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-        plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,2) + stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+    for rr = 1:nAvgs
+        plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
     end
     axesNames = {'A','B'};
     TitleNames = {'A','B'};

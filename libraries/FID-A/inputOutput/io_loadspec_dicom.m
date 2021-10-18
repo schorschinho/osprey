@@ -26,7 +26,7 @@ for jj = 1:length(filesInFolder)
     end
 end
 filesInFolder = filesInFolder(hidden);%delete hidden files 
-filesInFolder = strcat(folder, {filesInFolder.name});        
+filesInFolder = fullfile(folder, {filesInFolder.name});        
 
 % Get the header of the first file to make some decisions.
 DicomHeader = read_dcm_header(filesInFolder{1});
@@ -59,16 +59,22 @@ geometry.rot.NormTra        = DicomHeader.NormTra; % Transversal component of no
 fids = zeros(DicomHeader.vectorSize,length(filesInFolder));
 % Collect all FIDs and sort them into fids array
 for kk = 1:length(filesInFolder)
-    % Open DICOM
-    fd = dicom_open(filesInFolder{kk});
-    % read the signal in as a complex FID
-    fids(:,kk) = dicom_get_spectrum_siemens(fd);
-    fclose(fd);
-% %Load Dicom Info using Chris Rogers' "SiemensCsaParse.m" function:
-% info=SiemensCsaParse(filesInFolder{kk});
-% 
-% %Read in Dicom file using Chris Rogers' "SiemensCsaReadFid.m" function:
-% [fids(:,kk),info]=SiemensCsaReadFid(info,0);
+    
+    % First, attempt to retrieve the FID from the DICOM header:
+    infoDicom = dicominfo(filesInFolder{kk});
+    if isfield(infoDicom, 'SpectroscopyData')
+        realFID = infoDicom.SpectroscopyData(1:2:end);
+        imagFID = infoDicom.SpectroscopyData(2:2:end);
+        fids(:,kk) = conj(realFID + 1j*imagFID);
+    else
+        % Try different route if that doesn't work:
+        % Open DICOM
+        fd = dicom_open(filesInFolder{kk});
+        % read the signal in as a complex FID
+        fids(:,kk) = dicom_get_spectrum_siemens(fd);
+        fclose(fd);
+    end
+    
 end
 
 

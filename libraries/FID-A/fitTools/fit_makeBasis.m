@@ -89,7 +89,11 @@ for kk = 1:nMets
     buffer.n(kk)                = temp.(basisFct{1}).sz(1);
     buffer.linewidth(kk)        = temp.(basisFct{1}).linewidth;
     buffer.Bo(kk)               = temp.(basisFct{1}).Bo;
-    buffer.seq{kk}              = temp.(basisFct{1}).seq;
+    if iscell(temp.(basisFct{1}).seq)
+        buffer.seq{kk}              = temp.(basisFct{1}).seq{1};
+    else
+        buffer.seq{kk}              = temp.(basisFct{1}).seq;
+    end
     if isfield(temp.(basisFct{1}),'name')
         buffer.name{kk}             = temp.(basisFct{1}).name;
     else
@@ -244,6 +248,22 @@ if strcmp(sequence, 'MEGA')
             end
             % apply the switch order
             buffer.fids = buffer.fids(:,:,switchOrder);
+            buffer.specs = buffer.specs(:,:,switchOrder);  
+        case 'Lac'
+            range_Lac = [4.0 4.3];
+            pts_Lac = BASIS.ppm >= range_Lac(1) & BASIS.ppm <= range_Lac(end);
+            idx_Lac = find(strcmp(buffer.name,'Lac'));
+            maxA = max(real(buffer.specs(pts_Lac,idx_Lac,1)));
+            maxB = max(real(buffer.specs(pts_Lac,idx_Lac,2)));
+            if maxA/maxB < 0.1
+                % this means A is on, B is off, indices need to be swapped
+                switchOrder = [2 1];
+            elseif maxA/maxB > 10
+                % this means A is off, B is on, indices stay as the are
+                switchOrder = [1 2];
+            end
+            % apply the switch order
+            buffer.fids = buffer.fids(:,:,switchOrder);
             buffer.specs = buffer.specs(:,:,switchOrder);     
         case 'PE398'
             range_Ins = [3.8 4.1];
@@ -260,7 +280,7 @@ if strcmp(sequence, 'MEGA')
             end
             % apply the switch order
             buffer.fids = buffer.fids(:,:,switchOrder);
-            buffer.specs = buffer.specs(:,:,switchOrder);             
+            buffer.specs = buffer.specs(:,:,switchOrder);                      
     end
     
     % Now that we have guaranteed that the first dimension is always OFF
@@ -323,6 +343,11 @@ if strcmp(sequence, 'MEGA')
                     buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
                     buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);  
                 end
+            case 'Lac'
+                % Lac-edited data dont have co-edited MMS that we need to put
+                % in the DIFF. Therefore loop over metabolite names.
+                    buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
+                    buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);
         end
         buffer.fids(:,rr,4)      = buffer.fids(:,rr,2) + buffer.fids(:,rr,1); % SUM
         buffer.specs(:,rr,4)     = buffer.specs(:,rr,2) + buffer.specs(:,rr,1);

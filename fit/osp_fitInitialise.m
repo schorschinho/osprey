@@ -104,7 +104,7 @@ MRSCont.fit.basisSet = [];
 % the user folder is loaded.
  if isempty(MRSCont.opts.fit.basisSetFile)
     addpath( which('fit/basissets'));
-    MRSCont.opts.fit.basisSetFile = which('fit/basissets/user/BASIS_MM.mat');
+    MRSCont.opts.fit.basisSetFile = which('fit/basissets/user/BASIS_noMM.mat');
     if isempty(MRSCont.opts.fit.basisSetFile)
         error('There is no appropriate basis set to model your data. Please supply a sufficient basis set in Osprey .mat format in the fit/basissets/user/BASIS_MM.mat file! ');
     else
@@ -133,6 +133,7 @@ if ext
     basisSet = fit_selectMetabs(basisSet, metabList, fitMM);
 else  
     % To do: Interface with interactive user input
+    basisSet = fit_sortBasisSet(basisSet);
     metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
     % Collect MMfit flag from the options determined in the job file
     fitMM = MRSCont.opts.fit.fitMM;
@@ -146,9 +147,9 @@ end
 % Determine the scaling factor between data and basis set for each dataset
 for kk = 1:MRSCont.nDatasets
     if ~MRSCont.flags.isMRSI  && ~MRSCont.flags.isPRIAM
-        MRSCont.fit.scale{kk} = max(real(MRSCont.processed.A{kk}.specs)) / max(max(max(real(basisSet.specs))));
+        MRSCont.fit.scale{kk} = max(real(MRSCont.processed.A{kk}.specs)) / max(real(basisSet.specs),[],'all');
     else
-        MRSCont.fit.scale{kk} = max(max(max(real(MRSCont.processed.A{kk}.specs)))) / max(max(max(real(basisSet.specs))));
+        MRSCont.fit.scale{kk} = max(real(MRSCont.processed.A{kk}.specs),[],'all') / max(real(basisSet.specs),[],'all');
     end
 end
 

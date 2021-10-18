@@ -82,22 +82,8 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
     out = figure('NumberTitle', 'off', 'Visible', 'on', 'Menu', 'none','Position', canvasSize,...
                     'ToolBar', 'none', 'HandleVisibility', 'off', 'Renderer', 'painters', 'Color', colormapfig.Background);
     MRSCont.flags.isGUI = 1;
-    switch Module
-        case 'OspreyLoad'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Load];
-        case 'OspreyProcess'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Pro];
-        case 'OspreyFit'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Fit];
-        case 'OspreyCoreg'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg];
-        case 'OspreySeg'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Coreg ' ' MRSCont.ver.Seg]; 
-        case 'OspreyOverview'
-            Title = [MRSCont.ver.Osp ' ' MRSCont.ver.Over];
-        otherwise
-            Title = '';
-    end
+
+    Title = MRSCont.ver.Osp;
             
     Frame = uix.Panel('Parent',out, 'Padding', 1, 'Title', Title,...
                                  'FontName', 'Arial', 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground,...
@@ -267,17 +253,17 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             
             % Get parameter from file to fill the info panel
             if (strcmp(which,'A') || strcmp(which,'B') || strcmp(which,'C') || strcmp(which,'D') || strcmp(which,'diff1') || strcmp(which,'diff2') || strcmp(which,'sum'))
-                StatText = ['Metabolite Data -> SNR(' SNR '): '  num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM: '...
-                            num2str(MRSCont.QM.FWHM.(which)(kk)) ' / ' (num2str(MRSCont.QM.FWHM.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6))...
+                StatText = ['Metabolite Data -> SNR(' SNR '): '  num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM (' SNR '): '...
+                            num2str(MRSCont.QM.FWHM.(which)(kk)) ' / ' (num2str(MRSCont.QM.FWHM.(which)(kk)/MRSCont.processed.(which){kk}.txfrq*1e6))...
                             ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(which)(kk)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6)...
                             ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6) ' Hz'];
             else if strcmp(which,'ref')
-            StatText = ['Reference Data -> SNR(' SNR '): ' num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM: '...
-                        num2str(MRSCont.QM.FWHM.(which)(kk)) ' / ' (num2str(MRSCont.QM.FWHM.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6))...
+            StatText = ['Reference Data -> SNR(' SNR '): ' num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM (' SNR '): '...
+                        num2str(MRSCont.QM.FWHM.(which)(kk)) ' / ' (num2str(MRSCont.QM.FWHM.(which)(kk)/MRSCont.processed.(which){kk}.txfrq*1e6))...
                         ' ppm / Hz'];
                 else
-                    StatText = ['Water Data -> SNR(' SNR '): ' num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM: '...
-                                num2str(MRSCont.QM.FWHM.(which)(kk)) '/' (num2str(MRSCont.QM.FWHM.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6))...
+                    StatText = ['Water Data -> SNR(' SNR '): ' num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM (' SNR '): '...
+                                num2str(MRSCont.QM.FWHM.(which)(kk)) '/' (num2str(MRSCont.QM.FWHM.(which)(kk)/MRSCont.processed.(which){kk}.txfrq*1e6))...
                                 ' ppm / Hz'];
                 end
             end
@@ -317,6 +303,13 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
         case 'OspreyFit' %Fit
              outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyFit');
             [~,filename,~]  = fileparts(MRSCont.files{kk});
+            
+            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit 
+                which = which;
+            else %Is concatenated and not water/reference
+                spec = which;
+                which = 'conc';               
+            end
 
             Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',colormapfig.Background);
             set(input_figure, 'Heights', [-0.12 -0.88]);
@@ -324,7 +317,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
             if  ~strcmp (which, 'ref') && ~strcmp (which, 'w') %Metabolite data?
                 StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ...
-                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(which){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.resBasisSet.(which){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.nMM) ...
+                        ' ppm\nNumber of metabolites: ' num2str(MRSCont.fit.resBasisSet.(which).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).nMets) '; Number of macro moclecules: ' num2str(MRSCont.fit.resBasisSet.(which).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).nMM) ...
                         ' scale: '  num2str(MRSCont.fit.scale{kk})];
             else if strcmp (which, 'ref') %Reference data?
             StatText = ['Reference Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
@@ -354,7 +347,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl) %Names and Amplitudes
-                        NameText = [NameText, [MRSCont.fit.resBasisSet.(Style){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.name{m} ': \n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet.(Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                 else %Water/reference fit but this should never happen in this loop
@@ -379,7 +372,7 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                     NameText = [''];
                     RawAmplText = [''];
                     for m = 1 : length(RawAmpl) %Names and Amplitudes
-                        NameText = [NameText, [MRSCont.fit.resBasisSet.(Style){1,MRSCont.info.A.unique_ndatapoint_indsort(kk)}.name{m} ': \n']];
+                        NameText = [NameText, [MRSCont.fit.resBasisSet.(Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     end
                     set(Results, 'Title', ['Raw Water Ratio']);
@@ -406,7 +399,11 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
 %%%  5. VISUALIZATION PART OF THIS TAB %%%
 %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
             temp = figure( 'Visible', 'off' );
-            temp = osp_plotFit(MRSCont, kk,Style,which);
+            if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit 
+                temp = osp_plotFit(MRSCont, kk,Style);
+            else %Is concatenated and not water/reference
+                temp = osp_plotFit(MRSCont, kk,Style,1,spec);              
+            end
             ViewAxes = gca();
             set(ViewAxes, 'Parent', Plot );
             close( temp );
@@ -482,8 +479,6 @@ function out = osp_plotModule(MRSCont, Module, kk, which, metab, corr)
                 else
                     ax=get(temp,'Parent');
                     copyobj(ax.Children, fig_hold.Children(1));
-                    close_fig= get(ax,'Parent');
-                    close(close_fig);
                 end
 
             end

@@ -115,6 +115,9 @@ while ~feof(fid)
         linenum = linenum + 1;
         line=fgets(fid);
         nmused_index=findstr(line,'$NMUSED');
+        if isempty(nmused_index)
+            nmused_index=findstr(line,'$BASIS');
+        end
     end
     specs=RF(1:2:end) + 1i*RF(2:2:end);
     specs=flipud(fftshift(conj(specs),1));

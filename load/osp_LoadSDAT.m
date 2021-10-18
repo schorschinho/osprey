@@ -27,7 +27,6 @@ function [MRSCont] = osp_LoadSDAT(MRSCont)
 % Close any remaining open figures
 close all;
 warning('off','all');
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 if MRSCont.flags.hasMM %re_mm adding functionality to load MM data
     if ((length(MRSCont.files_mm) == 1) && (MRSCont.nDatasets>1))   %re_mm seems like specificy one MM file for a batch is also an option to plan to accomodate
         for kk=2:MRSCont.nDatasets %re_mm 
@@ -36,41 +35,35 @@ if MRSCont.flags.hasMM %re_mm adding functionality to load MM data
     end   %re_mm 
     if ((length(MRSCont.files_mm) ~= MRSCont.nDatasets) )   %re_mm 
         msg = 'Number of specified MM files does not match number of specified metabolite files.'; %re_mm 
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end   %re_mm 
 end   %re_mm 
 if MRSCont.flags.hasRef
     if length(MRSCont.files_ref) ~= MRSCont.nDatasets
         msg = 'Number of specified reference files does not match number of specified metabolite files.'; %re_mm 
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 end
 if MRSCont.flags.hasWater
     if length(MRSCont.files_w) ~= MRSCont.nDatasets
         msg = 'Number of specified water files does not match number of specified metabolite files.'; %re_mm 
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 end
 
 %% Get the data (loop over all datasets)
 refLoadTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-    end    
-    if ((MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~isfield(MRSCont.ver, 'Load') || ~strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad))
+    [~] = printLog('OspreyLoad',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);   
+    if ~(MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         % Read in the raw metabolite data. Since the Philips SDAT loader needs
         % to know the number of sub-spectra (e.g. from spectral editing), the
@@ -78,7 +71,11 @@ for kk = 1:MRSCont.nDatasets
         if MRSCont.flags.isUnEdited
             raw         = io_loadspec_sdat(MRSCont.files{kk},1);
         elseif MRSCont.flags.isMEGA
-            raw         = io_loadspec_sdat(MRSCont.files{kk},2);
+            if ~MRSCont.flags.isMRSI
+                raw         = io_loadspec_sdat(MRSCont.files{kk},2);
+            else
+                raw         = io_loadspec_sdat(MRSCont.files{kk},1);
+            end
         elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
             raw         = io_loadspec_sdat(MRSCont.files{kk},4);
         end
@@ -96,7 +93,7 @@ for kk = 1:MRSCont.nDatasets
                     [raw_mm_A]             = op_rmempty(raw_mm_A);            % Remove empty linesv
                     raw_mm_B               = op_takesubspec(raw_mm,2); %re_mm
                     [raw_mm_B]             = op_rmempty(raw_mm_B);            % Remove empty lines %re_mm
-                    raw_mm                 = op_concatAverages(raw_mm_A,raw_mm_B); %re_mm
+%                     raw_mm                 = op_concatAverages(raw_mm_A,raw_mm_B); %re_mm
                 else %re_mm
                     [raw_mm] = op_rmempty(raw_mm); %re_mm
                 end %re_mm
@@ -159,14 +156,8 @@ for kk = 1:MRSCont.nDatasets
         end
     end
 end
-fprintf('... done.\n');
 time = toc(refLoadTime);
-if MRSCont.flags.isGUI        
-    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-    pause(1);
-end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-fclose(fileID);
+[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 % Set flag
 MRSCont.flags.coilsCombined     = 1;
 MRSCont.runtime.Load = time;

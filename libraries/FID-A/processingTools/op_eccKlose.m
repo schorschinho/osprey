@@ -21,7 +21,6 @@
 % outw   = Water unsuppressed output following eddy current correction
 
 function [out,outw]=op_eccKlose(in,inw)
-
 if inw.dims.coils~=0 ||  inw.dims.subSpecs~=0 || inw.averages>1
     if inw.subspecs > 1
         inw_A               = op_takesubspec(inw,1);
@@ -42,9 +41,11 @@ inph=unwrap(angle(inw.fids));
 
 % Now apply the eddy current correction to both the water-suppressed and the
 % water-unsuppressed data:
-out=in;
-out.fids=out.fids.*exp(1i*-inph);
-out.specs=fftshift(fft(out.fids,[],1),1);
+ out=in;
+if in.te == inw.te   
+    out.fids=out.fids.*exp(1i*-inph);
+    out.specs=fftshift(fft(out.fids,[],1),1);          
+end
 
 outw=inw;
 outw.fids=outw.fids.*exp(1i*-inph);
