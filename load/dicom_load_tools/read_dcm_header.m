@@ -124,7 +124,11 @@ else
         DicomHeader.nAverages        = dcmHeader.sWiPMemBlock.alFree2;
     end
 end
-DicomHeader.removeOS             = dcmHeader.sSpecPara.ucRemoveOversampling; % Is the oversampling removed in the RDA files?
+try
+    DicomHeader.removeOS             = dcmHeader.sSpecPara.ucRemoveOversampling; % Is the oversampling removed in the RDA files?
+catch
+    DicomHeader.removeOS             = 3; % We assume that oversampling is still applied
+end
 DicomHeader.vectorSize           = dcmHeader.sSpecPara.lVectorSize; % Data points specified on exam card
 % GO180424: If a parameter is set to zero (e.g. if no voxel rotation is
 % performed), the respective field does not show up in the dicom file. This
