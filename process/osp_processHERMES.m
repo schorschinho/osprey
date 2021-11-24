@@ -82,6 +82,12 @@ for kk = 1:MRSCont.nDatasets
         % window is restricted to a certain frequency window.    
             if ~MRSCont.flags.isPhantom
                     switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                        case 'ProbSpecReg'
+                            [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_probabSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
+                            [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_probabSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
+                            [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_probabSpecReg(raw_C, 'HERCULES', 0, refShift_ind_ini);                    
+                            [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_probabSpecReg(raw_D, 'HERCULES', 0, refShift_ind_ini);
+                    
                         case 'RobSpecReg'
                             [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
                             [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
