@@ -186,12 +186,10 @@ for kk = 1:MRSCont.nDatasets
             end
 
             % Apply Klose eddy current correction
-            if kk ~= 7
             [raw_A,~]                   = op_eccKlose(raw_A, raw_ref);
             [raw_B,~]                   = op_eccKlose(raw_B, raw_ref);
             [raw_C,~]                   = op_eccKlose(raw_C, raw_ref);
             [raw_D,raw_ref]             = op_eccKlose(raw_D, raw_ref);
-            end
 
             [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}   = raw_ref;                          % Save back to MRSCont container
