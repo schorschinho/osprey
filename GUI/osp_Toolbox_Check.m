@@ -37,7 +37,10 @@ fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, 
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
 for tl = 1 : size(addons,1)
-    matlab.addons.enableAddon(addons.Name{1});
+    try
+        matlab.addons.enableAddon(addons.Name{tl});
+    catch
+    end
 end
 lic = strcmp({'Enabled'}, addons.Properties.VariableNames);
 if ~isempty(lic)
