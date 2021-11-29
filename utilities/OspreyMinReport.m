@@ -132,7 +132,7 @@ if MRSCont.flags.isMEGA
     strings = fieldnames(MRSCont.quantify.tables.off);
 end
 if  MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    if strcmp(MRSCont.opts.fit,'Separate')
+    if strcmp(MRSCont.opts.fit.style,'Separate')
         strings = fieldnames(MRSCont.quantify.tables.sum);
     else
         strings = fieldnames(MRSCont.quantify.tables.conc);
@@ -153,14 +153,14 @@ if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
         includeMetabs = MRSCont.fit.resBasisSet.off.(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
     end
     if MRSCont.flags.isMEGA
-        if strcmp(MRSCont.opts.fit,'Separate')
+        if strcmp(MRSCont.opts.fit.style,'Separate')
             includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
         else
             includeMetabs = MRSCont.fit.resBasisSet.conc.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
         end
     end
     if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-         if strcmp(MRSCont.opts.fit,'Separate')
+         if strcmp(MRSCont.opts.fit.style,'Separate')
             includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
          else
              includeMetabs = MRSCont.fit.resBasisSet.conc.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
