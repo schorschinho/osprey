@@ -95,6 +95,7 @@ end
             temp = osp_plotOverviewSpec(MRSCont, gui.process.Names{gui.process.Selected}, g, gui.layout.shiftind);
             if g == 1
                 ViewAxes=get(temp,'Children');
+                drawnow
                 set(ViewAxes, 'Parent', gui.Plot.specsOv);
                 h = findall(groot,'Type','figure');
                 for ff = 1 : length(h)
@@ -169,6 +170,7 @@ end
         ax=get(temp,'Parent');
         figpl = get(ax,'Parent');
         ViewAxes = gca();
+        drawnow
         set(ViewAxes, 'Parent', gui.Plot.meanOv);
         close( figpl );
         if gui.load.Selected ==1
@@ -366,7 +368,6 @@ end
 
      %%% 6. CORRELATION PLOTS %%%
 
-            rmpath(genpath([gui.folder.spmversion filesep]));
             gui.layout.overviewTab.Selection  = 5;
             gui.Plot.corrOv = uix.VBox('Parent', gui.layout.corrOvTab,'BackgroundColor',gui.colormap.Background,'Padding', 5);
      %%%%%%%%%%%%%%%%%%DATA CONTROLS FOR THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -483,5 +484,4 @@ end
             end
         end
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
-        addpath(genpath([gui.folder.spmversion filesep]));
 end
