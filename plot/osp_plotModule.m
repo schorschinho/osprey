@@ -178,8 +178,8 @@ switch Module
             outputFile      = [filename '_OspreyLoad_mets.pdf'];
             temp = osp_plotLoad(MRSCont, kk,'mets' );
             if MRSCont.flags.isUnEdited % One window for UnEdited
-                ViewAxes = gca();
-                set( ViewAxes, 'Parent', Plot );
+                drawnow;
+                set( temp.Children(1), 'Parent', Plot );
             end
             if MRSCont.flags.isMEGA %Two windows for MEGA
                 set( temp.Children(2), 'Parent', Plot );
@@ -214,13 +214,13 @@ switch Module
 
         else if strcmp(which,'ref') %ref data/tab
                 temp = osp_plotLoad(MRSCont, kk,'ref' );
-                ViewAxes = gca();
-                set( ViewAxes, 'Parent', Plot );
+                drawnow
+                set( temp.Children(1), 'Parent', Plot );
                 outputFile      = [filename '_OspreyLoad_ref.pdf'];
             else %water data/tab has only one window all the time
                 temp = osp_plotLoad(MRSCont, kk,'w');
-                ViewAxes = gca();
-                set(ViewAxes, 'Parent', Plot );
+                drawnow
+                set(temp.Children(1), 'Parent', Plot );
                 outputFile      = [filename '_OspreyLoad_w.pdf'];
             end
         end
@@ -614,6 +614,7 @@ switch Module
                 end
             end
         end
+        drawnow
         set(fig_hold.Children, 'Parent', Plot );
     case 'OspreyMeanOverview' %MeanOverview
         set(Info,'Title', 'Descriptive Information');
@@ -646,6 +647,7 @@ switch Module
                 fig_hold = osp_plotMeanSpec(MRSCont, which,g);
             end
         end
+        drawnow
         set(fig_hold.Children,'Children',flipud(fig_hold.Children.Children));
         set(fig_hold.Children, 'Parent', Plot );
         close(fig_hold);
@@ -738,7 +740,7 @@ out.PaperSize = [fig_pos(3) fig_pos(4)];
 saveas(out,fullfile(outputFolder,outputFile),'pdf');
 h = findall(groot,'Type','figure');
 for ff = 1 : length(h)
-    if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar') || strcmp(h(ff).Tag, 'MainFigure'))
+    if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
         close(h(ff))
     end
 end

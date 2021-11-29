@@ -75,7 +75,7 @@ else
     available{end+1} = 'SPM12';
     enabled{end+1} = true;
     hasSPM = 1;
-    rmpath(genpath([spmversion filesep 'external' filesep 'fieldtrip']));
+    rmpath(genpath([spmversion filesep 'external' filesep 'fieldtrip' filesep 'external' filesep 'stats' filesep 'finv.m']));
 end 
 
 try

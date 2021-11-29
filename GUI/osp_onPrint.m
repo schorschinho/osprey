@@ -627,7 +627,6 @@ function osp_onPrint( ~, ~ ,gui)
             outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyFit_' gui.fit.Style '_' Selection '.pdf'];
         case 4 %Coreg/Seg
             outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyCoregSeg');
-            addpath(genpath([gui.folder.spmversion filesep])); % Add SPM  path
             [~,filename,~]  = fileparts(MRSCont.files{gui.controls.Selected});
             
             % Creates layout for plotting and data control
@@ -686,7 +685,6 @@ function osp_onPrint( ~, ~ ,gui)
                 VoxelIndex = gui.controls.act_x;
             end
             outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyCoregSeg.pdf'];
-            rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path
         case 6 %Overview
             ovSelection = get(gui.layout.overviewTab, 'Selection');
             set(Info,'Title', 'Descriptive Information');
