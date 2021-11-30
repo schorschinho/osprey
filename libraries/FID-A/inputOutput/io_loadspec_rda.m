@@ -26,8 +26,16 @@ if isfile(pathname)
 else
     % Create list of complete filenames (incl. path) in the folder
     dirFolder = dir(pathname);
-    filesInFolder = dirFolder(~[dirFolder.isdir]);
-    filesInFolder = strcat(pathname, {filesInFolder.name});     
+    filesInFolder = dirFolder(~[dirFolder.isdir]);    
+    filesInFolder = filesInFolder(~ismember({filesInFolder.name}, {'.','..','.DS_Store'}));
+    hidden = logical(ones(1,length(filesInFolder)));
+    for jj = 1:length(filesInFolder) 
+        if strcmp(filesInFolder(jj).name(1),'.')
+            hidden(jj) = 0;
+        end
+    end
+    filesInFolder = filesInFolder(hidden);%delete hidden files 
+    filesInFolder = strcat(pathname, {filesInFolder.name});   
 end
 
 fid = fopen(filesInFolder{1});
@@ -115,6 +123,10 @@ while (isempty(strfind(tline , head_end_text)))
     
 end
 
+% Get the header of the first file to make some decisions.
+seqtype = rda.SeriesDescription;
+
+
 % Prepare voxel geometry information
 % If a parameter is set to zero (e.g. if no voxel rotation is
 % performed), the respective field is left empty in the TWIX file. This
@@ -187,7 +199,8 @@ dims.subSpecs = 0;
 dims.coils = 0;
 dims.extras = 0;
 dims.averages = 2;
-Bo = rda.MagneticFieldStrength;
+% Bo = rda.MagneticFieldStrength;
+Bo = rda.MRFrequency/42.577;
 rawAverages = rda.NumberOfAverages;
 if length(filesInFolder) >= rawAverages
    rawAverages = length(filesInFolder);
@@ -198,12 +211,20 @@ else if length(filesInFolder) == 1
     averages = 1;
     subspecs =1;
     rawSubspecs = 'na';
-    else
-    averages = 1;
-    subspecs = length(filesInFolder);
-    rawSubspecs = length(filesInFolder);
+else
+    if contains(seqtype,'edit')        
+        rawAverages = length(filesInFolder);
+        subspecs = 2;
+        averages = rawAverages/2;
+        rawSubspecs = 2;
+        dims.subSpecs = 3;
+        dims.averages = 2;
+        fids = reshape(fids,[sz(1),averages,2 ]);
+        specs = reshape(specs,[sz(1),averages,2 ]);
+        sz = size(fids);
     end
 end
+
 date = rda.StudyDate;
 seq = rda.SequenceDescription;
 TE = rda.TE;
