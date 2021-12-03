@@ -489,7 +489,7 @@ end
 
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
-elseif isSiemens    
+elseif isSiemens && ~isMinn   
     if ~strcmp(version,'ve')
         leftshift = twix_obj.image.freeParam(1);
     else
