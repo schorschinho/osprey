@@ -161,12 +161,16 @@ if strcmp(MRSCont.opts.fit.method, 'LCModel')
     for kk = 1:MRSCont.nDatasets
         if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
             MRSCont.quantify.CRLB{kk}.(getResults{ll}) = MRSCont.fit.results.(getResults{ll}).fitParams{kk}.CRLB';
+            if qtfyH2O
             MRSCont.quantify.h2oarea{kk}.(getResults{ll}) = MRSCont.fit.results.(getResults{ll}).fitParams{kk}.h2oarea;
+            end
         else %Is DualVoxel
             MRSCont.quantify.CRLB{kk}.(getResults{ll})(:,1) = MRSCont.fit.results{1}.(getResults{ll}).fitParams{kk}.CRLB';
            MRSCont.quantify.CRLB{kk}.(getResults{ll})(:,2) = MRSCont.fit.results{2}.(getResults{ll}).fitParams{kk}.CRLB';
+           if qtfyH2O
            MRSCont.quantify.h2oarea{kk}.(getResults{ll})(:,1) = MRSCont.fit.results{1}.(getResults{ll}).fitParams{kk}.h2oarea;
            MRSCont.quantify.h2oarea{kk}.(getResults{ll})(:,2) = MRSCont.fit.results{2}.(getResults{ll}).fitParams{kk}.h2oarea;
+           end
         end        
     end
 end
@@ -331,7 +335,9 @@ end
 %Generate tables from LCModel specific outputs
 if strcmp(MRSCont.opts.fit.method, 'LCModel')
     [MRSCont] = osp_createTable(MRSCont,'CRLB', getResults);
-    [MRSCont] = osp_createTable(MRSCont,'h2oarea', getResults);
+    if qtfyH2O
+     [MRSCont] = osp_createTable(MRSCont,'h2oarea', getResults);
+    end
 end
 %% Clean up and save
 % Set exit flags

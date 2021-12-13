@@ -65,7 +65,7 @@ NoSubSpec = length(fieldnames(MRSCont.processed));
 for ss = 1 : NoSubSpec
     for kk = 1 : MRSCont.nDatasets
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
-            temp_sz_sw{1,kk} = ['np_sw_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1)) '_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth)];   
+            temp_sz_sw{1,kk} = ['np_sw_' num2str(round(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1))) '_' num2str(round(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth))];   
     end
     [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth_ind,~]  = unique(temp_sz_sw,'Stable');
     [MRSCont.info.(SubSpecNames{ss}).max_ndatapoint,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind] = max(temp_sz);
@@ -124,7 +124,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.FWHM.ref',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
     end
     MRSCont.QM.tables = array2table(QM,'VariableNames',names);
-    writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
+    writetable(MRSCont.QM.tables,[outputFolder filesep 'QM_processed_spectra.csv']);
 end
 
 % Optional:  Create all pdf figures
