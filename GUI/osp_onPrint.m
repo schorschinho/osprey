@@ -281,13 +281,13 @@ function osp_onPrint( ~, ~ ,gui)
                     waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                     % Where are the metabolite names stored?
                     if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                 else if strcmp(gui.fit.Style, 'conc')
-                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                     else if strcmp(gui.fit.Style, 'off')
-                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                         else
-                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                         end
                     end
                 end
@@ -457,7 +457,7 @@ function osp_onPrint( ~, ~ ,gui)
                                 if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                                     RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                                 else
-                                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                                 end
                             case 'LCModel'
                         end

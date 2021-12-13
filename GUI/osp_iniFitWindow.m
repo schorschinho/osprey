@@ -210,7 +210,7 @@ for t = 1 : gui.fit.Number %Loop over fits
             waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
             % Where are the metabolite names stored?
             if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(round(MRSCont.processed.A{1}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
+                basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(round(MRSCont.processed.(gui.fit.Style){1}.sz(1))) '_' num2str(round(MRSCont.processed.(gui.fit.Style){1}.spectralwidth))]).name;
             else if strcmp(gui.fit.Style, 'conc')
                     basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{1}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                 else if strcmp(gui.fit.Style, 'off')
@@ -288,7 +288,7 @@ for t = 1 : gui.fit.Number %Loop over fits
                         if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                             RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                         else
-                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                         end
                     case 'LCModel'
                 end

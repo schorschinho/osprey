@@ -237,12 +237,12 @@ if MRSCont.flags.didFit
                         fitRangePPM = MRSCont.opts.fit.rangeWater;
                         if Voxels < 2
                             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
-                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                             % Get the fit parameters
                             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                         else
                             dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
-                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);                            
+                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);                            
                             % Get the fit parameters
                             fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
                         end
@@ -266,12 +266,12 @@ if MRSCont.flags.didFit
                         fitRangePPM = MRSCont.opts.fit.range;
                         if Voxels < 2
                             dataToPlot  = MRSCont.processed.(dataPlotNames{sf}){kk};
-                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};                            
                         else
                            dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
                            fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk}; 
-                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                         end
                         % Pack up into structs to feed into the reconstruction functions
                         inputData.dataToFit                 = dataToPlot;
