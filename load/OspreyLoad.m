@@ -143,6 +143,39 @@ elseif MRSCont.flags.isMRSI && ~strcmp(MRSCont.datatype,'DATA')
     [MRSCont] = osp_MRSIRecon(MRSCont);
 end
 
+if MRSCont.flags.isUnEdited
+    for kk = 1:MRSCont.nDatasets
+        raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
+        %%% MERGE MULTIPLE DIMENSIONS %%%
+        % If the dimensionality of the dataset isn't just along the
+        % 'averages' dimension, we resort the other dimensions into the
+        % 'averages' dimension here
+        if raw.dims.extras ~= 0
+            % Generate empty struct
+            temp = struct;
+            % Extract extras and add to the temporary struct
+            for pp = 1:raw.sz(raw.dims.extras)
+                extrasToAdd = op_takeextras(raw, pp);
+                temp = op_concatAverages(temp, extrasToAdd);
+            end
+            % Save back to MRSCont
+            raw = temp;
+            MRSCont.raw{kk} = raw;
+        elseif raw.dims.subSpecs ~= 0
+            % Generate empty struct
+            temp = struct;
+            % Extract subspecs and add to the temporary struct
+            for pp = 1:raw.sz(raw.dims.extras)
+                subspecsToAdd = op_takesubspec(raw, pp);
+                temp = op_concatAverages(temp, subspecsToAdd);
+            end
+            % Save back to MRSCont
+            raw = temp;
+            MRSCont.raw{kk} = raw;
+        end
+    end
+end
+
 %% If DualVoxel or MRSI we want to extract y-axis scaling
 % Creates y-axis range to align the process plots between datasets
 if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
