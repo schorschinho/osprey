@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve LCGannet
+about: Create a report to help us improve Osprey
 title: "[BUG]"
 labels: bug
 assignees: ''
