@@ -127,8 +127,10 @@ end
 OverviewTime = tic;
 
 %Progress text for the GUI
-if MRSCont.flags.isGUI
+if MRSCont.flags.isGUI && isfield(MRSCont.flags,'inProgress')
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 
 
@@ -242,7 +244,7 @@ if MRSCont.flags.didFit
                             fitParams   = MRSCont.fit.results.(FitNames{sf}).fitParams{kk};
                         else
                             dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
-                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).water.(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);                            
+                            basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).water.(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);                            
                             % Get the fit parameters
                             fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk};
                         end
@@ -271,7 +273,7 @@ if MRSCont.flags.didFit
                         else
                            dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{sf}){kk},rr);
                            fitParams   = MRSCont.fit.results{rr}.(FitNames{sf}).fitParams{kk}; 
-                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitNames{sf}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
+                           basisSet    = MRSCont.fit.resBasisSet.(FitNames{sf}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                         end
                         % Pack up into structs to feed into the reconstruction functions
                         inputData.dataToFit                 = dataToPlot;
@@ -985,7 +987,12 @@ if MRSCont.flags.hasStatfile % Has stat csv file
                 statCSV.subject = MRSCont.files';
             end
         end
-        writetable(statCSV,[MRSCont.outputFolder  filesep  'stat.csv']); % Write names into csv files
+        if isfield(MRSCont, 'exclude')
+            exclude = zeros(MRSCont.nDatasets,1);
+            exclude(MRSCont.exclude) = 1;
+            statCSV.exclude = exclude;
+        end
+        writetable(statCSV,[MRSCont.outputFolder  filesep  'subject_names_and_excluded.csv']); % Write names into csv files
     end
 
 else % No csv file supplied
@@ -997,13 +1004,12 @@ else % No csv file supplied
     else
         statCSV.subject = MRSCont.files';
     end
-    writetable(statCSV,[MRSCont.outputFolder  filesep  'stat.csv']);
-end
-
-% Set up the different group names
-MRSCont.overview.groupNames = cell(1,MRSCont.overview.NoGroups);
-for g = 1 : MRSCont.overview.NoGroups
-    MRSCont.overview.groupNames{g} = ['Group ' num2str(g)];
+    if isfield(MRSCont, 'exclude')
+        exclude = zeros(MRSCont.nDatasets,1);
+        exclude(MRSCont.exclude) = 1;
+        statCSV.exclude = exclude;
+    end
+    writetable(statCSV,[MRSCont.outputFolder  filesep  'subject_names_and_excluded.csv']);
 end
 
 %Exclude datasets based on the exclude field in the MRSConainer. THis can
@@ -1012,7 +1018,30 @@ end
 if isfield(MRSCont, 'exclude')
     if~isempty(MRSCont.exclude)
         MRSCont.overview.groups(MRSCont.exclude) = 0;
+        max_g = max(MRSCont.overview.groups);
+        for kk = 1 : max(MRSCont.overview.groups)
+            remove = 0;
+            [~,idx] = find(MRSCont.overview.groups==kk);
+            if isempty(idx) && kk < max_g
+                for ll = 1 : length(MRSCont.overview.groups)
+                    if MRSCont.overview.groups(ll) > kk                
+                        MRSCont.overview.groups(ll) = MRSCont.overview.groups(ll) -1;
+                        if remove == 0
+                            max_g = max_g -1;
+                            remove =1;
+                        end
+                    end
+                end
+            end
+        end
+        MRSCont.overview.NoGroups = max(MRSCont.overview.groups);
     end
+end
+
+% Set up the different group names
+MRSCont.overview.groupNames = cell(1,MRSCont.overview.NoGroups);
+for g = 1 : MRSCont.overview.NoGroups
+    MRSCont.overview.groupNames{g} = ['Group ' num2str(g)];
 end
 
 % Sort the spectra according to the groups
@@ -1235,7 +1264,7 @@ if MRSCont.opts.savePDF
 end
 
 % Create the MRSinMRS markdown
-if MRSCont.flags.didFit && MRSCont.flags.didQuantify
+if MRSCont.flags.didFit && MRSCont.flags.didQuantify && ~MRSCont.flags.isPRIAM
     [MRSCont] = OspreyMinReport(MRSCont);
 end
 
