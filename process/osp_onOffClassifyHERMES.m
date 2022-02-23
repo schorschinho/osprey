@@ -98,7 +98,6 @@ try
     idx_ON_OFF  = second.ON & ~first.ON;
     idx_OFF_ON  = ~second.ON & first.ON;
     idx_ON_ON   = second.ON & first.ON;
-
     % Commute for output
     inputVars = {'inA', 'inB', 'inC', 'inD'};
     eval(['outA = ' inputVars{idx_OFF_OFF} ';']);
@@ -108,10 +107,10 @@ try
 catch
     disp('HERMES classifier does not recognize the subspectra. You can change the ordering in osp_onOFFClassifyHERMES.m');
     % Determine the sub-spectra indices belonging to each editing pattern
-    idx_OFF_OFF = 2;
-    idx_ON_OFF  = 1;
-    idx_OFF_ON  = 3;
-    idx_ON_ON   = 4;
+    idx_OFF_OFF = logical([0 1 0 0]);
+    idx_ON_OFF  = logical([0 0 0 1]);
+    idx_OFF_ON  = logical([1 0 0 0]);
+    idx_ON_ON   = logical([0 0 1 0]);
 
     % Commute for output
     inputVars = {'inA', 'inB', 'inC', 'inD'};

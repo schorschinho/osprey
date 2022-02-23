@@ -256,6 +256,7 @@ for kk = 1:MRSCont.nDatasets
         % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
         % with the negative phase of that fit
         [raw_A,ph]       = op_phaseCrCho(raw_A, 1);
+        raw_B     = op_addphase(raw_B, -ph*180/pi, 0, raw_B.centerFreq, 1);   
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
         
@@ -263,10 +264,7 @@ for kk = 1:MRSCont.nDatasets
             case 'L1Norm'
             [raw_A, raw_B]  = osp_editSubSpecAlignLNorm(raw_A, raw_B);
             case 'L2Norm'
-            [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);
-            otherwise
-            raw_B     = op_addphase(raw_B, -ph*180/pi, 0, raw_B.centerFreq, 1);     
-                
+            [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);                 
         end
         
 

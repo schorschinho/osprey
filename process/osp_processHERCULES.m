@@ -323,10 +323,18 @@ for kk = 1:MRSCont.nDatasets
         raw_D = op_freqshift(raw_D, -refShift_SubSpecAlign);
         % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
         % with the negative phase of that fit
-        [raw_A,~] = op_phaseCrCho(raw_A, 1); 
+        [raw_A,ph] = op_phaseCrCho(raw_A, 1); 
+        raw_B     = op_addphase(raw_B, -ph*180/pi, 0, raw_B.centerFreq, 1);
+        raw_C     = op_addphase(raw_C, -ph*180/pi, 0, raw_C.centerFreq, 1); 
+        raw_D     = op_addphase(raw_D, -ph*180/pi, 0, raw_D.centerFreq, 1); 
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
-        [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater);
+        switch MRSCont.opts.SubSpecAlignment
+            case 'L1Norm'
+                [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlignLNorm(raw_A, raw_B, raw_C, raw_D);
+            case 'L2Norm'
+                [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target1,target2);
+        end
         % Create the sum spectrum
         Sum     = op_addScans(raw_A,raw_B);
         Sum     = op_addScans(Sum,raw_C);
