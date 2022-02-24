@@ -105,6 +105,13 @@ elseif contains(DicomHeader.sequenceFileName,'eja_svs')
 elseif contains(DicomHeader.sequenceFileName,'svs_slaser')
     DicomHeader.seqtype = 'sLASER'; % sLASER
     DicomHeader.seqorig = 'unknown'; % Unknwon
+elseif contains(DicomHeader.sequenceFileName,'svs_st')
+    DicomHeader.seqtype = 'STEAM'; % STEAM
+    if contains(DicomHeader.sequenceFileName,'vapor')
+       DicomHeader.seqorig = 'CMRR'; % Probably CMRR
+    else
+       DicomHeader.seqorig = 'WIP'; % Probably WIP or product?
+    end
 else
     DicomHeader.seqorig = DicomHeader.sequenceFileName;
     error(['Unknown sequence: ' DicomHeader.seqorig '. Please consult the Gannet team for support.'])
@@ -173,26 +180,30 @@ DicomHeader.tx_freq              = dcmHeader.sTXSPEC.asNucleusInfo0.lFrequency; 
 % editing pulse parameters
 if isfield(DicomHeader, 'seqorig')
     if strcmp(DicomHeader.seqorig,'CMRR')
-        if isfield(dcmHeader, 'sWipMemBlock')
-            if isfield(dcmHeader.sWipMemBlock, 'adFree3')
-                DicomHeader.editRF.freq(1) = dcmHeader.sWipMemBlock.adFree3;
+        if contains(DicomHeader.seqtype, 'MEGA')
+            if isfield(dcmHeader, 'sWipMemBlock')
+                if isfield(dcmHeader.sWipMemBlock, 'adFree3')
+                    DicomHeader.editRF.freq(1) = dcmHeader.sWipMemBlock.adFree3;
+                end
+                if isfield(dcmHeader.sWipMemBlock, 'adFree2')
+                    DicomHeader.editRF.freq(2) = dcmHeader.sWipMemBlock.adFree2;
+                end
+                if isfield(dcmHeader.sWipMemBlock, 'adFree6')
+                    DicomHeader.editRF.bw = dcmHeader.sWipMemBlock.adFree8;
+                end
+            elseif isfield(dcmHeader, 'sWiPMemBlock')
+                if isfield(dcmHeader.sWiPMemBlock, 'adFree3')
+                    DicomHeader.editRF.freq(1) = dcmHeader.sWiPMemBlock.adFree3;
+                end
+                if isfield(dcmHeader.sWiPMemBlock, 'adFree2')
+                    DicomHeader.editRF.freq(2) = dcmHeader.sWiPMemBlock.adFree2;
+                end
+                if isfield(dcmHeader.sWiPMemBlock, 'adFree6')
+                    DicomHeader.editRF.bw = dcmHeader.sWiPMemBlock.adFree8;
+                end
             end
-            if isfield(dcmHeader.sWipMemBlock, 'adFree2')
-                DicomHeader.editRF.freq(2) = dcmHeader.sWipMemBlock.adFree2;
-            end
-            if isfield(dcmHeader.sWipMemBlock, 'adFree6')
-                DicomHeader.editRF.bw = dcmHeader.sWipMemBlock.adFree8;
-            end
-        elseif isfield(dcmHeader, 'sWiPMemBlock')
-            if isfield(dcmHeader.sWiPMemBlock, 'adFree3')
-                DicomHeader.editRF.freq(1) = dcmHeader.sWiPMemBlock.adFree3;
-            end
-            if isfield(dcmHeader.sWiPMemBlock, 'adFree2')
-                DicomHeader.editRF.freq(2) = dcmHeader.sWiPMemBlock.adFree2;
-            end
-            if isfield(dcmHeader.sWiPMemBlock, 'adFree6')
-                DicomHeader.editRF.bw = dcmHeader.sWiPMemBlock.adFree8;
-            end
+        else
+            % For now, we probably don't need much from this block.
         end
     else
         if isfield(dcmHeader, 'sWipMemBlock')
