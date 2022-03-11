@@ -405,8 +405,13 @@ else
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
                     for jj = 1:size(applyDataToScale.fids,2)
-                        applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
-                            exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                        if size(applyDataToScale.fids) == 3
+                            applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
+                                exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                        else
+                            applyDataToScale.fids(:,ss) = applyDataToScale.fids(:,ss) .* ...
+                                exp(1i*fs{ss}(1)*2*pi*t') * exp(1i*pi/180*phs{ss}(1));
+                        end
                     end
                 end
         end
@@ -453,8 +458,13 @@ if MRSCont.flags.isMEGA
         plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,rr,1)), 'LineWidth', 0.5, 'Color', colormap.LightAccent);
         plot(ax_raw, rawDataToPlot.ppm, real(rawDataToPlot.specs(:,rr,2) + stag(2)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
     end
+
     plotRange = op_freqrange(rawDataToPlot, ppmmin, ppmmax);
-    yLims = [mean(min(real(plotRange.specs(:,:,1)))) (mean(max(real(plotRange.specs(:,:,2))))+stag(2))].*1.5;
+    if size(rawDataToPlot.fids) == 3
+        yLims = [mean(min(real(plotRange.specs(:,:,1)))) (mean(max(real(plotRange.specs(:,:,2))))+stag(2))].*1.5;
+    else
+        yLims = [mean(min(real(plotRange.specs(:,1)))) (mean(max(real(plotRange.specs(:,2))))+stag(2))].*1.5;
+    end
     text(ax_raw, ppmmin+0.3, stagText(1), 'off', 'Color', colormap.LightAccent);
     text(ax_raw, ppmmin+0.3, stagText(2) , 'on', 'Color', colormap.Foreground); 
     set(ax_raw, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);  
@@ -646,8 +656,13 @@ else
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
                     for jj = 1:size(applyDataToPlot.fids,2)
-                        applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
-                            exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                        if size(applyDataToPlot.fids) == 3
+                            applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
+                                exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                        else
+                            applyDataToPlot.fids(:,ss) = applyDataToPlot.fids(:,ss) .* ...
+                                exp(1i*fs{ss}(1)*2*pi*t') * exp(1i*pi/180*phs{ss}(1));
+                        end
                     end
                 end
         end
