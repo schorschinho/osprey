@@ -992,7 +992,8 @@ if MRSCont.flags.hasStatfile % Has stat csv file
             exclude(MRSCont.exclude) = 1;
             statCSV.exclude = exclude;
         end
-        writetable(statCSV,[MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],'Delimiter','\t'); % Write names into csv files
+        writetable(statCSV,[MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],'Delimiter','\t'); % Write names into tsv files
+        movefile([MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],[MRSCont.outputFolder  filesep  'subject_names_and_excluded.tsv']);
     end
 
 else % No csv file supplied
@@ -1010,6 +1011,7 @@ else % No csv file supplied
         statCSV.exclude = exclude;
     end
     writetable(statCSV,[MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],'Delimiter','\t');
+    movefile([MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],[MRSCont.outputFolder  filesep  'subject_names_and_excluded.tsv']);
 end
 
 %Exclude datasets based on the exclude field in the MRSConainer. THis can

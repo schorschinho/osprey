@@ -126,6 +126,28 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     end
     MRSCont.QM.tables = array2table(QM,'VariableNames',names);
     writetable(MRSCont.QM.tables,[outputFolder filesep 'QM_processed_spectra.txt'],'Delimiter','\t');
+    movefile([outputFolder filesep 'QM_processed_spectra.txt'],[outputFolder filesep 'QM_processed_spectra.tsv']);
+    %Encode JSON sidecar
+    JSON.SNR.LongName = 'Signal to noise ratio';
+    JSON.SNR.Description = 'The maximum amplitude of the largest metabolite peak divided by twice the standard deviation of the noise';
+    JSON.SNR.units = 'arbitrary';
+    JSON.SNR.TermURL = '';
+    JSON.FWHM.LongName = 'Full width at half maximum';
+    JSON.FWHM.Description = 'The width of the peak at half the maximum amplitude';
+    JSON.FWHM.units = 'PPM';
+    JSON.FWHM.TermURL = '';
+    JSON.res_water_amp.LongName = 'Residual water amplitude';
+    JSON.res_water_amp.Description = 'The ammount of signal remaining after attempting water subtraction';
+    JSON.res_water_amp.units = 'arbitrary';
+    JSON.res_water_amp.TermURL = '';
+    JSON.freqShift.LongName = 'Frequency shift';
+    JSON.freqShift_amp.Description = 'Frequency shift'; %CWDJ Need full description
+    JSON.freqShift.units = 'PPM';
+    JSON.freqShift.TermURL = '';
+    fid=fopen([outputFolder filesep 'QM_processed_spectra.json'],'w');
+    encodedJSON = jsonencode(JSON,'PrettyPrint',true);
+    fprintf(fid, encodedJSON); 
+    fclose(fid);
 end
 
 % Optional:  Create all pdf figures

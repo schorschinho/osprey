@@ -10,12 +10,16 @@ for ll = 1:length(getResults)
             if isstruct(MRSCont.quantify.tables.(getResults{ll}).(quants{q})) % To make export work on older MRSContainer
                 if ~MRSCont.flags.isPRIAM
                     writetable(MRSCont.quantify.tables.(getResults{ll}).(quants{q}).Voxel_1,[saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_1.txt'],'Delimiter','\t');
+                    movefile([saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_1.txt'],[saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_1.tsv']);
                 else
                     writetable(MRSCont.quantify.tables.(getResults{ll}).(quants{q}).Voxel_1,[saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_1.txt'],'Delimter','\t');
+                    movefile([saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_1.txt'],[saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_1.tsv']);
                     writetable(MRSCont.quantify.tables.(getResults{ll}).(quants{q}).Voxel_2,[saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_2.txt'],'Delimter','\t');
+                    movefile([saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_2.txt'],[saveDestination  filesep (getResults{ll}) '_' quants{q} '_Voxel_2.tsv']);
                 end
             else
                 writetable(MRSCont.quantify.tables.(getResults{ll}).(quants{q}),[saveDestination  filesep (getResults{ll}) '_' quants{q} '.txt'],'Delimiter','\t');
+                movefile([saveDestination  filesep (getResults{ll}) '_' quants{q} '.txt'],[saveDestination  filesep (getResults{ll}) '_' quants{q} '.tsv']);
             end
         end
     end

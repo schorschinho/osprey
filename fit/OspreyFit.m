@@ -168,8 +168,10 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         fprintf(msg);
         error(msg);
     end
-
-    writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.txt'],'Delimiter','\t');
+    
+    %Output as .tsv
+    writetable(MRSCont.QM.tables,[outputFolder filesep 'QM_processed_spectra.txt'], 'Delimiter','\t');
+    movefile([outputFolder filesep 'QM_processed_spectra.txt'],[outputFolder filesep 'QM_processed_spectra.tsv']);
 end
 
 %% Clean up and save
