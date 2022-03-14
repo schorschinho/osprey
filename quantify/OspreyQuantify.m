@@ -361,7 +361,7 @@ end
 MRSCont.flags.didQuantify           = 1;
 diary off
 % Save the metabolite tables as CSV structure
-exportCSV (MRSCont,saveDestination, getResults);
+exportTSV(MRSCont,saveDestination, getResults);
 %   Remove amplitudes table
 for ll = 1:length(getResults)
     MRSCont.quantify.tables.(getResults{ll}) = rmfield(MRSCont.quantify.tables.(getResults{ll}),{'amplMets'});

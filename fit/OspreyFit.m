@@ -169,7 +169,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         error(msg);
     end
 
-    writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
+    writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.txt'],'Delimiter','\t');
 end
 
 %% Clean up and save

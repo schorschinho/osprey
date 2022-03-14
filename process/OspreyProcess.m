@@ -125,7 +125,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.FWHM.ref',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
     end
     MRSCont.QM.tables = array2table(QM,'VariableNames',names);
-    writetable(MRSCont.QM.tables,[outputFolder filesep 'QM_processed_spectra.csv']);
+    writetable(MRSCont.QM.tables,[outputFolder filesep 'QM_processed_spectra.txt'],'Delimiter','\t');
 end
 
 % Optional:  Create all pdf figures

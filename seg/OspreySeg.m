@@ -287,14 +287,14 @@ end
 time = toc(refSegTime);
 [~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 MRSCont.runtime.Seg = time;
-%% Create table and csv file
+%% Create table and tsv file
 tissueTypes = {'fGM','fWM','fCSF'};
 %Loop over voxels (for DualVoxel)
 
 for rr = 1 : Voxels
     tissue = horzcat(MRSCont.seg.tissue.fGM(:,rr),MRSCont.seg.tissue.fWM(:,rr),MRSCont.seg.tissue.fCSF(:,rr));
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = array2table(tissue,'VariableNames',tissueTypes);
-    writetable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]),[saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr) '.csv']);
+    writetable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]),[saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr) '.txt'],'Delimiter','\t');
 end
 
 %% Clean up and save
