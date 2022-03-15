@@ -141,7 +141,7 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     JSON.res_water_amp.units = 'arbitrary';
     JSON.res_water_amp.TermURL = '';
     JSON.freqShift.LongName = 'Frequency shift';
-    JSON.freqShift_amp.Description = 'Frequency shift'; %CWDJ Need full description
+    JSON.freqShift.Description = 'Frequency shift'; %CWDJ Need full description
     JSON.freqShift.units = 'PPM';
     JSON.freqShift.TermURL = '';
     fid=fopen([outputFolder filesep 'QM_processed_spectra.json'],'w');
