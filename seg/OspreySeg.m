@@ -289,13 +289,23 @@ time = toc(refSegTime);
 MRSCont.runtime.Seg = time;
 %% Create table and tsv file
 tissueTypes = {'fGM','fWM','fCSF'};
-%Loop over voxels (for DualVoxel)
 
+% Populate JSON sidecar
+MRSCont.seg.JSON.fGM.LongName = 'Voxel fraction of grey matter';
+MRSCont.seg.JSON.fGM.Description = 'Normalized fractional volume of grey matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
+MRSCont.seg.JSON.fGM.units = 'arbitrary';
+MRSCont.seg.JSON.fWM.LongName = 'Voxel fraction of white matter';
+MRSCont.seg.JSON.fWM.Description = 'Normalized fractional volume of white matter: fWM  = WMsum / (GMsum + WMsum + CSFsum)';
+MRSCont.seg.JSON.fWM.units = 'arbitrary';
+MRSCont.seg.JSON.fCSF.LongName = 'Voxel fraction of Cerebrospinal Fluid';
+MRSCont.seg.JSON.fCSF.Description = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = WMsum / (GMsum + WMsum + CSFsum)';
+MRSCont.seg.JSON.fCSF.units = 'arbitrary';
+
+%Loop over voxels (for DualVoxel)
 for rr = 1 : Voxels
     tissue = horzcat(MRSCont.seg.tissue.fGM(:,rr),MRSCont.seg.tissue.fWM(:,rr),MRSCont.seg.tissue.fCSF(:,rr));
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = array2table(tissue,'VariableNames',tissueTypes);
-    writetable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]),[saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr) '.txt'],'Delimiter','\t');
-    movefile([saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr) '.txt'],[saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr) '.tsv']);
+    osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr)], MRSCont.seg.JSON)
 end
 
 %% Clean up and save

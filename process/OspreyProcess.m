@@ -86,26 +86,14 @@ MRSCont.flags.didProcess    = 1;
 diary off
 [MRSCont]                   = osp_orderProcessFields(MRSCont);
 
-% Store data quality measures in csv file
-if MRSCont.flags.isUnEdited
+% Tabulate data quality measures and store in a tsv file
+if MRSCont.flags.isUnEdited || MRSCont.flags.isMEGA
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'A'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
     end
-elseif MRSCont.flags.isMEGA
-    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
-    subspec = {'A'};
-    if MRSCont.flags.hasRef
-        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end
-elseif MRSCont.flags.isHERMES
-    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
-    subspec = {'sum'};
-    if MRSCont.flags.hasRef
-        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end
-elseif MRSCont.flags.isHERCULES
+elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
     % For now, process HERCULES like HERMES data
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'sum'};
@@ -118,6 +106,33 @@ else
     error(msg);
 end
 
+% Loop over data quality variable names to populate JSON sidecar.
+for JJ = 1:length(names)
+    switch names{JJ}
+        case 'NAA_SNR'
+            JSON.NAA_SNR.LongName = 'Signal to noise ratio of NAA';
+            JSON.NAA_SNR.Description = 'The maximum amplitude of the NAA peak divided by twice the standard deviation of the noise';
+            JSON.NAA_SNR.units = 'arbitrary';
+            %JSON.NAA_SNR.TermURL = '';
+        case 'NAA_FWHM'
+            JSON.NAA_FWHM.LongName = 'Full width at half maximum of NAA';
+            JSON.NAA_FWHM.Description = 'The width of the NAA peak at half the maximum amplitude';
+            JSON.NAA_FWHM.units = 'Hz?';
+        case 'water_FWHM'
+            JSON.water_FWHM.LongName = 'Full width at half maximum of reference water peak';
+            JSON.water_FWHM.Description = 'The width of the water peak at half the maximum amplitude';
+            JSON.water_FWHM.units = 'Hz?';
+        case 'residual_water_ampl'
+            JSON.res_water_amp.LongName = 'Residual water amplitude';
+            JSON.res_water_amp.Description = 'The ammount of signal remaining after attempting water subtraction';
+            JSON.res_water_amp.units = 'arbitrary';
+        case 'freqShift'
+            JSON.freqShift.LongName = 'Frequency shift';
+            JSON.freqShift.Description = 'Frequency shift'; %CWDJ Need full description
+            JSON.freqShift.units = 'PPM';
+    end
+end
+
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     if ~MRSCont.flags.hasRef
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
@@ -125,29 +140,9 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.FWHM.ref',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
     end
     MRSCont.QM.tables = array2table(QM,'VariableNames',names);
-    writetable(MRSCont.QM.tables,[outputFolder filesep 'QM_processed_spectra.txt'],'Delimiter','\t');
-    movefile([outputFolder filesep 'QM_processed_spectra.txt'],[outputFolder filesep 'QM_processed_spectra.tsv']);
-    %Encode JSON sidecar
-    JSON.SNR.LongName = 'Signal to noise ratio';
-    JSON.SNR.Description = 'The maximum amplitude of the largest metabolite peak divided by twice the standard deviation of the noise';
-    JSON.SNR.units = 'arbitrary';
-    JSON.SNR.TermURL = '';
-    JSON.FWHM.LongName = 'Full width at half maximum';
-    JSON.FWHM.Description = 'The width of the peak at half the maximum amplitude';
-    JSON.FWHM.units = 'PPM';
-    JSON.FWHM.TermURL = '';
-    JSON.res_water_amp.LongName = 'Residual water amplitude';
-    JSON.res_water_amp.Description = 'The ammount of signal remaining after attempting water subtraction';
-    JSON.res_water_amp.units = 'arbitrary';
-    JSON.res_water_amp.TermURL = '';
-    JSON.freqShift.LongName = 'Frequency shift';
-    JSON.freqShift.Description = 'Frequency shift'; %CWDJ Need full description
-    JSON.freqShift.units = 'PPM';
-    JSON.freqShift.TermURL = '';
-    fid=fopen([outputFolder filesep 'QM_processed_spectra.json'],'w');
-    encodedJSON = jsonencode(JSON,'PrettyPrint',true);
-    fprintf(fid, encodedJSON); 
-    fclose(fid);
+    MRSCont.QM.JSON = JSON;
+    % Write .tsv file and .json sidecar
+    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'],MRSCont.QM.JSON)
 end
 
 % Optional:  Create all pdf figures

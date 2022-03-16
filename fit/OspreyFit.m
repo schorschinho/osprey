@@ -131,7 +131,8 @@ end
 %% Store  and print some QM parameters
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_fit_Quality(MRSCont);
-
+    
+    L = length(MRSCont.QM.tables.Properties.VariableNames);
     % Store data quality measures in csv file
     if MRSCont.flags.isUnEdited
         relResA = MRSCont.QM.relAmpl.A';
@@ -169,9 +170,29 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         error(msg);
     end
     
+    for JJ = L:length(MRSCont.QM.tables.Properties.VariableNames)
+        switch MRSCont.QM.tables.Properties.VariableNames{JJ}
+            case 'relResA'
+                MRSCont.QM.JSON.relResA.LongName = '';
+                MRSCont.QM.JSON.relResA.Description = '';
+                MRSCont.QM.JSON.relResA.units = 'arbitrary';
+            case 'relRessum'
+                MRSCont.QM.JSON.relRessum.LongName = '';
+                MRSCont.QM.JSON.relRessum.Description = '';
+                MRSCont.QM.JSON.relRessum.units = 'arbitrary';
+            case 'relResdiff1'
+                MRSCont.QM.JSON.relResdiff1.LongName = '';
+                MRSCont.QM.JSON.relResdiff1.Description = '';
+                MRSCont.QM.JSON.relResdiff1.units = 'arbitrary';
+            case 'relResdiff2'
+                MRSCont.QM.JSON.relResdiff2.LongName = '';
+                MRSCont.QM.JSON.relResdiff2.Description = '';
+                MRSCont.QM.JSON.relResdiff2.units = 'arbitrary';
+        end
+    end 
+
     %Output as .tsv
-    writetable(MRSCont.QM.tables,[outputFolder filesep 'QM_processed_spectra.txt'], 'Delimiter','\t');
-    movefile([outputFolder filesep 'QM_processed_spectra.txt'],[outputFolder filesep 'QM_processed_spectra.tsv']);
+    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'], MRSCont.QM.JSON)
 end
 
 %% Clean up and save
