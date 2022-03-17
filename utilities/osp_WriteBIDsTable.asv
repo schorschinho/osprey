@@ -17,10 +17,9 @@ for JJ=1:length(Table.Properties.VariableNames)
     JSON.(Table.Properties.VariableNames{JJ}).LongName = Table.Properties.CustomProperties.VariableLongNames{JJ};
     JSON.(Table.Properties.VariableNames{JJ}).Description = Table.Properties.VariableDescriptions{JJ};
     JSON.(Table.Properties.VariableNames{JJ}).Units = Table.Properties.VariableUnits{JJ};
-    %JSON.(Table.Properties.VariableNames{JJ}).TermURL = Table.Properties.CustomProperties.VariableTermURL{JJ};
+    %JSON.(Table.Properties.VariableNames{JJ}). = Table.Properties.VariableUnits{JJ};
 end
 
-% Write json structure to text file following jsonencode
 fid=fopen([OutLoc,'.json'],'w');
 fprintf(fid, jsonencode(JSON,'PrettyPrint',true)); 
 fclose(fid);

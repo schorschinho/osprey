@@ -106,33 +106,6 @@ else
     error(msg);
 end
 
-% Loop over data quality variable names to populate JSON sidecar.
-for JJ = 1:length(names)
-    switch names{JJ}
-        case 'NAA_SNR'
-            JSON.NAA_SNR.LongName = 'Signal to noise ratio of NAA';
-            JSON.NAA_SNR.Description = 'The maximum amplitude of the NAA peak divided by twice the standard deviation of the noise';
-            JSON.NAA_SNR.units = 'arbitrary';
-            %JSON.NAA_SNR.TermURL = '';
-        case 'NAA_FWHM'
-            JSON.NAA_FWHM.LongName = 'Full width at half maximum of NAA';
-            JSON.NAA_FWHM.Description = 'The width of the NAA peak at half the maximum amplitude';
-            JSON.NAA_FWHM.units = 'Hz?';
-        case 'water_FWHM'
-            JSON.water_FWHM.LongName = 'Full width at half maximum of reference water peak';
-            JSON.water_FWHM.Description = 'The width of the water peak at half the maximum amplitude';
-            JSON.water_FWHM.units = 'Hz?';
-        case 'residual_water_ampl'
-            JSON.res_water_amp.LongName = 'Residual water amplitude';
-            JSON.res_water_amp.Description = 'The ammount of signal remaining after attempting water subtraction';
-            JSON.res_water_amp.units = 'arbitrary';
-        case 'freqShift'
-            JSON.freqShift.LongName = 'Frequency shift';
-            JSON.freqShift.Description = 'Frequency shift'; %CWDJ Need full description
-            JSON.freqShift.units = 'PPM';
-    end
-end
-
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     if ~MRSCont.flags.hasRef
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
@@ -140,9 +113,36 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.FWHM.ref',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
     end
     MRSCont.QM.tables = array2table(QM,'VariableNames',names);
-    MRSCont.QM.JSON = JSON;
+
+    MRSCont.QM.tables = addprop(MRSCont.QM.tables, {'VariableLongNames'}, {'variable'}); % add long name to table properties
+    % Loop over field names to populate descriptive fields of table for JSON export
+    for JJ = 1:length(names)
+        switch names{JJ}
+            case 'NAA_SNR'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'NAA_SNR'} = 'Signal to noise ratio of NAA';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'NAA_SNR'} = 'The maximum amplitude of the NAA peak divided by twice the standard deviation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'NAA_SNR'} = 'arbitrary';
+            case 'NAA_FWHM'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'NAA_FWHM'} = 'Full width at half maximum of NAA';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'NAA_FWHM'} = 'The width of the NAA peak at half the maximum amplitude';
+                MRSCont.QM.tables.Properties.VariableUnits{'NAA_FWHM'} = 'Hz'; %CWDJ???
+            case 'water_FWHM'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'water_FWHM'} = 'Full width at half maximum of reference water peak';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'water_FWHM'} = 'The width of the water peak at half the maximum amplitude';
+                MRSCont.QM.tables.Properties.VariableUnits{'water_FWHM'} = 'Hz'; %CWDJ???
+            case 'residual_water_ampl'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'residual_water_ampl'} = 'Residual water amplitude';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'residual_water_ampl'} = 'The ammount of signal remaining after attempting water subtraction';
+                MRSCont.QM.tables.Properties.VariableUnits{'residual_water_ampl'} = 'arbitrary';
+            case 'freqShift'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'freqShift'} = 'Frequency shift';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'freqShift'} = 'Frequency shift'; %CWDJ Need full description
+                MRSCont.QM.tables.Properties.VariableUnits{'freqShift'} = 'PPM'; %CWDJ???
+        end
+    end
+
     % Write .tsv file and .json sidecar
-    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'],MRSCont.QM.JSON)
+    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'])
 end
 
 % Optional:  Create all pdf figures

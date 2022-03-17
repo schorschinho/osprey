@@ -170,29 +170,30 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         error(msg);
     end
     
+    % Loop over field names to populate descriptive fields of table for JSON export
     for JJ = L:length(MRSCont.QM.tables.Properties.VariableNames)
         switch MRSCont.QM.tables.Properties.VariableNames{JJ}
             case 'relResA'
-                MRSCont.QM.JSON.relResA.LongName = '';
-                MRSCont.QM.JSON.relResA.Description = '';
-                MRSCont.QM.JSON.relResA.units = 'arbitrary';
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResA'} = 'relResA';%CWDJ??
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResA'} = '';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResA'} = 'arbitrary';
             case 'relRessum'
-                MRSCont.QM.JSON.relRessum.LongName = '';
-                MRSCont.QM.JSON.relRessum.Description = '';
-                MRSCont.QM.JSON.relRessum.units = 'arbitrary';
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relRessum'} = 'relRessum';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relRessum'} = '';
+                MRSCont.QM.tables.Properties.VariableUnits{'relRessum'} = 'arbitrary';
             case 'relResdiff1'
-                MRSCont.QM.JSON.relResdiff1.LongName = '';
-                MRSCont.QM.JSON.relResdiff1.Description = '';
-                MRSCont.QM.JSON.relResdiff1.units = 'arbitrary';
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResdiff1'} = 'relResdiff1';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResdiff1'} = '';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResdiff1'} = 'arbitrary';
             case 'relResdiff2'
-                MRSCont.QM.JSON.relResdiff2.LongName = '';
-                MRSCont.QM.JSON.relResdiff2.Description = '';
-                MRSCont.QM.JSON.relResdiff2.units = 'arbitrary';
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResdiff2'} = 'relResdiff2';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResdiff2'} = '';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResdiff2'} = 'arbitrary';
         end
     end 
 
     %Output as .tsv
-    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'], MRSCont.QM.JSON)
+    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'])
 end
 
 %% Clean up and save

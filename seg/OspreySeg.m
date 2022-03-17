@@ -290,22 +290,27 @@ MRSCont.runtime.Seg = time;
 %% Create table and tsv file
 tissueTypes = {'fGM','fWM','fCSF'};
 
-% Populate JSON sidecar
-MRSCont.seg.JSON.fGM.LongName = 'Voxel fraction of grey matter';
-MRSCont.seg.JSON.fGM.Description = 'Normalized fractional volume of grey matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
-MRSCont.seg.JSON.fGM.units = 'arbitrary';
-MRSCont.seg.JSON.fWM.LongName = 'Voxel fraction of white matter';
-MRSCont.seg.JSON.fWM.Description = 'Normalized fractional volume of white matter: fWM  = WMsum / (GMsum + WMsum + CSFsum)';
-MRSCont.seg.JSON.fWM.units = 'arbitrary';
-MRSCont.seg.JSON.fCSF.LongName = 'Voxel fraction of Cerebrospinal Fluid';
-MRSCont.seg.JSON.fCSF.Description = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = WMsum / (GMsum + WMsum + CSFsum)';
-MRSCont.seg.JSON.fCSF.units = 'arbitrary';
-
 %Loop over voxels (for DualVoxel)
 for rr = 1 : Voxels
     tissue = horzcat(MRSCont.seg.tissue.fGM(:,rr),MRSCont.seg.tissue.fWM(:,rr),MRSCont.seg.tissue.fCSF(:,rr));
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = array2table(tissue,'VariableNames',tissueTypes);
-    osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr)], MRSCont.seg.JSON)
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = addprop(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), {'VariableLongNames'}, {'variable'}); % add long name to table properties
+    
+    % Populate descriptive fields of table for JSON export
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fGM'} = 'Voxel fraction of grey matter';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fGM'} = 'Normalized fractional volume of grey matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fGM'} = 'arbitrary';
+
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fWM'} = 'Voxel fraction of white matter';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fWM'} = 'Normalized fractional volume of white matter: fWM  = WMsum / (GMsum + WMsum + CSFsum)';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fWM'} = 'arbitrary';
+    
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fCSF'} = 'Voxel fraction of Cerebrospinal Fluid';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fCSF'} = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = CSFsum / (GMsum + WMsum + CSFsum)';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fCSF'} = 'arbitrary';
+
+    % Write the table to a file with json sidecar
+    osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr)])
 end
 
 %% Clean up and save
