@@ -225,14 +225,24 @@ elseif length(filesInFolder) == 1
     rawSubspecs = 'na';
 else
     if contains(seqtype,'edit')
-        rawAverages = length(filesInFolder);
         subspecs = 2;
-        averages = rawAverages/2;
         rawSubspecs = 2;
-        dims.subSpecs = 3;
-        dims.averages = 2;
-        fids = reshape(fids,[sz(1),averages,2 ]);
-        specs = reshape(specs,[sz(1),averages,2 ]);
+        % Distinguish whether MEGA data have been averaged on-scanner or
+        % not
+        if length(filesInFolder) == 2
+            dims.subSpecs = 3;
+            dims.averages = 2;
+            averages = 1;
+            rawAverages = 1;
+            fids = reshape(fids,[sz(1),averages,2 ]);
+            specs = reshape(specs,[sz(1),averages,2 ]);
+        else
+            dims.subSpecs = 3;
+            dims.averages = 2;
+            averages = rawAverages/2;
+            fids = reshape(fids,[sz(1),averages,2 ]);
+            specs = reshape(specs,[sz(1),averages,2 ]);
+        end
         sz = size(fids);
     end
 end
