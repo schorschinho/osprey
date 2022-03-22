@@ -235,11 +235,14 @@ for kk = 1:MRSCont.nDatasets
         % Generate the frequency and phase plots for the entire experiment in
         % the correct order
         fs = [raw_A.specReg.fs, raw_B.specReg.fs]';
-        fs = reshape(fs, [raw.rawAverages, 1]);
         phs = [raw_A.specReg.phs, raw_B.specReg.phs]';
-        phs = reshape(phs, [raw.rawAverages, 1]);
         weights = [raw_A.specReg.weights, raw_B.specReg.weights]';
-        weights = reshape(weights, [raw.rawAverages, 1]);
+        if raw.rawAverages ~= 1
+            fs = reshape(fs, [raw.rawAverages, 1]);
+            phs = reshape(phs, [raw.rawAverages, 1]);
+            weights = reshape(weights, [raw.rawAverages, 1]);
+        end
+        
         MRSCont.raw{kk}.specReg.fs              = fs; % save align parameters
         MRSCont.raw{kk}.specReg.phs             = phs; % save align parameters
         MRSCont.raw{kk}.specReg.weights             = weights; % save align parameters 
