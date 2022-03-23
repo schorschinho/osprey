@@ -33,7 +33,7 @@ if nargin <5
     if nargin <4
         F0 = nan;
         if nargin < 2
-            echo = 1;    
+            echo = 1;
         end
     end
 end
@@ -85,7 +85,7 @@ t                 = in.t;
 input.dwelltime   = in.dwelltime;
 
 for mm=1:numSubSpecs
-   
+
         %%% Automatic lipid/unstable residual water removal %%%
         freq        = in.ppm;
         waterLim = freq <= 4.68 + 0.25 & freq >= 4.68 - 0.25;
@@ -206,7 +206,7 @@ for mm=1:numSubSpecs
         F0freq = F0freqRange(FrameMaxPos);
 
         % Starting values for optimization
-        if isnan(F0) 
+        if isnan(F0)
             f0 = F0freq * in.txfrq * 1e-6;
             f0 = f0(alignOrd);
             f0 = f0 - f0(1);
@@ -256,7 +256,7 @@ for mm=1:numSubSpecs
         fs(:,mm)  = params(:,1);
         phs(:,mm) = params(:,2);
     end
-    
+
     % Apply frequency and phase corrections to raw data
     for jj = 1:size(flatdata,3)
         fids(:,jj,mm) = in.fids(:,jj,mm) .* ...
@@ -305,24 +305,24 @@ for mm=1:numSubSpecs
         end
     end
     d = nanmedian(D);
-    if isnan(sum(d))        
+    if isnan(sum(d))
         d(isnan(d)) = 1;
     end
     w{mm} = 1./d.^2;
     w{mm} = w{mm}/sum(w{mm});
     w{mm} = repmat(w{mm}, [size(DataToWeight,1) 1]);
-    
-    
-    
+
+
+
     % Apply the weighting
 fids_out(:,:,mm) = w{mm} .* DataToWeight;
-    
+
 end
 
 % Perform weighted averaging
 % No need for 'mean', since the weights vector w is normalized
-fids = sum(fids_out, in.dims.averages);
-    
+fids = squeeze(sum(fids_out, in.dims.averages));
+
 %%% 3. WRITE THE NEW STRUCTURE %%%
 %re-calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
@@ -352,7 +352,7 @@ end
 
 %re-calculate the sz variable
 sz=size(fids);
-    
+
 %FILLING IN DATA STRUCTURE
 out=in;
 out.fids=fids;
@@ -360,7 +360,7 @@ out.specs=specs;
 out.sz=sz;
 out.dims=dims;
 out.averages=1;
-    
+
 %FILLING IN THE FLAGS
 out.flags=in.flags;
 out.flags.writtentostruct=1;
@@ -392,7 +392,7 @@ end
 %%% BELOW ARE THE SIGNAL FILTERING FUNCTIONS
 
 function out = SignalFilter(spec, r_flag, q_flag, in)
-% Based on: Cobas, J.C., Bernstein, M.A., Martín-Pastor, M., Tahoces, P.G.,
+% Based on: Cobas, J.C., Bernstein, M.A., Martï¿½n-Pastor, M., Tahoces, P.G.,
 % 2006. A new general-purpose fully automatic baseline-correction procedure
 % for 1D and 2D NMR data. J. Magn. Reson. 183, 145-51.
 
@@ -401,41 +401,41 @@ showPlots = 0;
 [z.real, z.imag] = BaselineModeling(spec, r_flag, q_flag, in);
 
 if showPlots == 1
-    
+
     freq = in.ppm;
-    
+
     H = figure(77);
     d.w = 0.5;
     d.h = 0.65;
     d.l = (1-d.w)/2;
     d.b = (1-d.h)/2;
     set(H,'Color', 'w', 'Units', 'Normalized', 'OuterPosition', [d.l d.b d.w d.h]);
-    
+
     subplot(2,2,1); cla;
     plot(freq, real(spec), 'k');
     set(gca, 'XDir', 'reverse', 'XLim', [0 6], 'Box', 'off');
     hold on;
     plot(freq, z.real, 'r');
     set(gca, 'XDir', 'reverse', 'XLim', [0 6], 'Box', 'off');
-    
+
     subplot(2,2,2); cla;
     plot(freq, imag(spec), 'k');
     set(gca, 'XDir', 'reverse', 'XLim', [0 6], 'Box', 'off');
     hold on;
     plot(freq, z.imag, 'r');
     set(gca, 'XDir', 'reverse', 'XLim', [0 6], 'Box', 'off');
-    
+
     subplot(2,2,3); cla;
     plot(freq, real(spec) - z.real, 'k');
     set(gca, 'XDir', 'reverse', 'XLim', [0 6], 'Box', 'off');
-    
+
     subplot(2,2,4); cla;
     plot(freq, imag(spec) - z.imag, 'k');
     set(gca, 'XDir', 'reverse', 'XLim', [0 6], 'Box', 'off');
-    
+
     drawnow;
     %pause(0.5);
-    
+
 end
 
 out = ifft(fftshift(complex(real(spec) - z.real, imag(spec) - z.imag),in.dims.t),[],in.dims.t);
