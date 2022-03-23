@@ -142,25 +142,23 @@ for kk = 1:MRSCont.nDatasets
             end
             [maskDir, maskName, maskExt] = fileparts(vol_mask.fname);
 
-            % Create and save masked tissue maps
             % Get the input file name
-            [path,filename,~]   = fileparts(MRSCont.files{kk});
-            % For batch analysis, get the last two sub-folders (e.g. site and
-            % subject)
-            path_split          = regexp(path,filesep,'split');
-            if length(path_split) > 2
-                saveName = [path_split{end-1} '_' path_split{end} '_' filename];
-            end
+            [~,filename,~]   = fileparts(MRSCont.files{kk});
             
+            % <source_entities>[_space-<space>][_res-<label>][_label-<label>][_desc-<label>]_probseg.nii.gz
+            % e.g.
+            % sub-01_acq-press_space-individual_desc-dlpfc_label-GM_probseg.nii.gz
+            saveName = [osp_RemoveSuffix(filename),'_space-scanner']; %CWDJ Check space.
+
             %Add voxel number for DualVoxel
             if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
-                VoxelNum = '_Voxel_1';
+                VoxelNum = '_Voxel-1';
             else
-                VoxelNum = ['_Voxel_' num2str(rr)];
+                VoxelNum = ['_Voxel-' num2str(rr)];
             end
             
             % GM
-            vol_GMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_GM' maskExt]);
+            vol_GMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_label-GM' maskExt]);
             vol_GMMask.descrip  = ['GMmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_GMMask.dim      = vol_mask.dim;
             vol_GMMask.dt       = vol_mask.dt;
@@ -169,7 +167,7 @@ for kk = 1:MRSCont.nDatasets
             vol_GMMask          = spm_write_vol(vol_GMMask, GM_voxmask_vol);
 
             % WM
-            vol_WMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_WM' maskExt]);
+            vol_WMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_label-WM' maskExt]);
             vol_WMMask.descrip  = ['WMmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_WMMask.dim      = vol_mask.dim;
             vol_WMMask.dt       = vol_mask.dt;
@@ -178,7 +176,7 @@ for kk = 1:MRSCont.nDatasets
             vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
 
             % CSF
-            vol_CSFMask.fname   = fullfile(saveDestination, [saveName VoxelNum '_CSF' maskExt]);
+            vol_CSFMask.fname   = fullfile(saveDestination, [saveName VoxelNum '_label-CSF' maskExt]);
             vol_CSFMask.descrip = ['CSFmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_CSFMask.dim     = vol_mask.dim;
             vol_CSFMask.dt      = vol_mask.dt;
