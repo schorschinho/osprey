@@ -82,6 +82,12 @@ for kk = 1:MRSCont.nDatasets
         % window is restricted to a certain frequency window.    
             if ~MRSCont.flags.isPhantom
                     switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                        case 'ProbSpecReg'
+                            [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_probabSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
+                            [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_probabSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
+                            [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_probabSpecReg(raw_C, 'HERCULES', 0, refShift_ind_ini);                    
+                            [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_probabSpecReg(raw_D, 'HERCULES', 0, refShift_ind_ini);
+                    
                         case 'RobSpecReg'
                             [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
                             [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
@@ -180,12 +186,10 @@ for kk = 1:MRSCont.nDatasets
             end
 
             % Apply Klose eddy current correction
-            if kk ~= 7
             [raw_A,~]                   = op_eccKlose(raw_A, raw_ref);
             [raw_B,~]                   = op_eccKlose(raw_B, raw_ref);
             [raw_C,~]                   = op_eccKlose(raw_C, raw_ref);
             [raw_D,raw_ref]             = op_eccKlose(raw_D, raw_ref);
-            end
 
             [raw_ref,~]                 = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}   = raw_ref;                          % Save back to MRSCont container
@@ -327,7 +331,16 @@ for kk = 1:MRSCont.nDatasets
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
         if ~exist('target3', 'var')
-            [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target1,target2);
+            switch MRSCont.opts.SubSpecAlignment
+                case 'L1Norm'
+                    [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlignLNorm(raw_A, raw_B, raw_C, raw_D);
+                case 'L2Norm'
+                    [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target1,target2);
+                otherwise
+                    raw_B     = op_addphase(raw_B, -ph*180/pi, 0, raw_B.centerFreq, 1);
+                    raw_C     = op_addphase(raw_C, -ph*180/pi, 0, raw_C.centerFreq, 1); 
+                    raw_D     = op_addphase(raw_D, -ph*180/pi, 0, raw_D.centerFreq, 1); 
+            end
         else
             [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target2,target3);
         end

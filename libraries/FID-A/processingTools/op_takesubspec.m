@@ -22,7 +22,7 @@ function out=op_takesubspec(in,index);
 if in.flags.subtracted
     error('ERROR:  Subspectra have already been combined!  Aborting!');
 end
-in.fids = squeeze(in.fids);
+% in.fids = squeeze(in.fids);
 if in.dims.subSpecs==0
     %Can't take subspec because there are none:
     error('ERROR:  There are no subspectra in this dataset!  Aborting!');

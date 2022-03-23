@@ -29,7 +29,8 @@ function osp_WindowKeyDown(~,EventData,gui)
     % 30 uparrow
     % 31 downarrow
 % Get MRSCont from hidden class container
-    MRSCont = getappdata(gui.figure,'MRSCont');    
+    MRSCont = getappdata(gui.figure,'MRSCont');  
+    MRSCont.flags.exclude = 1;
     if strcmp(EventData.Key, 'uparrow') % scrolling up
         OldValue = get( gui.layout.ListBox,'value');
         gui.controls.KeyPress = 1;
@@ -62,8 +63,12 @@ function osp_WindowKeyDown(~,EventData,gui)
                 waitbar(0,gui.controls.waitbar,'Exclude spectra')
                 MRSCont.flags.didQuantify =0;
                 MRSCont.flags.didOverview =0;
-                MRSCont = rmfield(MRSCont,'quantify');
-                MRSCont = rmfield(MRSCont,'overview');
+                if isfield(MRSCont,'quantify')
+                    MRSCont = rmfield(MRSCont,'quantify');
+                end
+                if isfield(MRSCont,'overview')
+                    MRSCont = rmfield(MRSCont,'overview');
+                end
                 waitbar(0.33,gui.controls.waitbar,'Call OspreyQuantify')
                 MRSCont = OspreyQuantify(MRSCont);
                 waitbar(0.66,gui.controls.waitbar,'Call OspreyOverview')
@@ -79,8 +84,12 @@ function osp_WindowKeyDown(~,EventData,gui)
                 waitbar(0,gui.controls.waitbar,'Exclude spectra')
                 MRSCont.flags.didQuantify =0;
                 MRSCont.flags.didOverview =0;
-                MRSCont = rmfield(MRSCont,'quantify');
-                MRSCont = rmfield(MRSCont,'overview');
+                if isfield(MRSCont,'quantify')
+                    MRSCont = rmfield(MRSCont,'quantify');
+                end
+                if isfield(MRSCont,'overview')
+                    MRSCont = rmfield(MRSCont,'overview');
+                end
                 waitbar(0.33,gui.controls.waitbar,'Call OspreyQuantify')
                 MRSCont = OspreyQuantify(MRSCont);
                 waitbar(0.66,gui.controls.waitbar,'Call OspreyOverview')

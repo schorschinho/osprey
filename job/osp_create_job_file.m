@@ -33,10 +33,12 @@ fprintf(fid,'\n%s','% This is a GUI generated Osprey jobFile. The code was kindl
 fprintf(fid,'\n%s','');
 fprintf(fid,'\n%s','%%% 1. SPECIFY SEQUENCE INFORMATION %%%');
 fprintf(fid,'\n%s',['seqType = ''' app.SequenceTypeDropDown.Value ''';']);
-if strcmp(app.EditingTargetsDropDown.Value, 'GABA, GSH')
-    fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH''};']);
-else
-    fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH'', ''EtOH''};']);
+if ~strcmp(app.SequenceTypeDropDown.Value,'unedited')
+    if strcmp(app.EditingTargetsDropDown.Value, 'GABA, GSH')
+        fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH''};']);
+    else
+        fprintf(fid,'\n%s',['editTarget = {''GABA'', ''GSH'', ''EtOH''};']);
+    end
 end
 fprintf(fid,'\n%s','');
 
@@ -103,10 +105,10 @@ if isempty(app.MRSDataText.Value{1})
     error('A MRS data file should be specified')
 else
     fprintf(fid,'\n%s',['files = {']);
-    fprintf(fid,'%s',['''' app.MRSDataText.Value{1} '''']);
+    fprintf(fid,'%s',['''' strtrim(app.MRSDataText.Value{1}) '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.MRSDataText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' strtrim(app.MRSDataText.Value{i}) '''']);
     end
     fprintf(fid,'%s',['};']);
 end
@@ -114,10 +116,10 @@ if isempty(app.H2OReferenceText.Value{1})
     fprintf(fid,'\n%s',['files_ref = {};']);
 else
     fprintf(fid,'\n%s',['files_ref = {']);
-    fprintf(fid,'%s',['''' app.H2OReferenceText.Value{1} '''']);
+    fprintf(fid,'%s',['''' strtrim(app.H2OReferenceText.Value{1}) '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.H2OReferenceText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' strtrim(app.H2OReferenceText.Value{i}) '''']);
     end
     fprintf(fid,'%s',['};']);
 end
@@ -125,10 +127,10 @@ if isempty(app.H2OShortTEText.Value{1})
     fprintf(fid,'\n%s',['files_w = {};']);
 else
     fprintf(fid,'\n%s',['files_w = {']);
-    fprintf(fid,'%s',['''' app.H2OShortTEText.Value{1} '''']);
+    fprintf(fid,'%s',['''' strtrim(app.H2OShortTEText.Value{1}) '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.H2OShortTEText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' strtrim(app.H2OShortTEText.Value{i}) '''']);
     end
     fprintf(fid,'%s',['};']);
 end
@@ -136,10 +138,10 @@ if isempty(app.MetaboliteNulledText.Value{1})
     fprintf(fid,'\n%s',['files_mm = {};']);
 else
     fprintf(fid,'\n%s',['files_mm = {']);
-    fprintf(fid,'%s',['''' app.MetaboliteNulledText.Value{1} '''']);
+    fprintf(fid,'%s',['''' strtrim(app.MetaboliteNulledText.Value{1}) '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.MetaboliteNulledText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' strtrim(app.MetaboliteNulledText.Value{i}) '''']);
     end
     fprintf(fid,'%s',['};']);
 end
@@ -147,17 +149,17 @@ if isempty(app.T1DataText.Value{1})
     fprintf(fid,'\n%s',['files_nii = {};']);
 else
     fprintf(fid,'\n%s',['files_nii = {']);
-    fprintf(fid,'%s',['''' app.T1DataText.Value{1} '''']);
+    fprintf(fid,'%s',['''' strtrim(app.T1DataText.Value{1}) '''']);
     for i=2:app.NumberofdatasetsEditField.Value
         fprintf(fid,'%s',[',...']);
-        fprintf(fid,'\n\t\t%s',[' ' '''' app.T1DataText.Value{i} '''']);
+        fprintf(fid,'\n\t\t%s',[' ' '''' strtrim(app.T1DataText.Value{i}) '''']);
     end
     fprintf(fid,'%s',['};']);
 end
 fprintf(fid,'\n%s','');
 
 fprintf(fid,'\n%s','%%% 4. SPECIFY OUTPUT FOLDER %%%');
-fprintf(fid,'\n%s',['outputFolder = ''' app.OutputFolderEditField.Value ''';']);
+fprintf(fid,'\n%s',['outputFolder = ''' strtrim(app.OutputFolderEditField.Value) ''';']);
 
 fclose(fid);
 
