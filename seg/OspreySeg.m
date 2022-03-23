@@ -183,7 +183,17 @@ for kk = 1:MRSCont.nDatasets
             vol_CSFMask.mat     = vol_mask.mat;
             CSF_voxmask_vol     = CSFvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
             vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
-
+            
+            % Save volume structures in MRSCont
+            if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+                MRSCont.seg.vol_GM{kk} = vol_GMMask;
+                MRSCont.seg.vol_WM{kk} = vol_WMMask;
+                MRSCont.seg.vol_CSF{kk} = vol_CSFMask;
+            else
+                MRSCont.seg.vol_GM{kk}{rr} = vol_GMMask;
+                MRSCont.seg.vol_WM{kk}{rr} = vol_WMMask;
+                MRSCont.seg.vol_CSF{kk}{rr} = vol_CSFMask;
+            end
             % For MRSI data
             if MRSCont.flags.isMRSI
                 GM_MRSI=spm_vol(GMvol);
