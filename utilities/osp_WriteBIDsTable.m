@@ -22,7 +22,7 @@ end
 
 % Write json structure to text file following jsonencode
 fid=fopen([OutLoc,'.json'],'w');
-fprintf(fid, jsonencode(JSON,'PrettyPrint',true)); 
+fprintf(fid, jsonencode(JSON)); 
 fclose(fid);
 
 end
