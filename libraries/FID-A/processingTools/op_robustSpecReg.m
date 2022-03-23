@@ -51,9 +51,6 @@ if in.dims.averages == 0 || in.averages < 2
     out.flags.freqcorrected = 1;
     fs  = 0;
     phs = 0;
-    w = 0;
-    driftPre = 0;
-    driftPost = 0;
     return
 end
 
@@ -324,7 +321,7 @@ end
 
 % Perform weighted averaging
 % No need for 'mean', since the weights vector w is normalized
-fids = squeeze(sum(fids_out, in.dims.averages));
+fids = sum(fids_out, in.dims.averages);
     
 %%% 3. WRITE THE NEW STRUCTURE %%%
 %re-calculate Specs using fft
