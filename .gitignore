@@ -5,3 +5,4 @@ derivatives/
 GUI/SPMpath.mat
 exampledata/bruker
 LogFile.txt
+*.asv

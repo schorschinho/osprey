@@ -142,25 +142,23 @@ for kk = 1:MRSCont.nDatasets
             end
             [maskDir, maskName, maskExt] = fileparts(vol_mask.fname);
 
-            % Create and save masked tissue maps
             % Get the input file name
-            [path,filename,~]   = fileparts(MRSCont.files{kk});
-            % For batch analysis, get the last two sub-folders (e.g. site and
-            % subject)
-            path_split          = regexp(path,filesep,'split');
-            if length(path_split) > 2
-                saveName = [path_split{end-1} '_' path_split{end} '_' filename];
-            end
+            [~,filename,~]   = fileparts(MRSCont.files{kk});
             
+            % <source_entities>[_space-<space>][_res-<label>][_label-<label>][_desc-<label>]_probseg.nii.gz
+            % e.g.
+            % sub-01_acq-press_space-individual_desc-dlpfc_label-GM_probseg.nii.gz
+            saveName = [osp_RemoveSuffix(filename),'_space-scanner']; %CWDJ Check space.
+
             %Add voxel number for DualVoxel
             if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
-                VoxelNum = '_Voxel_1';
+                VoxelNum = '_Voxel-1';
             else
-                VoxelNum = ['_Voxel_' num2str(rr)];
+                VoxelNum = ['_Voxel-' num2str(rr)];
             end
             
             % GM
-            vol_GMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_GM' maskExt]);
+            vol_GMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_label-GM' maskExt]);
             vol_GMMask.descrip  = ['GMmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_GMMask.dim      = vol_mask.dim;
             vol_GMMask.dt       = vol_mask.dt;
@@ -169,7 +167,7 @@ for kk = 1:MRSCont.nDatasets
             vol_GMMask          = spm_write_vol(vol_GMMask, GM_voxmask_vol);
 
             % WM
-            vol_WMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_WM' maskExt]);
+            vol_WMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_label-WM' maskExt]);
             vol_WMMask.descrip  = ['WMmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_WMMask.dim      = vol_mask.dim;
             vol_WMMask.dt       = vol_mask.dt;
@@ -178,7 +176,7 @@ for kk = 1:MRSCont.nDatasets
             vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
 
             % CSF
-            vol_CSFMask.fname   = fullfile(saveDestination, [saveName VoxelNum '_CSF' maskExt]);
+            vol_CSFMask.fname   = fullfile(saveDestination, [saveName VoxelNum '_label-CSF' maskExt]);
             vol_CSFMask.descrip = ['CSFmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_CSFMask.dim     = vol_mask.dim;
             vol_CSFMask.dt      = vol_mask.dt;
@@ -287,14 +285,30 @@ end
 time = toc(refSegTime);
 [~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 MRSCont.runtime.Seg = time;
-%% Create table and csv file
+%% Create table and tsv file
 tissueTypes = {'fGM','fWM','fCSF'};
-%Loop over voxels (for DualVoxel)
 
+%Loop over voxels (for DualVoxel)
 for rr = 1 : Voxels
     tissue = horzcat(MRSCont.seg.tissue.fGM(:,rr),MRSCont.seg.tissue.fWM(:,rr),MRSCont.seg.tissue.fCSF(:,rr));
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = array2table(tissue,'VariableNames',tissueTypes);
-    writetable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]),[saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr) '.csv']);
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = addprop(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), {'VariableLongNames'}, {'variable'}); % add long name to table properties
+    
+    % Populate descriptive fields of table for JSON export
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fGM'} = 'Voxel fraction of grey matter';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fGM'} = 'Normalized fractional volume of grey matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fGM'} = 'arbitrary';
+
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fWM'} = 'Voxel fraction of white matter';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fWM'} = 'Normalized fractional volume of white matter: fWM  = WMsum / (GMsum + WMsum + CSFsum)';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fWM'} = 'arbitrary';
+    
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fCSF'} = 'Voxel fraction of Cerebrospinal Fluid';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fCSF'} = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = CSFsum / (GMsum + WMsum + CSFsum)';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fCSF'} = 'arbitrary';
+
+    % Write the table to a file with json sidecar
+    osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr)])
 end
 
 %% Clean up and save

@@ -41,7 +41,7 @@ osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
 
 
 % Set up saving location
-saveDestination = fullfile(MRSCont.outputFolder, 'VoxelMasks');
+saveDestination = fullfile(MRSCont.outputFolder, 'VoxelMasks'); %CWDJ - Address in future update
 if ~exist(saveDestination,'dir')
     mkdir(saveDestination);
 end
@@ -58,17 +58,15 @@ for kk = 1:MRSCont.nDatasets
     if ~(MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         % Get the input file name
-        [path,filename,~]   = fileparts(MRSCont.files{kk});
+        [~,filename,~]   = fileparts(MRSCont.files{kk});
         % Get the nii file name
         [~,~,T1ext]   = fileparts(MRSCont.files_nii{kk});
-        % For batch analysis, get the last two sub-folders (e.g. site and
-        % subject)
-        path_split          = regexp(path,filesep,'split');
-        if length(path_split) > 2
-            saveName = [path_split{end-1} '_' path_split{end} '_' filename];
-        end
+        
+        %<source_entities>[_space-<space>][_res-<label>][_den-<label>][_label-<label>][_desc-<label>]_mask.nii.gz
+        saveName = [osp_RemoveSuffix(filename),'_space-scanner']; %CWDJ Check space.
+        
         % Generate file name for the voxel mask NIfTI file to be saved under
-        maskFile            = fullfile(saveDestination, [saveName '_VoxelMask.nii']);
+        maskFile            = fullfile(saveDestination, [saveName '_mask.nii']);
 
         %Uncompress .nii.gz if needed
         if strcmp(T1ext,'.gz')
