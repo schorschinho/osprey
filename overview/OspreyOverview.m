@@ -965,54 +965,63 @@ for i = 1 : MRSCont.nDatasets
     subject{i} = [SepFileList{i}{end-1}]; % Create subject name list
 end
 
-if MRSCont.flags.hasStatfile % Has stat csv file
-    statCSV = readtable(MRSCont.file_stat, 'Delimiter', ',','ReadVariableNames',1); % Load it
-    name = statCSV.Properties.VariableNames;
+if MRSCont.flags.hasStatfile % Has stat file
+    statFile = readtable(MRSCont.file_stat, 'Delimiter', ',','ReadVariableNames',1); % Load CSV input
+    name = statFile.Properties.VariableNames;
     group_idx = find(strcmp(name,'group'));
     if isempty(group_idx) % No group supplied so create grand mean only
         MRSCont.overview.groups = ones(MRSCont.nDatasets,1);
         MRSCont.overview.NoGroups = max(MRSCont.overview.groups);
     else %Get grouping variable
-        MRSCont.overview.groups = statCSV{:,group_idx}; 
+        MRSCont.overview.groups = statFile{:,group_idx}; 
         MRSCont.overview.NoGroups = max(MRSCont.overview.groups);
     end
     if  ~strcmp(name,'subject') % No subject names stored in the container
-        
-        if length(subject)>1 && ~strcmp(subject{1},subject{2}) % ADd names according to BIDS with subfolder
+        if length(subject)>1 && ~strcmp(subject{1},subject{2}) % Add names according to BIDS with subfolder
             if ~strcmp(name,'subject')
-                statCSV.subject = subject';
+                statFile.subject = subject';
             end
         else
             if ~strcmp(name,'subject') % Add whole path as BIDS wasn't set up properly
-                statCSV.subject = MRSCont.files';
+                statFile.subject = MRSCont.files';
             end
         end
-        if isfield(MRSCont, 'exclude')
-            exclude = zeros(MRSCont.nDatasets,1);
-            exclude(MRSCont.exclude) = 1;
-            statCSV.exclude = exclude;
-        end
-        writetable(statCSV,[MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],'Delimiter','\t'); % Write names into tsv files
-        movefile([MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],[MRSCont.outputFolder  filesep  'subject_names_and_excluded.tsv']);
-    end
 
+    end
 else % No csv file supplied
     MRSCont.overview.groups = ones(MRSCont.nDatasets,1); %Create a single group
     MRSCont.overview.NoGroups = max(MRSCont.overview.groups);
-    statCSV = array2table(MRSCont.overview.groups,'VariableNames',{'group'});
+    statFile = array2table(MRSCont.overview.groups,'VariableNames',{'group'});
     if length(subject)>1 && ~strcmp(subject{1},subject{2}) %Add names to the csv file
-        statCSV.subject = subject';
+        statFile.subject = subject';
     else
-        statCSV.subject = MRSCont.files';
+        statFile.subject = MRSCont.files';
     end
-    if isfield(MRSCont, 'exclude')
-        exclude = zeros(MRSCont.nDatasets,1);
-        exclude(MRSCont.exclude) = 1;
-        statCSV.exclude = exclude;
-    end
-    writetable(statCSV,[MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],'Delimiter','\t');
-    movefile([MRSCont.outputFolder  filesep  'subject_names_and_excluded.txt'],[MRSCont.outputFolder  filesep  'subject_names_and_excluded.tsv']);
 end
+if isfield(MRSCont, 'exclude') % If exclusions found in MRSCont, add to the table
+    exclude = zeros(MRSCont.nDatasets,1);
+    exclude(MRSCont.exclude) = 1;
+    statFile.exclude = exclude;
+end
+statFile = addprop(statFile, {'VariableLongNames'}, {'variable'}); % add long name to table properties
+% Loop over field names to populate descriptive fields of table for JSON export
+for JJ = 1:length(name)
+    switch name{JJ}
+        case 'subject'
+            statFile.Properties.CustomProperties.VariableLongNames{'subject'} = 'Subject'; %Write properties for json
+            statFile.Properties.VariableDescriptions{'subject'} = 'Subject indetifier';
+            statFile.Properties.VariableUnits{'subject'} = 'arbitrary';
+        case 'group'
+            statFile.Properties.CustomProperties.VariableLongNames{'group'} = 'Group'; %Write properties for json
+            statFile.Properties.VariableDescriptions{'group'} = 'Sub-group the subject belongs to';
+            statFile.Properties.VariableUnits{'group'} = 'arbitrary';
+        case 'exclude'
+            statFile.Properties.CustomProperties.VariableLongNames{'exclude'} = 'Excluded'; %Write properties for json
+            statFile.Properties.VariableDescriptions{'exclude'} = 'Whether to exclude subject';
+            statFile.Properties.VariableUnits{'exclude'} = 'arbitrary';
+    end
+end
+osp_WriteBIDsTable(statFile,[MRSCont.outputFolder  filesep  'subject_names_and_excluded'])
 
 %Exclude datasets based on the exclude field in the MRSConainer. THis can
 %be triggered by pressing the left (remove) and right (add) arrow buttons
@@ -1075,7 +1084,7 @@ if MRSCont.flags.hasStatfile
         MRSCont.overview.corr.Names{cor} = name{cor};
     end
     for cor = 1 : length(name)
-        MRSCont.overview.corr.Meas{cor} = statCSV{:,cor};
+        MRSCont.overview.corr.Meas{cor} = statFile{:,cor};
         if isfield(MRSCont, 'exclude') % Exclude measures 
             if~isempty(MRSCont.exclude)
                 MRSCont.overview.corr.Meas{cor}(MRSCont.exclude) = [];
