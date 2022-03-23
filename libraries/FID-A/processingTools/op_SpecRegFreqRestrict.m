@@ -41,6 +41,12 @@ if nargin < 7
     end
 end
 
+if strcmp(seqType,'HERMES') || strcmp(seqType,'HERMES')
+    [in, ~] = osp_onOffClassifyHERMES(in);
+    ppmMin = [0.5,0.5,1.85,1.85];
+    ppmMax = [3.9,3.8,3.9,3.8];
+end
+
 % Check whether data is coil-combined. If not, throw error.
 if ~in.flags.addedrcvrs
     error('ERROR:  I think it only makes sense to do this after you have combined the channels using op_addrcvrs.  ABORTING!!');
@@ -86,11 +92,12 @@ lsqnonlinopts = optimoptions(lsqnonlinopts,'Display','off','Algorithm','levenber
 % Initialize common variables and loop over sub-spectra
 t                 = in.t;
 input.dwelltime   = in.dwelltime;
+
+for mm=1:numSubSpecs
+
 in_restrict = op_freqrange(in,ppmMin,ppmMax);
 t_restrict                 = in_restrict.t;
-freq        = in_restrict.ppm;
-for mm=1:numSubSpecs
-       
+freq        = in_restrict.ppm;       
     
         DataToAlign = in_restrict.fids(:,:,mm);
         
@@ -261,7 +268,7 @@ end
 
 % Perform weighted averaging
 % No need for 'mean', since the weights vector w is normalized
-fids = sum(fids_out, in.dims.averages);
+fids = squeeze(sum(fids_out, in.dims.averages));
     
 %%% 3. WRITE THE NEW STRUCTURE %%%
 %re-calculate Specs using fft
