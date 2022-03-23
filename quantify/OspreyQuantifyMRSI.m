@@ -305,7 +305,7 @@ MRSCont.runtime.Quantify = time;
 MRSCont.flags.didQuantify           = 1;
 diary off
 % Save the metabolite tables as CSV structure
-% exportCSV (MRSCont,saveDestination, getResults);
+% exportTSV (MRSCont,saveDestination, getResults);
 
 % Save the output structure to the output folder
 % Determine output folder

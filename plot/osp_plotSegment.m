@@ -54,10 +54,10 @@ if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 1))
     segDestination = fullfile(MRSCont.outputFolder, 'SegMaps');
 
     VoxelNum = ['_Voxel_' num2str(VoxelIndex)];
-
-    GM  = fullfile(segDestination, [saveName VoxelNum '_GM.nii']);
-    WM  = fullfile(segDestination, [saveName VoxelNum '_WM.nii']);
-    CSF = fullfile(segDestination, [saveName VoxelNum '_CSF.nii']);
+    
+    GM  = MRSCont.seg.vol_GM{kk}.fname;;
+    WM  = MRSCont.seg.vol_WM{kk}.fname;;
+    CSF = MRSCont.seg.vol_CSF{kk}.fname;;
 
     if exist([GM '.gz'], 'file')
         gunzip([GM '.gz']);
