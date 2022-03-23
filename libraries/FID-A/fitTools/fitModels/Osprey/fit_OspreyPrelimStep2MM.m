@@ -164,10 +164,10 @@ inputSettings.SDSH          = SDSH';
 % Set the hard box constraints for the parameters
 nMets   = resBasisSet.nMets;
 nMM     = resBasisSet.nMM;
-lb_ph0              = -7.5; 
-ub_ph0              = +7.5; % Zero order phase shift [deg]
-lb_ph1              = -2.5; 
-ub_ph1              = +2.5; % First order phase shift [deg/ppm]
+lb_ph0              = -45; 
+ub_ph0              = +45; % Zero order phase shift [deg]
+lb_ph1              = -10; 
+ub_ph1              = +10; % First order phase shift [deg/ppm]
 lb_gaussLB          = 0; 
 ub_gaussLB          = sqrt(5000); % Gaussian dampening [Hz]
 lb_lorentzLB_mets   = zeros(nMets, 1); 

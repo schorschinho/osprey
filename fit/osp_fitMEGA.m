@@ -83,40 +83,6 @@ for kk = 1:MRSCont.nDatasets
             % Save back the basis set and fit parameters to MRSCont
             MRSCont.fit.resBasisSet.diff1{kk}           = resBasisSetDiff1;
             MRSCont.fit.results.diff1.fitParams{kk} = fitParamsDiff1;
-            
-            %Modeling MM spectra after the main spectrum 
-            if MRSCont.flags.hasMM == 1            
-                dataToFit_mm   = MRSCont.processed.diff1_mm{kk};
-                dataToFit_mm   = op_ampScale(dataToFit_mm, 1/MRSCont.fit.scale{kk});
-                %add some info from the metabolite fit
-                dataToFit_mm.lineShape  = fitParamsOff.lineShape;
-                dataToFit_mm.refFWHM  = fitParamsOff.refFWHM;
-                % Extract fit options
-                fitOpts_mm    = MRSCont.opts.fit;
-                fitModel_mm    = fitOpts.method;
-                fitOpts_mm.sequence = 'MEGA';
-                %Specify a reduced basis set for MM modeling
-                %basisSet_mm    = MRSCont.fit.basisSet;
-                %Reduce the size of the basis set
-
-                %Adjust basis set
-                % Clear existing basis set
-                MRSCont.fit.basisSet_mm = [];
-                basisSet_mm = basisSetDiff1;
-                % Generate the list of basis functions that are supposed to be included in
-                % the basis set
-                % To do: Interface with interactive user input
-                metabList_mm = fit_createMetabListMM('MEGA');
-                % Create the modified basis set
-                basisSet_mm = fit_selectMetabs(basisSet_mm, metabList_mm, 0);
-                 % Call the fit function
-                [fitParams_mm, resBasisSet_mm] = fit_runFitMM(dataToFit_mm, basisSet_mm, fitModel_mm, fitOpts_mm);
-                 % Save back the basis set and fit parameters to MRSCont
-                MRSCont.fit.basisSet_mm                    = basisSet_mm;
-                MRSCont.fit.resBasisSet.diff1_mm{kk}         = resBasisSet_mm;
-                MRSCont.fit.results.diff1_mm.fitParams{kk}   = fitParams_mm;
-            end  
-        
         end
     end
 

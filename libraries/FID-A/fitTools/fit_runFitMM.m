@@ -32,17 +32,10 @@ function [fitParams, resBasisSet] = fit_runFitMM(dataToFit, basisSet, fitModel, 
 if nargin<4
     fitOpts = fit_defaultFitOpts(fitModel);
 end
-switch fitOpts.sequence
-    case 'unedited'
-        %Invert the NAA, Cr and CrCH2 peaks
-        basisSet.specs(:,1)=-basisSet.specs(:,1);
-        basisSet.specs(:,2)=-basisSet.specs(:,2);
-        basisSet.specs(:,4)=-basisSet.specs(:,4);
-    case 'MEGA'
-        %Invert the NAA peaks
-        basisSet.specs(:,1)=-basisSet.specs(:,1);
-end
-        
+%Invert the NAA, Cr and CrCH2 peaks
+basisSet.specs(:,1)=-basisSet.specs(:,1);
+basisSet.specs(:,2)=-basisSet.specs(:,2);
+basisSet.specs(:,4)=-basisSet.specs(:,4);
 %%% 1. SELECT THE MODEL %%%
 switch fitModel
     case 'Osprey'
