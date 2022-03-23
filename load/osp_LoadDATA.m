@@ -79,7 +79,9 @@ for kk = 1:MRSCont.nDatasets
         
         if ~MRSCont.flags.hasRef && ~isempty(raw_ref)
             MRSCont.raw_ref_uncomb{kk}  = raw_ref;
-            MRSCont.flags.hasRef = 1;
+            if kk == MRSCont.nDatasets
+                MRSCont.flags.hasRef = 1;
+            end
         else if MRSCont.flags.hasRef
                 [~,raw_ref]=io_loadspec_data(MRSCont.files_ref{kk},1,kk,statFile);
                 MRSCont.raw_ref_uncomb{kk}  = raw_ref;

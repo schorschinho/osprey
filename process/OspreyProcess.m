@@ -65,7 +65,7 @@ NoSubSpec = length(fieldnames(MRSCont.processed));
 for ss = 1 : NoSubSpec
     for kk = 1 : MRSCont.nDatasets
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
-            temp_sz_sw{1,kk} = ['np_sw_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1)) '_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth)];   
+            temp_sz_sw{1,kk} = ['np_sw_' num2str(round(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1))) '_' num2str(round(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth))];   
     end
     [MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth,MRSCont.info.(SubSpecNames{ss}).unique_ndatapoint_spectralwidth_ind,~]  = unique(temp_sz_sw,'Stable');
     [MRSCont.info.(SubSpecNames{ss}).max_ndatapoint,MRSCont.info.(SubSpecNames{ss}).max_ndatapoint_ind] = max(temp_sz);
@@ -78,6 +78,7 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
 else
     MRSCont.plot.processed.match = 0; % Scaling between datasets is turned off by default
 end
+MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad');
 MRSCont = osp_scale_yaxis(MRSCont,'OspreyProcess');
 %% Clean up and save
 % Set exit flags and reorder fields
@@ -85,26 +86,14 @@ MRSCont.flags.didProcess    = 1;
 diary off
 [MRSCont]                   = osp_orderProcessFields(MRSCont);
 
-% Store data quality measures in csv file
-if MRSCont.flags.isUnEdited
+% Tabulate data quality measures and store in a tsv file
+if MRSCont.flags.isUnEdited || MRSCont.flags.isMEGA
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'A'};
     if MRSCont.flags.hasRef
         names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
     end
-elseif MRSCont.flags.isMEGA
-    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
-    subspec = {'A'};
-    if MRSCont.flags.hasRef
-        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end
-elseif MRSCont.flags.isHERMES
-    names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
-    subspec = {'sum'};
-    if MRSCont.flags.hasRef
-        names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
-    end
-elseif MRSCont.flags.isHERCULES
+elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
     % For now, process HERCULES like HERMES data
     names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
     subspec = {'sum'};
@@ -124,7 +113,36 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         QM = horzcat(MRSCont.QM.SNR.(subspec{1})',MRSCont.QM.FWHM.(subspec{1})',MRSCont.QM.FWHM.ref',MRSCont.QM.res_water_amp.(subspec{1})',MRSCont.QM.freqShift.(subspec{1})');
     end
     MRSCont.QM.tables = array2table(QM,'VariableNames',names);
-    writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
+
+    MRSCont.QM.tables = addprop(MRSCont.QM.tables, {'VariableLongNames'}, {'variable'}); % add long name to table properties
+    % Loop over field names to populate descriptive fields of table for JSON export
+    for JJ = 1:length(names)
+        switch names{JJ}
+            case 'NAA_SNR'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'NAA_SNR'} = 'Signal to noise ratio of NAA';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'NAA_SNR'} = 'The maximum amplitude of the NAA peak divided by twice the standard deviation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'NAA_SNR'} = 'arbitrary';
+            case 'NAA_FWHM'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'NAA_FWHM'} = 'Full width at half maximum of NAA';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'NAA_FWHM'} = 'The width of the NAA peak at half the maximum amplitude';
+                MRSCont.QM.tables.Properties.VariableUnits{'NAA_FWHM'} = 'Hz'; %CWDJ???
+            case 'water_FWHM'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'water_FWHM'} = 'Full width at half maximum of reference water peak';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'water_FWHM'} = 'The width of the water peak at half the maximum amplitude';
+                MRSCont.QM.tables.Properties.VariableUnits{'water_FWHM'} = 'Hz'; %CWDJ???
+            case 'residual_water_ampl'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'residual_water_ampl'} = 'Residual water amplitude';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'residual_water_ampl'} = 'The ammount of signal remaining after attempting water subtraction';
+                MRSCont.QM.tables.Properties.VariableUnits{'residual_water_ampl'} = 'arbitrary';
+            case 'freqShift'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'freqShift'} = 'Frequency shift';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'freqShift'} = 'Frequency shift'; %CWDJ Need full description
+                MRSCont.QM.tables.Properties.VariableUnits{'freqShift'} = 'PPM'; %CWDJ???
+        end
+    end
+
+    % Write .tsv file and .json sidecar
+    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'])
 end
 
 % Optional:  Create all pdf figures

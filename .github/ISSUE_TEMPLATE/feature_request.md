@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest a function that LCGannet should have
+about: Suggest a function that Osprey should have
 title: "[FEATURE REQUEST]"
 labels: enhancement, help wanted
 assignees: ''

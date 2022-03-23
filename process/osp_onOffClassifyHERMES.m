@@ -92,18 +92,33 @@ for ll = 1:4
     
 end
 
-% Determine the sub-spectra indices belonging to each editing pattern
-idx_OFF_OFF = ~second.ON & ~first.ON;
-idx_ON_OFF  = second.ON & ~first.ON;
-idx_OFF_ON  = ~second.ON & first.ON;
-idx_ON_ON   = second.ON & first.ON;
+try
+    % Determine the sub-spectra indices belonging to each editing pattern
+    idx_OFF_OFF = ~second.ON & ~first.ON;
+    idx_ON_OFF  = second.ON & ~first.ON;
+    idx_OFF_ON  = ~second.ON & first.ON;
+    idx_ON_ON   = second.ON & first.ON;
+    % Commute for output
+    inputVars = {'inA', 'inB', 'inC', 'inD'};
+    eval(['outA = ' inputVars{idx_OFF_OFF} ';']);
+    eval(['outB = ' inputVars{idx_ON_OFF} ';']);
+    eval(['outC = ' inputVars{idx_OFF_ON} ';']);
+    eval(['outD = ' inputVars{idx_ON_ON} ';']);
+catch
+    disp('HERMES classifier does not recognize the subspectra. You can change the ordering in osp_onOFFClassifyHERMES.m');
+    % Determine the sub-spectra indices belonging to each editing pattern
+    idx_OFF_OFF = logical([0 1 0 0]);
+    idx_ON_OFF  = logical([0 0 0 1]);
+    idx_OFF_ON  = logical([1 0 0 0]);
+    idx_ON_ON   = logical([0 0 1 0]);
 
-% Commute for output
-inputVars = {'inA', 'inB', 'inC', 'inD'};
-eval(['outA = ' inputVars{idx_OFF_OFF} ';']);
-eval(['outB = ' inputVars{idx_ON_OFF} ';']);
-eval(['outC = ' inputVars{idx_OFF_ON} ';']);
-eval(['outD = ' inputVars{idx_ON_ON} ';']);
+    % Commute for output
+    inputVars = {'inA', 'inB', 'inC', 'inD'};
+    eval(['outA = ' inputVars{idx_OFF_OFF} ';']);
+    eval(['outB = ' inputVars{idx_ON_OFF} ';']);
+    eval(['outC = ' inputVars{idx_OFF_ON} ';']);
+    eval(['outD = ' inputVars{idx_ON_ON} ';']);
+end
 
 % Save commute order
 commuteOrder = [find(idx_OFF_OFF), find(idx_ON_OFF), find(idx_OFF_ON), find(idx_ON_ON)];

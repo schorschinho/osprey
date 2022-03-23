@@ -24,7 +24,6 @@ function osp_updatecorrOvWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
             MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
-            rmpath(genpath([gui.folder.spmversion filesep]));
             delete(gui.Plot.corrOv.Children(3).Children)
             Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
             split_Selection = strsplit(Selection,'-');  
@@ -90,6 +89,5 @@ function osp_updatecorrOvWindow(gui)
                     set(gui.Plot.corrOv.Children(3).Title, 'String', ['Voxel ' num2str(gui.controls.act_x) ' ' gui.overview.Names.Corr{gui.overview.Selected.Corr} ' vs ' metab]) %Update title
                 end
             end
-            addpath(genpath([gui.folder.spmversion filesep]));
         setappdata(gui.figure,'MRSCont',MRSCont); %Write  MRSCont into hidden container in gui class            
 end

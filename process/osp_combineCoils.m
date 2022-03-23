@@ -84,7 +84,7 @@ else
             raw_ref_comb        = op_addrcvrs(MRSCont.raw_ref_uncomb{kk},1,'h',cweights);
             MRSCont.raw{kk}     = raw_comb;
             MRSCont.raw_ref{kk} = raw_ref_comb;
-            if MRSCont.raw_ref{kk}.subspecs > 1
+            if MRSCont.raw_ref{kk}.subspecs > 1 && (length(size(MRSCont.raw_ref{kk}.fids)) > 2)
                 if MRSCont.flags.isMEGA
                     raw_ref_A               = op_takesubspec(MRSCont.raw_ref{kk},1);
                     raw_ref_B               = op_takesubspec(MRSCont.raw_ref{kk},2);
@@ -96,6 +96,9 @@ else
                     raw_ref_D               = op_takesubspec(MRSCont.raw_ref{kk},4);                    
                     MRSCont.raw_ref{kk} = op_concatAverages(op_concatAverages(raw_ref_A,raw_ref_B),op_concatAverages(raw_ref_C,raw_ref_D));
                 end
+            else
+                MRSCont.raw_ref{kk}.subspecs = 1;
+                MRSCont.raw_ref{kk}.dims.subSpecs=0;
             end
         catch
         % if wrong number of channels etc, use the metabolite scan itself
@@ -105,7 +108,7 @@ else
             cweights            = op_getcoilcombos(MRSCont.raw_ref_uncomb{kk},1,'h');
             raw_ref_comb        = op_addrcvrs(MRSCont.raw_ref_uncomb{kk},1,'h',cweights);
             MRSCont.raw_ref{kk} = raw_ref_comb;    
-            if MRSCont.raw_ref{kk}.subspecs > 1
+            if MRSCont.raw_ref{kk}.subspecs > 1 && (length(size(MRSCont.raw_ref{kk}.fids)) > 2)
                 if MRSCont.flags.isMEGA
                     raw_ref_A               = op_takesubspec(MRSCont.raw_ref{kk},1);
                     raw_ref_B               = op_takesubspec(MRSCont.raw_ref{kk},2);
@@ -117,6 +120,9 @@ else
                     raw_ref_D               = op_takesubspec(MRSCont.raw_ref{kk},4);                    
                     MRSCont.raw_ref{kk} = op_concatAverages(op_concatAverages(raw_ref_A,raw_ref_B),op_concatAverages(raw_ref_C,raw_ref_D));
                 end
+            else
+                MRSCont.raw_ref{kk}.subspecs = 1;
+                MRSCont.raw_ref{kk}.dims.subSpecs=0;
             end
         end
     else

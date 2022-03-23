@@ -56,7 +56,11 @@ geometry.rot.NormSag        = DicomHeader.NormSag; % Sagittal component of norma
 geometry.rot.NormTra        = DicomHeader.NormTra; % Transversal component of normal vector of voxel
 
 % Preallocate array in which the FIDs are to be extracted.
-fids = zeros(DicomHeader.vectorSize,length(filesInFolder));
+if  DicomHeader.removeOS ~= 3
+    fids = zeros(DicomHeader.vectorSize,length(filesInFolder));
+else
+    fids = zeros(DicomHeader.vectorSize*2,length(filesInFolder));
+end
 % Collect all FIDs and sort them into fids array
 for kk = 1:length(filesInFolder)
     
@@ -245,7 +249,11 @@ specs=fftshift(fft(fids,[],dims.t),dims.t);
 
 %Now get relevant scan parameters:*****************************
 Bo = DicomHeader.B0;
-dwelltime = DicomHeader.dwellTime * 1e-9 * 2; % DICOM contain data with removed oversampling
+if  DicomHeader.removeOS ~= 3
+    dwelltime = DicomHeader.dwellTime * 1e-9 * 2; % DICOM contain data with removed oversampling
+else
+    dwelltime = DicomHeader.dwellTime * 1e-9; % DICOM with oversampled data
+end
 %Calculate Dwell Time
 spectralwidth=1/dwelltime;
 

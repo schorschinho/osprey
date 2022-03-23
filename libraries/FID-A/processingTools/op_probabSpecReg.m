@@ -8,7 +8,7 @@ if nargin <5
     if nargin <4
         F0 = nan;
         if nargin < 2
-            echo = 1;
+            echo = 1;    
         end
     end
 end
@@ -82,18 +82,13 @@ end
 for mm=1:numSubSpecs
     clear m;
     freq        = in.ppm;
-
     DataToAlign = in.fids(:,:,mm);
-
-
     % Use first n points of time-domain data, where n is the last point where SNR > 3
     signal = abs(DataToAlign(:,mm));
     noise = 2*std(signal(ceil(0.75*size(signal,1)):end,:));
     SNR = signal ./ repmat(noise, [size(DataToAlign,1) 1]);
     SNR = abs(diff(mean(SNR,2)));
-
     %SNR = abs(diff(mean(SNR,2))); This is how it's done in RobSpecReg
-
 %     n = find(SNR > 1.5); % This is original Gannet
 %     if isempty(n)
 %         tMax = 100;
@@ -121,7 +116,6 @@ for mm=1:numSubSpecs
 
     % Scalar to normalize transients (reduces optimization time)
     a = max(abs(target));
-
     % Pre-allocate memory
     if mm == 1
         params = zeros(size(flatdata,3), 2);
@@ -140,6 +134,7 @@ for mm=1:numSubSpecs
 
     % Starting values for optimization
     if isnan(F0)
+
         f0 = F0freq * in.txfrq * 1e-6;
         f0 = f0 - f0(1);
     else
@@ -148,7 +143,6 @@ for mm=1:numSubSpecs
     end
     phi0 = zeros(size(f0));
     x0 = [f0(:) phi0(:)];
-
 
     % Determine frequency and phase offsets by spectral registration
      if noAlign == 0
@@ -185,7 +179,6 @@ for mm=1:numSubSpecs
         phs(:,mm) = params(:,2);
     end
 
-
     % Probability distribution of frequency offsets (estimated by maximum likelihood)
     start = [iqr(fs(:,mm))/2, median(fs(:,mm))];
     [fs_p(:,mm), fs_p_ci(:,:,mm)] = ...
@@ -202,8 +195,9 @@ for mm=1:numSubSpecs
         linspace(1.5*min(phs(:,mm)), 1.5*max(phs(:,mm)), 1e3);
     phs_pdf(:,mm) = Cauchy(phs_fx(:,mm), phs_p(1,mm), phs_p(2,mm));
 
-
+             
     zMSE = zscore(MSE); % standardized MSEs
+    
 
     % Apply frequency and phase corrections
      for jj = 1:size(flatdata,3)
@@ -215,9 +209,6 @@ for mm=1:numSubSpecs
         fids(:,jj,mm) = in.fids(:,jj,mm) .* ...
             exp(1i*(params(jj,1)-fs_p(2))*2*pi*t') * exp(1i*pi/180*(params(jj,2)-phs_p(2)));
      end
-
-
-
 end
 
 if echo
@@ -263,14 +254,14 @@ for mm=1:numSubSpecs
     end
     d = nanmedian(D);
     if isnan(sum(d))
+
         d(isnan(d)) = 1;
     end
     w{mm} = 1./d.^2;
     w{mm} = w{mm}/sum(w{mm});
     w{mm} = repmat(w{mm}, [size(DataToWeight,1) 1]);
-
-
-
+        
+    
     % Apply the weighting
 fids_out(:,:,mm) = w{mm} .* DataToWeight;
 
@@ -282,15 +273,14 @@ end
 %     w{mm} = zMSE < 3;
 %     w{mm} = w{mm}/sum(w{mm});
 %     w{mm} = repmat(w{mm}, [size(DataToWeight,1) 1]);
-%
+%         
 %     % Apply the weighting
 %     fids_out(:,:,mm) = w{mm} .* DataToWeight;
-%
 % end
 
 % Perform weighted averaging
 % No need for 'mean', since the weights vector w is normalized
-fids = sum(fids_out, in.dims.averages);
+fids = squeeze(sum(fids_out, in.dims.averages));
 
 %%% 3. WRITE THE NEW STRUCTURE %%%
 %re-calculate Specs using fft
@@ -354,3 +344,4 @@ fid = [real(fid); imag(fid)];
 out = target - fid;
 
 end
+

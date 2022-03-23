@@ -281,13 +281,13 @@ function osp_onPrint( ~, ~ ,gui)
                     waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                     % Where are the metabolite names stored?
                     if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                 else if strcmp(gui.fit.Style, 'conc')
-                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                     else if strcmp(gui.fit.Style, 'off')
-                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                         else
-                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.A{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.A{1}.spectralwidth)]).name;
+                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
                         end
                     end
                 end
@@ -457,7 +457,7 @@ function osp_onPrint( ~, ~ ,gui)
                                 if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                                     RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                                 else
-                                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                                 end
                             case 'LCModel'
                         end
@@ -627,7 +627,6 @@ function osp_onPrint( ~, ~ ,gui)
             outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyFit_' gui.fit.Style '_' Selection '.pdf'];
         case 4 %Coreg/Seg
             outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyCoregSeg');
-            addpath(genpath([gui.folder.spmversion filesep])); % Add SPM  path
             [~,filename,~]  = fileparts(MRSCont.files{gui.controls.Selected});
             
             % Creates layout for plotting and data control
@@ -686,7 +685,6 @@ function osp_onPrint( ~, ~ ,gui)
                 VoxelIndex = gui.controls.act_x;
             end
             outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyCoregSeg.pdf'];
-            rmpath(genpath([gui.folder.spmversion filesep])); %Remove SPM path
         case 6 %Overview
             ovSelection = get(gui.layout.overviewTab, 'Selection');
             set(Info,'Title', 'Descriptive Information');

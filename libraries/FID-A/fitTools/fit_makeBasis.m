@@ -89,7 +89,11 @@ for kk = 1:nMets
     buffer.n(kk)                = temp.(basisFct{1}).sz(1);
     buffer.linewidth(kk)        = temp.(basisFct{1}).linewidth;
     buffer.Bo(kk)               = temp.(basisFct{1}).Bo;
-    buffer.seq{kk}              = temp.(basisFct{1}).seq;
+    if iscell(temp.(basisFct{1}).seq)
+        buffer.seq{kk}              = temp.(basisFct{1}).seq{1};
+    else
+        buffer.seq{kk}              = temp.(basisFct{1}).seq;
+    end
     if isfield(temp.(basisFct{1}),'name')
         buffer.name{kk}             = temp.(basisFct{1}).name;
     else

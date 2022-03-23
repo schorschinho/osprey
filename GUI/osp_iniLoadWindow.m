@@ -215,8 +215,8 @@ function osp_iniLoadWindow(gui)
         if t == 1 %Metabolite data/tab
             temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
             if MRSCont.flags.isUnEdited % One window for UnEdited
-                ViewAxes = gca();
-                set( ViewAxes, 'Parent', gui.Plot.data{t} );
+                drawnow
+                set( temp.Children(1), 'Parent', gui.Plot.data{t} );
             end
             if MRSCont.flags.isMEGA %Two windows for MEGA
                 set( temp.Children(2), 'Parent', gui.Plot.data{t} );
@@ -253,8 +253,8 @@ function osp_iniLoadWindow(gui)
             if MRSCont.flags.hasMM %re_mm
                 if t == 2 %ref data/tab %re_mm
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm'); %re_mm
-                    ViewAxes = gca(); %re_mm
-                    set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
+                    drawnow
+                    set( temp.Children(1), 'Parent', gui.Plot.data{t} ); %re_mm
                 end %re_mm
                 if t == 3 %ref data/tab %re_mm
                     if MRSCont.flags.hasRef%re_mm
@@ -262,29 +262,29 @@ function osp_iniLoadWindow(gui)
                     else%re_mm
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w'); %re_mm
                     end%re_mm
-                    ViewAxes = gca(); %re_mm
-                    set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
+                    drawnow
+                    set( temp.Children(1), 'Parent', gui.Plot.data{t} ); %re_mm
                 end %re_mm
                 if t == 4 %ref data/tab %re_mm
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w'); %re_mm
-                    ViewAxes = gca(); %re_mm
-                    set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
+                    drawnow
+                    set( temp.Children(1), 'Parent', gui.Plot.data{t} ); %re_mm
                 end %re_mm
             else %re_mm
                 if t == 2 %ref data/tab
                     if MRSCont.flags.hasRef
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref');
-                        ViewAxes = gca();
-                        set( ViewAxes, 'Parent', gui.Plot.data{t} );
+                        drawnow
+                        set( temp.Children(1), 'Parent', gui.Plot.data{t} );
                     elseif MRSCont.flags.hasWater
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
-                        ViewAxes = gca();
-                        set( ViewAxes, 'Parent', gui.Plot.data{t} );
+                        drawnow
+                        set( temp.Children(1), 'Parent', gui.Plot.data{t} );
                     end
                 else %water data/tab has only one window all the time
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w');
-                    ViewAxes = gca();
-                    set(ViewAxes, 'Parent', gui.Plot.data{t} );
+                    drawnow
+                    set(temp.Children(1), 'Parent', gui.Plot.data{t} );
                 end
             end %re_mm
         end

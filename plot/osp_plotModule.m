@@ -178,8 +178,8 @@ switch Module
             outputFile      = [filename '_OspreyLoad_mets.pdf'];
             temp = osp_plotLoad(MRSCont, kk,'mets' );
             if MRSCont.flags.isUnEdited % One window for UnEdited
-                ViewAxes = gca();
-                set( ViewAxes, 'Parent', Plot );
+                drawnow;
+                set( temp.Children(1), 'Parent', Plot );
             end
             if MRSCont.flags.isMEGA %Two windows for MEGA
                 set( temp.Children(2), 'Parent', Plot );
@@ -214,13 +214,13 @@ switch Module
 
         else if strcmp(which,'ref') %ref data/tab
                 temp = osp_plotLoad(MRSCont, kk,'ref' );
-                ViewAxes = gca();
-                set( ViewAxes, 'Parent', Plot );
+                drawnow
+                set( temp.Children(1), 'Parent', Plot );
                 outputFile      = [filename '_OspreyLoad_ref.pdf'];
             else %water data/tab has only one window all the time
                 temp = osp_plotLoad(MRSCont, kk,'w');
-                ViewAxes = gca();
-                set(ViewAxes, 'Parent', Plot );
+                drawnow
+                set(temp.Children(1), 'Parent', Plot );
                 outputFile      = [filename '_OspreyLoad_w.pdf'];
             end
         end
@@ -285,17 +285,17 @@ switch Module
 
         % Get parameter from file to fill the info panel
         if (strcmp(which,'A') || strcmp(which,'B') || strcmp(which,'C') || strcmp(which,'D') || strcmp(which,'diff1') || strcmp(which,'diff2') || strcmp(which,'sum'))
-            StatText = ['Metabolite Data -> SNR(' SNR '): '  num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM: '...
-                num2str(MRSCont.QM.FWHM.(which)(kk)) ' / ' (num2str(MRSCont.QM.FWHM.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6))...
+            StatText = ['Metabolite Data -> SNR(' SNR '): '  num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM (' SNR '): ' ...
+                num2str(MRSCont.QM.FWHM.(which)(kk)) ' / ' (num2str(MRSCont.QM.FWHM.(which)(kk)/MRSCont.processed.(which){kk}.txfrq*1e6))...
                 ' ppm / Hz \nReference shift: ' num2str(MRSCont.QM.freqShift.(which)(kk)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6)...
                 ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6) ' Hz'];
         else if strcmp(which,'ref')
-                StatText = ['Reference Data -> SNR(' SNR '): ' num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM: '...
-                    num2str(MRSCont.QM.FWHM.(which)(kk)) ' / ' (num2str(MRSCont.QM.FWHM.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6))...
+                StatText = ['Reference Data -> SNR(' SNR '): ' num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM (' SNR '): '...
+                    num2str(MRSCont.QM.FWHM.(which)(kk)) ' / ' (num2str(MRSCont.QM.FWHM.(which)(kk)/MRSCont.processed.(which){kk}.txfrq*1e6))...
                     ' ppm / Hz'];
             else
-                StatText = ['Water Data -> SNR(' SNR '): ' num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM: '...
-                    num2str(MRSCont.QM.FWHM.(which)(kk)) '/' (num2str(MRSCont.QM.FWHM.(which)(kk)*MRSCont.processed.(which){kk}.txfrq/1e6))...
+                StatText = ['Water Data -> SNR(' SNR '): ' num2str(MRSCont.QM.SNR.(which)(kk)) '; FWHM (' SNR '): '...
+                    num2str(MRSCont.QM.FWHM.(which)(kk)) '/' (num2str(MRSCont.QM.FWHM.(which)(kk)/MRSCont.processed.(which){kk}.txfrq*1e6))...
                     ' ppm / Hz'];
             end
         end
@@ -478,7 +478,7 @@ switch Module
                         if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                             RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk});
                         else
-                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk});
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk});
                         end
                     case 'LCModel'
                 end
@@ -614,6 +614,7 @@ switch Module
                 end
             end
         end
+        drawnow
         set(fig_hold.Children, 'Parent', Plot );
     case 'OspreyMeanOverview' %MeanOverview
         set(Info,'Title', 'Descriptive Information');
@@ -646,6 +647,7 @@ switch Module
                 fig_hold = osp_plotMeanSpec(MRSCont, which,g);
             end
         end
+        drawnow
         set(fig_hold.Children,'Children',flipud(fig_hold.Children.Children));
         set(fig_hold.Children, 'Parent', Plot );
         close(fig_hold);
@@ -738,7 +740,7 @@ out.PaperSize = [fig_pos(3) fig_pos(4)];
 saveas(out,fullfile(outputFolder,outputFile),'pdf');
 h = findall(groot,'Type','figure');
 for ff = 1 : length(h)
-    if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar') || strcmp(h(ff).Tag, 'MainFigure'))
+    if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
         close(h(ff))
     end
 end

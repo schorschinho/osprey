@@ -68,6 +68,9 @@ for kk = 1:MRSCont.nDatasets
                     end
                 end
                 switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                    case 'ProbSpecReg'
+                        [raw, fs, phs, weights, driftPre, driftPost]   = op_probabSpecReg(raw, 'MEGA', 0,refShift_ind_ini);
+                  
                     case 'RobSpecReg'
                         [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'MEGA', 0,refShift_ind_ini); % Align and average
                     case 'RestrSpecReg'
@@ -90,7 +93,7 @@ for kk = 1:MRSCont.nDatasets
             % Finally, apply some linebroadening. High-quality in-vitro
             % data may have linewidth lower than the simulated basis set
             % data.
-            raw = op_filter(raw, 6);
+            raw = op_filter(raw, 2);
                 switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
                     case 'none'
                         [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'MEGA', 0,refShift_ind_ini,1); % Align and average  
@@ -118,7 +121,7 @@ for kk = 1:MRSCont.nDatasets
                 % referencing steps are performed in the later stages of
                 % post-processing and modelling, but we want the prominent singlets
                 % to appear within 0.1 ppm of their expected in-vivo positions.
-                phantomShiftPPM = 0.15 * raw.txfrq*1e-6;
+                phantomShiftPPM = 0.2 * raw.txfrq*1e-6;
                 raw = op_freqshift(raw, -phantomShiftPPM);
                 % Finally, apply some linebroadening. High-quality in-vitro
                 % data may have linewidth lower than the simulated basis set
@@ -232,11 +235,14 @@ for kk = 1:MRSCont.nDatasets
         % Generate the frequency and phase plots for the entire experiment in
         % the correct order
         fs = [raw_A.specReg.fs, raw_B.specReg.fs]';
-        fs = reshape(fs, [raw.rawAverages, 1]);
         phs = [raw_A.specReg.phs, raw_B.specReg.phs]';
-        phs = reshape(phs, [raw.rawAverages, 1]);
         weights = [raw_A.specReg.weights, raw_B.specReg.weights]';
-        weights = reshape(weights, [raw.rawAverages, 1]);
+        if raw.rawAverages ~= 1
+            fs = reshape(fs, [raw.rawAverages, 1]);
+            phs = reshape(phs, [raw.rawAverages, 1]);
+            weights = reshape(weights, [raw.rawAverages, 1]);
+        end
+        
         MRSCont.raw{kk}.specReg.fs              = fs; % save align parameters
         MRSCont.raw{kk}.specReg.phs             = phs; % save align parameters
         MRSCont.raw{kk}.specReg.weights             = weights; % save align parameters 
@@ -252,7 +258,8 @@ for kk = 1:MRSCont.nDatasets
         raw_B = op_freqshift(raw_B, -refShift_SubSpecAlign);
         % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
         % with the negative phase of that fit
-        [raw_A,~]       = op_phaseCrCho(raw_A, 1);
+        [raw_A,ph]       = op_phaseCrCho(raw_A, 1);
+        raw_B     = op_addphase(raw_B, -ph*180/pi, 0, raw_B.centerFreq, 1);   
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
         
@@ -260,9 +267,7 @@ for kk = 1:MRSCont.nDatasets
             case 'L1Norm'
             [raw_A, raw_B]  = osp_editSubSpecAlignLNorm(raw_A, raw_B);
             case 'L2Norm'
-            [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);
-            otherwise
-                
+            [raw_A, raw_B]  = osp_editSubSpecAlign(raw_A, raw_B, target,MRSCont.opts.UnstableWater);                 
         end
         
 
