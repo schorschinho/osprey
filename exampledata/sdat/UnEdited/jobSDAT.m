@@ -92,15 +92,16 @@ dataScenario = 'invivo';        % OPTIONS:    - 'invivo' (default)
 % Which spectral registration method should be used? Robust spectral
 % registration is default, a frequency restricted spectral registration
 % method is also availaible and is linked to the fit range. 
-opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (default)
-                                              %             - 'RestrSpecReg'
+opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (default) Spectral aligment with Water/Lipid removal, using simialrity meric, and weighted averaging
+                                              %             - 'ProbSpecReg' Probabilistic spectral aligment to median target and weighted averaging
+                                              %             - 'RestrSpecReg' Frequency restricted (fit range) spectral aligment, using simialrity meric, and weighted averaging
                                               %             - 'none'
 
 % Which algorithm do you want to align the sub spectra? L2 norm
 % optimazation is the default. This is only used for edited MRS!
-opts.SubSpecAlignment = 'L2Norm';               % OPTIONS:    - 'L2Norm' (default)
-                                                %             - 'L1Norm'
-                                                %             - 'none'     
+opts.SubSpecAlignment = 'L2Norm';               % OPTIONS:    - 'L2Norm' (default) Minimizes the target peak in the difference spectrum (depends on sequence and editing target)
+                                                %             - 'L1Norm' Minimizes the sum(abs(difference spectrum)) between 1.95 and 4 ppm
+                                                %             - 'none'   
 
 % Save LCModel-exportable files for each spectrum?
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
@@ -118,7 +119,7 @@ opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Save PDF output for all Osprey modules and subjects?
-opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
+opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)                                                
                                                 
 % Select the metabolites to be included in the basis set as a cell array,
@@ -260,7 +261,9 @@ end
 % the number of included groups. If no group is supplied the data will be
 % treated as one group. (You can always use the direct path)
 
-file_stat = fullfile(data_folder, 'stat.csv');
+% file_stat = fullfile(data_folder, 'stat.csv');
+file_stat = '';
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 5. SPECIFY OUTPUT FOLDER %%
 % The Osprey data container will be saved as a *.mat file in the output

@@ -91,14 +91,15 @@ dataScenario = 'invivo';        % OPTIONS:    - 'invivo' (default)
 % Which spectral registration method should be used? Robust spectral
 % registration is default, a frequency restricted spectral registration
 % method is also availaible and is linked to the fit range. 
-opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (default)
-                                              %             - 'RestrSpecReg'
-                                              %             - 'none'                                             
+opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (default) Spectral aligment with Water/Lipid removal, using simialrity meric, and weighted averaging
+                                              %             - 'ProbSpecReg' Probabilistic spectral aligment to median target and weighted averaging
+                                              %             - 'RestrSpecReg' Frequency restricted (fit range) spectral aligment, using simialrity meric, and weighted averaging
+                                              %             - 'none'
 
 % Which algorithm do you want to align the sub spectra? L2 norm
 % optimazation is the default. This is only used for edited MRS!
-opts.SubSpecAlignment = 'L2Norm';               % OPTIONS:    - 'L2Norm' (default)
-                                                %             - 'L1Norm'
+opts.SubSpecAlignment = 'L2Norm';               % OPTIONS:    - 'L2Norm' (default) Minimizes the target peak in the difference spectrum (depends on sequence and editing target)
+                                                %             - 'L1Norm' Minimizes the sum(abs(difference spectrum)) between 1.95 and 4 ppm
                                                 %             - 'none'  
                                                 
 % Save LCModel-exportable files for each spectrum?
@@ -114,6 +115,10 @@ opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
                                                 
 % Save processed spectra in NIfTI-MRS format?
 opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+
+% Save PDF output for all Osprey modules and subjects?
+opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Choose the fitting algorithm
