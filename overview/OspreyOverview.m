@@ -997,6 +997,7 @@ else % No csv file supplied
     else
         statFile.subject = MRSCont.files';
     end
+    name = statFile.Properties.VariableNames;
 end
 if isfield(MRSCont, 'exclude') % If exclusions found in MRSCont, add to the table
     exclude = zeros(MRSCont.nDatasets,1);
