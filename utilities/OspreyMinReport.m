@@ -81,7 +81,11 @@ else
     fprintf(fid,'|c. Nominal VOI size [mm<sup>3</sup>]| - x - x - mm<sup>3</sup>| \n');
 end
 fprintf(fid,'|d. Repetition time (TR), echo time (TE) [ms]| TR %d ms, TE %d ms| \n', MRSCont.raw{1}.tr, MRSCont.raw{1}.te);
-fprintf(fid,'|e. Total number of averages per spectrum <br> i. Number of averaged specra per subspectrum | %d total averages with %d averages per subspectrum| \n', MRSCont.raw{1}.rawAverages,MRSCont.raw{1}.rawAverages/MRSCont.raw{1}.rawSubspecs);
+try
+    fprintf(fid,'|e. Total number of averages per spectrum <br> i. Number of averaged specra per subspectrum | %d total averages with %d averages per subspectrum| \n', MRSCont.raw{1}.rawAverages,MRSCont.raw{1}.rawAverages/MRSCont.raw{1}.rawSubspecs);
+catch
+    fprintf(fid,'|e. Total number of averages per spectrum <br> i. Number of averaged specra per subspectrum | %d total averages with %d averages per subspectrum| \n', MRSCont.raw{1}.rawAverages,MRSCont.raw{1}.rawAverages);
+end
 if MRSCont.flags.isUnEdited
     fprintf(fid,'|f. Additional sequence parameters | F1: %d Hz, %d points| \n', MRSCont.raw{1}.spectralwidth,MRSCont.raw{1}.sz(1));
 else if MRSCont.flags.isMEGA
@@ -128,7 +132,11 @@ if MRSCont.flags.isMEGA
     strings = fieldnames(MRSCont.quantify.tables.off);
 end
 if  MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    strings = fieldnames(MRSCont.quantify.tables.sum);
+    if strcmp(MRSCont.opts.fit.style,'Separate')
+        strings = fieldnames(MRSCont.quantify.tables.sum);
+    else
+        strings = fieldnames(MRSCont.quantify.tables.conc);
+    end
 end
 outs = '';
 for ss = 1 : length(strings)
@@ -145,10 +153,18 @@ if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
         includeMetabs = MRSCont.fit.resBasisSet.off.(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
     end
     if MRSCont.flags.isMEGA
-        includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
+        if strcmp(MRSCont.opts.fit.style,'Separate')
+            includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
+        else
+            includeMetabs = MRSCont.fit.resBasisSet.conc.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
+        end
     end
     if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-        includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
+         if strcmp(MRSCont.opts.fit.style,'Separate')
+            includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
+         else
+             includeMetabs = MRSCont.fit.resBasisSet.conc.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
+         end
     end
     for ss = 1 : length(includeMetabs)
         if br < 10

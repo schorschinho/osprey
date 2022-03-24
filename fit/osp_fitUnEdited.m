@@ -34,12 +34,12 @@ else
     progressText = '';
 end
 for kk = 1:MRSCont.nDatasets
-    
-        
+
+
     % ----- Osprey fit pipeline -----
     if strcmpi(MRSCont.opts.fit.method, 'Osprey')
-        [~] = printLog('OspreyFit', kk, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI);    
-        
+        [~] = printLog('OspreyFit', kk, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI);
+
         if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             % Apply scaling factor to the data
             dataToFit   = MRSCont.processed.A{kk};
@@ -47,7 +47,7 @@ for kk = 1:MRSCont.nDatasets
             % Extract fit options
             fitOpts     = MRSCont.opts.fit;
             fitModel    = fitOpts.method;
-            
+
             % If MRSI data load priors
             if MRSCont.flags.isMRSI
                 if isfield(MRSCont.fit, 'results')
@@ -57,11 +57,11 @@ for kk = 1:MRSCont.nDatasets
                     fitOpts.MRSIpriors = fitParamsOff;
                 end
             end
-            
+
             % Call the fit function
             basisSet    = MRSCont.fit.basisSet;
             [fitParams, resBasisSet] = fit_runFit(dataToFit, basisSet, fitModel, fitOpts);
-            
+
             % Save back the basis set and fit parameters to MRSCont
             MRSCont.fit.basisSet                    = basisSet;
             MRSCont.fit.resBasisSet.off{kk}         = resBasisSet;
@@ -76,10 +76,11 @@ for kk = 1:MRSCont.nDatasets
                 % Extract fit options
                 fitOpts_mm    = MRSCont.opts.fit;
                 fitModel_mm    = fitOpts.method;
+                fitOpts_mm.sequence = 'unedited';
                 %Specify a reduced basis set for MM modeling
                 %basisSet_mm    = MRSCont.fit.basisSet;
                 %Reduce the size of the basis set
-                
+
                 %Adjust basis set
                 % Clear existing basis set
                 MRSCont.fit.basisSet_mm = [];
@@ -89,7 +90,7 @@ for kk = 1:MRSCont.nDatasets
                 % Generate the list of basis functions that are supposed to be included in
                 % the basis set
                 % To do: Interface with interactive user input
-                metabList_mm = fit_createMetabListMM;
+                metabList_mm = fit_createMetabListMM('unedited');
                 % Collect MMfit flag from the options determined in the job file
                 fitMM = MRSCont.opts.fit.fitMM;
                 % Create the modified basis set
@@ -103,22 +104,22 @@ for kk = 1:MRSCont.nDatasets
                 MRSCont.fit.basisSet_mm;
             end                                         % re_mm
         end
-        
+
         % ----- LCModel wrapper fit pipeline -----
     elseif strcmpi(MRSCont.opts.fit.method, 'LCModel')
         [~] = printLog('OspreyFit', kk, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI,1);
-    
-        
+
+
         % Put the scale to be 1 for now. Might have to adjust.
         MRSCont.fit.scale{kk} = 1;
-        
+
         % Create the sub-folder where the LCModel results will be saved,
         % otherwise LCModel will throw 'FATAL ERROR MAIN 2'.
         if ~exist(fullfile(MRSCont.outputFolder, 'LCMoutput'), 'dir')
             mkdir(fullfile(MRSCont.outputFolder, 'LCMoutput'));
         end
-        
-        
+
+
         % Find the path to LCModel binary
         pathLCModelBinaryStruct = osp_platform('lcmodel');
         pathLCModelBinary = fullfile(MRSCont.ospFolder, 'libraries', 'LCModel',pathLCModelBinaryStruct.os,pathLCModelBinaryStruct.osver,['LCModel_' pathLCModelBinaryStruct.os,'_',pathLCModelBinaryStruct.osver]);
@@ -130,24 +131,24 @@ for kk = 1:MRSCont.nDatasets
             case 'win'
                 bin = 'LCModel.exe';
         end
-        
+
         if ~exist([pathLCModelBinary filesep bin],'file') %Unzip binary
             unzip([pathLCModelBinary filesep bin '.zip'],[pathLCModelBinary filesep]);
         end
-        
+
         if ~exist([pathLCModelBinary filesep bin],'file') %Binary is still missing
             error('ERROR: No LCModel binary found.  Aborting!!');
         else
             addpath(which('libraries/LCModel'));
-        end    
-        
+        end
+
         callLCModel(MRSCont, MRSCont.opts.fit.lcmodel.controlfileA{kk},[pathLCModelBinary filesep bin]);
-         
+
         % Save the parameters and information about the basis set
         MRSCont.fit.results.off.fitParams{kk} = readLCMFitParams(MRSCont, 'A', kk);
-        
+
     end
-    
+
 end
 
 time = toc(metFitTime);
@@ -237,7 +238,7 @@ for rr = 1:length(fitParams.name)
 end
 % Store amplitudes regardless whether the are fit or not
 fitParams.ampl        = tab.concentration';
-    
+
 % Read the raw area of the unsuppressed water peak from the .print file
 infoPrint = mrs_readLcmodelPRINT( [MRSCont.opts.fit.lcmodel.(lcmOutputFile){kk} '.print'] );
 if isfield(infoPrint,'h2oarea')
@@ -245,6 +246,5 @@ if isfield(infoPrint,'h2oarea')
 end
 
 
-  
-end
 
+end

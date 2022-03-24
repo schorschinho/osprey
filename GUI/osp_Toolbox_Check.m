@@ -32,10 +32,16 @@ function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %%
 %%% 1. GET SPMPATH AND TOOLBOXES%%%
-OspreyVersion = 'Osprey 1.1.0';
+OspreyVersion = 'Osprey 1.2.0';
 fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
+for tl = 1 : size(addons,1)
+    try
+        matlab.addons.enableAddon(addons.Name{tl});
+    catch
+    end
+end
 lic = strcmp({'Enabled'}, addons.Properties.VariableNames);
 if ~isempty(lic)
     enabled = table2cell(addons(:,lic==1));
@@ -75,7 +81,7 @@ else
     available{end+1} = 'SPM12';
     enabled{end+1} = true;
     hasSPM = 1;
-    rmpath(genpath([spmversion filesep 'external' filesep 'fieldtrip']));
+    rmpath(genpath([spmversion filesep 'external' filesep 'fieldtrip' filesep 'external' filesep 'stats' filesep 'finv.m']));
 end 
 
 try

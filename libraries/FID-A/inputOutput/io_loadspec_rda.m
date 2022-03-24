@@ -3,15 +3,15 @@
 %
 % USAGE:
 % [out]=io_loadspec_rda(rda_filename);
-% 
+%
 % DESCRIPTION:
 % Reads in siemens rda data (.rda file).
-% 
+%
 % op_loadspec_rda outputs the data in structure format, with fields corresponding to time
 % scale, fids, frequency scale, spectra, and header fields containing
 % information about the acquisition.  The resulting matlab structure can be
 % operated on by the other functions in this MRS toolbox.
-% 
+%
 % INPUTS:
 % pathname   = pathname of Siemens rda data to load. Can be folder or file,
 % which will autmatically be distinguished.
@@ -27,7 +27,15 @@ else
     % Create list of complete filenames (incl. path) in the folder
     dirFolder = dir(pathname);
     filesInFolder = dirFolder(~[dirFolder.isdir]);
-    filesInFolder = strcat(pathname, {filesInFolder.name});     
+    filesInFolder = filesInFolder(~ismember({filesInFolder.name}, {'.','..','.DS_Store'}));
+    hidden = logical(ones(1,length(filesInFolder)));
+    for jj = 1:length(filesInFolder)
+        if strcmp(filesInFolder(jj).name(1),'.')
+            hidden(jj) = 0;
+        end
+    end
+    filesInFolder = filesInFolder(hidden);%delete hidden files
+    filesInFolder = fullfile(pathname, {filesInFolder.name});
 end
 
 fid = fopen(filesInFolder{1});
@@ -51,62 +59,62 @@ while (isempty(strfind(tline , head_end_text)))
         value    = tline(occurence_of_colon+1 : length(tline)) ;
         
         switch variable
-        case { 'PatientID' , 'PatientName' , 'StudyDescription' , 'PatientBirthDate' , 'StudyDate' , 'StudyTime' , 'PatientAge' , 'SeriesDate' , ...
+            case { 'PatientID' , 'PatientName' , 'StudyDescription' , 'PatientBirthDate' , 'StudyDate' , 'StudyTime' , 'PatientAge' , 'SeriesDate' , ...
                     'SeriesTime' , 'SeriesDescription' , 'ProtocolName' , 'PatientPosition' , 'ModelName' , 'StationName' , 'InstitutionName' , ...
                     'DeviceSerialNumber', 'InstanceDate' , 'InstanceTime' , 'InstanceComments' , 'SequenceName' , 'SequenceDescription' , 'Nucleus' ,...
                     'TransmitCoil' }
-            eval(['rda.' , variable , ' = value; ']);
-        case { 'PatientSex' }
-            % Sex converter! (int to M,F,U)
-            switch value
-            case 0
-                rda.sex = 'Unknown';
-            case 1
-                rda.sex = 'Male';
-            case 2
+                eval(['rda.' , variable , ' = value; ']);
+            case { 'PatientSex' }
+                % Sex converter! (int to M,F,U)
+                switch value
+                    case 0
+                        rda.sex = 'Unknown';
+                    case 1
+                        rda.sex = 'Male';
+                    case 2
+                        
+                        rda.sex = 'Female';
+                end
                 
-                rda.sex = 'Female';
-            end
-            
-        case {  'SeriesNumber' , 'InstanceNumber' , 'AcquisitionNumber' , 'NumOfPhaseEncodingSteps' , 'NumberOfRows' , 'NumberOfColumns' , 'VectorSize' }
-            %Integers
-            eval(['rda.' , variable , ' = str2num(value); ']);
-        case { 'PatientWeight' , 'TR' , 'TE' , 'TM' , 'DwellTime' , 'NumberOfAverages' , 'MRFrequency' , 'MagneticFieldStrength' , 'FlipAngle' , ...
-                     'SliceThickness' ,  'FoVHeight' , 'FoVWidth' , 'PercentOfRectFoV' , 'PixelSpacingRow' , 'PixelSpacingCol', ...
-                     'VOIRotationInPlane', 'VOINormalTra', 'VOINormalCor', 'VOINormalSag', 'VOIReadoutFOV', 'VOIPhaseFOV', 'VOIThickness', ...
-                     'VOIPositionTra', 'VOIPositionCor', 'VOIPositionSag'}
-            %Floats 
-            eval(['rda.' , variable , ' = str2num(value); ']);
-        case {'SoftwareVersion[0]' }
-            rda.software_version = value;
-        case {'CSIMatrixSize[0]' }
-            rda.CSIMatrix_Size(1) = str2num(value);    
-        case {'CSIMatrixSize[1]' }
-            rda.CSIMatrix_Size(2) = str2num(value);    
-        case {'CSIMatrixSize[2]' }
-            rda.CSIMatrix_Size(3) = str2num(value);    
-        case {'PositionVector[0]' }
-            rda.PositionVector(1) = str2num(value);    
-        case {'PositionVector[1]' }
-            rda.PositionVector(2) = str2num(value);     
-        case {'PositionVector[2]' }
-            rda.PositionVector(3) = str2num(value);    
-        case {'RowVector[0]' }
-            rda.RowVector(1) = str2num(value);    
-        case {'RowVector[1]' }
-            rda.RowVector(2) = str2num(value);       
-        case {'RowVector[2]' }
-            rda.RowVector(3) = str2num(value);    
-        case {'ColumnVector[0]' }
-            rda.ColumnVector(1) = str2num(value);     
-        case {'ColumnVector[1]' }
-            rda.ColumnVector(2) = str2num(value);       
-        case {'ColumnVector[2]' }
-            rda.ColumnVector(3) = str2num(value);    
-            
-        otherwise
-            % We don't know what this variable is.  Report this just to keep things clear
-            %disp(['Unrecognised variable ' , variable ]);
+            case {  'SeriesNumber' , 'InstanceNumber' , 'AcquisitionNumber' , 'NumOfPhaseEncodingSteps' , 'NumberOfRows' , 'NumberOfColumns' , 'VectorSize' }
+                %Integers
+                eval(['rda.' , variable , ' = str2num(value); ']);
+            case { 'PatientWeight' , 'TR' , 'TE' , 'TM' , 'DwellTime' , 'NumberOfAverages' , 'MRFrequency' , 'MagneticFieldStrength' , 'FlipAngle' , ...
+                    'SliceThickness' ,  'FoVHeight' , 'FoVWidth' , 'PercentOfRectFoV' , 'PixelSpacingRow' , 'PixelSpacingCol', ...
+                    'VOIRotationInPlane', 'VOINormalTra', 'VOINormalCor', 'VOINormalSag', 'VOIReadoutFOV', 'VOIPhaseFOV', 'VOIThickness', ...
+                    'VOIPositionTra', 'VOIPositionCor', 'VOIPositionSag'}
+                %Floats
+                eval(['rda.' , variable , ' = str2num(value); ']);
+            case {'SoftwareVersion[0]' }
+                rda.software_version = value;
+            case {'CSIMatrixSize[0]' }
+                rda.CSIMatrix_Size(1) = str2num(value);
+            case {'CSIMatrixSize[1]' }
+                rda.CSIMatrix_Size(2) = str2num(value);
+            case {'CSIMatrixSize[2]' }
+                rda.CSIMatrix_Size(3) = str2num(value);
+            case {'PositionVector[0]' }
+                rda.PositionVector(1) = str2num(value);
+            case {'PositionVector[1]' }
+                rda.PositionVector(2) = str2num(value);
+            case {'PositionVector[2]' }
+                rda.PositionVector(3) = str2num(value);
+            case {'RowVector[0]' }
+                rda.RowVector(1) = str2num(value);
+            case {'RowVector[1]' }
+                rda.RowVector(2) = str2num(value);
+            case {'RowVector[2]' }
+                rda.RowVector(3) = str2num(value);
+            case {'ColumnVector[0]' }
+                rda.ColumnVector(1) = str2num(value);
+            case {'ColumnVector[1]' }
+                rda.ColumnVector(2) = str2num(value);
+            case {'ColumnVector[2]' }
+                rda.ColumnVector(3) = str2num(value);
+                
+            otherwise
+                % We don't know what this variable is.  Report this just to keep things clear
+                %disp(['Unrecognised variable ' , variable ]);
         end
         
     else
@@ -114,6 +122,10 @@ while (isempty(strfind(tline , head_end_text)))
     end
     
 end
+
+% Get the header of the first file to make some decisions.
+seqtype = rda.SeriesDescription;
+
 
 % Prepare voxel geometry information
 % If a parameter is set to zero (e.g. if no voxel rotation is
@@ -142,7 +154,7 @@ out.geometry = geometry;
 
 %
 % So now we should have got to the point after the header text
-% 
+%
 % Siemens documentation suggests that the data should be in a double complex format (8bytes for real, and 8 for imaginary?)
 %
 fclose(fid);
@@ -152,27 +164,32 @@ bytes_per_point = 16;
 fids = zeros(length(filesInFolder),rda.VectorSize);
 % Collect all FIDs and sort them into fids array
 for kk = 1:length(filesInFolder)
-fid = fopen(filesInFolder{kk});
-tline = fgets(fid);
-while (isempty(strfind(tline , head_end_text)))   
-    tline = fgets(fid);    
+    fid = fopen(filesInFolder{kk});
+    tline = fgets(fid);
+    while (isempty(strfind(tline , head_end_text)))
+        tline = fgets(fid);
+    end
+    complex_data = fread(fid , rda.CSIMatrix_Size(1) * rda.CSIMatrix_Size(1) *rda.CSIMatrix_Size(1) *rda.VectorSize * 2 , 'double');
+    %fread(fid , 1, 'double');  %This was a check to confirm that we had read all the data (it passed!)
+    fclose(fid);
+    
+    % Now convert this data into something meaningful
+    
+    %Reshape so that we can get the real and imaginary separated
+    hmm = reshape(complex_data,  2 , rda.VectorSize , rda.CSIMatrix_Size(1) ,  rda.CSIMatrix_Size(2) ,  rda.CSIMatrix_Size(3) );
+    
+    %Combine the real and imaginary into the complex matrix
+    fids(kk,:) = complex(hmm(1,:,:,:,:),hmm(2,:,:,:,:));
 end
-complex_data = fread(fid , rda.CSIMatrix_Size(1) * rda.CSIMatrix_Size(1) *rda.CSIMatrix_Size(1) *rda.VectorSize * 2 , 'double');  
-%fread(fid , 1, 'double');  %This was a check to confirm that we had read all the data (it passed!)
-fclose(fid);
-
-% Now convert this data into something meaningful
-
- %Reshape so that we can get the real and imaginary separated
- hmm = reshape(complex_data,  2 , rda.VectorSize , rda.CSIMatrix_Size(1) ,  rda.CSIMatrix_Size(2) ,  rda.CSIMatrix_Size(3) );
- 
- %Combine the real and imaginary into the complex matrix
- fids(kk,:) = complex(hmm(1,:,:,:,:),hmm(2,:,:,:,:));
-end
- fids = fids';
- %Remove the redundant first element in the array
+fids = fids';
+%Remove the redundant first element in the array
 % Time_domain_data = reshape(hmm_complex, rda.VectorSize , rda.CSIMatrix_Size(1) ,  rda.CSIMatrix_Size(2) ,  rda.CSIMatrix_Size(3));
 % Time_domain_data = fft(fft(fftshift(fftshift(padarray(fftshift(fftshift(ifft(ifft(Time_domain_data,[],2),[],3),2),3),[0 16 16],'both'),2),3),[],2),[],3);
+
+% rewind first point phase
+corrph = conj(fids(1,:))./abs(fids(1,:));
+corrph = repmat(corrph, [size(fids, 1), 1]);
+fids   = fids .* corrph;
 
 % get the spectrum from the fid
 specs = fftshift(fft(fids,[],1),1);
@@ -187,23 +204,49 @@ dims.subSpecs = 0;
 dims.coils = 0;
 dims.extras = 0;
 dims.averages = 2;
-Bo = rda.MagneticFieldStrength;
+% Bo = rda.MagneticFieldStrength;
+Bo = rda.MRFrequency/42.577;
 rawAverages = rda.NumberOfAverages;
 if length(filesInFolder) >= rawAverages
-   rawAverages = length(filesInFolder);
-   averages = rda.NumberOfAverages;
-   subspecs =  fix(rawAverages/averages);
-   rawSubspecs = rda.NumberOfAverages;
-else if length(filesInFolder) == 1
+    if contains(seqtype, 'edit')
+        rawAverages = length(filesInFolder);
+        averages = rda.NumberOfAverages;
+        subspecs =  fix(rawAverages/averages);
+        rawSubspecs = rda.NumberOfAverages;
+    else
+        rawAverages = length(filesInFolder);
+        averages = rawAverages;
+        subspecs = 1;
+        rawSubspecs = 1;
+    end
+elseif length(filesInFolder) == 1
     averages = 1;
     subspecs =1;
     rawSubspecs = 'na';
-    else
-    averages = 1;
-    subspecs = length(filesInFolder);
-    rawSubspecs = length(filesInFolder);
+else
+    if contains(seqtype,'edit')
+        subspecs = 2;
+        rawSubspecs = 2;
+        % Distinguish whether MEGA data have been averaged on-scanner or
+        % not
+        if length(filesInFolder) == 2
+            dims.subSpecs = 3;
+            dims.averages = 2;
+            averages = 1;
+            rawAverages = 1;
+            fids = reshape(fids,[sz(1),averages,2 ]);
+            specs = reshape(specs,[sz(1),averages,2 ]);
+        else
+            dims.subSpecs = 3;
+            dims.averages = 2;
+            averages = rawAverages/2;
+            fids = reshape(fids,[sz(1),averages,2 ]);
+            specs = reshape(specs,[sz(1),averages,2 ]);
+        end
+        sz = size(fids);
     end
 end
+
 date = rda.StudyDate;
 seq = rda.SequenceDescription;
 TE = rda.TE;
@@ -213,8 +256,8 @@ pointsToLeftShift = 0;
 %Calculate t and ppm arrays using the calculated parameters:
 f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
 ppm=f/(Bo*42.577);
-% Siemens data assumes the center frequency to be 4.6082 ppm:
-centerFreq = 4.6082;
+% Siemens data assumes the center frequency to be 4.65 ppm:
+centerFreq = 4.65;
 ppm=ppm + centerFreq;
 
 t=[0:dwelltime:(sz(1)-1)*dwelltime];
@@ -223,8 +266,8 @@ t=[0:dwelltime:(sz(1)-1)*dwelltime];
 out.fids=fids;
 out.specs=specs;
 out.sz=sz;
-out.ppm=ppm;  
-out.t=t;    
+out.ppm=ppm;
+out.t=t;
 out.spectralwidth=spectralwidth;
 out.dwelltime=dwelltime;
 out.txfrq=txfrq;
@@ -264,5 +307,5 @@ if out.dims.subSpecs==0
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
-      
+
 end

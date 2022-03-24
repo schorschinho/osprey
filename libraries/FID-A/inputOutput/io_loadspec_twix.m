@@ -73,7 +73,8 @@ isTLFrei=~isempty(strfind(sequence,'md_svs_edit')); %Is Thomas Lange's MEGA-PRES
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isSiemens=~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'));    % or the Siemens STEAM sequence?
-isUniversal = ~isempty(strfind(sequence,'univ'));
+isUniversal = ~isempty(strfind(sequence,'univ')); %Is JHU universal editing sequence
+isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
         
 %Make a pulse sequence identifier for the header (out.seq);
@@ -255,7 +256,7 @@ end
 
 %Now index the dimension of the averages
 if strcmp(version,'vd') || strcmp(version,'ve')
-    if isMinn
+    if isMinn || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
         dims.averages=find(strcmp(sqzDims,'Ave'));
@@ -489,13 +490,13 @@ end
 
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
-elseif isSiemens    
+elseif isSiemens && (~isMinn    || ~isConnectom)
     if ~strcmp(version,'ve')
         leftshift = twix_obj.image.freeParam(1);
     else
        leftshift = twix_obj.image.iceParam(5,1); 
     end        
-elseif isMinn
+elseif isMinn || isConnectom
     try
         leftshift = twix_obj.image.iceParam(5,1);
     catch

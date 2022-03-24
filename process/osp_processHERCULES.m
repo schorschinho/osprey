@@ -82,13 +82,19 @@ for kk = 1:MRSCont.nDatasets
         % window is restricted to a certain frequency window.
         if ~MRSCont.flags.isPhantom
             switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
+                case 'ProbSpecReg'
+                    [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_probabSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
+                    [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_probabSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
+                    [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_probabSpecReg(raw_C, 'HERCULES', 0, refShift_ind_ini);                    
+                    [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_probabSpecReg(raw_D, 'HERCULES', 0, refShift_ind_ini);
+                    
                 case 'RobSpecReg'
                     [raw_A, fs_A, phs_A, weights_A, driftPreA, driftPostA]   = op_robustSpecReg(raw_A, 'HERCULES', 0,refShift_ind_ini);
                     [raw_B, fs_B, phs_B, weights_B, driftPreB, driftPostB]   = op_robustSpecReg(raw_B, 'HERCULES', 0, refShift_ind_ini);                  
                     [raw_C, fs_C, phs_C, weights_C, driftPreC, driftPostC]   = op_robustSpecReg(raw_C, 'HERCULES', 0, refShift_ind_ini);                    
                     [raw_D, fs_D, phs_D, weights_D, driftPreD, driftPostD]   = op_robustSpecReg(raw_D, 'HERCULES', 0, refShift_ind_ini);
                 case 'RestrSpecReg'
-                    [~, ~, ~, ~, commuteOrder] = osp_onOffClassifyHERMES(temp_rawA, temp_rawB, temp_rawC, temp_rawD);
+                    [~, ~, ~, ~, commuteOrder] = osp_onOffClassifyHERMES(raw_A, raw_B, raw_C, raw_D);
                     temp.raw_A = raw_A;
                     temp.raw_B = raw_B;
                     temp.raw_C = raw_C;
@@ -317,10 +323,18 @@ for kk = 1:MRSCont.nDatasets
         raw_D = op_freqshift(raw_D, -refShift_SubSpecAlign);
         % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
         % with the negative phase of that fit
-        [raw_A,~] = op_phaseCrCho(raw_A, 1); 
+        [raw_A,ph] = op_phaseCrCho(raw_A, 1); 
+        raw_B     = op_addphase(raw_B, -ph*180/pi, 0, raw_B.centerFreq, 1);
+        raw_C     = op_addphase(raw_C, -ph*180/pi, 0, raw_C.centerFreq, 1); 
+        raw_D     = op_addphase(raw_D, -ph*180/pi, 0, raw_D.centerFreq, 1); 
         % Align the sub-spectra to one another by minimizing the difference
         % between the common 'reporter' signals.
-        [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater);
+        switch MRSCont.opts.SubSpecAlignment
+            case 'L1Norm'
+                [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlignLNorm(raw_A, raw_B, raw_C, raw_D);
+            case 'L2Norm'
+                [raw_A, raw_B, raw_C, raw_D] = osp_editSubSpecAlign(raw_A, raw_B, raw_C, raw_D,MRSCont.opts.UnstableWater,target1,target2);
+        end
         % Create the sum spectrum
         Sum     = op_addScans(raw_A,raw_B);
         Sum     = op_addScans(Sum,raw_C);

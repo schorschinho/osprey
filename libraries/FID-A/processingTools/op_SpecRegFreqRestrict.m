@@ -35,10 +35,16 @@ if nargin < 7
         if nargin <4
             F0 = nan;
             if nargin < 2
-                echo = 1;    
+                echo = 1;
             end
         end
     end
+end
+
+if strcmp(seqType,'HERMES') || strcmp(seqType,'HERMES')
+    [in, ~] = osp_onOffClassifyHERMES(in);
+    ppmMin = [0.5,0.5,1.85,1.85];
+    ppmMax = [3.9,3.8,3.9,3.8];
 end
 
 % Check whether data is coil-combined. If not, throw error.
@@ -90,10 +96,10 @@ in_restrict = op_freqrange(in,ppmMin,ppmMax);
 t_restrict                 = in_restrict.t;
 freq        = in_restrict.ppm;
 for mm=1:numSubSpecs
-       
-    
+
+
         DataToAlign = in_restrict.fids(:,:,mm);
-        
+
         % Use first n points of time-domain data, where n is the last point where abs(diff(mean(SNR))) > 0.5
         signal = abs(DataToAlign);
         noise = 2*std(signal(ceil(0.75*size(signal,1)):end,:));
@@ -149,7 +155,7 @@ for mm=1:numSubSpecs
         F0freq = F0freqRange(FrameMaxPos);
 
         % Starting values for optimization
-        if isnan(F0) 
+        if isnan(F0)
             f0 = F0freq * in.txfrq * 1e-6;
             f0 = f0(alignOrd);
             f0 = f0 - f0(1);
@@ -199,7 +205,7 @@ for mm=1:numSubSpecs
         fs(:,mm)  = params(:,1);
         phs(:,mm) = params(:,2);
     end
-    
+
     % Apply frequency and phase corrections to raw data
     for jj = 1:size(flatdata,3)
         fids(:,jj,mm) = in.fids(:,jj,mm) .* ...
@@ -253,16 +259,16 @@ for mm=1:numSubSpecs
     w{mm} = 1./d.^2;
     w{mm} = w{mm}/sum(w{mm});
     w{mm} = repmat(w{mm}, [size(fids(:,:,mm),1) 1]);
-    
+
     % Apply the weighting
 fids_out(:,:,mm) = w{mm} .* fids(:,:,mm);
-    
+
 end
 
 % Perform weighted averaging
 % No need for 'mean', since the weights vector w is normalized
-fids = sum(fids_out, in.dims.averages);
-    
+fids = squeeze(sum(fids_out, in.dims.averages);
+
 %%% 3. WRITE THE NEW STRUCTURE %%%
 %re-calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
@@ -292,7 +298,7 @@ end
 
 %re-calculate the sz variable
 sz=size(fids);
-    
+
 %FILLING IN DATA STRUCTURE
 out=in;
 out.fids=fids;
@@ -300,7 +306,7 @@ out.specs=specs;
 out.sz=sz;
 out.dims=dims;
 out.averages=1;
-    
+
 %FILLING IN THE FLAGS
 out.flags=in.flags;
 out.flags.writtentostruct=1;

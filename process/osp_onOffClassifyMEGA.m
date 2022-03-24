@@ -149,7 +149,10 @@ switch target
             switchOrder = 0;
         end        
     otherwise
-        error('MEGA ON/OFF classifier does not recognize the input argument ''target''. Set to ''GABA'' or ''GSH''.');
+        disp('MEGA ON/OFF classifier does not recognize the input argument ''target''. We automatically assume no reordering. You can change that in osp_onOFFClassifyMEGA.m');
+         outA = inA;
+        outB = inB;
+        switchOrder = 0;
 end
 
 

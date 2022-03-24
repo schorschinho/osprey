@@ -33,12 +33,19 @@ function [out,out_w]=io_loadspec_GE(filename,subspecs)
 %function is normally a N x Navgs x Ncoils matrix.  The Navgs dimension
 %contains all the subspectra, so we will split them now:
 %If the data has multiple subspectra 
-if subspecs>1 
+if subspecs == 4  %HERMES/HERCULES
     %Split the subspectra out of the "averages" dimension:
-    data(:,:,:,1)=GEout(:,1:2:end,:);
-    data(:,:,:,2)=GEout(:,2:2:end,:);
-else
-    data=GEout;
+    data(:,:,:,1)=GEout(:,1:4:end,:);
+    data(:,:,:,2)=GEout(:,2:4:end,:);
+    data(:,:,:,3)=GEout(:,3:4:end,:);
+    data(:,:,:,4)=GEout(:,4:4:end,:);
+else if  subspecs==2 %MEGA   
+        %Split the subspectra out of the "averages" dimension:
+        data(:,:,:,1)=GEout(:,1:2:end,:);
+        data(:,:,:,2)=GEout(:,2:2:end,:);
+    else
+        data=GEout;
+    end
 end
 
 fids=squeeze(data);

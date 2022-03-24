@@ -46,8 +46,8 @@ for kk = 1:MRSCont.nDatasets
     if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A)))  || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         %%% 1. GET RAW DATA %%%
-        raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
-
+        raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset        
+                
         %%% 1B. GET MM DATA %%% 
         if MRSCont.flags.hasMM
             raw_mm                         = MRSCont.raw_mm{kk};              % Get the kk-th dataset re_mm
