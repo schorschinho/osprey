@@ -85,7 +85,7 @@ for kk = 1:MRSCont.nDatasets
 
         % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
         if ~MRSCont.flags.isPRIAM
-                [MRSCont] = osp_combineCoils(MRSCont,kk);
+            [MRSCont] = osp_combineCoils(MRSCont, kk);
         elseif MRSCont.flags.isPRIAM
             fprintf('Coming soon!');
             error('Coming soon!');
@@ -93,7 +93,9 @@ for kk = 1:MRSCont.nDatasets
         end
     end
 end
+
 time = toc(refLoadTime);
-[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+[~] = printLog('done', time, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI); 
 MRSCont.runtime.Load = time;
+
 end

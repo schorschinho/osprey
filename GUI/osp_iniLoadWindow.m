@@ -6,7 +6,7 @@ function osp_iniLoadWindow(gui)
 %   USAGE:
 %       osp_iniLoadWindow(gui);
 %
-%   INPUT:      gui      = gui class containing all handles and the MRSCont 
+%   INPUT:      gui      = gui class containing all handles and the MRSCont
 %
 %   OUTPUT:     Changes in gui parameters and MRSCont are written into the
 %               gui class
@@ -141,7 +141,7 @@ function osp_iniLoadWindow(gui)
                 gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
                 set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
                 set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
-                set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});   
+                set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});
                 if gui.info.nXvoxels <= 1
                     gui.controls.b_right_x.Enable = 'off';
                 end
@@ -150,7 +150,7 @@ function osp_iniLoadWindow(gui)
                 end
                 if gui.info.nZvoxels <= 1
                     gui.controls.b_right_z.Enable = 'off';
-                end                
+                end
                 set( gui.controls.navigate_RawTab{t}, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
             end
             gui.upperBox.data.Info{t} = uix.Panel('Parent', gui.upperBox.data.box{t}, ...
@@ -207,7 +207,7 @@ function osp_iniLoadWindow(gui)
             StatText = ['Voxel ' num2str(gui.controls.act_x) ': '  StatText];
             set(gui.InfoText.data{t}, 'String', sprintf(StatText));
         end
-        
+
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
  %osp_plotLoad is used to visualize the raw data. Number of subplots
  %depends on the number of subspectra of the seuqence
@@ -247,7 +247,7 @@ function osp_iniLoadWindow(gui)
                 set(gui.layout.multiBload.Children(1), 'OuterPosition', [0,0,1,1])
                 set(gui.layout.multiAload.Children(1), 'Units', 'normalized')
                 set(gui.layout.multiAload.Children(1), 'OuterPosition', [0,0,1,1])
-                
+
             end
         else
             if MRSCont.flags.hasMM %re_mm
@@ -260,7 +260,7 @@ function osp_iniLoadWindow(gui)
                     if MRSCont.flags.hasRef%re_mm
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref'); %re_mm
                     else%re_mm
-                        temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w'); %re_mm
+                        temp = osp_plotLoad(MRSCont, gui.controls.Selected, 'w'); %re_mm
                     end%re_mm
                     drawnow
                     set( temp.Children(1), 'Parent', gui.Plot.data{t} ); %re_mm
@@ -290,7 +290,7 @@ function osp_iniLoadWindow(gui)
         end
 
         % Get rid of the Load figure
-        close( temp );        
+        close( temp );
         end
         h = findall(groot,'Type','figure');
         for ff = 1 : length(h)

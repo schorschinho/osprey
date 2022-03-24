@@ -93,35 +93,62 @@ for kk = 1:MRSCont.nDatasets
             end
         end
         
+        
+        %%% 2b. COMBINING SPECIAL SUB-SPECTRA %%%
+        % For SPECIAL, we will adopt the pipeline from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+        if MRSCont.flags.isSPECIAL
+            
+            [raw_ai, fs_temp, phs_temp] = op_alignAverages(raw, 0.4, 'y');
+            fs_ai   = fs_temp;
+            phs_ai  = phs_temp;
+            [raw_ai, fs_temp, phs_temp] = op_alignISIS(raw_ai, 0.4);
+            fs_ai(:,2)  = fs_ai(:,2) + fs_temp;
+            phs_ai(:,2) = phs_ai(:,2) + phs_temp;
+            [raw_ai, fs_temp, phs_temp] = op_alignAverages(raw_ai, 0.4, 'y');
+            fs_ai   = fs_ai + fs_temp;
+            phs_ai  = phs_ai + phs_temp;
+            [raw_ai, fs_temp, phs_temp] = op_alignISIS(raw_ai, 0.4);
+            fs_ai(:,2)  = fs_ai(:,2) + fs_temp;
+            phs_ai(:,2) = phs_ai(:,2) + phs_temp;
+            
+            %Now combine the subspecs
+            raw = op_combinesubspecs(raw_ai, 'diff');
+            
+        end
+        
         %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
-
         if raw.averages > 1 && raw.flags.averaged == 0
+           
             % Calculate starting values for spectral registration
-             [refShift_ind_ini]=op_preref(raw,'unedited');
+            [refShift_ind_ini] = op_preref(raw, 'unedited');
             if ~MRSCont.flags.isPhantom
                 switch MRSCont.opts.SpecReg %Pick spectral registration method (default is Robust Spectral Registration)
                     case 'RobSpecReg'
-                        [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0,refShift_ind_ini); % Align and average
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_robustSpecReg(raw, 'unedited', 0, refShift_ind_ini); % Align and average
                     case 'RestrSpecReg'
-                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0,refShift_ind_ini,0,MRSCont.opts.fit.range(1),MRSCont.opts.fit.range(2)); % Align and average
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0, refShift_ind_ini, 0, MRSCont.opts.fit.range(1), MRSCont.opts.fit.range(2)); % Align and average
                     case 'none'
-                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0,refShift_ind_ini,1); % Align and average   
-                end                        
+                        [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0, refShift_ind_ini, 1); % Align and average
+                end
             else
-                [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0,refShift_ind_ini,0,0.5,4.2); % Align and average
+                [raw, fs, phs, weights, driftPre, driftPost]     = op_SpecRegFreqRestrict(raw, 'unedited', 0, refShift_ind_ini, 0, 0.5, 4.2); % Align and average
             end
+            
             raw.specReg.fs              = fs; % save align parameters
             raw.specReg.phs             = phs; % save align parameters
             raw.specReg.weights         = weights{1}(1,:)'; % save align parameters);
             raw.specReg.weights         = raw.specReg.weights/max(raw.specReg.weights);
+            
         else
+            
             raw.flags.averaged  = 1;
             raw.dims.averages   = 0;
             raw.specReg.fs              = 0; % save align parameters
             raw.specReg.phs             = 0; % save align parameters
             raw.specReg.weights         = 1; % save align parameters
-            driftPre = op_measureDrift(raw);
+            driftPre  = op_measureDrift(raw);
             driftPost = driftPre;
+            
         end
 
         %%% 4. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
@@ -129,20 +156,49 @@ for kk = 1:MRSCont.nDatasets
         % correction of the raw data.
         if MRSCont.flags.hasRef
             raw_ref                         = MRSCont.raw_ref{kk};              % Get the kk-th dataset
+            
+            % For SPECIAL, we will adopt the pipeline from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+            if MRSCont.flags.isSPECIAL
+                
+                %Now repeat above for water unsuppressed data:
+                [raw_ref_ai, fs_w_temp, phs_w_temp] = op_alignAverages(raw_ref, 0.4, 'y');
+                fs_w_ai  = fs_w_temp;
+                phs_w_ai = phs_w_temp;
+                [raw_ref_ai, fs_w_temp, phs_w_temp] = op_alignISIS(raw_ref_ai, 0.4);
+                fs_w_ai(:,2)  = fs_w_ai(:,2) + fs_w_temp;
+                phs_w_ai(:,2) = phs_w_ai(:,2) + phs_w_temp;
+                [raw_ref_ai, fs_w_temp, phs_w_temp] = op_alignAverages(raw_ref_ai, 0.4, 'y');
+                fs_w_ai  = fs_w_ai + fs_w_temp;
+                phs_w_ai = phs_w_ai + phs_w_temp;
+                [raw_ref_ai, fs_w_temp, phs_w_temp] = op_alignISIS(raw_ref_ai, 0.4);
+                fs_w_ai(:,2)  = fs_w_ai(:,2) + fs_w_temp;
+                phs_w_ai(:,2) = phs_w_ai(:,2) + phs_w_temp;
+                
+                %Now combine the subspecs
+                raw_ref = op_combinesubspecs(raw_ref_ai, 'diff');
+                
+            end
+                
             if raw_ref.averages > 1 && raw_ref.flags.averaged == 0
+                
                 [raw_ref,~,~]               = op_alignAverages(raw_ref, 1, 'n');
                 raw_ref                     = op_averaging(raw_ref);            % Average
+                
             else
+                
                 raw_ref.flags.averaged  = 1;
                 raw_ref.dims.averages   = 0;
+                
             end
                         
             if MRSCont.flags.hasMM
-                [raw_mm,~]                   = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
+                [raw_mm,~]                  = op_eccKlose(raw_mm, raw_ref);        % Klose eddy current correction
             end
+            
             [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
             [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
             MRSCont.processed.ref{kk}       = raw_ref;                          % Save back to MRSCont container
+            
         end
         
         %%% 5. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%

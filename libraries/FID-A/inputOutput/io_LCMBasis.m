@@ -104,7 +104,7 @@ BASIS.flags.addedrcvrs=1;
 BASIS.flags.subtracted=1;
 BASIS.flags.writtentotext=1;
 BASIS.flags.downsampled=0;
-BASIS.flags.isISIS=0;
+BASIS.flags.isFourSteps=0;
 
     
 % Loop over all *.mat filenames, load their data, store in a buffer
