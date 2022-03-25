@@ -152,7 +152,7 @@ end
         specs = temp_proc.specs(:,av:av+(round(temp_proc.averages*0.1)-1));
         temp_spec.fids = mean(fids,2); % store average fid
         temp_spec.specs = mean(specs,2); % store average spectra
-        [refShift, ~] = osp_CrChoReferencing(temp_spec); % determine frequency shift
+        [refShift, ~] = osp_XReferencing(temp_spec,[3.03 3.22],[1 1],[0 4.2],1);% determine frequency shift
         refShift_ind_ini(av : av+round(temp_proc.averages*0.1)-1) = refShift; %save initial frequency guess
     end
     if mod(temp_proc.averages,round(temp_proc.averages*0.1)) > 0 % remaining averages if data isn't a multiple of 10.
@@ -160,7 +160,7 @@ end
         specs = temp_proc.specs(:,end-(mod(temp_proc.averages,round(temp_proc.averages*0.1))-1):end);
         temp_spec.fids = mean(fids,2); % store average fid
         temp_spec.specs = mean(specs,2); % store average spectra
-        [refShift, ~] = osp_CrChoReferencing(temp_spec); % determine frequency shift
+        [refShift, ~] = osp_XReferencing(temp_spec,[3.03 3.22],[1 1],[0 4.2],1);% determine frequency shift
         refShift_ind_ini(end-(mod(temp_proc.averages,round(temp_proc.averages*0.1))-1) : temp_proc.averages) = refShift; %save initial frequency guess
     end
     

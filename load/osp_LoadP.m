@@ -35,26 +35,39 @@ if MRSCont.flags.isGUI
 else
     progressText = '';
 end
-for kk = 1:MRSCont.nDatasets
-    [~] = printLog('OspreyLoad',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
-    
-    if ~(MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
-        % Read in the raw metabolite data. Since the GE P-file loader needs
-        % to know the number of sub-spectra (e.g. from spectral editing), the
-        % type of sequence needs to be differentiated here already.
-        if MRSCont.flags.isUnEdited
-            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},1);
-        elseif MRSCont.flags.isMEGA
-            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},2);
-        elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-            [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{kk},4);
+for kk = 1:MRSCont.nDatasets(1)
+    for ll = 1: 1:MRSCont.nDatasets(2)
+        [~] = printLog('OspreyLoad',kk,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+
+        if ~(MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+            % Read in the raw metabolite data. Since the GE P-file loader needs
+            % to know the number of sub-spectra (e.g. from spectral editing), the
+            % type of sequence needs to be differentiated here already.
+            metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
+            if MRSCont.flags.isUnEdited
+                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},1);
+                raw.flags.UnEdited = 1;
+                raw_ref.flags.UnEdited = 1;
+            elseif MRSCont.flags.isMEGA
+                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},2);
+                raw.flags.isMEGA = 1;
+                raw_ref.flags.isMEGA = 1;
+            elseif MRSCont.flags.isHERMES
+                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},4);
+                raw.flags.isHERMES = 1;
+                raw_ref.flags.isHERMES = 1;
+            elseif MRSCont.flags.isHERCULES
+                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},4);
+                raw.flags.isHERCULES = 1;
+                raw_ref.flags.isHERCULES = 1;
+            end
+            MRSCont.raw_uncomb{metab_ll,kk}      = raw;
+            MRSCont.raw_ref_uncomb{metab_ll,kk}  = raw_ref;
         end
-        MRSCont.raw_uncomb{kk}      = raw;
-        MRSCont.raw_ref_uncomb{kk}  = raw_ref;
     end
 end
 time = toc(refLoadTime);
-[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+[~] = printLog('done',time,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);  
 % Set flag
 MRSCont.flags.coilsCombined     = 0;
 MRSCont.runtime.Load = time;

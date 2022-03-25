@@ -30,6 +30,14 @@ function osp_OverviewTabChangedFcn(src,~,gui)
             osp_updateSpecsOvWindow(gui);
             set(gui.controls.pop_specsOvPlot, 'value',gui.process.Selected)
        case 2
+            splt_string =  strsplit(gui.controls.pop_specsOvPlot.String{gui.process.Selected});
+            if length(splt_string) > 1
+                if strcmp(splt_string{2},'ref') || strcmp(splt_string{2},'w')
+                    gui.process.Selected = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{2}));
+                else
+                    gui.process.Selected = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{3}));
+                end
+            end
             osp_updatemeanOvWindow(gui);
             set(gui.controls.pop_meanOvPlot, 'value',gui.process.Selected)
        case 3

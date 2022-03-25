@@ -136,9 +136,6 @@ switch MRSCont.opts.fit.method
             metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
             % Collect MMfit flag from the options determined in the job file
             fitMM = MRSCont.opts.fit.fitMM;
-            if fitMM == 1 && metabList.MMexp == 1
-                fitMM = 2;
-            end
             % Create the modified basis set
             basisSet = fit_selectMetabs(basisSet, metabList, fitMM);
         else
@@ -147,9 +144,6 @@ switch MRSCont.opts.fit.method
             metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
             % Collect MMfit flag from the options determined in the job file
             fitMM = MRSCont.opts.fit.fitMM;
-            if fitMM == 1 && metabList.MMexp == 1
-                fitMM = 2;
-            end
             % Create the modified basis set
             basisSet = fit_selectMetabs(basisSet, metabList, fitMM);
         end
@@ -157,7 +151,12 @@ switch MRSCont.opts.fit.method
         % Determine the scaling factor between data and basis set for each dataset
         for kk = 1:MRSCont.nDatasets
             if ~MRSCont.flags.isMRSI  && ~MRSCont.flags.isPRIAM
-                MRSCont.fit.scale{kk} = max(real(MRSCont.processed.A{kk}.specs)) / max(max(max(real(basisSet.specs))));
+                if ~MRSCont.flags.isUnEdited
+                    dataToScale   = op_takesubspec(MRSCont.processed.metab{kk},1);
+                else
+                    dataToScale   = MRSCont.processed.metab{kk};
+                end
+                MRSCont.fit.scale{kk} = max(real(dataToScale.specs)) / max(max(max(real(basisSet.specs))));
             else
                 MRSCont.fit.scale{kk} = max(max(max(real(MRSCont.processed.A{kk}.specs)))) / max(max(max(real(basisSet.specs))));
             end

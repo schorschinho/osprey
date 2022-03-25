@@ -351,6 +351,13 @@ if out.dims.subSpecs==0
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
 
 
 if isRef
@@ -395,4 +402,12 @@ if isRef
     else
         ref.flags.isISIS=(ref.sz(ref.dims.subSpecs)==4);
     end
+    % Sequence flags
+    ref.flags.isUnEdited = 0;
+    ref.flags.isMEGA = 0;
+    ref.flags.isHERMES = 0;
+    ref.flags.isHERCULES = 0;
+    ref.flags.isPRIAM = 0;
+    ref.flags.isMRSI = 0;
+
 end

@@ -48,7 +48,7 @@ for t = 1 : gui.fit.Number %Loop over fits
     % Parameter shown in the info panel on top
     gui.upperBox.fit.box{t} = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
     if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-        gui.upperBox.fit.upperLeftButtons = uix.Panel('Parent', gui.upperBox.fit.box, ...
+        gui.upperBox.fit.upperLeftButtons = uix.Panel('Parent', gui.upperBox.fit.box{t}, ...
             'Padding', 5, 'Title', ['Navigate voxel'],...
             'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
             'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
@@ -98,6 +98,86 @@ for t = 1 : gui.fit.Number %Loop over fits
         end
         set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
     end
+
+
+    gui.upperBox.fit.upperLeftButtons = uix.Panel('Parent', gui.upperBox.fit.box{t}, ...
+        'Padding', 5, 'Title', ['Navigate model'],...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+        'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+    gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.fit.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
+    gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
+
+    gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Exp:',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+    gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Spec:',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+    gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Basis:',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+    gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+    gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+    gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+    set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
+    set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
+    set(gui.controls.b_left_z,'Callback',{@osp_onLeftZ,gui});
+
+
+    gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+    gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+    gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+
+    gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+    gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+    gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+    set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
+    set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
+    set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});
+
+    gui.controls.b_left_x.Enable = 'off';
+    gui.controls.b_left_y.Enable = 'off';
+    gui.controls.b_left_z.Enable = 'off';
+    gui.controls.b_right_x.Enable = 'off';
+    gui.controls.b_right_y.Enable = 'off';
+    gui.controls.b_right_z.Enable = 'off';
+
+    buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection).fitParams,3)>1) num2str(size(MRSCont.fit.results.(Selection).fitParams,1)>1)];
+    switch buttonString
+            case '001'
+                gui.controls.b_left_z.Enable = 'on';
+                gui.controls.b_right_z.Enable = 'on';
+            case '010'
+                gui.controls.b_left_y.Enable = 'on';
+                gui.controls.b_right_y.Enable = 'on';
+            case '100'
+                gui.controls.b_left_x.Enable = 'on';
+                gui.controls.b_right_x.Enable = 'on';
+            case '011'
+                gui.controls.b_left_y.Enable = 'on';
+                gui.controls.b_right_y.Enable = 'on';
+                gui.controls.b_left_z.Enable = 'on';
+                gui.controls.b_right_z.Enable = 'on';
+           case '101'
+                gui.controls.b_left_x.Enable = 'on';
+                gui.controls.b_right_x.Enable = 'on';
+                gui.controls.b_left_z.Enable = 'on';
+                gui.controls.b_right_z.Enable = 'on';
+           case '110'
+                gui.controls.b_left_x.Enable = 'on';
+                gui.controls.b_right_x.Enable = 'on';
+                gui.controls.b_left_y.Enable = 'on';
+                gui.controls.b_right_y.Enable = 'on';
+            case '111'
+                gui.controls.b_left_x.Enable = 'on';
+                gui.controls.b_left_y.Enable = 'on';
+                gui.controls.b_left_z.Enable = 'on';
+                gui.controls.b_right_x.Enable = 'on';
+                gui.controls.b_right_y.Enable = 'on';
+                gui.controls.b_right_z.Enable = 'on';
+    end
+    set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33]);
+
     gui.upperBox.fit.Info{t} = uix.Panel('Parent',  gui.upperBox.fit.box{t}, ...
         'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
         'FontName', gui.font,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',...
@@ -114,7 +194,7 @@ for t = 1 : gui.fit.Number %Loop over fits
     if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
         set(gui.upperBox.fit.box{t}, 'Width', [-0.12 -0.78 -0.1]);
     else
-        set(gui.upperBox.fit.box{t}, 'Width', [-0.9 -0.1]);
+            set(gui.upperBox.fit.box{t}, 'Width', [-0.15 -0.75 -0.1]);
     end
     % Creates layout for plotting and data control
     gui.Plot.fit{t} = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
@@ -125,8 +205,8 @@ for t = 1 : gui.fit.Number %Loop over fits
     else %Is concatenated and not water/reference
         gui.fit.Style = 'conc';
     end
-    
-    
+
+
     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
          switch MRSCont.opts.fit.method
                 case 'LCModel'
@@ -137,13 +217,13 @@ for t = 1 : gui.fit.Number %Loop over fits
                         CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.CRLB;
                     end
                 case 'Osprey'
-                    RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
+                    RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
         end
-        ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
-        ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+        ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ph0;
+        ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ph1;
         if ~strcmp(gui.fit.Names{t}, 'ref') && ~strcmp(gui.fit.Names{t}, 'w')
-            refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
-            refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
+            refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.refShift;
+            refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.refFWHM;
         end
     elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
          switch MRSCont.opts.fit.method
@@ -182,7 +262,7 @@ for t = 1 : gui.fit.Number %Loop over fits
             refFWHM = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
         end
     end
-    
+
     % For this visualization, we will have to make a few
     % distinctions upfront since the modeling algorithms (LCModel
     % vs. Osprey) do not always return the same kinds of data, or they
@@ -210,14 +290,11 @@ for t = 1 : gui.fit.Number %Loop over fits
             waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
             % Where are the metabolite names stored?
             if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(round(MRSCont.processed.(gui.fit.Style){1}.sz(1))) '_' num2str(round(MRSCont.processed.(gui.fit.Style){1}.spectralwidth))]).name;
+                basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{1}.sz(1)) '_' num2str(MRSCont.processed.metab{1}.spectralwidth)]){1,1}.name;
             else if strcmp(gui.fit.Style, 'conc')
-                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{1}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
-                else if strcmp(gui.fit.Style, 'off')
-                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{1}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
-                    else
-                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{1}.sz(1))) '_' num2str(round(MRSCont.processed.A{1}.spectralwidth))]).name;
-                    end
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{1}.sz(1)) '_' num2str(MRSCont.processed.metab{1}.spectralwidth)]){1,1}.name;
+                else
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{1}.sz(1)) '_' num2str(MRSCont.processed.metab{1}.spectralwidth)]){1,end}.name;
                 end
             end
              % Larger fonts for the results
@@ -303,7 +380,7 @@ for t = 1 : gui.fit.Number %Loop over fits
                     end
 
                 end
-                
+
                 set(gui.Results.fit{t}, 'Title', ['Raw Water Ratio']);
                 gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
                 gui.Results.FitTextNames  = uicontrol('Parent',gui.Results.FitText,'style','text',...
@@ -536,7 +613,7 @@ for t = 1 : gui.fit.Number %Loop over fits
                        'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                        'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     end
-                end                    
+                end
             end
             set(gui.Results.fit{t}, 'Title', ['Raw Amplitudes']);
             gui.Results.FitText = uix.HBox('Parent', gui.Results.fit{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
@@ -590,7 +667,7 @@ for t = 1 : gui.fit.Number %Loop over fits
     %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
     temp = figure( 'Visible', 'off' );
     if ~((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI))
-        temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,gui.fit.Names{t});
+        temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y gui.controls.act_z],gui.fit.Names{t});
     elseif MRSCont.flags.isPRIAM
         temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,gui.controls.act_x,Selection); %Create figure
     else
