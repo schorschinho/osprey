@@ -98,7 +98,15 @@ classdef OspreyGUI < handle
                 load(fullfile(gui.folder.ospFolder,'GUI','SPMpath.mat'),'SPMpath')
                 gui.folder.spmversion = SPMpath;
             end
-                   
+              
+    % Show warning if the version is different
+       if ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)  
+            opts.WindowStyle = 'replace';
+            opts.Interpreter = 'tex';
+            f = errordlg('The Osprey version of your MRS container is different from the Osprey version you are using. Please consider re-running the analysis to ensure full functionality. Osprey v.2 is not compatible with any earlier versions.','Version mismatch',opts);           
+       end
+
+           
        % Load selected colormap
         gui.colormap = MRSCont.colormap;
 
@@ -530,14 +538,7 @@ classdef OspreyGUI < handle
             set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});
             set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});
             set(gui.layout.ListBox,'Callback', {@osp_onListSelection,gui},'KeyPressFcn',{@osp_WindowKeyDown,gui}, 'KeyReleaseFcn', {@osp_WindowKeyUp,gui});
-            
-            % Show warning if the version is different
-           if ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)  
-                opts.WindowStyle = 'replace';
-                opts.Interpreter = 'tex';
-                f = errordlg('The Osprey version of your MRS container is different from the Osprey version you are using. Please consider re-running the analysis to ensure full functionality.','Version mismatch',opts);           
-           end
-
+                       
         end
     end
 end                                                      % End of class definition
