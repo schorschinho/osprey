@@ -25,32 +25,37 @@ function osp_updatequantOvWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
+        selectedOvTab = get(gui.layout.overviewTab,'Selection');
+        set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(2).Children(2).Children(1).Children(1).Children(3),'String',gui.controls.act_z)
+        set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(2).Children(2).Children(1).Children(1).Children(4),'String',gui.controls.act_x)       
+       
         if ~strcmp(Selection,'Quality') 
             split_Selection = strsplit(Selection,'-');
+            ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.(split_Selection{1})(1,:),split_Selection{2}));   
     %This function updates the quantification table overview tab
-            if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
+            if strcmp(split_Selection{3},'AlphaCorrWaterScaled') || strcmp(split_Selection{3},'AlphaCorrWaterScaledGroupNormed')
                 if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
                     exclude = length(MRSCont.exclude);
                 else
                     exclude = 0;
                 end
                 if ~strcmp(MRSCont.opts.fit.coMM3, 'none')
-                    QuantTextOv = cell(MRSCont.nDatasets+1-exclude,2);
+                    QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,2);
                     QuantTextOv(1,:) = {'GABA','GABA+'};
                 else
-                   QuantTextOv = cell(MRSCont.nDatasets+1-exclude,1);
+                   QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,1);
                    QuantTextOv(1,:) = {'GABA'}; 
                 end
-                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2}).Voxel_1(:,:));
+                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{3}).Voxel_1{gui.controls.act_z,ind}(:,:));
             else
                 if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
                     exclude = length(MRSCont.exclude);
                 else
                     exclude = 0;
                 end            
-                QuantTextOv = cell(MRSCont.nDatasets+1-exclude,length(MRSCont.quantify.metabs.(split_Selection{1})));
-                QuantTextOv(1,:) = MRSCont.quantify.metabs.(split_Selection{1});
-                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2}).Voxel_1(:,:));
+                QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,length(MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind}));
+                QuantTextOv(1,:) = MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind};
+                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{3}).Voxel_1{gui.controls.act_z,ind}(:,:));
             end
         else
             if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
@@ -58,7 +63,7 @@ function osp_updatequantOvWindow(gui)
             else
                 exclude = 0;
             end  
-            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,length(MRSCont.QM.tables.Properties.VariableNames));
+            QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,length(MRSCont.QM.tables.Properties.VariableNames));
             QuantTextOv(1,:) = MRSCont.QM.tables.Properties.VariableNames;
             QuantTextOv(2:end,:) = table2cell(MRSCont.QM.tables(:,:));
         end
@@ -93,10 +98,10 @@ function osp_updatequantOvWindow(gui)
                             exclude = 0;
                         end
                         if ~strcmp(MRSCont.opts.fit.coMM3, 'none')
-                            QuantTextOv = cell(MRSCont.nDatasets+1-exclude,2);
+                            QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,2);
                             QuantTextOv(1,:) = {'GABA','GABA+'};
                         else
-                           QuantTextOv = cell(MRSCont.nDatasets+1-exclude,1);
+                           QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,1);
                            QuantTextOv(1,:) = {'GABA'}; 
                         end
                         QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2}).Voxel_2(:,:));
@@ -106,7 +111,7 @@ function osp_updatequantOvWindow(gui)
                         else
                             exclude = 0;
                         end            
-                        QuantTextOv = cell(MRSCont.nDatasets+1-exclude,length(MRSCont.quantify.metabs.(split_Selection{1})));
+                        QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,length(MRSCont.quantify.metabs.(split_Selection{1})));
                         QuantTextOv(1,:) = MRSCont.quantify.metabs.(split_Selection{1});
                         QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{2}).Voxel_2(:,:));
                     end
@@ -116,7 +121,7 @@ function osp_updatequantOvWindow(gui)
                     else
                         exclude = 0;
                     end  
-                    QuantTextOv = cell(MRSCont.nDatasets+1-exclude,length(MRSCont.QM.tables.Properties.VariableNames));
+                    QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,length(MRSCont.QM.tables.Properties.VariableNames));
                     QuantTextOv(1,:) = MRSCont.QM.tables.Properties.VariableNames;
                     QuantTextOv(2:end,:) = table2cell(MRSCont.QM.tables(:,:));
                 end

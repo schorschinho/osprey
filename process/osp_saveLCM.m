@@ -52,7 +52,7 @@ for kk = 1:MRSCont.nDatasets
     
     % Write LCModel .RAW files depending on sequence type
     % Get TE and the input file name
-    te                  = MRSCont.processed.A{kk}.te;
+    te                  = MRSCont.processed.metab{kk}.te;
     [path,filename,~]   = fileparts(MRSCont.files{kk});
     
     % For batch analysis, get the last two sub-folders (e.g. site and
@@ -65,19 +65,19 @@ for kk = 1:MRSCont.nDatasets
     % Set up complete output filename strings, then write LCM .RAW files.
     if MRSCont.flags.isUnEdited
         outfile         = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
-        RF              = io_writelcm(MRSCont.processed.A{kk},outfile,te);
+        RF              = io_writelcm(MRSCont.processed.metab{kk},outfile,te);
         
         MRSCont.opts.fit.lcmodel.outfileA{kk} = outfile;
         
     elseif MRSCont.flags.isMEGA
-        outfileA        = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
-        RF              = io_writelcm(MRSCont.processed.A{kk},outfileA,te);
+        outfileA        = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);        
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA,te);
         outfileB        = fullfile(saveDestination,'metabs', [name '_LCM_B.RAW']);
-        RF              = io_writelcm(MRSCont.processed.B{kk},outfileB,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB,te);
         outfileDiff1    = fullfile(saveDestination,'metabs', [name '_LCM_DIFF1.RAW']);
-        RF              = io_writelcm(MRSCont.processed.diff1{kk},outfileDiff1,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},3),outfileDiff1,te);
         outfileSum      = fullfile(saveDestination,'metabs', [name '_LCM_SUM.RAW']);
-        RF              = io_writelcm(MRSCont.processed.sum{kk},outfileSum,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},4),outfileSum,te);
         
         MRSCont.opts.fit.lcmodel.outfileA{kk}       = outfileA;
         MRSCont.opts.fit.lcmodel.outfileB{kk}       = outfileB;
@@ -86,19 +86,19 @@ for kk = 1:MRSCont.nDatasets
         
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
         outfileA        = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
-        RF              = io_writelcm(MRSCont.processed.A{kk},outfileA,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA,te);
         outfileB        = fullfile(saveDestination,'metabs', [name '_LCM_B.RAW']);
-        RF              = io_writelcm(MRSCont.processed.B{kk},outfileB,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB,te);
         outfileC        = fullfile(saveDestination,'metabs', [name '_LCM_C.RAW']);
-        RF              = io_writelcm(MRSCont.processed.C{kk},outfileC,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},3),outfileC,te);
         outfileD        = fullfile(saveDestination,'metabs', [name '_LCM_D.RAW']);
-        RF              = io_writelcm(MRSCont.processed.D{kk},outfileD,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},4),outfileD,te);
         outfileDiff1    = fullfile(saveDestination,'metabs', [name '_LCM_DIFF1.RAW']);
-        RF              = io_writelcm(MRSCont.processed.diff1{kk},outfileDiff1,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},5),outfileDiff1,te);
         outfileDiff2    = fullfile(saveDestination,'metabs', [name '_LCM_DIFF2.RAW']);
-        RF              = io_writelcm(MRSCont.processed.diff2{kk},outfileDiff2,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},6),outfileDiff2,te);
         outfileSum      = fullfile(saveDestination,'metabs', [name '_LCM_SUM.RAW']);
-        RF              = io_writelcm(MRSCont.processed.sum{kk},outfileSum,te);
+        RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},7),outfileSum,te);
         
         MRSCont.opts.fit.lcmodel.outfileA{kk}       = outfileA;
         MRSCont.opts.fit.lcmodel.outfileB{kk}       = outfileB;
@@ -118,7 +118,7 @@ for kk = 1:MRSCont.nDatasets
         % Get TE and the input file name. For GE, the water reference is
         % already contained in the P file.
         if strcmpi(MRSCont.vendor, 'GE') || strcmp(MRSCont.datatype,'DATA')
-            te_ref                      = MRSCont.processed.A{kk}.te;
+            te_ref                      = MRSCont.processed.metab{kk}.te;
             [path_ref,filename_ref,~]   = fileparts(MRSCont.files{kk});
         else
             te_ref                      = MRSCont.processed.ref{kk}.te;
