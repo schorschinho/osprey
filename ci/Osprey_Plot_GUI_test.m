@@ -44,7 +44,7 @@ function testOspreyGUI(~)
     %Test loading and plots
         osp_plotModule(MRSCont, 'OspreyLoad', 1, [1 1], 'metabolites');
         if MRSCont.flags.hasRef
-            osp_plotModule(MRSCont, 'OspreyLoad', [1 1], 'ref');
+            osp_plotModule(MRSCont, 'OspreyLoad',1, [1 1], 'ref');
         end
         if MRSCont.flags.hasWater
             osp_plotModule(MRSCont, 'OspreyLoad', 1, [1 1], 'w');
