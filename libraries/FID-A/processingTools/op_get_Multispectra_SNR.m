@@ -13,8 +13,8 @@
 % OUTPUTS:
 % SNR            = Estimated SNR of the input spectrum.
 
-function [SNR]=op_get_Multispectra_SNR(in,MM);
-
+function [out,SNR]=op_get_Multispectra_SNR(in,MM);
+out = in;
 if nargin < 2
     MM = 0;
 end
@@ -25,25 +25,31 @@ noiseppmmin=-2;
 if ~MM
     if in.flags.isUnEdited
         SNRRange = {[1.8,2.2]};
+        QC_names = {'tNAA'};
     end
     if in.flags.isMEGA
         SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
+        QC_names = {'tNAA','tCr',in.target,'tCr'};
     end
     if in.flags.isHERMES || in.flags.isHERCULES
         SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
+        QC_names = {'tNAA','tCr','tCr','tNAA',in.target{1},in.target{2},'tCr'};
     end
 else
     if in.flags.isUnEdited
         SNRRange = {[0.7,1.1]};
+        QC_names = {'MM09'};
     end
     if in.flags.isMEGA
         SNRRange = {[0.7,1.1],[0.7,1.1],[0.7,1.1],[0.7,1.1]};
+        QC_names = {'MM09','MM09','MM09','MM09'};
     end
     if in.flags.isHERMES || in.flags.isHERCULES
         SNRRange = {[0.7,1.1],[0.7,1.1],[0.7,1.1],[0.7,1.1],[0.7,1.1],[0.7,1.1],[0.7,1.1]};
+        QC_names = {'MM09','MM09','MM09','MM09','MM09','MM09','MM09'};
     end   
 end
-
+out.QC_names = QC_names;
 SNR = cell(in.subspecs,1);
 for ss = 1 : in.subspecs
     if in.subspecs == 1

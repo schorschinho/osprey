@@ -3,7 +3,7 @@
 %
 % USAGE:
 % [fitParams, resBasisSet] = fit_runFit(dataToFit, basisSet, fitModel, fitOpts);
-% 
+%
 % DESCRIPTION:
 % This function performs spectral fitting of the data in dataToFit, using
 % the basis set in basisSet, using a set of options defined in fitOpts.
@@ -14,7 +14,7 @@
 % The function 'fitModel' describes the actual fitting process that is
 % being performed. The workflow is designed to encourage development and
 % easy testing/implementation of new quantitative models.
-% 
+%
 % OUTPUTS:
 % fitParams   = Structure containing all necessary fit parameters
 %               (model-dependent)
@@ -32,21 +32,36 @@ function [fitParams, resBasisSet] = fit_runFitMM(dataToFit, basisSet, fitModel, 
 if nargin<4
     fitOpts = fit_defaultFitOpts(fitModel);
 end
-switch fitOpts.sequence
-    case 'unedited'
-        %Invert the NAA, Cr and CrCH2 peaks
-        basisSet.specs(:,1)=-basisSet.specs(:,1);
-        basisSet.specs(:,2)=-basisSet.specs(:,2);
-        basisSet.specs(:,4)=-basisSet.specs(:,4);
-    case 'MEGA'
-        %Invert the NAA peaks
-        basisSet.specs(:,1)=-basisSet.specs(:,1);
+
+if ~strcmp(fitModel,'OspreyMMGaussian')
+    switch fitOpts.sequence
+        case 'unedited'
+            %Invert the NAA, Cr and CrCH2 peaks
+            basisSet.specs(:,1)=-basisSet.specs(:,1);
+            basisSet.specs(:,2)=-basisSet.specs(:,2);
+            basisSet.specs(:,4)=-basisSet.specs(:,4);
+        case 'MEGA'
+            %Invert the NAA/NAAG peak
+%             basisSet.specs(:,2)=-basisSet.specs(:,2);
+%             basisSet.specs(:,3)=-basisSet.specs(:,3);
+%             basisSet.specs(:,4)=-basisSet.specs(:,4);
+            basisSet.specs(:,1)=-basisSet.specs(:,1);
+            basisSet.specs(:,2)=-basisSet.specs(:,2);
+            basisSet.specs(:,3)=-basisSet.specs(:,3);
+%             basisSet.specs(:,4)=-basisSet.specs(:,4);
+%             basisSet.specs(:,5)=-basisSet.specs(:,5);
+%             basisSet.specs(:,6)=-basisSet.specs(:,6);
+%             basisSet.specs(:,7)=-basisSet.specs(:,7);
+
+    end
 end
         
 %%% 1. SELECT THE MODEL %%%
 switch fitModel
     case 'Osprey'
         [fitParams, resBasisSet] = fit_OspreyMM(dataToFit, basisSet, fitOpts);
+    case 'OspreyMMGaussian'
+        [fitParams, resBasisSet] = fit_OspreyMMGaussians(dataToFit, basisSet, fitOpts);
 end
 
 
@@ -67,7 +82,7 @@ switch fitModel
         % Determine fitting range (in ppm) for the metabolite and water spectra
         fitOpts.range              = [0.2 4.2];        % [ppm] Default: [0.2 4.2]
         fitOpts.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
-        
+
         % Determine the baseline knot spacing (in ppm) for the metabolite spectra
         fitOpts.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
 end

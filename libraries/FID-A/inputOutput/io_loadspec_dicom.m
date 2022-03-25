@@ -315,7 +315,25 @@ if out.dims.subSpecs==0
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
+if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+    out.flags.isUnEdited = 1;
+end
+if contains(seq,'MEGA')
+    out.flags.isMEGA = 1;
+end
+if strcmp(seq,'HERMES')
+    out.flags.isHERMES = 1;
+end
+if strcmp(seq,'HERCULES')
+    out.flags.isHERCULES = 1;
+end
 
 
 %DONE

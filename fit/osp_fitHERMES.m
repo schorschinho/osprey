@@ -33,7 +33,7 @@ else
     progressText = '';
 end
 for kk = 1:MRSCont.nDatasets
-    [~] = printLog('OspreyFit',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+    [~] = printLog('OspreyFit',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     %%% 1. DETERMINE THE FITTING STYLE %%%
     % Extract fit options
     fitOpts     = MRSCont.opts.fit;
@@ -49,23 +49,24 @@ for kk = 1:MRSCont.nDatasets
 
             %%% 2a. FIT SUM-SPECTRUM
             % Apply scaling factor to the data
-            dataToFit   = MRSCont.processed.sum{kk};
+            dataToFit   = op_takesubspec(MRSCont.processed.metab{kk},'sum');
             basisSetSum = MRSCont.fit.basisSet;
             basisSetSum.fids = basisSetSum.fids(:,:,7);
             basisSetSum.specs = basisSetSum.specs(:,:,7);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
             
+            fitOpts.GAP = MRSCont.opts.fit.GAP.sum;
             % Call the fit function
             [fitParamsSum, resBasisSetSum] = fit_runFit(dataToFit, basisSetSum, fitModel, fitOpts);
 
             % Save back the basis set and fit parameters to MRSCont
-            MRSCont.fit.resBasisSet.sum{kk}             = resBasisSetSum;
-            MRSCont.fit.results.sum.fitParams{kk}   = fitParamsSum;
+            MRSCont.fit.resBasisSet.metab{1,kk,1}             = resBasisSetSum;
+            MRSCont.fit.results.metab.fitParams{1,kk,1}   = fitParamsSum;
 
 
             %%% 2b. FIT DIFF1-SPECTRUM
             % Apply scaling factor to the data
-            dataToFit   = MRSCont.processed.diff1{kk};
+            dataToFit   = op_takesubspec(MRSCont.processed.metab{kk},'diff1');
             basisSetDiff1 = MRSCont.fit.basisSet;
             basisSetDiff1.fids = basisSetDiff1.fids(:,:,5);
             basisSetDiff1.specs = basisSetDiff1.specs(:,:,5);
@@ -77,17 +78,18 @@ for kk = 1:MRSCont.nDatasets
                 [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetSum,fitOpts);
             end
 
+            fitOpts.GAP = MRSCont.opts.fit.GAP.diff1;
             % Call the fit function
             [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
 
             % Save back the basis set and fit parameters to MRSCont
-            MRSCont.fit.resBasisSet.diff1{kk}           = resBasisSetDiff1;
-            MRSCont.fit.results.diff1.fitParams{kk} = fitParamsDiff1;
+            MRSCont.fit.resBasisSet.metab{1,kk,2}           = resBasisSetDiff1;
+            MRSCont.fit.results.metab.fitParams{1,kk,2} = fitParamsDiff1;
 
 
             %%% 2c. FIT DIFF2-SPECTRUM
             % Apply scaling factor to the data
-            dataToFit   = MRSCont.processed.diff2{kk};
+            dataToFit   = op_takesubspec(MRSCont.processed.metab{kk},'diff2');
             basisSetDiff2 = MRSCont.fit.basisSet;
             basisSetDiff2.fids = basisSetDiff2.fids(:,:,6);
             basisSetDiff2.specs = basisSetDiff2.specs(:,:,6);
@@ -96,12 +98,13 @@ for kk = 1:MRSCont.nDatasets
             dataToFit.refFWHM   = fitParamsSum.refFWHM;
             fitOpts.Diff2 = 1;
 
+            fitOpts.GAP = MRSCont.opts.fit.GAP.diff2;
             % Call the fit function
             [fitParamsDiff2, resBasisSetDiff2]  = fit_runFit(dataToFit, basisSetDiff2, fitModel, fitOpts);
 
             % Save back the basis set and fit parameters to MRSCont
-            MRSCont.fit.resBasisSet.diff2{kk}           = resBasisSetDiff2;
-            MRSCont.fit.results.diff2.fitParams{kk} = fitParamsDiff2;
+            MRSCont.fit.resBasisSet.metab{1,kk,3}           = resBasisSetDiff2;
+            MRSCont.fit.results.metab.fitParams{1,kk,3} = fitParamsDiff2;
         end
     end
 
@@ -114,7 +117,7 @@ for kk = 1:MRSCont.nDatasets
         
             %%% 3a. FIT CONCATENATED SPECTRUM
             % Apply scaling factor to the data
-            dataToFit   = {MRSCont.processed.diff1{kk}, MRSCont.processed.diff2{kk}, MRSCont.processed.sum{kk}};
+            dataToFit   = {op_takesubspec(MRSCont.processed.metab{kk},7), op_takesubspec(MRSCont.processed.metab{kk},5), op_takesubspec(MRSCont.processed.metab{kk},6)};
             basisSetConc = MRSCont.fit.basisSet;
             basisSetConc.fids = basisSetConc.fids(:,:,5:7);
             basisSetConc.specs = basisSetConc.specs(:,:,5:7);
@@ -132,7 +135,7 @@ for kk = 1:MRSCont.nDatasets
     end
 end
 time = toc(metFitTime);
-[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+[~] = printLog('done',time,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 MRSCont.runtime.FitMet = time;
 
 end

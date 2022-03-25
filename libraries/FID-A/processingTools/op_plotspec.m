@@ -279,9 +279,9 @@ end
 box off;
 xlabel(xlab,'FontSize',20);
 ylabel(ylab,'FontSize',20);
-Fig1Ax1 = get(out, 'Children');
-Fig1Ax1Line1 = get(Fig1Ax1, 'Children');
-set(Fig1Ax1Line1, 'LineWidth', 1);
+% Fig1Ax1 = get(out, 'Children');
+% Fig1Ax1Line1 = get(Fig1Ax1, 'Children');
+% set(Fig1Ax1Line1, 'LineWidth', 1);
         
     
     

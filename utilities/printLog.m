@@ -1,4 +1,4 @@
-function [msg] = printLog(Module,kk,nDatasets,progressText,GUI,MRSI,LCModel)
+function [msg] = printLog(Module,kk,ll,nDatasets,progressText,GUI,MRSI,LCModel)
 %% [MRSCont] = printLog(MRSCont)
 %   This function allows you to rebase your derviatives folder and files in
 %   case you have processed them on another machine
@@ -25,44 +25,44 @@ function [msg] = printLog(Module,kk,nDatasets,progressText,GUI,MRSI,LCModel)
 %   HISTORY:
 %       2021-05-06: First version of the code.
 
-if nargin < 7
+if nargin < 8
     LCModel = 0;
 end
 msg = '';
 %% Load
  
 if strcmp(Module,'OspreyLoad')
-     if kk == 1    
-        msg = sprintf('Loading raw data from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+     if kk == 1 && ll ==1
+        msg = sprintf('Loading raw data from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         fprintf(msg);
      else
-     msg = sprintf('Loading raw data from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+        msg = sprintf('Loading raw data from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
      end
     if GUI        
-        set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, nDatasets));
+        set(progressText,'String' ,sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, nDatasets(1)));
         drawnow
     end   
 end
 
 if strcmp(Module,'OspreyLoadWater')
-     if kk == 1    
-        msg = sprintf('Loading raw data from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+     if kk == 1    && ll ==1
+        msg = sprintf('Loading raw water data from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         fprintf(msg);
      else
-     msg = sprintf('Loading raw data from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+     msg = sprintf('Loading raw water data from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
      end
     if GUI        
-        set(progressText,'String' ,sprintf('Loading raw data from dataset %3i out of %3i total datasets...\n', kk, nDatasets));
+        set(progressText,'String' ,sprintf('Loading raw water data from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1)));
         drawnow
     end   
 end
 %% Process
 if strcmp(Module,'OspreyProcess') && ~MRSI
-     if kk == 1    
+     if kk == 1  && ll ==1  
         msg = sprintf('Processing data from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
         fprintf(msg);
      else
@@ -91,20 +91,16 @@ if strcmp(Module,'OspreyProcess') && MRSI && size(kk,2) > 1
 end
 %% Fit
 if strcmp(Module,'OspreyFit') && ~MRSI 
-    if ~LCModel
-        msg = sprintf('\nFitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+    if kk == 1
+        msg = sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         fprintf(msg);
-    else if kk == 1
-            msg = sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
-            fprintf(msg);
-        else
-            msg = sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
-            fprintf([reverseStr, msg]);
-         end
+    else
+        msg = sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        fprintf([reverseStr, msg]);
     end
     if GUI        
-        set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets));
+        set(progressText,'String' ,sprintf('Fitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1)));
         drawnow
     end   
 end
@@ -125,10 +121,10 @@ if strcmp(Module,'OspreyFit') && MRSI && size(kk,2) > 1
 end
 
 if strcmp(Module,'OspreyFitRef') && ~MRSI
-        msg = sprintf('\nFitting water reference spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+        msg = sprintf('\nFitting water reference spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         fprintf(msg);
     if GUI        
-        set(progressText,'String' ,sprintf('Fitting water reference spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets));
+        set(progressText,'String' ,sprintf('Fitting water reference spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1)));
         drawnow
     end   
 end
@@ -148,10 +144,10 @@ if strcmp(Module,'OspreyFitRef') && MRSI && size(kk,2) > 1
 end
 
 if strcmp(Module,'OspreyFitShortTE') && ~MRSI  
-        msg = sprintf('\nFitting short-TE water spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+        msg = sprintf('\nFitting short-TE water spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         fprintf(msg);
     if GUI        
-        set(progressText,'String' ,sprintf('Fitting short-TE water spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets));
+        set(progressText,'String' ,sprintf('Fitting short-TE water spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1)));
         drawnow
     end   
 end
@@ -172,40 +168,40 @@ end
 %% Coreg
 if strcmp(Module,'OspreyCoreg')
      if kk == 1    
-        msg = sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+        msg = sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         fprintf(msg);
      else
-     msg = sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+     msg = sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
      end
     if GUI        
-        set(progressText,'String' ,sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets));
+        set(progressText,'String' ,sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1)));
         drawnow
     end   
 end
 %% Segmentation
 if strcmp(Module,'OspreySeg')
      if kk == 1    
-        msg = sprintf('\nSegmenting structural image from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+        msg = sprintf('\nSegmenting structural image from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         fprintf(msg);
      else
-     msg = sprintf('\nSegmenting structural image from dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+     msg = sprintf('\nSegmenting structural image from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
      end
     if GUI        
-        set(progressText,'String' ,sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets));
+        set(progressText,'String' ,sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1)));
         drawnow
     end   
 end
 %% Quantification
 if strcmp(Module,'OspreyQuant')
      if kk == 1    
-        msg = sprintf('Quantifying dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+        msg = sprintf('Quantifying dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         fprintf(msg);
      else
-     msg = sprintf('Quantifying dataset %3i out of %3i total datasets...\n', kk, nDatasets);
+     msg = sprintf('Quantifying dataset %3i out of %3i total datasets...\n', kk, nDatasets(1));
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         fprintf([reverseStr, msg]);
      end
