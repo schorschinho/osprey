@@ -46,18 +46,18 @@ head_end_text   = '>>> End of header <<<';
 tline = fgets(fid);
 
 while (isempty(strfind(tline , head_end_text)))
-    
+
     tline = fgets(fid);
-    
+
     if ( isempty(strfind (tline , head_start_text)) + isempty(strfind (tline , head_end_text )) == 2)
-        
-        
+
+
         % Store this data in the appropriate format
-        
+
         occurence_of_colon = findstr(':',tline);
         variable = tline(1:occurence_of_colon-1) ;
         value    = tline(occurence_of_colon+1 : length(tline)) ;
-        
+
         switch variable
             case { 'PatientID' , 'PatientName' , 'StudyDescription' , 'PatientBirthDate' , 'StudyDate' , 'StudyTime' , 'PatientAge' , 'SeriesDate' , ...
                     'SeriesTime' , 'SeriesDescription' , 'ProtocolName' , 'PatientPosition' , 'ModelName' , 'StationName' , 'InstitutionName' , ...
@@ -72,10 +72,10 @@ while (isempty(strfind(tline , head_end_text)))
                     case 1
                         rda.sex = 'Male';
                     case 2
-                        
+
                         rda.sex = 'Female';
                 end
-                
+
             case {  'SeriesNumber' , 'InstanceNumber' , 'AcquisitionNumber' , 'NumOfPhaseEncodingSteps' , 'NumberOfRows' , 'NumberOfColumns' , 'VectorSize' }
                 %Integers
                 eval(['rda.' , variable , ' = str2num(value); ']);
@@ -111,16 +111,16 @@ while (isempty(strfind(tline , head_end_text)))
                 rda.ColumnVector(2) = str2num(value);
             case {'ColumnVector[2]' }
                 rda.ColumnVector(3) = str2num(value);
-                
+
             otherwise
                 % We don't know what this variable is.  Report this just to keep things clear
                 %disp(['Unrecognised variable ' , variable ]);
         end
-        
+
     else
         % Don't bother storing this bit of the output
     end
-    
+
 end
 
 % Get the header of the first file to make some decisions.
@@ -172,12 +172,12 @@ for kk = 1:length(filesInFolder)
     complex_data = fread(fid , rda.CSIMatrix_Size(1) * rda.CSIMatrix_Size(1) *rda.CSIMatrix_Size(1) *rda.VectorSize * 2 , 'double');
     %fread(fid , 1, 'double');  %This was a check to confirm that we had read all the data (it passed!)
     fclose(fid);
-    
+
     % Now convert this data into something meaningful
-    
+
     %Reshape so that we can get the real and imaginary separated
     hmm = reshape(complex_data,  2 , rda.VectorSize , rda.CSIMatrix_Size(1) ,  rda.CSIMatrix_Size(2) ,  rda.CSIMatrix_Size(3) );
-    
+
     %Combine the real and imaginary into the complex matrix
     fids(kk,:) = complex(hmm(1,:,:,:,:),hmm(2,:,:,:,:));
 end
@@ -308,4 +308,11 @@ else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
 
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
 end

@@ -83,6 +83,9 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_mm')  %re_mm Adding functionality for MM
         files_mm = {jobStruct.files_mm};   %re_mm
     end %re_mm
+    if isfield(jobStruct, 'files_mm_ref')
+        files_mm_ref = {jobStruct.files_mm_ref};
+    end
     if isfield(jobStruct, 'files_ref')
         files_ref = {jobStruct.files_ref};
     end
@@ -224,7 +227,14 @@ if ~isfield(MRSCont.opts, 'UnstableWater')
 end
 
 if ~isfield(MRSCont.opts, 'SubSpecAlignment')
-    MRSCont.opts.SubSpecAlignment = 'L2Norm';
+    MRSCont.opts.SubSpecAlignment.mets = 'L2Norm';
+    MRSCont.opts.SubSpecAlignment.mm = 'none';
+else if ~isfield(MRSCont.opts.SubSpecAlignment, 'mets')
+    SubSpecAlignment = MRSCont.opts.SubSpecAlignment;
+    MRSCont.opts = rmfield(MRSCont.opts,'SubSpecAlignment');
+    MRSCont.opts.SubSpecAlignment.mets = SubSpecAlignment;
+    MRSCont.opts.SubSpecAlignment.mm = 'none'; 
+    end
 end
 
 
@@ -236,13 +246,27 @@ switch seqType
         MRSCont.opts.editTarget             = {'none'};
         MRSCont.opts.fit.style = opts.fit.style; 
         if strcmp(opts.fit.style, 'Concatenated')
-            fprintf('Fitting style was changed to Separate, because this is unedited data. Please indicate otherwise in the csv-file or the GUI \n');
+            fprintf('Fitting style was changed to Separate, because this is unedited data.\n');
             MRSCont.opts.fit.style = 'Separate';
-        end        
+        end 
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.A = [];
+            MRSCont.opts.fit.GAP.mm = [];
+            MRSCont.opts.fit.GAP.ref = [];
+            MRSCont.opts.fit.GAP.ref_mm = [];
+            MRSCont.opts.fit.GAP.w = [];
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
         MRSCont.opts.editTarget             = editTarget;
         MRSCont.opts.fit.style = opts.fit.style;
+        if strcmp(opts.fit.style, 'Concatenated')
+            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
+            MRSCont.opts.fit.style = 'Separate';
+        end
         if isfield(opts.fit, 'coMM3')
             MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
             MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
@@ -250,19 +274,79 @@ switch seqType
             MRSCont.opts.fit.coMM3 = 'none';
             MRSCont.opts.fit.FWHMcoMM3 = 14;
         end
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.A = [];
+            MRSCont.opts.fit.GAP.diff1 = [];
+            MRSCont.opts.fit.GAP.A_mm = [];
+            MRSCont.opts.fit.GAP.diff1_mm = [];
+            MRSCont.opts.fit.GAP.ref = [];
+            MRSCont.opts.fit.GAP.ref_mm = [];
+            MRSCont.opts.fit.GAP.w = [];
+        else if ~isfield(MRSCont.opts.fit.GAP, 'A')
+                MRSCont.opts.fit.GAP.A = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff1')
+                MRSCont.opts.fit.GAP.diff1 = [];
+            end
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     case 'HERMES'
         MRSCont.flags.isHERMES      = 1;
         MRSCont.opts.editTarget             = editTarget;
         MRSCont.opts.fit.style = opts.fit.style;
+        if strcmp(opts.fit.style, 'Concatenated')
+            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
+            MRSCont.opts.fit.style = 'Separate';
+        end
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.sum = [];
+            MRSCont.opts.fit.GAP.diff1 = [];
+            MRSCont.opts.fit.GAP.diff2 = [];
+        else if ~isfield(MRSCont.opts.fit.GAP, 'sum')
+                MRSCont.opts.fit.GAP.sum = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff1')
+                MRSCont.opts.fit.GAP.diff1 = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff2')
+                MRSCont.opts.fit.GAP.diff2 = [];
+            end
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     case 'HERCULES'
         MRSCont.flags.isHERCULES    = 1;
         MRSCont.opts.editTarget             = editTarget;
         MRSCont.opts.fit.style = opts.fit.style;
+        if strcmp(opts.fit.style, 'Concatenated')
+            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
+            MRSCont.opts.fit.style = 'Separate';
+        end
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.sum = [];
+            MRSCont.opts.fit.GAP.diff1 = [];
+            MRSCont.opts.fit.GAP.diff2 = [];
+        else if ~isfield(MRSCont.opts.fit.GAP, 'sum')
+                MRSCont.opts.fit.GAP.sum = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff1')
+                MRSCont.opts.fit.GAP.diff1 = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff2')
+                MRSCont.opts.fit.GAP.diff2 = [];
+            end
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     otherwise
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
 end
 
-% AUtomatically chekc whehther LCModel is used and turn on RAW export
+% AUtomatically check whehther LCModel is used and turn on RAW export
 if strcmp(opts.fit.method, 'LCModel')
     MRSCont.opts.saveLCM = 1;
 end
@@ -349,6 +433,11 @@ if exist('files_mm','var')   %re_mm Adding functionality for MM
 else
     MRSCont.files_mm = {};
 end   %re_mm
+if exist('files_mm_ref','var')
+    MRSCont.files_mm_ref = files_mm_ref;
+else
+    MRSCont.files_mm_ref = {};
+end
 if exist('files_ref','var')
     MRSCont.files_ref = files_ref;
 else
@@ -376,7 +465,7 @@ else
 end
 
 % Check that each array has an identical number of entries
-fieldNames = {'files', 'files_ref', 'files_w','files_mm', 'files_nii', 'files_sense'};
+fieldNames = {'files', 'files_ref', 'files_w','files_mm','files_mm_ref', 'files_nii', 'files_sense'};
 ctr = 0;
 for kk = 1:length(fieldNames)
     if isfield(MRSCont, fieldNames{kk})
@@ -413,7 +502,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 1.2.0';
+MRSCont.ver.Osp             = 'Osprey 2.0.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
@@ -552,7 +641,13 @@ else
                             if isfield(MRSCont,'files_w')
                                 MRSCont.files_w = MRSContNew.files_w;
                             end
-                            if isfield(MRSCont,'files_ref')
+                            if isfield(MRSCont,'files_mm')
+                                MRSCont.files_mm = MRSContNew.files_mm;
+                            end
+                            if isfield(MRSCont,'files_mm_ref')
+                                MRSCont.files_mm_ref = MRSContNew.files_mm_ref;
+                            end
+                            if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
                             end
                             if isfield(MRSCont,'files_sense')

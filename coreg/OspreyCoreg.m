@@ -53,8 +53,8 @@ if MRSCont.flags.isGUI
 else
     progressText = '';
 end
-for kk = 1:MRSCont.nDatasets
-    [~] = printLog('OspreyCoreg',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+for kk = 1:MRSCont.nDatasets(1)
+     [~] = printLog('OspreyCoreg',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);  
     if ~(MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         % Get the input file name
@@ -168,7 +168,7 @@ for kk = 1:MRSCont.nDatasets
     end
 end
 time = toc(refCoregTime);
-[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+[~] = printLog('done',time,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 MRSCont.runtime.Coreg = time;
 %% Clean up and save
 % Set exit flags and version

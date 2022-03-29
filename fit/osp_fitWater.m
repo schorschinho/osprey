@@ -84,7 +84,7 @@ if MRSCont.flags.isPRIAM == 1
         % Call the fit function
         [fitParamsWater, resBasisSetWater]  = fit_runFitWater(dataToFit, basisSet, fitModel, fitOpts);
         % Save back the fit parameters to MRSCont
-        MRSCont.fit.resBasisSet{x}.(str).water{kk}      = resBasisSetWater;
+        MRSCont.fit.resBasisSet{x}.(str){kk}      = resBasisSetWater;
         MRSCont.fit.results{x}.(str).fitParams{kk}   = fitParamsWater;
     end
 elseif MRSCont.flags.isMRSI == 1
@@ -133,10 +133,10 @@ elseif MRSCont.flags.isMRSI == 1
                     % Save back the fit parameters to MRSCont                
                     % 2D MRSI data
                     if ZVox <=1
-                        MRSCont.fit.resBasisSet{x,y}.(str).water{kk}      = resBasisSetWater;
+                        MRSCont.fit.resBasisSet{x,y}.(str){kk}      = resBasisSetWater;
                         MRSCont.fit.results{x,y}.(str).fitParams{kk}   = fitParamsWater;
                     else  % 3D MRSI data
-                        MRSCont.fit.resBasisSet{x,y,z}.(str).water{kk}      = resBasisSetWater;
+                        MRSCont.fit.resBasisSet{x,y,z}.(str){kk}      = resBasisSetWater;
                         MRSCont.fit.results{x,y,z}.(str).fitParams{kk}   = fitParamsWater;
                     end
 
@@ -161,7 +161,7 @@ else
         % Call the fit function
         [fitParamsWater, resBasisSetWater]  = fit_runFitWater(dataToFit, basisSet, fitModel, fitOpts);
         % Write
-        MRSCont.fit.resBasisSet.(str).water{kk}      = resBasisSetWater;
+        MRSCont.fit.resBasisSet.(str){kk}      = resBasisSetWater;
         MRSCont.fit.results.(str).fitParams{kk}   = fitParamsWater;
 end
                

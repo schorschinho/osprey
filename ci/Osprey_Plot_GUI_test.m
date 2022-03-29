@@ -42,110 +42,128 @@ function testOspreyGUI(~)
     delete( gui.figure );
     
     %Test loading and plots
-        osp_plotModule(MRSCont, 'OspreyLoad', 1, 'mets');
+        osp_plotModule(MRSCont, 'OspreyLoad', 1, [1 1], 'metabolites');
         if MRSCont.flags.hasRef
-            osp_plotModule(MRSCont, 'OspreyLoad', 1, 'ref');
+            osp_plotModule(MRSCont, 'OspreyLoad',1, [1 1], 'ref');
         end
         if MRSCont.flags.hasWater
-            osp_plotModule(MRSCont, 'OspreyLoad', 1, 'w');
+            osp_plotModule(MRSCont, 'OspreyLoad', 1, [1 1], 'w');
         end
         if MRSCont.flags.hasMM
-            osp_plotModule(MRSCont, 'OspreyLoad', 1, 'mm');
+            osp_plotModule(MRSCont, 'OspreyLoad', 1, [1 1], 'MM');
         end
 
     %Test process and plots    
     Names = fieldnames(MRSCont.processed);
-    for ss = 1 : length(Names)
-        osp_plotModule(MRSCont, 'OspreyProcess', 1, Names{ss});
+    for mm = 1 : length(Names)
+        for ss = 1 : length(MRSCont.processed.(Names{mm}){1}.names)
+            if (~contains(MRSCont.processed.(Names{mm}){1}.names{ss},'spline')) && (~contains(MRSCont.processed.(Names{mm}){1}.names{ss},'clean'))
+                osp_plotModule(MRSCont, 'OspreyProcess', 1,[1 ss], Names{mm});
+            end
+        end
     end
 
         
     %Test fit and plots 
-        if strcmp(MRSCont.opts.fit.style, 'Concatenated')
-        temp = fieldnames(MRSCont.fit.results);
-        if MRSCont.flags.isUnEdited
-            Names = fieldnames(MRSCont.fit.results);
-        end
-        if MRSCont.flags.isMEGA
-            Names = {'diff1','sum'};
-            if length(temp) == 2
-                Names{3} = temp{2};
-            else if length(temp) == 3
-                Names{3} = temp{2};
-                Names{4} = temp{3};
+    Names = {'metab'}; 
+    if MRSCont.flags.hasMM
+        Names{end+1} = 'mm';
+    end
+    if MRSCont.flags.hasRef
+        Names{end+1} = 'ref';
+    end
+    if MRSCont.flags.hasWater
+        Names{end+1} = 'w';
+    end
+
+    for mm = 1 : length(Names)
+        if isfield(MRSCont.fit.results,Names{mm})
+            for bb = 1 : size(MRSCont.fit.results.(Names{mm}).fitParams,1)
+                for ss = 1 : size(MRSCont.fit.results.(Names{mm}).fitParams,3)
+                    osp_plotModule(MRSCont, 'OspreyFit', 1,[bb ss], Names{mm});
                 end
             end
         end
-        if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-            Names = {'diff1','diff2','sum'};
-            if length(temp) == 2
-                Names{4} = temp{2};
-            else if length(temp) == 3
-                Names{4} = temp{2};
-                Names{5} = temp{3};
-                end
-            end
-        end
-        else
-            Names = fieldnames(MRSCont.fit.results);  
-        end
-        for ss = 1 : length(Names)
-            osp_plotModule(MRSCont, 'OspreyFit', 1, Names{ss});
-        end
+    end
         
 
     osp_plotModule(MRSCont, 'OspreyCoreg', 1);
 
+    SubNames = fieldnames(MRSCont.overview.SubSpecNamesStruct);
+       k=1;
+       if ~isempty(SubNames) 
+           for i = 1 : length(SubNames)
+               for j = 1 :size(MRSCont.overview.SubSpecNamesStruct.(SubNames{i}),2)
+                    tempSubNames{k} = [SubNames{i}, ' ', MRSCont.overview.SubSpecNamesStruct.(SubNames{i}){1,j}]; 
+                    k=k+1;
+               end
+           end
+       end
 
-
-    Names = fieldnames(MRSCont.processed);
+       FitNames = fieldnames(MRSCont.overview.FitSpecNamesStruct);
+       k=1;
+       if ~isempty(FitNames) 
+           for i = 1 : length(FitNames)
+               for j = 1 :size(MRSCont.overview.FitSpecNamesStruct.(FitNames{i}),2)
+                    tempFitNames{k} = ['Model ', FitNames{i}, ' ', MRSCont.overview.FitSpecNamesStruct.(FitNames{i}){1,j}]; 
+                    k=k+1;
+               end
+           end
+       end
+       Names = [tempSubNames';tempFitNames'];
     for ss = 1 : length(Names)
-        osp_plotModule(MRSCont, 'OspreySpecOverview', 1, Names{ss});
-        osp_plotModule(MRSCont, 'OspreyMeanOverview', 1, Names{ss});
+        osp_plotModule(MRSCont, 'OspreySpecOverview', 1,1, Names{ss});
     end
-    
-    if MRSCont.flags.isUnEdited
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'off-tCr', 'tNAA');
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'off-tCr', 'tCho');
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'off-tCr', 'Ins');
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'off-tCr', 'Glx');
-    
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'tNAA', 'SNR');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'tCho', 'SNR');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'Ins', 'SNR');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'Glx', 'SNR');
 
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'tNAA', 'FWHM');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'tCho', 'FWHM');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'Ins', 'FWHM');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'off-tCr', 'Glx', 'FWHM');
+    SubNames = fieldnames(MRSCont.overview.SubSpecNamesStruct);
+       k=1;
+       if ~isempty(SubNames) 
+           for i = 1 : length(SubNames)
+               for j = 1 :size(MRSCont.overview.SubSpecNamesStruct.(SubNames{i}),2)
+                   if ~isempty(find(strcmp(FitNames,SubNames{i})))
+                        if (~isempty(find(strcmp(MRSCont.overview.FitSpecNamesStruct.(SubNames{i}),MRSCont.overview.SubSpecNamesStruct.(SubNames{i}){1,j}))))
+                            Names{k} = ['Model ' , SubNames{i}, ' ', MRSCont.overview.SubSpecNamesStruct.(SubNames{i}){1,j}];
+                        else
+                            Names{k} = [SubNames{i}, ' ', MRSCont.overview.SubSpecNamesStruct.(SubNames{i}){1,j}]; 
+                        end
+                   else
+                       Names{k} = [SubNames{i}, ' ', MRSCont.overview.SubSpecNamesStruct.(SubNames{i}){1,j}]; 
+                   end
+                    k=k+1;
+               end
+           end
+       end
+    for ss = 1 : length(Names)                
+        osp_plotModule(MRSCont, 'OspreyMeanOverview', 1,1, Names{ss});
+    end
+
+    if MRSCont.flags.isUnEdited
+        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'tNAA');
+        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'tCho');
+        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'Ins');
+        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'Glx');
+
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'tNAA', 'SNR');
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'tCho', 'SNR');
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'Ins', 'SNR');
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'Glx', 'SNR');
+
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'tNAA', 'FWHM');
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'tCho', 'FWHM');
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'Ins', 'FWHM');
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'Glx', 'FWHM');
     end
     if MRSCont.flags.isMEGA
-        if ~strcmp(MRSCont.opts.fit.style, 'Concatenated')
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
-        else
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1}, 'FWHM');    
-        end
+            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{1});
+            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{1}, 'SNR');
+            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
     end
     if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-        if ~strcmp(MRSCont.opts.fit.style, 'Concatenated')
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{2});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{2}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'diff1-tCr', MRSCont.opts.editTarget{2}, 'FWHM');
-        else
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
-            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{2});
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{2}, 'SNR');
-            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, 'conc-tCr', MRSCont.opts.editTarget{2}, 'FWHM');
-        end
-    end
+            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{1});
+            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{1}, 'SNR');
+            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{1}, 'FWHM');
+            osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{2});
+            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{2}, 'SNR');
+            osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-diff1-tCr', MRSCont.opts.editTarget{2}, 'FWHM');
+    end    
 end

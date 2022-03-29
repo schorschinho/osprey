@@ -32,195 +32,49 @@ function osp_iniProcessWindow(gui)
         gui.layout.EmptyProPlot = 0;
 %%% 2. CREATING SUB TABS FOR THIS TAB %%% 
 % In this case one tab fo each subspec (A,B,C,D,ref,water)
-        gui.layout.AProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
+        gui.layout.metabProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
         gui.layout.proTab.TabWidth   = 90;
-        gui.layout.proTabhandles = {'AProTab'};
+        gui.layout.proTabhandles = {'metabProTab'};
 % Set up tabs with regard to the sequence type
-        if MRSCont.flags.isUnEdited %Is UnEdited?
-        if (MRSCont.flags.hasRef && MRSCont.flags.hasWater && MRSCont.flags.hasMM ) %Has all%re_mm
-                gui.layout.mmProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
-                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
-                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
-                gui.layout.proTab.TabTitles  = {'A', 'MM','ref','w'};%re_mm
-                gui.layout.proTab.TabEnables = {'on', 'on','on','on'};%re_mm
-                gui.layout.proTabhandles = {'AProTab','mmProTab', 'refProTab', 'wProTab'}; % Create 4 Tabs %re_mm
-                gui.process.SNR = {'tNAA','MM09','water','water'};%re_mm
-        elseif (~MRSCont.flags.hasRef && MRSCont.flags.hasWater && MRSCont.flags.hasMM ) %Has all%re_mm
-                gui.layout.mmProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
-                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
-                gui.layout.proTab.TabTitles  = {'A', 'MM','w'};%re_mm
-                gui.layout.proTab.TabEnables = {'on', 'on','on'};%re_mm
-                gui.layout.proTabhandles = {'AProTab','mmProTab', 'wProTab'}; % Create 4 Tabs %re_mm
-                gui.process.SNR = {'tNAA','MM09','water'};%re_mm
-        elseif (MRSCont.flags.hasRef && ~MRSCont.flags.hasWater && MRSCont.flags.hasMM ) %Has all%re_mm
-                gui.layout.mmProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
-                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);%re_mm
-                gui.layout.proTab.TabTitles  = {'A', 'MM','w'};%re_mm
-                gui.layout.proTab.TabEnables = {'on', 'on','on'};%re_mm
-                gui.layout.proTabhandles = {'AProTab','mmProTab', 'refProTab'}; % Create 4 Tabs %re_mm
-                gui.process.SNR = {'tNAA','MM09','water'};%re_mm        
-        elseif (MRSCont.flags.hasRef && MRSCont.flags.hasWater && ~MRSCont.flags.hasMM) %Has water and reference (This should actually not happen with UnEdited data...) 
-                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.proTab.TabTitles  = {'A','ref','w'};
-                gui.layout.proTab.TabEnables = {'on','on','on'};
-                gui.layout.proTabhandles = {'AProTab', 'refProTab', 'wProTab'}; % Create 3 Tabs
-                gui.process.SNR = {'tNAA','water','water'};
-            elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater && ~MRSCont.flags.hasMM) %Only metabolite data                
-                gui.layout.proTab.TabTitles  = {'A'};
-                gui.layout.proTab.TabEnables = {'on'};
-                gui.layout.proTabhandles = {'AProTab'}; % Create 1 Tab
-                gui.process.SNR = {'tNAA'};
-            else
-                if MRSCont.flags.hasRef %Has only reference?
-                    gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.proTab.TabTitles  = {'A','ref'};
-                    gui.layout.proTab.TabEnables = {'on', 'on'};
-                    gui.layout.proTabhandles = {'AProTab', 'refProTab'}; % Create 2 Tabs
-                    gui.process.SNR = {'tNAA','water'};
-                end
-                if MRSCont.flags.hasWater %Has only water?
-                    gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.proTab.TabTitles  = {'A','w'};
-                    gui.layout.proTab.TabEnables = {'on', 'on'};
-                    gui.layout.proTabhandles = {'AProTab', 'wProTab'}; %Create 2 Tabs
-                    gui.process.SNR = {'tNAA','water'};
-                end
-            end
+         
+        TabTitles = {'metab'};
+        gui.process.metab.SNR = MRSCont.processed.metab{1,1}.QC_names;
+        gui.process.metab.name = MRSCont.processed.metab{1,1}.names;
+        if MRSCont.flags.hasMM
+            TabTitles = horzcat(TabTitles, 'mm');
+            gui.process.mm.SNR = MRSCont.processed.mm{1,1}.QC_names;
+            gui.process.mm.name = MRSCont.processed.mm{1,1}.names;
         end
-        if MRSCont.flags.isMEGA %Is MEGA?
-            if (MRSCont.flags.hasRef && MRSCont.flags.hasWater) %Has water and reference?
-                gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.proTab.TabTitles  = {'A','B','diff1','sum','ref','w'};
-                gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on'};
-                gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab', 'wProTab'}; %Create 6 tabs
-                gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water','water'};
-                if iscell(gui.process.SNR{3})
-                        gui.process.SNR{3} = gui.process.SNR{3}{1};
-                end
-            elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater) %Only metabolites?
-                gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.proTab.TabTitles  = {'A','B','diff1','sum'};
-                gui.layout.proTab.TabEnables = {'on', 'on','on', 'on'};
-                gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab',}; %Create 4 tabs
-                gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'water'};
-                if iscell(gui.process.SNR{3})
-                        gui.process.SNR{3} = gui.process.SNR{3}{1};
-                end
-            else
-                if MRSCont.flags.hasRef %Has only reference?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.proTab.TabTitles  = {'A','B','diff1','sum','ref'};
-                    gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
-                    gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'refProTab'}; %Create 5 tabs
-                    gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water'};
-                    if iscell(gui.process.SNR{3})
-                            gui.process.SNR{3} = gui.process.SNR{3}{1};
-                    end
-                end
-                if MRSCont.flags.hasWater %Has only water?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.proTab.TabTitles  = {'A','B','diff1','sum','w'};
-                    gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on'};
-                    gui.layout.proTabhandles = {'AProTab','BProTab', 'diff1ProTab','sumProTab', 'wProTab'}; %Create 5 tabs
-                    gui.process.SNR = {'tNAA','tCr',MRSCont.processed.diff1{1,gui.process.Selected}.target,'tNAA','water'};
-                    if iscell(gui.process.SNR{3})
-                            gui.process.SNR{3} = gui.process.SNR{3}{1};
-                    end
-                end
-            end
+        if MRSCont.flags.hasRef
+            TabTitles = horzcat(TabTitles, 'ref');
+            gui.process.ref.SNR = MRSCont.processed.ref{1,1}.QC_names;
+            gui.process.ref.name = MRSCont.processed.ref{1,1}.names;
         end
-        if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is HERMES\HERCULES?
-            if (MRSCont.flags.hasRef && MRSCont.flags.hasWater) %Has water and reference?
-                gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.DProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.diff2ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','ref','w'};
-                gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on', 'on', 'on', 'on'};
-                gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'diff1ProTab', 'diff2ProTab', 'sumProTab', 'refProTab', 'wProTab'}; %Create 9 tabs
-                try
-                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target{1},MRSCont.processed.diff2{1,gui.process.Selected}.target{1},'tNAA','water','water'};
-                catch
-                   gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water','water'}; 
-                end
-            elseif (~MRSCont.flags.hasRef && ~MRSCont.flags.hasWater) %Only metabs?
-                gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.DProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.diff2ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum'};
-                gui.layout.proTab.TabEnables = {'on', 'on','on', 'on', 'on', 'on', 'on'};
-                gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab', 'diff1ProTab', 'diff2ProTab', 'sumProTab'}; %Create 7 tabs
-                try
-                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target{1},MRSCont.processed.diff2{1,gui.process.Selected}.target{1},'tNAA'};
-                catch
-                    gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA'};
-                end
-            else
-                if MRSCont.flags.hasRef %Has only reference?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.DProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.diff2ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);                    
-                    gui.layout.refProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','ref'};
-                    gui.layout.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on', 'on'};
-                    gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','refProTab'}; %Create 8 tabs
-                    try
-                        gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target{1},MRSCont.processed.diff2{1,gui.process.Selected}.target{1},'tNAA','water'};
-                    catch
-                        gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water'};
-                    end
-                end
-                if MRSCont.flags.hasWater %Has only water?
-                    gui.layout.BProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.CProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.DProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.diff1ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.diff2ProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.sumProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);                    
-                    gui.layout.wProTab = uix.VBox('Parent', gui.layout.proTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background,'Spacing',5);
-                    gui.layout.proTab.TabTitles  = {'A','B','C','D','diff1', 'diff2','sum','w'};
-                    gui.layout.proTab.TabEnables = {'on', 'on','on','on', 'on', 'on', 'on', 'on'};
-                    gui.layout.proTabhandles = {'AProTab','BProTab','CProTab','DProTab','diff1ProTab', 'diff2ProTab', 'sumProTab','wProTab'}; %Create 8 tabs
-                    try
-                        gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target{1},MRSCont.processed.diff2{1,gui.process.Selected}.target{1},'tNAA','water'};
-                    catch
-                        gui.process.SNR = {'tNAA','tCr','tNAA', 'tCr', MRSCont.processed.diff1{1,gui.process.Selected}.target,MRSCont.processed.diff2{1,gui.process.Selected}.target,'tNAA','water'};
-                    end
-                end
-            end
+        if MRSCont.flags.hasMMRef
+            TabTitles = horzcat(TabTitles, 'mm_ref');
+            gui.process.mm_ref.SNR = MRSCont.processed.mm_ref{1,1}.QC_names;
+            gui.process.mm_ref.name = MRSCont.processed.mm_ref{1,1}.names;
         end
-
+        if MRSCont.flags.hasWater
+            TabTitles = horzcat(TabTitles, 'w');
+            gui.process.w.SNR = MRSCont.processed.w{1,1}.QC_names;
+            gui.process.w.name = MRSCont.processed.w{1,1}.names;
+        end
+        for t = 2 : length(TabTitles)
+            gui.layout.(strcat(TabTitles{t},'ProTab')) = uix.VBox('Parent', gui.layout.proTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
+        end
+        gui.layout.proTabhandles = strcat(TabTitles,'ProTab');
+        gui.process.TabTitles = TabTitles;
+        gui.layout.proTab.TabTitles  = TabTitles;
 %%% 3. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
         for t = length(gui.layout.proTabhandles) : -1 : 1 %Loop over subspecs/tabs
-            ind=find(ismember(gui.layout.proTabhandles,[gui.process.Names{t} 'ProTab']));
-            gui.layout.proTab.Selection  = ind;
-            gui.upperBox.pro.box{ind} = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
-            if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                gui.upperBox.data.upperLeftButtons = uix.Panel('Parent', gui.upperBox.pro.box{ind}, ...
+%             ind=find(ismember(gui.layout.proTabhandles,[gui.process.TabTitles{t} 'ProTab']));
+            gui.layout.proTab.Selection  = t;
+            gui.layout.proTab.TabEnables{t} = 'on';
+            gui.upperBox.pro.box{t} = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
+            if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI) 
+                gui.upperBox.data.upperLeftButtons = uix.Panel('Parent', gui.upperBox.pro.box{t}, ...
                                          'Padding', 5, 'Title', ['Navigate voxel'],...
                                          'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                          'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
@@ -271,104 +125,121 @@ function osp_iniProcessWindow(gui)
                 end   
                 set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
             end
-            gui.upperBox.pro.Info{ind} = uix.Panel('Parent', gui.upperBox.pro.box{ind}, ...
+           
+            
+            
+            gui.upperBox.pro.upperLeftButtons{t} = uix.Panel('Parent', gui.upperBox.pro.box{t}, ...
+            'Padding', 5, 'Title', ['Navigate data'],...
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+            'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+        gui.controls.Buttonbox{t} = uix.HBox('Parent',gui.upperBox.pro.upperLeftButtons{t}, 'BackgroundColor',gui.colormap.Background);
+        gui.controls.navigate_RawTab{t} = uix.Grid('Parent',gui.controls.Buttonbox{t},'BackgroundColor',gui.colormap.Background);
+
+        gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','Exp:',...
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','Spec:',...
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+        gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+        set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
+        set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
+
+
+        gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','1',...
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','1',...
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+
+        gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+        gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+        set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
+        set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
+
+        gui.controls.b_left_x.Enable = 'off';
+        gui.controls.b_left_y.Enable = 'off';
+        gui.controls.b_right_x.Enable = 'off';
+        gui.controls.b_right_y.Enable = 'off';
+
+        buttonString = [num2str(MRSCont.processed.(TabTitles{t}){1}.dims.extras > 1) num2str(MRSCont.processed.(TabTitles{t}){1}.subspecs>1)];
+        switch buttonString
+                case '01' 
+                    gui.controls.b_left_y.Enable = 'on';
+                    gui.controls.b_right_y.Enable = 'on';
+                case '10' 
+                    gui.controls.b_left_x.Enable = 'on';
+                    gui.controls.b_right_x.Enable = 'on';
+                case '11' 
+                    gui.controls.b_left_x.Enable = 'on';
+                    gui.controls.b_right_x.Enable = 'on';
+                    gui.controls.b_left_y.Enable = 'on';
+                    gui.controls.b_right_y.Enable = 'on';                                                 
+        end
+        set( gui.controls.navigate_RawTab{t}, 'Widths', [-20 -30 -20 -30], 'Heights', [-50 -50]);
+    
+            
+            gui.upperBox.pro.Info{t} = uix.Panel('Parent', gui.upperBox.pro.box{t}, ...
                 'Padding', 5, 'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
                 'HighlightColor', gui.colormap.Foreground,'FontName', gui.font, 'BackgroundColor',...
                 gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-            gui.upperBox.pro.upperButtons = uix.Panel('Parent', gui.upperBox.pro.box{ind}, ...
+            gui.upperBox.pro.upperButtons = uix.Panel('Parent', gui.upperBox.pro.box{t}, ...
                                      'Padding', 5, 'Title', ['Save'],...
                                      'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                      'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-            gui.controls.b_save_proTab{ind} = uicontrol('Parent',gui.upperBox.pro.upperButtons,'Style','PushButton');
+            gui.controls.b_save_proTab{t} = uicontrol('Parent',gui.upperBox.pro.upperButtons,'Style','PushButton');
             [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
             [img2] = imresize(img, 0.1);
-            set(gui.controls.b_save_proTab{ind},'CData', img2, 'TooltipString', 'Create EPS figure from current file');
-            set(gui.controls.b_save_proTab{ind},'Callback',{@osp_onPrint,gui});
-            if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                set(gui.upperBox.pro.box{ind}, 'Width', [-0.12 -0.78 -0.1]);
-            else
-                set(gui.upperBox.pro.box{ind}, 'Width', [-0.9 -0.1]);   
-            end
+            set(gui.controls.b_save_proTab{t},'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+            set(gui.controls.b_save_proTab{t},'Callback',{@osp_onPrint,gui});
+            set(gui.upperBox.pro.box{t}, 'Width', [-0.16 -0.74 -0.1]);
+
             % Creates layout for plotting and data control
-            gui.Plot.pro{ind} = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{ind}), ...
+            gui.Plot.pro{t} = uix.HBox('Parent', gui.layout.(gui.layout.proTabhandles{t}), ...
                 'Padding', 5,'BackgroundColor', gui.colormap.Background);
-            set(gui.layout.(gui.layout.proTabhandles{ind}), 'Heights', [-0.1 -0.9]);
+            set(gui.layout.(gui.layout.proTabhandles{t}), 'Heights', [-0.1 -0.9]);
             % Get parameter from file to fill the info panel
+            Exp = 1;
             if ~(isfield(MRSCont.flags,'isPRIAM')|| isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum'))
-                    StatText = ['Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
-                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-                else if strcmp(gui.process.Names{t},'ref')
-                StatText = ['Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                            num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                if strcmp(gui.process.TabTitles{t},'metab')
+                    StatText = ['SNR(' gui.process.(gui.process.TabTitles{t}).SNR{1} '): '  num2str(MRSCont.QM.SNR.(gui.process.TabTitles{t})(Exp,gui.controls.Selected)) '; FWHM (' gui.process.(gui.process.TabTitles{t}).SNR{1} '): '...
+                                num2str(MRSCont.QM.FWHM.(gui.process.TabTitles{t})(Exp,gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.TabTitles{t})(Exp,gui.controls.Selected)/MRSCont.processed.(gui.process.TabTitles{t}){gui.controls.Selected}.txfrq(Exp)*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.TabTitles{t})(Exp,gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.A(gui.controls.Selected)*MRSCont.processed.(gui.process.TabTitles{t}){gui.controls.Selected}.txfrq(Exp)/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.A(gui.controls.Selected)*MRSCont.processed.(gui.process.TabTitles{t}){gui.controls.Selected}.txfrq(Exp)/1e6) ' Hz'];
+                else
+                StatText = ['SNR(' gui.process.(gui.process.TabTitles{t}).SNR{1} '): ' num2str(MRSCont.QM.SNR.(gui.process.TabTitles{t})(Exp,gui.controls.Selected)) '; FWHM (' gui.process.(gui.process.TabTitles{t}).SNR{1} '): '...
+                            num2str(MRSCont.QM.FWHM.(gui.process.TabTitles{t})(Exp,gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.TabTitles{t})(Exp,gui.controls.Selected)/MRSCont.processed.(gui.process.TabTitles{t}){gui.controls.Selected}.txfrq(Exp)*1e6))...
                             ' Hz / ppm'];
-                    else
-                        if ~strcmp(gui.process.Names{t},'mm') %re
-                        StatText = ['Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                    num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                    ' Hz / ppm'];
-                        else
-                            StatText = ['MM Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                    num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                    ' Hz / ppm'];
-                        end %re
-                    end
                 end
             elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
-                if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum'))
-                    StatText = ['Voxel ' num2str(gui.controls.act_x) ': Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{1,gui.controls.act_x}.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
-                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.post.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-                else if strcmp(gui.process.Names{t},'ref')
-                StatText = ['Voxel ' num2str(gui.controls.act_x) ': Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                            num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                if  (contains(gui.process.TabTitles{t},{'A','B','C','D','diff1','diff2','sum'}))
+                    StatText = ['Voxel ' num2str(gui.controls.act_x) ': SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.TabTitles{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.TabTitles{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.TabTitles{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.StructFields{t}){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{1,gui.controls.act_x}.freqShift.(gui.process.TabTitles{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.pre.AvgDeltaCr.(gui.process.TabTitles{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.StructFields{t}){gui.controls.Selected}.txfrq/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.post.AvgDeltaCr.(gui.process.TabTitles{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.StructFields{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+                else
+                StatText = ['Voxel ' num2str(gui.controls.act_x) ':SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.TabTitles{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                            num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.TabTitles{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.TabTitles{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.StructFields{t}){gui.controls.Selected}.txfrq*1e6))...
                             ' Hz / ppm'];
-                    else
-                        if ~strcmp(gui.process.Names{t},'mm') %re
-                        StatText = ['Voxel ' num2str(gui.controls.act_x) ': Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                    num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                    ' Hz / ppm'];
-                        else
-                            StatText = ['Voxel ' num2str(gui.controls.act_x) ': MM Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                    num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                    ' Hz / ppm'];
-                        end %re
-                    end
                 end
             else
-                if (strcmp(gui.process.Names{t},'A') || strcmp(gui.process.Names{t},'B') || strcmp(gui.process.Names{t},'C') || strcmp(gui.process.Names{t},'D') || strcmp(gui.process.Names{t},'diff1') || strcmp(gui.process.Names{t},'diff2') || strcmp(gui.process.Names{t},'sum'))
-                    StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Metabolite Data -> SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.freqShift.(gui.process.Names{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.pre.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6)...
-                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.post.AvgDeltaCr.(gui.process.Names{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-                else if strcmp(gui.process.Names{t},'ref')
-                StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Reference Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                            num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
+                if  (contains(gui.process.TabTitles{t},{'A','B','C','D','diff1','diff2','sum'}))
+                    StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': SNR(' gui.process.SNR{t} '): '  num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.TabTitles{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                                num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.TabTitles{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.TabTitles{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.StructFields{t}){gui.controls.Selected}.txfrq*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.freqShift.(gui.process.TabTitles{t})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.pre.AvgDeltaCr.(gui.process.TabTitles{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.StructFields{t}){gui.controls.Selected}.txfrq/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.post.AvgDeltaCr.(gui.process.TabTitles{t})(gui.controls.Selected)*MRSCont.processed.(gui.process.StructFields{t}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
+                else 
+                StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.TabTitles{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
+                            num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.TabTitles{t})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.TabTitles{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.StructFields{t}){gui.controls.Selected}.txfrq*1e6))...
                             ' Hz / ppm'];
-                    else
-                        if ~strcmp(gui.process.Names{t},'mm') %re
-                        StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Water Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                    num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                    ' Hz / ppm'];
-                        else
-                            StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': MM Data -> SNR(' gui.process.SNR{t} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.Names{t})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{t} '): '...
-                                    num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.Names{t})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{t}){gui.controls.Selected}.txfrq*1e6))...
-                                    ' Hz / ppm'];
-                        end %re
-                    end
                 end
             end
-            gui.InfoText.pro{ind}  = uicontrol('Parent',gui.upperBox.pro.Info{ind},'style','text',...
+            gui.InfoText.pro{t}  = uicontrol('Parent',gui.upperBox.pro.Info{t},'style','text',...
                                          'FontSize', 12, 'FontName', gui.font,...
                                          'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
                                          'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
 
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
  %osp_plotProcess is used to visualize the processed spectra
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.Names{t}); % Create figure
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,gui.process.TabTitles{t},1,Exp); % Create figure
             %Subplots are distributed here
                 gui.layout.proSpecs = uix.VBox('Parent', gui.Plot.pro{t}, 'Padding', 5, 'BackgroundColor',gui.colormap.Background);
                     gui.layout.proPre = uix.VBox('Parent', gui.layout.proSpecs,'Padding', 5,'Units', 'Normalized', 'BackgroundColor',gui.colormap.Background);

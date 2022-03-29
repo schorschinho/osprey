@@ -50,7 +50,7 @@ for kk = 1:MRSCont.nDatasets
     
     % Write jMRUI .TXT files depending on sequence type
     % Get TE and the input file name
-    te                  = MRSCont.processed.A{kk}.te;
+    te                  = MRSCont.processed.metab{kk}.te;
     [path,filename,~]   = fileparts(MRSCont.files{kk});
     % For batch analysis, get the last two sub-folders (e.g. site and
     % subject)
@@ -60,31 +60,31 @@ for kk = 1:MRSCont.nDatasets
     end
     if MRSCont.flags.isUnEdited
         outfile         = fullfile(saveDestination, [name '_jMRUI_A.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.A{kk},outfile);
+        RF              = io_writejmrui(MRSCont.processed.metab{kk},outfile);
     elseif MRSCont.flags.isMEGA
         outfileA        = fullfile(saveDestination, [name '_jMRUI_A.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.A{kk},outfileA);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA);
         outfileB        = fullfile(saveDestination, [name '_jMRUI_B.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.B{kk},outfileB);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB);
         outfileDiff1    = fullfile(saveDestination, [name '_jMRUI_DIFF1.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.diff1{kk},outfileDiff1);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},3),outfileDiff1);
         outfileSum      = fullfile(saveDestination, [name '_jMRUI_SUM.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.sum{kk},outfileSum);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},4),outfileSum);
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
         outfileA        = fullfile(saveDestination, [name '_jMRUI_A.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.A{kk},outfileA);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA);
         outfileB        = fullfile(saveDestination, [name '_jMRUI_B.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.B{kk},outfileB);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB);
         outfileC        = fullfile(saveDestination, [name '_jMRUI_C.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.C{kk},outfileC);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},3),outfileC);
         outfileD        = fullfile(saveDestination, [name '_jMRUI_D.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.D{kk},outfileD);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},4),outfileD);
         outfileDiff1    = fullfile(saveDestination, [name '_jMRUI_DIFF1.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.diff1{kk},outfileDiff1);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},5),outfileDiff1);
         outfileDiff2    = fullfile(saveDestination, [name '_jMRUI_DIFF2.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.diff2{kk},outfileDiff2);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},6),outfileDiff2);
         outfileSum      = fullfile(saveDestination, [name '_jMRUI_SUM.TXT']);
-        RF              = io_writejmrui(MRSCont.processed.sum{kk},outfileSum);
+        RF              = io_writejmrui(op_takesubspec(MRSCont.processed.metab{kk},7),outfileSum);
     else
         error('No flag set for sequence type!');
     end
