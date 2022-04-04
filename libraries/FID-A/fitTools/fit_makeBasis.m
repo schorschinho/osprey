@@ -268,7 +268,7 @@ if strcmp(sequence, 'MEGA')
         case 'PE398'
             range_Ins = [3.8 4.1];
             pts_Ins = BASIS.ppm >= range_Ins(1) & BASIS.ppm <= range_Ins(end);
-            idx_Ins = find(strcmp(buffer.name,'Ins'));
+            idx_Ins = find(strcmp(buffer.name,'mI'));
             maxA = max(real(buffer.specs(pts_Ins,idx_Ins,1)));
             maxB = max(real(buffer.specs(pts_Ins,idx_Ins,2)));
             if maxA/maxB < 0.1

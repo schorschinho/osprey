@@ -6,7 +6,7 @@ function [fitParamsStep3,out] = fit_Osprey_SplineOnly(dataToFit, minKnotSpacingP
 %       localized in vivo NMR spectra", Magn Reson Med 30(6):672-679 (1993)
 %
 %   During the first step, the input spectrum is fit using a reduced basis
-%   set (Cr, Glu, Ins, GPC, NAA) and simplified model, using a common
+%   set (Cr, Glu, mI, GPC, NAA) and simplified model, using a common
 %   frequency shift and common Gaussian and Lorentzian linebroadening
 %   for all basis functions of the reduced basis set.
 %

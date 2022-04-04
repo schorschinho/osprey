@@ -823,7 +823,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create InsCheckBox
             app.InsCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
             app.InsCheckBox.Enable = 'off';
-            app.InsCheckBox.Text = 'Ins';
+            app.InsCheckBox.Text = 'mI';
             app.InsCheckBox.Position = [315 65 38 22];
             app.InsCheckBox.Value = true;
             app.InsCheckBox.FontColor = [11/255 71/255 111/255];
@@ -886,7 +886,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create ScylloCheckBox
             app.ScylloCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
             app.ScylloCheckBox.Enable = 'off';
-            app.ScylloCheckBox.Text = 'Scyllo';
+            app.ScylloCheckBox.Text = 'sI';
             app.ScylloCheckBox.Position = [75 40 54 22];
             app.ScylloCheckBox.Value = true;
             app.ScylloCheckBox.FontColor = [11/255 71/255 111/255];

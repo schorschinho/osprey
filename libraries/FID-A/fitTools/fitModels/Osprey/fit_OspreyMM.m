@@ -65,7 +65,7 @@ else %Referencing was performed on another Subspec
 end
 
 %%% 3. PRELIMINARY ANALYSIS STEP 1 %%%
-% In step 1 of the preliminary analysis, a reduced basis set (Cr, Glu, Ins,
+% In step 1 of the preliminary analysis, a reduced basis set (Cr, Glu, mI,
 % GPC, NAA) is used to obtain a first estimate for the frequency shift
 % and the zero- and first-order phase shift parameters.
 % Well-phased spectra should be fine with the starting values for the phase

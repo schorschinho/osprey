@@ -38,7 +38,7 @@ switch sequence
         metabList.Glu      = 0;
         metabList.Gly      = 0;
         metabList.H2O      = 1;
-        metabList.Ins      = 0;
+        metabList.mI       = 0;
         metabList.Lac      = 0;
         metabList.NAA      = 1;
         metabList.NAAG     = 0;
@@ -46,7 +46,7 @@ switch sequence
         metabList.PCr      = 0;
         metabList.PE       = 0;
         metabList.Phenyl   = 0;
-        metabList.Scyllo   = 0;
+        metabList.sI       = 0;
         metabList.Ser      = 0;
         metabList.Tau      = 0;
         metabList.Tyros    = 0;
@@ -81,7 +81,7 @@ switch sequence
         metabList.Glu      = 0;
         metabList.Gly      = 0;
         metabList.H2O      = 0;
-        metabList.Ins      = 0;
+        metabList.mI       = 0;
         metabList.Lac      = 0;
         metabList.NAA      = 1;
         metabList.NAAG     = 1;
@@ -89,7 +89,7 @@ switch sequence
         metabList.PCr      = 0;
         metabList.PE       = 0;
         metabList.Phenyl   = 0;
-        metabList.Scyllo   = 0;
+        metabList.sI       = 0;
         metabList.Ser      = 0;
         metabList.Tau      = 0;
         metabList.Tyros    = 0;

@@ -143,7 +143,7 @@ opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
 % with entries separates by commas.
 % With default Osprey basis sets, you can select the following metabolites:
 % Ala, Asc, Asp, bHB, bHG, Cit, Cr, CrCH2, EtOH, GABA, GPC, GSH, Glc, Gln,
-% Glu, Gly, H2O, Ins, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, Scyllo, Ser,
+% Glu, Gly, H2O, mI, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, sI, Ser,
 % Tau, Tyros, MM09, MM12, MM14, MM17, MM20, Lip09, Lip13, Lip20.
 % If you enter 'default', the basis set will include all of the above
 % except for Ala, bHB, bHG, Cit, EtOH, Glc, Gly, Phenyl, Ser, and Tyros.
