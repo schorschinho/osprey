@@ -180,7 +180,7 @@ for kk = 1:MRSCont.nDatasets
                 [raw_ref_C]             = op_rmempty(raw_ref_C);            % Remove empty lines
                 raw_ref_D               = op_takesubspec(raw_ref,4);
                 [raw_ref_D]             = op_rmempty(raw_ref_D);            % Remove empty lines
-                raw_ref                 = op_concatAverages(raw_ref_A,raw_ref_B,raw_ref_C,raw_ref_D);            
+                raw_ref                 = op_concatAverages(op_concatAverages(raw_ref_A,raw_ref_B),op_concatAverages(raw_ref_C,raw_ref_D));            
             end
             if ~raw_ref.flags.averaged
                 [raw_ref]             = op_rmempty(raw_ref); 

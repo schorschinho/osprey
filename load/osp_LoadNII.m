@@ -84,39 +84,33 @@ for kk = 1:MRSCont.nDatasets
             raw_w       = io_loadspec_niimrs(MRSCont.files_w{kk});
         end
     end
+    raw.seq = 'NIFTI'; %CWDJ temporary label. 
+
+    % Set flag and save data under appropriate name
+    if raw.dims.coils == 0
+        MRSCont.flags.coilsCombined = 1;
+        MRSCont.raw{kk}      = raw;
+        if MRSCont.flags.hasRef
+            MRSCont.raw_ref{kk}  = raw_ref;
+        end
+        
+        if MRSCont.flags.hasWater
+            MRSCont.raw_w{kk}    = raw_w;
+        end
+        
+    else
+        MRSCont.flags.coilsCombined = 0;
+        MRSCont.raw_uncomb{kk}      = raw;
+        if MRSCont.flags.hasRef
+            MRSCont.raw_ref_uncomb{kk}  = raw_ref;
+        end
+        
+        if MRSCont.flags.hasWater
+            MRSCont.raw_w_uncomb{kk}    = raw_w;
+        end
+    end
 end
 time = toc(refLoadTime);
 [~] = printLog('done', time, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI); 
-
-% Set flag and save data under appropriate name
-if raw.dims.coils == 0
-    MRSCont.flags.coilsCombined = 1;
-    
-    MRSCont.raw{kk}      = raw;
-    
-    if MRSCont.flags.hasRef
-        MRSCont.raw_ref{kk}  = raw_ref;
-    end
-    
-    if MRSCont.flags.hasWater
-        MRSCont.raw_w{kk}    = raw_w;
-    end
-    
-else
-    MRSCont.flags.coilsCombined = 0;
-    
-    MRSCont.raw_uncomb{kk}      = raw;
-    
-    if MRSCont.flags.hasRef
-        MRSCont.raw_ref_uncomb{kk}  = raw_ref;
-    end
-    
-    if MRSCont.flags.hasWater
-        MRSCont.raw_w_uncomb{kk}    = raw_w;
-    end
-    
-end
-
 MRSCont.runtime.Load = time;
-
 end
