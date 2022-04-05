@@ -98,7 +98,7 @@ Should you publish material that made use of Osprey, please cite the following p
 
 ## Acknowledgements
 
-This work has been supported by NIH grants R01EB016089, P41EB15909, R01EB023963, and K99AG062230.
+This work has been supported by NIH grants R01 EB016089, P41 EB15909, P41 EB031771, R01 EB023963, and K99 AG062230.
 
 We wish to thank the following individuals for their contributions to the
 development of Osprey and shared processing code:
