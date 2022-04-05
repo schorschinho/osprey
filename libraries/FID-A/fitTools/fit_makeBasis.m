@@ -89,7 +89,11 @@ for kk = 1:nMets
     buffer.n(kk)                = temp.(basisFct{1}).sz(1);
     buffer.linewidth(kk)        = temp.(basisFct{1}).linewidth;
     buffer.Bo(kk)               = temp.(basisFct{1}).Bo;
-    buffer.seq{kk}              = temp.(basisFct{1}).seq;
+    if iscell(temp.(basisFct{1}).seq)
+        buffer.seq{kk}              = temp.(basisFct{1}).seq{1};
+    else
+        buffer.seq{kk}              = temp.(basisFct{1}).seq;
+    end
     if isfield(temp.(basisFct{1}),'name')
         buffer.name{kk}             = temp.(basisFct{1}).name;
     else
@@ -229,6 +233,54 @@ if strcmp(sequence, 'MEGA')
             % apply the switch order
             buffer.fids = buffer.fids(:,:,switchOrder);
             buffer.specs = buffer.specs(:,:,switchOrder);
+        case 'PE322'
+            range_Cho = [3.0 3.4];
+            pts_Cho = BASIS.ppm >= range_Cho(1) & BASIS.ppm <= range_Cho(end);
+            idx_Cho = find(strcmp(buffer.name,'Cho'));
+            maxA = max(real(buffer.specs(pts_Cho,idx_Cho,1)));
+            maxB = max(real(buffer.specs(pts_Cho,idx_Cho,2)));
+            if maxA/maxB < 0.1
+                % this means A is on, B is off, indices need to be swapped
+                switchOrder = [2 1];
+            elseif maxA/maxB > 10
+                % this means A is off, B is on, indices stay as the are
+                switchOrder = [1 2];
+            end
+            % apply the switch order
+            buffer.fids = buffer.fids(:,:,switchOrder);
+            buffer.specs = buffer.specs(:,:,switchOrder);  
+        case 'Lac'
+            range_Lac = [4.0 4.3];
+            pts_Lac = BASIS.ppm >= range_Lac(1) & BASIS.ppm <= range_Lac(end);
+            idx_Lac = find(strcmp(buffer.name,'Lac'));
+            maxA = max(real(buffer.specs(pts_Lac,idx_Lac,1)));
+            maxB = max(real(buffer.specs(pts_Lac,idx_Lac,2)));
+            if maxA/maxB < 0.1
+                % this means A is on, B is off, indices need to be swapped
+                switchOrder = [2 1];
+            elseif maxA/maxB > 10
+                % this means A is off, B is on, indices stay as the are
+                switchOrder = [1 2];
+            end
+            % apply the switch order
+            buffer.fids = buffer.fids(:,:,switchOrder);
+            buffer.specs = buffer.specs(:,:,switchOrder);     
+        case 'PE398'
+            range_Ins = [3.8 4.1];
+            pts_Ins = BASIS.ppm >= range_Ins(1) & BASIS.ppm <= range_Ins(end);
+            idx_Ins = find(strcmp(buffer.name,'mI'));
+            maxA = max(real(buffer.specs(pts_Ins,idx_Ins,1)));
+            maxB = max(real(buffer.specs(pts_Ins,idx_Ins,2)));
+            if maxA/maxB < 0.1
+                % this means A is on, B is off, indices need to be swapped
+                switchOrder = [2 1];
+            elseif maxA/maxB > 10
+                % this means A is off, B is on, indices stay as the are
+                switchOrder = [1 2];
+            end
+            % apply the switch order
+            buffer.fids = buffer.fids(:,:,switchOrder);
+            buffer.specs = buffer.specs(:,:,switchOrder);                      
     end
     
     % Now that we have guaranteed that the first dimension is always OFF
@@ -268,6 +320,34 @@ if strcmp(sequence, 'MEGA')
                     buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
                     buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);
                 end
+            case 'PE322'
+                % PE-edited data 
+                    buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
+                    buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);   
+            case 'PE398'
+                % PE-edited data  have co-edited MM14 and MM12 that we need to put
+                % in the DIFF. Therefore loop over metabolite names.
+                % If one of those, then don't subtract the ON and OFF out; instead mimic
+                % the co-edited signal in the DIFF by just a simple OFF MM14 or MM12.
+                MM12     = op_gaussianPeak(n,sw,Bo,centerFreq,0.07*hzppm,1.20,2*oneProtonArea/gaussianArea);
+                MM12     = op_dccorr(MM12,'p');
+                MM14     = op_gaussianPeak(n,sw,Bo,centerFreq,0.095*hzppm,1.385,2*oneProtonArea/gaussianArea);
+                MM14     = op_dccorr(MM14,'p');
+                if strcmp(buffer.name{rr}, 'MM14')
+                    buffer.fids(:,rr,3)      = MM14.fids; % DIFF
+                    buffer.specs(:,rr,3)     = MM14.specs;
+                elseif strcmp(buffer.name{rr}, 'MM12')
+                    buffer.fids(:,rr,3)      = MM12.fids; % DIFF
+                    buffer.specs(:,rr,3)     = MM12.specs;
+                else
+                    buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
+                    buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);  
+                end
+            case 'Lac'
+                % Lac-edited data dont have co-edited MMS that we need to put
+                % in the DIFF. Therefore loop over metabolite names.
+                    buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
+                    buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);
         end
         buffer.fids(:,rr,4)      = buffer.fids(:,rr,2) + buffer.fids(:,rr,1); % SUM
         buffer.specs(:,rr,4)     = buffer.specs(:,rr,2) + buffer.specs(:,rr,1);

@@ -41,11 +41,30 @@ try
 catch
    progressText = [];
 end
-fileID = fopen(fullfile(fitOpts.outputFolder, 'LogFile.txt'),'a+');
+
 
 dataToFit               = op_zeropad(dataToFit, 2);
 % Resample basis set to match data resolution and frequency range
 resBasisSet             = fit_resampleBasis(dataToFit, basisSet);
+
+resBasisSet.names = dataToFit.names;
+
+% Add individual MM spline in case MM spectra were measured
+if isfield(fitOpts,'mm_clean_spline')
+mm_clean_spline               = op_zeropad(fitOpts.mm_clean_spline, 2);  
+resBasisSet.nMM = 1;
+ind = find(strcmp(resBasisSet.name,'MM09'));
+factor = (max(real(resBasisSet.specs(:,ind)))/max(real(mm_clean_spline.specs)));
+resBasisSet.fids = resBasisSet.fids(:,1:resBasisSet.nMets);
+resBasisSet.specs = resBasisSet.specs(:,1:resBasisSet.nMets);
+resBasisSet.name = resBasisSet.name(1:resBasisSet.nMets);
+resBasisSet.fids(:,resBasisSet.nMets+1) = mm_clean_spline.fids*factor;
+resBasisSet.specs(:,resBasisSet.nMets+1) = mm_clean_spline.specs*factor;
+resBasisSet.name{end+1} = 'MMExp';
+resBasisSet.sz = size(resBasisSet.fids);
+% figure(1), plot(resBasisSet.ppm, real(resBasisSet.specs(:,19)), resBasisSet.ppm,real(mm_clean_spline.specs)) 
+end
+
 
 
 %%% 1. EXTRACT OPTIONS AND PREPARE FIT %%%
@@ -59,8 +78,7 @@ minKnotSpacingPPM       = fitOpts.bLineKnotSpace; % this is the DKNTMN parameter
 % Determine initial coarse frequency shift from cross-correlation with
 % landmark delta functions for NAA, Cr, Cho.
 if ~isfield(dataToFit,'refShift') %NO referenceing so far
-    disp('Running initial referencing...');
-    fprintf(fileID,'Running initial referencing...\n');
+    fprintf('\nRunning initial referencing...');
     if ~isempty(progressText) 
         String = get(progressText,'String');
             set(progressText,'String' ,sprintf([String(1,:) '\nRunning initial referencing...\n']));
@@ -69,12 +87,11 @@ if ~isfield(dataToFit,'refShift') %NO referenceing so far
     [refShift, refFWHM] = fit_OspreyReferencing(dataToFit);
     % Apply initial referencing shift
     dataToFitRef = op_freqshift(dataToFit, -refShift);
-else %Referencing was performed on another Subspec
-    disp('Initial was performed on another Subspec...');
-    fprintf(fileID,'Initial was performed on another Subspec...\n');
+else %Referencing was performed on another Subspec or the center voxel (MRSI)
+    fprintf('\nInitial was performed on another Subspec or the center voxel (MRSI)...');
     if ~isempty(progressText) 
         String = get(progressText,'String');
-        set(progressText,'String' ,sprintf([String(1,:) '\nInitial was performed on another Subspec...\n']));
+        set(progressText,'String' ,sprintf([String(1,:) '\nInitial was performed on another Subspec or the center voxel (MRSI)...\n']));
         drawnow
     end    
     refShift = dataToFit.refShift;
@@ -84,7 +101,7 @@ else %Referencing was performed on another Subspec
 end
 
 %%% 3. PRELIMINARY ANALYSIS STEP 1 %%%
-% In step 1 of the preliminary analysis, a reduced basis set (Cr, Glu, Ins,
+% In step 1 of the preliminary analysis, a reduced basis set (Cr, Glu, mI,
 % GPC, NAA) is used to obtain a first estimate for the frequency shift
 % and the zero- and first-order phase shift parameters.
 % Well-phased spectra should be fine with the starting values for the phase
@@ -100,46 +117,69 @@ end
 % best phasing / referencing shift parameters are chosen.
 % (Worth exploring in future versions by passing the starting values for
 % the phase corrections as arguments.)
-disp('Running preliminary analysis with reduced basis set...');
-fprintf(fileID,'Running preliminary analysis with reduced basis set...\n');
-if ~isempty(progressText) 
-    String = get(progressText,'String');
-    set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
-    drawnow
+if ~isfield(fitOpts, 'MRSIpriors')
+    if ~isfield(fitOpts,'mm_clean_spline')
+        fprintf('\nRunning preliminary analysis with reduced basis set...');
+        if ~isempty(progressText) 
+            String = get(progressText,'String');
+            set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
+            drawnow
+        end
+        [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
+    else
+        fprintf('\nTake priors from earlier analysis...');
+        fitParamsStep1 = fitOpts.prelimParams;
+    end
+else
+    fprintf('\nTake priors from center voxel...');
+    if ~isempty(progressText) 
+        String = get(progressText,'String');
+        set(progressText,'String' ,sprintf([String(1,:)  '\nTake priors from center voxel...\n']));
+        drawnow
+    end
+    fitParamsStep1 = fitOpts.MRSIpriors.prelimParams; % Get results from center voxel
+    %Overwrite parameters with final results, not sure if this is better
+    %then the inital results
+    fitParamsStep1.ph0 = fitOpts.MRSIpriors.ph0;
+    fitParamsStep1.ph1 = fitOpts.MRSIpriors.ph1;
+    fitParamsStep1.gaussLB = fitOpts.MRSIpriors.gaussLB;
+    
 end
-[fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
 
 
 %%% 4. FINAL PRELIMINARY ANALYSIS STEP 2 %%%
 % In the final step of the preliminary analysis, the full basis set is used
 % with the full LCModel (except for baseline regularization) to obtain
 % the final optimal starting values.
-disp('Running final preliminary analysis step with full basis set...');
-fprintf(fileID,'Running final preliminary analysis step with full basis set...\n');
+fprintf('\nRunning final preliminary analysis step with full basis set...\n');
 if ~isempty(progressText) 
     String = get(progressText,'String');
     set(progressText,'String' ,sprintf([String(1,:)  '\nRunning final preliminary analysis step with full basis set...\n']));
     drawnow
 end
 
-if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift') && ~isfield(fitOpts,'Diff2')
-    switch fitOpts.coMM3        
-        case '3to2MMsoft'
-        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'MM');
-        case '1to1GABAsoft'
-        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,1,'GABA');
-        case '3to2GABAsoft'  % 3:2 GABA and co-edited MM3 model
-        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'GABA');
-        case '2to3GABAsoft' % 2:3 GABA and co-edited MM3 model
-        [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,1.5,'GABA');
-        case 'freeGauss' % Gauss with free frequency and linewidth
-        [fitParamsStep2] = fit_OspreyPrelimStep2freeGauss(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
-        resBasisSet = fitParamsStep2.resBasisSetUpdated;
-        otherwise
-            [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
-    end             
+if ~isfield(fitOpts,'mm_clean_spline') && ~isfield(fitOpts,'GaussLBMM')
+    if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift') && ~isfield(fitOpts,'Diff2')
+        switch fitOpts.coMM3        
+            case '3to2MMsoft'
+            [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'MM');
+            case '1to1GABAsoft'
+            [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,1,'GABA');
+            case '3to2GABAsoft'  % 3:2 GABA and co-edited MM3 model
+            [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,0.66,'GABA');
+            case '2to3GABAsoft' % 2:3 GABA and co-edited MM3 model
+            [fitParamsStep2] = fit_OspreyPrelimStep2coMM3(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,1.5,'GABA');
+            case 'freeGauss' % Gauss with free frequency and linewidth
+            [fitParamsStep2] = fit_OspreyPrelimStep2freeGauss(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
+            resBasisSet = fitParamsStep2.resBasisSetUpdated;
+            otherwise
+                [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP);
+        end             
+    else
+        [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP);    
+    end
 else
-    [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);    
+    [fitParamsStep2] = fit_OspreyPrelimStep2MMExp(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP);   
 end
 
 % [J,~,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);

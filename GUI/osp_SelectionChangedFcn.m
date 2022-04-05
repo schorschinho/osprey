@@ -27,126 +27,149 @@ function osp_SelectionChangedFcn(src,~,gui)
 % Get MRSCont from hidden container in gui class
 MRSCont = getappdata(gui.figure,'MRSCont');     
 % User selected tab refreshs plot
-   OldValue = src.Selection;
+   OldValue = gui.controls.Tab;
    switch OldValue
        case 1 %Load tab
-            spec = gui.load.Selected;
-            if ~(spec == 2 || spec ==3)
-                gui.fit.Selected = 1;
-            else
-                if spec == 2
-                    gui.fit.Selected = 2;
-                else
-                    gui.fit.Selected = 3;
-                end
+            tab = gui.layout.rawTab.TabTitles{gui.load.Selected};
+            switch tab
+                case {'metabolites','MM'}
+                    gui.process.Selected = gui.load.Selected;
+                    gui.fit.Selected = gui.load.Selected;
+                case {'reference'}
+                    gui.process.Selected = find(strcmp(gui.layout.proTab.TabTitles,'ref'));
+                    gui.process.Selected = find(strcmp(gui.layout.fitTab.TabTitles,'ref'));
+                case {'water'}
+                    gui.process.Selected = find(strcmp(gui.layout.proTab.TabTitles,'w'));
+                    gui.process.Selected = find(strcmp(gui.layout.fitTab.TabTitles,'w'));
+                case {'MM reference'}   
+                    gui.process.Selected = find(strcmp(gui.layout.proTab.TabTitles,'mm_ref'));
             end
        case 2 %Process tab
-            spec = gui.process.Selected;
+            tab = gui.layout.proTab.TabTitles{gui.process.Selected};
+            switch tab
+                case {'metab','mm'}
+                    gui.load.Selected = gui.load.Selected;
+                    gui.fit.Selected = gui.load.Selected;
+                case {'ref'}
+                    gui.load.Selected = find(strcmp(gui.layout.rawTab.TabTitles,'reference'));
+                    gui.process.Selected = find(strcmp(gui.layout.fitTab.TabTitles,'ref'));
+                case {'w'}
+                    gui.load.Selected = find(strcmp(gui.layout.rawTab.TabTitles,'water'));
+                    gui.process.Selected = find(strcmp(gui.layout.fitTab.TabTitles,'w'));
+                case {'mm_ref'}   
+                    gui.load.Selected = find(strcmp(gui.layout.rawTab.TabTitles,'MM reference'));
+            end
+            
 
-            if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-                if ~(spec == 5 || spec == 6)
-                    gui.load.Selected = 1;
-                    gui.fit.Selected = 1;
-                else
-                    if spec == 5
-                        gui.load.Selected = 2;
-                        gui.fit.Selected = 4;
-                    else
-                        gui.load.Selected = 3;
-                        gui.fit.Selected = 5;
-                    end
-                end
-            elseif MRSCont.flags.isMEGA
-                if ~(spec == 3 || spec == 4)
-                    gui.load.Selected = 1;
-                    gui.fit.Selected = 1;
-                else
-                    if spec == 3
-                        gui.load.Selected = 2;
-                        gui.fit.Selected = 3;
-                    else
-                        gui.load.Selected = 3;
-                        gui.fit.Selected = 4;
-                    end
-                end
-            elseif MRSCont.flags.isUnEdited
-                        gui.load.Selected = spec;
-                        gui.fit.Selected = spec;
+       case 3 %Fit Tab
+            tab = gui.layout.fitTab.TabTitles{gui.fit.Selected};
+            switch tab
+                case {'metab','mm'}
+                    gui.load.Selected = gui.load.Selected;
+                    gui.fit.Selected = gui.load.Selected;
+                case {'ref'}
+                    gui.load.Selected = find(strcmp(gui.layout.rawTab.TabTitles,'reference'));
+                    gui.process.Selected = find(strcmp(gui.layout.fitTab.TabTitles,'ref'));
+                case {'w'}
+                    gui.load.Selected = find(strcmp(gui.layout.rawTab.TabTitles,'water'));
+                    gui.process.Selected = find(strcmp(gui.layout.fitTab.TabTitles,'w'));
             end
 
-       case 4 %Fit Tab
-            if (strcmp(gui.fit.Names{gui.fit.Selected},'off') || strcmp(gui.fit.Names{gui.fit.Selected},'diff1')||...
-                strcmp(gui.fit.Names{gui.fit.Selected},'diff2') || strcmp(gui.fit.Names{gui.fit.Selected},'sum'))
-                spec = 1;
-            else
-                if strcmp(gui.fit.Names{gui.fit.Selected},'w')
-                    spec = 3;
-                else
-                    spec = 2;
-                end
-            end
-            if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-                if ~(spec == 2 || spec == 3)
-                    gui.load.Selected = 1;
-                    gui.process.Selected = 1;
-                else
-                    if spec == 2
-                        gui.load.Selected = 2;
-                        gui.process.Selected = 5;
-                    else
-                        gui.load.Selected = 3;
-                        gui.process.Selected = 6;
-                    end
-                end
-            elseif MRSCont.flags.isMEGA
-                if ~(spec == 2 || spec == 3)
-                    gui.load.Selected = 1;
-                    gui.process.Selected = 1;
-                else
-                    if spec == 2
-                        gui.load.Selected = 2;
-                        gui.process.Selected = 3;
-                    else
-                        gui.load.Selected = 3;
-                        gui.process.Selected = 4;
-                    end
-                end
-            elseif MRSCont.flags.isUnEdited
-                        gui.load.Selected = spec;
-                        gui.process.Selected = spec;
-            end
-       case 5 %Quantify tab?
        otherwise
            idx = 1;
            spec = 1;
    end
 
+   Exp = 1;
+   SubSpec = 1;
+   Basis = 1;
+   gui.controls.Tab = gui.layout.tabs.Selection;
 %%% 2. UPDATE GUI %%%
    switch gui.layout.tabs.Selection
         case 1 %Load tab
-        gui.layout.ListBox.Enable = 'on';
-        gui.InfoText.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children;
-        gui.Plot.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected});
-        set(gui.layout.rawTab, 'selection', gui.load.Selected);
+            gui.layout.ListBox.Enable = 'on';
+            set(gui.layout.rawTab, 'Selection', gui.load.Selected);            
+            gui.info.nXvoxels = MRSCont.nDatasets(2);
+            gui.controls.act_x = Exp;
+            osp_updateLoadWindow(gui);
         case 2 %Process tab
-        gui.layout.ListBox.Enable = 'on';
-        gui.InfoText.pro = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
-        gui.Plot.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected});
-        set(gui.layout.proTab, 'selection', gui.process.Selected);
-        osp_updateProWindow(gui);
+            gui.layout.ListBox.Enable = 'on';
+            gui.InfoText.pro = gui.upperBox.pro.Info{gui.process.Selected}.Children;
+            gui.Plot.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected});
+            set(gui.layout.proTab, 'Selection', gui.process.Selected);
+            if MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.extras > 0
+                gui.info.nXvoxels = MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.extras);
+            else
+                gui.info.nXvoxels = 1;
+            end            
+            gui.controls.act_x = Exp;
+            if MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs > 0
+                gui.info.nYvoxels = MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs);
+            else
+                gui.info.nYvoxels = MRSCont.nDatasets(2);
+            end
+            gui.controls.act_y = SubSpec;
+            osp_updateProWindow(gui);
         case 3 %Fit tab
-        gui.layout.ListBox.Enable = 'on';
-        gui.InfoText.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children;
-        gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected});
-        set(gui.layout.fitTab, 'selection', gui.fit.Selected);
-        osp_updateFitWindow(gui);
+            gui.layout.ListBox.Enable = 'on';
+            set(gui.layout.fitTab, 'Selection', gui.fit.Selected);                                                        
+            gui.info.nXvoxels = 1;
+            gui.controls.act_x = Exp;
+            gui.controls.b_left_y.Enable = 'off';
+            gui.controls.b_left_z.Enable = 'off';
+            gui.controls.b_right_y.Enable = 'off';
+            gui.controls.b_right_z.Enable = 'off';
+            gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
+            gui.controls.act_y = 1;
+            gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
+            gui.controls.act_z = 1;
+            if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3) > 1
+                gui.controls.b_left_y.Enable = 'on';
+                gui.controls.b_right_y.Enable = 'on';
+            end
+            if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1) > 1
+                gui.controls.b_left_z.Enable = 'on';
+                gui.controls.b_right_z.Enable = 'on';
+            end
+            osp_updateFitWindow(gui);
         case 4 %Coreg Tab
-        gui.layout.ListBox.Enable = 'on';
-        gui.InfoText.coreg = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
+            gui.layout.ListBox.Enable = 'on';
+            gui.InfoText.coreg = gui.layout.(gui.layout.proTabhandles{gui.load.Selected}).Children(2).Children;
+            osp_updateCoregWindow(gui);
         case 5 % Quantify tab
-        gui.layout.ListBox.Enable = 'on';
-        osp_updateQuantifyWindow(gui);
+            gui.layout.ListBox.Enable = 'on';           
+            gui.controls.act_x = Exp;
+            gui.controls.b_left_y.Enable = 'off';
+            gui.controls.b_left_z.Enable = 'off';
+            gui.controls.b_right_y.Enable = 'off';
+            gui.controls.b_right_z.Enable = 'off';
+            gui.info.nYvoxels = size(MRSCont.fit.results.metab.fitParams,3);
+            gui.controls.act_y = 1;
+            gui.info.nZvoxels = size(MRSCont.fit.results.metab.fitParams,1);
+            gui.controls.act_z = 1;
+            if size(MRSCont.fit.results.metab.fitParams,3) > 1
+                gui.controls.b_left_y.Enable = 'on';
+                gui.controls.b_right_y.Enable = 'on';
+            end
+            if size(MRSCont.fit.results.metab.fitParams,1) > 1
+                gui.controls.b_left_z.Enable = 'on';
+                gui.controls.b_right_z.Enable = 'on';
+            end
+            osp_updateQuantifyWindow(gui);
        case 6 %Overview tab
-        gui.layout.ListBox.Enable = 'off';
+            gui.layout.ListBox.Enable = 'off';
+            gui.controls.act_x = Exp;
+            gui.controls.b_left_x.Enable = 'off';
+            gui.controls.b_left_z.Enable = 'off';
+            gui.controls.b_right_x.Enable = 'off';
+            gui.controls.b_right_z.Enable = 'off';
+            gui.info.nXvoxels = 1;
+            gui.controls.act_x = 1;
+            gui.info.nZvoxels = size(MRSCont.fit.results.metab.fitParams,1);
+            gui.controls.act_z = 1;
+            if size(MRSCont.fit.results.metab.fitParams,1) > 1
+                gui.controls.b_left_z.Enable = 'on';
+                gui.controls.b_right_z.Enable = 'on';
+            end
     end
 end

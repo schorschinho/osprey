@@ -55,7 +55,7 @@ function [fitParamsStep2] = fit_OspreyPrelimStep2MM(dataToFit, resBasisSet, minK
 [EXT2, SDT2, SDSH]  = fit_setExpectValues(dataToFit, resBasisSet);
 
 % Create an array of normalized cubic baseline spline basis functions.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
+[splineArray]       = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
 nSplines            = size(splineArray,2);
 
 
@@ -164,10 +164,10 @@ inputSettings.SDSH          = SDSH';
 % Set the hard box constraints for the parameters
 nMets   = resBasisSet.nMets;
 nMM     = resBasisSet.nMM;
-lb_ph0              = -45; 
-ub_ph0              = +45; % Zero order phase shift [deg]
-lb_ph1              = -10; 
-ub_ph1              = +10; % First order phase shift [deg/ppm]
+lb_ph0              = -7.5; 
+ub_ph0              = +7.5; % Zero order phase shift [deg]
+lb_ph1              = -2.5; 
+ub_ph1              = +2.5; % First order phase shift [deg/ppm]
 lb_gaussLB          = 0; 
 ub_gaussLB          = sqrt(5000); % Gaussian dampening [Hz]
 lb_lorentzLB_mets   = zeros(nMets, 1); 
@@ -601,15 +601,17 @@ fitParamsFinal.lineShape    = x(3*nBasisFcts+4+size(splineArray,2):end);
 fitParamsFinal.beta_j       = ampl(size(A,2)+1:end);
 
 % Plot (comment out if not debugging)
-% figure(99)
+% figure
 % plot(data); hold;
 % plot(AB*ampl);
 % plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
+%  plot(data - (A*ampl(1:size(A,2)))+ 1.6*max(data));
 % for rr = 1:(nMets+nMM)
-%     plot(ampl(rr)*A(:,rr));
+%     plot(ampl(rr)*A(:,rr)- 1.1*max(data));
 % end
 % title('Preliminary Analysis with full basis set (unregularized)');
 % hold;
+
 
 
 end 

@@ -36,14 +36,14 @@ function [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitPa
 dataToFit     = inputData.dataToFit;
 dataToFit     = op_zeropad(dataToFit, 2); % zero-fill for LCModel
 basisSet      = inputData.basisSet;
-if (length(fitParams.ampl) == 3)
-    basisSet      = inputData.basisSet_mm;
-    fitParams.freqShift = repmat(fitParams.freqShift,[basisSet.nMets+basisSet.nMM 1]);
-    fitParams.lorentzLB = repmat(fitParams.lorentzLB,[basisSet.nMets+basisSet.nMM 1]);
-    %dummy=fitParams.ampl;   
-    %fitParams.ampl=zeros([basisSet.nMets+basisSet.nMM 1]);
-    %fitParams.ampl([3 4 13])=dummy;
-end
+% if (length(fitParams.ampl) == 2)
+%     basisSet      = inputData.basisSet_mm;
+%     fitParams.freqShift = repmat(fitParams.freqShift,[basisSet.nMets+basisSet.nMM 1]);
+%     fitParams.lorentzLB = repmat(fitParams.lorentzLB,[basisSet.nMets+basisSet.nMM 1]);
+%     %dummy=fitParams.ampl;   
+%     %fitParams.ampl=zeros([basisSet.nMets+basisSet.nMM 1]);
+%     %fitParams.ampl([3 4 13])=dummy;
+% end
 % ... settings:
 fitRangePPM         = inputSettings.fitRangePPM;
 minKnotSpacingPPM   = inputSettings.minKnotSpacingPPM;
@@ -56,6 +56,9 @@ lineShape   = fitParams.lineShape;
 ph0         = fitParams.ph0 * pi/180; % zero-order phase correction [convert from deg to rad]
 ph1         = fitParams.ph1 * pi/180; % first-order phase correction [convert from deg/ppm to rad/ppm]
 gaussLB     = fitParams.gaussLB; % Gaussian damping [Hz]
+if isfield(fitParams,'gaussLBMM')
+    gaussLBMM     = fitParams.gaussLBMM; % Gaussian damping [Hz]
+end
 lorentzLB   = fitParams.lorentzLB; % Lorentzian damping [Hz] for each basis function
 freqShift   = fitParams.freqShift; % Frequency shift [Hz] for each basis function
 ampl        = fitParams.ampl; % Amplitudes for metabolite/MM/lipid basis functions
@@ -66,17 +69,30 @@ refShift    = fitParams.refShift; % Reference shift applied to the data during f
 lineShape = lineShape/sum(lineShape);
 
 % Create an array of normalized cubic baseline spline basis functions.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
+[splineArray]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
 if length(fitParams.beta_j)>size(splineArray,2)
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
+[splineArray]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.1);
 end
+
 %%% 2. APPLY THE NON-LINEAR PARAMETERS %%%
 % Run the time-domain operations on the metabolite basis functions
 % (frequency shift, Lorentzian dampening, Gaussian dampening, zero phase shift)
 t = basisSet.t;
-for ii=1:nBasisFcts
-    basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB.*t.*t)';    
-%     basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+if ~isfield(fitParams,'gaussLBMM')
+    for ii=1:nBasisFcts
+        basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB.*t.*t)';    
+    %     basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+    end
+else
+    for ii=1:basisSet.nMets
+        basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB.*t.*t)';    
+    %     basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+    end
+    for ii=basisSet.nMets+1:nBasisFcts
+        basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLBMM.*t.*t)';    
+    %     basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+    end
+    
 end
 basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
 
@@ -142,5 +158,15 @@ for kk = 1:nBasisFcts
     ModelOutput.indivMets(:,kk) = ampl(kk) * A(:,kk);
 end
 
+if ~isempty(inputSettings.GAP)
+    GAP = inputSettings.GAP;
+%     ModelOutput.data(ppm_ax>GAP(1) & ppm_ax<GAP(2))     = nan;
+    ModelOutput.completeFit(ppm_ax>GAP(1) & ppm_ax<GAP(2))     = nan;
+    ModelOutput.baseline(ppm_ax>GAP(1) & ppm_ax<GAP(2))        = nan;
+    ModelOutput.residual(ppm_ax>GAP(1) & ppm_ax<GAP(2))         = nan;
+    for kk = 1:nBasisFcts
+        ModelOutput.indivMets((ppm_ax>GAP(1) & ppm_ax<GAP(2)),kk) = nan;
+    end    
+end
 
 end

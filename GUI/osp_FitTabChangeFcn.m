@@ -25,17 +25,27 @@ function osp_FitTabChangeFcn(src,~,gui)
 %       2020-01-16: First version of the code.
 %%% 1. GET HANDLES %%%
     % User selected tab refreshs plot
+    MRSCont = getappdata(gui.figure,'MRSCont');  
+    
     gui.fit.Selected = src.Selection;
-    % Parameter shown in the info panel on top
-    gui.Info.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2);
-    gui.Results.fit =  gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1);
-    gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected});
-    gui.InfoText.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children;
-    gui.Results.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(1).Children;
-    delete(gui.Plot.fit.Children(1).Children(2).Children)
-    % Grid for Plot
-    gui.Plot.fit = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected});
-
+    gui.info.nXvoxels = 1;
+    gui.controls.act_x = 1;
+    gui.controls.b_left_y.Enable = 'off';
+    gui.controls.b_left_z.Enable = 'off';
+    gui.controls.b_right_y.Enable = 'off';
+    gui.controls.b_right_z.Enable = 'off';
+    gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
+    gui.controls.act_y = 1;
+    gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
+    gui.controls.act_z = 1;
+    if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3) > 1
+        gui.controls.b_left_y.Enable = 'on';
+        gui.controls.b_right_y.Enable = 'on';
+    end
+    if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1) > 1
+        gui.controls.b_left_z.Enable = 'on';
+        gui.controls.b_right_z.Enable = 'on';
+    end
 %%% 2. UPDATE GUI %%%    
     osp_updateFitWindow(gui);
 end

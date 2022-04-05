@@ -1,7 +1,7 @@
 function [MRSCont] = OspreyCoreg(MRSCont)
 %% [MRSCont] = OspreyCoreg(MRSCont)
-%   This function parses header information about the dimensions, location, 
-%   and rotations of the MRS voxel. It then proceeds to call SPM12 to 
+%   This function parses header information about the dimensions, location,
+%   and rotations of the MRS voxel. It then proceeds to call SPM12 to
 %   import structural images that have been provided in the job file.
 %   These images are supplied in NIfTI format (*.nii) for Philips and
 %   Siemens, or as DICOM folders for GE data.
@@ -32,58 +32,52 @@ function [MRSCont] = OspreyCoreg(MRSCont)
 %       2019-06-28: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to process data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(fileID,msg);
-    error(msg);
-end
+diary(fullfile(outputFolder, 'LogFile.txt'));
 
-% Version, toolbox check and updating log file
-MRSCont.ver.CheckCoreg       = '1.0.0 Coreg';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckCoreg '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-[~] = osp_Toolbox_Check('OspreyCoreg',MRSCont.flags.isGUI);
 warning('off','all');
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
+
 
 % Set up saving location
-saveDestination = fullfile(MRSCont.outputFolder, 'VoxelMasks');
+saveDestination = fullfile(MRSCont.outputFolder, 'VoxelMasks'); %CWDJ - Address in future update
 if ~exist(saveDestination,'dir')
     mkdir(saveDestination);
 end
 
 %% Loop over all datasets
 refCoregTime = tic;
-reverseStr = '';
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
-for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('Coregistering voxel from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end
-    if ((MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~isfield(MRSCont.ver, 'Coreg') || ~strcmp(MRSCont.ver.Coreg,MRSCont.ver.CheckCoreg))
+for kk = 1:MRSCont.nDatasets(1)
+     [~] = printLog('OspreyCoreg',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+    if ~(MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         % Get the input file name
-        [path,filename,~]   = fileparts(MRSCont.files{kk});
-        % For batch analysis, get the last two sub-folders (e.g. site and
-        % subject)
-        path_split          = regexp(path,filesep,'split');
-        if length(path_split) > 2
-            saveName = [path_split{end-1} '_' path_split{end} '_' filename];
-        end
-        % Generate file name for the voxel mask NIfTI file to be saved under
-        maskFile            = fullfile(saveDestination, [saveName '_VoxelMask.nii']);
+        [~,filename,~]   = fileparts(MRSCont.files{kk});
+        % Get the nii file name
+        [~,~,T1ext]   = fileparts(MRSCont.files_nii{kk});
 
+        %<source_entities>[_space-<space>][_res-<label>][_den-<label>][_label-<label>][_desc-<label>]_mask.nii.gz
+        saveName = [osp_RemoveSuffix(filename),'_space-scanner']; %CWDJ Check space.
+
+        % Generate file name for the voxel mask NIfTI file to be saved under
+        maskFile            = fullfile(saveDestination, [saveName '_mask.nii']);
+
+        %Uncompress .nii.gz if needed
+        if strcmp(T1ext,'.gz')
+            gunzip(MRSCont.files_nii{kk});
+            MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.gz','');
+        end
         % Call voxel mask generator depending on file type
         switch MRSCont.vendor
             case 'Siemens'
                 % Load the *.nii file provided in the job file
+
                 vol_image = spm_vol(MRSCont.files_nii{kk});
                 switch MRSCont.datatype
                     case 'TWIX'
@@ -94,7 +88,7 @@ for kk = 1:MRSCont.nDatasets
                         [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
                     otherwise
                         msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                        fprintf(fileID,msg);
+                        fprintf(msg);
                         error(msg);
                 end
             case 'Philips'
@@ -102,47 +96,55 @@ for kk = 1:MRSCont.nDatasets
                 vol_image = spm_vol(MRSCont.files_nii{kk});
                 switch MRSCont.datatype
                     case 'SDAT'
-                        [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                         if ~MRSCont.flags.isMRSI % SVS coregistration
+                            [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                         else
+                              [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,2);
+%                                MRSCont.coreg.vol_mask_mrsi{kk} = vol_mask_mrsi;
+                         end
                     case 'DATA'
                         if isfield(MRSCont.raw{kk}, 'geometry')
-                            [vol_mask, T1_max, voxel_ctr] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                            if ~MRSCont.flags.isPRIAM % SVS coregistration
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                            else
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
+                            end
                         else
                         msg = 'Philips DATA files do not contain voxel geometry information.';
-                        fprintf(fileID,msg);
-                        error(msg);  
+                        fprintf(msg);
+                        error(msg);
                       end
                     case 'RAW'
                         msg = 'Philips RAW files do not contain voxel geometry information.';
-                        fprintf(fileID,msg);
-                        error(msg);                        
+                        fprintf(msg);
+                        error(msg);
                     otherwise
                         msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                        fprintf(fileID,msg);
-                        error(msg);                        
+                        fprintf(msg);
+                        error(msg);
                 end
             case 'GE'
                 [~,~,file_exten]=fileparts(MRSCont.files_nii{kk});
                 if contains(file_exten,'.nii')
                     % Load the *.nii file provided in the job file
                     vol_image = spm_vol(MRSCont.files_nii{kk});
-                    
+
                     [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{kk}, vol_image, maskFile);
                 else
                     switch MRSCont.datatype
                         case 'P'
                             % Load the DICOM folder provided in the job file
-                            dcm_folder = MRSCont.files_nii{kk};
-                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, dcm_folder, maskFile);
+                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, MRSCont.files_nii{kk}, maskFile);
                         otherwise
                             msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                            fprintf(fileID,msg);
-                            error(msg);  
+                            fprintf(msg);
+                            error(msg);
                     end
                 end
             otherwise
                 msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(fileID,msg);
-                error(msg);                
+                fprintf(msg);
+                error(msg);
         end
 
         % Save back the image and voxel mask volumes to MRSCont
@@ -150,8 +152,21 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.vol_mask{kk}  = vol_mask;
         MRSCont.coreg.T1_max{kk}    = T1_max;
         MRSCont.coreg.voxel_ctr{kk} = voxel_ctr;
+
+        if MRSCont.flags.addImages
+            [MRSCont.coreg.three_plane_img{kk}] = osp_extract_three_plane_image(vol_image, vol_mask,voxel_ctr,T1_max);
+        end
+
+        %Delete .nii file if a .nii.gz
+         if strcmp(T1ext,'.gz')
+            delete(MRSCont.files_nii{kk});
+            MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.nii','.nii.gz');
+         end
+         gzip(vol_mask.fname);
+         delete(vol_mask.fname);
+
     end
-    
+
 end
 
 
@@ -170,12 +185,12 @@ for kk = 1:MRSCont.nDatasets
         drawnow
     end
     if (MRSCont.flags.hasSecondT1 && MRSCont.flags.hasPET)
-        
+
         % Check whether the secondary voxel file mask has been produced
         % already - then we can simply point to it.
         % If not, we start the coregistration process
         if ~isfield(MRSCont.coreg, 'vol_mask_2nd') || (isfield(MRSCont.coreg, 'vol_mask_2nd') && length(MRSCont.coreg.vol_mask_2nd) < MRSCont.nDatasets)
-            
+
             % Unfortunately, we need to temporarily duplicate the initial T1 we
             % want to work on, since the SPM functions change the header!
             originalT1File = MRSCont.coreg.vol_image{kk}.fname;
@@ -187,7 +202,7 @@ for kk = 1:MRSCont.nDatasets
             [originalVoxelMaskPath, originalVoxelMaskFilename, originalVoxelMaskEnding] = fileparts(originalVoxelMaskFile);
             originalVoxelMaskCopy = fullfile(originalVoxelMaskPath, [originalVoxelMaskFilename '_tempCopy' originalVoxelMaskEnding]);
             copyfile(originalVoxelMaskFile, originalVoxelMaskCopy);
-            
+
             % Set up the SPM12 coregister and re-slice batch
             % Choose the second T1 provided in the job file as target (i.e.
             % stationary image, since this is already co-registered with the
@@ -210,7 +225,7 @@ for kk = 1:MRSCont.nDatasets
             matlabbatch{1}.spm.spatial.coreg.estwrite.roptions.prefix = 'r';
             % Run the job!
             spm_jobman('run',matlabbatch);
-            
+
             % Get filenames of the voxel mask resliced to the secondary T1 -
             % this is easy, SPM just prefixed it with an 'r'.
             % Rename it so that it does not contain the '_tempCopy' bit any
@@ -218,7 +233,7 @@ for kk = 1:MRSCont.nDatasets
             reslicedVoxelMaskCopy = fullfile(originalVoxelMaskPath, ['r' originalVoxelMaskFilename '_tempCopy' originalVoxelMaskEnding]);
             reslicedVoxelMaskFile = fullfile(originalVoxelMaskPath, ['r' originalVoxelMaskFilename originalVoxelMaskEnding]);
             movefile(reslicedVoxelMaskCopy, reslicedVoxelMaskFile);
-            
+
             % Create SPM volume and read in the NIfTI file with the secondary T1.
             vol_image_2nd   = spm_vol(MRSCont.files_nii2{kk});
             vol_image_pet   = spm_vol(MRSCont.files_pet{kk});
@@ -232,7 +247,7 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.coreg.vol_image_pet{kk} = vol_image_pet;
             MRSCont.coreg.PETmax{kk}        = PETmax;
             MRSCont.coreg.vol_mask_2nd{kk}  = vol_mask_2nd;
-            
+
             % Save the voxel-masked PET image as well
             % Get the input file name
             [path,filename,~]   = fileparts(MRSCont.files{kk});
@@ -249,10 +264,10 @@ for kk = 1:MRSCont.nDatasets
             PET_voxmask_vol      = vol_image_pet.private.dat(:,:,:) .* vol_mask_2nd.private.dat(:,:,:);
             vol_PETMask          = spm_write_vol(vol_PETMask, PET_voxmask_vol);
             MRSCont.coreg.vol_pet_mask{kk}  = vol_PETMask;
-            
+
             % Delete the temporary copy of the voxel masks
             delete(sprintf(originalVoxelMaskCopy));
-            
+
             % Delete the temporary copies and reslices of the T1 (if second T1 or PET)
             if (MRSCont.flags.hasSecondT1 || MRSCont.flags.hasPET)
                 delete(sprintf(originalT1Copy));
@@ -266,7 +281,7 @@ for kk = 1:MRSCont.nDatasets
             vol_image_pet_filename = MRSCont.coreg.vol_image_pet{kk};
             vol_mask_2nd    = spm_vol(vol_mask_2nd_filename);
             vol_image_pet    = spm_vol(vol_image_pet_filename);
-            
+
             % Save the voxel-masked PET image as well
             % Get the input file name
             [path,filename,~]   = fileparts(MRSCont.files{kk});
@@ -284,20 +299,20 @@ for kk = 1:MRSCont.nDatasets
             vol_PETMask          = spm_write_vol(vol_PETMask, PET_voxmask_vol);
             MRSCont.coreg.vol_pet_mask{kk}  = vol_PETMask;
         end
-        
 
-        
+
+
         %%% 3. DETERMINE PET IMAGE INTENSITY %%%
         % Get the histogram of PET image intensities inside the voxel
         % Load the PET voxel mask
         vol_PETMask = MRSCont.coreg.vol_pet_mask{kk};
-   
+
         % Get everything greater than zero
         PETIntensityInVoxel     = nonzeros(vol_PETMask.private.dat(:,:,:));
-        
+
         % 1st metric: Raw pixel intensity sum over all voxels
         rawPETIntensitySum      = sum(PETIntensityInVoxel);
-        
+
         % 2nd metric: Pixel intensity sum over all voxels >0.2
         idx = PETIntensityInVoxel   > 0.2; % cut off on lower end of greyscale range because of many dark pixels
         ThresholdedPETIntensitySum  = sum(PETIntensityInVoxel(idx));
@@ -326,7 +341,7 @@ for kk = 1:MRSCont.nDatasets
         paramsInit(4)  = grad_points ./ abs(xIntensity(1) - xIntensity(2));
         % offset
         paramsInit(5)  = (yIntensity(end)+yIntensity(1))/2;
-        
+
         % fit the peak
         nlinopts        = statset('nlinfit');
         nlinopts        = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6,'FunValCheck','off');
@@ -336,11 +351,11 @@ for kk = 1:MRSCont.nDatasets
             warning('Error when fitting PET image intensity. Double-check data');
             GaussModelParams = zeros(1,5);
         end
-        
+
         % For recording purposes, save the raw un-thresholded histogram as
         % well
         [rawYIntensity, rawXIntensity] = hist(PETIntensityInVoxel, nBins);
-        
+
         % Save metrics
         MRSCont.coreg.pet.metrics.rawPETIntensitySum(kk) = rawPETIntensitySum;
         MRSCont.coreg.pet.metrics.ThresholdedPETIntensitySum(kk) = ThresholdedPETIntensitySum;
@@ -351,25 +366,19 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.pet.histogram.fitParams{kk}  = GaussModelParams;
         MRSCont.coreg.pet.histogram.mostFrequentIntensity(kk)  = GaussModelParams(3);
         MRSCont.coreg.pet.histogram.distSD(kk)  = abs(GaussModelParams(2));
-       
-        
+
+
     end
 end
 
 fprintf('... done.\n');
 time = toc(refCoregTime);
-if MRSCont.flags.isGUI        
-    set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-    pause(1);
-end
-fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
+[~] = printLog('done',time,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 MRSCont.runtime.Coreg = time;
-fclose(fileID); %close log file
-
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didCoreg           = 1;
-MRSCont.ver.Coreg            = '1.0.0 Coreg';
+diary off
 
 % Save the output structure to the output folder
 % Determine output folder
@@ -381,9 +390,7 @@ end
 
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
-    for kk = 1 : MRSCont.nDatasets
-        osp_plotModule(MRSCont, 'OspreyCoreg', kk);
-    end
+    osp_plotAllPDF(MRSCont, 'OspreyCoreg')
 end
 
 if MRSCont.flags.isGUI

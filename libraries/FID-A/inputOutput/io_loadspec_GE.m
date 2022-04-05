@@ -33,12 +33,19 @@ function [out,out_w]=io_loadspec_GE(filename,subspecs)
 %function is normally a N x Navgs x Ncoils matrix.  The Navgs dimension
 %contains all the subspectra, so we will split them now:
 %If the data has multiple subspectra 
-if subspecs>1 
+if subspecs == 4  %HERMES/HERCULES
     %Split the subspectra out of the "averages" dimension:
-    data(:,:,:,1)=GEout(:,1:2:end,:);
-    data(:,:,:,2)=GEout(:,2:2:end,:);
-else
-    data=GEout;
+    data(:,:,:,1)=GEout(:,1:4:end,:);
+    data(:,:,:,2)=GEout(:,2:4:end,:);
+    data(:,:,:,3)=GEout(:,3:4:end,:);
+    data(:,:,:,4)=GEout(:,4:4:end,:);
+else if  subspecs==2 %MEGA   
+        %Split the subspectra out of the "averages" dimension:
+        data(:,:,:,1)=GEout(:,1:2:end,:);
+        data(:,:,:,2)=GEout(:,2:2:end,:);
+    else
+        data=GEout;
+    end
 end
 
 fids=squeeze(data);
@@ -194,6 +201,7 @@ out.geometry.size = [];
 out.geometry.size.dim1 = temp(1);
 out.geometry.size.dim2 = temp(2);
 out.geometry.size.dim3 = temp(3);
+out.software = ['Rev_number ' GEhdr.version];
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;
@@ -260,7 +268,13 @@ if out_w.dims.subSpecs==0
 else
     out_w.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
 
 
 %DONE

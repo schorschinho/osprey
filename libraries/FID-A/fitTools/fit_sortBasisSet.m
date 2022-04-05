@@ -18,9 +18,9 @@
 function basisSetOut = fit_sortBasisSet(basisSetIn)
 
 % Save all available metabolite names in a cell
-all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','CrCH2','EtOH','GABA','GPC','GSH','Glc','Gln' ...
-    ,'Glu','Gly','H2O','Ins','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
-    ,'Scyllo','Ser','Tau','Tyros'};
+all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','CrCH2','EA','EtOH','fCho','GABA','GPC','GSH','Glc','Gln' ...
+    ,'Glu','Gly','H2O','mI','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
+    ,'sI','Ser','Tau','Tyros','NAA_Ace','NAA_Asp'};
 
 % Duplicate the input basis set
 basisSetOut = basisSetIn;
@@ -38,7 +38,7 @@ for kk = 1 : length(all_mets)
 end
 basisSetOut.nMets = actBasisFnct-1;
 
-all_MMs = {'MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'};
+all_MMs = {'MM09','MM12','MM14','MM17','MM20','MM22', 'MM27','MM30','MM32','Lip09','Lip13','Lip20','MM37','MM38','MM40','MM42','MMexp','MM_PRESS_PCC','MM_PRESS_CSO'};
 for kk = 1 : length(all_MMs)
     name = all_MMs{kk};
     idx          = find(strcmp(basisSetIn.name,name));

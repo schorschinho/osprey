@@ -52,8 +52,12 @@ fid_sdat    = fopen(filename,'r','ieee-le');
 data        = freadVAXG(fid_sdat,sdat_length,'float32');
 fclose(fid_sdat);
 % Reshape and save
-data        = reshape(data, [2 header.samples header.rows]);    
-data        = squeeze(data(1,:,:)+1i*data(2,:,:));
-
+if isfield(header, 'nr_of_slices_for_multislice') && header.nr_of_slices_for_multislice > 1
+    data        = reshape(data, [2 header.samples header.rows header.nr_of_slices_for_multislice]);
+    data        = squeeze(data(1,:,:,:)+1i*data(2,:,:,:));
+else
+    data        = reshape(data, [2 header.samples header.rows]);    
+    data        = squeeze(data(1,:,:)+1i*data(2,:,:));
+end
 end
 

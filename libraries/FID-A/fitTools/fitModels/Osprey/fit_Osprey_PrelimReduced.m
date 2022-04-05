@@ -6,7 +6,7 @@ function [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, fitRan
 %       localized in vivo NMR spectra", Magn Reson Med 30(6):672-679 (1993)
 %
 %   During the first step, the input spectrum is fit using a reduced basis
-%   set (Cr, Glu, Ins, GPC, NAA) and simplified model, using a common
+%   set (Cr, Glu, mI, GPC, NAA) and simplified model, using a common
 %   frequency shift and common Gaussian and Lorentzian linebroadening
 %   for all basis functions of the reduced basis set.
 %
@@ -48,19 +48,51 @@ scalingT2 = sqrt(dataToFit.txfrq*1e-6 / 85.15); % scaling factor to account for 
 
 
 %%% 1. CREATE REDUCED BASIS SET %%%
-% By default, the reduced basis set includes only NAA, Cr, GPC, Ins, and
-% Glu, analogous to LCModel.
-metabList.Cr    = 1;
-metabList.Glu   = 1;
-metabList.Ins   = 1;
-metabList.PCh   = 1;
-metabList.NAA   = 1;
+% By default, the reduced basis set includes only NAA, Cr, PCh, mI, and
+% Glu, analogous to LCModel. If those are not available creatine- and
+% choline-containing basis functions are used. If mI and Glu are not
+% included in the basis set theywill be omitted in the reduced fit.
+
+if ~isempty(find(strcmp(basisSet.name, 'NAA')))
+    metabList.NAA   = 1;
+end
+if ~isempty(find(strcmp(basisSet.name, 'Cr')))
+    metabList.Cr    = 1;
+else if ~isempty(find(strcmp(basisSet.name, 'PCr')))
+    metabList.PCr    = 1;
+    end
+end
+
+if ~isempty(find(strcmp(basisSet.name, 'PCh')))
+    metabList.PCh    = 1;
+else if ~isempty(find(strcmp(basisSet.name, 'GPC')))
+    metabList.GPC    = 1;
+    else if ~isempty(find(strcmp(basisSet.name, 'fCho')))
+            metabList.fCho    = 1;
+        end
+    end
+end
+
+if ~isempty(find(strcmp(basisSet.name, 'mI')))
+    metabList.mI   = 1;
+end
+
+if ~isempty(find(strcmp(basisSet.name, 'Glu')))
+    metabList.Glu   = 1;
+end
+
+if ~exist('metabList','var')
+    msg = 'Your metabolite list does not contain any of the standard metabolites (NAA, Cr, PCh, mI, or Glu) used for the preliminary fiting. You have to either include one of those or you have to update the prelinimary fitting function';
+    fprintf(msg);
+    error(msg);
+end
+
 nMets = numel(fieldnames(metabList));
 fitMM = 0;
 reducedBasisSet     = fit_selectMetabs(basisSet, metabList, fitMM);
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.16);
+[splineArray]       = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.16);
 nSplines            = size(splineArray,2);
 
 

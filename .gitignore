@@ -1,2 +1,8 @@
 .DS_Store
 *.m~
+jobGUIcreated.m
+derivatives/
+GUI/SPMpath.mat
+exampledata/bruker
+LogFile.txt
+*.asv

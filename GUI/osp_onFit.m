@@ -26,42 +26,77 @@ function osp_onFit( ~, ~ ,gui)
 %       2020-01-16: First version of the code.
 %%% 1. DELETE OLD PLOTS %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class  
+    set(gui.figure,'HandleVisibility','off');
     gui.layout.tabs.Selection  = 3;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYFIT %%%
     MRSCont = OspreyFit(MRSCont);
-    delete(gui.layout.dummy);    
-    if strcmp(MRSCont.opts.fit.style, 'Concatenated')
-        temp = fieldnames(MRSCont.fit.results);
-        if MRSCont.flags.isUnEdited
+    delete(gui.layout.dummy);   
+    if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        if strcmp(MRSCont.opts.fit.style, 'Concatenated')
+            temp = fieldnames(MRSCont.fit.results);
+            if MRSCont.flags.isUnEdited
+                gui.fit.Names = fieldnames(MRSCont.fit.results);
+            end
+            if MRSCont.flags.isMEGA
+                gui.fit.Names = {'diff1','sum'};
+                if length(temp) == 2
+                    gui.fit.Names{3} = temp{2};
+                else if length(temp) == 3
+                    gui.fit.Names{3} = temp{2};
+                    gui.fit.Names{4} = temp{3};
+                    end
+                end
+            end
+            if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+                gui.fit.Names = {'diff1','diff2','sum'};
+                if length(temp) == 2
+                    gui.fit.Names{4} = temp{2};
+                else if length(temp) == 3
+                    gui.fit.Names{4} = temp{2};
+                    gui.fit.Names{5} = temp{3};
+                    end
+                end
+            end
+            gui.fit.Number = length(gui.fit.Names); 
+        else
             gui.fit.Names = fieldnames(MRSCont.fit.results);
+            gui.fit.Number = length(fieldnames(MRSCont.fit.results));   
         end
-        if MRSCont.flags.isMEGA
-            gui.fit.Names = {'diff1','sum'};
-            if length(temp) == 2
-                gui.fit.Names{3} = temp{2};
-            else if length(temp) == 3
-                gui.fit.Names{3} = temp{2};
-                gui.fit.Names{4} = temp{3};
-                end
-            end
-        end
-        if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-            gui.fit.Names = {'diff1','diff2','sum'};
-            if length(temp) == 2
-                gui.fit.Names{4} = temp{2};
-            else if length(temp) == 3
-                gui.fit.Names{4} = temp{2};
-                gui.fit.Names{5} = temp{3};
-                end
-            end
-        end
-        gui.fit.Number = length(gui.fit.Names); 
     else
-        gui.fit.Names = fieldnames(MRSCont.fit.results);
-        gui.fit.Number = length(fieldnames(MRSCont.fit.results));   
+        if strcmp(MRSCont.opts.fit.style, 'Concatenated')
+            temp = fieldnames(MRSCont.fit.results{1,gui.controls.act_x});
+            if MRSCont.flags.isUnEdited
+                gui.fit.Names = fieldnames(MRSCont.fit.results{1,gui.controls.act_x});
+            end
+            if MRSCont.flags.isMEGA
+                gui.fit.Names = {'diff1','sum'};
+                if length(temp) == 2
+                    gui.fit.Names{3} = temp{2};
+                else if length(temp) == 3
+                    gui.fit.Names{3} = temp{2};
+                    gui.fit.Names{4} = temp{3};
+                    end
+                end
+            end
+            if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
+                gui.fit.Names = {'diff1','diff2','sum'};
+                if length(temp) == 2
+                    gui.fit.Names{4} = temp{2};
+                else if length(temp) == 3
+                    gui.fit.Names{4} = temp{2};
+                    gui.fit.Names{5} = temp{3};
+                    end
+                end
+            end
+            gui.fit.Number = length(gui.fit.Names); 
+        else
+            gui.fit.Names = fieldnames(MRSCont.fit.results{1,gui.controls.act_x});
+            gui.fit.Number = length(fieldnames(MRSCont.fit.results{1,gui.controls.act_x}));   
+        end        
     end
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
+    set(gui.figure,'HandleVisibility','on');
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    
     osp_iniFitWindow(gui);
     gui.layout.b_fit.Enable = 'off';

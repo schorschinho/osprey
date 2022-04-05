@@ -38,7 +38,7 @@ function [fitParams, resBasisSet] = fit_OspreyMM(dataToFit, basisSet, fitOpts)
 dataToFit               = op_zeropad(dataToFit, 2);
 % Resample basis set to match data resolution and frequency range
 resBasisSet             = fit_resampleBasis(dataToFit, basisSet);
-
+resBasisSet.names = dataToFit.names;
 
 %%% 1. EXTRACT OPTIONS AND PREPARE FIT %%%
 % Extract ppm fit range
@@ -52,7 +52,7 @@ minKnotSpacingPPM       = fitOpts.bLineKnotSpace; % this is the DKNTMN parameter
 % landmark delta functions for NAA, Cr, Cho.
 if ~isfield(dataToFit,'refShift') %NO referenceing so far
     disp('Running initial referencing...');
-    [refShift, refFWHM] = fit_OspreyReferencingMM(dataToFit);
+    [refShift, ~] = fit_OspreyReferencingMM(dataToFit);
     refFWHM = dataToFit.refFWHM;
     % Apply initial referencing shift
     dataToFitRef = op_freqshift(dataToFit, -refShift);
@@ -65,7 +65,7 @@ else %Referencing was performed on another Subspec
 end
 
 %%% 3. PRELIMINARY ANALYSIS STEP 1 %%%
-% In step 1 of the preliminary analysis, a reduced basis set (Cr, Glu, Ins,
+% In step 1 of the preliminary analysis, a reduced basis set (Cr, Glu, mI,
 % GPC, NAA) is used to obtain a first estimate for the frequency shift
 % and the zero- and first-order phase shift parameters.
 % Well-phased spectra should be fine with the starting values for the phase
@@ -92,23 +92,6 @@ disp('Running preliminary analysis with reduced basis set...');
 disp('Running final preliminary analysis step with full basis set...');
 [fitParamsStep2] = fit_OspreyPrelimStep2MM(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
 
-RFWHM               = 2.5; % choose slightly larger than the LCM default
-convolutionRange    = RFWHM * refFWHM/2;
-PPMINC              = abs(dataToFit.ppm(1) - dataToFit.ppm(2));
-% Calculate number of points
-N_s                 = round(convolutionRange/PPMINC);
-if mod(N_s,2) == 0
-    N_s = N_s - 1; % make odd number
-end
-if N_s < 0
-    N_s = - N_s; % make odd number
-end
-
-lineShape = zeros(N_s,1);
-lineShape(ceil(N_s/2)) = 1;
-
-% Normalize
-lineShape = lineShape/sum(lineShape);
 
 
 %%% 5. CREATE OUTPUT %%%

@@ -46,6 +46,12 @@ version=twix_obj.image.softwareVersion;
 sqzSize=twix_obj.image.sqzSize; 
 sqzDims=twix_obj.image.sqzDims;
 
+%Check if the tiwx file is from a VE version
+if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'E11')
+    disp('Changed software version to VE.');
+    twix_obj.image.softwareVersion = 've';
+    version=twix_obj.image.softwareVersion;
+end
 
 %find out what sequence, the data were acquired with.  If this is a
 %multi-raid file, then the header may contain multiple instances of
@@ -67,7 +73,8 @@ isTLFrei=~isempty(strfind(sequence,'md_svs_edit')); %Is Thomas Lange's MEGA-PRES
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isSiemens=~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'));    % or the Siemens STEAM sequence?
-isUniversal = ~isempty(strfind(sequence,'univ'));
+isUniversal = ~isempty(strfind(sequence,'univ')); %Is JHU universal editing sequence
+isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
         
 %Make a pulse sequence identifier for the header (out.seq);
@@ -113,8 +120,8 @@ end
 %25 Oct 2018: Due to a recent change, the VE version of Jamie Near's MEGA-PRESS 
 %sequence also falls into this category. 
 if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequence 
-        (strcmp(version,'vd') && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
-        (strcmp(version,'vd') && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence                                                   
+        ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
+        ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence                                                   
     squeezedData=squeeze(dOut.data);
     if twix_obj.image.NCol>1 && twix_obj.image.NCha>1
         data(:,:,:,1)=squeezedData(:,:,[1:2:end-1]);
@@ -171,19 +178,32 @@ TE = twix_obj.hdr.MeasYaps.alTE{1};  %Franck Lamberton
 TR = twix_obj.hdr.MeasYaps.alTR{1};  %Franck Lamberton
 
 % Extract voxel dimensions
-TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
-TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
-TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
-TwixHeader.PosCor         = twix_obj.hdr.Config.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
-TwixHeader.PosSag         = twix_obj.hdr.Config.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
-TwixHeader.PosTra         = twix_obj.hdr.Config.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
+if (strcmp(version,'vd') || strcmp(version,'vb'))
+    TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
+    TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
+    TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
+    TwixHeader.PosCor         = twix_obj.hdr.Config.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
+    TwixHeader.PosSag         = twix_obj.hdr.Config.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
+    TwixHeader.PosTra         = twix_obj.hdr.Config.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
+    TwixHeader.VoI_InPlaneRot = twix_obj.hdr.Config.VoI_InPlaneRotAngle; % Voxel rotation in plane
+    TwixHeader.NormCor        = twix_obj.hdr.Config.VoI_Normal_Cor; % Coronal component of normal vector of voxel
+    TwixHeader.NormSag        = twix_obj.hdr.Config.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
+    TwixHeader.NormTra        = twix_obj.hdr.Config.VoI_Normal_Tra; % Transversal component of normal vector of voxel
+else
+    TwixHeader.VoI_RoFOV     = twix_obj.hdr.Spice.VoiReadoutFOV; % Voxel size in readout direction [mm]
+    TwixHeader.VoI_PeFOV     = twix_obj.hdr.Spice.VoiPhaseFOV; % Voxel size in phase encoding direction [mm]
+    TwixHeader.VoIThickness  = twix_obj.hdr.Spice.VoiThickness; % Voxel size in slice selection direction [mm]
+    TwixHeader.PosCor         = twix_obj.hdr.Spice.VoiPositionCor; % Coronal coordinate of voxel [mm]
+    TwixHeader.PosSag         = twix_obj.hdr.Spice.VoiPositionSag; % Sagittal coordinate of voxel [mm]
+    TwixHeader.PosTra         = twix_obj.hdr.Spice.VoiPositionTra; % Transversal coordinate of voxel [mm]   
+    TwixHeader.VoI_InPlaneRot = twix_obj.hdr.Spice.VoiInPlaneRot; % Voxel rotation in plane
+    TwixHeader.NormCor        = twix_obj.hdr.Spice.VoiNormalCor; % Coronal component of normal vector of voxel
+    TwixHeader.NormSag        = twix_obj.hdr.Spice.VoiNormalSag; % Sagittal component of normal vector of voxel
+    TwixHeader.NormTra        = twix_obj.hdr.Spice.VoiNormalTra; % Transversal component of normal vector of voxel
+end
 TwixHeader.TablePosSag    = twix_obj.hdr.Dicom.lGlobalTablePosSag; % Sagittal table position [mm]
 TwixHeader.TablePosCor    = twix_obj.hdr.Dicom.lGlobalTablePosCor; % Coronal table position [mm]
 TwixHeader.TablePosTra    = twix_obj.hdr.Dicom.lGlobalTablePosTra; % Transversal table position [mm]
-TwixHeader.VoI_InPlaneRot = twix_obj.hdr.Config.VoI_InPlaneRotAngle; % Voxel rotation in plane
-TwixHeader.NormCor        = twix_obj.hdr.Config.VoI_Normal_Cor; % Coronal component of normal vector of voxel
-TwixHeader.NormSag        = twix_obj.hdr.Config.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
-TwixHeader.NormTra        = twix_obj.hdr.Config.VoI_Normal_Tra; % Transversal component of normal vector of voxel
 % If a parameter is set to zero (e.g. if no voxel rotation is
 % performed), the respective field is left empty in the TWIX file. This
 % case needs to be intercepted. Setting to the minimum possible value.
@@ -236,7 +256,7 @@ end
 
 %Now index the dimension of the averages
 if strcmp(version,'vd') || strcmp(version,'ve')
-    if isMinn
+    if isMinn || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
         dims.averages=find(strcmp(sqzDims,'Ave'));
@@ -367,20 +387,32 @@ end
 
 %Now reorder the fids for the Universal MEGA implementation 
 if strcmp(seq,'MEGAPRESS') && isUniversal
-    fids_A = fids(:,:,1:2:end);
-    fids_B = fids(:,:,2:2:end);
-    fids = cat(4,fids_A,fids_B);
-    dims.subSpecs=4;
+    % Can only do this if we have more than one row, which might not be the
+    % case (e.g. for water)
+    if size(fids,3) > 1
+        fids_A = fids(:,:,1:2:end);
+        fids_B = fids(:,:,2:2:end);
+        fids = cat(4,fids_A,fids_B);
+        dims.subSpecs=4;
+    else
+        dims.subSpecs=0;
+    end
 end
 
 %Now reorder the fids for the Universal HERMES/HERCULES implementation 
 if strcmp(seq,'HERMES') || strcmp(seq,'HERCULES')
-    fids_A = fids(:,:,1:4:end);
-    fids_B = fids(:,:,2:4:end);
-    fids_C = fids(:,:,3:4:end);
-    fids_D = fids(:,:,4:4:end);
-    fids = cat(4,fids_A,fids_B,fids_C,fids_D);
-    dims.subSpecs=4;
+    % Can only do this if we have more than one row, which might not be the
+    % case (e.g. for water)
+    if size(fids,3) > 1
+        fids_A = fids(:,:,1:4:end);
+        fids_B = fids(:,:,2:4:end);
+        fids_C = fids(:,:,3:4:end);
+        fids_D = fids(:,:,4:4:end);
+        fids = cat(4,fids_A,fids_B,fids_C,fids_D);
+        dims.subSpecs=4;
+    else
+        dims.subSpecs=0;
+    end
 end
 
 %Now get the size of the data array:
@@ -397,7 +429,11 @@ dwelltime = twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime{1}*1e-9;  %Franck Lamberto
 spectralwidth=1/dwelltime;
     
 %Get TxFrq
-txfrq=twix_obj.hdr.Meas.Frequency;
+if strcmp(version,'ve')
+    txfrq=twix_obj.hdr.Meas.lFrequency  ;
+else
+    txfrq=twix_obj.hdr.Meas.Frequency;
+end
 
 %Get Date
 %date = getfield(regexp(twix_obj.hdr.MeasYaps.tReferenceImage0, ...
@@ -454,9 +490,13 @@ end
 
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
-elseif isSiemens
-    leftshift = twix_obj.image.freeParam(1);
-elseif isMinn
+elseif isSiemens && (~isMinn    || ~isConnectom)
+    if ~strcmp(version,'ve')
+        leftshift = twix_obj.image.freeParam(1);
+    else
+       leftshift = twix_obj.image.iceParam(5,1); 
+    end        
+elseif isMinn || isConnectom
     try
         leftshift = twix_obj.image.iceParam(5,1);
     catch
@@ -502,6 +542,14 @@ out.tr=TR/1000;
 out.pointsToLeftshift=leftshift;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
+if isfield(twix_obj.hdr.Config,'Nucleus')
+    out.nucleus = twix_obj.hdr.Config.Nucleus  ;
+end
+if isfield(twix_obj.hdr.Dicom,'SoftwareVersions')
+    out.software = [version ' ' twix_obj.hdr.Dicom.SoftwareVersions];
+else
+    out.software = version;
+end
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
@@ -522,6 +570,24 @@ else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
 
-
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
+if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+    out.flags.isUnEdited = 1;
+end
+if contains(seq,'MEGA')
+    out.flags.isMEGA = 1;
+end
+if strcmp(seq,'HERMES')
+    out.flags.isHERMES = 1;
+end
+if strcmp(seq,'HERCULES')
+    out.flags.isHERCULES = 1;
+end
 
 %DONE

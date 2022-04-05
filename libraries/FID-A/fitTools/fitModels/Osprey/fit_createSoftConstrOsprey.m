@@ -40,10 +40,18 @@ function [augmA, augmb] = fit_createSoftConstrOsprey(basisSet, A, b, ampl)
 
 % Set up vector of soft constraints. All of the below vectors require
 % identical length.
-constr1.met     = {'Lip13', 'Lip13', 'MM09', 'MM09', 'MM09', 'MM09', 'NAA', 'MM09', 'MM09', 'MM09'};
-constr1.wght    = [1        1        1       1       1       1       1          1       1       1];
-constr2.met     = {'Lip09', 'Lip20', 'MM20', 'MM12', 'MM14', 'MM17', 'NAAG', 'MM37', 'MM38', 'MM40'};
-constr2.wght    = [0.267    0.15     1.5     0.3     0.75    0.375   0.15      0.89   0.1     1.39  ];
+% constr1.met     = {'Lip13', 'Lip13', 'MM09', 'MM09', 'MM09', 'MM09', 'NAA', 'MM09', 'MM09', 'MM09', 'MM09'};
+% constr1.wght    = [1        1        1       1       1       1       1          1       1       1       1];
+% constr2.met     = {'Lip09', 'Lip20', 'MM20', 'MM12', 'MM14', 'MM17', 'NAAG', 'MM37', 'MM38', 'MM40', 'MM42'};
+% constr2.wght    = [0.267    0.15     1.5     0.3     0.75    0.375   0.15      0.89   0.1     1.39      0.3];
+% constr1.met     = {'MM09', 'MM09', 'MM09', 'MM09', 'MM09', 'MM09' 'MM09', 'MM09', 'MM09', 'MM09'};
+% constr1.wght    = [1        1        1       1       1       1       1          1       1       1];
+% constr2.met     = {'MM12', 'MM14', 'MM17', 'MM20', 'MM22', 'MM27', 'MM30', 'MM32', 'MM37', 'MM42'};
+% constr2.wght    = [1    1     1     1     1    1    1   1     1      1];
+constr1.met     = {'MM09', 'MM09', 'MM09', 'MM09', 'MM09', 'MM09', 'NAA', 'MM09', 'MM09', 'MM09', 'MM09'};
+constr1.wght    = [1        1        1       1       1       1       1          1       1       1       1];
+constr2.met     = {'MM12', 'MM14', 'MM17', 'MM20', 'MM22', 'MM27', 'NAAG', 'MM30', 'MM32', 'MM37', 'MM42'};
+constr2.wght    = [1    1     1     1     1    1   0.15     1   1     1      1];
 len1 = length(constr1.met);
 len2 = length(constr1.wght);
 len3 = length(constr2.met);
@@ -58,11 +66,11 @@ end
 % in the basis set. Remove from the soft constraint vectors, if not.
 % Check which soft-constrained metabolites are available in the basis set.
 metsInBasisSet = basisSet.name;
-[metsToKeep1,ia1,ib1] = intersect(constr1.met, metsInBasisSet, 'stable');
-[metsToKeep2,ia2,ib2] = intersect(constr2.met, metsInBasisSet, 'stable');
+ia1 = ismember(constr1.met, metsInBasisSet);
+ia2 = ismember(constr2.met, metsInBasisSet);
 idx_toKeep = zeros(length(constr1.met),1);
 for rr = 1:length(idx_toKeep)
-    idx_toKeep(rr) = ismember(rr,ia1) & ismember(rr,ia2);
+    idx_toKeep(rr) = ia1(rr) & ia2(rr);
 end
 constr1.met     = constr1.met(logical(idx_toKeep));
 constr1.wght    = constr1.wght(logical(idx_toKeep));

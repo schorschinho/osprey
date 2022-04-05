@@ -6,7 +6,7 @@ function [fitParamsStep1] = fit_Osprey_PrelimReducedMM(dataToFit, basisSet, minK
 %       localized in vivo NMR spectra", Magn Reson Med 30(6):672-679 (1993)
 %
 %   During the first step, the input spectrum is fit using a reduced basis
-%   set (Cr, Glu, Ins, GPC, NAA) and simplified model, using a common
+%   set (Cr, Glu, mI, GPC, NAA) and simplified model, using a common
 %   frequency shift and common Gaussian and Lorentzian linebroadening
 %   for all basis functions of the reduced basis set.
 %
@@ -52,15 +52,16 @@ scalingT2 = sqrt(dataToFit.txfrq*1e-6 / 85.15); % scaling factor to account for 
 %%% 1. CREATE REDUCED BASIS SET %%%
 % For now, the reduced basis set includes only NAA, Cr, and -CrCH2
 % Glu, analogous to LCModel.
-metabList.Cr    = 1;
+% metabList.Cr    = 1;
 metabList.NAA   = 1;
-metabList.CrCH2   = 1;
+% metabList.NAA_Ace   = 1;
+% metabList.CrCH2   = 1;
 fitMM = 0;
 reducedBasisSet     = fit_selectMetabs(basisSet, metabList, fitMM);
 nMets = length(reducedBasisSet.name);
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.2);
+[splineArray]       = fit_makeSplineBasis(dataToFit, fitRangePPM, 0.2);
 nSplines            = size(splineArray,2);
 
 
@@ -100,10 +101,10 @@ inputSettings.fitRangePPM   = fitRangePPM;
 inputSettings.lorentzLB     = lorentzLB;
 
 % Set the hard box constraints for the parameters
-lb_ph0          = -15; 
-ub_ph0          = +15; % Zero order phase shift [deg]
-lb_ph1          = -10; 
-ub_ph1          = +10;  % First order phase shift [deg/ppm]
+lb_ph0          = -5; 
+ub_ph0          = +5; % Zero order phase shift [deg]
+lb_ph1          = -2.5; 
+ub_ph1          = +2.5;  % First order phase shift [deg/ppm]
 lb_gaussLB      = 0; 
 ub_gaussLB      = sqrt(5000); % Gaussian dampening [Hz]
 lb_freqShift    = -5; 

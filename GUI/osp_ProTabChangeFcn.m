@@ -24,10 +24,23 @@ function osp_ProTabChangeFcn(src,~,gui)
 %   HISTORY:
 %       2020-01-16: First version of the code.
 %%% 1. GET HANDLES %%%
+    MRSCont = getappdata(gui.figure,'MRSCont');  
     % User selected tab refreshs plot
     gui.process.Selected = src.Selection;
-    % Parameter shown in the info panel on top
-    gui.InfoText.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children;
+    
+    if MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.extras > 0
+        gui.info.nXvoxels = MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.extras);
+    else
+        gui.info.nXvoxels = 1;
+    end            
+    gui.controls.act_x = 1;
+    if MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs > 0
+        gui.info.nYvoxels = MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs);
+    else
+        gui.info.nYvoxels = MRSCont.nDatasets(2);
+    end
+    gui.controls.act_y = 1;
+            
     % Grid for Plot
     gui.layout.proPlot = gui.layout.(gui.layout.proTabhandles{gui.process.Selected});
     gui.layout.proPre = gui.layout.proPlot.Children(1).Children(2).Children(2);

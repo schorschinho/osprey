@@ -37,7 +37,14 @@ dims.t          = find(data_size == header.samples);
 dims.averages   = find(data_size == header.rows);
 dims.coils      = 0; % SDAT is already coil-combined
 % Now arrange in the standard order (samples-avgs-subspecs):
-data = permute(data ,[dims.t dims.averages]);
+if (isfield(header, 'nr_of_slices_for_multislice') && header.nr_of_slices_for_multislice > 1) && (isfield(header, 'dim2_pnts') && header.dim2_pnts' > 1)
+    data = permute(data ,[dims.t dims.averages dims.Zvoxels]);  
+    dims.Zvoxels = 3;
+else
+    data = permute(data ,[dims.t dims.averages]);    
+end
+
+
 dims.t = 1;
 dims.averages = 2;
 dims.extras = 0;
@@ -125,6 +132,26 @@ out.tr=tr;
 out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
+if isfield(header,'nucleus')
+    out.nucleus = header.nucleus;
+end
+if isfield(header,'equipment_sw_verions')
+    out.software = ['R ' header.equipment_sw_verions];
+end
+%FILLING IN DATA STRUCUTRE FOR SDAT MRSI
+if isfield(header, 'dim2_pnts')
+    out.nXvoxels = header.dim2_pnts;
+    out.flags.MultiVoxel=1;
+end
+if isfield(header, 'dim3_pnts')
+    out.nYvoxels = header.dim3_pnts;
+    out.flags.MultiVoxel=1;
+end
+if isfield(header, 'nr_of_slices_for_multislice') && isfield(header, 'dim2_pnts');
+    out.nZvoxels = header.nr_of_slices_for_multislice;
+    out.flags.MultiVoxel=1;
+end
+
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
@@ -144,5 +171,11 @@ if out.dims.subSpecs==0
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
 %DONE

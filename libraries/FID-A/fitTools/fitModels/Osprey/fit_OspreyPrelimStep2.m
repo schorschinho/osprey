@@ -1,4 +1,4 @@
-function [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFit, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM)
+function [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFit, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,GAP)
 %% [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFit, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM)
 %   Performs the second step of the LCModel preliminary analysis
 %   according to the LCModel algorithm. The algorithm is described in:
@@ -55,7 +55,7 @@ function [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFit, resBasisSet, minKno
 [EXT2, SDT2, SDSH]  = fit_setExpectValues(dataToFit, resBasisSet);
 
 % Create an array of normalized cubic baseline spline basis functions.
-[splineArray, ~]    = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
+[splineArray]       = fit_makeSplineBasis(dataToFit, fitRangePPM, minKnotSpacingPPM);
 nSplines            = size(splineArray,2);
 
 
@@ -157,14 +157,15 @@ inputSettings.regParameter  = regParameter;
 inputSettings.EXT2          = EXT2';
 inputSettings.SDT2          = SDT2';
 inputSettings.SDSH          = SDSH';
+inputSettings.GAP = GAP;
 
 % Set the hard box constraints for the parameters
 nMets   = resBasisSet.nMets;
 nMM     = resBasisSet.nMM;
 lb_ph0              = -45; 
 ub_ph0              = +45; % Zero order phase shift [deg]
-lb_ph1              = -10; 
-ub_ph1              = +10; % First order phase shift [deg/ppm]
+lb_ph1              = -20; 
+ub_ph1              = +20; % First order phase shift [deg/ppm]
 lb_gaussLB          = 0; 
 ub_gaussLB          = sqrt(5000); % Gaussian dampening [Hz]
 lb_lorentzLB_mets   = zeros(nMets, 1); 
@@ -263,6 +264,7 @@ regParameter  = inputSettings.regParameter;
 EXT2          = inputSettings.EXT2;
 SDT2          = inputSettings.SDT2;
 SDSH          = inputSettings.SDSH;
+GAP           = inputSettings.GAP;
 % ... fit parameters
 nMets       = resBasisSet.nMets;
 nMM         = resBasisSet.nMM;
@@ -428,6 +430,13 @@ penaltyLBFS = sum((lorentzLB - EXT2).^2./(SDT2).^2 + (freqShift.^2)./(SDSH.^2));
 % For the preliminary step, just return the functional without any regularization
 F = (data - AB*ampl);
 
+
+if ~isempty(GAP)
+%      data =  vertcat(data(ppm_ax<GAP(1)),data(ppm_ax>GAP(2)));
+%      fit = AB*ampl;
+%      fit =  vertcat(fit(ppm_ax<GAP(1)),fit(ppm_ax>GAP(2)));
+     F = vertcat(F(ppm_ax<GAP(1)),F(ppm_ax>GAP(2)));   
+end
 %%% 5. CALCULATE ANALYTIC JACOBIAN 
 % j = sqrt(-1); % i
 % 
@@ -631,6 +640,7 @@ resBasisSet   = inputData.resBasisSet;
 splineArray   = inputData.splineArray;
 % ... settings:
 fitRangePPM   = inputSettings.fitRangePPM;
+GAP           = inputSettings.GAP;
 % ... fit parameters
 nMets       = resBasisSet.nMets;
 nMM         = resBasisSet.nMM;
@@ -698,6 +708,11 @@ AB = [A B];
 dataToFit   = op_freqrange(dataToFit, fitRangePPM(1), fitRangePPM(end),length(splineArray(:,1,1)));
 data        = real(dataToFit.specs);
 b           = data;
+
+if ~isempty(GAP)
+     b =  vertcat(b(ppm_ax<GAP(1)),b(ppm_ax>GAP(2)));
+     AB =  vertcat(AB(ppm_ax<GAP(1),:),AB(ppm_ax>GAP(2),:));
+end
 
 % The function we want to minimize is the sum of squares of the residual
 fcn     = @(x) norm( AB*x - b)^2;

@@ -1,4 +1,11 @@
 # Osprey
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/schorschinho/osprey)](https://github.com/schorschinho/osprey/releases)
+[![GitHub Release Date](https://img.shields.io/github/release-date/schorschinho/osprey)](https://github.com/schorschinho/osprey/releases)
+[![Build Status](https://dev.azure.com/OspreyCI/Osprey/_apis/build/status/develop-pull?branchName=develop)](https://dev.azure.com/OspreyCI/Osprey/_build/latest?definitionId=1&branchName=develop)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/schorschinho/osprey?foo=bar)](https://github.com/schorschinho/osprey/commits/develop)
+[![GitHub last commit](https://img.shields.io/github/last-commit/schorschinho/osprey)](https://github.com/schorschinho/osprey/commits/develop)
+[![Website](https://img.shields.io/website?down_color=lightgrey&down_message=offline&up_color=green&up_message=online&url=https%3A%2F%2Fschorschinho.github.io%2Fosprey)](https://schorschinho.github.io/osprey)
+[![License](https://img.shields.io/github/license/schorschinho/osprey)](https://github.com/schorschinho/osprey/blob/develop/LICENSE.md)
 
 <img src="graphics/osprey.png" alt="Osprey" width="200"/>
 
@@ -23,6 +30,7 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 - Conventional MRS (STEAM, PRESS, semi-LASER, LASER)
 - MEGA editing
 - Hadamard-encoded editing (HERMES, HERCULES)
+- Dual voxel (PRIAM)
 
 ### Supported sequence implementations
 - Philips (Philips product sequences; Johns Hopkins patches)
@@ -30,7 +38,7 @@ quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data.
 - GE (GE product sequences; Ralph Noeske sequence)
 
 ### Supported file formats
-- Philips: SDAT/SPAR, DATA/LIST (coming soon), SIN/LAB/RAW (coming soon)
+- Philips: SDAT/SPAR, DATA/LIST, SIN/LAB/RAW (coming soon)
 - Siemens: TWIX/DAT, RDA (single- & multi-file), DICOM (DCM/IMA, single- & multi-file)
 - GE: P
 
@@ -97,10 +105,11 @@ development of Osprey and shared processing code:
 
 - Jamie Near (McGill University, Montreal)
 - Ralph Noeske (GE Healthcare, Berlin)
-- Peter Barker (Johns Hopkins University, Baltimore)
-- Robin de Graaf (Yale School of Medicine, New Haven)
+- Peter Barker (Johns Hopkins University, Baltimore, MD)
+- Robin de Graaf (Yale School of Medicine, New Haven, CT)
 - Philipp Ehses (German Center for Neurodegenerative Diseases, Bonn)
 - Wouter Potters (UMC Amsterdam)
+- Xiangrui Li (Ohio State University, Columbus, OH)
 - Peter Van Schuerbeek (UZ Brussel)
 
 We are particularly grateful for the incredible [raincloud plot tools](https://github.com/RainCloudPlots/RainCloudPlots) developed by Micah Allen, Davide Poggiali, Kirstie Whitaker, Tom Rhys Marshall, and Rogier Kievit. Should you make use of the OspreyOverview raincloud plots, please consider citing their original publications:

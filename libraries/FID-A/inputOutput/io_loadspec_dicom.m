@@ -26,7 +26,7 @@ for jj = 1:length(filesInFolder)
     end
 end
 filesInFolder = filesInFolder(hidden);%delete hidden files 
-filesInFolder = strcat(folder, {filesInFolder.name});        
+filesInFolder = fullfile(folder, {filesInFolder.name});        
 
 % Get the header of the first file to make some decisions.
 DicomHeader = read_dcm_header(filesInFolder{1});
@@ -56,19 +56,29 @@ geometry.rot.NormSag        = DicomHeader.NormSag; % Sagittal component of norma
 geometry.rot.NormTra        = DicomHeader.NormTra; % Transversal component of normal vector of voxel
 
 % Preallocate array in which the FIDs are to be extracted.
-fids = zeros(DicomHeader.vectorSize,length(filesInFolder));
+if  DicomHeader.removeOS ~= 3
+    fids = zeros(DicomHeader.vectorSize,length(filesInFolder));
+else
+    fids = zeros(DicomHeader.vectorSize*2,length(filesInFolder));
+end
 % Collect all FIDs and sort them into fids array
 for kk = 1:length(filesInFolder)
-    % Open DICOM
-    fd = dicom_open(filesInFolder{kk});
-    % read the signal in as a complex FID
-    fids(:,kk) = dicom_get_spectrum_siemens(fd);
-    fclose(fd);
-% %Load Dicom Info using Chris Rogers' "SiemensCsaParse.m" function:
-% info=SiemensCsaParse(filesInFolder{kk});
-% 
-% %Read in Dicom file using Chris Rogers' "SiemensCsaReadFid.m" function:
-% [fids(:,kk),info]=SiemensCsaReadFid(info,0);
+    
+    % First, attempt to retrieve the FID from the DICOM header:
+    infoDicom = dicominfo(filesInFolder{kk});
+    if isfield(infoDicom, 'SpectroscopyData')
+        realFID = infoDicom.SpectroscopyData(1:2:end);
+        imagFID = infoDicom.SpectroscopyData(2:2:end);
+        fids(:,kk) = conj(realFID + 1j*imagFID);
+    else
+        % Try different route if that doesn't work:
+        % Open DICOM
+        fd = dicom_open(filesInFolder{kk});
+        % read the signal in as a complex FID
+        fids(:,kk) = dicom_get_spectrum_siemens(fd);
+        fclose(fd);
+    end
+    
 end
 
 
@@ -239,7 +249,11 @@ specs=fftshift(fft(fids,[],dims.t),dims.t);
 
 %Now get relevant scan parameters:*****************************
 Bo = DicomHeader.B0;
-dwelltime = DicomHeader.dwellTime * 1e-9 * 2; % DICOM contain data with removed oversampling
+if  DicomHeader.removeOS ~= 3
+    dwelltime = DicomHeader.dwellTime * 1e-9 * 2; % DICOM contain data with removed oversampling
+else
+    dwelltime = DicomHeader.dwellTime * 1e-9; % DICOM with oversampled data
+end
 %Calculate Dwell Time
 spectralwidth=1/dwelltime;
 
@@ -301,7 +315,25 @@ if out.dims.subSpecs==0
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
+if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+    out.flags.isUnEdited = 1;
+end
+if contains(seq,'MEGA')
+    out.flags.isMEGA = 1;
+end
+if strcmp(seq,'HERMES')
+    out.flags.isHERMES = 1;
+end
+if strcmp(seq,'HERCULES')
+    out.flags.isHERCULES = 1;
+end
 
 
 %DONE

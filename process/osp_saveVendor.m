@@ -55,7 +55,8 @@ switch MRSCont.vendor
         % outputFolder = 'PFiles';
         return
     otherwise
-        error('Vendor not supported. Please contact the Gannet team (gabamrs@gmail.com).');
+        warning('Saving processed data in %s format is currently not supported. Please contact the Gannet team (gabamrs@gmail.com).', MRSCont.vendor);
+        return
 end
 
 
@@ -85,31 +86,31 @@ for kk = 1:MRSCont.nDatasets
     
     if MRSCont.flags.isUnEdited
         outfile         = fullfile(saveDestination, [name '_A']);
-        RF              = outputFunction(MRSCont.processed.A{kk},outfile);
+        RF              = outputFunction(MRSCont.processed.metab{kk},outfile);
     elseif MRSCont.flags.isMEGA
         outfileA        = fullfile(saveDestination, [name '_A']);
-        RF              = outputFunction(MRSCont.processed.A{kk},outfileA);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA);
         outfileB        = fullfile(saveDestination, [name '_B']);
-        RF              = outputFunction(MRSCont.processed.B{kk},outfileB);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB);
         outfileDiff1    = fullfile(saveDestination, [name '_DIFF1']);
-        RF              = outputFunction(MRSCont.processed.diff1{kk},outfileDiff1);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},3),outfileDiff1);
         outfileSum      = fullfile(saveDestination, [name '_SUM']);
-        RF              = outputFunction(MRSCont.processed.sum{kk},outfileSum);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},4),outfileSum);
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
         outfileA        = fullfile(saveDestination, [name '_A']);
-        RF              = outputFunction(MRSCont.processed.A{kk},outfileA);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA);
         outfileB        = fullfile(saveDestination, [name '_B']);
-        RF              = outputFunction(MRSCont.processed.B{kk},outfileB);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB);
         outfileC        = fullfile(saveDestination, [name '_C']);
-        RF              = outputFunction(MRSCont.processed.C{kk},outfileC);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},3),outfileC);
         outfileD        = fullfile(saveDestination, [name '_D']);
-        RF              = outputFunction(MRSCont.processed.D{kk},outfileD);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},4),outfileD);
         outfileDiff1    = fullfile(saveDestination, [name '_DIFF1']);
-        RF              = outputFunction(MRSCont.processed.diff1{kk},outfileDiff1);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},5),outfileDiff1);
         outfileDiff2    = fullfile(saveDestination, [name '_DIFF2']);
-        RF              = outputFunction(MRSCont.processed.diff2{kk},outfileDiff2);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},6),outfileDiff2);
         outfileSum      = fullfile(saveDestination, [name '_SUM']);
-        RF              = outputFunction(MRSCont.processed.sum{kk},outfileSum);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},7),outfileSum);
     else
         error('No flag set for sequence type!');
     end

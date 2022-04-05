@@ -66,19 +66,35 @@ opts.AccTol             = abstol^2;
 opts.MaxDamping         = 1e20;
 opts.Broyden_updates    = 'off';
 
-% Set constraints
-lb      = zeros(size(x0));
-ub      = zeros(size(x0));
-lb(1)   = -2*pi; 
-ub(1)   = 2*pi; % Zero order phase shift [rad]
-lb(2)   = -pi/4; 
-ub(2)   = pi/4; % First order phase shift [rad]
-lb(3)   = 0; 
-ub(3)   = 5000; % Gaussian linebroadening [Hz^2]
-lb(4)   = 0; 
-ub(4)   = 50; % Lorentzian linebroadening [Hz]
-lb(5)   = -15; % Frequency shift [Hz]
-ub(5)   = 15; % Frequency shift [Hz]
+if ~isfield(fitOpts, 'isMRSI')
+    % Set constraints
+    lb      = zeros(size(x0));
+    ub      = zeros(size(x0));
+    lb(1)   = -2*pi; 
+    ub(1)   = 2*pi; % Zero order phase shift [rad]
+    lb(2)   = -pi/4; 
+    ub(2)   = pi/4; % First order phase shift [rad]
+    lb(3)   = 0; 
+    ub(3)   = 5000; % Gaussian linebroadening [Hz^2]
+    lb(4)   = 0; 
+    ub(4)   = 50; % Lorentzian linebroadening [Hz]
+    lb(5)   = -15; % Frequency shift [Hz]
+    ub(5)   = 15; % Frequency shift [Hz]
+else
+    % Set constraints
+    lb      = zeros(size(x0));
+    ub      = zeros(size(x0));
+    lb(1)   = -2*pi; 
+    ub(1)   = 2*pi; % Zero order phase shift [rad]
+    lb(2)   = -pi; 
+    ub(2)   = pi; % First order phase shift [rad]
+    lb(3)   = 0; 
+    ub(3)   = 5000; % Gaussian linebroadening [Hz^2]
+    lb(4)   = 0; 
+    ub(4)   = 50; % Lorentzian linebroadening [Hz]
+    lb(5)   = -15; % Frequency shift [Hz]
+    ub(5)   = 15; % Frequency shift [Hz]   
+end
 
 % Run non-linear solver
 [x] = LevenbergMarquardt(@(x) fit_waterOsprey_Model(x, dataToFit, resBasisSet, fitRangePPMWater),x0,lb,ub,opts);

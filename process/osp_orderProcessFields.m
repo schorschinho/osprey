@@ -35,67 +35,34 @@ end
 
 %% Define order based on the supplied files and the sequence type
 
-if MRSCont.flags.isUnEdited
-    numberstring = ['1' num2str(MRSCont.flags.hasMM) num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
-    switch numberstring
-        case '1000'
-            sortstring = {'A'}; 
-        case '1100'
-            sortstring = {'A','mm'};
-        case '1001'
-            sortstring = {'A','w'};
-        case '1010'
-            sortstring = {'A','ref'};
-        case '1110'
-            sortstring = {'A','mm','ref'};
-        case '1101'
-            sortstring = {'A','mm','w'};
-        case '1111'
-            sortstring = {'A','mm','ref','w'};       
-        otherwise
-            msg = 'Something is wrong in the processing!';
-            fprintf(fileID,msg);
-            error(msg);
-    end
-        
-elseif MRSCont.flags.isMEGA
-    numberstring = ['1' num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
-    switch numberstring
-        case '100'
-            sortstring = {'A','B','diff1','sum'}; 
-        case '110'
-            sortstring = {'A','B','diff1','sum','ref'};
-        case '101'
-            sortstring = {'A','B','diff1','sum','w'};
-        case '111'
-            sortstring = {'A','B','diff1','sum','ref','w'};
-        otherwise
-            msg = 'Something is wrong in the processing!';
-            fprintf(fileID,msg);
-            error(msg);
-    end
-    
-elseif (MRSCont.flags.isHERMES) || (MRSCont.flags.isHERCULES)
-    numberstring = ['1' num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater)];
-    switch numberstring
-        case '100'
-            sortstring = {'A','B','C','D','diff1','diff2','sum'}; 
-        case '110'
-            sortstring = {'A','B','C','D','diff1','diff2','sum','ref'};
-        case '101'
-            sortstring = {'A','B','C','D','diff1','diff2','sum','w'};
-        case '111'
-            sortstring = {'A','B','C','D','diff1','diff2','sum','ref','w'};
-        otherwise
-            msg = 'Something is wrong in the processing!';
-            fprintf(fileID,msg);
-            error(msg);
-    end    
-else
-    msg = 'No flag set for sequence type!';
-    fprintf(fileID,msg);
-    error(msg);
+numberstring = ['1' num2str(MRSCont.flags.hasMM) num2str(MRSCont.flags.hasRef) num2str(MRSCont.flags.hasWater) num2str(MRSCont.flags.hasMMRef)];
+switch numberstring
+    case '10000'
+        sortstring = {'metab'};
+    case '10110'
+        sortstring = {'metab','ref','w'};      
+    case '10100'
+        sortstring = {'metab','ref'};  
+    case '10010'
+        sortstring = {'metab','w'};          
+    case '11000'
+        sortstring = {'metab','mm'}; 
+    case '11001'
+        sortstring = {'metab','mm','mm_ref'};         
+    case '11101'
+        sortstring = {'metab','mm','ref','mm_ref'};         
+    case '11110'
+        sortstring = {'metab','mm','ref','w'}; 
+    case '11011'
+        sortstring = {'metab','mm','w','mm_ref'};          
+    case '11111'
+        sortstring = {'metab','mm','ref','w','mm_ref'};       
+    otherwise
+        msg = 'Something is wrong in the processing!';
+        fprintf(fileID,msg);
+        error(msg);
 end
+
 
 %% Sort the struct accordingly
 if exist('sortstring','var') && (length(fieldnames(MRSCont.processed)) == length(sortstring))

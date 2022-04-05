@@ -138,7 +138,8 @@ switch num2str(rdbm_rev_num)
         trhc         = 136;
         brhc         = 139;
         
-    case '24'
+    case {'20.006','20.007','24'}
+        
         % int
         rdb_hdr_off_image   = 377;
         rdb_hdr_off_data    = 368;
@@ -173,77 +174,7 @@ switch num2str(rdbm_rev_num)
         trhc         = 184;
         brhc         = 187;
         
-    case '20.007'
-        % int
-        rdb_hdr_off_image   = 377;
-        rdb_hdr_off_data    = 368;
-        rdb_hdr_ps_mps_freq = 107;
-        
-        % float
-        rdb_hdr_user0  = 55;
-        rdb_hdr_user4  = 59;
-        rdb_hdr_user19 = 74;
-        
-        % short
-        rdb_hdr_nechoes       = 36;
-        rdb_hdr_navs          = 37;
-        rdb_hdr_nframes       = 38;
-        rdb_hdr_point_size    = 42;
-        rdb_hdr_da_xres       = 52;
-        rdb_hdr_da_yres       = 53;
-        rdb_hdr_dab_start_rcv = 101;
-        rdb_hdr_dab_stop_rcv  = 102;
-        
-        % int
-        image_te = 267;
-        image_tr = 265;
-        
-        % float
-        image_user8  = 98;
-        image_user11 = 101;
-        image_user19 = 109;
-        image_user20 = 110;
-        image_user22 = 112;
-        tlhc         = 181;
-        trhc         = 184;
-        brhc         = 187;
-        
-     case '20.006'
-        % int
-        rdb_hdr_off_image   = 377;
-        rdb_hdr_off_data    = 368;
-        rdb_hdr_ps_mps_freq = 107;
-        
-        % float
-        rdb_hdr_user0  = 55;
-        rdb_hdr_user4  = 59;
-        rdb_hdr_user19 = 74;
-        
-        % short
-        rdb_hdr_nechoes       = 36;
-        rdb_hdr_navs          = 37;
-        rdb_hdr_nframes       = 38;
-        rdb_hdr_point_size    = 42;
-        rdb_hdr_da_xres       = 52;
-        rdb_hdr_da_yres       = 53;
-        rdb_hdr_dab_start_rcv = 101;
-        rdb_hdr_dab_stop_rcv  = 102;
-        
-        % int
-        image_te = 267;
-        image_tr = 265;
-        
-        % float
-        image_user8  = 98;
-        image_user11 = 101;
-        image_user19 = 109;
-        image_user20 = 110;
-        image_user22 = 112;
-        tlhc         = 181;
-        trhc         = 184;
-        brhc         = 187;
-        
-    case '26.002'
+    case {'26.002','27','27.001','28.002','28.003'}
         
         % int
         rdb_hdr_off_image   = 11;
@@ -328,6 +259,7 @@ fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
 t_hdr_value = fread(fid, image_te, 'integer*4');
 hdr.TE = t_hdr_value(image_te)/1e3;
 hdr.TR = t_hdr_value(image_tr)/1e3;
+hdr.version = rdbm_rev_num;
 
 % Spectro prescan pfiles
 if npoints == 1 && nrows == 1

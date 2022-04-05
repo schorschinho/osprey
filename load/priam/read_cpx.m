@@ -90,7 +90,9 @@ else
 end
 
 % Define a waitbar
-h = waitbar(0, 'Loading file...');
+[filepath filename fileending] = fileparts(file);
+h = waitbar(0, sprintf('Loading %s...', filename));
+set(findall(h,'type','text'),'Interpreter','none');
 set(h,'Units','pixels')
 scnsize = get(0,'ScreenSize');
 set(h,'Position',[floor(scnsize(3)/2)-160,floor(scnsize(4)/2)-30,360,75]);

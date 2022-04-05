@@ -30,13 +30,14 @@ function osp_check_distrOv_Call(src,~,gui)
         metab = get(gui.controls.pop_distrOvMetab, 'Value');
         Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
         if ~strcmp(Selection,'Quality')    
-            split_Selection = strsplit(Selection,'-');        
-            if strcmp(split_Selection{2},'AlphaCorrWaterScaled') || strcmp(split_Selection{2},'AlphaCorrWaterScaledGroupNormed')
+            split_Selection = strsplit(Selection,'-');   
+            ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.(split_Selection{1}),split_Selection{2}));
+            if strcmp(split_Selection{3},'AlphaCorrWaterScaled') || strcmp(split_Selection{3},'AlphaCorrWaterScaledGroupNormed')
                set(gui.controls.pop_distrOvMetab, 'String', {'GABA'});
                set(gui.controls.pop_distrOvMetab, 'Value', gui.quant.idx.GABA);
                set(gui.controls.pop_distrOvMetab, 'Enable', 'off');
             else
-               set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.metabs.(split_Selection{1}));
+               set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.names.(split_Selection{1}){1,ind});
                set(gui.controls.pop_distrOvMetab, 'Value', metab);
                set(gui.controls.pop_distrOvMetab, 'Enable', 'on');
             end

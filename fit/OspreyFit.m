@@ -3,7 +3,7 @@ function [MRSCont] = OspreyFit(MRSCont)
 %   This function performs spectral fitting on MRS data loaded previously
 %   using OspreyLoad.
 %
-%   The method of fit, fitting range, included metabolites and other 
+%   The method of fit, fitting range, included metabolites and other
 %   settings are set in the job file.
 %
 %   USAGE:
@@ -18,8 +18,8 @@ function [MRSCont] = OspreyFit(MRSCont)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-24)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -29,27 +29,19 @@ function [MRSCont] = OspreyFit(MRSCont)
 %       2019-02-24: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
-% Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
-    msg = 'Trying to fit data, but raw data has not been loaded yet. Run OspreyLoad first.';
-    fprintf(fileID,msg);
-    error(msg);
+diary(fullfile(outputFolder, 'LogFile.txt'));
+
+if MRSCont.flags.isGUI
+    progressText = MRSCont.flags.inProgress;
+else
+    progressText = '';
 end
 
-% Check that OspreyProcess has been run before
-if ~MRSCont.flags.didProcess
-    msg = 'Trying to fit data, but loaded data has not been process yet. Run OspreyProcess first.';
-    fprintf(fileID,msg);
-    error(msg);
-end
-
-%% Load fit settings, prepare data and pass it on to the fitting algorithm
-
-% Version, toolbox check and updating log file
-MRSCont.ver.CheckFit       = '1.0.0 Fit';
-fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.CheckFit '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-[~] = osp_Toolbox_Check ('OspreyFit',MRSCont.flags.isGUI);
+% ----- Load fit settings and fit the metabolite data -----
+% Checking for version, toolbox, and previously run modules
+osp_CheckRunPreviousModule(MRSCont, 'OspreyFit');
+[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyFit',MRSCont.flags.isGUI);
+% Start timer
 MRSCont.runtime.Fit = 0;
 
 % Initialise the fit - this step includes:
@@ -57,9 +49,10 @@ MRSCont.runtime.Fit = 0;
 % - Apply settings on which metabolites/MM/lipids to include in the fit
 % - Check for inconsistencies between basis set and data
 [MRSCont] = osp_fitInitialise(MRSCont);
-MRSCont.opts.fit.outputFolder = outputFolder;
+%MRSCont.opts.fit.outputFolder = outputFolder;
+
 % Call the fit functions (depending on sequence type)
-if ~MRSCont.flags.isPRIAM
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     if MRSCont.flags.isUnEdited
         [MRSCont] = osp_fitUnEdited(MRSCont);
     elseif MRSCont.flags.isMEGA
@@ -71,86 +64,97 @@ if ~MRSCont.flags.isPRIAM
         [MRSCont] = osp_fitHERCULES(MRSCont);
     else
         msg = 'No flag set for sequence type!';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 else
-    fclose(fileID);
     [MRSCont] = osp_fitMultiVoxel(MRSCont);
 end
 
-%% Perform water reference and short-TE water fit
-if MRSCont.flags.isGUI
-    progressText = MRSCont.flags.inProgress;
+
+% ----- Perform water reference and short-TE water fit -----
+% The water signal is automatically integrated when the LCModel fit option is
+% being used. In Osprey, we explicitly model the water data with a
+% dedicated simulated water basis function.
+if strcmpi(MRSCont.opts.fit.method, 'Osprey')
+
+    % If water reference exists, fit it
+    if MRSCont.flags.hasRef
+        refFitTime = tic;
+        % Loop over all the datasets here
+        for kk = 1:MRSCont.nDatasets
+            [~] = printLog('OspreyFitRef',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+            if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+                [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
+            end
+        end
+        time = toc(refFitTime);
+        if MRSCont.flags.isGUI
+            set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+            pause(1);
+        end
+        fprintf('... done.\n Elapsed time %f seconds\n',time);
+        MRSCont.runtime.FitRef = time;
+        MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
+    end
+
+    % If short TE water reference exists, fit it
+    if MRSCont.flags.hasWater
+        waterFitTime = tic;
+        % Loop over all the datasets here
+        for kk = 1:MRSCont.nDatasets
+            [~] = printLog('OspreyFitWater',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+            if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+                [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
+            end
+        end
+        time = toc(waterFitTime);
+        fprintf('... done.\n Elapsed time %f seconds\n',time);
+        MRSCont.runtime.FitWater = time;
+        MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
+    end
+
+    MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
+
+else
+    MRSCont.runtime.Fit =  MRSCont.runtime.FitMet;
 end
-fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'a+');
-% If water reference exists, fit it
-if MRSCont.flags.hasRef
-    refFitTime = tic;
-    reverseStr = '';
-    % Loop over all the datasets here
-    for kk = 1:MRSCont.nDatasets
-        msg = sprintf('\nFitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-        fprintf([reverseStr, msg]);
-        reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf(fileID,[reverseStr, msg]);
-        if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('Fitting water reference from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-            drawnow
-        end
-        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
-            [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
-        end
-    end
-    fprintf('... done.\n');
-    fprintf(fileID,'... done.\n');
-    time = toc(refFitTime);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-        pause(1);
-    end
-    fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-    MRSCont.runtime.FitRef = time;
-    MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
+[~] = printLog('Fulldone',MRSCont.runtime.Fit,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+
+
+%% If DualVoxel or MRSI we want to extract y-axis scaling
+if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
+    MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad');
+    MRSCont.fit.resBasisSet = MRSCont.fit.resBasisSet{2,2};
 end
 
-% If short TE water reference exists, fit it
-if MRSCont.flags.hasWater
-    waterFitTime = tic;
-    reverseStr = '';   
-    % Loop over all the datasets here
-    for kk = 1:MRSCont.nDatasets
-        msg = sprintf('\nFitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-        fprintf([reverseStr, msg]);
-        reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        fprintf(fileID,[reverseStr, msg]);
-        if MRSCont.flags.isGUI        
-            set(progressText,'String' ,sprintf('Fitting short-TE water from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-            drawnow
+%% Delete redundant resBasiset entries
+if strcmpi(MRSCont.opts.fit.method, 'Osprey')
+    if ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        FitNames = fieldnames(MRSCont.fit.resBasisSet);
+        NoFit = length(fieldnames(MRSCont.fit.resBasisSet));
+        for sf = 1 : NoFit
+            if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
+                MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(:,MRSCont.info.metab.unique_ndatapoint_spectralwidth_ind,:);
+                for combs = 1 : length(MRSCont.info.metab.unique_ndatapoint_spectralwidth_ind)
+                    resBasisSetNew.(FitNames{sf}).([MRSCont.info.metab.unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf})(:,combs,:);
+                end
+            else
+                MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind);
+                for combs = 1 : length(MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind)
+                    resBasisSetNew.(FitNames{sf}).water.([MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf}).water{combs};
+                end
+            end
         end
-        if ((MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~isfield(MRSCont.ver, 'Fit') || ~strcmp(MRSCont.ver.Fit,MRSCont.ver.CheckFit))
-            [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
-        end
+        MRSCont.fit.resBasisSet = resBasisSetNew;
     end
-    fprintf('... done.\n');
-    fprintf(fileID,'... done.\n');
-    time = toc(waterFitTime);
-    if MRSCont.flags.isGUI        
-        set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
-        pause(1);
-    end
-    fprintf(fileID,'... done.\n Elapsed time %f seconds\n',time);
-    MRSCont.runtime.FitWater = time;
-    MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
 end
-MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
-fprintf(fileID,'Full fit time %f seconds\n',MRSCont.runtime.Fit);
-fclose(fileID); %close log file
 
 %% Store  and print some QM parameters
-if ~MRSCont.flags.isPRIAM
-    [MRSCont]=osp_fit_Quality(MRSCont);
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+    [MRSCont] = osp_fit_Quality(MRSCont);
 
+    L = length(MRSCont.QM.tables.Properties.VariableNames);
     % Store data quality measures in csv file
     if MRSCont.flags.isUnEdited
         relResA = MRSCont.QM.relAmpl.A';
@@ -165,14 +169,14 @@ if ~MRSCont.flags.isPRIAM
             relRessum = MRSCont.QM.relAmpl.sum';
             relResdiff1 = MRSCont.QM.relAmpl.diff1';
             MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1;        
-        end        
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+        end
     elseif MRSCont.flags.isHERMES
             relRessum = MRSCont.QM.relAmpl.sum';
             relResdiff1 = MRSCont.QM.relAmpl.diff1';
             relResdiff2 = MRSCont.QM.relAmpl.diff2';
             MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1; 
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
             MRSCont.QM.tables.relResdiff2 = relResdiff2;
     elseif MRSCont.flags.isHERCULES
         % For now, process HERCULES like HERMES data
@@ -180,32 +184,45 @@ if ~MRSCont.flags.isPRIAM
             relResdiff1 = MRSCont.QM.relAmpl.diff1';
             relResdiff2 = MRSCont.QM.relAmpl.diff2';
             MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1; 
-            MRSCont.QM.tables.relResdiff2 = relResdiff2;    
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+            MRSCont.QM.tables.relResdiff2 = relResdiff2;
     else
         msg = 'No flag set for sequence type!';
-        fprintf(fileID,msg);
+        fprintf(msg);
         error(msg);
     end
 
-    writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
+    % Loop over field names to populate descriptive fields of table for JSON export
+    for JJ = L:length(MRSCont.QM.tables.Properties.VariableNames)
+        switch MRSCont.QM.tables.Properties.VariableNames{JJ}
+            case 'relResA'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResA'} = 'relResA';%CWDJ??
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResA'} = 'Fit quality number for spectrum A relative amplitude of the residual compared to the standard deveiation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResA'} = 'arbitrary';
+            case 'relRessum'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relRessum'} = 'relRessum';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relRessum'} = 'Fit quality number for sum spectrum relative amplitude of the residual compared to the standard deveiation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'relRessum'} = 'arbitrary';
+            case 'relResdiff1'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResdiff1'} = 'relResdiff1';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResdiff1'} = 'Fit quality number for diff1 spectrum relative amplitude of the residual compared to the standard deveiation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResdiff1'} = 'arbitrary';
+            case 'relResdiff2'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResdiff2'} = 'relResdiff2';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResdiff2'} = 'Fit quality number for diff2 spectrum relative amplitude of the residual compared to the standard deveiation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResdiff2'} = 'arbitrary';
+        end
+    end
+
+    %Output as .tsv
+    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'])
 end
 
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didFit           = 1;
-MRSCont.ver.Fit            = '1.0.0 Fit';
-% Delete redundant resBasiset entries
-% FitNames = fieldnames(MRSCont.fit.results);
-% NoFit = length(fieldnames(MRSCont.fit.results));
-% for sf = 1 : NoFit
-%     if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
-%         MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(MRSCont.info.A.unique_ndatapoint_ind);
-%     else
-%         MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_ind); 
-%     end
-% end
 
+diary off
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;
@@ -216,39 +233,7 @@ end
 
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
-    if strcmp(MRSCont.opts.fit.style, 'Concatenated')
-    temp = fieldnames(MRSCont.fit.results);
-    if MRSCont.flags.isUnEdited
-        Names = fieldnames(MRSCont.fit.results);
-    end
-    if MRSCont.flags.isMEGA
-        Names = {'diff1','sum'};
-        if length(temp) == 2
-            Names{3} = temp{2};
-        else if length(temp) == 3
-            Names{3} = temp{2};
-            Names{4} = temp{3};
-            end
-        end
-    end
-    if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-        Names = {'diff1','diff2','sum'};
-        if length(temp) == 2
-            Names{4} = temp{2};
-        else if length(temp) == 3
-            Names{4} = temp{2};
-            Names{5} = temp{3};
-            end
-        end
-    end
-    else
-        Names = fieldnames(MRSCont.fit.results);  
-    end
-    for kk = 1 : MRSCont.nDatasets
-        for ss = 1 : length(Names)
-            osp_plotModule(MRSCont, 'OspreyFit', kk, Names{ss});
-        end
-    end
+    osp_plotAllPDF(MRSCont, 'OspreyFit');
 end
 
 if MRSCont.flags.isGUI

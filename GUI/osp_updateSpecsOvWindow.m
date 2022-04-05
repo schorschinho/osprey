@@ -24,35 +24,47 @@ function osp_updateSpecsOvWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
+        selectedOvTab = get(gui.layout.overviewTab,'Selection');
+        set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(1).Children(3).Children(1).Children(1).Children(3),'String',gui.controls.act_z)
+        set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(1).Children(3).Children(1).Children(1).Children(4),'String',gui.controls.act_x)        
         delete(gui.Plot.specsOv.Children(2).Children)
+        
 %%% 2. VISUALIZATION PART OF THIS TAB %%%
         Selection = gui.controls.pop_specsOvPlot.String(gui.process.Selected);
         if gui.controls.GM == 0
             for g = 1 :  gui.overview.Number.Groups %Loop over groups
-                temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind);
-                    ax=get(temp,'Parent');
-                    figpl = get(ax,'Parent');
+                temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z);
+                    ax=get(temp,'Children');
                     copyobj(ax.Children, gui.Plot.specsOv.Children(2));
-                    % Get rid of the Load figure
-                    close( figpl );
             end
         else
-           temp = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind);
-            ax=get(temp,'Parent');
-            figpl = get(ax,'Parent');
-            copyobj(ax.Children, gui.Plot.specsOv.Children(2));
-            % Get rid of the Load figure
-            close( figpl );           
+           temp = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z);
+            ax=get(temp,'Children');
+            copyobj(ax.Children, gui.Plot.specsOv.Children(2));          
         end
-        switch Selection{1}
-            case {'A','B','C','D','diff1','diff2','sum','MM','MM_clean'}        
+        
+        which_spec_split = split(Selection);
+        if length(which_spec_split) == 3
+            spec = which_spec_split{2};
+        else
+            spec = which_spec_split{1};
+        end
+
+        switch spec
+            case {'metab','mm'}        
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
-            case {'ref','w','Fit:ref','Fit:w'}
+            case {'ref','w','mm_ref'}
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0 2*4.68])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
             otherwise
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+        end
+        h = findall(groot,'Type','figure');
+        for ff = 1 : length(h)
+            if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
+                close(h(ff))
+            end
         end
 end

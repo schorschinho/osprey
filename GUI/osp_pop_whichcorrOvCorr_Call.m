@@ -30,14 +30,34 @@ function osp_pop_whichcorrOvCorr_Call(src,~,gui)
         gui.overview.Selected.Corr = 1;
         Selection = gui.quant.popMenuNames{gui.quant.Selected.Quant};
         split_Selection = strsplit(Selection,'-');  
+        selectedOvTab = get(gui.layout.overviewTab,'Selection');         
+        set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(1).Children(3).Children(1).Children(1).Children(3),'String',gui.controls.act_z)
+        set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(1).Children(3).Children(1).Children(1).Children(4),'String',gui.controls.act_x)   
+        ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.(split_Selection{1})(1,:),split_Selection{2}));   
         if idx == 1
-            set(gui.controls.pop_corrOvCorr, 'String', gui.overview.Names.Corr);
-            set(gui.controls.pop_corrOvCorr, 'Value', gui.overview.Selected.Corr);
+            set(gui.controls.pop_corrOvCorr, 'String', gui.overview.Names.QM);
+             set(gui.controls.pop_corrOvCorr, 'Value', gui.overview.Selected.Corr);
+
         else if idx == 2
-            set(gui.controls.pop_corrOvCorr, 'String', MRSCont.quantify.metabs.(split_Selection{1}));
-            set(gui.controls.pop_corrOvCorr, 'Value', gui.overview.Selected.Corr);
+                metab_idx_old = get(gui.controls.pop_corrOvCorr, 'Value');
+                name_list=get(gui.controls.pop_corrOvCorr, 'String');
+                name_old = name_list{metab_idx_old}; 
+                name_list_new=MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind};
+                metab_idx_new = find(strcmp(name_list_new,name_old));   
+                if ~isempty(metab_idx_new)
+                    set(gui.controls.pop_corrOvCorr, 'String', MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind});
+                    set(gui.controls.pop_corrOvCorr, 'Value', gui.overview.Selected.Corr);
+                else
+                    metab_idx_new = 1;
+                    set(gui.controls.pop_corrOvCorr, 'Value', 1);
+                    set(gui.controls.pop_corrOvCorr, 'String', MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind});
+                     gui.overview.Selected.Corr = 1;
+                end
+               set(gui.controls.pop_corrOvCorr, 'Value', metab_idx_new);
+               
+            
             else
-                set(gui.controls.pop_corrOvCorr, 'String', gui.overview.Names.QM);
+                set(gui.controls.pop_corrOvCorr, 'String', gui.overview.Names.Corr);
                 set(gui.controls.pop_corrOvCorr, 'Value', gui.overview.Selected.Corr);
             end
         end

@@ -26,10 +26,6 @@ function osp_RawTabChangeFcn(src,~,gui)
 %%% 1. GET HANDLES %%%
    % User selected tab refreshs plot
     gui.load.Selected = src.Selection;
-    % Parameter shown in the info panel on top
-    gui.InfoText.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children;
-    % Grid for Plot and Data control sliders
-    gui.Plot.data = gui.layout.(gui.layout.rawTabhandles{gui.load.Selected});
 %%% 2. UPDATE GUI %%%    
     osp_updateLoadWindow(gui);
 end

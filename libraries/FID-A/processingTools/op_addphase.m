@@ -21,7 +21,7 @@
 function out=op_addphase(in,ph0,ph1,ppm0,suppressPlot);
 
 if nargin<5
-    suppressPlot=0;
+    suppressPlot=1;
     if nargin<4
         if isfield(in, 'centerFreq')
             ppm0=in.centerFreq;

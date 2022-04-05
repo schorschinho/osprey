@@ -45,16 +45,15 @@ end
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
 [MRSCont] = OspreySettings;
 
-
 %%% 2. CHECK JOB INPUT FILE FORMAT %%%
-last3char   = jobFile((end-2):end);
-last2char   = jobFile((end-1):end);
-if strcmpi(last2char,'.m')
-    jobFileFormat = 'm';
-elseif strcmpi(last3char,'csv')
-    jobFileFormat = 'csv';
-else
-    error('Unrecognized job file datatype. Job files need to end in .CSV or .M');
+[~,~,ext] = fileparts(jobFile);
+switch ext
+    case '.m'
+        jobFileFormat = 'm';
+    case '.csv'
+        jobFileFormat = 'csv';
+    otherwise
+        error('Unrecognized job file datatype. Job files need to end in .CSV or .M');
 end
 
 
@@ -84,6 +83,9 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_mm')  %re_mm Adding functionality for MM
         files_mm = {jobStruct.files_mm};   %re_mm
     end %re_mm
+    if isfield(jobStruct, 'files_mm_ref')
+        files_mm_ref = {jobStruct.files_mm_ref};
+    end
     if isfield(jobStruct, 'files_ref')
         files_ref = {jobStruct.files_ref};
     end
@@ -99,6 +101,9 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_pet')
         files_pet = {jobStruct.files_pet};
     end
+    if isfield(jobStruct, 'files_sense')
+        files_sense = {jobStruct.sense};
+    end
     if isfield(jobStruct, 'outputFolder')
         outputFolder = jobStruct(1).outputFolder;
     else
@@ -113,7 +118,7 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct,'MultiVoxel')
         MultiVoxel = jobStruct(1).MultiVoxel;
     else
-        fprintf('Multivoxel isset to single voxel spectroscopy  (default). Please indicate otherwise in the csv-file or the GUI \n');
+        fprintf('Multivoxel is set to single voxel spectroscopy  (default). Please indicate otherwise in the csv-file or the GUI \n');
         MultiVoxel = 'SVS';
     end
     if isfield(jobStruct,'editTarget')
@@ -157,6 +162,12 @@ if strcmp(jobFileFormat,'csv')
     else
         fprintf('Vendor-specific files (SDAT/SPAR, RDA, P) will be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.saveVendor = 1;
+    end
+    if isfield(jobStruct,'saveNII')
+        MRSCont.opts.saveNII = jobStruct(1).saveNII;
+    else
+        fprintf('NIfTI-MRS files will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.saveNII = 0;
     end
     if isfield(jobStruct,'includeMetabs')
         opts.fit.includeMetabs = jobStruct(1).includeMetabs;
@@ -211,11 +222,27 @@ if exist('opts','var')
         else
         	names_fit = fields(opts.(names{f}));
             for nf = 1 : length(names_fit)
-                MRSCont.opts.fit.(names_fit{nf}) = opts.fit.(names_fit{nf}); 
+                MRSCont.opts.fit.(names_fit{nf}) = opts.fit.(names_fit{nf});
             end
         end
     end
 end
+
+if ~isfield(MRSCont.opts, 'UnstableWater')
+    MRSCont.opts.UnstableWater = 0;
+end
+
+if ~isfield(MRSCont.opts, 'SubSpecAlignment')
+    MRSCont.opts.SubSpecAlignment.mets = 'L2Norm';
+    MRSCont.opts.SubSpecAlignment.mm = 'none';
+else if ~isfield(MRSCont.opts.SubSpecAlignment, 'mets')
+    SubSpecAlignment = MRSCont.opts.SubSpecAlignment;
+    MRSCont.opts = rmfield(MRSCont.opts,'SubSpecAlignment');
+    MRSCont.opts.SubSpecAlignment.mets = SubSpecAlignment;
+    MRSCont.opts.SubSpecAlignment.mm = 'none';
+    end
+end
+
 
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
 % Parse the sequence type entry
@@ -223,15 +250,29 @@ switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
         MRSCont.opts.editTarget             = {'none'};
-        MRSCont.opts.fit.style = opts.fit.style; 
+        MRSCont.opts.fit.style = opts.fit.style;
         if strcmp(opts.fit.style, 'Concatenated')
-            fprintf('Fitting style was changed to Separate, because this is unedited data. Please indicate otherwise in the csv-file or the GUI \n');
+            fprintf('Fitting style was changed to Separate, because this is unedited data.\n');
             MRSCont.opts.fit.style = 'Separate';
-        end        
+        end
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.A = [];
+            MRSCont.opts.fit.GAP.mm = [];
+            MRSCont.opts.fit.GAP.ref = [];
+            MRSCont.opts.fit.GAP.ref_mm = [];
+            MRSCont.opts.fit.GAP.w = [];
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
         MRSCont.opts.editTarget             = editTarget;
         MRSCont.opts.fit.style = opts.fit.style;
+        if strcmp(opts.fit.style, 'Concatenated')
+            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
+            MRSCont.opts.fit.style = 'Separate';
+        end
         if isfield(opts.fit, 'coMM3')
             MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
             MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
@@ -239,16 +280,81 @@ switch seqType
             MRSCont.opts.fit.coMM3 = 'none';
             MRSCont.opts.fit.FWHMcoMM3 = 14;
         end
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.A = [];
+            MRSCont.opts.fit.GAP.diff1 = [];
+            MRSCont.opts.fit.GAP.A_mm = [];
+            MRSCont.opts.fit.GAP.diff1_mm = [];
+            MRSCont.opts.fit.GAP.ref = [];
+            MRSCont.opts.fit.GAP.ref_mm = [];
+            MRSCont.opts.fit.GAP.w = [];
+        else if ~isfield(MRSCont.opts.fit.GAP, 'A')
+                MRSCont.opts.fit.GAP.A = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff1')
+                MRSCont.opts.fit.GAP.diff1 = [];
+            end
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     case 'HERMES'
         MRSCont.flags.isHERMES      = 1;
         MRSCont.opts.editTarget             = editTarget;
         MRSCont.opts.fit.style = opts.fit.style;
+        if strcmp(opts.fit.style, 'Concatenated')
+            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
+            MRSCont.opts.fit.style = 'Separate';
+        end
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.sum = [];
+            MRSCont.opts.fit.GAP.diff1 = [];
+            MRSCont.opts.fit.GAP.diff2 = [];
+        else if ~isfield(MRSCont.opts.fit.GAP, 'sum')
+                MRSCont.opts.fit.GAP.sum = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff1')
+                MRSCont.opts.fit.GAP.diff1 = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff2')
+                MRSCont.opts.fit.GAP.diff2 = [];
+            end
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     case 'HERCULES'
         MRSCont.flags.isHERCULES    = 1;
         MRSCont.opts.editTarget             = editTarget;
         MRSCont.opts.fit.style = opts.fit.style;
+        if strcmp(opts.fit.style, 'Concatenated')
+            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
+            MRSCont.opts.fit.style = 'Separate';
+        end
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.sum = [];
+            MRSCont.opts.fit.GAP.diff1 = [];
+            MRSCont.opts.fit.GAP.diff2 = [];
+        else if ~isfield(MRSCont.opts.fit.GAP, 'sum')
+                MRSCont.opts.fit.GAP.sum = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff1')
+                MRSCont.opts.fit.GAP.diff1 = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff2')
+                MRSCont.opts.fit.GAP.diff2 = [];
+            end
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     otherwise
         error('Invalid job file! seqType must be ''unedited'', ''MEGA'', ''HERMES'', or ''HERCULES''.');
+end
+
+% AUtomatically check whehther LCModel is used and turn on RAW export
+if strcmp(opts.fit.method, 'LCModel')
+    MRSCont.opts.saveLCM = 1;
 end
 
 % Parse the data scenario entry
@@ -275,10 +381,30 @@ if exist('MultiVoxel','var')
     switch MultiVoxel
         case 'PRIAM'
             MRSCont.flags.isPRIAM = 1;
+            MRSCont.SENSE = cell(length(priam_offset));
+            for kk = 1:length(priam_offset)
+                MRSCont.SENSE{kk}.priam_offset = priam_offset{kk};
+                MRSCont.SENSE{kk}.priam_direction = priam_direction{kk};
+            end
+
         case 'MRSI'
             MRSCont.flags.isMRSI = 1;
         otherwise
             warning('Multi voxel must be ''PRIAM'' or ''MRSI''in the job file, and has been set to ''single voxel'' (default).');
+    end
+    if ~isfield(MRSCont.opts, 'MoCo')
+        MRSCont.opts.MoCo.target = 'none';
+        MRSCont.opts.MoCo.thresh.thresh = 0.8;
+        MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
+        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;
+    end
+    if ~isfield(MRSCont.opts.MoCo, 'target')
+        MRSCont.opts.MoCo.target = 'full';
+    end
+    if ~isfield(MRSCont.opts.MoCo, 'thresh')
+        MRSCont.opts.MoCo.thresh.thresh = 0.8;
+        MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
+        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;
     end
 end
 
@@ -310,15 +436,33 @@ else
 end
 if exist('files_mm','var')   %re_mm Adding functionality for MM
     MRSCont.files_mm = files_mm;   %re_mm
+else
+    MRSCont.files_mm = {};
 end   %re_mm
+if exist('files_mm_ref','var')
+    MRSCont.files_mm_ref = files_mm_ref;
+else
+    MRSCont.files_mm_ref = {};
+end
 if exist('files_ref','var')
     MRSCont.files_ref = files_ref;
+else
+    MRSCont.files_ref = {};
 end
 if exist('files_w','var')
     MRSCont.files_w = files_w;
+else
+    MRSCont.files_w = {};
 end
 if exist('files_nii','var')
     MRSCont.files_nii = files_nii;
+else
+    MRSCont.files_nii = {};
+end
+if exist('files_sense','var')
+    MRSCont.files_sense = files_sense;
+else
+    MRSCont.files_sense = {};
 end
 if exist('files_nii2','var')
     MRSCont.files_nii2 = files_nii2;
@@ -333,7 +477,7 @@ else
 end
 
 % Check that each array has an identical number of entries
-fieldNames = {'files', 'files_ref', 'files_w', 'files_nii', 'files_nii2', 'files_pet'};
+fieldNames = {'files', 'files_ref', 'files_w','files_mm','files_mm_ref', 'files_nii', 'files_nii2', 'files_pet', 'files_sense'};
 ctr = 0;
 for kk = 1:length(fieldNames)
     if isfield(MRSCont, fieldNames{kk})
@@ -348,9 +492,9 @@ end
 % Check whether the number of entries is identical
 isUnique = unique(numDataSets);
 if length(isUnique) ~= 1
-    msg = sprintf('''%s'' has %i entries, but ', whichFieldNames{1}, numDataSets(1));
+    msg = fprintf('''%s'' has %i entries, but ', whichFieldNames{1}, numDataSets(1));
     for ll = 2:length(whichFieldNames)
-        msg2 = sprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
+        msg2 = fprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
         msg = strcat(msg,msg2);
     end
 
@@ -368,10 +512,9 @@ MRSCont.colormap        = colormap;
 MRSCont.flags.isGUI     = GUI;
 
 %%% 7. SET FLAGS AND VERSION %%%
-MRSCont.flags.didLoadJob    = 1;
+MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = '1.0.0 Osprey';
-MRSCont.ver.Job             = '1.0.0 job';
+MRSCont.ver.Osp             = 'Osprey 2.0.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
@@ -405,10 +548,10 @@ if ~GUI
                      askloadMRSCont = input('Do you want to load the corresponding MRS Container and attach new files (y/n)? [y]   ','s');
                 case '01'
                 askloadMRSCont = 'y';
-            end    
+            end
              if isempty(askloadMRSCont)
                 askloadMRSCont = 'y';
-             end 
+             end
              if askloadMRSCont=='n' || askloadMRSCont=='N'
                 disp('Aborted! No new job loaded.');
                 return;
@@ -419,7 +562,7 @@ if ~GUI
                         while (isempty(setdiff(MRSCont.files(kk),MRSContNew.files(kk))))
                             kk = kk + 1;
                             if kk > length(MRSCont.files)
-                                kk = kk - 1; 
+                                kk = kk - 1;
                                 break
                             end
                         end
@@ -443,22 +586,24 @@ if ~GUI
                             if isfield(MRSCont,'files_pet')
                                 MRSCont.files_pet = MRSContNew.files_pet;
                             end
+                            if isfield(MRSCont,'files_sense')
+                                MRSCont.files_sense = MRSContNew.files_sense;
+                            end
                         end
                         MRSCont.flags.speedUp        = 1;
                     end
              end
         elseif askOverWriteJob=='y' || askOverWriteJob=='Y'
+            delete(fullfile(outputFolder, 'LogFile.txt'));
+            diary(fullfile(outputFolder, 'LogFile.txt'));
             disp('Continue with loading new job, overwriting existing job.');
-            fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-            fprintf(fileID,[jobFile '\n']);
-            fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-            fclose(fileID);
+            fprintf([jobFile '\n']);
+            fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
         end
     else
-        fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-        fprintf(fileID,[jobFile '\n']);
-        fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-        fclose(fileID);
+        diary(fullfile(outputFolder, 'LogFile.txt'));
+        fprintf([jobFile '\n']);
+        fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
     end
 else
     opts.Interpreter = 'tex';
@@ -487,7 +632,7 @@ else
                                               'Load MRS Container', 'Yes','No',opts);
                 case '01'
                     askloadMRSCont = 'Yes';
-            end 
+            end
 
              if strcmp(askloadMRSCont, 'No')
                 disp('Aborted! No new job loaded.');
@@ -499,7 +644,7 @@ else
                         while (isempty(setdiff(MRSCont.files(kk),MRSContNew.files(kk))))
                             kk = kk + 1;
                             if kk > length(MRSCont.files)
-                                kk = kk - 1; 
+                                kk = kk - 1;
                                 break
                             end
                         end
@@ -514,6 +659,12 @@ else
                             if isfield(MRSCont,'files_w')
                                 MRSCont.files_w = MRSContNew.files_w;
                             end
+                            if isfield(MRSCont,'files_mm')
+                                MRSCont.files_mm = MRSContNew.files_mm;
+                            end
+                            if isfield(MRSCont,'files_mm_ref')
+                                MRSCont.files_mm_ref = MRSContNew.files_mm_ref;
+                            end
                             if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
                             end
@@ -523,22 +674,24 @@ else
                             if isfield(MRSCont,'files_pet')
                                 MRSCont.files_pet = MRSContNew.files_pet;
                             end
+                            if isfield(MRSCont,'files_sense')
+                                MRSCont.files_sense = MRSContNew.files_sense;
+                            end
                         end
                         MRSCont.flags.speedUp        = 1;
                     end
              end
             elseif strcmp(askOverWriteJob, 'Yes')
+                delete(fullfile(outputFolder, 'LogFile.txt'));
+                diary(fullfile(outputFolder, 'LogFile.txt'));
                 disp('Continue with loading new job, overwriting existing job.');
-                fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-                fprintf(fileID,[jobFile '\n']);
-                fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-                fclose(fileID);
+                fprintf([jobFile '\n']);
+                fprintf(['Timestamp %s ' MRSCont.ver.Osp '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
         end
     else
-    fileID = fopen(fullfile(outputFolder, 'LogFile.txt'),'w+');
-    fprintf(fileID,[jobFile '\n']);
-    fprintf(fileID,['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Job '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-    fclose(fileID);
+    diary(fullfile(outputFolder, 'LogFile.txt'));
+    fprintf([jobFile '\n']);
+    fprintf(['Timestamp %s ' MRSCont.ver.Osp  '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
     end
 end
 
@@ -551,7 +704,7 @@ save(fullfile(outputFolder, outputFile), 'MRSCont');
 MRSCont = saveMRSCont;
 
 % Close any remaining open figures
+diary off
 close all;
 
 end
-

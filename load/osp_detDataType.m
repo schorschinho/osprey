@@ -1,4 +1,4 @@
-function [MRSCont, retMsg] = osp_detDataType(MRSCont)
+function [MRSCont, retMsg,reordered] = osp_detDataType(MRSCont)
 %% [MRSCont, retMsg] = osp_detDataType(MRSCont)
 %   This function determines the MRI vendor and datatype of the filenames
 %   provided in the MRSCont.files cells. A warning is flagged if the
@@ -26,18 +26,73 @@ function [MRSCont, retMsg] = osp_detDataType(MRSCont)
 %
 %   HISTORY:
 %       2019-02-19: First version of the code.
-
+reordered = 0;
 % Concatenate all data including MM, water and reference scans
-files = MRSCont.files;
-fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
-if isfield(MRSCont, 'files_mm')
-    files = [files MRSCont.files_mm];
+if ~iscell(MRSCont.files{1}) && ~MRSCont.flags.reordered
+    files = MRSCont.files;
+else
+    if ~MRSCont.flags.reordered
+        files = horzcat(MRSCont.files{:});
+        MRSCont.files = vertcat(MRSCont.files{:});
+        MRSCont.files = MRSCont.files';
+        reordered = 1;
+    else
+        files = horzcat(MRSCont.files(:))';
+    end
 end
-if isfield(MRSCont, 'files_ref')
-    files = [files MRSCont.files_ref];
+
+if isfield(MRSCont, 'files_mm') && ~isempty(MRSCont.files_mm)
+    if ~iscell(MRSCont.files_mm{1}) && ~MRSCont.flags.reordered
+        files = [files MRSCont.files_mm];
+    else
+        if ~MRSCont.flags.reordered
+            files = [files horzcat(MRSCont.files_mm{:})];
+            MRSCont.files_mm = vertcat(MRSCont.files_mm{:});
+            MRSCont.files_mm = MRSCont.files_mm';
+            reordered = 1;
+        else
+            files = [files horzcat(MRSCont.files_mm(:))'];    
+        end
+    end
 end
-if isfield(MRSCont, 'files_w')
-    files = [files MRSCont.files_w];
+if isfield(MRSCont, 'files_mm_ref') && ~isempty(MRSCont.files_mm_ref)
+    if ~iscell(MRSCont.files_mm_ref{1})  && ~MRSCont.flags.reordered
+        files = [files MRSCont.files_mm_ref];
+    else
+        if  ~MRSCont.flags.reordered
+            files = [files horzcat(MRSCont.files_mm_ref{:})];
+            MRSCont.files_mm_ref = vertcat(MRSCont.files_mm_ref{:});
+            MRSCont.files_mm_ref = MRSCont.files_mm_ref';  
+        else
+            files = [files horzcat(MRSCont.files_mm_ref(:))'];
+        end
+    end
+end
+if isfield(MRSCont, 'files_ref') && ~isempty(MRSCont.files_ref)
+    if ~iscell(MRSCont.files_ref{1})  && ~MRSCont.flags.reordered
+        files = [files MRSCont.files_ref];
+    else
+        if  ~MRSCont.flags.reordered
+            files = [files horzcat(MRSCont.files_ref{:})];
+            MRSCont.files_ref = vertcat(MRSCont.files_ref{:});
+            MRSCont.files_ref = MRSCont.files_ref';  
+        else
+            files = [files horzcat(MRSCont.files_ref(:))'];
+        end
+    end
+end
+if isfield(MRSCont, 'files_w') && ~isempty(MRSCont.files_w)
+    if ~iscell(MRSCont.files_w{1})  && ~MRSCont.flags.reordered
+        files = [files MRSCont.files_w];
+    else
+        if  ~MRSCont.flags.reordered
+            files = [files horzcat(MRSCont.files_w{:})];
+            MRSCont.files_w = vertcat(MRSCont.files_w{:});
+            MRSCont.files_w = MRSCont.files_w'; 
+        else
+            files = [files horzcat(MRSCont.files_w(:))'];
+        end
+    end
 end
 
 % Determine data and vendor for each file
@@ -46,57 +101,88 @@ for kk = 1:length(files)
     whatIs = exist(files{kk});
     switch whatIs
         case 7
-            % If folders, then check that all files in this folder have the
-            % same type
-            dirFolder = dir([files{1}]);
-            filesInFolder = dirFolder(~[dirFolder.isdir]);
-            for rr = 1:length(filesInFolder)
-                [~,~,ext{rr}] = fileparts(filesInFolder(rr).name);
+            % If the input data is provided as folders, there are two 
+            % possible formats: 1) Bruker, 2) DICOM.
+            % Let us first check whether the provided folder has a
+            % subfolder 'pdata', which would indicate a Bruker dataset:
+            dirFolder = dir([files{kk}]);
+            ispdata = isempty(find(strcmpi({dirFolder.name}, 'pdata')));
+            if ~ispdata
+                % 1) BRUKER
+                buffer.vendor{kk}       = 'Bruker';
+                buffer.datatype{kk}     = 'fid';
+            else
+                % 2) DICOM
+                % check that all files in this folder have the
+                % same type
+                filesInFolder = dirFolder(~[dirFolder.isdir]);
+                filesInFolder = filesInFolder(~ismember({filesInFolder.name}, {'.','..','.DS_Store'}));
+                hidden = logical(ones(1,length(filesInFolder)));
+                for jj = 1:length(filesInFolder)
+                    if strcmp(filesInFolder(jj).name(1),'.')
+                        hidden(jj) = 0;
+                    end
+                end
+                filesInFolder = filesInFolder(hidden);%delete hidden files
+                for rr = 1:length(filesInFolder)
+                    [~,~,ext_fold{rr}] = fileparts(filesInFolder(rr).name);
+                end
+                % If not, throw an error
+                if length(unique(ext_fold)) > 1
+                    retMsg = sprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
+                    sprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
+                end
+                % If all files have the same extension, pick the first one to
+                % determine the format
+                fileToDet = fullfile(files{kk}, filesInFolder(1).name);
             end
-            % If not, throw an error
-            if length(unique(ext)) > 1
-                retMsg = fprintf('Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
-                fprintf(fileID,'Error during loading. Folder %s contains data in more than one file format.\n', files{kk});
-            end
-            % If all files have the same extension, pick the first one to
-            % determine the format
-            fileToDet = [files{kk} filesInFolder(1).name];
+            
         case 2
             % If files, just take the filename.
             fileToDet = files{kk};
         case 0
             % If it doesn't exist, throw an error
-            fprintf(fileID,'Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
+            sprintf('Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
             error('Error during loading. File or folder %s does not exist. Check the job file!\n', files{kk});
     end
-    last2char   = fileToDet((end-1):end);
-    last3char   = fileToDet((end-2):end);
-    last4char   = fileToDet((end-3):end);
-    if strcmpi(last2char,'.7')
-        buffer.vendor{kk}       = 'GE';
-        buffer.datatype{kk}     = 'P';
-        MRSCont.flags.hasRef = 1;
-    elseif strcmpi(last3char,'RDA')
-        buffer.vendor{kk}       = 'Siemens';
-        buffer.datatype{kk}     = 'RDA';
-    elseif strcmpi(last3char,'IMA') || strcmpi(last3char,'DCM')
-        buffer.vendor{kk}       = 'Siemens';
-        buffer.datatype{kk}     = 'DICOM';
-    elseif strcmpi(last4char,'.DAT')
-        buffer.vendor{kk}       = 'Siemens';
-        buffer.datatype{kk}     = 'TWIX';
-    elseif strcmpi(last3char,'RAW')
-        buffer.vendor{kk}       = 'Philips';
-        buffer.datatype{kk}     = 'RAW';
-    elseif strcmpi(last4char,'SDAT')
-        buffer.vendor{kk}       = 'Philips';
-        buffer.datatype{kk}     = 'SDAT';
-    elseif strcmpi(last4char,'DATA')
-        buffer.vendor{kk}       = 'Philips';
-        buffer.datatype{kk}     = 'DATA';
-    else
-        retMsg = 'Unrecognized datatype. All filenames need to end .7 .SDAT .DATA .RAW .RDA .IMA .DCM or .DAT';
-        fprintf(fileID,retMsg);
+    
+    % Parse file extension
+    if exist('fileToDet')
+        [~,~,ext] = fileparts(fileToDet);
+        if strcmpi(ext,'.7')
+            buffer.vendor{kk}       = 'GE';
+            buffer.datatype{kk}     = 'P';
+            MRSCont.flags.hasRef = 1;
+        elseif strcmpi(ext,'.RDA')
+            buffer.vendor{kk}       = 'Siemens';
+            buffer.datatype{kk}     = 'RDA';
+        elseif strcmpi(ext,'.IMA') || strcmpi(ext,'.DCM') || strcmpi(ext,'')
+            buffer.vendor{kk}       = 'Siemens';
+            buffer.datatype{kk}     = 'DICOM';
+        elseif strcmpi(ext,'.DAT')
+            buffer.vendor{kk}       = 'Siemens';
+            buffer.datatype{kk}     = 'TWIX';
+        elseif strcmpi(ext,'.RAW')
+            buffer.vendor{kk}       = 'LCModel';
+            buffer.datatype{kk}     = 'RAW';
+        elseif strcmpi(ext,'.LAB')
+            buffer.vendor{kk}       = 'Philips';
+            buffer.datatype{kk}     = 'RAW';
+        elseif strcmpi(ext,'.SDAT')
+            buffer.vendor{kk}       = 'Philips';
+            buffer.datatype{kk}     = 'SDAT';
+        elseif strcmpi(ext,'.DATA')
+            buffer.vendor{kk}       = 'Philips';
+            buffer.datatype{kk}     = 'DATA';
+        elseif strcmpi(ext,'.gz') || strcmpi(ext,'.nii')
+            % For now, leave the vendor field empty; we'll fill it while
+            % loading the actual data.
+            buffer.vendor{kk}       = '';
+            buffer.datatype{kk}     = 'NIfTI-MRS';
+        else
+            retMsg = 'Unrecognized datatype. Filenames need to end in .7 .SDAT .DATA .RAW .RDA .IMA .DCM .DAT .GZ or .NII.GZ!';
+            fprintf(retMsg);
+        end
     end
 end
 
@@ -106,7 +192,7 @@ for pp = 1:length(seq_params)
     unique_params = unique(buffer.(seq_params{pp}));
     if length(unique_params) > 1
         retMsg = 'WARNING! One or more datatypes or vendors are not the same across all input files.';
-        fprintf(fileID,retMsg);
+        sprintf(retMsg);
     else
         MRSCont.(seq_params{pp}) = unique_params{1};
     end
@@ -115,8 +201,7 @@ end
 % Print final success message
 if ~exist('retMsg','var')
     retMsg = sprintf('All provided datafiles are of the %s %s format.', MRSCont.vendor, MRSCont.datatype);
-    fprintf(fileID,'All provided datafiles are of the %s %s format.\n', MRSCont.vendor, MRSCont.datatype);
+    sprintf('All provided datafiles are of the %s %s format.\n', MRSCont.vendor, MRSCont.datatype);
 end
-disp(retMsg);
 
 end

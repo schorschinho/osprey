@@ -36,6 +36,7 @@ end
 %%% 1. PREPARE DATA AND BASIS SETS %%%
 % Resample basis set to match data resolution and frequency range
 resBasisSet             = fit_resampleBasis(dataToFit, basisSet);
+resBasisSet.names = dataToFit.names;
 
 
 %%% 2. SELECT THE MODEL %%%
