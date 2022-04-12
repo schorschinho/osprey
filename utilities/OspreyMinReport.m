@@ -165,13 +165,13 @@ if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
 end
 fprintf(fid,'|b. Data exclusion criteria | %s| \n', 'None');
 if MRSCont.flags.isUnEdited
-    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual) | %.2f %% \n', round(mean(MRSCont.QM.relAmpl.A),2));
+    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual) | %.2f %% \n', round(mean(MRSCont.QM.relAmpl.metab_A),2));
 end
 if MRSCont.flags.isMEGA
-    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual (Residual/Noise)) <br> off <br> diff1 |<br> %.2f +- %.2f  <br> %.2f +- %.2f \n', round(mean(MRSCont.QM.relAmpl.A),2), round(std(MRSCont.QM.relAmpl.A),2),round(mean(MRSCont.QM.relAmpl.diff1),2),round(std(MRSCont.QM.relAmpl.diff1),2));
+    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual (Residual/Noise)) <br> off <br> diff1 |<br> %.2f +- %.2f  <br> %.2f +- %.2f \n', round(mean(MRSCont.QM.relAmpl.metab_A),2), round(std(MRSCont.QM.relAmpl.metab_A),2),round(mean(MRSCont.QM.relAmpl.metab_diff1),2),round(std(MRSCont.QM.relAmpl.metab_diff1),2));
 end
 if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual (Residual/Noise)) <br> sum <br> diff1 <br> diff2 |<br> %.2f +- %.2f  <br> %.2f +- %.2f  <br> %.2f +- %.2f \n', round(mean(MRSCont.QM.relAmpl.sum),2),round(std(MRSCont.QM.relAmpl.sum),2),round(mean(MRSCont.QM.relAmpl.diff1),2),round(std(MRSCont.QM.relAmpl.diff1),2),round(mean(MRSCont.QM.relAmpl.diff2),2),round(std(MRSCont.QM.relAmpl.diff2),2));
+    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual (Residual/Noise)) <br> sum <br> diff1 <br> diff2 |<br> %.2f +- %.2f  <br> %.2f +- %.2f  <br> %.2f +- %.2f \n', round(mean(MRSCont.QM.relAmpl.metab_sum),2),round(std(MRSCont.QM.relAmpl.metab_sum),2),round(mean(MRSCont.QM.relAmpl.metab_diff1),2),round(std(MRSCont.QM.relAmpl.metab_diff1),2),round(mean(MRSCont.QM.relAmpl.metab_diff2),2),round(std(MRSCont.QM.relAmpl.metab_diff2),2));
 end
 fprintf(fid,'|d. Mean spectrum created with OspreyOverview| %s \n', 'Figure 1' );
 
