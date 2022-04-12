@@ -122,8 +122,8 @@ function osp_onPrint( ~, ~ ,gui)
                 end
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_Exp_' num2str(Exp) '_OspreyLoad_mets.pdf'];
                 if MRSCont.flags.isUnEdited % One window for UnEdited
-                    ViewAxes = gca();
-                    set( ViewAxes, 'Parent', Plot );
+                    drawnow
+                    set( temp.Children, 'Parent', Plot );
                 end
                 if MRSCont.flags.isMEGA %Two windows for MEGA
                     set( temp.Children(2), 'Parent', Plot );
@@ -172,8 +172,8 @@ function osp_onPrint( ~, ~ ,gui)
                 end
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_Exp_' num2str(Exp) '_OspreyLoad_MM.pdf'];
                 if MRSCont.flags.isUnEdited % One window for UnEdited
-                    ViewAxes = gca();
-                    set( ViewAxes, 'Parent', Plot );
+                    drawnow
+                    set( temp.Children, 'Parent', Plot );
                 end
                 if MRSCont.flags.isMEGA %Two windows for MEGA
                     set( temp.Children(2), 'Parent', Plot );
@@ -220,8 +220,8 @@ function osp_onPrint( ~, ~ ,gui)
                       else
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref',Exp,[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                 end
-                ViewAxes = gca(); %re_mm
-                set( ViewAxes, 'Parent', Plot );
+                drawnow
+                set( temp.Children, 'Parent', Plot );
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_Exp_' num2str(Exp) '_OspreyLoad_ref.pdf'];
 
              case 'MM reference'
@@ -238,8 +238,8 @@ function osp_onPrint( ~, ~ ,gui)
                       else
                         temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm_ref',Exp,[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                 end
-                ViewAxes = gca(); %re_mm
-               set( ViewAxes, 'Parent', Plot );
+                drawnow
+               set( temp.Children, 'Parent', Plot );
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex)  '_Exp_' num2str(Exp)  '_OspreyLoad_mm_ref.pdf'];
 
              case 'water'
@@ -256,8 +256,8 @@ function osp_onPrint( ~, ~ ,gui)
               else
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w',Exp,[gui.controls.act_x gui.controls.act_y gui.controls.act_z]);
                 end
-                ViewAxes = gca(); %re_mm
-                set( ViewAxes, 'Parent', Plot );
+                drawnow
+                set( temp.Children, 'Parent', Plot );
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex)  '_Exp_' num2str(Exp) '_OspreyLoad_w.pdf'];
             end
             set(input_figure, 'Heights', [-0.1 -0.9]);
