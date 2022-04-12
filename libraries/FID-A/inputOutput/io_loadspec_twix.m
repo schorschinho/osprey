@@ -74,6 +74,7 @@ isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's 
 isSiemens=~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'));    % or the Siemens STEAM sequence?
 isUniversal = ~isempty(strfind(sequence,'univ')); %Is JHU universal editing sequence
+isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implmented at Donders Institute NL
 isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
         
@@ -106,6 +107,9 @@ elseif isSiemens
     elseif ~isempty(strfind(sequence,'svs_se'))
         seq = 'PRESS';
     end
+end
+if isDondersMRSfMRI
+    seq = 'SLASER';
 end
 if ~exist('seq')
     seq = 'HERMES';
@@ -409,7 +413,13 @@ if strcmp(seq,'HERMES') || strcmp(seq,'HERCULES')
         fids_C = fids(:,:,3:4:end);
         fids_D = fids(:,:,4:4:end);
         fids = cat(4,fids_A,fids_B,fids_C,fids_D);
-        dims.subSpecs=4;
+        if size(fids,3) > 1
+            dims.subSpecs=4;
+        else
+            fids = squeeze(fids);
+            dims.subSpecs=3;
+            dims.averages=0;
+        end
     else
         dims.subSpecs=0;
     end
@@ -496,7 +506,7 @@ elseif isSiemens && (~isMinn    || ~isConnectom)
     else
        leftshift = twix_obj.image.iceParam(5,1); 
     end        
-elseif isMinn || isConnectom
+elseif isMinn || isConnectom || isDondersMRSfMRI
     try
         leftshift = twix_obj.image.iceParam(5,1);
     catch
