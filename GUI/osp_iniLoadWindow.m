@@ -350,8 +350,8 @@ function osp_iniLoadWindow(gui)
             case 'metabolites'
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
                 if MRSCont.flags.isUnEdited % One window for UnEdited
-                    ViewAxes = gca();
-                    set( ViewAxes, 'Parent', gui.Plot.data{t} );
+                    drawnow
+                    set( temp.Children, 'Parent', gui.Plot.data{t} );
                 end
                 if MRSCont.flags.isMEGA %Two windows for MEGA
                     set( temp.Children(2), 'Parent', gui.Plot.data{t} );
@@ -387,8 +387,8 @@ function osp_iniLoadWindow(gui)
                 case 'MM'
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm');
                 if MRSCont.flags.isUnEdited % One window for UnEdited
-                    ViewAxes = gca();
-                    set( ViewAxes, 'Parent', gui.Plot.data{t} );
+                    drawnow
+                    set( temp.Children, 'Parent', gui.Plot.data{t} );
                 end
                 if MRSCont.flags.isMEGA %Two windows for MEGA
                     set( temp.Children(2), 'Parent', gui.Plot.data{t} );
@@ -423,16 +423,16 @@ function osp_iniLoadWindow(gui)
                 end
             case 'reference'
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'ref'); %re_mm
-                ViewAxes = gca(); %re_mm
-                set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
+                drawnow
+                set( temp.Children, 'Parent', gui.Plot.data{t} ); %re_mm
              case 'MM reference'
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mm_ref'); %re_mm
-                ViewAxes = gca(); %re_mm
-                set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
+                drawnow
+                set( temp.Children, 'Parent', gui.Plot.data{t} ); %re_mm
              case 'water'
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'w'); %re_mm
-                ViewAxes = gca(); %re_mm
-                set( ViewAxes, 'Parent', gui.Plot.data{t} ); %re_mm
+                drawnow
+                set(temp.Children, 'Parent', gui.Plot.data{t} ); %re_mm
         end
 
 

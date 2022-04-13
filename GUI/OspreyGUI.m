@@ -154,6 +154,7 @@ classdef OspreyGUI < handle
             end
         else
             gui.controls.nDatasets = 0;
+            gui.controls.nExperiments = 1;
         end
 
         %Setting up remaining values in dependence of the conducted processing steps
@@ -361,9 +362,12 @@ classdef OspreyGUI < handle
         % Load button
             gui.layout.b_load = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Load data','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_load,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','LoadButton');
-            sz_raw = size(MRSCont.raw);
-            if  (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= sz_raw(end)))
-                gui.layout.b_load.Enable = 'off';
+            
+            if  (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw')) 
+                sz_raw = size(MRSCont.raw);
+                if  (gui.controls.nDatasets(1) >= sz_raw(end))
+                    gui.layout.b_load.Enable = 'off';
+                end
             end
             set(gui.layout.b_load,'Callback',{@osp_onLoad,gui}, 'TooltipString', 'Call OspreyLoad');
             set(gui.layout.b_load,'Tag','Load');

@@ -82,63 +82,65 @@ end
 for ss = 1 :NoFitSpecNames %Loop over fitted spectra
 
 for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
-    bf = 1;
-        if ~isempty(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})
-            for kk = 1 : MRSCont.nDatasets(1) %Loop over all datasets
-                switch MRSCont.opts.fit.method %Which model was used
-                case 'Osprey'
-                    if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') % metabolite only                        
-                        fitRangePPM = MRSCont.opts.fit.range;
-
-                        dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
-                        basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
+    for bf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),1) %Loop over all fits
+            if ~isempty(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})
+                for kk = 1 : MRSCont.nDatasets(1) %Loop over all datasets
+                    switch MRSCont.opts.fit.method %Which model was used
+                    case 'Osprey'
+                        if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') % metabolite only                        
+                            fitRangePPM = MRSCont.opts.fit.range;
+    
+                            dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
+                            basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
+                            fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
+                            % Pack up into structs to feed into the reconstruction functions
+                            inputData.dataToFit                 = dataToPlot;
+                            inputData.basisSet                  = basisSet;
+                            inputSettings.scale                 = MRSCont.fit.scale{kk};
+                            
+                            inputSettings.fitRangePPM           = fitRangePPM;
+                            inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
+                            inputSettings.fitStyle              = MRSCont.opts.fit.style;
+                            inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
+                            inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
+                            inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
+                            inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
+                            inputSettings.concatenated.Subspec  = FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf};
+                            if isfield(MRSCont.opts.fit,'GAP')
+                                inputSettings.GAP = MRSCont.opts.fit.GAP.(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf});
+                            else
+                                inputSettings.GAP = [];
+                            end
+                            if strcmp(inputSettings.fitStyle,'Concatenated')
+                                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
+                            else
+                                [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
+                            end
+                            
+                        end
+                    case 'LCModel'
+                        dataToPlot  = MRSCont.processed.(FitSpecNames{ss}){kk};
                         fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
-                        % Pack up into structs to feed into the reconstruction functions
-                        inputData.dataToFit                 = dataToPlot;
-                        inputData.basisSet                  = basisSet;
-                        inputSettings.scale                 = MRSCont.fit.scale{kk};
-                        
-                        inputSettings.fitRangePPM           = fitRangePPM;
-                        inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-                        inputSettings.fitStyle              = MRSCont.opts.fit.style;
-                        inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
-                        inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
-                        inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
-                        inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
-                        inputSettings.concatenated.Subspec  = FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf};
-                        if isfield(MRSCont.opts.fit,'GAP')
-                            inputSettings.GAP = MRSCont.opts.fit.GAP.(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf});
-                        else
-                            inputSettings.GAP = [];
-                        end
-                        if strcmp(inputSettings.fitStyle,'Concatenated')
-                            [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-                        else
-                            [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
-                        end
-                        
+    
+                        % Get the LCModel plots we previously extracted from .coord
+                        % etc.
+                        [ModelOutput] = fit_LCModelParamsToModel(fitParams);
+    
                     end
-                case 'LCModel'
-                    dataToPlot  = MRSCont.processed.(FitSpecNames{ss}){kk};
-                    fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
-
-                    % Get the LCModel plots we previously extracted from .coord
-                    % etc.
-                    [ModelOutput] = fit_LCModelParamsToModel(fitParams);
-
-                end
-                
-                %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
-                noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
-                ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';
-
-                P=polyfit(ppmwindow2,noisewindow,2);
-                noise=noisewindow-polyval(P,ppmwindow2); 
-
-                MRSCont.QM.relAmpl.(FitSpecNamesStruct.(FitSpecNames{ss}){1,sf})(kk) = sum(ModelOutput.residual.^2)/(std(real(noise))^2 * length(ModelOutput.residual));
                     
+                    %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
+                    noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
+                    ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';
+    
+                    P=polyfit(ppmwindow2,noisewindow,2);
+                    noise=noisewindow-polyval(P,ppmwindow2); 
+    
+                    MRSCont.QM.relAmpl.([FitSpecNames{ss} '_' FitSpecNamesStruct.(FitSpecNames{ss}){1,sf}])(bf,kk) = sum(ModelOutput.residual.^2)/(std(real(noise))^2 * length(ModelOutput.residual));
+                        
+                end
             end
-        end
+    end
+end
 end
 end
         
