@@ -775,7 +775,7 @@ hold(ax_aligned, 'on');
 % Loop over all averages
 if MRSCont.flags.isUnEdited
     for rr = 1:nAvgsRaw
-        plot(ax_aligned, applyDataToPlot.ppm, applyDataToPlot.specs(:,rr), 'LineWidth', 0.5, 'Color', colormap.Foreground);
+        plot(ax_aligned, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormap.Foreground);
     end
     set(ax_aligned, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', yLims);
 end
