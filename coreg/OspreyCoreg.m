@@ -73,78 +73,84 @@ for kk = 1:MRSCont.nDatasets
             gunzip(MRSCont.files_nii{kk});
             MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.gz','');
         end
-        % Call voxel mask generator depending on file type
-        switch MRSCont.vendor
-            case 'Siemens'
-                % Load the *.nii file provided in the job file
-                
-                vol_image = spm_vol(MRSCont.files_nii{kk});
-                switch MRSCont.datatype
-                    case 'TWIX'
-                        [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
-                    case 'RDA'
-                        [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
-                    case 'DICOM'
-                        [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
-                    otherwise
-                        msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                        fprintf(msg);
-                        error(msg);
-                end
-            case 'Philips'
-                % Load the *.nii file provided in the job file
-                vol_image = spm_vol(MRSCont.files_nii{kk});
-                switch MRSCont.datatype
-                    case 'SDAT'
-                         if ~MRSCont.flags.isMRSI % SVS coregistration
-                            [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
-                         else
-                              [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,2);
-%                                MRSCont.coreg.vol_mask_mrsi{kk} = vol_mask_mrsi;
-                         end
-                    case 'DATA'
-                        if isfield(MRSCont.raw{kk}, 'geometry')
-                            if ~MRSCont.flags.isPRIAM % SVS coregistration
-                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
-                            else 
-                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
-                            end
-                        else
-                        msg = 'Philips DATA files do not contain voxel geometry information.';
-                        fprintf(msg);
-                        error(msg);  
-                      end
-                    case 'RAW'
-                        msg = 'Philips RAW files do not contain voxel geometry information.';
-                        fprintf(msg);
-                        error(msg);                        
-                    otherwise
-                        msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                        fprintf(msg);
-                        error(msg);                        
-                end
-            case 'GE'
-                [~,~,file_exten]=fileparts(MRSCont.files_nii{kk});
-                if contains(file_exten,'.nii')
+
+        if strcmp(MRSCont.datatype,'NIfTI-MRS')
+            vol_image = spm_vol(MRSCont.files_nii{kk});
+            [vol_mask, T1_max, voxel_ctr] = coreg_nifti(MRSCont.raw{kk}, vol_image, maskFile);
+        else
+            % Call voxel mask generator depending on file type
+            switch MRSCont.vendor
+                case 'Siemens'
                     % Load the *.nii file provided in the job file
-                    vol_image = spm_vol(MRSCont.files_nii{kk});
                     
-                    [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{kk}, vol_image, maskFile);
-                else
+                    vol_image = spm_vol(MRSCont.files_nii{kk});
                     switch MRSCont.datatype
-                        case 'P'
-                            % Load the DICOM folder provided in the job file                           
-                            [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, MRSCont.files_nii{kk}, maskFile);
+                        case 'TWIX'
+                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
+                        case 'RDA'
+                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
+                        case 'DICOM'
+                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
                         otherwise
                             msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                             fprintf(msg);
-                            error(msg);  
+                            error(msg);
                     end
-                end
-            otherwise
-                msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(msg);
-                error(msg);                
+                case 'Philips'
+                    % Load the *.nii file provided in the job file
+                    vol_image = spm_vol(MRSCont.files_nii{kk});
+                    switch MRSCont.datatype
+                        case 'SDAT'
+                             if ~MRSCont.flags.isMRSI % SVS coregistration
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                             else
+                                  [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,2);
+    %                                MRSCont.coreg.vol_mask_mrsi{kk} = vol_mask_mrsi;
+                             end
+                        case 'DATA'
+                            if isfield(MRSCont.raw{kk}, 'geometry')
+                                if ~MRSCont.flags.isPRIAM % SVS coregistration
+                                    [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                                else 
+                                    [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
+                                end
+                            else
+                            msg = 'Philips DATA files do not contain voxel geometry information.';
+                            fprintf(msg);
+                            error(msg);  
+                          end
+                        case 'RAW'
+                            msg = 'Philips RAW files do not contain voxel geometry information.';
+                            fprintf(msg);
+                            error(msg);                        
+                        otherwise
+                            msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                            fprintf(msg);
+                            error(msg);                        
+                    end
+                case 'GE'
+                    [~,~,file_exten]=fileparts(MRSCont.files_nii{kk});
+                    if contains(file_exten,'.nii')
+                        % Load the *.nii file provided in the job file
+                        vol_image = spm_vol(MRSCont.files_nii{kk});
+                        
+                        [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{kk}, vol_image, maskFile);
+                    else
+                        switch MRSCont.datatype
+                            case 'P'
+                                % Load the DICOM folder provided in the job file                           
+                                [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, MRSCont.files_nii{kk}, maskFile);
+                            otherwise
+                                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                                fprintf(msg);
+                                error(msg);  
+                        end
+                    end
+                otherwise
+                    msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+                    fprintf(msg);
+                    error(msg);                
+            end
         end
 
         % Save back the image and voxel mask volumes to MRSCont

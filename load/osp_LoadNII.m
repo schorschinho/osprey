@@ -84,8 +84,7 @@ for kk = 1:MRSCont.nDatasets
             raw_w       = io_loadspec_niimrs(MRSCont.files_w{kk});
         end
     end
-    raw.seq = 'NIFTI'; %CWDJ temporary label. 
-
+    
     % Set flag and save data under appropriate name
     if raw.dims.coils == 0
         MRSCont.flags.coilsCombined = 1;
@@ -110,6 +109,25 @@ for kk = 1:MRSCont.nDatasets
         end
     end
 end
+% Try to get some params from NIFTI
+if isfield(raw.nii_mrs.hdr_ext,'Manufacturer')
+    switch lower(raw.nii_mrs.hdr_ext.Manufacturer)
+        case 'siemens'
+                MRSCont.vendor = 'Siemens';
+        case 'philips'
+            MRSCont.vendor = 'Philips';
+        case 'ge'
+            MRSCont.vendor = 'GE';
+    end
+else
+    MRSCont.vendor = 'NIFTI';
+end
+if isfield(raw.nii_mrs.hdr_ext,'ProtocolName')
+    MRSCont.seq = raw.nii_mrs.hdr_ext.ProtocolName;
+else
+    MRSCont.seq = 'NIFTI'; 
+end
+
 time = toc(refLoadTime);
 [~] = printLog('done', time, MRSCont.nDatasets, progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI); 
 MRSCont.runtime.Load = time;
