@@ -49,32 +49,51 @@ if nargin<5
     end
 end
 
-% Make the first attempt with the initial guess for the number of
-% components to be removed
-[out_temp,~,~]   = op_removeWater(in,wlim,Kinit,M,plot_bool); % Remove the residual water
-
-% If the resulting FID is empty...
-if isnan(real(out_temp.fids))
-    % ... increase the number of components to 1.5 times the initial guess
-    K_rr = 1.5*Kinit;
-    % Run again
-    while (isnan(real(out_temp.fids(1))) && (K_rr > 0))
-        [out_temp,~,~]   = op_removeWater(in,wlim,K_rr,M,plot_bool); % Remove the residual water
-        % If the resulting FID is still empty, decrease the number of
-        % components and try again until it is not empty.
-        K_rr = K_rr-1;
+out_temp = cell(in.subspecs,1);
+for ss = 1 : in.subspecs
+    if in.subspecs == 1
+        out_temp{ss} = in;
+    else
+        out_temp{ss} = op_takesubspec(in,ss);
     end
-end
+    % Make the first attempt with the initial guess for the number of
+    % components to be removed
+    [out_temp{ss},~,~]   = op_removeWater(out_temp{ss},wlim,Kinit,M,plot_bool); % Remove the residual water
 
-if isnan(real(out_temp.fids))
-    out_temp.fids = in.fids;
-    out_temp.specs = in.specs;
-end
-    
+    % If the resulting FID is empty...
+    if isnan(real(out_temp{ss}.fids))
+        % ... increase the number of components to 1.5 times the initial guess
+        K_rr = 1.5*Kinit;
+        % Run again
+        while (isnan(real(out_temp{ss}.fids(1))) && (K_rr > 0))
+            if in.subspecs == 1
+                out_temp{ss} = in;
+            else
+                out_temp{ss} = op_takesubspec(in,ss);
+            end
+            [out_temp{ss},~,~]   = op_removeWater(out_temp{ss},wlim,K_rr,M,plot_bool); % Remove the residual water
+            % If the resulting FID is still empty, decrease the number of
+            % components and try again until it is not empty.
+            K_rr = K_rr-1;
+        end
+    end
 
+    if isnan(real(out_temp{ss}.fids))
+        out_temp{ss}.fids = out_temp{ss}.fids;
+        out_temp{ss}.specs = out_temp{ss}.specs;
+    end
+    out_temp{ss}     = op_fddccorr(out_temp{ss},100); % Correct back to baseline   
+end
 % Use the first non-empty FID to return
-out     = out_temp;
-out     = op_fddccorr(out,100); % Correct back to baseline
+out     = out_temp{1};
+watersupp = out_temp{1}.watersupp;
+out = rmfield(out,'watersupp');
+out.watersupp{1} = watersupp;
+for ss = 2 : in.subspecs
+    out = op_mergesubspec(out,out_temp{ss});
+    out.watersupp{ss} = out_temp{ss}.watersupp;
+end
+
 
 
 

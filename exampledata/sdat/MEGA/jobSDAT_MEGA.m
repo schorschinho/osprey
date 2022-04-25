@@ -4,7 +4,7 @@
 %   A valid Osprey job contains four distinct classes of items:
 %       1. basic information on the MRS sequence used
 %       2. several settings for data handling and modeling
-%       3. a list of MRS (and, optionally, structural imaging) data files 
+%       3. a list of MRS (and, optionally, structural imaging) data files
 %          to be loaded
 %       4. an output folder to store the results and exported files
 %
@@ -29,7 +29,7 @@
 %           Defined in cell array "files_w"
 %       - Structural image data used for co-registration and tissue class
 %           segmentation (usually a T1 MPRAGE). These files need to be
-%           provided in the NIfTI format (*.nii) or, for GE data, as a 
+%           provided in the NIfTI format (*.nii) or, for GE data, as a
 %           folder containing DICOM Files (*.dcm).
 %           (OPTIONAL)
 %           Defined in cell array "files_nii"
@@ -57,7 +57,7 @@
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
 %       goeltzs1@jhmi.edu
-%   
+%
 %   HISTORY:
 %       2019-07-15: First version of the code.
 
@@ -71,7 +71,7 @@ seqType = 'MEGA';               % OPTIONS:    - 'unedited' (default)
                                 %             - 'MEGA'
                                 %             - 'HERMES'
                                 %             - 'HERCULES'
-                                
+
 % Specify editing targets
 editTarget = {'GABA'};           % OPTIONS:    - {'none'} (default if 'unedited')
                                 %             - {'GABA'}, {'GSH'}, {'Lac'}, {'PE322'}, {'PE398'}  (for 'MEGA')
@@ -79,9 +79,9 @@ editTarget = {'GABA'};           % OPTIONS:    - {'none'} (default if 'unedited'
 
                                 % Specify data scenario
 dataScenario = 'invivo';        % OPTIONS:    - 'invivo' (default)
-                                %             - 'phantom'  
-                                %             - 'PRIAM'  
-                                %             - 'MRSI'                                  
+                                %             - 'phantom'
+                                %             - 'PRIAM'
+                                %             - 'MRSI'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -90,36 +90,54 @@ dataScenario = 'invivo';        % OPTIONS:    - 'invivo' (default)
 %%% 2. SPECIFY DATA HANDLING AND MODELING OPTIONS %%%
 % Which spectral registration method should be used? Robust spectral
 % registration is default, a frequency restricted spectral registration
-% method is also availaible and is linked to the fit range. 
-opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (default)
-                                              %             - 'RestrSpecReg'
+% method is also availaible and is linked to the fit range.
+opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (default) Spectral aligment with Water/Lipid removal, using simialrity meric, and weighted averaging
+                                              %             - 'ProbSpecReg' Probabilistic spectral aligment to median target and weighted averaging
+                                              %             - 'RestrSpecReg' Frequency restricted (fit range) spectral aligment, using simialrity meric, and weighted averaging
                                               %             - 'none'
 
 % Which algorithm do you want to align the sub spectra? L2 norm
-% optimazation is the default. This is only used for edited MRS!
-opts.SubSpecAlignment = 'L2Norm';               % OPTIONS:    - 'L2Norm' (default)
+% optimization is the default. This is only used for edited MRS!
+% Which algorithm do you want to align the sub spectra? L2 norm
+% optimization is the default. This is only used for edited MRS!
+%Perform correction on the metabolite data (raw) or metabolite
+%-nulled data (mm).
+opts.SubSpecAlignment.mets = 'L2Norm';          % OPTIONS:    - 'L2Norm' (default)
                                                 %             - 'L1Norm'
-                                                %             - 'none'  
-                                                
+                                                %             - 'none'
+
+%Perform eddy-current correction on the metabolite data (raw) or metabolite
+%-nulled data (mm). This can either be done similar for all data sets by
+%supplying a single value or specified for each dataset individually by supplying
+% multiple entries (number has to match the number of datasets) e.g. to perform ECC
+% for the second dataset only:
+% opts.ECC.raw                = [0 1];
+% opts.ECC.mm                = [0 1];
+
+
+opts.ECC.raw                = 1;                % OPTIONS:    - '1' (default)
+opts.ECC.mm                = 1;                 %             - '0' (no)
+                                                %             - [] array
+
 % Save LCModel-exportable files for each spectrum?
 opts.saveLCM                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 % Save jMRUI-exportable files for each spectrum?
 opts.savejMRUI              = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                
+
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
 opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                
+
 % Save processed spectra in NIfTI-MRS format?
 opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
-                                                
+
 % Save PDF output for all Osprey modules and subjects?
-opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
-                                                %             - 1 (yes)                                                 
-                                                
+opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
+                                                %             - 1 (yes)
+
 % Choose the fitting algorithm
 opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
 
@@ -127,14 +145,14 @@ opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
 % with entries separates by commas.
 % With default Osprey basis sets, you can select the following metabolites:
 % Ala, Asc, Asp, bHB, bHG, Cit, Cr, CrCH2, EtOH, GABA, GPC, GSH, Glc, Gln,
-% Glu, Gly, H2O, Ins, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, Scyllo, Ser,
+% Glu, Gly, H2O, mI, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, sI, Ser,
 % Tau, Tyros, MM09, MM12, MM14, MM17, MM20, Lip09, Lip13, Lip20.
 % If you enter 'default', the basis set will include all of the above
 % except for Ala, bHB, bHG, Cit, EtOH, Glc, Gly, Phenyl, Ser, and Tyros.
 opts.fit.includeMetabs      = {'default'};      % OPTIONS:    - {'default'}
                                                 %             - {'full'}
-                                                %             - {custom} 
-                                                
+                                                %             - {custom}
+
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
 % (only available for the Osprey fitting method)
 opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
@@ -143,24 +161,30 @@ opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (defaul
 % Determine fitting range (in ppm) for the metabolite and water spectra
 opts.fit.range              = [0.5 4];        % [ppm] Default: [0.2 4.2]
 opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
+opts.fit.GAP.A                = [];
+opts.fit.GAP.diff1                = [];
 
 % Determine the baseline knot spacing (in ppm) for the metabolite spectra
-opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
+opts.fit.bLineKnotSpace     = 0.55;              % [ppm] Default: 0.4.
 
-% Add macromolecule and lipid basis functions to the fit? 
+% Add macromolecule and lipid basis functions to the fit?
 opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 
-% How do you want to model the co-edited macromolecules at 3 ppm for GABA-edited MRS?                                                
-opts.fit.coMM3              = '3to2MM';         % OPTIONS:    - {'3to2MM'} (default) 
+% How do you want to model the co-edited macromolecules at 3 ppm for GABA-edited MRS?
+opts.fit.coMM3              = 'freeGauss';         % OPTIONS:    - {'3to2MM'} (default)
                                                 %             - {'3to2MMsoft'}
-                                                %             - {'1to1GABA'} 
-                                                %             - {'1to1GABAsoft'} 
-                                                %             - {'freeGauss'} 
+                                                %             - {'1to1GABA'}
+                                                %             - {'1to1GABAsoft'}
+                                                %             - {'freeGauss'}
                                                 %             - {'fixedGauss'}
-                                                %             - {'none'} 
+                                                %             - {'none'}
 
-opts.fit.FWHMcoMM3              = 14;                                                
+opts.fit.FWHMcoMM3              = 14;
+
+% Optional: In case the automatic basisset picker is not working you can manually
+% select the path to the basis set in the osprey/fit/basis, i.e.:
+% opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -178,7 +202,7 @@ clear files files_ref files_w files_nii files_mm
 % up the jobFile for your own data you can set a direct path to your data
 % folder e.g., data_folder = /Volumes/MyProject/data/'
 
-data_folder = fileparts(which('exampledata/sdat/MEGA/jobSDAT_MEGA.m')); 
+data_folder = fileparts(which('exampledata/sdat/MEGA/jobSDAT_MEGA.m'));
 
 % The following lines perform an automated set-up of the jobFile which
 % takes advatage of the BIDS foramt. If you are not using BIDS (highly
@@ -198,19 +222,19 @@ for kk = 1:length(subs)
     sess        = sess([sess.isdir]);
     sess        = sess(contains({sess.name},'ses'));
     for ll = 1:length(sess)
-                
+
         % Specify metabolite data
         % (MANDATORY)
         dir_metabolite    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_megapress' filesep '*.SDAT']);
         files(counter)      = {[dir_metabolite(end).folder filesep dir_metabolite(end).name]};
-        
+
         % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
         % (OPTIONAL)
         % Leave empty for GE P-files (.7) - these include water reference data by
         % default.
         dir_ref    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_megapress-ref' filesep '*.SDAT']);
         files_ref(counter)  = {[dir_ref(end).folder filesep dir_ref(end).name]};
-        
+
         % Specify water data for quantification (e.g. short-TE water scan)
         % (OPTIONAL)
         dir_w    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_press-ref' filesep '*.SDAT']);
@@ -218,13 +242,13 @@ for kk = 1:length(subs)
 
         % Specify metabolite-nulled data for quantification
         % (OPTIONAL)
-        files_mm     = {};  
-        
+        files_mm     = {};
+
        % Specify T1-weighted structural imaging data
         % (OPTIONAL)
         % Link to single NIfTI (*.nii) files for Siemens and Philips data
         % Link to DICOM (*.dcm) folders for GE data
-        files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep sess(ll).name '_T1w.nii.gz']};        
+        files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep sess(ll).name '_T1w.nii.gz']};
         counter             = counter + 1;
     end
 end
@@ -253,13 +277,13 @@ end
 
 % Specify metabolite-nulled data for quantification
 % (OPTIONAL)
-% files_mm     = {};  
+% files_mm     = {};
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
 % Link to single NIfTI (*.nii.gz or #.nii) files for GE, Siemens and Philips data
 % files_nii  = {'/Volumes/MyProject/data/sub-01/anat/T1w.nii.gz',...
-%               '/Volumes/MyProject/data/sub-02/anat/T1w.nii.gz'};    
+%               '/Volumes/MyProject/data/sub-02/anat/T1w.nii.gz'};
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

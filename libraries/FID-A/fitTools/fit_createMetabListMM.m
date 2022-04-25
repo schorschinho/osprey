@@ -3,11 +3,11 @@
 %
 % USAGE:
 % metabList = fit_createMetabList;
-% 
+%
 % DESCRIPTION:
-% Creates a list of metabolite basis functions that are to be included in 
+% Creates a list of metabolite basis functions that are to be included in
 % a fit.
-% 
+%
 % OUTPUTS:
 % metabList = structure including flags (1 = included, 0 = excluded) for
 %             each metabolite included in the FID-A spin system definition,
@@ -18,7 +18,7 @@
 % NONE
 
 function metabList = fit_createMetabListMM(sequence)
-switch sequence 
+switch sequence
     case 'unedited'
         % Select metabolites to include in basis set
         metabList.Ala      = 0;
@@ -38,7 +38,7 @@ switch sequence
         metabList.Glu      = 0;
         metabList.Gly      = 0;
         metabList.H2O      = 1;
-        metabList.Ins      = 0;
+        metabList.mI       = 0;
         metabList.Lac      = 0;
         metabList.NAA      = 1;
         metabList.NAAG     = 0;
@@ -46,10 +46,12 @@ switch sequence
         metabList.PCr      = 0;
         metabList.PE       = 0;
         metabList.Phenyl   = 0;
-        metabList.Scyllo   = 0;
+        metabList.sI       = 0;
         metabList.Ser      = 0;
         metabList.Tau      = 0;
         metabList.Tyros    = 0;
+        metabList.NAA_Ace  = 0;
+        metabList.NAA_Asp  = 0;
 
         % Select MM/lipid basis functions to include
         metabList.MM09     = 1;
@@ -73,24 +75,26 @@ switch sequence
         metabList.EtOH     = 0;
         metabList.GABA     = 0;
         metabList.GPC      = 0;
-        metabList.GSH      = 0;
+        metabList.GSH      = 1;
         metabList.Glc      = 0;
         metabList.Gln      = 0;
         metabList.Glu      = 0;
         metabList.Gly      = 0;
         metabList.H2O      = 0;
-        metabList.Ins      = 0;
+        metabList.mI       = 0;
         metabList.Lac      = 0;
         metabList.NAA      = 1;
-        metabList.NAAG     = 0;
+        metabList.NAAG     = 1;
         metabList.PCh      = 0;
         metabList.PCr      = 0;
         metabList.PE       = 0;
         metabList.Phenyl   = 0;
-        metabList.Scyllo   = 0;
+        metabList.sI       = 0;
         metabList.Ser      = 0;
         metabList.Tau      = 0;
         metabList.Tyros    = 0;
+        metabList.NAA_Ace  = 0;
+        metabList.NAA_Asp  = 0;
 
         % Select MM/lipid basis functions to include
         metabList.MM09     = 0;

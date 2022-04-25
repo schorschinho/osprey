@@ -40,7 +40,7 @@ function osp_onLeftX( ~, ~ ,gui)
             case 1 %Load tab?
                 osp_updateLoadWindow(gui);
             case 2 %Process tab?
-                gui.InfoText.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children;
+                gui.InfoText.pro = gui.upperBox.pro.Info{gui.process.Selected}.Children;
                 % Grid for Plot and Data control sliders
                 gui.Plot.pro = gui.layout.(gui.layout.proTabhandles{gui.process.Selected});
                 osp_updateProWindow(gui);

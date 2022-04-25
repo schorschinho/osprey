@@ -45,10 +45,87 @@ function osp_iniQuantifyWindow(gui)
 %%% 3. FILLING INFO PANEL FOR THIS TAB %%%
 if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
         for t = 1 : gui.quant.Number.Model %Loop over fits
-            gui.upperBox.quant.Info = uix.Panel('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}), 'Padding', 5, ...
+            gui.upperBox.quant.box{t} = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
+                gui.upperBox.quant.upperLeftButtons = uix.Panel('Parent', gui.upperBox.quant.box{t}, ...
+                                         'Padding', 5, 'Title', ['Navigate results'],...
+                                         'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                         'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+                gui.controls.Buttonbox = uix.HBox('Parent',gui.upperBox.quant.upperLeftButtons, 'BackgroundColor',gui.colormap.Background);
+                gui.controls.navigate_RawTab = uix.Grid('Parent',gui.controls.Buttonbox,'BackgroundColor',gui.colormap.Background);
+                gui.controls.text_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Exp:',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Spec:',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','Basis:',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_left_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                gui.controls.b_left_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
+                set(gui.controls.b_left_x,'Callback',{@osp_onLeftX,gui});
+                set(gui.controls.b_left_y,'Callback',{@osp_onLeftY,gui});
+                set(gui.controls.b_left_z,'Callback',{@osp_onLeftZ,gui});
+
+                gui.controls.text_act_x = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_y = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.text_act_z = uicontrol(gui.controls.navigate_RawTab,'Style','text','String','1',...
+                    'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+                gui.controls.b_right_x = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_y = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                gui.controls.b_right_z = uicontrol(gui.controls.navigate_RawTab,'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','>');
+                set(gui.controls.b_right_x,'Callback',{@osp_onRightX,gui});
+                set(gui.controls.b_right_y,'Callback',{@osp_onRightY,gui});
+                set(gui.controls.b_right_z,'Callback',{@osp_onRightZ,gui});
+                
+                gui.controls.b_left_x.Enable = 'off';
+                gui.controls.b_left_y.Enable = 'off';
+                gui.controls.b_left_z.Enable = 'off';
+                gui.controls.b_right_x.Enable = 'off';
+                gui.controls.b_right_y.Enable = 'off';
+                gui.controls.b_right_z.Enable = 'off';
+                
+                buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.metab.fitParams,3)>1) num2str(size(MRSCont.fit.results.metab.fitParams,1)>1)];
+                switch buttonString
+                        case '001' 
+                            gui.controls.b_left_z.Enable = 'on';
+                            gui.controls.b_right_z.Enable = 'on';
+                        case '010' 
+                            gui.controls.b_left_y.Enable = 'on';
+                            gui.controls.b_right_y.Enable = 'on';
+                        case '100' 
+                            gui.controls.b_left_x.Enable = 'on';
+                            gui.controls.b_right_x.Enable = 'on';
+                        case '011' 
+                            gui.controls.b_left_y.Enable = 'on';
+                            gui.controls.b_right_y.Enable = 'on';
+                            gui.controls.b_left_z.Enable = 'on';
+                            gui.controls.b_right_z.Enable = 'on';  
+                       case '101' 
+                            gui.controls.b_left_x.Enable = 'on';
+                            gui.controls.b_right_x.Enable = 'on';
+                            gui.controls.b_left_z.Enable = 'on';
+                            gui.controls.b_right_z.Enable = 'on';
+                       case '110' 
+                            gui.controls.b_left_x.Enable = 'on';
+                            gui.controls.b_right_x.Enable = 'on';
+                            gui.controls.b_left_y.Enable = 'on';
+                            gui.controls.b_right_y.Enable = 'on'; 
+                        case '111'
+                            gui.controls.b_left_x.Enable = 'on';
+                            gui.controls.b_left_y.Enable = 'on';
+                            gui.controls.b_left_z.Enable = 'on';
+                            gui.controls.b_right_x.Enable = 'on';
+                            gui.controls.b_right_y.Enable = 'on';
+                            gui.controls.b_right_z.Enable = 'on';                                
+                end    
+                set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );                 
+                
+            gui.upperBox.quant.Info = uix.Panel('Parent', gui.upperBox.quant.box{t}, 'Padding', 5, ...
                                       'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}],...
                                       'FontName', gui.font,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                       'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            set(gui.upperBox.quant.box{t}, 'Width', [-0.15 -0.85]);
             % Creates layout for plotting and data control
             gui.Plot.quant = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background);
             set(gui.layout.(gui.layout.quantifyTabhandles{t}), 'Heights', [-0.1 -0.9]);
@@ -62,26 +139,26 @@ if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(M
 % In this case a table is created based on a uicontol slider
             gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t})));
             gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{t}));
-            QuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{t}))+1,gui.quant.Number.Quants);
+            QuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{t}){gui.controls.act_z,gui.controls.act_y})+1,gui.quant.Number.Quants);
             QuantText{1,1} = 'Metabolite';
-            QuantText(2:end,1) = MRSCont.quantify.metabs.(gui.quant.Names.Model{t})';
+            QuantText(2:end,1) = MRSCont.quantify.names.(gui.quant.Names.Model{t}){gui.controls.act_z,gui.controls.act_y}';
                 for q = 1 : gui.quant.Number.Quants % Collect all results
                     QuantText(1,q+1) = gui.quant.Names.Quants(q);
                     if (strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')) && isfield(MRSCont.quantify.tables.(gui.quant.Names.Model{t}),'AlphaCorrWaterScaled')                       
-                        idx_GABA  = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}),'GABA'));
+                        idx_GABA  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y},'GABA'));
                         if strcmp(MRSCont.opts.fit.coMM3, 'none')                            
-                                    tempQuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})),1);
-                                    tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1(gui.controls.Selected,:))';
+                                    tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y}),1);
+                                    tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:))';
                         else                              
-                                     tempQuantText = cell(length(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model})),1);
-                                     tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1(gui.controls.Selected,:);
+                                     tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y}),1);
+                                     tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:);
                                      tempQuantText(idx_GABA) = table2cell(tempQuants(1,1));
-                                     idx_GABAp  = find(strcmp(MRSCont.quantify.metabs.(gui.quant.Names.Model{gui.quant.Selected.Model}),'GABAplus'));
+                                     idx_GABAp  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y},'GABAplus'));
                                      tempQuantText(idx_GABAp) = table2cell(tempQuants(1,2));
                         end                         
                         QuantText(2:end,q+1) = tempQuantText;
                     else
-                        QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q}).Voxel_1(gui.controls.Selected,:))';
+                        QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:))';
                     end
                 end
             temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...

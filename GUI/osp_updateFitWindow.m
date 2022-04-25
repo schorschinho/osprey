@@ -6,8 +6,8 @@ function osp_updateFitWindow(gui)
 %   USAGE:
 %       osp_updateFitWindow(gui);
 %
-%   INPUT:  
-%           gui      = gui class containing all handles and the MRSCont             
+%   INPUT:
+%           gui      = gui class containing all handles and the MRSCont
 %
 %
 %   AUTHORS:
@@ -25,11 +25,10 @@ function osp_updateFitWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         Selection = gui.fit.Names{gui.fit.Selected};
-        if (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-            set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
-            set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
-            set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
-        end
+
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
         switch MRSCont.opts.fit.method
             case 'LCModel'
                 gui.Results.FitTextCRLB = gui.Results.fit{gui.fit.Selected}.Children.Children(1);
@@ -39,23 +38,26 @@ function osp_updateFitWindow(gui)
                 gui.Results.FitTextAmpl = gui.Results.fit{gui.fit.Selected}.Children.Children(1);
                 gui.Results.FitTextNames = gui.Results.fit{gui.fit.Selected}.Children.Children(2);
         end
-        
+
         gui.layout.EmptyFitPlot = 0;
-        
-        
+
+
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-        if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w') %Is not concateneted or is reference/water fit 
+        if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w') %Is not concateneted or is reference/water fit
             gui.fit.Style = gui.fit.Names{gui.fit.Selected};
         else %Is concatenated and not water/reference
             gui.fit.Style = 'conc';
         end
-        
+
+
+        basis = gui.controls.act_z;
+        subspectrum = gui.controls.act_y;
         % For this visualization, we will have to make a few
         % distinctions upfront since the modeling algorithms (LCModel
         % vs. Osprey) do not always return the same kinds of data, or they
         % return them in different formats.
-        
+
         switch MRSCont.opts.fit.method
             case 'LCModel'
                 % Number of metabolites and lipid/MM basis functions
@@ -72,27 +74,27 @@ function osp_updateFitWindow(gui)
                 % Smaller fonts for the results
                 resultsFontSize = 9;
             case 'Osprey'
-                % Number of metabolites and lipid/MM basis functions
-                nMets   = MRSCont.fit.basisSet.nMets;
-                nMMLip  = MRSCont.fit.basisSet.nMM;
-                % Additional info panel string for the water fit range
+               % Additional info panel string for the water fit range
                 waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 % Where are the metabolite names stored?
                 if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).water.(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.spectralwidth))]).name;
+                    basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth)]){1};
+                    basisSetNames = basisSet.name;
                 else if strcmp(gui.fit.Style, 'conc')
-                        basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.spectralwidth))]).name;
-                    else if strcmp(gui.fit.Style, 'off')
-                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.spectralwidth))]).name;
-                        else
-                            basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.A{gui.controls.Selected}.spectralwidth))]).name;
-                        end
+                        basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth)]){basis,1};
+                        basisSetNames = basisSet.name;
+                    else
+                        basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{gui.controls.Selected}.sz(1)) '_' num2str(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth)]){basis,1,subspectrum};
+                        basisSetNames = basisSet.name;
                     end
                 end
+                % Number of metabolites and lipid/MM basis functions
+                nMets   = basisSet.nMets;
+                nMMLip  = basisSet.nMM;
                  % Larger fonts for the results
                 resultsFontSize = 11;
         end
-        
+
         if ~((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI))
              switch MRSCont.opts.fit.method
                 case 'LCModel'
@@ -103,18 +105,18 @@ function osp_updateFitWindow(gui)
                         CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.CRLB;
                     end
                 case 'Osprey'
-                    RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
+                    RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
             end
-            ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
-            ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+            ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ph0;
+            ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ph1;
             if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
-                refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
+                refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.refShift;
+                refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.refFWHM;
                 switch MRSCont.opts.fit.method
                 case 'Osprey'
-                    iniph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
-                    iniph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1; 
-                case 'LCModel'    
+                    iniph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.prelimParams.ph0;
+                    iniph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.prelimParams.ph1;
+                case 'LCModel'
                     iniph0 = nan;
                     iniph1 = nan;
                 end
@@ -129,18 +131,18 @@ function osp_updateFitWindow(gui)
                         CRLB    = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.CRLB;
                     end
                 case 'Osprey'
-                    RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+                    RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
             end
-            ph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
-            ph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+            ph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.ph0;
+            ph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.ph1;
             if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                refShift = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
-                refFWHM = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM; 
+                refShift = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.refShift;
+                refFWHM = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.refFWHM;
                 switch MRSCont.opts.fit.method
                 case 'Osprey'
-                    iniph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
-                    iniph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1; 
-                case 'LCModel'    
+                    iniph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.prelimParams.ph0;
+                    iniph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.prelimParams.ph1;
+                case 'LCModel'
                     iniph0 = nan;
                     iniph1 = nan;
                 end
@@ -155,24 +157,24 @@ function osp_updateFitWindow(gui)
                         CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.CRLB;
                     end
                 case 'Osprey'
-                    RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+                    RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
             end
-            ph0 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
-            ph1 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
+            ph0 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ph0;
+            ph1 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ph1;
             if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                refShift = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
-                refFWHM = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM; 
+                refShift = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.refShift;
+                refFWHM = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.refFWHM;
                 switch MRSCont.opts.fit.method
                 case 'Osprey'
-                    iniph0 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph0;
-                    iniph1 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.prelimParams.ph1; 
-                case 'LCModel'    
+                    iniph0 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.prelimParams.ph0;
+                    iniph1 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.prelimParams.ph1;
+                case 'LCModel'
                     iniph0 = nan;
                     iniph1 = nan;
                 end
             end
         end
-      
+
         if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
             StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' Selection,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f') 'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
@@ -219,7 +221,7 @@ function osp_updateFitWindow(gui)
                         if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                             RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                         else
-                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
+                            RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                         end
                         case 'LCModel'
                     end
@@ -287,7 +289,7 @@ function osp_updateFitWindow(gui)
                     set(gui.Results.FitTextNames, 'String',sprintf(NameText));
                     set(gui.Results.FitTextAmpl, 'String',sprintf(RawAmplText));
                 end
-            end    
+            end
         else
             if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
                 if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit?
@@ -331,12 +333,12 @@ function osp_updateFitWindow(gui)
                     set(gui.Results.FitTextNames, 'String',sprintf(NameText));
                     set(gui.Results.FitTextAmpl, 'String',sprintf(RawAmplText));
                 end
-            end 
+            end
         end
 %%%3. VISUALIZATION PART OF THIS TAB %%%
         temp = figure( 'Visible', 'off' );
-        if ~isfield(MRSCont.flags,'isPRIAM') && ~isfield(MRSCont.flags,'isMRSI') && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-            temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,1,Selection); %Create figure
+        if  ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y gui.controls.act_z],Selection); %Create figure
         elseif  isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,gui.controls.act_x,Selection); %Create figure
         else
@@ -353,10 +355,10 @@ function osp_updateFitWindow(gui)
         set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
         % Get rid of the Load figure
         close(temp);
-        
+
         % If it is Multivoxel data we have to update the Voxel Position
         % window
-        if MRSCont.flags.isMRSI 
+        if MRSCont.flags.isMRSI
             temp = osp_plotRawMRSIpos(MRSCont, 1, [gui.controls.act_y gui.controls.act_x]);
             ViewAxes = gca();
             drawnow

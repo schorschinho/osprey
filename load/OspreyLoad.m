@@ -34,6 +34,9 @@ end
 if ~isempty(MRSCont.files_mm)       %re_mm adding functionality to load MM data
     MRSCont.flags.hasMM = 1;        %re_mm
 end                                 %re_mm
+if ~isempty(MRSCont.files_mm_ref)
+    MRSCont.flags.hasMMRef = 1;
+end
 if ~isempty(MRSCont.files_ref)
     MRSCont.flags.hasRef = 1;
 end
@@ -47,10 +50,128 @@ diary(fullfile(outputFolder, 'LogFile.txt'));
 [~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyLoad',MRSCont.flags.isGUI);
 
 % Determine data types
-[MRSCont, retMsg] = osp_detDataType(MRSCont);
+[MRSCont, retMsg,reordered] = osp_detDataType(MRSCont);
+MRSCont.flags.reordered = reordered;
+% Parse ECC flag entry
+if length(MRSCont.opts.ECC.raw) == 1
+    MRSCont.opts.ECC.raw = ones(size(MRSCont.files)) * MRSCont.opts.ECC.raw;
+end
+if length(MRSCont.opts.ECC.mm) == 1 && ~isempty(MRSCont.files_mm)  
+    MRSCont.opts.ECC.mm = ones(size(MRSCont.files_mm)) * MRSCont.opts.ECC.mm;
+end
+
+
+
+tempDatasets = [];
+MRSCont.opts.MultipleSpectra.metab = fliplr(size(MRSCont.files));
+if length(MRSCont.opts.MultipleSpectra.metab) > 1
+    tempDatasets(end+1) = MRSCont.opts.MultipleSpectra.metab(2);
+else
+    MRSCont.opts.MultipleSpectra.metab(2) = 1;
+end
+MRSCont.opts.MultipleSpectra.mm = [];
+MRSCont.opts.MultipleSpectra.mm_ref = [];
+MRSCont.opts.MultipleSpectra.ref = [];
+MRSCont.opts.MultipleSpectra.w = [];
+if MRSCont.flags.hasMM
+    MRSCont.opts.MultipleSpectra.mm = fliplr(size(MRSCont.files_mm));
+    if length(MRSCont.opts.MultipleSpectra.metab) > 1
+        tempDatasets(end+1) = MRSCont.opts.MultipleSpectra.mm(2);
+    else
+        MRSCont.opts.MultipleSpectra.mm(2) = 1;
+    end
+end
+if MRSCont.flags.hasMMRef
+    MRSCont.opts.MultipleSpectra.mm_ref = fliplr(size(MRSCont.files_mm_ref));
+    if length(MRSCont.opts.MultipleSpectra.mm_ref) > 1
+        tempDatasets(end+1) = MRSCont.opts.MultipleSpectra.mm_ref(2);
+    else
+        MRSCont.opts.MultipleSpectra.mm_ref(2) = 1;
+    end
+end
+if MRSCont.flags.hasRef
+    MRSCont.opts.MultipleSpectra.ref = fliplr(size(MRSCont.files_ref));
+    if length(MRSCont.opts.MultipleSpectra.ref) > 1
+        tempDatasets(end+1) = MRSCont.opts.MultipleSpectra.ref(2);
+    else
+        MRSCont.opts.MultipleSpectra.ref(2) = 1;
+    end
+end
+if MRSCont.flags.hasWater
+    MRSCont.opts.MultipleSpectra.w = fliplr(size(MRSCont.files_w));
+    if length(MRSCont.opts.MultipleSpectra.w) > 1
+        tempDatasets(end+1) = MRSCont.opts.MultipleSpectra.w(2);
+    else
+        MRSCont.opts.MultipleSpectra.w(2) = 1;
+    end
+end
+
+[maxDatasets,~] = max(tempDatasets);
 
 % Determine number of datasets
-MRSCont.nDatasets = length(MRSCont.files);
+MRSCont.nDatasets = size(MRSCont.files,2);
+if maxDatasets > 1
+    MRSCont.nDatasets(2) = maxDatasets;
+    if ~isfield(MRSCont.opts, 'extras')
+        MRSCont.opts.extras.names = {};
+        MRSCont.opts.extras.exp_var = [];
+        for ex = 1 : MRSCont.nDatasets(2)
+            MRSCont.opts.extras.names{end+1} = ['Exp_' num2str(ex)];
+            MRSCont.opts.extras.exp_var(end+1) = 1; 
+        end
+    end
+else
+    MRSCont.nDatasets(2) = 1;
+end
+if MRSCont.opts.MultipleSpectra.metab(2) < maxDatasets
+    MRSCont.opts.MultipleSpectra.metab = ones(1,maxDatasets);
+else if maxDatasets > 1
+    MRSCont.opts.MultipleSpectra.metab = [1:MRSCont.opts.MultipleSpectra.metab(2)];
+    else
+    MRSCont.opts.MultipleSpectra.metab = [1:MRSCont.nDatasets(1)];
+    end
+end
+if MRSCont.flags.hasMM
+    if MRSCont.opts.MultipleSpectra.mm(2) < maxDatasets
+        MRSCont.opts.MultipleSpectra.mm = ones(1,maxDatasets);
+    else if maxDatasets > 1
+        MRSCont.opts.MultipleSpectra.mm = [1:MRSCont.opts.MultipleSpectra.mm(2)];
+        else
+        MRSCont.opts.MultipleSpectra.mm = [1:MRSCont.nDatasets(1)];
+        end
+    end
+end
+if MRSCont.flags.hasMMRef
+    if MRSCont.opts.MultipleSpectra.mm_ref(2) < maxDatasets
+        MRSCont.opts.MultipleSpectra.mm_ref = ones(1,maxDatasets);
+    else if maxDatasets > 1
+        MRSCont.opts.MultipleSpectra.mm_ref = [1:MRSCont.opts.MultipleSpectra.mm_ref(2)];
+        else
+        MRSCont.opts.MultipleSpectra.mm_ref = [1:MRSCont.nDatasets(1)];
+        end
+    end
+end
+if MRSCont.flags.hasRef
+    if MRSCont.opts.MultipleSpectra.ref(2) < maxDatasets
+        MRSCont.opts.MultipleSpectra.ref = ones(1,maxDatasets);
+    else if maxDatasets > 1
+        MRSCont.opts.MultipleSpectra.ref = [1:MRSCont.opts.MultipleSpectra.ref(2)];
+        else
+        MRSCont.opts.MultipleSpectra.ref = [1:MRSCont.nDatasets(1)];
+        end
+    end
+end
+if MRSCont.flags.hasWater
+    if MRSCont.opts.MultipleSpectra.w(2) < maxDatasets
+        MRSCont.opts.MultipleSpectra.w = ones(1,maxDatasets);
+    else if maxDatasets > 1
+        MRSCont.opts.MultipleSpectra.w = [1:MRSCont.opts.MultipleSpectra.w(2)];
+        else
+        MRSCont.opts.MultipleSpectra.w = [1:MRSCont.nDatasets(1)];
+        end
+    end
+end
+
 
 % Load raw data (call loaders depending on file type)
 switch MRSCont.vendor
@@ -144,7 +265,7 @@ elseif MRSCont.flags.isMRSI && ~strcmp(MRSCont.datatype,'DATA')
 end
 
 if MRSCont.flags.isUnEdited
-    for kk = 1:MRSCont.nDatasets
+    for kk = 1:MRSCont.nDatasets(1)
         raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
         %%% MERGE MULTIPLE DIMENSIONS %%%
         % If the dimensionality of the dataset isn't just along the

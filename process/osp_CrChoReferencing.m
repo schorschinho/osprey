@@ -28,6 +28,16 @@ function [refShift, refFWHM] = osp_CrChoReferencing(dataToFit)
 %   History:
 %       2018-10-12: First version of the code.
 %
+% We want to be able to process spectra that are not averaged and do have
+% more then one sub-spectrum.
+if dataToFit.dims.averages>0
+    dataToFit = op_averaging(dataToFit);
+end
+
+if dataToFit.dims.subSpecs>0
+    ind = find(strcmp(dataToFit.names,'sum'));
+    dataToFit = op_takesubspec(dataToFit,ind);       
+end
 
 % Calculate power spectrum to estimate reference shift and FWHM
 dataToFit=op_freqrange(dataToFit,1.85,4.2);
@@ -38,12 +48,12 @@ x = ppm;
 y = zeros(size(x));
 
 % Set up delta functions
-% [a,b] = min((abs(x-2.01)));
-[c,d] = min((abs(x-3.03)));
-[e,f] = min((abs(x-3.22)));
-% y(b) = 1;
-y(d) = 1;
-y(f) = 1;
+[a,b] = min((abs(x-2.01)));
+% [c,d] = min((abs(x-3.03)));
+% [e,f] = min((abs(x-3.22)));
+y(b) = 1;
+% y(d) = 1;
+% y(f) = 1;
 
 % Plot cross-correlation function, normalize it to its maximum
 r = crosscorr(powerspec,y)';

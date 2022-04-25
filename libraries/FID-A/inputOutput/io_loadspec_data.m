@@ -462,7 +462,13 @@ if out.dims.subSpecs==0
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
 
 %FOR WATER UNSUPPRESSED DATA
 %FILLING IN DATA STRUCTURE
@@ -510,6 +516,13 @@ if n_mixes == 2
     else
         out_w.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
     end
+    % Sequence flags
+    out_w.flags.isUnEdited = 0;
+    out_w.flags.isMEGA = 0;
+    out_w.flags.isHERMES = 0;
+    out_w.flags.isHERCULES = 0;
+    out_w.flags.isPRIAM = 0;
+    out_w.flags.isMRSI = 0;
 end
 
 % No water in list file

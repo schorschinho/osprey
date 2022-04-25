@@ -68,6 +68,9 @@ switch which
 end
 name_raw = MRSCont.opts.fit.lcmodel.(subspec){kk};
 
+% Retrieve data
+dataToExport = op_takesubspec(MRSCont.processed.metab{kk},find(strcmp(MRSCont.processed.metab{kk}.names,which)));
+
 % Retrieve the filenames of the LCModel .RAW files that were created at the
 % end of OspreyProcess using osp_saveLCM.
 if isfield(MRSCont.opts.fit.lcmodel, 'outfileRef')
@@ -95,9 +98,9 @@ else
 end
 
 % Add the necessary parameters
-LCMparam = osp_editControlParameters(LCMparam, 'hzpppm', sprintf('%2.6e', MRSCont.processed.(which){kk}.txfrq/1e6));
-LCMparam = osp_editControlParameters(LCMparam, 'deltat', sprintf('%2.6e', MRSCont.processed.(which){kk}.dwelltime));
-LCMparam = osp_editControlParameters(LCMparam, 'nunfil', sprintf('%i', MRSCont.processed.(which){kk}.sz(1)));
+LCMparam = osp_editControlParameters(LCMparam, 'hzpppm', sprintf('%2.6e', dataToExport.txfrq/1e6));
+LCMparam = osp_editControlParameters(LCMparam, 'deltat', sprintf('%2.6e', dataToExport.dwelltime));
+LCMparam = osp_editControlParameters(LCMparam, 'nunfil', sprintf('%i', dataToExport.sz(1)));
 if isfield(LCMparam, 'chcomb')
     LCMparam = osp_editControlParameters(LCMparam, 'ncombi', sprintf('%i', length(LCMparam.chcomb)));
 end

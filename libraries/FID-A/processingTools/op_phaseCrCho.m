@@ -37,15 +37,32 @@ if in.dims.extras>0
     error('ERROR:  Can not operate on data with extras dimension!  ABORTING!!');
 end
 if in.dims.subSpecs>0
-    error('ERROR:  Can not operate on data with multiple subspectra!  ABORTING!!');
+    temp = cell(in.subspecs,1);
+    phShift = zeros(in.subspecs,1);
+    temp{1} = op_takesubspec(in_avg,1);
+    % Fit the Cr-Cho doublet to the input spectrum
+    parsFit = op_creChoFit(temp{1}, suppressPlot);
+    % Extract phase adjustment
+    phShift = ones(in.subspecs,1) * parsFit(4);
+        % Apply negative phase of the fit to the data
+    for ss = 1 : in.subspecs   
+        temp{ss} = op_takesubspec(in_avg,ss);
+        temp{ss}     = op_addphase(temp{ss}, -phShift(ss)*180/pi, 0, temp{ss}.centerFreq, suppressPlot);   
+    end
+    out = temp{1};
+    for ss = 2 : in.subspecs
+        out = op_mergesubspec(out,temp{ss});
+    end
+    
+else
+    % Fit the Cr-Cho doublet to the input spectrum
+    parsFit = op_creChoFit(in_avg, suppressPlot);
+    % Extract phase adjustment
+    phShift = parsFit(4);
+    % Apply negative phase of the fit to the data
+    out     = op_addphase(in, -parsFit(4)*180/pi, 0, in.centerFreq, suppressPlot);
+   
 end
-
-% Fit the Cr-Cho doublet to the input spectrum
-parsFit = op_creChoFit(in_avg, suppressPlot);
-% Extract phase adjustment
-phShift = parsFit(4);
-% Apply negative phase of the fit to the data
-out     = op_addphase(in, -parsFit(4)*180/pi, 0, in.centerFreq, suppressPlot);
 
 end
 

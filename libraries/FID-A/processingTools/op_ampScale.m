@@ -16,7 +16,23 @@
 
 function out=op_ampScale(in,A);
 
-
+sz_A = length(A);
 out=in;
-out.specs=in.specs*A;
-out.fids=in.fids*A;
+if sz_A == 1
+    out.specs=in.specs*A;
+    out.fids=in.fids*A;
+else
+    
+    if in.dims.averages==0   
+        for ss = 1 : out.sz(end)
+            out.specs(:,ss)=in.specs(:,ss)*A(ss);
+            out.fids(:,ss)=in.fids(:,ss)*A(ss);
+        end
+    else
+        for ss = 1 : out.sz(end)
+            out.specs(:,:,ss)=in.specs(:,:,ss)*A(ss);
+            out.fids(:,:,ss)=in.fids(:,:,ss)*A(ss);
+        end
+    end
+end
+

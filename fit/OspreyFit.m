@@ -83,7 +83,7 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
         refFitTime = tic;
         % Loop over all the datasets here
         for kk = 1:MRSCont.nDatasets
-            [~] = printLog('OspreyFitRef',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+            [~] = printLog('OspreyFitRef',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
             if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
                 [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
             end
@@ -103,7 +103,7 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
         waterFitTime = tic;
         % Loop over all the datasets here
         for kk = 1:MRSCont.nDatasets
-            [~] = printLog('OspreyFitWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+            [~] = printLog('OspreyFitWater',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
             if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
                 [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
             end
@@ -115,7 +115,7 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
     end
 
     MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
-    
+
 else
     MRSCont.runtime.Fit =  MRSCont.runtime.FitMet;
 end
@@ -128,89 +128,16 @@ if MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI
     MRSCont.fit.resBasisSet = MRSCont.fit.resBasisSet{2,2};
 end
 
-%% Store  and print some QM parameters
-if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-    [MRSCont] = osp_fit_Quality(MRSCont);
-    
-    L = length(MRSCont.QM.tables.Properties.VariableNames);
-    % Store data quality measures in csv file
-    if MRSCont.flags.isUnEdited
-        relResA = MRSCont.QM.relAmpl.A';
-        MRSCont.QM.tables.relResA = relResA;
-    elseif MRSCont.flags.isMEGA
-        if strcmp( MRSCont.opts.fit.style, 'Separate')
-            relResA = MRSCont.QM.relAmpl.A';
-            relResdiff1 = MRSCont.QM.relAmpl.diff1';
-            MRSCont.QM.tables.relResA = relResA;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1;
-        else
-            relRessum = MRSCont.QM.relAmpl.sum';
-            relResdiff1 = MRSCont.QM.relAmpl.diff1';
-            MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1;
-        end
-    elseif MRSCont.flags.isHERMES
-            relRessum = MRSCont.QM.relAmpl.sum';
-            relResdiff1 = MRSCont.QM.relAmpl.diff1';
-            relResdiff2 = MRSCont.QM.relAmpl.diff2';
-            MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1;
-            MRSCont.QM.tables.relResdiff2 = relResdiff2;
-    elseif MRSCont.flags.isHERCULES
-        % For now, process HERCULES like HERMES data
-            relRessum = MRSCont.QM.relAmpl.sum';
-            relResdiff1 = MRSCont.QM.relAmpl.diff1';
-            relResdiff2 = MRSCont.QM.relAmpl.diff2';
-            MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1;
-            MRSCont.QM.tables.relResdiff2 = relResdiff2;
-    else
-        msg = 'No flag set for sequence type!';
-        fprintf(msg);
-        error(msg);
-    end
-    
-    % Loop over field names to populate descriptive fields of table for JSON export
-    for JJ = L:length(MRSCont.QM.tables.Properties.VariableNames)
-        switch MRSCont.QM.tables.Properties.VariableNames{JJ}
-            case 'relResA'
-                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResA'} = 'relResA';%CWDJ??
-                MRSCont.QM.tables.Properties.VariableDescriptions{'relResA'} = '';
-                MRSCont.QM.tables.Properties.VariableUnits{'relResA'} = 'arbitrary';
-            case 'relRessum'
-                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relRessum'} = 'relRessum';
-                MRSCont.QM.tables.Properties.VariableDescriptions{'relRessum'} = '';
-                MRSCont.QM.tables.Properties.VariableUnits{'relRessum'} = 'arbitrary';
-            case 'relResdiff1'
-                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResdiff1'} = 'relResdiff1';
-                MRSCont.QM.tables.Properties.VariableDescriptions{'relResdiff1'} = '';
-                MRSCont.QM.tables.Properties.VariableUnits{'relResdiff1'} = 'arbitrary';
-            case 'relResdiff2'
-                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResdiff2'} = 'relResdiff2';
-                MRSCont.QM.tables.Properties.VariableDescriptions{'relResdiff2'} = '';
-                MRSCont.QM.tables.Properties.VariableUnits{'relResdiff2'} = 'arbitrary';
-        end
-    end 
-
-    %Output as .tsv
-    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'])
-end
-
-%% Clean up and save
-% Set exit flags and version
-MRSCont.flags.didFit           = 1;
-
-diary off
-%Delete redundant resBasiset entries
+%% Delete redundant resBasiset entries
 if strcmpi(MRSCont.opts.fit.method, 'Osprey')
     if ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-        FitNames = fieldnames(MRSCont.fit.results);
-        NoFit = length(fieldnames(MRSCont.fit.results));
+        FitNames = fieldnames(MRSCont.fit.resBasisSet);
+        NoFit = length(fieldnames(MRSCont.fit.resBasisSet));
         for sf = 1 : NoFit
             if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
-                MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(MRSCont.info.A.unique_ndatapoint_spectralwidth_ind);
-                for combs = 1 : length(MRSCont.info.A.unique_ndatapoint_spectralwidth_ind)
-                    resBasisSetNew.(FitNames{sf}).([MRSCont.info.A.unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf}){combs};
+                MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(:,MRSCont.info.metab.unique_ndatapoint_spectralwidth_ind,:);
+                for combs = 1 : length(MRSCont.info.metab.unique_ndatapoint_spectralwidth_ind)
+                    resBasisSetNew.(FitNames{sf}).([MRSCont.info.metab.unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf})(:,combs,:);
                 end
             else
                 MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind);
@@ -223,6 +150,79 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
     end
 end
 
+%% Store  and print some QM parameters
+if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+    [MRSCont] = osp_fit_Quality(MRSCont);
+
+    L = length(MRSCont.QM.tables.Properties.VariableNames);
+    % Store data quality measures in csv file
+    if MRSCont.flags.isUnEdited
+        relResA = MRSCont.QM.relAmpl.metab_A';
+        MRSCont.QM.tables.relResA = relResA;
+    elseif MRSCont.flags.isMEGA
+        if strcmp( MRSCont.opts.fit.style, 'Separate')
+            relResA = MRSCont.QM.relAmpl.metab_A';
+            relResdiff1 = MRSCont.QM.relAmpl.metab_diff1';
+            MRSCont.QM.tables.relResA = relResA;
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+        else
+            relRessum = MRSCont.QM.relAmpl.metab_sum';
+            relResdiff1 = MRSCont.QM.relAmpl.metab_diff1';
+            MRSCont.QM.tables.relRessum = relRessum;
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+        end
+    elseif MRSCont.flags.isHERMES
+            relRessum = MRSCont.QM.relAmpl.metab_sum';
+            relResdiff1 = MRSCont.QM.relAmpl.metab_diff1';
+            relResdiff2 = MRSCont.QM.relAmpl.metab_diff2';
+            MRSCont.QM.tables.relRessum = relRessum;
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+            MRSCont.QM.tables.relResdiff2 = relResdiff2;
+    elseif MRSCont.flags.isHERCULES
+        % For now, process HERCULES like HERMES data
+            relRessum = MRSCont.QM.relAmpl.metab_sum';
+            relResdiff1 = MRSCont.QM.relAmpl.metab_diff1';
+            relResdiff2 = MRSCont.QM.relAmpl.metab_diff2';
+            MRSCont.QM.tables.relRessum = relRessum;
+            MRSCont.QM.tables.relResdiff1 = relResdiff1;
+            MRSCont.QM.tables.relResdiff2 = relResdiff2;
+    else
+        msg = 'No flag set for sequence type!';
+        fprintf(msg);
+        error(msg);
+    end
+
+    % Loop over field names to populate descriptive fields of table for JSON export
+    for JJ = L:length(MRSCont.QM.tables.Properties.VariableNames)
+        switch MRSCont.QM.tables.Properties.VariableNames{JJ}
+            case 'relResA'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResA'} = 'relResA';%CWDJ??
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResA'} = 'Fit quality number for spectrum A relative amplitude of the residual compared to the standard deveiation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResA'} = 'arbitrary';
+            case 'relRessum'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relRessum'} = 'relRessum';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relRessum'} = 'Fit quality number for sum spectrum relative amplitude of the residual compared to the standard deveiation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'relRessum'} = 'arbitrary';
+            case 'relResdiff1'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResdiff1'} = 'relResdiff1';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResdiff1'} = 'Fit quality number for diff1 spectrum relative amplitude of the residual compared to the standard deveiation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResdiff1'} = 'arbitrary';
+            case 'relResdiff2'
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'relResdiff2'} = 'relResdiff2';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'relResdiff2'} = 'Fit quality number for diff2 spectrum relative amplitude of the residual compared to the standard deveiation of the noise';
+                MRSCont.QM.tables.Properties.VariableUnits{'relResdiff2'} = 'arbitrary';
+        end
+    end
+
+    %Output as .tsv
+    osp_WriteBIDsTable(MRSCont.QM.tables, [outputFolder filesep 'QM_processed_spectra'])
+end
+
+%% Clean up and save
+% Set exit flags and version
+MRSCont.flags.didFit           = 1;
+
+diary off
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;

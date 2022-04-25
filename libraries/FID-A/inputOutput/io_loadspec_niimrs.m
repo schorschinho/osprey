@@ -401,6 +401,8 @@ out.nii_mrs.hdr = hdr;
 out.nii_mrs.hdr_ext = hdr_ext;
 if isfield(hdr_ext, 'SequenceName')
     out.seq = hdr_ext.SequenceName;
+else
+    out.seq = 'nii_spec';
 end
 
 % Geometry
@@ -435,6 +437,13 @@ if out.dims.subSpecs==0
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
 
 end
 

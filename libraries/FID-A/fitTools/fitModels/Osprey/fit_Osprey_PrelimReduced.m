@@ -6,7 +6,7 @@ function [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFit, basisSet, fitRan
 %       localized in vivo NMR spectra", Magn Reson Med 30(6):672-679 (1993)
 %
 %   During the first step, the input spectrum is fit using a reduced basis
-%   set (Cr, Glu, Ins, GPC, NAA) and simplified model, using a common
+%   set (Cr, Glu, mI, GPC, NAA) and simplified model, using a common
 %   frequency shift and common Gaussian and Lorentzian linebroadening
 %   for all basis functions of the reduced basis set.
 %
@@ -48,9 +48,9 @@ scalingT2 = sqrt(dataToFit.txfrq*1e-6 / 85.15); % scaling factor to account for 
 
 
 %%% 1. CREATE REDUCED BASIS SET %%%
-% By default, the reduced basis set includes only NAA, Cr, PCh, Ins, and
+% By default, the reduced basis set includes only NAA, Cr, PCh, mI, and
 % Glu, analogous to LCModel. If those are not available creatine- and
-% choline-containing basis functions are used. If Ins and Glu are not
+% choline-containing basis functions are used. If mI and Glu are not
 % included in the basis set theywill be omitted in the reduced fit.
 
 if ~isempty(find(strcmp(basisSet.name, 'NAA')))
@@ -73,8 +73,8 @@ else if ~isempty(find(strcmp(basisSet.name, 'GPC')))
     end
 end
 
-if ~isempty(find(strcmp(basisSet.name, 'Ins')))
-    metabList.Ins   = 1;
+if ~isempty(find(strcmp(basisSet.name, 'mI')))
+    metabList.mI   = 1;
 end
 
 if ~isempty(find(strcmp(basisSet.name, 'Glu')))
@@ -82,7 +82,7 @@ if ~isempty(find(strcmp(basisSet.name, 'Glu')))
 end
 
 if ~exist('metabList','var')
-    msg = 'Your metabolite list does not contain any of the standard metabolites (NAA, Cr, PCh, Ins, or Glu) used for the preliminary fiting. You have to either include one of those or you have to update the prelinimary fitting function';
+    msg = 'Your metabolite list does not contain any of the standard metabolites (NAA, Cr, PCh, mI, or Glu) used for the preliminary fiting. You have to either include one of those or you have to update the prelinimary fitting function';
     fprintf(msg);
     error(msg);
 end

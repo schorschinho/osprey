@@ -28,9 +28,11 @@ function [refShift, refFWHM] = fit_OspreyReferencingMM(dataToFit)
 %   History:
 %       2018-10-12: First version of the code.
 %
-
 % Calculate power spectrum to estimate reference shift and FWHM
 dataToFit=op_freqrange(dataToFit,0.5,4.2);
+if dataToFit.flags.isMEGA && dataToFit.dims.subSpecs~=0
+    dataToFit = op_takesubspec(dataToFit,3); % Get diff1 spectrum
+end
 spec = dataToFit.specs;
 ppm  = dataToFit.ppm;
 realspec = real(spec);
@@ -38,13 +40,21 @@ x = ppm;
 y = zeros(size(x));
 
 % Set up delta functions
-[a,b] = min((abs(x-0.9)));
-[c,d] = min((abs(x-3.03)));
-[e,f] = min((abs(x-3.9)));
-y(b) = 1;
-y(d) = -1;
-y(f) = 1;
+if dataToFit.flags.isUnEdited
 
+    [a,b] = min((abs(x-0.9)));
+    [c,d] = min((abs(x-2.01)));
+    [e,f] = min((abs(x-3.9)));
+    y(b) = 1;
+    y(d) = -1;
+    y(f) = 1;
+end
+if dataToFit.flags.isMEGA
+    [a,b] = min((abs(x-0.915)));
+%     [e,f] = min((abs(x-3.9)));
+    y(b) = 1;
+%     y(f) = 1;
+end
 % Plot cross-correlation function, normalize it to its maximum
 r = xcorr(realspec,y)';
 r2 = xcorr(real(spec),y)';
