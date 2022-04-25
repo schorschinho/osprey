@@ -1,5 +1,5 @@
-function [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
-%% [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
+function [out,switchOrder] = osp_onOffClassifyMEGA(in, target)
+%% [outA,switchOrder] = osp_onOffClassifyMEGA(in,target)
 %   This function decides which of the two provided MEGA sub-spectra in the
 %   are the edit-ON or the edit-OFF.
 %
@@ -11,16 +11,14 @@ function [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
 %   edit-ON spectrum to field B.
 %
 %   USAGE:
-%       [outA, outB] = osp_onOffClassifyMEGA(inA, inB, target)
+%       [out] = osp_onOffClassifyMEGA(in target)
 %
 %   INPUTS:
-%       inA     = FID-A structure containing one MEGA sub-spectrum.
-%       inB     = FID-A structure containing the other MEGA sub-spectrum.
+%       in     = FID-A structure containing MEGA spectrum.
 %       target  = String. Can be 'GABA' or 'GSH'.
 %
 %   OUTPUTS:
-%       outA    = FID-A structure containing the edit-OFF MEGA sub-spectrum.
-%       outB    = FID-A structure containing the edit-ON MEGA sub-spectrum.
+%       out    = FID-A structure containing the ordered MEGA sub-spectrum.
 %       switchOrder = Vector indicating the order in which the input
 %               spectra are rearranged in order to generate the output order.
 %
@@ -44,110 +42,19 @@ function [outA, outB, switchOrder] = osp_onOffClassifyMEGA(inA, inB, target)
 switch target
     case 'GABA'
         % Determine which of the differences has an upright NAA peak
-        tempA = op_freqrange(inA, 1.7, 2.3);
-        tempB = op_freqrange(inB, 1.7, 2.3);
-
-        specA = abs(real(tempA.specs));
-        specB = abs(real(tempB.specs));
-        
-        max_diffAB = max(specA - specB);
-        max_diffBA = max(specB - specA);
-        
-        
-        if max_diffAB > max_diffBA
-            outA = inA;
-            outB = inB;
-            switchOrder = 0;
-        else
-            outA = inB;
-            outB = inA;
-            switchOrder = 1;
-        end
+        temp = op_freqrange(in, 1.7, 2.3);        
     case 'GSH'
         % Determine which of the differences has an upright water peak
-        tempA = op_freqrange(inA, 4, 5);
-        tempB = op_freqrange(inB, 4, 5);
-
-        specA = abs(tempA.specs);
-        specB = abs(tempB.specs);
-        
-        max_diffAB = max(specA - specB);
-        max_diffBA = max(specB - specA);
-        
-        
-        if max_diffAB > max_diffBA
-            outA = inA;
-            outB = inB;
-            switchOrder = 0;
-        else
-            outA = inB;
-            outB = inA;
-            switchOrder = 1;
-        end
+        temp = op_freqrange(in, 4, 5);
     case 'Lac'
         % Determine which of the differences has an upright water peak
-        tempA = op_freqrange(inA, 3.8, 4);
-        tempB = op_freqrange(inB, 3.8, 4);
-
-        specA = abs(tempA.specs);
-        specB = abs(tempB.specs);
-        
-        max_diffAB = max(specA - specB);
-        max_diffBA = max(specB - specA);
-        
-        
-        if max_diffAB < max_diffBA
-            outA = inB;
-            outB = inA;
-            switchOrder = 1;
-        else
-            outA = inA;
-            outB = inB;
-            switchOrder = 0;
-        end 
+        temp = op_freqrange(in, 3.8, 4);
     case 'PE398'
         % Determine which of the differences has an upright water peak
-        tempA = op_freqrange(inA, 3.8, 4.1);
-        tempB = op_freqrange(inB, 3.8, 4.1);
-
-        specA = abs(tempA.specs);
-        specB = abs(tempB.specs);
-        
-        max_diffAB = max(specA - specB);
-        max_diffBA = max(specB - specA);
-        
-        
-        if max_diffAB < max_diffBA
-            outA = inB;
-            outB = inA;
-            switchOrder = 1;
-        else
-            outA = inA;
-            outB = inB;
-            switchOrder = 0;
-        end   
-        
+        temp = op_freqrange(in, 3.8, 4.1);       
     case 'PE322'
         % Determine which of the differences has an upright water peak
-        tempA = op_freqrange(inA, 3.0, 3.3);
-        tempB = op_freqrange(inB, 3.0, 3.3);
-
-        specA = abs(tempA.specs);
-        specB = abs(tempB.specs);
-        
-        max_diffAB = max(specA - specB);
-        max_diffBA = max(specB - specA);
-        
-        
-        if max_diffAB < max_diffBA
-            outA = inB;
-            outB = inA;
-            switchOrder = 1;
-        else
-            outA = inA;
-            outB = inB;
-            switchOrder = 0;
-        end        
+        temp = op_freqrange(in, 3.0, 3.3);     
     otherwise
         disp('MEGA ON/OFF classifier does not recognize the input argument ''target''. We automatically assume no reordering. You can change that in osp_onOFFClassifyMEGA.m');
          outA = inA;
@@ -155,5 +62,21 @@ switch target
         switchOrder = 0;
 end
 
+spec = abs(real(temp.specs));        
+max_diffAB = max(spec(:,1) - spec(:,2));
+max_diffBA = max(spec(:,2) - spec(:,1));
+out = in;
+
+if max_diffAB > max_diffBA
+
+    switchOrder = 0;
+else
+    temp = in;
+    out.specs(:,1) = temp.specs(:,2);
+    out.specs(:,2) = temp.specs(:,1);
+    out.fids(:,1) = temp.fids(:,2);
+    out.fids(:,2) = temp.fids(:,1);
+    switchOrder = 1;
+end
 
 end

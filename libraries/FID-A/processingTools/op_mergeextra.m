@@ -22,7 +22,7 @@ else
     if isfield(in1, 'extra_names')
         names = in1.extra_names;
     else
-        names = cell();
+        names = {};
     end
     if ~ischar(varargin{end})
         error('You have to at indicate an extra name as last argument')     
@@ -90,22 +90,25 @@ else
         in1.tr(end+1) = in2.tr;
         in1.centerFreq(end+1) = in2.centerFreq;
         in1.pointsToLeftshift(end+1) = in2.pointsToLeftshift;
-        in1.specReg{end+1} = in2.specReg;
+        if isfield(in1,'specReg')
+            in1.specReg{end+1} = in2.specReg;
+        end
         if size(in1.names,2) > size(in2.names,2)
             in2.names = cat(2,in2.names,cell(1,size(in1.names,2)-size(in2.names,2)));
         else if size(in2.names,2) > size(in1.names,2)
             in1.names{size(in1.names,1),size(in2.names,2)} = [];
             end
         end
-        if size(in1.watersupp,2) > size(in2.watersupp,2)
-            in2.watersupp = cat(2,in2.watersupp,cell(1,size(in1.watersupp,2)-size(in2.watersupp,2)));
-        else if size(in2.watersupp,2) > size(in1.watersupp,2)
-            in1.watersupp{size(in1.watersupp,1),size(in2.watersupp,2)} = [];
-            end
+        if isfield(in1,'watersupp')
+            if size(in1.watersupp,2) > size(in2.watersupp,2)
+                in2.watersupp = cat(2,in2.watersupp,cell(1,size(in1.watersupp,2)-size(in2.watersupp,2)));
+            else if size(in2.watersupp,2) > size(in1.watersupp,2)
+                in1.watersupp{size(in1.watersupp,1),size(in2.watersupp,2)} = [];
+                end
+            end        
+            in1.watersupp = cat(1,in1.watersupp,in2.watersupp);
         end
         in1.names = cat(1,in1.names,in2.names);
-        in1.watersupp = cat(1,in1.watersupp,in2.watersupp);
-
     end
     sz=size(in1.fids);
     in1.seq = seq_names;

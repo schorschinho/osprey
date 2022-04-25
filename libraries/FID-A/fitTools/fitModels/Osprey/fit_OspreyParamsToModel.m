@@ -56,6 +56,9 @@ lineShape   = fitParams.lineShape;
 ph0         = fitParams.ph0 * pi/180; % zero-order phase correction [convert from deg to rad]
 ph1         = fitParams.ph1 * pi/180; % first-order phase correction [convert from deg/ppm to rad/ppm]
 gaussLB     = fitParams.gaussLB; % Gaussian damping [Hz]
+if isfield(fitParams,'gaussLBMM')
+    gaussLBMM     = fitParams.gaussLBMM; % Gaussian damping [Hz]
+end
 lorentzLB   = fitParams.lorentzLB; % Lorentzian damping [Hz] for each basis function
 freqShift   = fitParams.freqShift; % Frequency shift [Hz] for each basis function
 ampl        = fitParams.ampl; % Amplitudes for metabolite/MM/lipid basis functions
@@ -75,9 +78,21 @@ end
 % Run the time-domain operations on the metabolite basis functions
 % (frequency shift, Lorentzian dampening, Gaussian dampening, zero phase shift)
 t = basisSet.t;
-for ii=1:nBasisFcts
-    basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB.*t.*t)';    
-%     basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+if ~isfield(fitParams,'gaussLBMM')
+    for ii=1:nBasisFcts
+        basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB.*t.*t)';    
+    %     basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+    end
+else
+    for ii=1:basisSet.nMets
+        basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB.*t.*t)';    
+    %     basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+    end
+    for ii=basisSet.nMets+1:nBasisFcts
+        basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLBMM.*t.*t)';    
+    %     basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+    end
+    
 end
 basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
 
@@ -143,5 +158,15 @@ for kk = 1:nBasisFcts
     ModelOutput.indivMets(:,kk) = ampl(kk) * A(:,kk);
 end
 
+if ~isempty(inputSettings.GAP)
+    GAP = inputSettings.GAP;
+%     ModelOutput.data(ppm_ax>GAP(1) & ppm_ax<GAP(2))     = nan;
+    ModelOutput.completeFit(ppm_ax>GAP(1) & ppm_ax<GAP(2))     = nan;
+    ModelOutput.baseline(ppm_ax>GAP(1) & ppm_ax<GAP(2))        = nan;
+    ModelOutput.residual(ppm_ax>GAP(1) & ppm_ax<GAP(2))         = nan;
+    for kk = 1:nBasisFcts
+        ModelOutput.indivMets((ppm_ax>GAP(1) & ppm_ax<GAP(2)),kk) = nan;
+    end    
+end
 
 end

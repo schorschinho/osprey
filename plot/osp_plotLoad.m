@@ -1,4 +1,4 @@
-function out = osp_plotLoad(MRSCont, kk, which, VoxelIndex, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
+function out = osp_plotLoad(MRSCont, kk, which,ExpIndex, VoxelIndex, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %% out = osp_plotLoad(MRSCont, kk, which, VoxelIndex, stag, ppmmin, ppmmax, xlab, ylab, figTitle)
 %   Creates a figure showing raw data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *unprocessed*
@@ -43,91 +43,117 @@ end
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin<10
-    if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
-        switch which
-            case 'mets'
-                [~,filen,ext] = fileparts(MRSCont.files{kk});
-                figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n']);
-            case 'mm'% re_mm
-                    [~,filen,ext] = fileparts(MRSCont.files_mm{kk});% re_mm
-                    figTitle = sprintf(['Load MM data plot: ' filen ext '\n']);% re_mm
-            case 'ref'
-                if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
-                    [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
-                    figTitle = sprintf(['Load water reference data plot: ' filen ext '\n']);
-                else
-                    [~,filen,ext] = fileparts(MRSCont.files{kk});
-                    figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n']);
-                end
-            case 'w'
-                [~,filen,ext] = fileparts(MRSCont.files_w{kk});
-                figTitle = sprintf(['Load water data plot: ' filen ext '\n']);
-            otherwise
-                error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-        end
-    else
-        if nargin<4
-            VoxelIndex = 1; 
-        end
-        switch which
-            case 'mets'
-                [~,filen,ext] = fileparts(MRSCont.files{kk});
-                figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
-            case 'mm'% re_mm
-                    [~,filen,ext] = fileparts(MRSCont.files_mm{kk});% re_mm
-                    figTitle = sprintf(['Load MM data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);% re_mm
-            case 'ref'
-                if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
-                    [~,filen,ext] = fileparts(MRSCont.files_ref{kk});
-                    figTitle = sprintf(['Load water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
-                else
-                    [~,filen,ext] = fileparts(MRSCont.files{kk});
-                    figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
-                end
-            case 'w'
-                [~,filen,ext] = fileparts(MRSCont.files_w{kk});
-                figTitle = sprintf(['Load water data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
-            otherwise
-                error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-        end      
+
+if nargin<11
+    if nargin<4
+        ExpIndex =1; 
     end
-    if nargin<9
-        ylab='';
-        if nargin<8
-            xlab='chemical shift (ppm)';
-            if nargin<7
-                switch which
-                    case 'mets'
-                        ppmmax = 4.5;
-                      case 'mm' %re_mm
-                        ppmmax = 4.6;   %re_mm
-                    case {'ref', 'w'}
-                        ppmmax = 2*4.68;
-                    otherwise
-                        error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-                end
-                if nargin<6
+        if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+            switch which
+                case 'mets'
+                    [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
+                    figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n']);
+                case 'mm'% re_mm
+                        [~,filen,ext] = fileparts(MRSCont.files_mm{ExpIndex,kk});% re_mm
+                        figTitle = sprintf(['Load MM data plot: ' filen ext '\n']);% re_mm
+                case 'ref'
+                    if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
+                        [~,filen,ext] = fileparts(MRSCont.files_ref{ExpIndex,kk});
+                        figTitle = sprintf(['Load water reference data plot: ' filen ext '\n']);
+                    else
+                        [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
+                        figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n']);
+                    end
+                case 'mm_ref'
+                    if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
+                        [~,filen,ext] = fileparts(MRSCont.files_mm_ref{ExpIndex,kk});
+                        figTitle = sprintf(['Load water reference data plot: ' filen ext '\n']);
+                    else
+                        [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
+                        figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n']);
+                    end    
+                case 'w'
+                    [~,filen,ext] = fileparts(MRSCont.files_w{ExpIndex,kk});
+                    figTitle = sprintf(['Load water data plot: ' filen ext '\n']);
+                otherwise
+                    error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+            end
+        else
+            if nargin<4
+                ExpIndex =1; 
+            end
+            if nargin<5
+                VoxelIndex = 1; 
+            end
+            switch which
+                case 'mets'
+                    [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
+                    figTitle = sprintf(['Load metabolite data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+                case 'mm'% re_mm
+                        [~,filen,ext] = fileparts(MRSCont.files_mm{ExpIndex,kk});% re_mm
+                        figTitle = sprintf(['Load MM data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);% re_mm
+                case 'ref'
+                    if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
+                        [~,filen,ext] = fileparts(MRSCont.files_ref{ExpIndex,kk});
+                        figTitle = sprintf(['Load water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+                    else
+                        [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
+                        figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+                    end
+                case 'mm_ref'
+                    if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
+                        [~,filen,ext] = fileparts(MRSCont.files_ref{ExpIndex,kk});
+                        figTitle = sprintf(['Load water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+                    else
+                        [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
+                        figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+                    end    
+                case 'w'
+                    [~,filen,ext] = fileparts(MRSCont.files_w{ExpIndex,kk});
+                    figTitle = sprintf(['Load water data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
+                otherwise
+                    error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+            end      
+        end
+        if nargin<10
+            ylab='';
+            if nargin<9
+                xlab='chemical shift (ppm)';
+                if nargin<8
                     switch which
                         case 'mets'
-                            ppmmin = 0.2;
-                            case 'mm' %re_mm
-                        ppmmin = 0.0;   %re_mm
-                        case {'ref', 'w'}
-                            ppmmin = 0;
+                            ppmmax = 4.5;
+                          case 'mm' %re_mm
+                            ppmmax = 4.6;   %re_mm
+                        case {'ref', 'w','mm_ref'}
+                            ppmmax = 2*4.68;
                         otherwise
                             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
                     end
-                    if nargin<5
-                        stag = 0;
-                        if nargin<4
-%                             VoxelIndex = [];                        
-                            if nargin < 3
-                                which = 'mets';
-                                if nargin < 2
-                                    kk = 1;
-                                    if nargin<1
-                                        error('ERROR: no input Osprey container specified.  Aborting!!');
+                    if nargin<7
+                        switch which
+                            case 'mets'
+                                ppmmin = 0.2;
+                                case 'mm' %re_mm
+                            ppmmin = 0.0;   %re_mm
+                            case {'ref', 'w','mm_ref'}
+                                ppmmin = 0;
+                            otherwise
+                                error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+                        end
+                        if nargin<6
+                            stag = 0;
+                            if nargin<5
+    %                             VoxelIndex = [];  
+                            if nargin<4
+                                ExpIndex =1; 
+                                if nargin < 3
+                                    which = 'mets';
+                                    if nargin < 2
+                                        kk = 1;
+                                        if nargin<1
+                                            error('ERROR: no input Osprey container specified.  Aborting!!');
+                                        end
                                     end
                                 end
                             end
@@ -138,9 +164,8 @@ if nargin<10
         end
     end
 end
-
 %Get y-axis values
-maxRef = ones(1,MRSCont.nDatasets);
+maxRef = ones(1,MRSCont.nDatasets(1));
 if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
     if MRSCont.flags.hasRef
         maxRef = MRSCont.plot.load.ref.max;
@@ -168,16 +193,19 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
         
     switch which
         case 'mets'
-            dataToPlot=op_takeVoxel(MRSCont.raw{kk},VoxelIndex);
+            dataToPlot=op_takeVoxel(MRSCont.raw{ExpIndex,kk},VoxelIndex);
             dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
         case 'mm' %re_mm
-            dataToPlot=op_takeVoxel(MRSCont.raw_mm{kk},VoxelIndex);
+            dataToPlot=op_takeVoxel(MRSCont.raw_mm{ExpIndex,kk},VoxelIndex);
             dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);   %re_mm
         case 'ref'
-            dataToPlot=op_takeVoxel(MRSCont.raw_ref{kk},VoxelIndex);
+            dataToPlot=op_takeVoxel(MRSCont.raw_ref{ExpIndex,kk},VoxelIndex);
             dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
+        case 'mm_ref'
+            dataToPlot=op_takeVoxel(MRSCont.raw_mm_ref{ExpIndex,kk},VoxelIndex);
+            dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);    
         case 'w'
-            dataToPlot=op_takeVoxel(MRSCont.raw_w{kk},VoxelIndex);
+            dataToPlot=op_takeVoxel(MRSCont.raw_w{ExpIndex,kk},VoxelIndex);
             dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
@@ -186,13 +214,15 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
 else
     switch which
         case 'mets'
-            dataToPlot  = op_freqrange(MRSCont.raw{kk}, ppmmin, ppmmax);
+            dataToPlot  = op_freqrange(MRSCont.raw{ExpIndex,kk}, ppmmin, ppmmax);
         case 'mm' %re_mm
-            dataToPlot  = op_freqrange(MRSCont.raw_mm{kk}, ppmmin, ppmmax);   %re_mm
+            dataToPlot  = op_freqrange(MRSCont.raw_mm{ExpIndex,kk}, ppmmin, ppmmax);   %re_mm
         case 'ref'
-            dataToPlot  = op_freqrange(MRSCont.raw_ref{kk}, ppmmin, ppmmax);
+            dataToPlot  = op_freqrange(MRSCont.raw_ref{ExpIndex,kk}, ppmmin, ppmmax);
+        case 'mm_ref'
+            dataToPlot  = op_freqrange(MRSCont.raw_mm_ref{ExpIndex,kk}, ppmmin, ppmmax);    
         case 'w'
-            dataToPlot  = op_freqrange(MRSCont.raw_w{kk}, ppmmin, ppmmax);
+            dataToPlot  = op_freqrange(MRSCont.raw_w{ExpIndex,kk}, ppmmin, ppmmax);
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
@@ -214,13 +244,13 @@ if MRSCont.flags.isUnEdited
     nAvgs = dataToPlot.averages;
     % Loop over all averages
     for rr = 1:nAvgs
-        plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr)) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
         hold on; 
     end
     axesNames = {'A'};
     TitleNames = {'A'};
 end
-if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref'))
+if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref')|| strcmp(which, 'mm_ref'))
     axesHandles.A  = subplot(2, 1, 1);
     axesHandles.B  = subplot(2, 1, 2);
     nAvgs = dataToPlot.rawAverages/2;
@@ -229,21 +259,21 @@ if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref'))
     if dataToPlot.dims.averages ~= 0
         % Loop over all averages
         for rr = 1:nAvgs
-            plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            plot(axesHandles.A,dataToPlot.ppm, real(dataToPlot.specs(:,rr,1)) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            plot(axesHandles.B,dataToPlot.ppm, real(dataToPlot.specs(:,rr,2)) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
         end
     else
-        plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,1) + 1*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-        plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,2) + 2*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.A,dataToPlot.ppm, real(dataToPlot.specs(:,1)) + 1*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.B,dataToPlot.ppm, real(dataToPlot.specs(:,2)) + 2*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
     end
     axesNames = {'A','B'};
     TitleNames = {'A','B'};
-else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref'))
+else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref')|| strcmp(which, 'mm_ref'))
     axesHandles.A = gca();
     nAvgs = dataToPlot.averages;
     % Loop over all averages
     for rr = 1:nAvgs
-        plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr)) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
         hold on; 
     end
     axesNames = {'A'};
@@ -255,7 +285,7 @@ else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref'))
     end
 end
 if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
-    if ~(strcmp(which, 'w') || strcmp(which, 'ref'))
+    if ~(strcmp(which, 'w') || strcmp(which, 'ref')|| strcmp(which, 'mm_ref'))
         figTitle ='';
         axesHandles.A  = subplot(2, 2, 1);
         axesHandles.B  = subplot(2, 2, 2);

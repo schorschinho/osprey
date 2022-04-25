@@ -28,87 +28,70 @@ function osp_updateProWindow(gui)
             set(gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z);
             set(gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y);
             set(gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x);
+         else
+            set(gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(3).Children(1).Children.Children(3),'String',gui.controls.act_y);
+            set(gui.layout.(gui.layout.proTabhandles{gui.process.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_x);
         end
         gui.layout.EmptyProPlot = 0;
-        Selection = gui.process.Names{gui.process.Selected};
+        Selection = gui.process.TabTitles{gui.process.Selected};
+        Exp = gui.controls.act_x;
+        SubSpec = gui.controls.act_y;
+        
+        if (MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.dims.extras == 0) || (Exp > MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.dims.extras))
+            Exp = 1;
+            gui.controls.act_x = 1;
+        end
+        if (MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs == 0) || (SubSpec > MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs))
+            SubSpec = 1;
+            gui.controls.act_x = 1;
+        end
+                        
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-            
-            if ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') && ~strcmp (Selection, 'mm') %Metabolite data?
-                StatText = ['Metabolite Data -> SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                            num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
-                            ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6)...
-                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-            else if strcmp (Selection, 'ref') %Reference data?
-            StatText = ['Reference Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                        num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
-                        ' Hz / ppm'];
-                else if ~strcmp (Selection, 'mm') % re_mm
-                    StatText = ['Water Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                                num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm'];
-                    else
-                    StatText = ['MM Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                                num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '/' (num2str(MRSCont.QM.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm'];
-                    end
-                end
-            end
-        elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
-          if ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') && ~strcmp (Selection, 'mm') %Metabolite data?
-                StatText = ['Voxel ' num2str(gui.controls.act_x) ': Metabolite Data -> SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                            num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
-                            ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{1,gui.controls.act_x}.freqShift.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.pre.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6)...
-                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.post.AvgDeltaCr.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)*MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-            else if strcmp (Selection, 'ref') %Reference data?
-            StatText = ['Voxel ' num2str(gui.controls.act_x) ': Reference Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                        num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
-                        ' Hz / ppm'];
-                else if ~strcmp (Selection, 'mm') % re_mm
-                    StatText = ['Voxel ' num2str(gui.controls.act_x) ': Water Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                                num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm'];
-                    else
-                    StatText = ['Voxel ' num2str(gui.controls.act_x) ': MM Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                                num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)) '/' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.Names{gui.process.Selected})(gui.controls.Selected)/MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm'];
-                    end
-                end
-            end
-        else
-            if (strcmp(Selection,'A') || strcmp(Selection,'B') || strcmp(Selection,'C') || strcmp(Selection,'D') || strcmp(Selection,'diff1') || strcmp(Selection,'diff2') || strcmp(Selection,'sum'))
-                StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Metabolite Data -> SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(Selection)(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                            num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)/MRSCont.processed.(Selection){gui.controls.Selected}.txfrq*1e6))...
-                            ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.freqShift.(Selection)(gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.pre.AvgDeltaCr.(Selection)(gui.controls.Selected)*MRSCont.processed.(Selection){gui.controls.Selected}.txfrq/1e6)...
-                            ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.post.AvgDeltaCr.(Selection)(gui.controls.Selected)*MRSCont.processed.(Selection){gui.controls.Selected}.txfrq/1e6) ' Hz'];
-            else if strcmp(Selection,'ref')
-            StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Reference Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(Selection)(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                        num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)/MRSCont.processed.(Selection){gui.controls.Selected}.txfrq*1e6))...
-                        ' Hz / ppm'];
+        if ~(isfield(MRSCont.flags,'isPRIAM')|| isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+                 if strcmp(gui.process.TabTitles{gui.process.Selected},'metab')
+                    StatText = ['SNR(' gui.process.(gui.process.TabTitles{gui.process.Selected}).SNR{SubSpec} '): '  num2str(MRSCont.QM.SNR.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected,SubSpec)) '; FWHM (' gui.process.(gui.process.TabTitles{gui.process.Selected}).SNR{1} '): '...
+                                num2str(MRSCont.QM.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected,SubSpec)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected,SubSpec)/MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM.freqShift.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected,SubSpec)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM.drift.pre.AvgDeltaCr.A(gui.controls.Selected)*MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM.drift.post.AvgDeltaCr.A(gui.controls.Selected)*MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)/1e6) ' Hz'];
                 else
-                    if ~strcmp(Selection,'mm') %re
-                    StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': Water Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(Selection)(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                                num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)) '/' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)/MRSCont.processed.(Selection){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm'];
-                    else
-                        StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': MM Data -> SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(Selection)(gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
-                                num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)) '/' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(Selection)(gui.controls.Selected)/MRSCont.processed.(Selection){gui.controls.Selected}.txfrq*1e6))...
-                                ' Hz / ppm'];
-                    end %re
+                StatText = ['SNR(' gui.process.(gui.process.TabTitles{gui.process.Selected}).SNR{1} '): ' num2str(MRSCont.QM.SNR.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) '; FWHM (' gui.process.(gui.process.TabTitles{gui.process.Selected}).SNR{1} '): '...
+                            num2str(MRSCont.QM.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) ' / ' (num2str(MRSCont.QM.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)/MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)*1e6))...
+                            ' Hz / ppm'];
                 end
-            end      
-        end
+            elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
+                if  (contains(gui.process.TabTitles{gui.process.Selected},{'A','B','C','D','diff1','diff2','sum'}))
+                    StatText = ['Voxel ' num2str(gui.controls.act_x) ': SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                                num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)/MRSCont.processed.(gui.process.StructFields{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{1,gui.controls.act_x}.freqShift.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.pre.AvgDeltaCr.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)*MRSCont.processed.(gui.process.StructFields{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{1,gui.controls.act_x}.drift.post.AvgDeltaCr.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)*MRSCont.processed.(gui.process.StructFields{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)/1e6) ' Hz'];
+                else
+                StatText = ['Voxel ' num2str(gui.controls.act_x) ':SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{1,gui.controls.act_x}.SNR.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                            num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{1,gui.controls.act_x}.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)/MRSCont.processed.(gui.process.StructFields{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
+                            ' Hz / ppm'];
+                end
+            else
+                if  (contains(gui.process.TabTitles{gui.process.Selected},{'A','B','C','D','diff1','diff2','sum'}))
+                    StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': SNR(' gui.process.SNR{gui.process.Selected} '): '  num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                                num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)/MRSCont.processed.(gui.process.StructFields{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)*1e6))...
+                                ' Hz / ppm \nReference shift: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.freqShift.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) ' Hz \nAverage Delta F0 Pre Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.pre.AvgDeltaCr.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)*MRSCont.processed.(gui.process.StructFields{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)/1e6)...
+                                ' Hz; Average Delta F0 Post Registration: ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.drift.post.AvgDeltaCr.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)*MRSCont.processed.(gui.process.StructFields{gui.process.Selected}){gui.controls.Selected}.txfrq(Exp)/1e6) ' Hz'];
+                else 
+                StatText = ['Voxel ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y) ': SNR(' gui.process.SNR{gui.process.Selected} '): ' num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.SNR.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) '; FWHM (' gui.process.SNR{gui.process.Selected} '): '...
+                            num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)) ' / ' (num2str(MRSCont.QM{gui.controls.act_x,gui.controls.act_y}.FWHM.(gui.process.TabTitles{gui.process.Selected})(Exp,gui.controls.Selected)/MRSCont.processed.(gui.process.StructFields{gui.process.Selected}){gui.controls.Selected}.txfrq*1e6))...
+                            ' Hz / ppm'];
+                end
+        end                
 
-        set(gui.InfoText.pro{gui.process.Selected}, 'String',sprintf(StatText));
+        set(gui.InfoText.pro, 'String',sprintf(StatText));
         
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
         if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection); %Create figure
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,SubSpec,Exp); %Create figure
         elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,gui.controls.act_x); %Create figure
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,SubSpec,Exp,gui.controls.act_x); %Create figure
         else
-            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,[gui.controls.act_x gui.controls.act_y gui.controls.act_z]); %Create figure
+            temp = osp_plotProcess(MRSCont, gui.controls.Selected,Selection,SubSpec,Exp,[gui.controls.act_x gui.controls.act_y gui.controls.act_z]); %Create figure
         end
         %Delete old content
         delete(gui.layout.proDrift.Children.Children)

@@ -367,6 +367,13 @@ centerFreq = 4.65;
 ppm = ppm + centerFreq;
 t   = [0 : dt : (nPts-1)*dt];
 
+% Try and grab sequence name from header
+if isfield(hdr_ext, 'SequenceName')
+    seq = hdr_ext.SequenceName;
+else
+    seq = 'nii_spec';
+end
+out.seq=seq;
 
 % MANDATORY FIELDS
 % Data & dimensions
@@ -399,9 +406,6 @@ out.txfrq = f0*1e6;
 out.nii_mrs.hdr = hdr;
 % Save the header extension
 out.nii_mrs.hdr_ext = hdr_ext;
-if isfield(hdr_ext, 'SequenceName')
-    out.seq = hdr_ext.SequenceName;
-end
 
 % Geometry
 geometry.size.dim1     = hdr.pixdim(2); % [mm]
@@ -435,6 +439,26 @@ if out.dims.subSpecs==0
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
 end
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
+if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+    out.flags.isUnEdited = 1;
+end
+if contains(seq,'MEGA')
+    out.flags.isMEGA = 1;
+end
+if strcmp(seq,'HERMES')
+    out.flags.isHERMES = 1;
+end
+if strcmp(seq,'HERCULES')
+    out.flags.isHERCULES = 1;
+end
+
 
 end
 

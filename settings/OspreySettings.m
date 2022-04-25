@@ -28,6 +28,7 @@ MRSCont.flags.isHERCULES    = 0;
 MRSCont.flags.isPRIAM       = 0;
 MRSCont.flags.isMRSI        = 0;
 MRSCont.flags.addImages        = 0;
+MRSCont.flags.reordered        = 0;
 MRSCont.opts.savePDF                = 0;
 MRSCont.opts.saveLCM                = 0;
 MRSCont.opts.savejMRUI              = 0;
@@ -42,6 +43,8 @@ MRSCont.opts.fit.bLineKnotSpace     = 0.4;              % Baseline spline knot s
 MRSCont.opts.fit.fitMM              = 1;                % Add MM and lipid basis functions to basis set? Default: 1.
 MRSCont.opts.fit.coMM3              = 'none';           % Add co-edited MM3 peak model for GABA editing? Default: none.
 MRSCont.opts.fit.FWHMcoMM3          = 14;               % FWHM [Hz] of the co-edited peak Default: 14 Hz.
+MRSCont.opts.ECC.raw                = 1;                % Do ECC for all metabolite spectra.
+MRSCont.opts.ECC.mm                = 1;                 % Do ECC for all metabolite-nulled spectra.
 
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
@@ -69,9 +72,11 @@ MRSCont.files               = {};
 MRSCont.files_mm            = {};
 MRSCont.files_ref           = {};
 MRSCont.files_w             = {};
+MRSCont.files_mm_ref        = {};
 MRSCont.flags.hasMM         = 0;
 MRSCont.flags.hasRef        = 0;
 MRSCont.flags.hasWater      = 0;
+MRSCont.flags.hasMMRef      = 0;
 % Set default flags
 MRSCont.flags.didLCMWrite   = 0;
 MRSCont.flags.didjMRUIWrite = 0;

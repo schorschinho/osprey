@@ -82,18 +82,13 @@ end
 for mm=1:numSubSpecs
     clear m;
     freq        = in.ppm;
-    
     DataToAlign = in.fids(:,:,mm);
-    
-    
     % Use first n points of time-domain data, where n is the last point where SNR > 3
     signal = abs(DataToAlign(:,mm));
     noise = 2*std(signal(ceil(0.75*size(signal,1)):end,:));
     SNR = signal ./ repmat(noise, [size(DataToAlign,1) 1]);
     SNR = abs(diff(mean(SNR,2)));
-    
     %SNR = abs(diff(mean(SNR,2))); This is how it's done in RobSpecReg
-    
 %     n = find(SNR > 1.5); % This is original Gannet
 %     if isempty(n)
 %         tMax = 100;
@@ -109,25 +104,24 @@ for mm=1:numSubSpecs
     if isempty(tMax) || tMax < find(t <= 0.1,1,'last')
         tMax = find(t <= 0.1,1,'last');
     end
-    
+
     % 'Flatten' complex data for use in nlinfit
     clear flatdata;
     flatdata(:,1,:) = real(DataToAlign(1:tMax,:));
     flatdata(:,2,:) = imag(DataToAlign(1:tMax,:));
-    
+
     % Reference transient
     flattarget = median(flatdata,3); % median across transients
     target = flattarget(:);
-    
+
     % Scalar to normalize transients (reduces optimization time)
     a = max(abs(target));
-    
     % Pre-allocate memory
     if mm == 1
         params = zeros(size(flatdata,3), 2);
         MSE = zeros(1, size(flatdata,3));
     end
-    
+
      % Frame-by-frame determination of frequency of residual water and Cr (if HERMES or GSH editing)
     if strcmp(seqType, 'HERMES') || strcmp(seqType, 'HERCULES')
         F0freqRange = freq - 3.02 >= -0.15 & freq - 3.02 <= 0.15;
@@ -139,7 +133,8 @@ for mm=1:numSubSpecs
     F0freq = F0freqRange(FrameMaxPos);
 
     % Starting values for optimization
-    if isnan(F0) 
+    if isnan(F0)
+
         f0 = F0freq * in.txfrq * 1e-6;
         f0 = f0 - f0(1);
     else
@@ -148,8 +143,7 @@ for mm=1:numSubSpecs
     end
     phi0 = zeros(size(f0));
     x0 = [f0(:) phi0(:)];
-        
-    
+
     % Determine frequency and phase offsets by spectral registration
      if noAlign == 0
         time = 0:input.dwelltime:(length(target)/2 - 1)*input.dwelltime;
@@ -184,8 +178,7 @@ for mm=1:numSubSpecs
         fs(:,mm)  = params(:,1);
         phs(:,mm) = params(:,2);
     end
-    
-    
+
     % Probability distribution of frequency offsets (estimated by maximum likelihood)
     start = [iqr(fs(:,mm))/2, median(fs(:,mm))];
     [fs_p(:,mm), fs_p_ci(:,:,mm)] = ...
@@ -193,7 +186,7 @@ for mm=1:numSubSpecs
     fs_fx(:,mm) = ...
         linspace(1.5*min(fs(:,mm)), 1.5*max(fs(:,mm)), 1e3);
     fs_pdf(:,mm) = Cauchy(fs_fx(:,mm), fs_p(1,mm), fs_p(2,mm));
-    
+
     % Probability distribution of phase offsets (estimated by maximum likelihood)
     start = [iqr(phs(:,mm))/2, median(phs(:,mm))];
     [phs_p(:,mm), phs_p_ci(:,:,mm)] = ...
@@ -201,10 +194,11 @@ for mm=1:numSubSpecs
     phs_fx(:,mm) = ...
         linspace(1.5*min(phs(:,mm)), 1.5*max(phs(:,mm)), 1e3);
     phs_pdf(:,mm) = Cauchy(phs_fx(:,mm), phs_p(1,mm), phs_p(2,mm));
-             
 
+             
     zMSE = zscore(MSE); % standardized MSEs
     
+
     % Apply frequency and phase corrections
      for jj = 1:size(flatdata,3)
         % Default correction
@@ -215,9 +209,6 @@ for mm=1:numSubSpecs
         fids(:,jj,mm) = in.fids(:,jj,mm) .* ...
             exp(1i*(params(jj,1)-fs_p(2))*2*pi*t') * exp(1i*pi/180*(params(jj,2)-phs_p(2)));
      end
-
-           
-        
 end
 
 if echo
@@ -262,18 +253,18 @@ for mm=1:numSubSpecs
         end
     end
     d = nanmedian(D);
-    if isnan(sum(d))        
+    if isnan(sum(d))
+
         d(isnan(d)) = 1;
     end
     w{mm} = 1./d.^2;
     w{mm} = w{mm}/sum(w{mm});
     w{mm} = repmat(w{mm}, [size(DataToWeight,1) 1]);
-    
-    
+        
     
     % Apply the weighting
 fids_out(:,:,mm) = w{mm} .* DataToWeight;
-    
+
 end
 
 % Or remove based on zMSE score
@@ -285,13 +276,12 @@ end
 %         
 %     % Apply the weighting
 %     fids_out(:,:,mm) = w{mm} .* DataToWeight;
-%     
 % end
 
 % Perform weighted averaging
 % No need for 'mean', since the weights vector w is normalized
-fids = sum(fids_out, in.dims.averages);
-    
+fids = squeeze(sum(fids_out, in.dims.averages));
+
 %%% 3. WRITE THE NEW STRUCTURE %%%
 %re-calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
@@ -321,7 +311,7 @@ end
 
 %re-calculate the sz variable
 sz=size(fids);
-    
+
 %FILLING IN DATA STRUCTURE
 out=in;
 out.fids=fids;
@@ -329,7 +319,7 @@ out.specs=specs;
 out.sz=sz;
 out.dims=dims;
 out.averages=1;
-    
+
 %FILLING IN THE FLAGS
 out.flags=in.flags;
 out.flags.writtentostruct=1;
