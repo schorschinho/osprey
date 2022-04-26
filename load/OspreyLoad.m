@@ -293,7 +293,7 @@ if MRSCont.flags.isUnEdited
                 % Generate empty struct
                 temp = struct;
                 % Extract subspecs and add to the temporary struct
-                for pp = 1:raw.sz(raw.dims.extras)
+                for pp = 1:raw.sz(raw.dims.subSpecs)
                     subspecsToAdd = op_takesubspec(raw, pp);
                     temp = op_concatAverages(temp, subspecsToAdd);
                 end
