@@ -53,7 +53,13 @@ while (isempty(strfind(tline, head_end_text)))
         C = strsplit(fieldname,'.'); % check for nested variable names
         switch length(C)
             case 1
-                dcmHeader.(C{1}) = value;
+                % Intercept and skip read errors
+                try
+                    dcmHeader.(C{1}) = value;
+                catch
+                    tline = fgets(fid);
+                    continue;
+                end
             case 2
                 dcmHeader.(C{1}).(C{2}) = value;
             case 3

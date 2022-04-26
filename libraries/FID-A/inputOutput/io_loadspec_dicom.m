@@ -108,16 +108,7 @@ if contains(seqtype,'MEGA')
     % Rearrange into subspecs
     fids = reshape(fids,[size(fids,1) size(fids,2)/2 2]);
     
-elseif strcmp(seqtype,'PRESS')
-    % If the number of stored FIDs does not match the number of averages
-    % stored in the DICOM header, the data are averaged.
-    nominalAvgs = DicomHeader.nAverages;
-    if size(fids,2) ~= nominalAvgs
-        out.flags.averaged = 1;
-    else
-        out.flags.averaged = 0;
-    end
-elseif strcmp(seqtype,'sLASER')
+elseif strcmp(seqtype,'PRESS') || strcmp(seqtype,'STEAM') || strcmp(seqtype,'sLASER')
     % If the number of stored FIDs does not match the number of averages
     % stored in the DICOM header, the data are averaged.
     nominalAvgs = DicomHeader.nAverages;
@@ -126,6 +117,7 @@ elseif strcmp(seqtype,'sLASER')
     else
         out.flags.averaged = 0;
     end
+
 elseif strcmp(seqtype,'HERMES')
 
     out.flags.averaged = 0; 
@@ -322,16 +314,16 @@ out.flags.isHERMES = 0;
 out.flags.isHERCULES = 0;
 out.flags.isPRIAM = 0;
 out.flags.isMRSI = 0;
-if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+if strcmp(seqtype,'PRESS') || strcmp(seqtype,'STEAM') || strcmp(seqtype,'SLASER')
     out.flags.isUnEdited = 1;
 end
-if contains(seq,'MEGA')
+if contains(seqtype,'MEGA')
     out.flags.isMEGA = 1;
 end
-if strcmp(seq,'HERMES')
+if strcmp(seqtype,'HERMES')
     out.flags.isHERMES = 1;
 end
-if strcmp(seq,'HERCULES')
+if strcmp(seqtype,'HERCULES')
     out.flags.isHERCULES = 1;
 end
 
