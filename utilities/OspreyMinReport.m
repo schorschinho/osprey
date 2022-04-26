@@ -104,7 +104,7 @@ else if MRSCont.flags.isMEGA
                OFF = 7.5;
              case 'PE398'
                ON = 3.98;
-               OFF = 7.5;               
+               OFF = 7.5;
         end
         fprintf(fid,'|f. Additional sequence parameters <br> i. editing pulse frequencies | F1: %d Hz, %d points <br> ppm<sub>ON</sub> = %.2f ppm<sub>OFF</sub> = %.2f | \n', ...
                 MRSCont.raw{1}.spectralwidth,MRSCont.raw{1}.sz(1),ON,OFF);
@@ -121,23 +121,7 @@ fprintf(fid,'|3. Data analysis methods and outputs|  | \n');
 fprintf(fid,'|--|--| \n');
 fprintf(fid,'|a. Analysis software | %s| \n', MRSCont.ver.Osp); % Here we need something for cases without fitting was done
 fprintf(fid,'|b. Processing steps deviating from Osprey | %s| \n', 'None');
-if MRSCont.flags.isUnEdited
-    try
-        strings = fieldnames(MRSCont.quantify.tables.A);
-    catch
-        strings = fieldnames(MRSCont.quantify.tables.off);
-    end
-end
-if MRSCont.flags.isMEGA
-    strings = fieldnames(MRSCont.quantify.tables.off);
-end
-if  MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    if strcmp(MRSCont.opts.fit.style,'Separate')
-        strings = fieldnames(MRSCont.quantify.tables.sum);
-    else
-        strings = fieldnames(MRSCont.quantify.tables.conc);
-    end
-end
+strings = fieldnames(MRSCont.quantify.tables.metab);
 outs = '';
 for ss = 1 : length(strings)
     outs = [outs strings{ss}];
@@ -149,28 +133,12 @@ fprintf(fid,'|c. Output measure | %s \n', outs);
 outs = '';
 br = 1;
 if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
-    if MRSCont.flags.isUnEdited
-        includeMetabs = MRSCont.fit.resBasisSet.off.(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name;
-    end
-    if MRSCont.flags.isMEGA
-        if strcmp(MRSCont.opts.fit.style,'Separate')
-            includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
-        else
-            includeMetabs = MRSCont.fit.resBasisSet.conc.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
-        end
-    end
-    if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-         if strcmp(MRSCont.opts.fit.style,'Separate')
-            includeMetabs = MRSCont.fit.resBasisSet.diff1.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
-         else
-             includeMetabs = MRSCont.fit.resBasisSet.conc.(MRSCont.info.diff1.unique_ndatapoint_spectralwidth{1}).name;
-         end
-    end
+    includeMetabs = MRSCont.quantify.names.metab{1, 1};
     for ss = 1 : length(includeMetabs)
         if br < 10
-            outs = [outs includeMetabs{ss}];        
+            outs = [outs includeMetabs{ss}];
         else
-            outs = [outs includeMetabs{ss}  ',<br>']; 
+            outs = [outs includeMetabs{ss}  ',<br>'];
             br = 1;
         end
         if ss ~= length(includeMetabs) && br ~= 1
@@ -180,7 +148,7 @@ if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
     end
 else
     if MRSCont.flags.isUnEdited
-        includeMetabs = MRSCont.fit.results.off.fitParams{1, 1}.name;
+        includeMetabs = MRSCont.fit.results.metab.fitParams{1, 1}.name;
     end
 end
 fprintf(fid,'|d. Quantification references and assumptions, fitting model assumptions| Basis set list:<br> %s <br>Fitting method: %s basline knot spacing %.2f ppm\n', outs,MRSCont.opts.fit.method,MRSCont.opts.fit.bLineKnotSpace );
@@ -190,20 +158,20 @@ fprintf(fid,'\n \n');
 fprintf(fid,'|4. Data quality|  | \n');
 fprintf(fid,'|--|--| \n');
 if MRSCont.flags.isUnEdited || MRSCont.flags.isMEGA
-    fprintf(fid,'|a. SNR (NAA), linewidth (NAA) [Hz] | SNR: %.0f +- %.0f, linewidth %.2f +- %.2f Hz| \n', round(mean(MRSCont.QM.SNR.A)),round(std(MRSCont.QM.SNR.A),2),round(mean(MRSCont.QM.FWHM.A),2),round(std(MRSCont.QM.FWHM.A),2)); % Here we need something for cases without fitting was done
+    fprintf(fid,'|a. SNR (NAA), linewidth (NAA) [Hz] | SNR: %.0f +- %.0f, linewidth %.2f +- %.2f Hz| \n', round(mean(MRSCont.QM.SNR.metab(1,:,1))),round(std(MRSCont.QM.SNR.metab(1,:,1)),2),round(mean(MRSCont.QM.FWHM.metab(1,:,1)),2),round(std(MRSCont.QM.FWHM.metab(1,:,1)),2)); % Here we need something for cases without fitting was done
 end
 if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    fprintf(fid,'|a. SNR (NAA), linewidth (NAA) [Hz] | SNR: %.0f +- %.0f, linewidth %.2f +- %.2f Hz| \n', round(mean(MRSCont.QM.SNR.sum)),round(std(MRSCont.QM.SNR.sum),2),round(mean(MRSCont.QM.FWHM.sum),2),round(std(MRSCont.QM.FWHM.sum),2)); % Here we need something for cases without fitting was done
+    fprintf(fid,'|a. SNR (NAA), linewidth (NAA) [Hz] | SNR: %.0f +- %.0f, linewidth %.2f +- %.2f Hz| \n', round(mean(MRSCont.QM.SNR.metab(1,:,7))),round(std(MRSCont.QM.SNR.metab(1,:,7)),2),round(mean(MRSCont.QM.FWHM.metab(1,:,7)),2),round(std(MRSCont.QM.FWHM.metab(1,:,7)),2)); % Here we need something for cases without fitting was done
 end
 fprintf(fid,'|b. Data exclusion criteria | %s| \n', 'None');
 if MRSCont.flags.isUnEdited
-    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual) | %.2f %% \n', round(mean(MRSCont.QM.relAmpl.A),2));
+    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual) | %.2f %% \n', round(mean(MRSCont.QM.relAmpl.metab_A),2));
 end
 if MRSCont.flags.isMEGA
-    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual (Residual/Noise)) <br> off <br> diff1 |<br> %.2f +- %.2f  <br> %.2f +- %.2f \n', round(mean(MRSCont.QM.relAmpl.A),2), round(std(MRSCont.QM.relAmpl.A),2),round(mean(MRSCont.QM.relAmpl.diff1),2),round(std(MRSCont.QM.relAmpl.diff1),2));
+    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual (Residual/Noise)) <br> off <br> diff1 |<br> %.2f +- %.2f  <br> %.2f +- %.2f \n', round(mean(MRSCont.QM.relAmpl.metab_A),2), round(std(MRSCont.QM.relAmpl.metab_A),2),round(mean(MRSCont.QM.relAmpl.metab_diff1),2),round(std(MRSCont.QM.relAmpl.metab_diff1),2));
 end
 if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual (Residual/Noise)) <br> sum <br> diff1 <br> diff2 |<br> %.2f +- %.2f  <br> %.2f +- %.2f  <br> %.2f +- %.2f \n', round(mean(MRSCont.QM.relAmpl.sum),2),round(std(MRSCont.QM.relAmpl.sum),2),round(mean(MRSCont.QM.relAmpl.diff1),2),round(std(MRSCont.QM.relAmpl.diff1),2),round(mean(MRSCont.QM.relAmpl.diff2),2),round(std(MRSCont.QM.relAmpl.diff2),2));
+    fprintf(fid,'|c. Quality measures of postporcessing model fitting (Mean Relative Amplitude Residual (Residual/Noise)) <br> sum <br> diff1 <br> diff2 |<br> %.2f +- %.2f  <br> %.2f +- %.2f  <br> %.2f +- %.2f \n', round(mean(MRSCont.QM.relAmpl.metab_sum),2),round(std(MRSCont.QM.relAmpl.metab_sum),2),round(mean(MRSCont.QM.relAmpl.metab_diff1),2),round(std(MRSCont.QM.relAmpl.metab_diff1),2),round(mean(MRSCont.QM.relAmpl.metab_diff2),2),round(std(MRSCont.QM.relAmpl.metab_diff2),2));
 end
 fprintf(fid,'|d. Mean spectrum created with OspreyOverview| %s \n', 'Figure 1' );
 

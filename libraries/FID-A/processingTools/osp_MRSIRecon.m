@@ -54,9 +54,11 @@ for kk = 1:MRSCont.nDatasets
             switch MRSCont.datatype
                 case 'SDAT'
                     raw = op_sortMRSIsdat(MRSCont.raw{kk});
+                    raw.flags.isMRSI = 1;
                     MRSCont.raw{kk}      = raw;
                     if MRSCont.flags.hasWater
                         raw_w = op_sortMRSIsdat(MRSCont.raw_w{kk});
+                        raw_w.flags.isMRSI = 1;
                         MRSCont.raw_w{kk}      = raw_w;
                     end
                 otherwise

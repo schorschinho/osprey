@@ -171,5 +171,11 @@ if out.dims.subSpecs==0
 else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
 %DONE

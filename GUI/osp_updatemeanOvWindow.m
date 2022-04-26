@@ -23,7 +23,10 @@ function osp_updatemeanOvWindow(gui)
 %   HISTORY:
 %       2020-01-16: First version of the code.
 %%% 1. INITIALIZE %%%
-        MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class  
+        MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class 
+        selectedOvTab = get(gui.layout.overviewTab,'Selection');
+        set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(1).Children(3).Children(1).Children(1).Children(3),'String',gui.controls.act_z)
+        set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(1).Children(3).Children(1).Children(1).Children(4),'String',gui.controls.act_x)       
         delete(gui.Plot.meanOv.Children(2).Children)
 %%% 2. VISUALIZATION PART OF THIS TAB %%%
         Selection = gui.controls.pop_meanOvPlot.String(gui.process.Selected);
@@ -44,14 +47,22 @@ function osp_updatemeanOvWindow(gui)
             end
         else
             if ~(isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM)
-                temp = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1);
+                temp = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1,0,'Frequency (ppm)','','',gui.controls.act_z);
             else
-                temp = osp_plotMeanSpec(MRSCont, Selection{1},1, 0.01,10);
+                temp = osp_plotMeanSpec(MRSCont, Selection{1},1, 0.01,10,'Frequency (ppm)','','',gui.controls.act_z);
             end
             ViewAxes = gca();
             set(ViewAxes.Children,'Parent',gui.Plot.meanOv.Children(2))
         end
-        if (strcmp(Selection{1},'A') || strcmp(Selection{1},'B') || strcmp(Selection{1},'C') || strcmp(Selection{1},'D') || strcmp(Selection{1},'diff1') || strcmp(Selection{1},'diff2') || strcmp(Selection{1},'sum'))
+        
+        which_spec_split = split(Selection{1});
+        if length(which_spec_split) == 3
+            spec = which_spec_split{2};
+        else
+            spec = which_spec_split{1};
+        end
+
+        if (strcmp(spec,'metab') || strcmp(spec,'mm'))
             set(gui.Plot.meanOv.Children(2), 'XLim', ViewAxes.XLim)
             set(gui.Plot.meanOv.Children(2), 'XMinorTick', 'On')
             set(gui.Plot.meanOv.Children(2).Title, 'String', ViewAxes.Title.String)

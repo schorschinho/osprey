@@ -1057,6 +1057,22 @@ for kk = 1:MRSCont.nDatasets
     else
         out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
     end
+    % Sequence flags
+    out.flags.isUnEdited = 0;
+    out.flags.isMEGA = 0;
+    out.flags.isHERMES = 0;
+    out.flags.isHERCULES = 0;
+    out.flags.isPRIAM = 0;
+    out.flags.isMRSI = 1;
+    if contains(seq_type,'SE')
+        out.flags.isUnEdited = 1;
+    end
+    if contains(seq_type,'MEGA')
+        out.flags.isMEGA = 1;
+    end
+    if contains(seq_type,'MEGA')
+        out.flags.isHERMES = 1;
+    end
     
     if ~strcmp(MRSCont.opts.MoCo.target,'none')
         MRSCont.MoCo{kk}.k_ph_corr = k_ph_corr;  
@@ -1117,6 +1133,13 @@ for kk = 1:MRSCont.nDatasets
         else
             out_w.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
         end
+        % Sequence flags
+        out_w.flags.isUnEdited = 1;
+        out_w.flags.isMEGA = 0;
+        out_w.flags.isHERMES = 0;
+        out_w.flags.isHERCULES = 0;
+        out_w.flags.isPRIAM = 0;
+        out_w.flags.isMRSI = 1;
         MRSCont.raw_w{kk} = out_w;
     end        
 end

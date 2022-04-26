@@ -79,7 +79,8 @@ isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's 
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
-isUniversal = ~isempty(strfind(sequence,'univ'));
+isUniversal = ~isempty(strfind(sequence,'univ')); %Is JHU universal editing sequence
+isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implmented at Donders Institute NL
 isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
 %Make a pulse sequence identifier for the header (out.seq);
@@ -111,6 +112,9 @@ elseif isSiemens
     elseif ~isempty(strfind(sequence,'svs_se'))
         seq = 'PRESS';
     end
+end
+if isDondersMRSfMRI
+    seq = 'SLASER';
 end
 if ~exist('seq')
     seq = 'HERMES';
@@ -435,7 +439,13 @@ if strcmp(seq,'HERMES') || strcmp(seq,'HERCULES')
         fids_C = fids(:,:,3:4:end);
         fids_D = fids(:,:,4:4:end);
         fids = cat(4,fids_A,fids_B,fids_C,fids_D);
-        dims.subSpecs=4;
+        if size(fids,3) > 1
+            dims.subSpecs=4;
+        else
+            fids = squeeze(fids);
+            dims.subSpecs=3;
+            dims.averages=0;
+        end
     else
         dims.subSpecs=0;
     end
@@ -522,7 +532,7 @@ elseif isSiemens && (~isMinn    || ~isConnectom)
     else
        leftshift = twix_obj.image.iceParam(5,1);
     end
-elseif isMinn || isConnectom
+elseif isMinn || isConnectom || isDondersMRSfMRI
     try
         leftshift = twix_obj.image.iceParam(5,1);
     catch
@@ -596,6 +606,24 @@ else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
 
-
+% Sequence flags
+out.flags.isUnEdited = 0;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
+if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+    out.flags.isUnEdited = 1;
+end
+if contains(seq,'MEGA')
+    out.flags.isMEGA = 1;
+end
+if strcmp(seq,'HERMES')
+    out.flags.isHERMES = 1;
+end
+if strcmp(seq,'HERCULES')
+    out.flags.isHERCULES = 1;
+end
 
 %DONE

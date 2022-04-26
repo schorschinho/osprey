@@ -98,10 +98,27 @@ opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (defa
                                               %             - 'none'
 
 % Which algorithm do you want to align the sub spectra? L2 norm
-% optimazation is the default. This is only used for edited MRS!
-opts.SubSpecAlignment = 'L2Norm';               % OPTIONS:    - 'L2Norm' (default) Minimizes the target peak in the difference spectrum (depends on sequence and editing target)
-                                                %             - 'L1Norm' Minimizes the sum(abs(difference spectrum)) between 1.95 and 4 ppm
-                                                %             - 'none'  
+% optimization is the default. This is only used for edited MRS!
+% Which algorithm do you want to align the sub spectra? L2 norm
+% optimization is the default. This is only used for edited MRS!
+%Perform correction on the metabolite data (raw) or metabolite
+%-nulled data (mm).
+opts.SubSpecAlignment.mets = 'L2Norm';          % OPTIONS:    - 'L2Norm' (default)
+                                                %             - 'L1Norm'
+                                                %             - 'none'
+
+%Perform eddy-current correction on the metabolite data (raw) or metabolite
+%-nulled data (mm). This can either be done similar for all data sets by
+%supplying a single value or specified for each dataset individually by supplying
+% multiple entries (number has to match the number of datasets) e.g. to perform ECC
+% for the second dataset only:
+% opts.ECC.raw                = [0 1];
+% opts.ECC.mm                = [0 1];
+
+
+opts.ECC.raw                = 1;                % OPTIONS:    - '1' (default)
+opts.ECC.mm                = 1;                 %             - '0' (no)
+                                                %             - [] array
 
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
 opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
@@ -130,7 +147,7 @@ opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
 % with entries separates by commas.
 % With default Osprey basis sets, you can select the following metabolites:
 % Ala, Asc, Asp, bHB, bHG, Cit, Cr, CrCH2, EtOH, GABA, GPC, GSH, Glc, Gln,
-% Glu, Gly, H2O, Ins, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, Scyllo, Ser,
+% Glu, Gly, H2O, mI, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, sI, Ser,
 % Tau, Tyros, MM09, MM12, MM14, MM17, MM20, Lip09, Lip13, Lip20.
 % If you enter 'default', the basis set will include all of the above
 % except for Ala, bHB, bHG, Cit, EtOH, Glc, Gly, Phenyl, Ser, and Tyros.
@@ -154,6 +171,9 @@ opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
 opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 
+% Optional: In case the automatic basisset picker is not working you can manually
+% select the path to the basis set in the osprey/fit/basis, i.e.:
+% opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

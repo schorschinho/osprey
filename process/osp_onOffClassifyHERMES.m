@@ -1,4 +1,4 @@
-function [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, inB, inC, inD, target)
+function [out, commuteOrder] = osp_onOffClassifyHERMES(in, target)
 %% [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
 %   This function decides how the four-provided HERMES/HERCULES sub-spectra are
 %   being edited. Currently, this function works for all combinations of
@@ -7,7 +7,7 @@ function [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, i
 %
 %   To determine the editing pattern, this function ranks the four spectra
 %   according to the amplitude of the residual water (suppressed for GSH-ON)
-%   and NAA (suppressed for GABA-ON) signals. 
+%   and NAA (suppressed for GABA-ON) signals.
 %
 %   The function finally assigns:
 %       - the GABA-OFF-GSH-OFF spectrum to field A
@@ -16,26 +16,20 @@ function [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, i
 %       - the GABA-ON-GSH-ON spectrum to field D
 %
 %   USAGE:
-%       [outA, outB, outC, outD] = osp_onOffClassifyMEGA(inA, inB, inC, inD)
+%       [out] = osp_onOffClassifyMEGA(in)
 %
 %   INPUTS:
-%       inA     = FID-A structure containing the 1st sub-spectrum.
-%       inB     = FID-A structure containing the 2nd sub-spectrum.
-%       inC     = FID-A structure containing the 3rd sub-spectrum.
-%       inD     = FID-A structure containing the 4th sub-spectrum.
+%       in     = FID-A structure containing the all sub-spectra.
 %
 %   OUTPUTS:
-%       outA    = FID-A structure containing the GABA-OFF-GSH-OFF spectrum.
-%       outB    = FID-A structure containing the GABA-ON-GSH-OFF spectrum.
-%       outC    = FID-A structure containing the GABA-OFF-GSH-ON spectrum.
-%       outD    = FID-A structure containing the GABA-ON-GSH-ON spectrum.
-%       commuteOrder = Order of commuting the input spectra.
+%       out    = FID-A structure containing sorted sub-spectra.
+
 %
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-08-15)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -44,9 +38,15 @@ function [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, i
 %   HISTORY:
 %       2019-08-15: First version of the code.
 
-if nargin < 5
+if nargin < 2
     target = 'GABAGSH';
 end
+
+inA = op_takesubspec(in,1);
+inB = op_takesubspec(in,2);
+inC = op_takesubspec(in,3);
+inD = op_takesubspec(in,4);
+
 
 switch target
     case 'GABAGSH'
@@ -77,48 +77,38 @@ end
 for ll = 1:4
     idx_first   = find(order_first == ll);
     idx_second = find(order_second == ll);
-    
+
     if ismember(idx_first,[3 4])
         first.ON(ll) = 0;
     elseif ismember(idx_first,[1 2])
         first.ON(ll) = 1;
     end
-    
+
     if ismember(idx_second,[3 4])
         second.ON(ll) = 0;
     elseif ismember(idx_second,[1 2])
         second.ON(ll) = 1;
     end
-    
+
 end
 
-try
-    % Determine the sub-spectra indices belonging to each editing pattern
-    idx_OFF_OFF = ~second.ON & ~first.ON;
-    idx_ON_OFF  = second.ON & ~first.ON;
-    idx_OFF_ON  = ~second.ON & first.ON;
-    idx_ON_ON   = second.ON & first.ON;
-    % Commute for output
-    inputVars = {'inA', 'inB', 'inC', 'inD'};
-    eval(['outA = ' inputVars{idx_OFF_OFF} ';']);
-    eval(['outB = ' inputVars{idx_ON_OFF} ';']);
-    eval(['outC = ' inputVars{idx_OFF_ON} ';']);
-    eval(['outD = ' inputVars{idx_ON_ON} ';']);
-catch
-    disp('HERMES classifier does not recognize the subspectra. You can change the ordering in osp_onOFFClassifyHERMES.m');
-    % Determine the sub-spectra indices belonging to each editing pattern
-    idx_OFF_OFF = logical([0 1 0 0]);
-    idx_ON_OFF  = logical([0 0 0 1]);
-    idx_OFF_ON  = logical([1 0 0 0]);
-    idx_ON_ON   = logical([0 0 1 0]);
+% Determine the sub-spectra indices belonging to each editing pattern
+idx_OFF_OFF = ~second.ON & ~first.ON;
+idx_ON_OFF  = second.ON & ~first.ON;
+idx_OFF_ON  = ~second.ON & first.ON;
+idx_ON_ON   = second.ON & first.ON;
 
-    % Commute for output
-    inputVars = {'inA', 'inB', 'inC', 'inD'};
-    eval(['outA = ' inputVars{idx_OFF_OFF} ';']);
-    eval(['outB = ' inputVars{idx_ON_OFF} ';']);
-    eval(['outC = ' inputVars{idx_OFF_ON} ';']);
-    eval(['outD = ' inputVars{idx_ON_ON} ';']);
-end
+% Commute for output
+temp = in;
+out = in;
+out.specs(:,1) = temp.specs(:,idx_OFF_OFF);
+out.specs(:,2) = temp.specs(:,idx_ON_OFF);
+out.specs(:,3) = temp.specs(:,idx_OFF_ON);
+out.specs(:,4) = temp.specs(:,idx_ON_ON);
+out.fids(:,1) = temp.fids(:,idx_OFF_OFF);
+out.fids(:,2) = temp.fids(:,idx_ON_OFF);
+out.fids(:,3) = temp.fids(:,idx_OFF_ON);
+out.fids(:,4) = temp.fids(:,idx_ON_ON);
 
 % Save commute order
 commuteOrder = [find(idx_OFF_OFF), find(idx_ON_OFF), find(idx_OFF_ON), find(idx_ON_ON)];
@@ -141,7 +131,7 @@ out_NAA = op_freqrange(in,1.8,2.2);
 max_w   = max([abs(max(real(out_w.specs))), abs(min(real(out_w.specs)))]);
 max_NAA = max([abs(max(real(out_NAA.specs))), abs(min(real(out_NAA.specs)))]);
 end
-    
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,5 +148,5 @@ out_NAA = op_freqrange(in,1.8,2.2);
 max_ins   = max([abs(max(real(out_ins.specs))), abs(min(real(out_ins.specs)))]);
 max_NAA = max([abs(max(real(out_NAA.specs))), abs(min(real(out_NAA.specs)))]);
 end
-    
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
