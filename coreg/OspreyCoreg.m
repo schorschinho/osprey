@@ -118,7 +118,7 @@ for kk = 1:MRSCont.nDatasets(1)
                             msg = 'Philips DATA files do not contain voxel geometry information.';
                             fprintf(msg);
                             error(msg);  
-                          end
+                            end
                         case 'RAW'
                             msg = 'Philips RAW files do not contain voxel geometry information.';
                             fprintf(msg);

@@ -157,7 +157,7 @@ if isfield(raw.nii_mrs.hdr_ext,'Manufacturer')
 else
     MRSCont.vendor = 'NIFTI';
 end
-if isfield(raw.nii_mrs.hdr_ext,'ProtocolName')
+if isfield(raw.nii_mrs.hdr_ext,'ProtocolName') && ~isempty(raw.nii_mrs.hdr_ext.ProtocolName)
     MRSCont.seq = raw.nii_mrs.hdr_ext.ProtocolName;
 else
     MRSCont.seq = 'NIFTI'; 
