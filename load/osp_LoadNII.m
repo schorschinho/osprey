@@ -118,8 +118,51 @@ for kk = 1:MRSCont.nDatasets(1)
 
             end
         end
+     end
+    
+    % Set flag and save data under appropriate name
+    if raw.dims.coils == 0
+        MRSCont.flags.coilsCombined = 1;
+        MRSCont.raw{kk}      = raw;
+        if MRSCont.flags.hasRef
+            MRSCont.raw_ref{kk}  = raw_ref;
+        end
+        
+        if MRSCont.flags.hasWater
+            MRSCont.raw_w{kk}    = raw_w;
+        end
+        
+    else
+        MRSCont.flags.coilsCombined = 0;
+        MRSCont.raw_uncomb{kk}      = raw;
+        if MRSCont.flags.hasRef
+            MRSCont.raw_ref_uncomb{kk}  = raw_ref;
+        end
+        
+        if MRSCont.flags.hasWater
+            MRSCont.raw_w_uncomb{kk}    = raw_w;
+        end
     end
 end
+% Try to get some params from NIFTI
+if isfield(raw.nii_mrs.hdr_ext,'Manufacturer')
+    switch lower(raw.nii_mrs.hdr_ext.Manufacturer)
+        case 'siemens'
+                MRSCont.vendor = 'Siemens';
+        case 'philips'
+            MRSCont.vendor = 'Philips';
+        case 'ge'
+            MRSCont.vendor = 'GE';
+    end
+else
+    MRSCont.vendor = 'NIFTI';
+end
+if isfield(raw.nii_mrs.hdr_ext,'ProtocolName') && ~isempty(raw.nii_mrs.hdr_ext.ProtocolName)
+    MRSCont.seq = raw.nii_mrs.hdr_ext.ProtocolName;
+else
+    MRSCont.seq = 'NIFTI'; 
+end
+
 time = toc(refLoadTime);
 [~] = printLog('done',time,MRSCont.nDatasets(1),MRSCont.nDatasets(2),progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
