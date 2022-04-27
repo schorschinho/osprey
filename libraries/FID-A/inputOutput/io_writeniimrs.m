@@ -1,8 +1,10 @@
 % io_writeniimrs.m
 % Georg Oeltzschner, Johns Hopkins University 2021.
+% Adapted by
+% Chris Davies-Jenkins, Johns Hopkins University 2022.
 %
 % USAGE:
-% nii = io_writeniimrs(in, outfile);
+% nii = io_writeniimrs(in, outfile, UserNames);
 % 
 % DESCRIPTION:
 % Takes MRS data in matlab structure format and writes it to a NIfTI-MRS
@@ -33,52 +35,102 @@
 % OUTPUTS:
 % nii         = Same as input. Not used. 
 
-function nii = io_writeniimrs(in, outfile, dim_names)
-%function nii = io_writeniimrs(in, outfile)
+function nii = io_writeniimrs(in, outfile, UserNames)
+%function nii = io_writeniimrs(in, outfile, UserNames)
 
 % Bring FID array into NIfTI-MRS shape
-% This will need work as we move to 2D and 3D arrays
 dims = in.dims;
-% Find non-singleton dimensions
-sqzDims = {};
-dimsFieldNames = fieldnames(dims);
-for rr = 1:length(dimsFieldNames)
-    if dims.(dimsFieldNames{rr}) ~= 0
-        sqzDims{end+1} = dimsFieldNames{rr};
+
+% Check InNames supplied for additional dimensions
+if ~exist('UserNames','var')
+    if dims.subSpecs || dims.extras
+        error('Need InNames for additional dimensions')
+    else
+        UserNames = {};
     end
-end
-    
-if ~isfield(dims, 'x')
-    dims.x = 0;
-    dim_1  = 1;
-end
-if ~isfield(dims, 'y')
-    dims.y = 0;
-    dim_2  = 1;
-end
-if ~isfield(dims, 'z')
-    dims.z = 0;
-    dim_3  = 1;
 end
 
-if length(sqzDims) == 1
-    fids = zeros(dim_1, dim_2, dim_3, size(in.fids, dims.t));
-    fids(1,1,1,:) = in.fids;
-elseif length(sqzDims) == 2 
-    if dims.extras==0 && dims.subSpecs==0 && dims.averages==0
-        zeros(dim_1, dim_2, dim_3, size(in.fids, dims.t), size(in.fids, dims.coils));
-        fids(1,1,1,:,:) = in.fids;
-        dim_5_name = {'DIM_COIL'};
-    elseif dims.extras==0 && dims.subSpecs==0 && dims.coils==0
-        zeros(dim_1, dim_2, dim_3, size(in.fids, dims.t), size(in.fids, dims.averages));
-        fids(1,1,1,:,:) = in.fids;
-        dim_5_name = {'DIM_DYN'};
-    elseif dims.extras==0 && dims.averages==0 && dims.coils==0
-        zeros(dim_1, dim_2, dim_3, size(in.fids, dims.t), size(in.fids, dims.subSpecs));
-        fids(1,1,1,:,:) = in.fids;
-        dim_5_name = dim_names{1};
-    end
-   
+%% Manage essential dimensions
+if ~isfield(dims, 'x') || dims.x==0
+    dims.x = 0;
+    dim_1  = 1;
+else
+    dim_1 = in.sz(dims.x);
+end
+if ~isfield(dims, 'y') || dims.y==0
+    dims.y = 0;
+    dim_2  = 1;
+else
+    dim_2 = in.sz(dims.y);
+end
+if ~isfield(dims, 'z')|| dims.z==0
+    dims.z = 0;
+    dim_3  = 1;
+else
+    dim_3 = in.sz(dims.z);
+end
+
+dim_4 = in.sz(dims.t);
+
+ArraySize = [dim_1,dim_2,dim_3,dim_4];
+dimorder = [dims.x,dims.y,dims.z,in.dims.t];
+dimname = {};
+
+%% Manage non-essential dimensions, starting with defaults
+if dims.coils
+    ArraySize = [ArraySize, in.sz(dims.coils)];
+    dimorder = [dimorder,dims.coils];
+    dimname = [dimname,{'DIM_COIL'}];
+end
+if dims.averages
+    ArraySize = [ArraySize, in.sz(in.dims.averages)];
+    dimorder = [dimorder,dims.averages];
+    dimname = [dimname,{'DIM_DYN'}];
+end
+
+%% Now manage user defined dimensions
+Cnt = 1;
+if in.dims.subSpecs
+    ArraySize = [ArraySize, in.sz(dims.subSpecs)];
+    dimorder = [dimorder,dims.subSpecs];
+    dimname = [dimname,UserNames(Cnt)];
+    Cnt = Cnt+1;
+end
+if in.dims.extras
+    ArraySize = [ArraySize, in.sz(dims.extras)];
+    dimorder = [dimorder,dims.extras];
+    dimname = [dimname,UserNames(Cnt)];
+    Cnt = Cnt+1;
+end
+
+%% Do some error handling
+
+if length(dimorder)>7
+    error('%i dimensions detected, but maximum allowed is 7',length(dimorder))
+elseif ~(length(UserNames)==(Cnt-1))
+    error('%i user-defined dimensions, and %i dimension labels',Cnt-1,length(UserNames))
+elseif length(UserNames)>3
+    error('%i user-defined names supplied. Maximum of 3 allowed',length(UserNames))
+end
+
+%% Format fid output and export to nii
+
+% If dimensions are ordered correctly, then just add singletons. Otherwise,
+% reshape the array to correct for this.
+%
+% Note: Matlab will remove trailing singletons
+if issorted(dimorder)
+    fids = reshape(in.fids,ArraySize);
+else
+    %Permute fid non-singleton dimensions according to default BIDs precedence
+    NonSingletonOrdered = permute(in.fids,nonzeros(dimorder));
+    
+    %Define overall array size including singleton dimensions
+    ArraySize_S = double(ArraySize==1);
+    ArraySize_S(~(ArraySize==1)) = size(NonSingletonOrdered);
+    
+    % Reshape output to include correct singletons 
+    fids = reshape(NonSingletonOrdered,ArraySize_S);
 end
 
 % Initialize the NIfTI struct using the dicm2nii toolbox
@@ -97,22 +149,15 @@ catch ME
     end
 end
 
-% Update NIfTI-MRS header
+%% Update NIfTI-MRS header
 newDim = nii.hdr.dim;
 newVoxOffset = nii.hdr.vox_offset;
 nii.hdr = in.nii_mrs.hdr;
 nii.img = conj(fids);
 
-if exist('dim_5_name', 'var')
-    nii.hdr_ext.dim_5 = dim_5_name;
-    if exist('dim_6_name', 'var')
-        nii.hdr_ext.dim_6 = dim_6_name;
-        if exist('dim_7_name', 'var')
-            nii.hdr_ext.dim_7 = dim_7_name;
-        end
-    end
+for JJ = 1:length(dimname)
+    in.nii_mrs.hdr_ext.(sprintf('dim_%i',JJ+4)) = dimname{JJ};
 end
-
 
 nii.ext.ecode = 44;
 nii.ext.edata_decoded = jsonencode(in.nii_mrs.hdr_ext);
@@ -122,9 +167,6 @@ nii.ext.edata = myEdata;
 
 % nii.hdr.pixdim     = in.nii_mrs.hdr.pixdim;
 % nii.hdr.vox_offset     = in.nii_mrs.hdr.vox_offset;
-
-
-
 
 % Save
 nii_tool('save', nii, outfile);
