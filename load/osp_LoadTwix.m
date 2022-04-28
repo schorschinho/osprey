@@ -74,6 +74,8 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw_ref                     = io_loadspec_twix(MRSCont.files_ref{ref_ll,kk});
                 raw_ref                     = op_leftshift(raw_ref,raw_ref.pointsToLeftshift);
                 MRSCont.raw_ref_uncomb{ref_ll,kk}  = raw_ref;
+            else 
+                ref_ll = 1;
             end
             if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
