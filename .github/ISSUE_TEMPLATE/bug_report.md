@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a report to help us improve Osprey
-title: "[BUG]"
+title: "[BUG] - Description of Issue - function with main changes - Submitter"
 labels: bug
 assignees: ''
 
