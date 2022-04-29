@@ -87,7 +87,7 @@ if nargin<5
                         raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ll,kk},2);
                         raw_ref_C               = op_takesubspec(MRSCont.raw_ref{ll,kk},3);
                         raw_ref_D               = op_takesubspec(MRSCont.raw_ref{ll,kk},4);
-                        MRSCont.raw_ref{ll,kk} = op_concatAverages(raw_ref_A,raw_ref_B,raw_ref_C,raw_ref_D);
+                        MRSCont.raw_ref{ll,kk} = op_concatAverages(op_concatAverages(raw_ref_A,raw_ref_B),op_concatAverages(raw_ref_C,raw_ref_D));
                     end
                 end
                 

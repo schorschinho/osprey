@@ -810,7 +810,7 @@ function [raw] = combine_water_subspecs(raw)
         [raw_C]             = op_rmempty(raw_C);            % Remove empty lines
         raw_D               = op_takesubspec(raw,4);
         [raw_D]             = op_rmempty(raw_D);            % Remove empty lines
-        raw                 = op_concatAverages(raw_A,raw_B,raw_C,raw_D);
+        raw                 = op_concatAverages(op_concatAverages(raw_A,raw_B),op_concatAverages(raw_C,raw_D));
     end
 
     % Align and verage the refernce data
