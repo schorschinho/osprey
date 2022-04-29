@@ -841,7 +841,7 @@ function [T1_GM, T1_WM, T2_GM, T2_WM] = lookUpRelaxTimes(metName,Bo)
 % Look up table below
 switch Bo
     case '3T'
-        % T1 values for NAA, Glu, Cr, Cho, Ins from Mlynarik et al, NMR Biomed
+        % T1 values for NAA, Glu, Cr, Cho, mI from Mlynarik et al, NMR Biomed
         % 14:325-331 (2001)
         % T1 for GABA from Puts et al, J Magn Reson Imaging 37:999-1003 (2013)
         % T2 values from Wyss et al, Magn Reson Med 80:452-461 (2018)
@@ -858,7 +858,7 @@ switch Bo
         relax.GPC   = [1300 1080 (274+222)/2 218]; % This is the Choline singlet (3.21 ppm, tcho2 in the paper); glycerol is tcho: [1310 1310 (257+213)/2 182]; % choline multiplet is tcho1: [1310 1310 (242+190)/2 178];
         relax.GSH   = [1340 1190 (100+77)/2 145]; % This is the cysteine signal (GSH1 in the paper), glycine is GSH: [1310 1310 (99+72)/2 145]; % glutamate is GSH2: [1310 1310 (102+76)/2 165];
         relax.Lac   = [1340 1190 (110+99)/2 159];
-        relax.Ins   = [1230 1010 (244+229)/2 161];
+        relax.mI   = [1230 1010 (244+229)/2 161];
         relax.NAA   = [1470 1350 (253+263)/2 343]; % This is the 2.008 ppm acetyl signal (naa in the paper); aspartyl is naa1: [1310 1310 (223+229)/2 310];
         relax.NAAG  = [1340 1190 (128+107)/2 185]; % This is the 2.042 ppm acetyl signal (naag in the paper); aspartyl is naag1: [1310 1310 (108+87)/2 180]; % glutamate is NAAG2: [1310 1310 (110+78)/2 157];
         relax.PCh   = [1300 1080 (274+221)/2 213]; % This is the singlet (3.20 ppm, tcho4 in the paper); multiple is tcho3: [1310 1310 (243+191)/2 178];
@@ -885,28 +885,28 @@ switch Bo
             T2_WM = 169 * 1e-3;
         end
     case '7T'
-         % T2 values of water, NAA, tCr, tCho, Scyllo, Ins, Glu,GSH, Ins,
+         % T2 values of water, NAA, tCr, tCho, sI, mI, Glu,GSH, mI,
          % and Tau are taken from Marjanska et al. 2011 (NMR
          % 10.1002/nbm.1754). It was averaged across 4 regions OCC, SM1, BG, CER
          % Penner et al (2014) https://doi.org/10.1002/mrm.25380 for
-        relax.Asc   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and Ins
-        relax.Asp   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and Ins
+        relax.Asc   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and mI
+        relax.Asp   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and mI
         relax.Cr    = [1740 1780 107 107]; % Taken from tCr
         relax.GABA  = [1334 1334 87 87]; % Andreychenko et al. (2012) 10.1002/nbm.2997
-        relax.Glc   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and Ins
+        relax.Glc   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and mI
         relax.Gln   = [1640 1740 107 107]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352 % T2 as Gln
         relax.Glu   = [1610 1750 107 117]; % T1 from Mlynarik et al. (2012) 10.1002/mrm.24352, T2 from https://doi.org/10.1371/journal.pone.0215210
-        relax.Gly   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and Ins
+        relax.Gly   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and mI
         relax.GPC   = [1510 1320  153 153]; % Taken from tCho
         relax.GSH   = [1140 1060 79 79]; % Entire molecule; T1 from Mlynarik et al. (2012) 10.1002/mrm.24352
         relax.Lac   = [1530 1484 182 182]; % The use of MEGA-sLASER with J-refocusing echo time extension to measure the proton T2 of lactate in healthy human brain at 7 T ISMRM
-        relax.Ins   = [1280 1190 111 111]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352
+        relax.mI   = [1280 1190 111 111]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352
         relax.NAA   = [1780 1830 155 155]; % This is the 2.008 ppm acetyl signal (naa in the paper); aspartyl is naa1: [1310 1310 110 110]; T1 from Mlynarik et al. (2012) 10.1002/mrm.24352
         relax.NAAG  = [1210 940 155 155]; % This is the 2.042 ppm acetyl signal (naag in the paper); aspartyl is naag1: [1310 1310 (108+87)/2 180]; % glutamate is NAAG2: [1310 1310 (110+78)/2 157];
         relax.PCh   = [1510 1320  153 153]; % Taken from tCho
         relax.PCr   = [1740 1780 107 107]; % Taken from tCr
         relax.PE    = [1310 1320]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352
-        relax.Scy   = [1310 1230 105 105]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352 T2 from https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.24352
+        relax.sI   = [1310 1230 105 105]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352 T2 from https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.24352
         relax.Tau   = [2150 2090 97 97]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352 % T2 as Gln
         relax.tNAA  = [1495 1385 155 155]; % Mean values from NAA + NAAG
         relax.tCr  = [1740 1780 107 107]; % The singlet peak ar 3 ppm. 3.9 ppm peak values are [1240 1190 94 94] %T1 from Mlynarik et al. (2012)
@@ -921,10 +921,10 @@ switch Bo
             T2_WM = relax.(metName)(4) * 1e-3;
         else
             % If not, use an average
-            T1_GM = 1530 * 1e-3; % This is the average from tNAA, tCr, tCho, Glx, and Ins
-            T1_WM = 1484 * 1e-3; % This is the average from tNAA, tCr, tCho, Glx, and Ins
-            T2_GM = 127 * 1e-3; % This is the average from tNAA, tCr, tCho, Glx, and Ins
-            T2_WM = 128 * 1e-3; % This is the average from tNAA, tCr, tCho, Glx, and Ins
+            T1_GM = 1530 * 1e-3; % This is the average from tNAA, tCr, tCho, Glx, and mI
+            T1_WM = 1484 * 1e-3; % This is the average from tNAA, tCr, tCho, Glx, and mI
+            T2_GM = 127 * 1e-3; % This is the average from tNAA, tCr, tCho, Glx, and mI
+            T2_WM = 128 * 1e-3; % This is the average from tNAA, tCr, tCho, Glx, and mI
         end
 end
 

@@ -38,6 +38,7 @@ if contains(seq,'slaser')
 end
 
 if ~strcmp(seq,'press') && ~strcmp(seq,'slaser') %Unable to find the localization type we will assume it is PRESS
+    warning('Unable to detect the localization type. We will assume it is PRESS')
     seq = 'press';
 end
 

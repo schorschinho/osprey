@@ -43,12 +43,13 @@ elseif length(in.sz) == 3
     reshape_data = reshape(fids, [1 in.sz(1) in.sz(2) in.sz(3)]);
 end
 data=[real(reshape_data);-imag(reshape_data)];
+data_toWrite = reshape(data, [2*length(data) 1]);
 
 %% Create RDA file
 
 % Open a file with the designated name, and write the header information
 sparFile    = [outfile '.RDA'];
-fid         = fopen(sparFile,'wt+');
+fid         = fopen(sparFile,'w+');
 fprintf(fid,'>>> Begin of header <<<\r\n');
 fprintf(fid,'PatientName: \r\n');
 fprintf(fid,'PatientID: \r\n');
@@ -132,5 +133,5 @@ fprintf(fid,'PixelSpacingRow: 0\r\n'); % to read into extra Siemens parameter fi
 fprintf(fid,'PixelSpacingCol: 0\r\n'); % to read into extra Siemens parameter field
 fprintf(fid,'PixelSpacing3D: 0\r\n'); % to read into extra Siemens parameter field
 fprintf(fid,'>>> End of header <<<\r\n');
-fwrite(fid,data,'double');
+fwrite(fid,data_toWrite,'double');
 fclose(fid);

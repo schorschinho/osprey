@@ -80,5 +80,5 @@ fclose(fileID);
 % script.
 
 %% Create output variable
-data = table(dataArray{1:end-1}, 'VariableNames', {'PPMScale','Data','Fit','Baseline','Asc','Asp','Cr','CrCH2','GABA','GPC','GSH','Gln','Glu','Ins','Lac','NAA','NAAG','PCh','PCr','PE','Scyllo','Tau','MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'});
+data = table(dataArray{1:end-1}, 'VariableNames', {'PPMScale','Data','Fit','Baseline','Asc','Asp','Cr','CrCH2','GABA','GPC','GSH','Gln','Glu',' mI','Lac','NAA','NAAG','PCh','PCr','PE','sI','Tau','MM09','MM12','MM14','MM17','MM20','Lip09','Lip13','Lip20'});
 

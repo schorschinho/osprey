@@ -244,7 +244,7 @@ if MRSCont.flags.isUnEdited
     nAvgs = dataToPlot.averages;
     % Loop over all averages
     for rr = 1:nAvgs
-        plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr)) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
         hold on; 
     end
     axesNames = {'A'};
@@ -259,12 +259,12 @@ if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref')|| strcmp
     if dataToPlot.dims.averages ~= 0
         % Loop over all averages
         for rr = 1:nAvgs
-            plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,rr,1) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,rr,2) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            plot(axesHandles.A,dataToPlot.ppm, real(dataToPlot.specs(:,rr,1)) + rr*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+            plot(axesHandles.B,dataToPlot.ppm, real(dataToPlot.specs(:,rr,2)) + rr*stag(2), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
         end
     else
-        plot(axesHandles.A,dataToPlot.ppm, dataToPlot.specs(:,1) + 1*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-        plot(axesHandles.B,dataToPlot.ppm, dataToPlot.specs(:,2) + 2*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.A,dataToPlot.ppm, real(dataToPlot.specs(:,1)) + 1*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.B,dataToPlot.ppm, real(dataToPlot.specs(:,2)) + 2*stag(1), 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
     end
     axesNames = {'A','B'};
     TitleNames = {'A','B'};
@@ -273,7 +273,7 @@ else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref')|| st
     nAvgs = dataToPlot.averages;
     % Loop over all averages
     for rr = 1:nAvgs
-        plot(axesHandles.A, dataToPlot.ppm, dataToPlot.specs(:,rr) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+        plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr)) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
         hold on; 
     end
     axesNames = {'A'};

@@ -96,7 +96,11 @@ if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 1))
     if strcmp(T1ext, '.gz') && ~exist(MRSCont.coreg.vol_image{kk}.fname,'file') 
         gunzip(MRSCont.coreg.vol_image{kk}.fname)
     end
-
+    [~, ~, Voxext]  = fileparts(MRSCont.coreg.vol_mask{kk}.fname);
+    if ~strcmp(Voxext, '.gz') && ~exist(MRSCont.coreg.vol_mask{kk}.fname,'file') 
+        gunzip([MRSCont.coreg.vol_mask{kk}.fname,'.gz'])
+    end
+    
     %%% 3. SET UP THREE PLANE IMAGE %%%
     if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
         [img_montage,vox_t_size] = osp_extract_three_plane_image_seg(MRSCont.coreg.vol_image{kk}.fname, MRSCont.coreg.vol_mask{kk}.fname,vol_GM_mask,vol_WM_mask,vol_CSF_mask,MRSCont.coreg.voxel_ctr{kk},MRSCont.coreg.T1_max{kk});

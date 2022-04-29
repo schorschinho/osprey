@@ -140,17 +140,17 @@ function testOspreyGUI(~)
     if MRSCont.flags.isUnEdited
         osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'tNAA');
         osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'tCho');
-        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'Ins');
+        osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'mI');
         osp_plotModule(MRSCont, 'OspreyRaincloudOverview', 1, [1 1], 'metab-A-tCr', 'Glx');
 
         osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'tNAA', 'SNR');
         osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'tCho', 'SNR');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'Ins', 'SNR');
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'mI', 'SNR');
         osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'Glx', 'SNR');
 
         osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'tNAA', 'FWHM');
         osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'tCho', 'FWHM');
-        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'Ins', 'FWHM');
+        osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'mI', 'FWHM');
         osp_plotModule(MRSCont, 'OspreyScatterOverview', 1, [1 1], 'metab-A-tCr', 'Glx', 'FWHM');
     end
     if MRSCont.flags.isMEGA

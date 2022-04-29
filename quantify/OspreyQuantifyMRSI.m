@@ -694,7 +694,7 @@ end
 function [T1_GM, T1_WM, T2_GM, T2_WM] = lookUpRelaxTimes(metName)
 
 % Look up table below
-% T1 values for NAA, Glu, Cr, Cho, Ins from Mlynarik et al, NMR Biomed
+% T1 values for NAA, Glu, Cr, Cho, mI from Mlynarik et al, NMR Biomed
 % 14:325-331 (2001)
 % T1 for GABA from Puts et al, J Magn Reson Imaging 37:999-1003 (2013)
 % T2 values from Wyss et al, Magn Reson Med 80:452-461 (2018)
@@ -710,13 +710,13 @@ relax.Gly   = [1340 1190 (102+81)/2 152];
 relax.GPC   = [1300 1080 (274+222)/2 218]; % This is the Choline singlet (3.21 ppm, tcho2 in the paper); glycerol is tcho: [1310 1310 (257+213)/2 182]; % choline multiplet is tcho1: [1310 1310 (242+190)/2 178];
 relax.GSH   = [1340 1190 (100+77)/2 145]; % This is the cysteine signal (GSH1 in the paper), glycine is GSH: [1310 1310 (99+72)/2 145]; % glutamate is GSH2: [1310 1310 (102+76)/2 165];
 relax.Lac   = [1340 1190 (110+99)/2 159];
-relax.Ins   = [1230 1010 (244+229)/2 161];
+relax.mI   = [1230 1010 (244+229)/2 161];
 relax.NAA   = [1470 1350 (253+263)/2 343]; % This is the 2.008 ppm acetyl signal (naa in the paper); aspartyl is naa1: [1310 1310 (223+229)/2 310];
 relax.NAAG  = [1340 1190 (128+107)/2 185]; % This is the 2.042 ppm acetyl signal (naag in the paper); aspartyl is naag1: [1310 1310 (108+87)/2 180]; % glutamate is NAAG2: [1310 1310 (110+78)/2 157];
 relax.PCh   = [1300 1080 (274+221)/2 213]; % This is the singlet (3.20 ppm, tcho4 in the paper); multiple is tcho3: [1310 1310 (243+191)/2 178];
 relax.PCr   = [1460 1240 (148+144)/2 166]; % 3.03 ppm resonance; 3.92 ppm signal is taken care of by -CrCH2 during fitting; same as Cr
 relax.PE    = [1340 1190 (119+86)/2 158];
-relax.Scy   = [1340 1190 (125+107)/2 170];
+relax.sI   = [1340 1190 (125+107)/2 170];
 relax.Tau   = [1340 1190 (123+102)/2 (123+102)/2]; % No WM estimate available; take GM estimate
 
 % Check if metabolite name is in the look-up table
