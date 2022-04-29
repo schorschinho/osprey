@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest a function that Osprey should have
-title: "[FEATURE REQUEST]"
+title: "[FEATURE REQUEST] - Description of feature - function with main changes - Submitter"
 labels: enhancement, help wanted
 assignees: ''
 
