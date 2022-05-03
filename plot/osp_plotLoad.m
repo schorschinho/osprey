@@ -307,11 +307,25 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
         TitleNames = {'A','B','C','D'};
     else
         axesHandles.A = gca();
-        nAvgs = dataToPlot.averages;
+        %Added to accommodate MEGA-PRESS water for HERMES data -- 18Feb2022 MGSaleh
+        if strcmp(dataToPlot.seq,'MEGAPRESS')
+            nAvgs = dataToPlot.averages/2;
+        else
+            nAvgs = dataToPlot.averages;
+        end
+        %to here -- 18Feb2022 MGSaleh
+        
         % Loop over all averages
         for rr = 1:nAvgs
-            plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr) + rr*stag), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            hold on; 
+            if strcmp(dataToPlot.seq,'MEGAPRESS')
+            %Added to accommodate MEGA-PRESS water for HERMES data -- 18Feb2022 MGSaleh
+                plot(axesHandles.A, dataToPlot.ppm, real([dataToPlot.specs(:,rr,1)+rr*stag(1),dataToPlot.specs(:,rr,2)+rr*stag(2)]), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
+                hold on;
+            else
+                plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr) + rr*stag), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);                
+                hold on;
+            end
+            %to here -- 18Feb2022 MGSaleh
         end
         axesNames = {'A'}; 
         if strcmp(which, 'w')
