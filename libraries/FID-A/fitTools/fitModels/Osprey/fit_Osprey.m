@@ -69,7 +69,14 @@ end
 
 %%% 1. EXTRACT OPTIONS AND PREPARE FIT %%%
 % Extract ppm fit range
-fitRangePPM             = fitOpts.range;
+%Added to define different fitting ranges for different spectra -- 04May2022 MGSaleh
+if strcmp(dataToFit.names,'diff1') & isfield(fitOpts,'diff1_range')
+    fitRangePPM             = fitOpts.diff1_range;
+elseif strcmp(dataToFit.names,'diff2') & isfield(fitOpts,'diff2_range')
+    fitRangePPM             = fitOpts.diff2_range;
+elseif (strcmp(dataToFit.names,'sum') ||  strcmp(dataToFit.names,'A')) & isfield(fitOpts,'range')
+    fitRangePPM             = fitOpts.range;
+end%to here -- 04May2022 MGSaleh 
 % Initialize the baseline spline parameters
 minKnotSpacingPPM       = fitOpts.bLineKnotSpace; % this is the DKNTMN parameter in LCModel
 

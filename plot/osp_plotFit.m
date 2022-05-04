@@ -206,6 +206,16 @@ switch fitMethod
         else
             inputSettings.scale                 = MRSCont.fit.scale{kk};
         end
+        %Added to define different fitting ranges for different spectra -- 04May2022 mgs
+        if strcmp(dataToPlot.names,'diff1') & isfield(MRSCont.opts.fit,'diff1_range')
+            fitRangePPM             = MRSCont.opts.fit.diff1_range;
+        elseif strcmp(dataToPlot.names,'diff2') & isfield(MRSCont.opts.fit,'diff2_range')
+            fitRangePPM             = MRSCont.opts.fit.diff2_range;
+        elseif strcmp(dataToPlot.names,'w')
+            fitRangePPM             = MRSCont.opts.fit.rangeWater;
+        else
+            fitRangePPM             = MRSCont.opts.fit.range;
+        end%to here -- 04May2022 mgs
         inputSettings.fitRangePPM           = fitRangePPM;
         inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
         inputSettings.fitStyle              = MRSCont.opts.fit.style;

@@ -22,7 +22,7 @@
 
 function [out,outw]=op_eccKlose(in,inw)
 if inw.dims.coils~=0 ||  inw.dims.subSpecs~=0 || inw.averages>1
-    if inw.subspecs > 1
+    if inw.subspecs > 1 & ~inw.flags.averaged
         inw_A               = op_takesubspec(inw,1);
         [inw_A]             = op_rmempty(inw_A);            % Remove empty lines
         inw_B               = op_takesubspec(inw,2);

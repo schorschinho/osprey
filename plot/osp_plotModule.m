@@ -601,7 +601,10 @@ switch Module
                                 if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                                     RawAmpl = RawAmpl ./ (MRSCont.fit.results.ref.fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk});
                                 else
-                                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk});
+                                    %I commented out the code below because MRSCont.fit.results.water does not exist 
+                                    %but MRSCont.fit.results.w does -- 4May2022 mgs
+                                    %RawAmpl = RawAmpl ./ (MRSCont.fit.results.water.fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk});
+                                    RawAmpl = RawAmpl ./ (MRSCont.fit.results.w.fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk});
                                 end
                             case 'LCModel'
                         end

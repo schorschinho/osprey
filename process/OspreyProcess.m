@@ -144,9 +144,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw_w_B                 = op_takesubspec(raw_w,2);
                     [raw_w_B]               = op_rmempty(raw_w_B);              % Remove empty lines
                     if temp_subspec == 4
-                        raw_w_C                 = op_takesubspec(raw_w,1);
+                        raw_w_C                 = op_takesubspec(raw_w,3);
                         [raw_w_C]               = op_rmempty(raw_w_C);              % Remove empty lines
-                        raw_w_D                 = op_takesubspec(raw_w,2);
+                        raw_w_D                 = op_takesubspec(raw_w,4);
                         [raw_w_D]               = op_rmempty(raw_w_D);              % Remove empty lines
                         raw_w                   = op_concatAverages(op_concatAverages(raw_w_A,raw_w_B),op_concatAverages(raw_w_C,raw_w_D));
                     else
@@ -161,13 +161,13 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw_w.flags.averaged    = 1;
                     raw_w.dims.averages     = 0;
                 end
-                if ~MRSCont.flags.isMRSI & MRSCont.flags.hasRef %Added MRSCont.flags.hasRef so that it does not eddy current correction if Ref is not provided -- 3May2022 mgs
+                if ~MRSCont.flags.isMRSI 
                     [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
                 elseif MRSCont.flags.hasRef %Added MRSCont.flags.hasRef since the code below distorts the phase of the water signal (from the twix data) -- 3May2022 mgs
                     [raw_w,~]=op_autophase(raw_w,2,2*4.68);
                 end
                 [raw_w,~]                       = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
-                raw_w.names = {'A'};
+                raw_w.names = {'w'};
                 MRSCont.processed.w{w_ll,kk}         = raw_w; % Save back to MRSCont container
             end
 

@@ -87,10 +87,16 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                 for kk = 1 : MRSCont.nDatasets(1) %Loop over all datasets
                     switch MRSCont.opts.fit.method %Which model was used
                     case 'Osprey'
-                        if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') % metabolite only                        
-                            fitRangePPM = MRSCont.opts.fit.range;
-    
+                        if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') % metabolite only
                             dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
+                            %Added to define different fitting ranges for different spectra -- 04May2022 MGSaleh
+                            if strcmp(dataToPlot.names,'diff1') & isfield(MRSCont.opts.fit,'diff1_range')
+                                fitRangePPM             = MRSCont.opts.fit.diff1_range;
+                            elseif strcmp(dataToPlot.names,'diff2') & isfield(MRSCont.opts.fit,'diff2_range')
+                                fitRangePPM             = MRSCont.opts.fit.diff2_range;
+                            else
+                                fitRangePPM             = MRSCont.opts.fit.range;
+                            end%to here -- 04May2022 MGSaleh 
                             basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
                             fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
                             % Pack up into structs to feed into the reconstruction functions

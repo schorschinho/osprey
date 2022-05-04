@@ -222,7 +222,7 @@ if MRSCont.flags.didFit
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = ModelOutput.data;
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = ModelOutput.residual;
                             else % if metabolite or MM data, use the metabolite model
-                                fitRangePPM = MRSCont.opts.fit.range;
+%                                 fitRangePPM = MRSCont.opts.fit.range;
                                 if Voxels < 2
 
                                     dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
@@ -233,6 +233,14 @@ if MRSCont.flags.didFit
                                    fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{bf,kk,sf};
                                    basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
                                 end
+                                if strcmp(dataToPlot.names,'diff1') & isfield(MRSCont.opts.fit,'diff1_range')
+                                    fitRangePPM             = MRSCont.opts.fit.diff1_range;
+                                elseif strcmp(dataToPlot.names,'diff2') & isfield(MRSCont.opts.fit,'diff2_range')
+                                    fitRangePPM             = MRSCont.opts.fit.diff2_range;
+                                else
+                                    fitRangePPM             = MRSCont.opts.fit.range;
+                                end%to here -- 04May2022 MGSaleh
+                                                                
                                 % Pack up into structs to feed into the reconstruction functions
                                 inputData.dataToFit                 = dataToPlot;
                                 inputData.basisSet                  = basisSet;
