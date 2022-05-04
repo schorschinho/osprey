@@ -85,21 +85,21 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.opts.fit.lcmodel.outfileSum{kk}     = outfileSum;
         
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-        %Added the code below to accommodate a user-defined (specified in the jobfile) destination folder -- 19Feb2022 MGSaleh
-        if isfield(MRSCont.opts, 'controlpath') & isfield(MRSCont.opts, 'subjID') 
-            outfileA        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.subjID(kk,:)  '_LCM_A.RAW']);
+        %Added the code below to accommodate a user-defined (specified in the jobfile) destination folder -- 19Feb2022 mgs
+        if isfield(MRSCont.opts, 'controlpath') & isfield(MRSCont.opts, 'file_name') 
+            outfileA        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.file_name(kk,:)  '_LCM_A.RAW']);
             RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA,te);
-            outfileB        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.subjID(kk,:) '_LCM_B.RAW']);
+            outfileB        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.file_name(kk,:) '_LCM_B.RAW']);
             RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB,te);
-            outfileC        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.subjID(kk,:) '_LCM_C.RAW']);
+            outfileC        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.file_name(kk,:) '_LCM_C.RAW']);
             RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},3),outfileC,te);
-            outfileD        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.subjID(kk,:) '_LCM_D.RAW']);
+            outfileD        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.file_name(kk,:) '_LCM_D.RAW']);
             RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},4),outfileD,te);
-            outfileDiff1    = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.subjID(kk,:) '_LCM_DIFF1.RAW']);
+            outfileDiff1    = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.file_name(kk,:) '_LCM_DIFF1.RAW']);
             RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},5),outfileDiff1,te);
-            outfileDiff2    = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.subjID(kk,:) '_LCM_DIFF2.RAW']);
+            outfileDiff2    = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.file_name(kk,:) '_LCM_DIFF2.RAW']);
             RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},6),outfileDiff2,te);
-            outfileSum      = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.subjID(kk,:) '_LCM_SUM.RAW']);
+            outfileSum      = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.file_name(kk,:) '_LCM_SUM.RAW']);
             RF              = io_writelcm(op_takesubspec(MRSCont.processed.metab{kk},7),outfileSum,te);
         else
             outfileA        = fullfile(saveDestination,'metabs', [name '_LCM_A.RAW']);
@@ -173,9 +173,9 @@ for kk = 1:MRSCont.nDatasets
         end
         
         % Set up complete output filename strings, then write LCM .RAW files.
-        %Added the code below to accommodate a user-defined (specified in the jobfile) destination folder -- 19Feb2022 MGSaleh
-        if isfield(MRSCont.opts, 'controlpath') & isfield(MRSCont.opts, 'subjID')
-            outfileW        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.subjID(kk,:) '_LCM_W.RAW']);
+        %Added the code below to accommodate a user-defined (specified in the jobfile) destination folder -- 19Feb2022 mgs
+        if isfield(MRSCont.opts, 'controlpath') & isfield(MRSCont.opts, 'file_name')
+            outfileW        = fullfile(MRSCont.opts.controlpath(kk,:),[MRSCont.opts.file_name(kk,:) '_LCM_W.RAW']);
             RF              = io_writelcm(MRSCont.processed.w{kk},outfileW,te_w);
         else
             outfileW        = fullfile(saveDestination,'w', [name_w '_LCM_W.RAW']);

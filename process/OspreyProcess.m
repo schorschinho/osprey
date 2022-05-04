@@ -136,7 +136,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
              if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w                           = MRSCont.raw_w{w_ll,kk};                % Get the kk-th dataset
-                %Added to average water data and also to accommodate water from HERMES with subspec = 4 -- 3May2022 MGSaleh
+                %Added to average water data and also to accommodate water from HERMES with subspec = 4 -- 3May2022 mgs
                 temp_subspec = raw_w.subspecs;
                 if raw_w.subspecs > 1
                     raw_w_A                 = op_takesubspec(raw_w,1);
@@ -153,7 +153,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                         raw_w                   = op_concatAverages(raw_w_A,raw_w_B);
                     end
                 end
-                % to here -- 3May2022 MGSaleh
+                % to here -- 3May2022 mgs
                 if raw_w.averages > 1 && raw_w.flags.averaged == 0
                     [raw_w,~,~]                 = op_alignAverages(raw_w, 1, 'n');
                     raw_w                       = op_averaging(raw_w);              % Average
@@ -161,9 +161,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw_w.flags.averaged    = 1;
                     raw_w.dims.averages     = 0;
                 end
-                if ~MRSCont.flags.isMRSI & MRSCont.flags.hasRef %Added MRSCont.flags.hasRef so that it does not eddy current correction if Ref is not provided -- 3May2022 MGSaleh
+                if ~MRSCont.flags.isMRSI & MRSCont.flags.hasRef %Added MRSCont.flags.hasRef so that it does not eddy current correction if Ref is not provided -- 3May2022 mgs
                     [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
-                elseif MRSCont.flags.hasRef %Added MRSCont.flags.hasRef since the code below distorts the phase of the water signal (from the twix data) -- 3May2022 MGSaleh
+                elseif MRSCont.flags.hasRef %Added MRSCont.flags.hasRef since the code below distorts the phase of the water signal (from the twix data) -- 3May2022 mgs
                     [raw_w,~]=op_autophase(raw_w,2,2*4.68);
                 end
                 [raw_w,~]                       = op_ppmref(raw_w,4.6,4.8,4.68);    % Reference to water @ 4.68 ppm
