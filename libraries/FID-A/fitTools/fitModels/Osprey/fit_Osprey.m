@@ -74,7 +74,7 @@ if strcmp(dataToFit.names,'diff1') & isfield(fitOpts,'diff1_range')
     fitRangePPM             = fitOpts.diff1_range;
 elseif strcmp(dataToFit.names,'diff2') & isfield(fitOpts,'diff2_range')
     fitRangePPM             = fitOpts.diff2_range;
-elseif (strcmp(dataToFit.names,'sum') ||  strcmp(dataToFit.names,'A')) & isfield(fitOpts,'range')
+else
     fitRangePPM             = fitOpts.range;
 end%to here -- 04May2022 MGSaleh 
 % Initialize the baseline spline parameters
