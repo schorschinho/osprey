@@ -37,7 +37,7 @@ if contains(seq,'slaser')
     seq = 'slaser';
 end
 
-if ~strcmp(seq,'press') && ~strcmp(seq,'slaser') %Unable to find the localization type we will assume it is PRESS
+if ~strcmp(seq,'press') && ~strcmp(seq,'slaser') && ~strcmp(seq,'special') %Unable to find the localization type we will assume it is PRESS
     warning('Unable to detect the localization type. We will assume it is PRESS')
     seq = 'press';
 end
@@ -53,6 +53,11 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         Bo = '3T';
     else
         Bo = '7T';
+    end
+    % Intercept non-integer echo times and replace the decimal point with
+    % an underscore to avoid file extension problems
+    if contains(te, '.')
+        te = strrep(te, '.', '_');
     end
 
     if MRSCont.flags.isUnEdited
@@ -250,6 +255,8 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'lcoord', '9');
                 LCMparam = osp_editControlParameters(LCMparam, 'ltable', '7');
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsv', '11');
+                LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
+                LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filps', '');
