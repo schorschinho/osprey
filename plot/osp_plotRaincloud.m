@@ -90,7 +90,7 @@ cb(3,:) = cb(4,:);
 cb(4,:) = temp;
 
 %%% 3. EXTRACT METABOLITE CONCENTRATIONS OR QM%%%
-
+warning('off','MATLAB:legend:IgnoringExtraEntries')
 if ~strcmp(quant,'Quality')
     ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.metab,model));  
     quant_ind = [basis ind(1)];
@@ -223,4 +223,5 @@ if ~MRSCont.flags.isGUI
     imshow(I, map);
     axis off;
 end
+warning('on','MATLAB:legend:IgnoringExtraEntries')
 end
