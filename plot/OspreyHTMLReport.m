@@ -4,7 +4,7 @@ function [MRSCont] = OspreyHTMLReport(MRSCont,kk)
 %   and should be called at the end of the analysis.
 %
 %   USAGE:
-%       MRSCont = OspreyHTMLReport(MRSCont);
+%       MRSCont = OspreyHTMLReport(MRSCont,kk);
 %
 %   INPUTS:
 %       MRSCont     = Osprey MRS data container.
