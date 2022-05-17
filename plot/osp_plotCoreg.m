@@ -87,7 +87,7 @@ end
 
 
 if ~MRSCont.flags.isGUI
-    out = figure;
+    out = figure('Visible','off');
     set(gcf, 'Color', 'w');
 else
     out = figure('Visible','off');

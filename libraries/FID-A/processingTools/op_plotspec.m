@@ -80,7 +80,11 @@ if isstruct(in)
     else
         dim=0;
     end
-    out=figure;
+    if GUI
+        out = figure( 'Visible', 'off' );
+    else
+        out = figure;
+    end
     if ~dim
         out=plot(in.ppm,real(squeeze(in.specs)));
     elseif dim==2
@@ -115,8 +119,13 @@ elseif iscell(in)
     else
         dim=0;
     end
-    figure;
+    if GUI
+        out = figure( 'Visible', 'off' );
+    else
+        out = figure;
+    end
     if norm == 0
+
         if ~dim
             out=plot(in{1}.ppm,real(in{1}.specs));
         elseif dim==2
@@ -132,7 +141,7 @@ elseif iscell(in)
         disp('Multiple input spectra detected!! ')
         stagger=input('Please enter the desired vertical spacing of the spectra in ARB UNITS:  ');
         close;
-        out=figure;
+
         hold on;
         if color == 0
             colours=distinguishable_colors(length(in));
@@ -193,7 +202,7 @@ elseif iscell(in)
             disp('Multiple input spectra detected!! Each spectrum is normalized to its maximum. ')
         end
         close;
-        out=figure;
+         
         hold on;
         if color == 0
             colours=distinguishable_colors(length(in));
@@ -234,7 +243,6 @@ elseif iscell(in)
             disp('Multiple input spectra detected!! But they are already normalized. ')
         end
         close;
-        out=figure;
         hold on;
         if color == 0
             colours=distinguishable_colors(length(in));

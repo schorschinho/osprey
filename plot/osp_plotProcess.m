@@ -491,21 +491,21 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
         end
     end
 else
-    if isfield(MRSCont.QM.freqShift, which_sub_spec)
+    if isfield(MRSCont.QM.freqShift, which_spec)
         switch which_sub_spec
             case {'A', 'B', 'C', 'D'} 
-                refShift = -repmat(MRSCont.QM.freqShift.(which_sub_spec)(kk), size(fs));
+                refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
                 for jj = 1:size(applyDataToScale.fids,2)
                     applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
             case {'diff1', 'diff2','diff3', 'sum'}
-                refShift = -repmat(MRSCont.QM.freqShift.(which_sub_spec)(kk), size(fs{1}));
+                refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
                     for jj = 1:size(applyDataToScale.fids,2)
-                        if size(applyDataToScale.fids) == 3
+                        if length(size(applyDataToScale.fids)) == 3
                             applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
                                 exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
                         else
@@ -743,21 +743,21 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
         end
     end
 else
-    if isfield(MRSCont.QM.freqShift, which_sub_spec)
+    if isfield(MRSCont.QM.freqShift, which_spec)
         switch which_sub_spec
             case {'A', 'B', 'C', 'D'} 
-                refShift = -repmat(MRSCont.QM.freqShift.(which_sub_spec)(kk), size(fs));
+                refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
                 for jj = 1:size(applyDataToPlot.fids,2)
                     applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
             case {'diff1', 'diff2', 'diff3', 'sum'}
-                refShift = -repmat(MRSCont.QM.freqShift.(which_sub_spec)(kk), size(fs{1}));
+                refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
                     for jj = 1:size(applyDataToPlot.fids,2)
-                        if size(applyDataToPlot.fids) == 3
+                        if length(size(applyDataToScale.fids)) == 3
                             applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
                                 exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
                         else

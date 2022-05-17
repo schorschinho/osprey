@@ -66,12 +66,6 @@ function osp_iniLoadWindow(gui)
                  gui.load.Names.Spec{3} = 'reference';
                 gui.load.Names.Spec{4} = 'MM reference';
                 gui.load.Names.Spec{5} = 'water';
-            otherwise
-                gui.controls.Number = gui.controls.Number + 4;
-                gui.load.Names.Spec{2} = 'spectra 1';
-                 gui.load.Names.Spec{3} = 'spectra 2';
-                gui.load.Names.Spec{4} = 'spectra 3';
-                gui.load.Names.Spec{5} = 'spectra 4';
         end
 
         gui.layout.tabs.TabEnables{1} = 'on';
@@ -345,7 +339,6 @@ function osp_iniLoadWindow(gui)
  %%% 4. VISUALIZATION PART OF THIS TAB %%%
  %osp_plotLoad is used to visualize the raw data. Number of subplots
  %depends on the number of subspectra of the seuqence
-        temp = figure( 'Visible', 'off' );
         switch gui.load.Names.Spec{t}
             case 'metabolites'
                 temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
