@@ -43,7 +43,7 @@ function osp_updateProWindow(gui)
         end
         if (MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs == 0) || (SubSpec > MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs))
             SubSpec = 1;
-            gui.controls.act_x = 1;
+            gui.controls.act_y = 1;
         end
                         
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%

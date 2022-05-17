@@ -32,6 +32,7 @@ function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %%
 %%% 1. GET SPMPATH AND TOOLBOXES%%%
+warning('off','MATLAB:javaclasspath:jarAlreadySpecified');
 OspreyVersion = 'Osprey 2.0.0';
 fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 addons = matlab.addons.installedAddons;
@@ -42,6 +43,7 @@ for tl = 1 : size(addons,1)
     catch
     end
 end
+addons = matlab.addons.installedAddons;
 lic = strcmp({'Enabled'}, addons.Properties.VariableNames);
 if ~isempty(lic)
     enabled = table2cell(addons(:,lic==1));
@@ -81,7 +83,6 @@ else
     available{end+1} = 'SPM12';
     enabled{end+1} = true;
     hasSPM = 1;
-    rmpath(genpath([spmversion filesep 'external' filesep 'fieldtrip' filesep 'external' filesep 'stats' filesep 'finv.m']));
 end 
 
 try
@@ -131,37 +132,37 @@ try
 
     %%% 3. CREATE WARNING MESSAGES %%%
     if ~ToolChecked
-        warning = cellstr({});
+        warningMsg = cellstr({});
         warning_count = 1;
         if ~isempty(missing) || ~isempty(missingSpecific)
             opts.Interpreter = 'tex';
             opts.WindowStyle = 'modal';
-            warning{1} = ['The following toolboxes are missing to ' ModuleString '\rm:'];
+            warningMsg{1} = ['The following toolboxes are missing to ' ModuleString '\rm:'];
             for i = 1 : length(missing)
-                warning{i+1} = ['\bf' missing{i} '\rm'];
+                warningMsg{i+1} = ['\bf' missing{i} '\rm'];
             end
             warning_count = warning_count +length(missing) + 1;
-            warning{warning_count} = ['Please install them to ' ModuleString '\rm'];
+            warningMsg{warning_count} = ['Please install them to ' ModuleString '\rm'];
             warning_count = warning_count + 1;
             if ~isempty(missingSpecific)
-                warning{warning_count} = ['The following toolboxes are missing to run ' Module ':']; 
+                warningMsg{warning_count} = ['The following toolboxes are missing to run ' Module ':']; 
                 warningc = ['Please install and include the following toolboxes to use ' Module ':'];
                 for i = 1 : length(missingSpecific)
-                    warning{warning_count + i} = ['\bf' missingSpecific{i} '\rm'];
+                    warningMsg{warning_count + i} = ['\bf' missingSpecific{i} '\rm'];
                     warningc = [warningc ' ' missingSpecific{i}];
                 end
-                warning{warning_count + length(missingSpecific) + 1} = ['Please install them to use \bf' Module '\rm'];
-                warndlg(warning,'Missing Toolboxes',opts);
+                warningMsg{warning_count + length(missingSpecific) + 1} = ['Please install them to use \bf' Module '\rm'];
+                warndlg(warningMsg,'Missing Toolboxes',opts);
                 error(warningc);
             end    
-            warndlg(warning,'Missing Toolboxes',opts);
+            warndlg(warningMsg,'Missing Toolboxes',opts);
         end
     end
 
 catch %If the MATLAB version pre-dates the inmplementation of matlab.addons.installedAddons
-    warning = cellstr({});
-    warning{1} = 'Your current MATLAB version does not allow the automated toolbox check. We assume that all required toolboxes are available.';
-    warndlg(warning,'Automated toolbox check not working.',opts);
+    warningMsg = cellstr({});
+    warningMsg{1} = 'Your current MATLAB version does not allow the automated toolbox check. We assume that all required toolboxes are available.';
+    warndlg(warningMsg,'Automated toolbox check not working.',opts);
 end   
-
+warning('on','MATLAB:javaclasspath:jarAlreadySpecified');
 end

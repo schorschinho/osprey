@@ -267,7 +267,7 @@ end
 
 % Perform weighted averaging
 % No need for 'mean', since the weights vector w is normalized
-fids = squeeze(sum(fids_out, in.dims.averages);
+fids = squeeze(sum(fids_out, in.dims.averages));
 
 %%% 3. WRITE THE NEW STRUCTURE %%%
 %re-calculate Specs using fft

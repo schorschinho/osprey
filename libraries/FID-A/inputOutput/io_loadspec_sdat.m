@@ -34,20 +34,43 @@ function out = io_loadspec_sdat(filename,subspecs)
 % Determine the dimensions of the data
 data_size       = size(data);
 dims.t          = find(data_size == header.samples);
-dims.averages   = find(data_size == header.rows);
+if header.rows > 1 && header.averages > 1
+    if length(data_size) > 2 % Data has averages and series
+        dims.averages   = find(data_size == header.averages);
+        dims.extras   = find(data_size == header.rows);
+    else % Data has a series stored
+        dims.averages   = 0;
+        dims.extras   = find(data_size == header.rows);
+    end
+else
+    dims.averages   = find(data_size == header.rows);
+end
 dims.coils      = 0; % SDAT is already coil-combined
 % Now arrange in the standard order (samples-avgs-subspecs):
 if (isfield(header, 'nr_of_slices_for_multislice') && header.nr_of_slices_for_multislice > 1) && (isfield(header, 'dim2_pnts') && header.dim2_pnts' > 1)
     data = permute(data ,[dims.t dims.averages dims.Zvoxels]);  
     dims.Zvoxels = 3;
-else
-    data = permute(data ,[dims.t dims.averages]);    
+    dims.averages = 2;
+    dims.extras = 0;
+else if header.rows > 1 && header.averages > 1
+        if length(data_size) > 2 % Data has averages and series
+            data = permute(data ,[dims.t dims.extras dims.averages]);
+            dims.averages = 2;
+            dims.extras = 3;
+        else % Data has a series stored
+            data = permute(data ,[dims.t dims.extras]);
+            dims.averages = 0;
+            dims.extras = 2;
+        end
+    else
+        data = permute(data ,[dims.t dims.averages]);
+        dims.averages = 2;
+        dims.extras = 0;
+    end
 end
 
-
 dims.t = 1;
-dims.averages = 2;
-dims.extras = 0;
+
 
 % We have no way of actually knowing the number of sub-spectra (e.g. for 
 % MEGA-PRESS or HERMES acquisitions, so we will split the averages 
@@ -152,7 +175,6 @@ if isfield(header, 'nr_of_slices_for_multislice') && isfield(header, 'dim2_pnts'
     out.flags.MultiVoxel=1;
 end
 
-
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;
@@ -170,6 +192,30 @@ if out.dims.subSpecs==0
     out.flags.isISIS=0;
 else
     out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
+end
+if dims.extras > 0 % Is a series
+   out.extras = out.sz(dims.extras);
+   extra_names = {};
+   seq = {};
+   for ex = 1 : out.sz(dims.extras)
+       extra_names{ex} = ['Exp_' num2str(ex)];
+       seq{ex} = out.seq;
+   end
+   out.extra_names = extra_names;
+   if dims.averages == 0
+      out.averages=1;
+   end
+   out.spectralwidth = ones(1,out.extras)*spectralwidth;
+   out.dwelltime = ones(1,out.extras)*dwelltime;
+   out.txfrq = ones(1,out.extras)*txfrq;
+   out.exp_var = ones(1,out.extras);
+   out.seq = seq;
+   out.te = ones(1,out.extras)*te;
+   out.tr = ones(1,out.extras)*tr;
+   out.pointsToLeftshift = zeros(1,out.extras);
+   out.centerFreq = ones(1,out.extras)*centerFreq;   
+   out.flags.isSeries = 1;
+   out.flags.MultiVoxel=0;
 end
 % Sequence flags
 out.flags.isUnEdited = 0;

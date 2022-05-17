@@ -54,7 +54,9 @@ if isfield(fitOpts,'mm_clean_spline')
 mm_clean_spline               = op_zeropad(fitOpts.mm_clean_spline, 2);  
 resBasisSet.nMM = 1;
 ind = find(strcmp(resBasisSet.name,'MM09'));
-factor = (max(real(resBasisSet.specs(:,ind)))/max(real(mm_clean_spline.specs)));
+basisSetfactor = op_freqrange(resBasisSet,0,1.2);
+mm_clean_spline_factor = op_freqrange(mm_clean_spline,0.7,1.1);
+factor = (max(real(basisSetfactor.specs(:,ind)))/max(real(mm_clean_spline_factor.specs)));
 resBasisSet.fids = resBasisSet.fids(:,1:resBasisSet.nMets);
 resBasisSet.specs = resBasisSet.specs(:,1:resBasisSet.nMets);
 resBasisSet.name = resBasisSet.name(1:resBasisSet.nMets);
@@ -179,7 +181,11 @@ if ~isfield(fitOpts,'mm_clean_spline') && ~isfield(fitOpts,'GaussLBMM')
         [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP);    
     end
 else
-    [fitParamsStep2] = fit_OspreyPrelimStep2MMExp(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP);   
+    if fitOpts.GaussLBMM 
+        [fitParamsStep2] = fit_OspreyPrelimStep2MMExp(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP); 
+    else
+        [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP);   
+    end
 end
 
 % [J,~,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);
