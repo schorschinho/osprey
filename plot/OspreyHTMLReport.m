@@ -1,4 +1,31 @@
 function [MRSCont] = OspreyHTMLReport(MRSCont,kk)
+%% [MRSCont] = OspreyHTMLReport(MRSCont,kk)
+%   This function creates a short HTML report of the processing and modeling
+%   and should be called at the end of the analysis.
+%
+%   USAGE:
+%       MRSCont = OspreyHTMLReport(MRSCont);
+%
+%   INPUTS:
+%       MRSCont     = Osprey MRS data container.
+%       kk          = subject index
+%
+%   OUTPUTS:
+%       MRSCont     = Osprey MRS data container.
+%
+%   AUTHOR:
+%       Dr. Helge Zoellner (Johns Hopkins University, 2022-05-17)
+%       hzoelln2@jhmi.edu
+%
+%   CREDITS:
+%       This code is based on numerous functions from the FID-A toolbox by
+%       Dr. Jamie Near (McGill University)
+%       https://github.com/CIC-methods/FID-A
+%       Simpson et al., Magn Reson Med 77:23-33 (2017)
+%
+%   HISTORY:
+%       2022-05-17: First version of the code.
+
 colormaps = MRSCont.colormap;
 ppmmin = 0.2;
 ppmmax=4.2;
@@ -112,12 +139,12 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
         else 
             x = xlim;
             y = yLims;
-            text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
+            text(gca, x(2)/6, y(2)/2, 'No drift data available','Color', colormaps.Foreground);
         end
     else
         x = xlim;
         y = yLims;
-        text(ax_drift, x(2)/6, y(2)/2, 'No drift data available','Color', colormap.Foreground);
+        text(gca, x(2)/6, y(2)/2, 'No drift data available','Color', colormaps.Foreground);
     end
     xlabel(gca, 'Averages', 'Color', colormaps.Foreground);
     ylabel(gca, 'Cr frequency (ppm)', 'Color', colormaps.Foreground);
