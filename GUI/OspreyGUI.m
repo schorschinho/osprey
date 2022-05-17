@@ -411,14 +411,14 @@ classdef OspreyGUI < handle
             gui.layout.controlPanel = uix.Panel('Parent', gui.layout.leftMenu, 'Title', 'MRS Container','BackgroundColor',gui.colormap.Background);
             set(gui.layout.controlPanel,'Units','Normalized','Position',[0.5 0 0.66 0.1], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold',...
                 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground,'Tag','SubjectListPanel');
-            gui.layout.fileList = MRSCont.files;
+            gui.layout.fileList = MRSCont.files(1,:);
             if ~MRSCont.flags.moved
                 [~, ~] = osp_detDataType(MRSCont);
             end
-            SepFileList = cell(1,length(MRSCont.files));
-            gui.layout.RedFileList = cell(1,length(MRSCont.files));
-            gui.layout.OnlyFileList = cell(1,length(MRSCont.files));
-            for i = 1 : length(MRSCont.files) %find last two subfolders and file names
+            SepFileList = cell(1,MRSCont.nDatasets(1));
+            gui.layout.RedFileList = cell(1,MRSCont.nDatasets(1));
+            gui.layout.OnlyFileList = cell(1,MRSCont.nDatasets(1));
+            for i = 1 : MRSCont.nDatasets(1) %find last two subfolders and file names
                 SepFileList{i} =  split(gui.layout.fileList(i), filesep);
                 if length(SepFileList{i}) == 1
                     SepFileList{i} =  split(gui.layout.fileList(i), '\');
