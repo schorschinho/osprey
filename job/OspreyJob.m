@@ -52,6 +52,8 @@ switch ext
         jobFileFormat = 'm';
     case '.csv'
         jobFileFormat = 'csv';
+    case '.json'
+        jobFileFormat = 'json';
     otherwise
         error('Unrecognized job file datatype. Job files need to end in .CSV or .M');
 end
@@ -208,6 +210,133 @@ if strcmp(jobFileFormat,'csv')
 
 end
 
+%%% 3b. LOAD JSON FILE %%%
+if strcmp(jobFileFormat,'json')
+    fid = fopen(jobFile); 
+    raw = fread(fid,inf); 
+    str = char(raw'); 
+    fclose(fid); 
+    jobStruct  = jsondecode(str);
+
+    % Check whether the relevant fieldnames have been entered,
+    % and save them as separate cells to be saved into the MRSCont
+    % container.
+    if isfield(jobStruct, 'files')
+        files = {jobStruct.files};
+    else
+        error('Invalid job file! A job file needs to contain at least metabolite data in the field ''files''.');
+    end
+    if isfield(jobStruct, 'files_mm')  %re_mm Adding functionality for MM
+        files_mm = {jobStruct.files_mm};   %re_mm
+    end %re_mm
+    if isfield(jobStruct, 'files_mm_ref')
+        files_mm_ref = {jobStruct.files_mm_ref};
+    end
+    if isfield(jobStruct, 'files_ref')
+        files_ref = {jobStruct.files_ref};
+    end
+    if isfield(jobStruct, 'files_w')
+        files_w = {jobStruct.files_w};
+    end
+    if isfield(jobStruct, 'files_nii')
+        files_nii = {jobStruct.files_nii};
+    end
+    if isfield(jobStruct, 'files_sense')
+        files_sense = {jobStruct.sense};
+    end
+    if isfield(jobStruct, 'outputFolder')
+        outputFolder = jobStruct.outputFolder{1};
+    else
+        error('Invalid job file! A job file needs to specify an output folder.');
+    end
+    if isfield(jobStruct,'seqType')
+        seqType = jobStruct.seqType;
+    else
+        seqType = 'unedited';
+    end
+    if isfield(jobStruct,'MultiVoxel')
+        MultiVoxel = jobStruct.MultiVoxel;
+    else
+        MultiVoxel = 'SVS';
+    end
+    if isfield(jobStruct,'editTarget')
+        MRSCont.opts.editTarget = jobStruct.editTarget;
+    else
+        MRSCont.opts.editTarget = 'unedited';
+    end
+    if isfield(jobStruct,'savePDF')
+        MRSCont.opts.savePDF = jobStruct.savePDF;
+    else
+        MRSCont.opts.savePDF = 0;
+    end
+    if isfield(jobStruct,'dataScenario')
+        dataScenario = jobStruct.dataScenario;
+    else
+        dataScenario = 'invivo';
+    end
+    if isfield(jobStruct,'SpecReg')
+        MRSCont.opts.SpecReg = jobStruct.SpecReg;
+    else
+        MRSCont.opts.SpecReg = 'RobSpecReg';
+    end
+    if isfield(jobStruct,'saveLCM')
+        MRSCont.opts.saveLCM = jobStruct.saveLCM;
+    else
+        MRSCont.opts.saveLCM = 0;
+    end
+    if isfield(jobStruct,'savejMRUI')
+        MRSCont.opts.savejMRUI = jobStruct.savejMRUI;
+    else
+        MRSCont.opts.savejMRUI = 0;
+    end
+    if isfield(jobStruct,'saveVendor')
+        MRSCont.opts.saveVendor = jobStruct.saveVendor;
+    else
+        MRSCont.opts.saveVendor = 1;
+    end
+    if isfield(jobStruct,'saveNII')
+        MRSCont.opts.saveNII = jobStruct.saveNII;
+    else
+        MRSCont.opts.saveNII = 0;
+    end
+    if isfield(jobStruct,'includeMetabs')
+        opts.fit.includeMetabs = jobStruct.includeMetabs;
+    else
+        opts.fit.includeMetabs = {'default'};
+    end
+    if isfield(jobStruct,'method')
+        opts.fit.method = jobStruct.method;
+    else
+        opts.fit.method = 'Osprey';
+    end
+    if isfield(jobStruct,'style')
+        opts.fit.style = jobStruct.style;
+    else
+        opts.fit.style = 'Separate';
+    end
+    if isfield(jobStruct,'lolim_range') && isfield(jobStruct,'uplim_range')
+        opts.fit.range = [jobStruct.lolim_range jobStruct.uplim_range];
+    else
+        MRSCont.opts.fit.range = [0.2 4.2] ;
+    end
+    if isfield(jobStruct,'lolim_rangew') && isfield(jobStruct,'uplim_rangew')
+        MRSCont.opts.fit.range = [jobStruct.lolim_range jobStruct.uplim_range];
+    else
+        MRSCont.opts.fit.range = [2.0 7.4] ;
+    end
+    if isfield(jobStruct,'KnotSpace')
+        MRSCont.opts.fit.bLineKnotSpace = jobStruct.KnotSpace;
+    else
+        MRSCont.opts.fit.bLineKnotSpace = 0.4;
+    end
+    if isfield(jobStruct,'fitMM')
+        MRSCont.opts.fit.fitMM = jobStruct.fitMM;
+    else
+        MRSCont.opts.fit.fitMM = 1;
+    end
+    debug = '11';
+end
+
 if exist('opts','var')
     names = fields(opts);
     for f = 1 : length(names)
@@ -361,6 +490,9 @@ if exist('dataScenario','var')
             % If phantom data are used, override some default fit options
             MRSCont.opts.fit.bLineKnotSpace = 1.0;
             MRSCont.opts.fit.fitMM          = 0;
+        case 'Series'
+            MRSCont.flags.isSeries = 1; 
+            MRSCont.flags.isPhantom = 0;
         otherwise
             MRSCont.flags.isPhantom = 0;
             warning('Data scenario must be ''invivo'' or ''phantom'' in the job file, and has been set to ''invivo'' (default).');
@@ -670,7 +802,7 @@ else
     fprintf(['Timestamp %s ' MRSCont.ver.Osp  '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
     end
 end
-
+MRSCont.nDatasets = size(MRSCont.files,2);
 %%% 8. SAVE THE OUTPUT STRUCTURE TO THE OUTPUT FOLDER %%%
 % Add a save dummy with the GUI flag turned off
 saveMRSCont = MRSCont;
