@@ -86,39 +86,57 @@ for kk = 1:MRSCont.nDatasets(1)
         if strcmp(T1extini,'.gz')
             T1name = strrep(T1name, '.nii','');
         end
+        
+        if ~isempty(MRSCont.files_seg) %Use external segmentation
+            segFileGM   = MRSCont.files_seg{kk}{1};
+            segFileWM   = MRSCont.files_seg{kk}{2};
+            segFileCSF  = MRSCont.files_seg{kk}{3};
 
-        segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
-        % If a GM-segmented file doesn't exist, start the segmentation
-        if ~exist(segFile,'file')
-            %Uncompress .nii.gz if needed
-            if strcmp(T1extini,'.gz')
-                gunzip(niftiFile);
-                niftiFile = strrep(niftiFile,'.gz','');                
-            end  
-            T1ext = '.nii';
-            createSegJob(niftiFile);
-        else
-            if strcmp(T1extini,'.gz')
-                gunzip(niftiFile);
-                niftiFile = strrep(niftiFile,'.gz','');
-                T1ext = '.nii';
-            else
-                T1ext = T1extini;
-            end  
-            if exist(fullfile(T1dir, ['c1' T1name '.nii.gz']),'file')
-                gunzip(fullfile(T1dir, ['c1' T1name T1ext '.gz']));
-                gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
-                gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
+            [~, ~, Segextini]  = fileparts(segFileGM);
+
+            if strcmp(Segextini,'.gz')
+                gunzip(segFileGM);
+                gunzip(segFileWM);
+                gunzip(segFileCSF);
+                segFileGM   = strrep(segFileGM,'.gz','');
+                segFileWM   = strrep(segFileWM,'.gz','');
+                segFileCSF  = strrep(segFileCSF,'.gz','');
             end
-            T1ext = '.nii';
+        else
+            segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
+            % If a GM-segmented file doesn't exist, start the segmentation
+            if ~exist(segFile,'file')
+                %Uncompress .nii.gz if needed
+                if strcmp(T1extini,'.gz')
+                    gunzip(niftiFile);
+                    niftiFile = strrep(niftiFile,'.gz','');                
+                end  
+                T1ext = '.nii';
+                createSegJob(niftiFile);
+            else
+                if strcmp(T1extini,'.gz')
+                    gunzip(niftiFile);
+                    niftiFile = strrep(niftiFile,'.gz','');
+                    T1ext = '.nii';
+                else
+                    T1ext = T1extini;
+                end  
+                if exist(fullfile(T1dir, ['c1' T1name '.nii.gz']),'file')
+                    gunzip(fullfile(T1dir, ['c1' T1name T1ext '.gz']));
+                    gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
+                    gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
+                end
+                T1ext = '.nii';
+            end
         end
-
 
         %%% 2. CREATE MASKED TISSUE MAPS %%%
         % Define file names
-        segFileGM   = fullfile(T1dir, ['c1' T1name T1ext]);
-        segFileWM   = fullfile(T1dir, ['c2' T1name T1ext]);
-        segFileCSF  = fullfile(T1dir, ['c3' T1name T1ext]);
+        if isempty(MRSCont.files_seg) %Use SPM segmentation
+            segFileGM   = fullfile(T1dir, ['c1' T1name T1ext]);
+            segFileWM   = fullfile(T1dir, ['c2' T1name T1ext]);
+            segFileCSF  = fullfile(T1dir, ['c3' T1name T1ext]);
+        end
         % Load volumes
         GMvol  = spm_vol(segFileGM);
         WMvol  = spm_vol(segFileWM);
@@ -263,21 +281,28 @@ for kk = 1:MRSCont.nDatasets(1)
             delete(vol_WMMask.fname);
             gzip(vol_CSFMask.fname);
             delete(vol_CSFMask.fname);
-            gzip(GMvol.fname);
-            delete(GMvol.fname);
-            gzip(WMvol.fname);
-            delete(WMvol.fname);
-            gzip(CSFvol.fname);
-            delete(CSFvol.fname);
-            delete(vol_mask.fname);
-            
-            if strcmp(T1extini,'.gz')
-                gzip(MRSCont.coreg.vol_image{kk}.fname)
-                delete(MRSCont.coreg.vol_image{kk}.fname);
+            if isempty(MRSCont.files_seg) %Standard SPM12 segmentation
+                gzip(GMvol.fname);
+                delete(GMvol.fname);
+                gzip(WMvol.fname);
+                delete(WMvol.fname);
+                gzip(CSFvol.fname);
+                delete(CSFvol.fname);
+            elseif strcmp(Segextini,'.gz') %External segmentation
+                gzip(GMvol.fname);
+                delete(GMvol.fname);
+                gzip(WMvol.fname);
+                delete(WMvol.fname);
+                gzip(CSFvol.fname);
+                delete(CSFvol.fname);
             end
-
-
-
+            delete(vol_mask.fname);  
+            if strcmp(T1extini,'.gz')
+                if ~exist([MRSCont.coreg.vol_image{kk}.fname,'.gz'],'file')
+                    gzip(MRSCont.coreg.vol_image{kk}.fname)
+                    delete(MRSCont.coreg.vol_image{kk}.fname);
+                end
+            end
 
             % Normalize
             fGM  = GMsum / (GMsum + WMsum + CSFsum);

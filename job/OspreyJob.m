@@ -55,7 +55,7 @@ switch ext
     case '.json'
         jobFileFormat = 'json';
     otherwise
-        error('Unrecognized job file datatype. Job files need to end in .CSV or .M');
+        error('Unrecognized job file datatype. Job files need to end in .CSV, .M or .JASON');
 end
 
 
@@ -96,6 +96,9 @@ if strcmp(jobFileFormat,'csv')
     end
     if isfield(jobStruct, 'files_nii')
         files_nii = {jobStruct.files_nii};
+    end
+    if isfield(jobStruct, 'files_seg')
+        files_seg = {jobStruct.files_seg};
     end
     if isfield(jobStruct, 'files_sense')
         files_sense = {jobStruct.sense};
@@ -240,6 +243,9 @@ if strcmp(jobFileFormat,'json')
     end
     if isfield(jobStruct, 'files_nii')
         files_nii = {jobStruct.files_nii};
+    end
+    if isfield(jobStruct, 'files_seg')
+        files_seg = {jobStruct.files_seg};
     end
     if isfield(jobStruct, 'files_sense')
         files_sense = {jobStruct.sense};
@@ -585,6 +591,11 @@ if exist('files_nii','var')
 else
     MRSCont.files_nii = {};
 end
+if exist('files_seg','var')
+    MRSCont.files_seg = files_seg;
+else
+    MRSCont.files_seg = {};
+end
 if exist('files_sense','var')
     MRSCont.files_sense = files_sense;
 else
@@ -597,7 +608,7 @@ else
 end
 
 % Check that each array has an identical number of entries
-fieldNames = {'files', 'files_ref', 'files_w','files_mm','files_mm_ref', 'files_nii', 'files_sense'};
+fieldNames = {'files', 'files_ref', 'files_w','files_mm','files_mm_ref', 'files_nii', 'files_seg', 'files_sense'};
 ctr = 0;
 for kk = 1:length(fieldNames)
     if isfield(MRSCont, fieldNames{kk})
@@ -700,6 +711,9 @@ if ~GUI
                             if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
                             end
+                            if isfield(MRSCont,'files_seg')
+                                MRSCont.files_seg = MRSContNew.files_seg;
+                            end
                             if isfield(MRSCont,'files_sense')
                                 MRSCont.files_sense = MRSContNew.files_sense;
                             end
@@ -781,6 +795,9 @@ else
                             end
                             if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
+                            end
+                            if isfield(MRSCont,'files_seg')
+                                MRSCont.files_seg = MRSContNew.files_seg;
                             end
                             if isfield(MRSCont,'files_sense')
                                 MRSCont.files_sense = MRSContNew.files_sense;
