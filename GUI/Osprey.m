@@ -16,7 +16,7 @@ function  Osprey
 %   HISTORY:
 %       2019-07-11: First version of the code.
 %% Check for available add-ons
-  [~] = osp_Toolbox_Check ('OspreyGUI',0);
+  [~,~] = osp_Toolbox_Check ('OspreyGUI',0);
 %% Set up Layout
 %Here we set up the color layout
 %default colormap and fonts
@@ -30,7 +30,7 @@ ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Ospr
 logoFcn = @()imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
 logoBanner = uiw.utility.loadIcon(logoFcn);
 % Here the intro banner is created
-gui.d = uiw.dialog.About('Name', 'Osprey','Version','2.0.0','Date', 'April 12, 2022',...
+gui.d = uiw.dialog.About('Name', 'Osprey','Version','2.1.0','Date', 'April 12, 2022',...
 'Timeout', 3,'CustomText', 'Osprey is provided by Johns Hopkins University.',...
 'ContactInfo', 'gabamrs@gmail.com','LogoCData', logoBanner);
 
@@ -79,7 +79,7 @@ gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBa
     set(gui.CreateJob,'Callback',{@onCreateJob});
     % JobFile input button
     gui.LoadJob = uicontrol('Parent', gui.Buttons,'Style','PushButton','String','Load Job file','ForegroundColor', gui.colormap.Foreground,...
-                               'TooltipString', 'Load a Job (.m or .csv-file)');
+                               'TooltipString', 'Load a Job (.m, .json or .csv-file) Osprey Standalone Supports .json and .csv files only');
     set(gui.LoadJob,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold');
     set(gui.LoadJob,'Callback',{@onLoadJob});
     % MRSCont input button
@@ -161,7 +161,7 @@ end % onCreateJob
 
 function onLoadJob( ~, ~) %Callback Load Job button
     % User wants to quit out of the application
-    gui.out =  uipickfiles('FilterSpec',[ospFolder], 'REFilter', '\.m$|\.csv$','NumFiles',1,'Prompt','Select Osprey job file (.m or .csv-file)');
+    gui.out =  uipickfiles('FilterSpec',[ospFolder], 'REFilter', '\.m$|\.csv$|\.json$','NumFiles',1,'Prompt','Select Osprey job file (.m, .json or .csv-file)');
     if iscell(gui.out)
         loadJob(gui);
     end

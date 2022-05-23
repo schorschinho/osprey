@@ -32,8 +32,7 @@ outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
 
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreyProcess');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyProcess',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyProcess');
 
 
 %% Data post-processing starts here
@@ -52,7 +51,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
         [~] = printLog('OspreyProcess',kk,ll,MRSCont.nDatasets(1),progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 
 
-        if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A)))  || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+        if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > size(MRSCont.processed.metab,2)))  || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
 %%          %%% 1. GET RAW DATA %%%
             raw                         = MRSCont.raw{metab_ll,kk};                                          % Get the kk-th dataset

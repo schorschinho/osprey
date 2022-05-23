@@ -23,5 +23,9 @@ function osp_onGit( ~, ~)
 %       2020-01-16: First version of the code.
 %%% 1. Visit websites %%%
 
-web('https://github.com/schorschinho/osprey', '-browser'); %Github Link
+try
+    web('https://github.com/schorschinho/osprey', '-browser'); %Github Link
+catch
+    system('open "https://github.com/schorschinho/osprey"'); %for compiled Osprey
+end
 end 

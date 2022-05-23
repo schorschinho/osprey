@@ -31,8 +31,7 @@ outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
 
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreyOverview');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyOverview',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyOverview');
 
 
 %%% 2. INITIALIZE VARIABLES %%%
