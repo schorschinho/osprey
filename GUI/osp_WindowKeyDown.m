@@ -35,7 +35,7 @@ function osp_WindowKeyDown(~,EventData,gui)
         OldValue = get( gui.layout.ListBox,'value');
         gui.controls.KeyPress = 1;
         if OldValue == 1
-            set(gui.layout.ListBox, 'value', MRSCont.nDatasets );
+            set(gui.layout.ListBox, 'value', MRSCont.nDatasets(1));
         else
             set(gui.layout.ListBox, 'value', OldValue-1 );
         end
@@ -43,7 +43,7 @@ function osp_WindowKeyDown(~,EventData,gui)
     if strcmp(EventData.Key, 'downarrow') % scrolling down
         OldValue = get( gui.layout.ListBox,'value');
         gui.controls.KeyPress = 1;
-        if OldValue == MRSCont.nDatasets
+        if OldValue == MRSCont.nDatasets(1)
             set(gui.layout.ListBox, 'value', 1 );
         else
             set(gui.layout.ListBox, 'value', OldValue+1 );
