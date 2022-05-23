@@ -95,7 +95,7 @@ end
 
 imagesc(three_plane_img);
 colormap('gray');
-caxis([0 1])
+caxis([0 mean(three_plane_img(three_plane_img > 0.01)) + 3*std(three_plane_img(three_plane_img > 0.01))]);
 axis equal;
 axis tight;
 axis off;
