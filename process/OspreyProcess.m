@@ -576,7 +576,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             end
             % Apply iterative water filter
             raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-            raw_no_subspec_aling = op_iterativeWaterFilter(raw_no_subspec_aling, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+            if exist('raw_no_subspec_aling','var')
+                raw_no_subspec_aling = op_iterativeWaterFilter(raw_no_subspec_aling, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+            end
 
             if MRSCont.flags.hasMM %re_mm
                 raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
@@ -615,7 +617,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             [raw,SNR] = op_get_Multispectra_SNR(raw);
             FWHM = op_get_Multispectra_LW(raw);
             MRSCont.processed.metab{metab_ll,kk}     = raw;
-            MRSCont.processed_no_align.metab{metab_ll,kk}     = raw_no_subspec_aling;
+            if exist('raw_no_subspec_aling','var')
+                MRSCont.processed_no_align.metab{metab_ll,kk}     = raw_no_subspec_aling;
+            end
             for ss = 1 : length(SubSpec)
                 MRSCont.QM.SNR.metab(metab_ll,kk,ss)    = SNR{ss};
                 MRSCont.QM.FWHM.metab(metab_ll,kk,ss)   = FWHM(ss); % in Hz
