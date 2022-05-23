@@ -87,16 +87,16 @@ classdef OspreyGUI < handle
                 end
             end
             diary off
+            
+            % This is for the compiled GUI
+            MRSCont.flags.hasSPM = 1; 
+            
         % Toolbox check
             if isfield(MRSCont.flags,'isToolChecked')
                 [MRSCont.flags.hasSPM,MRSCont.ver.CheckOsp] = osp_Toolbox_Check ('OspreyGUI',MRSCont.flags.isToolChecked);
             else
                 [MRSCont.flags.hasSPM,MRSCont.ver.CheckOsp] = osp_Toolbox_Check ('OspreyGUI',0);
                 MRSCont.flags.isToolChecked = 1;
-            end
-            if MRSCont.flags.hasSPM
-                load(fullfile(gui.folder.ospFolder,'GUI','SPMpath.mat'),'SPMpath')
-                gui.folder.spmversion = SPMpath;
             end
               
     % Show warning if the version is different
@@ -150,7 +150,7 @@ classdef OspreyGUI < handle
         end
 
         %Setting up remaining values in dependence of the conducted processing steps
-            if MRSCont.flags.didLoadData %Get variables regarding the loading
+            if MRSCont.flags.didLoad %Get variables regarding the loading
                 if ~isempty(MRSCont.raw{1,gui.controls.Selected}.seq)
                     if strcmp(sprintf('\n'),MRSCont.raw{1,gui.controls.Selected}.seq(end)) %Clean up Sequence Name if needed
                         gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq(1:end-1);
@@ -266,7 +266,7 @@ classdef OspreyGUI < handle
                 end
                 
             end
-            gui.waitbar.overall = MRSCont.flags.didLoadData+MRSCont.flags.didProcess+MRSCont.flags.didFit+MRSCont.flags.didCoreg+MRSCont.flags.didSeg+MRSCont.flags.didQuantify+MRSCont.flags.didOverview;
+            gui.waitbar.overall = MRSCont.flags.didLoad+MRSCont.flags.didProcess+MRSCont.flags.didFit+MRSCont.flags.didCoreg+MRSCont.flags.didSeg+MRSCont.flags.didQuantify+MRSCont.flags.didOverview;
             gui.waitbar.step = 1/ gui.waitbar.overall;
 
             %Version check and updating log file
@@ -333,7 +333,7 @@ classdef OspreyGUI < handle
             gui.layout.b_load = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Load data','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_load,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','LoadButton');
             
-            if  (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw')) 
+            if  (MRSCont.flags.didLoad == 1  && isfield(MRSCont, 'raw')) 
                 sz_raw = size(MRSCont.raw);
                 if  (gui.controls.nDatasets(1) >= sz_raw(end))
                     gui.layout.b_load.Enable = 'off';
@@ -346,7 +346,7 @@ classdef OspreyGUI < handle
             set(gui.layout.b_proc,'Units','Normalized','Position',[0.1 0.75 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','ProcButton');
             if (MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= length(MRSCont.processed.metab)))
                 gui.layout.b_proc.Enable = 'off';
-            else if ~(MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= sz_raw(end)))
+            else if ~(MRSCont.flags.didLoad == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= sz_raw(end)))
                     gui.layout.b_proc.Enable = 'off';
                 end
             end
@@ -364,7 +364,7 @@ classdef OspreyGUI < handle
         % Coregister button
             gui.layout.b_coreg = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','CoRegister','Enable','off','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_coreg,'Units','Normalized','Position',[0.1 0.59 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','CoregButton');
-            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets(1) >= length(MRSCont.coreg.vol_image))) && (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= length(MRSCont.raw)))               
+            if MRSCont.flags.hasSPM == 1 && ~isempty(MRSCont.files_nii) && ~(MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets(1) >= length(MRSCont.coreg.vol_image))) && (MRSCont.flags.didLoad == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= length(MRSCont.raw)))               
                 if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 0) && MRSCont.flags.moved)
                     gui.layout.b_coreg.Enable = 'on';
                 end
@@ -470,7 +470,7 @@ classdef OspreyGUI < handle
         % been completed:
             gui.controls.waitbar = waitbar(0,'Start','Name','Loading your MRS Container');
             waitbar(0,gui.controls.waitbar,'Loading your raw spectra')
-            if (MRSCont.flags.didLoadData == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= sz_raw(end))) % Was data loaded at all that can be looked at?
+            if (MRSCont.flags.didLoad == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= sz_raw(end))) % Was data loaded at all that can be looked at?
                 set(gui.layout.tabs, 'Visible','on');
                 osp_iniLoadWindow(gui);
                 if MRSCont.flags.isMRSI
@@ -528,7 +528,7 @@ classdef OspreyGUI < handle
                 set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
             end
             gui.layout.tabs.Selection  = 1;
-            if ~MRSCont.flags.didLoadData %Turn of Listbox if data has not been loaded
+            if ~MRSCont.flags.didLoad %Turn of Listbox if data has not been loaded
                 gui.layout.ListBox.Enable = 'off';
             end
             set(gui.layout.tabs, 'Visible','on');

@@ -30,11 +30,13 @@ function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %
 %   HISTORY:
 %       2020-05-15: First version of the code.
-%%
-%%% 1. GET SPMPATH AND TOOLBOXES%%%
-warning('off','MATLAB:javaclasspath:jarAlreadySpecified');
-OspreyVersion = 'Osprey 2.0.0';
+%% % 1. SAVE OSPREY VERSION%%%
+%%% 1. SAVE OSPREY VERSION%%%
+OspreyVersion = 'Osprey 2.1.0';
 fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+hasSPM = 1; % For the compiled GUI
+%% % 2. GET SPMPATH AND TOOLBOXES%%%
+warning('off','MATLAB:javaclasspath:jarAlreadySpecified');
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
 for tl = 1 : size(addons,1)
@@ -90,7 +92,7 @@ try
         available(find(cellfun(@(a)~isempty(a)&&a<1,enabled)), :) = [];
     end    
 
-    %%% 2. CHECK AVAILABILTY %%%
+    %%% 3. CHECK AVAILABILTY %%%
     switch Module
         case 'OspreyGUI'
             ModuleString = 'fully run \bfOsprey';
@@ -130,7 +132,7 @@ try
     missingSpecific = setdiff(neededSpecific,available);
     missing = setdiff(neededGlobal,available); 
 
-    %%% 3. CREATE WARNING MESSAGES %%%
+    %%% 4. CREATE WARNING MESSAGES %%%
     if ~ToolChecked
         warningMsg = cellstr({});
         warning_count = 1;

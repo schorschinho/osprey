@@ -38,8 +38,7 @@ outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
 
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreyQuantify');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyQuantify',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyQuantify');
 
 
 %%% 0. CHECK WHICH QUANTIFICATIONS CAN BE DONE %%%

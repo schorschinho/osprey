@@ -1,4 +1,4 @@
-function osp_CheckRunPreviousModule(MRSCont, module)
+function [hasSPM,OspreyVersion] = osp_CheckRunPreviousModule(MRSCont, module)
 %% osp_CheckRunPreviousModule(MRSCont, module)
 %   This function checks that all required modules have been run prior to
 %   executing the module name that is passed as an argument to this
@@ -24,34 +24,38 @@ function osp_CheckRunPreviousModule(MRSCont, module)
 %
 
 switch module
+    case 'OspreyLoad'
+        requiredModules     = {'OspreyJob'};
+        requiredModuleVerbs = {'defined (job)'};
+        currentModuleVerb   = 'load';
     case 'OspreyProcess'
         requiredModules     = {'OspreyLoad'};
-        requiredModuleVerbs = {'loaded'};
+        requiredModuleVerbs = {'defined (job)','loaded'};
         currentModuleVerb   = 'process';
         
     case 'OspreyFit'
         requiredModules     = {'OspreyLoad', 'OspreyProcess'};
-        requiredModuleVerbs = {'loaded', 'processed'};
+        requiredModuleVerbs = {'defined (job)','loaded', 'processed'};
         currentModuleVerb   = 'fit';
 
     case 'OspreyCoreg'
         requiredModules     = {'OspreyLoad'};
-        requiredModuleVerbs = {'loaded'};
+        requiredModuleVerbs = {'defined (job)','loaded'};
         currentModuleVerb   = 'coregister';
         
     case 'OspreySeg'
         requiredModules     = {'OspreyLoad', 'OspreyCoreg'};
-        requiredModuleVerbs = {'loaded', 'coregistered'};
+        requiredModuleVerbs = {'defined (job)','loaded', 'coregistered'};
         currentModuleVerb   = 'segment';
         
     case 'OspreyQuantify'
         requiredModules     = {'OspreyLoad', 'OspreyProcess', 'OspreyFit'};
-        requiredModuleVerbs = {'loaded', 'processed', 'fit'};
+        requiredModuleVerbs = {'defined (job)','loaded', 'processed', 'fit'};
         currentModuleVerb   = 'quantify';
         
     case 'OspreyOverview'
         requiredModules     = {'OspreyLoad', 'OspreyProcess'};
-        requiredModuleVerbs = {'loaded', 'OspreyProcess'};
+        requiredModuleVerbs = {'defined (job)','loaded', 'OspreyProcess'};
         currentModuleVerb   = 'create overview of';
         
     otherwise
@@ -62,17 +66,16 @@ end
 for rr = 1:length(requiredModules)
     % Flag names are the name of the module minus the 'Osprey' string.
     flagName = strrep(requiredModules{rr}, 'Osprey', 'did');
-    
-    % For backwards compatibility:
-    if ~isfield(MRSCont.flags, 'didLoad') 
-        flagName = 'didLoadData';
-    end
-    
+       
     if ~MRSCont.flags.(flagName)
         error('Trying to %s data, but data has not been %s yet. Run %s first.', currentModuleVerb, requiredModuleVerbs{rr}, requiredModules{rr});
     end
         
 end
 
+%Do the toolbox check here
+OspreyVersion = 'Osprey 2.1.0';
+hasSPM = 1;
+[hasSPM,OspreyVersion ] = osp_Toolbox_Check (module,MRSCont.flags.isGUI);
 
 end

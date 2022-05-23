@@ -49,20 +49,21 @@ MRSCont.opts.ECC.mm                = 1;                 % Do ECC for all metabol
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
-allFolders      = strsplit(settingsFolder, filesep);
-ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
-matlabFolder    = strjoin(allFolders(1:end-2), filesep); % parent-parent folder (usually MATLAB folder)
-addpath(genpath(ospFolder));
+if isempty(settingsFolder)
+     error('Osprey not found! Please install Osprey (https://github.com/schorschinho/osprey) and include it in your MATLAB path.');
+else
+    allFolders      = strsplit(settingsFolder, filesep);
+    ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
+end
 
 % SPM
-addpath(genpath([matlabFolder filesep 'spm12' filesep]));    % SPM path
 % Check if SPM12 is installed
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)
-    warning('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.');
+    warning('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and include it in your MATLAB path.');
 elseif strcmpi(spmversion(end-3:end),'spm8')
     warning(['SPM8 detected, but only SPM12 is supported. ' ...
-           'Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and set the path in OspreySettings.']);
+           'Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and include it in your MATLAB path.']);
 end
 
 %%% 3. INITIALISE MRSCONT FIELDS AND FLAGS %%%
@@ -82,32 +83,12 @@ MRSCont.flags.didLCMWrite   = 0;
 MRSCont.flags.didjMRUIWrite = 0;
 MRSCont.flags.didVendorWrite= 0;
 MRSCont.flags.didJob        = 0;
-MRSCont.flags.didLoadData   = 0;
+MRSCont.flags.didLoad   = 0;
 MRSCont.flags.didProcess    = 0;
 MRSCont.flags.didCoreg      = 0;
 MRSCont.flags.didSeg        = 0;
 MRSCont.flags.didFit        = 0;
 MRSCont.flags.didQuantify   = 0;
 MRSCont.flags.didOverview   = 0;
-
-
-%%% DO NOT EDIT BELOW - DO NOT EDIT BELOW - DO NOT EDIT BELOW - DO NOT EDIT BELOW %%%
-
-%%% 4. INITIALISE ALLOWED FILE TYPES (FOR GUI USE) %%% 
-global globalDefaults
-globalDefaults.supportedFileTypes.DeIdentify = {'*.sdat','Philips SDAT files (*.sdat)'; ...
-    '*.rda','Siemens RDA files (*.rda)'; ...
-    '*.dat','Siemens TWIX files (*.dat)'; ...
-    '*.7','GE P-files (*.7)'};
-globalDefaults.supportedFileTypes.Load = {'*.sdat','Philips SDAT/SPAR files (*.sdat)'; ...
-    '*.data','Philips DATA/LIST files (*.data)'; ...
-    '*.raw','Philips RAW/SIN/LAB files (*.raw)'; ...
-    '*.rda','Siemens RDA files (*.rda)'; ...
-    '*.dat','Siemens TWIX files (*.dat)'; ...
-    '*.dcm;*.ima','Siemens DICOM files (*.dcm,*.ima)'; ...
-    '*.7','GE P-files (*.7)'};
-globalDefaults.supportedFileTypes.Nifti = {'*.nii','NIfTI files (*.nii)'};    
-globalDefaults.supportedFileTypes.Mat = {'*.mat','MATLAB files (*.mat)'};
-%%% DO NOT EDIT - DO NOT EDIT - DO NOT EDIT - DO NOT EDIT %%%
 
 end

@@ -189,14 +189,14 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct,'lolim_range') && isfield(jobStruct,'uplim_range')
         opts.fit.range = [jobStruct(1).lolim_range jobStruct(1).uplim_range];
     else
-        fprintf('Fitting range is set to [0.2 4.2] ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
-        MRSCont.opts.fit.range = [0.2 4.2] ;
+        fprintf('Fitting range is set to [0.5 4] ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.fit.range = [0.5 4] ;
     end
     if isfield(jobStruct,'lolim_rangew') && isfield(jobStruct,'uplim_rangew')
-        MRSCont.opts.fit.range = [jobStruct(1).lolim_range jobStruct(1).uplim_range];
+        MRSCont.opts.fit.rangeWater = [jobStruct(1).lolim_rangew jobStruct(1).uplim_rangew];
     else
-        fprintf('Fitting range is set to [0.2 4.2] ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
-        MRSCont.opts.fit.range = [2.0 7.4] ;
+        fprintf('Fitting range is set to [2.0 7.4] ppm (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.fit.rangeWater = [2.0 7.4] ;
     end
     if isfield(jobStruct,'KnotSpace')
         MRSCont.opts.fit.bLineKnotSpace = jobStruct(1).KnotSpace;
@@ -225,35 +225,40 @@ if strcmp(jobFileFormat,'json')
     % and save them as separate cells to be saved into the MRSCont
     % container.
     if isfield(jobStruct, 'files')
-        files = {jobStruct.files};
+        files = jobStruct.files';
     else
         error('Invalid job file! A job file needs to contain at least metabolite data in the field ''files''.');
     end
     if isfield(jobStruct, 'files_mm')  %re_mm Adding functionality for MM
-        files_mm = {jobStruct.files_mm};   %re_mm
+        files_mm = jobStruct.files_mm';   %re_mm
     end %re_mm
     if isfield(jobStruct, 'files_mm_ref')
-        files_mm_ref = {jobStruct.files_mm_ref};
+        files_mm_ref = jobStruct.files_mm_ref';
     end
     if isfield(jobStruct, 'files_ref')
-        files_ref = {jobStruct.files_ref};
+        files_ref = jobStruct.files_ref';
     end
     if isfield(jobStruct, 'files_w')
-        files_w = {jobStruct.files_w};
+        files_w = jobStruct.files_w';
     end
     if isfield(jobStruct, 'files_nii')
-        files_nii = {jobStruct.files_nii};
+        files_nii = jobStruct.files_nii';
     end
     if isfield(jobStruct, 'files_seg')
-        files_seg = {jobStruct.files_seg};
+        files_seg = jobStruct.files_seg';
     end
     if isfield(jobStruct, 'files_sense')
-        files_sense = {jobStruct.sense};
+        files_sense = jobStruct.sense';
     end
     if isfield(jobStruct, 'outputFolder')
         outputFolder = jobStruct.outputFolder{1};
     else
         error('Invalid job file! A job file needs to specify an output folder.');
+    end
+    if isfield(jobStruct, 'file_stat')
+        outputFolder = jobStruct.file_stat{1};
+    else
+        '';
     end
     if isfield(jobStruct,'seqType')
         seqType = jobStruct.seqType;
@@ -266,9 +271,9 @@ if strcmp(jobFileFormat,'json')
         MultiVoxel = 'SVS';
     end
     if isfield(jobStruct,'editTarget')
-        MRSCont.opts.editTarget = jobStruct.editTarget;
+        editTarget = jobStruct.editTarget';
     else
-        MRSCont.opts.editTarget = 'unedited';
+        editTarget = {'none'};
     end
     if isfield(jobStruct,'savePDF')
         MRSCont.opts.savePDF = jobStruct.savePDF;
@@ -285,28 +290,55 @@ if strcmp(jobFileFormat,'json')
     else
         MRSCont.opts.SpecReg = 'RobSpecReg';
     end
+    if isfield(jobStruct,'SubSpecAlignment')
+        MRSCont.opts.SubSpecAlignment = jobStruct.SubSpecAlignment;
+    else
+        MRSCont.opts.SubSpecAlignment = 'L2Norm';
+    end
+    if isfield(jobStruct,'UnstableWater')
+        MRSCont.opts.UnstableWater = str2num(jobStruct.UnstableWater);
+    else
+        MRSCont.opts.UnstableWater = 0;
+    end
+    if isfield(jobStruct,'ECCmetab')
+        MRSCont.opts.ECC.raw = str2num(jobStruct.ECCmetab);
+    end
+    if isfield(jobStruct,'ECCmm')
+        MRSCont.opts.ECC.mm = str2num(jobStruct.ECCmm);
+    end
+    if isfield(jobStruct,'MM3coModel')
+        MRSCont.opts.fit.coMM3 = jobStruct.MM3coModel;
+    end
+    if isfield(jobStruct,'FWHMMM3co')
+        MRSCont.opts.fit.FWHMcoMM3= num2str(jobStruct.FWHMMM3co);
+    end
     if isfield(jobStruct,'saveLCM')
-        MRSCont.opts.saveLCM = jobStruct.saveLCM;
+        MRSCont.opts.saveLCM = str2num(jobStruct.saveLCM);
     else
         MRSCont.opts.saveLCM = 0;
     end
     if isfield(jobStruct,'savejMRUI')
-        MRSCont.opts.savejMRUI = jobStruct.savejMRUI;
+        MRSCont.opts.savejMRUI = str2num(jobStruct.savejMRUI);
     else
         MRSCont.opts.savejMRUI = 0;
     end
     if isfield(jobStruct,'saveVendor')
-        MRSCont.opts.saveVendor = jobStruct.saveVendor;
+        MRSCont.opts.saveVendor = str2num(jobStruct.saveVendor);
     else
-        MRSCont.opts.saveVendor = 1;
+        MRSCont.opts.saveVendor = 0;
     end
     if isfield(jobStruct,'saveNII')
-        MRSCont.opts.saveNII = jobStruct.saveNII;
+        MRSCont.opts.saveNII = str2num(jobStruct.saveNII);
     else
         MRSCont.opts.saveNII = 0;
     end
+    if isfield(jobStruct,'savePDF')
+        MRSCont.opts.savePDF = str2num(jobStruct.savePDF);
+    else
+        MRSCont.opts.savePDF = 0;
+    end
     if isfield(jobStruct,'includeMetabs')
-        opts.fit.includeMetabs = jobStruct.includeMetabs;
+        opts.fit.includeMetabs = {jobStruct.includeMetabs'};
     else
         opts.fit.includeMetabs = {'default'};
     end
@@ -321,22 +353,22 @@ if strcmp(jobFileFormat,'json')
         opts.fit.style = 'Separate';
     end
     if isfield(jobStruct,'lolim_range') && isfield(jobStruct,'uplim_range')
-        opts.fit.range = [jobStruct.lolim_range jobStruct.uplim_range];
+        opts.fit.range = [str2num(jobStruct.lolim_range) str2num(jobStruct.uplim_range)];
     else
         MRSCont.opts.fit.range = [0.2 4.2] ;
     end
     if isfield(jobStruct,'lolim_rangew') && isfield(jobStruct,'uplim_rangew')
-        MRSCont.opts.fit.range = [jobStruct.lolim_range jobStruct.uplim_range];
+        MRSCont.opts.fit.rangeWater = [str2num(jobStruct.lolim_rangew) str2num(jobStruct.uplim_rangew)];
     else
-        MRSCont.opts.fit.range = [2.0 7.4] ;
+        MRSCont.opts.fit.rangeWater = [2.0 7.4] ;
     end
-    if isfield(jobStruct,'KnotSpace')
-        MRSCont.opts.fit.bLineKnotSpace = jobStruct.KnotSpace;
+    if isfield(jobStruct,'bLineKnotSpace')
+        MRSCont.opts.fit.bLineKnotSpace = str2num(jobStruct.bLineKnotSpace);
     else
         MRSCont.opts.fit.bLineKnotSpace = 0.4;
     end
     if isfield(jobStruct,'fitMM')
-        MRSCont.opts.fit.fitMM = jobStruct.fitMM;
+        MRSCont.opts.fit.fitMM = str2num(jobStruct.fitMM);
     else
         MRSCont.opts.fit.fitMM = 1;
     end
@@ -396,7 +428,11 @@ switch seqType
         end
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
-        MRSCont.opts.editTarget             = editTarget;
+        if exist('editTarget','var')
+            MRSCont.opts.editTarget             = editTarget;
+        else
+            MRSCont.opts.editTarget = {'GABA'};
+        end
         MRSCont.opts.fit.style = opts.fit.style;
         if strcmp(opts.fit.style, 'Concatenated')
             fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
@@ -429,7 +465,11 @@ switch seqType
         end
     case 'HERMES'
         MRSCont.flags.isHERMES      = 1;
-        MRSCont.opts.editTarget             = editTarget;
+        if exist('editTarget','var')
+            MRSCont.opts.editTarget             = editTarget;
+        else
+            MRSCont.opts.editTarget = {'GABA','GSH'};
+        end
         MRSCont.opts.fit.style = opts.fit.style;
         if strcmp(opts.fit.style, 'Concatenated')
             fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
@@ -454,7 +494,11 @@ switch seqType
         end
     case 'HERCULES'
         MRSCont.flags.isHERCULES    = 1;
-        MRSCont.opts.editTarget             = editTarget;
+        if exist('editTarget','var')
+            MRSCont.opts.editTarget             = editTarget;
+        else
+            MRSCont.opts.editTarget = {'GABA','GSH'};
+        end
         MRSCont.opts.fit.style = opts.fit.style;
         if strcmp(opts.fit.style, 'Concatenated')
             fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
@@ -645,7 +689,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 2.0.0';
+MRSCont.ver.Osp             = 'Osprey 2.1.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

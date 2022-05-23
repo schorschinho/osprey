@@ -36,8 +36,7 @@ diary(fullfile(outputFolder, 'LogFile.txt'));
 
 warning('off','all');
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
 
 
 % Set up saving location

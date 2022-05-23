@@ -36,7 +36,7 @@ function out = osp_plotLoad(MRSCont, kk, which,ExpIndex, VoxelIndex, stag, ppmmi
 %       2019-10-02: First version of the code.
 
 % Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
+if ~MRSCont.flags.didLoad
     error('Trying to plot raw data, but no data has been loaded yet. Run OspreyLoad first.')
 end
 
