@@ -49,6 +49,7 @@ function osp_updateCoregWindow(gui)
             set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(2));
             delete( gui.Results.coreg.Children(2).Children(2) );
             colormap(gui.Results.coreg.Children(1),'gray');
+            set( gui.Results.coreg.Children(2).Title, 'String', temp.Children.Title.String);
             close( temp );
             temp = figure( 'Visible', 'off' );
             if gui.controls.Selected <= length(MRSCont.seg.tissue.fGM)
@@ -58,6 +59,7 @@ function osp_updateCoregWindow(gui)
                     temp = osp_plotSegment(MRSCont, gui.controls.Selected,gui.controls.act_x);
                 end
                 set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(1));
+                set( gui.Results.coreg.Children(1).Title, 'String', temp.Children.Title.String);
                 delete( gui.Results.coreg.Children(1).Children(10:end));
                 set(gui.Results.coreg.Children(1),'Children',flipud(gui.Results.coreg.Children(1).Children));                    
                 colormap(gui.Results.coreg.Children(1),'gray');
@@ -92,6 +94,7 @@ function osp_updateCoregWindow(gui)
                     set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(1) );
                     delete( gui.Results.coreg.Children(1).Children(2) );
                     colormap(gui.Results.coreg.Children,'gray')
+                    set( gui.Results.coreg.Children(1).Title, 'String', temp.Children.Title.String);
                     close( temp );
                 else % Neither coreg nor segment has been performed
                     temp = figure( 'Visible', 'off' );
