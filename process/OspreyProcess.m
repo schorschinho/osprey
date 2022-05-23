@@ -591,7 +591,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 [refShift, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
             end
             [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation
-            [raw_no_subspec_aling]             = op_freqshift(raw_no_subspec_aling,-refShift);            % Reference spectra by cross-correlation
+            if exist('raw_no_subspec_aling','var')
+                [raw_no_subspec_aling]             = op_freqshift(raw_no_subspec_aling,-refShift);            % Reference spectra by cross-correlation
+            end
 
             if MRSCont.flags.hasMM %re_mm
                 if raw_mm.flags.isMEGA
