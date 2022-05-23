@@ -99,16 +99,33 @@ idx_OFF_ON  = ~second.ON & first.ON;
 idx_ON_ON   = second.ON & first.ON;
 
 % Commute for output
-temp = in;
-out = in;
-out.specs(:,1) = temp.specs(:,idx_OFF_OFF);
-out.specs(:,2) = temp.specs(:,idx_ON_OFF);
-out.specs(:,3) = temp.specs(:,idx_OFF_ON);
-out.specs(:,4) = temp.specs(:,idx_ON_ON);
-out.fids(:,1) = temp.fids(:,idx_OFF_OFF);
-out.fids(:,2) = temp.fids(:,idx_ON_OFF);
-out.fids(:,3) = temp.fids(:,idx_OFF_ON);
-out.fids(:,4) = temp.fids(:,idx_ON_ON);
+try
+    temp = in;
+    out = in;
+    out.specs(:,1) = temp.specs(:,idx_OFF_OFF);
+    out.specs(:,2) = temp.specs(:,idx_ON_OFF);
+    out.specs(:,3) = temp.specs(:,idx_OFF_ON);
+    out.specs(:,4) = temp.specs(:,idx_ON_ON);
+    out.fids(:,1) = temp.fids(:,idx_OFF_OFF);
+    out.fids(:,2) = temp.fids(:,idx_ON_OFF);
+    out.fids(:,3) = temp.fids(:,idx_OFF_ON);
+    out.fids(:,4) = temp.fids(:,idx_ON_ON);
+catch
+    idx_OFF_OFF = logical([0 0 0 1]);
+    idx_ON_OFF  = logical([0 1 0 0]);
+    idx_OFF_ON  = logical([1 0 0 0]);
+    idx_ON_ON   = logical([0 0 1 0]);
+    temp = in;
+    out = in;
+    out.specs(:,1) = temp.specs(:,idx_OFF_OFF);
+    out.specs(:,2) = temp.specs(:,idx_ON_OFF);
+    out.specs(:,3) = temp.specs(:,idx_OFF_ON);
+    out.specs(:,4) = temp.specs(:,idx_ON_ON);
+    out.fids(:,1) = temp.fids(:,idx_OFF_OFF);
+    out.fids(:,2) = temp.fids(:,idx_ON_OFF);
+    out.fids(:,3) = temp.fids(:,idx_OFF_ON);
+    out.fids(:,4) = temp.fids(:,idx_ON_ON);
+end
 
 % Save commute order
 commuteOrder = [find(idx_OFF_OFF), find(idx_ON_OFF), find(idx_OFF_ON), find(idx_ON_ON)];
