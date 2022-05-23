@@ -34,8 +34,7 @@ diary(fullfile(outputFolder, 'LogFile.txt'));
 
 warning('off','all');
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreySeg');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreySeg',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreySeg');
 
 % Set up SPM for batch processing
 spm('defaults','fmri');
@@ -88,21 +87,35 @@ for kk = 1:MRSCont.nDatasets(1)
         end
         
         if ~isempty(MRSCont.files_seg) %Use external segmentation
-            segFileGM   = MRSCont.files_seg{kk}{1};
-            segFileWM   = MRSCont.files_seg{kk}{2};
-            segFileCSF  = MRSCont.files_seg{kk}{3};
-
-            [~, ~, Segextini]  = fileparts(segFileGM);
-
-            if strcmp(Segextini,'.gz')
-                gunzip(segFileGM);
-                gunzip(segFileWM);
-                gunzip(segFileCSF);
-                segFileGM   = strrep(segFileGM,'.gz','');
-                segFileWM   = strrep(segFileWM,'.gz','');
-                segFileCSF  = strrep(segFileCSF,'.gz','');
+            if length(MRSCont.files_seg{kk}) > 1
+                segFileGM   = MRSCont.files_seg{kk}{1};
+                segFileWM   = MRSCont.files_seg{kk}{2};
+                segFileCSF  = MRSCont.files_seg{kk}{3};
+                [~, ~, Segextini]  = fileparts(segFileGM);
+                if strcmp(Segextini,'.gz')
+                    gunzip(segFileGM);
+                    gunzip(segFileWM);
+                    gunzip(segFileCSF);
+                    segFileGM   = strrep(segFileGM,'.gz','');
+                    segFileWM   = strrep(segFileWM,'.gz','');
+                    segFileCSF  = strrep(segFileCSF,'.gz','');
+                end
+                singleTissueSegFile = 0;
+            else
+                segFile4D   = MRSCont.files_seg{kk}{1};
+                [~, ~, Segextini]  = fileparts(segFile4D);
+                 if strcmp(Segextini,'.gz')
+                    gunzip(segFile4D);
+                    segFile4D   = strrep(segFile4D,'.gz','');
+                end
+                singleTissueSegFile = 1;
             end
+
+            
+
+            
         else
+            singleTissueSegFile = 0;
             segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
             % If a GM-segmented file doesn't exist, start the segmentation
             if ~exist(segFile,'file')
@@ -138,9 +151,13 @@ for kk = 1:MRSCont.nDatasets(1)
             segFileCSF  = fullfile(T1dir, ['c3' T1name T1ext]);
         end
         % Load volumes
-        GMvol  = spm_vol(segFileGM);
-        WMvol  = spm_vol(segFileWM);
-        CSFvol = spm_vol(segFileCSF);
+        if ~singleTissueSegFile
+            GMvol  = spm_vol(segFileGM);
+            WMvol  = spm_vol(segFileWM);
+            CSFvol = spm_vol(segFileCSF);
+        else
+           SEGvol  = spm_vol(segFile4D);
+        end
         
         %Loop over voxels (for DualVoxel)
         if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
@@ -181,7 +198,11 @@ for kk = 1:MRSCont.nDatasets(1)
             vol_GMMask.dim      = vol_mask.dim;
             vol_GMMask.dt       = vol_mask.dt;
             vol_GMMask.mat      = vol_mask.mat;
-            GM_voxmask_vol      = GMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            if ~singleTissueSegFile
+                GM_voxmask_vol      = GMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            else
+                GM_voxmask_vol      = SEGvol(1).private.dat(:,:,:,1) .* vol_mask.private.dat(:,:,:);
+            end
             vol_GMMask          = spm_write_vol(vol_GMMask, GM_voxmask_vol);
 
             % WM
@@ -190,7 +211,11 @@ for kk = 1:MRSCont.nDatasets(1)
             vol_WMMask.dim      = vol_mask.dim;
             vol_WMMask.dt       = vol_mask.dt;
             vol_WMMask.mat      = vol_mask.mat;
-            WM_voxmask_vol      = WMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            if ~singleTissueSegFile
+                WM_voxmask_vol      = WMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            else
+                WM_voxmask_vol      = SEGvol(2).private.dat(:,:,:,2) .* vol_mask.private.dat(:,:,:);
+            end
             vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
 
             % CSF
@@ -199,7 +224,11 @@ for kk = 1:MRSCont.nDatasets(1)
             vol_CSFMask.dim     = vol_mask.dim;
             vol_CSFMask.dt      = vol_mask.dt;
             vol_CSFMask.mat     = vol_mask.mat;
-            CSF_voxmask_vol     = CSFvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            if ~singleTissueSegFile
+                CSF_voxmask_vol     = CSFvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            else
+                CSF_voxmask_vol      = SEGvol(3).private.dat(:,:,:,3) .* vol_mask.private.dat(:,:,:);
+            end
             vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
             
             % Save volume structures in MRSCont
@@ -289,12 +318,18 @@ for kk = 1:MRSCont.nDatasets(1)
                 gzip(CSFvol.fname);
                 delete(CSFvol.fname);
             elseif strcmp(Segextini,'.gz') %External segmentation
-                gzip(GMvol.fname);
-                delete(GMvol.fname);
-                gzip(WMvol.fname);
-                delete(WMvol.fname);
-                gzip(CSFvol.fname);
-                delete(CSFvol.fname);
+                if ~singleTissueSegFile
+                    gzip(GMvol.fname);
+                    delete(GMvol.fname);
+                    gzip(WMvol.fname);
+                    delete(WMvol.fname);
+                    gzip(CSFvol.fname);
+                    delete(CSFvol.fname);
+                else
+                    gzip(SEGvol(1).fname);
+                    delete(SEGvol(1).fname);
+                end
+
             end
             delete(vol_mask.fname);  
             if strcmp(T1extini,'.gz')
