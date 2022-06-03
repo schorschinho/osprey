@@ -154,46 +154,50 @@ else % Is fit
     end
 end
 
-out = figure;
+if MRSCont.flags.isGUI
+    out = figure( 'Visible', 'off' );
+else
+    out = figure;
+end
 
 %%% 3. PLOT DATA %%%
 if ~isempty(fit) %Is fit
             maxshift_abs = max(abs(data(:,:,basis,ind)));
             shift = maxshift_abs * shift;
             
-            plot(ppm(basis,:,ind),data(1,:,basis,ind)+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
+            plot(ppm(basis,:,ind),real(data(1,:,basis,ind))+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
             hold on;
             if size(data,1) > 1
                 for kk = 2 : size(data,1)
-                    plot(ppm(basis,:,ind),data(kk,:,basis,ind)+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
+                    plot(ppm(basis,:,ind),real(data(kk,:,basis,ind))+shift ,'color', cb(g,:), 'LineWidth', 1); %Fit
                 end
             end
             if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                 maxshift_abs = max(abs(data2{1}.fit));
                 shift = maxshift_abs * shift+ maxshift_abs*0.15;
-                plot(data2{1}.ppm,data2{1}.fit+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
+                plot(data2{1}.ppm,real(data2{1}.fit)+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
                 hold on;
                 if size(data2,1) > 1
                     for kk = 2 : length(data2)
-                        plot(data2{kk}.ppm,data2{kk}.fit+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
+                        plot(data2{kk}.ppm,real(data2{kk}.fit)+shift,':' ,'color', cb(g,:), 'LineWidth', 2); %Fit
                     end
                 end
             end
         else
             maxshift_abs = max(abs(data{1}.specs(:,ind)));
             shift = maxshift_abs * shift;
-            plot(data{1}.ppm,data{1}.specs(:,ind)+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+            plot(data{1}.ppm,real(data{1}.specs(:,ind))+shift ,'color', cb(g,:), 'LineWidth', 1); %data
             hold on;
             for kk = 2 : length(data)
-                plot(data{kk}.ppm,data{kk}.specs(:,ind)+shift ,'color', cb(g,:), 'LineWidth', 1); %data
+                plot(data{kk}.ppm,real(data{kk}.specs(:,ind))+shift ,'color', cb(g,:), 'LineWidth', 1); %data
             end
             if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                 maxshift_abs = max(abs(data2{1}.specs));
                 shift = maxshift_abs * shift + maxshift_abs*0.15;
-                plot(data2{1}.ppm,data2{1}.specs+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
+                plot(data2{1}.ppm,real(data2{1}.specs)+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
                 hold on;
                 for kk = 2 : length(data2)
-                    plot(data2{kk}.ppm,data2{kk}.specs+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
+                    plot(data2{kk}.ppm,real(data2{kk}.specs)+shift ,':','color', cb(g,:), 'LineWidth', 2); %data
                 end    
             end    
 end

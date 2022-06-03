@@ -36,7 +36,7 @@ function out = osp_plotLoad(MRSCont, kk, which,ExpIndex, VoxelIndex, stag, ppmmi
 %       2019-10-02: First version of the code.
 
 % Check that OspreyLoad has been run before
-if ~MRSCont.flags.didLoadData
+if ~MRSCont.flags.didLoad
     error('Trying to plot raw data, but no data has been loaded yet. Run OspreyLoad first.')
 end
 
@@ -165,18 +165,24 @@ if nargin<11
     end
 end
 %Get y-axis values
-maxRef = ones(1,MRSCont.nDatasets(1));
+maxRef = ones(1,MRSCont.nDatasets(1),MRSCont.nDatasets(2));
 if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
     if MRSCont.flags.hasRef
-        maxRef = MRSCont.plot.load.ref.max;
+        maxRef = MRSCont.plot.load.ref.max;  
+        if length(size(maxRef))>1
+            maxRefN = maxRef(1,kk,ExpIndex);
+        end
     else if MRSCont.flags.hasWater
-        maxRef = MRSCont.plot.load.w.max;
+            maxRef = MRSCont.plot.load.w.max;
+            if length(size(maxRef))>1
+                maxRefN = maxRef(1,kk,ExpIndex);
+            end
         end
     end    
-    ymin = min(MRSCont.plot.load.(which).min/maxRef);
-    ymax = 1.2*max(MRSCont.plot.load.(which).max/maxRef);
+    ymin = min(MRSCont.plot.load.(which).min(1,kk,:)/maxRefN);
+    ymax = 1.2*max(MRSCont.plot.load.(which).max(1,kk,:)/maxRefN);
     if ymin < 0
-        ymin = 3 * ymin;
+        ymin = 1.2 * ymin;
     else
         ymin = ymin - 0.5*ymax;
     end
@@ -226,13 +232,17 @@ else
         otherwise
             error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
     end
-    dataToPlot.specs = dataToPlot.specs/maxRef(kk);
+    dataToPlot.specs = dataToPlot.specs/maxRef(1,kk,ExpIndex);
 end
 
 
 %%% 3. SET UP FIGURE LAYOUT %%%
 % Generate a new figure and keep the handle memorized
-out = figure;
+if MRSCont.flags.isGUI
+    out = figure( 'Visible', 'off' );
+else
+    out = figure;
+end
 % Divide the figure into tiles depending on the number of subspec
 % Add the data and plot   
 % Staggered plots will be in all black and separated by the mean of the

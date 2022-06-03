@@ -106,15 +106,15 @@ function osp_onPrint( ~, ~ ,gui)
      %%% 4. VISUALIZATION PART OF THIS TAB %%%
      %osp_plotLoad is used to visualize the raw data. Number of subplots
      %depends on the number of subspectra of the seuqence
-            Exp = gui.controls.act_x;
+            Exp = gui.controls.act_Exp;
             switch gui.load.Names.Spec{gui.load.Selected}
             case 'metabolites'
-                if Exp > max(MRSCont.opts.MultipleSpectra.metab)
+                if Exp > max(max(MRSCont.opts.MultipleSpectra.metab))
                     Exp = 1;
                     gui.controls.act_Exp = 1;
                 end
                 if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets');
+                    temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',Exp);
                     VoxelIndex = 1;
                 elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                     temp = osp_plotLoad(MRSCont, gui.controls.Selected,'mets',gui.controls.act_x);
@@ -749,6 +749,7 @@ function osp_onPrint( ~, ~ ,gui)
         % coregistration or the segmentation
             Results = uix.VBox('Parent', Plot,'BackgroundColor',gui.colormap.Background);
             temp = figure( 'Visible', 'off' );
+            warning('off','MATLAB:handle_graphics:exceptions:SceneNode');
             if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
                 if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
                     temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
@@ -785,6 +786,7 @@ function osp_onPrint( ~, ~ ,gui)
             else
                 VoxelIndex = gui.controls.act_x;
             end
+            warning('on','MATLAB:handle_graphics:exceptions:SceneNode');
             outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_OspreyCoregSeg.pdf'];
         case 6 %Overview
             ovSelection = get(gui.layout.overviewTab, 'Selection');
@@ -810,18 +812,23 @@ function osp_onPrint( ~, ~ ,gui)
                         for g = 1 :  gui.overview.Number.Groups %Loop over groups
                             temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z);
                             if g == 1
-                                    fig_hold = temp;
-                            else
-                                ax=get(temp,'Children');
-                                copyobj(ax.Children, fig_hold.Children(1));
-                                set(fig_hold.Children, 'Parent', Plot );
-                                 close(temp);
-                            end
+                                fig_hold = temp;
+                                ViewAxes=get(temp,'Children');
+                                drawnow
 
+                            else
+                                ViewAxes=get(temp,'Children');
+                                drawnow
+                                copyobj(ViewAxes.Children, fig_hold.Children(1));
+                                close(temp);
+                            end
                         end
+                        set(fig_hold.Children, 'Parent', Plot );
                     else
                         outputFile  = [Selection{1} ' basis_' num2str(gui.controls.act_z) ' Grand_mean.pdf'];
                        fig_hold = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z);
+                        ViewAxes=get(fig_hold,'Children');
+                        drawnow
                        set(fig_hold.Children, 'Parent', Plot );
                     end
                     close(fig_hold);
@@ -854,6 +861,7 @@ function osp_onPrint( ~, ~ ,gui)
                             fig_hold = osp_plotMeanSpec(MRSCont, Selection{1},1, 0.01,10,'Frequency (ppm)','','',gui.controls.act_z);
                         end
                     end
+                    drawnow
                     set(fig_hold.Children, 'Parent', Plot );
                     set(out.Children.Children(1).Children(1).Children,'Children',flipud(out.Children.Children(1).Children(1).Children.Children));
                     close(fig_hold);

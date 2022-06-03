@@ -43,7 +43,7 @@ function osp_updateProWindow(gui)
         end
         if (MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs == 0) || (SubSpec > MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.TabTitles{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs))
             SubSpec = 1;
-            gui.controls.act_x = 1;
+            gui.controls.act_y = 1;
         end
                         
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
@@ -102,7 +102,7 @@ function osp_updateProWindow(gui)
         set( temp.Children(1).Children, 'Parent', gui.layout.proDrift.Children ); % Update drift plot
         set( gui.layout.proDrift.Children,'Children',flipud(gui.layout.proDrift.Children.Children));
         set(  gui.layout.proDrift.Children, 'YLim', temp.Children(1).YLim);
-        set( temp.Children(2).Children, 'Parent', gui.layout.proAlgn.Children ); % Update aligned and averaged plot
+        set( flipud(temp.Children(2).Children), 'Parent', gui.layout.proAlgn.Children ); % Update aligned and averaged plot
         set(  gui.layout.proAlgn.Children, 'XLim', temp.Children(2).XLim);
         set(  gui.layout.proAlgn.Children, 'YLim', temp.Children(2).YLim);
         set( temp.Children(3).Children, 'Parent', gui.layout.proPost.Children ); % Update post alignment plot

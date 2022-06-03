@@ -23,7 +23,9 @@ function osp_onPub( ~, ~)
 %       2020-01-16: First version of the code.
 %%% 1. Visit websites %%%
 
+try
 
-web('https://www.ncbi.nlm.nih.gov/sites/myncbi/1lo2w1io3qTgqH/collections/59221405/public/', '-browser'); %HERCULES paper will create a pubmed collection for referencing all papers
-
+    web('https://www.ncbi.nlm.nih.gov/sites/myncbi/1lo2w1io3qTgqH/collections/59221405/public/', '-browser'); %HERCULES paper will create a pubmed collection for referencing all papers
+catch
+    system('open "https://www.ncbi.nlm.nih.gov/sites/myncbi/1lo2w1io3qTgqH/collections/59221405/public/"'); % for the compiled version of Osprey
 end 

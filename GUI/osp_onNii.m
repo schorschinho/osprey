@@ -30,20 +30,47 @@ function osp_onNii( ~, ~,gui)
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class 
     if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 1) && MRSCont.flags.moved)
         if  ~((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI))
-            if exist(MRSCont.coreg.vol_mask{gui.controls.Selected}.fname, 'file')
-                nii_viewer(MRSCont.files_nii{gui.controls.Selected}, MRSCont.coreg.vol_mask{gui.controls.Selected}.fname);
-            else if exist([MRSCont.coreg.vol_mask{gui.controls.Selected}.fname, '.gz'], 'file')
-                nii_viewer(MRSCont.files_nii{gui.controls.Selected}, [MRSCont.coreg.vol_mask{gui.controls.Selected}.fname, '.gz']);
-                end
+            file_code = [num2str(exist(MRSCont.coreg.vol_image{gui.controls.Selected}.fname,'file'))...
+                        num2str(exist([MRSCont.coreg.vol_image{gui.controls.Selected}.fname, '.gz'],'file'))...
+                        num2str(exist(MRSCont.coreg.vol_mask{gui.controls.Selected}.fname, 'file')) ...
+                        num2str(exist([MRSCont.coreg.vol_mask{gui.controls.Selected}.fname, '.gz'], 'file'))];                    
+            switch file_code
+                case '2020'
+                    nii_viewer(MRSCont.coreg.vol_image{gui.controls.Selected}.fname, MRSCont.coreg.vol_mask{gui.controls.Selected}.fname);
+                case '2002'
+                    nii_viewer(MRSCont.coreg.vol_image{gui.controls.Selected}.fname, [MRSCont.coreg.vol_mask{gui.controls.Selected}.fname, '.gz']);
+                case '0220'
+                    nii_viewer([MRSCont.coreg.vol_image{gui.controls.Selected}.fname, '.gz'], MRSCont.coreg.vol_mask{gui.controls.Selected}.fname);
+                case '0202'
+                    nii_viewer([MRSCont.coreg.vol_image{gui.controls.Selected}.fname, '.gz'], [MRSCont.coreg.vol_mask{gui.controls.Selected}.fname, '.gz']);
+                case '2000'
+                    nii_viewer(MRSCont.coreg.vol_image{gui.controls.Selected}.fname);
+                case '0200'
+                    nii_viewer([MRSCont.coreg.vol_image{gui.controls.Selected}.fname, '.gz']);
+                otherwise
+                    fprintf('Nothing to open here.\n');
             end
         else
-            if exist(MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, 'file')
-                 nii_viewer(MRSCont.files_nii{gui.controls.Selected}, {MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname,MRSCont.coreg.vol_mask{gui.controls.Selected}{2}.fname})
-            else if exist([MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, '.gz'], 'file')
-                 nii_viewer(MRSCont.files_nii{gui.controls.Selected}, {[MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, '.gz'],[MRSCont.coreg.vol_mask{gui.controls.Selected}{2}.fname, '.gz']})
-                end
+            file_code = [num2str(exist(MRSCont.coreg.vol_image{gui.controls.Selected}{1}.fname,'file'))...
+                        num2str(exist([MRSCont.coreg.vol_image{gui.controls.Selected}{1}.fname, '.gz'],'file'))...
+                        num2str(exist(MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, 'file')) ...
+                        num2str(exist([MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, '.gz'], 'file'))];                    
+            switch file_code
+                case '2020'
+                    nii_viewer(MRSCont.coreg.vol_image{gui.controls.Selected}{1}.fname, MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, MRSCont.coreg.vol_mask{gui.controls.Selected}{2}.fname);
+                case '2002'
+                    nii_viewer(MRSCont.coreg.vol_image{gui.controls.Selected}{1}.fname, [MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, '.gz'], [MRSCont.coreg.vol_mask{gui.controls.Selected}{2}.fname, '.gz']);
+                case '0220'
+                    nii_viewer([MRSCont.coreg.vol_image{gui.controls.Selected}{1}.fname, '.gz'], MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, MRSCont.coreg.vol_mask{gui.controls.Selected}{2}.fname);
+                case '0202'
+                    nii_viewer([MRSCont.coreg.vol_image{gui.controls.Selected}{1}.fname, '.gz'], [MRSCont.coreg.vol_mask{gui.controls.Selected}{1}.fname, '.gz'], [MRSCont.coreg.vol_mask{gui.controls.Selected}{2}.fname, '.gz']);
+                case '2000'
+                    nii_viewer(MRSCont.coreg.vol_image{gui.controls.Selected}{1}.fname);
+                case '0200'
+                    nii_viewer([MRSCont.coreg.vol_image{gui.controls.Selected}{1}.fname, '.gz']);
+                otherwise
+                    fprintf('Nothing to open here.\n');
             end
-
         end
         fprintf('... done.\n');
     else

@@ -36,8 +36,7 @@ diary(fullfile(outputFolder, 'LogFile.txt'));
 
 warning('off','all');
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyCoreg',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
 
 
 % Set up saving location
@@ -168,8 +167,16 @@ for kk = 1:MRSCont.nDatasets(1)
             delete(MRSCont.files_nii{kk});
             MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.nii','.nii.gz');
          end
-         gzip(vol_mask.fname);
-         delete(vol_mask.fname);
+
+         if ~MRSCont.flags.isPRIAM
+             gzip(vol_mask.fname);
+             delete(vol_mask.fname);
+         else
+             gzip(vol_mask{1}.fname);
+             delete(vol_mask{1}.fname);
+             gzip(vol_mask{2}.fname);
+             delete(vol_mask{2}.fname);
+         end
 
     end
 

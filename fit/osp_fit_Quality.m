@@ -82,7 +82,7 @@ end
 for ss = 1 :NoFitSpecNames %Loop over fitted spectra
 
 for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
-    for bf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),1) %Loop over all fits
+    for bf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),1) %Loop over all basis sets
             if ~isempty(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})
                 for kk = 1 : MRSCont.nDatasets(1) %Loop over all datasets
                     switch MRSCont.opts.fit.method %Which model was used
@@ -92,6 +92,24 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
     
                             dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
                             basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
+                            if bf == 2 % We need to insert the subject specific MM basis function into the basis set
+                                if sf==1
+                                    index = find(strcmp(MRSCont.processed.mm{kk}.names,'A_spline')); 
+                                end
+                                if sf==2
+                                    index = find(strcmp(MRSCont.processed.mm{kk}.names,'diff1_spline')); 
+                                end
+                                mm_clean_spline = op_takesubspec(MRSCont.processed.mm{kk},index);
+                                mm_clean_spline               = op_zeropad(mm_clean_spline, 2);  
+                                ind = find(strcmp(basisSet.name,'MMExp'));
+                                basisSetfactor = op_freqrange(basisSet,0,1.2);
+                                mm_clean_spline_factor = op_freqrange(mm_clean_spline,0.7,1.1);
+                                factor = (max(real(basisSetfactor.specs(:,ind)))/max(real(mm_clean_spline_factor.specs)));
+                                mm_clean_spline = op_ampScale(mm_clean_spline,factor);
+                                basisSet.fids(:,ind) = mm_clean_spline.fids;
+                                basisSet.specs(:,ind) = mm_clean_spline.specs;
+                            end
+                          
                             fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
                             % Pack up into structs to feed into the reconstruction functions
                             inputData.dataToFit                 = dataToPlot;

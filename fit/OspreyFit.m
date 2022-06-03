@@ -39,8 +39,7 @@ end
 
 % ----- Load fit settings and fit the metabolite data -----
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreyFit');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyFit',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyFit');
 % Start timer
 MRSCont.runtime.Fit = 0;
 

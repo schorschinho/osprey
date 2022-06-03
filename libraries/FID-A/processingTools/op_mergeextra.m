@@ -33,19 +33,11 @@ else
     in1.extras = 1;
     in1.extra_names = names;
     
-    if in1.flags.isUnEdited
-        seq_names{1} = 'UnEdited';       
+    if ischar(in1.seq)
+        temp_seq = in1.seq;
+        in1 = rmfield(in1,'seq');
+        in1.seq{1} = temp_seq;
     end
-    if in1.flags.isMEGA
-        seq_names{1} = 'MEGA';       
-    end
-    if in1.flags.isHERMES
-        seq_names{1} = 'HERMES';       
-    end
-    if in1.flags.isHERCULES
-        seq_names{1} = 'HERCULES';       
-    end
-
     for ex = 2 : length(varargin)-1
         in2 = varargin{ex};
         if in1.dims.subSpecs~=0 && in2.dims.subSpecs~=0 && in1.dims.subSpecs ~= in2.dims.subSpecs
@@ -54,14 +46,26 @@ else
             error('subspectra dimensions must be the same for both inputs');
         end
 
-        if in1.dims.extras==0 && in2.dims.extras==0
-            dim=3;
-        elseif in1.dims.extras==0
-            dim=in2.dims.extras;
-        elseif in2.dims.averages==0
-            dim=in1.dims.extras;
+        if in1.dims.subSpecs == 2
+            if in1.dims.extras==0 && in2.dims.extras==0
+                dim=3;
+            elseif in1.dims.extras==0
+                dim=in2.dims.extras;
+            elseif in2.dims.averages==0
+                dim=in1.dims.extras;
+            else
+                dim=in1.dims.extras;
+            end
         else
-            dim=in1.dims.extras;
+            if in1.dims.extras==0 && in2.dims.extras==0
+                dim=2;
+            elseif in1.dims.extras==0
+                dim=in2.dims.extras;
+            elseif in2.dims.averages==0
+                dim=in1.dims.extras;
+            else
+                dim=in1.dims.extras;
+            end
         end
         in1.dims.extras = dim;
         in1.fids=cat(dim,in1.fids,in2.fids);
@@ -71,18 +75,7 @@ else
         else
             in1.extras=in1.extras+1;
         end
-        if in1.flags.isUnEdited
-            seq_names{end+1} = 'UnEdited';       
-        end
-        if in1.flags.isMEGA
-            seq_names{end+1} = 'MEGA';       
-        end
-        if in1.flags.isHERMES
-            seq_names{end+1} = 'HERMES';       
-        end
-        if in1.flags.isHERCULES
-            seq_names{end+1} = 'HERCULES';       
-        end
+        in1.seq{end+1} = in2.seq;       
         in1.spectralwidth(end+1) = in2.spectralwidth;
         in1.dwelltime(end+1) = in2.dwelltime;
         in1.txfrq(end+1) = in2.txfrq;
@@ -111,7 +104,6 @@ else
         in1.names = cat(1,in1.names,in2.names);
     end
     sz=size(in1.fids);
-    in1.seq = seq_names;
     %FILLING IN DATA STRUCTURE
     out=in1;
     out.sz=sz;

@@ -33,11 +33,17 @@
 %           folder containing DICOM Files (*.dcm).
 %           (OPTIONAL)
 %           Defined in cell array "files_nii"
+%       - External segmentation results. These files need to be
+%           provided in the NIfTI format (*.nii or *.nii.gz).
+%           (OPTIONAL)
+%           Defined in cell array "files_seg" with 1 x 3 cell for each
+%           subject or 1 x 1 cell if a single 4D NIfTI is supplied.
 %
 %   Files in the formats
 %       - .7 (GE)
 %       - .SDAT, .DATA/.LIST, .RAW/.SIN/.LAB (Philips)
 %       - .DAT (Siemens)
+%       - .nii, .nii.gz (NIfTI-MRS)
 %   usually contain all of the acquired data in a single file per scan. GE
 %   systems store water reference data in the same .7 file, so there is no
 %   need to specify it separately under files_ref.
@@ -249,6 +255,18 @@ for kk = 1:length(subs)
         % Link to single NIfTI (*.nii) files for Siemens and Philips data
         % Link to DICOM (*.dcm) folders for GE data
         files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep sess(ll).name '_T1w.nii.gz']};
+
+        % External segmentation results
+        % (OPTIONAL)
+        % Link to NIfTI (*.nii or *.nii.gz) files with segmentation results
+        % Add supply gray matter, white matter, and CSF as 1 x 3 cell within a
+        % cell array  or a single 4D file in the same order supplied as 1 x 1 cell;
+%         files_seg(counter)   = {{[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c1' sess(ll).name '_T1w.nii.gz'],...
+%                                  [sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c2' sess(ll).name '_T1w.nii.gz'],...
+%                                  [sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c3' sess(ll).name '_T1w.nii.gz']}};
+
+%         files_seg(counter)   = {{[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep '4D' sess(ll).name '_T1w.nii.gz']}};
+
         counter             = counter + 1;
     end
 end
@@ -284,6 +302,20 @@ end
 % Link to single NIfTI (*.nii.gz or #.nii) files for GE, Siemens and Philips data
 % files_nii  = {'/Volumes/MyProject/data/sub-01/anat/T1w.nii.gz',...
 %               '/Volumes/MyProject/data/sub-02/anat/T1w.nii.gz'};
+
+% External segmentation results
+% (OPTIONAL)
+% Link to NIfTI (*.nii or *.nii.gz) files with segmentation results
+% Add supply gray matter, white matter, and CSF as 1 x 3 cell within a
+% cell array  or a single 4D file in the same order supplied as 1 x 1 cell;
+%         files_seg(counter)   = {{'/Volumes/MyProject/data/sub-01/anat/c1T1w.nii.gz',...
+%                                  '/Volumes/MyProject/data/sub-01/anat/c2T1w.nii.gz',...
+%                                  '/Volumes/MyProject/data/sub-01/anat/c3T1w.nii.gz'},...
+%                                   {'/Volumes/MyProject/data/sub-02/anat/c1T1w.nii.gz',...
+%                                  '/Volumes/MyProject/data/sub-02/anat/c2T1w.nii.gz',...
+%                                  '/Volumes/MyProject/data/sub-02/anat/c3T1w.nii.gz'}};
+%         files_seg(counter)   = {{'/Volumes/MyProject/data/sub-01/anat/4DT1w.nii.gz'},...
+%                                   {'/Volumes/MyProject/data/sub-02/anat/4DT1w.nii.gz'}};
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

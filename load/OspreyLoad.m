@@ -56,7 +56,7 @@ end
 % Version check and updating log file
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyLoad',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyLoad');
 
 % Determine data types
 [MRSCont, retMsg,reordered] = osp_detDataType(MRSCont);
@@ -316,7 +316,7 @@ end
 MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad');
 %% Clean up and save
 % Set exit flags and version
-MRSCont.flags.didLoadData           = 1;
+MRSCont.flags.didLoad           = 1;
 diary off
 
 % Save the output structure to the output folder
