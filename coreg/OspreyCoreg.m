@@ -52,8 +52,14 @@ if MRSCont.flags.isGUI
 else
     progressText = '';
 end
+
 for kk = 1:MRSCont.nDatasets(1)
-     [~] = printLog('OspreyCoreg',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
+
+    %%% 1. CO-REGISTER PRIMARY STRUCTURAL %%%
+    % If only one structural is provided in the files_nii field (acquired
+    % in the MRS session), it will be used as the target for MRS voxel
+    % co-registration now.
+    [~] = printLog('OspreyCoreg',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
     if ~(MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
         % Get the input file name
@@ -180,29 +186,20 @@ for kk = 1:MRSCont.nDatasets(1)
 
     end
 
-end
 
-
-% If a pair of secondary images exists, start the process of
-% co-registering the first T1 to the second T1 here.
-% We choose to keep the pair of secondary images in native space,
-% because these are likely of lower resolution (for example PET or DWI
-% data), and we don't want to reslice them.
-for kk = 1:MRSCont.nDatasets
-    msg = sprintf('Coregistering voxel to secondary image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    fprintf(fileID,[reverseStr, msg]);
-    if MRSCont.flags.isGUI
-        set(progressText,'String' ,sprintf('Coregistering voxel to secondary image from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets));
-        drawnow
-    end
+    %%% 2. CO-REGISTER SECONDARY STRUCTURAL %%%
+    % If a set of secondary images (from a separate acquisition, e.g. PET
+    % or DWI) is provided in the files_nii2 and files_pet fields, start the
+    % process of co-registering the first T1 to the second T1 here.
+    % We choose to keep the pair of secondary images in native space,
+    % because these are likely of lower resolution (for example PET or DWI
+    % data), and we don't want to reslice them.
     if (MRSCont.flags.hasSecondT1 && MRSCont.flags.hasPET)
 
         % Check whether the secondary voxel file mask has been produced
         % already - then we can simply point to it.
         % If not, we start the coregistration process
-        if ~isfield(MRSCont.coreg, 'vol_mask_2nd') || (isfield(MRSCont.coreg, 'vol_mask_2nd') && length(MRSCont.coreg.vol_mask_2nd) < MRSCont.nDatasets)
+        if ~isfield(MRSCont.coreg, 'vol_mask_2nd') || (isfield(MRSCont.coreg, 'vol_mask_2nd') && length(MRSCont.coreg.vol_mask_2nd) < MRSCont.nDatasets(1))
 
             % Unfortunately, we need to temporarily duplicate the initial T1 we
             % want to work on, since the SPM functions change the header!
@@ -279,17 +276,17 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.coreg.vol_pet_mask{kk}  = vol_PETMask;
 
             % Delete the temporary copy of the voxel masks
-            delete(sprintf(originalVoxelMaskCopy));
+            delete(originalVoxelMaskCopy);
 
             % Delete the temporary copies and reslices of the T1 (if second T1 or PET)
             if (MRSCont.flags.hasSecondT1 || MRSCont.flags.hasPET)
-                delete(sprintf(originalT1Copy));
+                delete(originalT1Copy);
                 reslicedT1File = fullfile(originalT1Path, ['r' originalT1Filename '_tempCopy' originalT1Ending]);
-                delete(sprintf(reslicedT1File));
+                delete(reslicedT1File);
             end
 
-
         else
+
             vol_mask_2nd_filename = MRSCont.coreg.vol_mask_2nd{kk};
             vol_image_pet_filename = MRSCont.coreg.vol_image_pet{kk};
             vol_mask_2nd    = spm_vol(vol_mask_2nd_filename);
@@ -320,8 +317,12 @@ for kk = 1:MRSCont.nDatasets
         % Load the PET voxel mask
         vol_PETMask = MRSCont.coreg.vol_pet_mask{kk};
 
-        % Get everything greater than zero
-        PETIntensityInVoxel     = nonzeros(vol_PETMask.private.dat(:,:,:));
+        % Get everything greater than zero.
+        % For PET data we have worked with, this is almost certainly going
+        % to contain NaN values, which we'll therefore convert to zeros.
+        maskedPETImage = vol_PETMask.private.dat(:,:,:);
+        maskedPETImage(isnan(maskedPETImage)) = 0;
+        PETIntensityInVoxel     = nonzeros(maskedPETImage);
 
         % 1st metric: Raw pixel intensity sum over all voxels
         rawPETIntensitySum      = sum(PETIntensityInVoxel);
@@ -370,24 +371,30 @@ for kk = 1:MRSCont.nDatasets
         [rawYIntensity, rawXIntensity] = hist(PETIntensityInVoxel, nBins);
 
         % Save metrics
-        MRSCont.coreg.pet.metrics.rawPETIntensitySum(kk) = rawPETIntensitySum;
-        MRSCont.coreg.pet.metrics.ThresholdedPETIntensitySum(kk) = ThresholdedPETIntensitySum;
-        MRSCont.coreg.pet.histogram.xIntensity{kk} = xIntensity;
-        MRSCont.coreg.pet.histogram.yIntensity{kk} = yIntensity;
-        MRSCont.coreg.pet.histogram.rawXIntensity{kk} = rawXIntensity;
-        MRSCont.coreg.pet.histogram.rawYIntensity{kk} = rawYIntensity;
-        MRSCont.coreg.pet.histogram.fitParams{kk}  = GaussModelParams;
-        MRSCont.coreg.pet.histogram.mostFrequentIntensity(kk)  = GaussModelParams(3);
-        MRSCont.coreg.pet.histogram.distSD(kk)  = abs(GaussModelParams(2));
+        MRSCont.coreg.pet.metrics.rawPETIntensitySum(kk)            = rawPETIntensitySum;
+        MRSCont.coreg.pet.metrics.ThresholdedPETIntensitySum(kk)    = ThresholdedPETIntensitySum;
+        MRSCont.coreg.pet.histogram.xIntensity{kk}                  = xIntensity;
+        MRSCont.coreg.pet.histogram.yIntensity{kk}                  = yIntensity;
+        MRSCont.coreg.pet.histogram.rawXIntensity{kk}               = rawXIntensity;
+        MRSCont.coreg.pet.histogram.rawYIntensity{kk}               = rawYIntensity;
+        MRSCont.coreg.pet.histogram.fitParams{kk}                   = GaussModelParams;
+        MRSCont.coreg.pet.histogram.mostFrequentIntensity(kk)       = GaussModelParams(3);
+        MRSCont.coreg.pet.histogram.distSD(kk)                      = abs(GaussModelParams(2));
 
 
     end
+
+    % Zip up the voxel masks
+    gzip(vol_mask.fname);
+    delete(vol_mask.fname);
+
 end
 
 fprintf('... done.\n');
 time = toc(refCoregTime);
 [~] = printLog('done',time,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 MRSCont.runtime.Coreg = time;
+
 %% Clean up and save
 % Set exit flags and version
 MRSCont.flags.didCoreg           = 1;

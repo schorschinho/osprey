@@ -128,6 +128,7 @@ classdef OspreyGUI < handle
             gui.controls.Selected = 1;
             gui.controls.Tab = 1;
             gui.controls.Number = 1;
+            gui.controls.NumberImages = 1;
             gui.controls.KeyPress = 0;
         %File selections for each sub function
             gui.load.Selected = 1;
@@ -144,6 +145,7 @@ classdef OspreyGUI < handle
             gui.controls.act_basis = 1;
         %Names for each selection
             gui.load.Names.Spec = {'metabolites'};
+            gui.load.Names.Images = {'structural'};
         %Inital number of datasets
         if isfield(MRSCont, 'nDatasets')
             gui.controls.nDatasets = MRSCont.nDatasets(1);
@@ -231,6 +233,9 @@ classdef OspreyGUI < handle
                 end
             end
 
+            if MRSCont.flags.didCoreg %Get variables regarding the coregistration
+            end
+            
             if MRSCont.flags.didQuantify && ~MRSCont.flags.isMRSI %Get variables regarding the quantification
                 gui.quant.Number.Model = length(fieldnames(MRSCont.quantify.tables));
                 gui.quant.Names.Model = fieldnames(MRSCont.quantify.tables);

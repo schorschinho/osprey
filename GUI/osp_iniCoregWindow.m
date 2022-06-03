@@ -82,7 +82,8 @@ function osp_iniCoregWindow(gui)
 
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-    gui.upperBox.coreg.box = uix.HBox('Parent', gui.layout.coregTab,'BackgroundColor',gui.colormap.Background,'Spacing',5);
+for t = gui.controls.NumberImages : -1 : 1 % Loop over tabs
+    gui.upperBox.coreg.box = uix.HBox('Parent', gui.layout.(gui.layout.coregTabhandles{t}),'BackgroundColor',gui.colormap.Background,'Spacing',5);
     if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
                 gui.upperBox.coreg.upperLeftButtons = uix.Panel('Parent', gui.upperBox.coreg.box, ...
                                          'Padding', 5, 'Title', ['Navigate voxel'],...
@@ -133,7 +134,7 @@ function osp_iniCoregWindow(gui)
                     gui.controls.b_right_z.Enable = 'off';
                 end
                 set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
-            end
+    end
     gui.upperBox.coreg.upperButtons1 = uix.Panel('Parent', gui.upperBox.coreg.box, ...
                                      'Padding', 5, 'Title', ['Nii Viewer'],...
                                      'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -162,8 +163,8 @@ function osp_iniCoregWindow(gui)
         set(gui.upperBox.coreg.box, 'Width', [-0.1 -0.8 -0.1]);
     end
     % Creates layout for plotting and data control
-    gui.Plot.coreg = uix.HBox('Parent', gui.layout.coregTab,'BackgroundColor',gui.colormap.Background);
-    set(gui.layout.coregTab, 'Heights', [-0.1 -0.9]);
+    gui.Plot.coreg = uix.HBox('Parent', gui.layout.(gui.layout.coregTabhandles{t}),'BackgroundColor',gui.colormap.Background);
+    set(gui.layout.(gui.layout.coregTabhandles{t}), 'Heights', [-0.1 -0.9]);
     % Get parameter from file to fill the info panel
 
         StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth) ' Hz'...
@@ -202,24 +203,51 @@ function osp_iniCoregWindow(gui)
         end
 
     else
-        if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-            osp_plotCoreg(MRSCont, gui.controls.Selected);
-            ViewAxes = gca();
-            set(ViewAxes, 'Parent', gui.Results.coreg );
-            colormap(gui.Results.coreg.Children,'gray')
-            close( temp );
-            temp = figure( 'Visible', 'off' );
-            osp_plotSegment(MRSCont, gui.controls.Selected);
-            ViewAxes = gca();
-            set(ViewAxes, 'Parent', gui.Results.coreg );
-            colormap(gui.Results.coreg.Children(1),'gray');
-            close( temp );
-        else % Only coreg has been run
-            osp_plotCoreg(MRSCont, gui.controls.Selected);
-            ViewAxes = gca();
-            set(ViewAxes, 'Parent', gui.Results.coreg );
-            colormap(gui.Results.coreg.Children,'gray');
-            close( temp );
+        if t == 1 %First structural tab
+            if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
+                osp_plotCoreg(MRSCont, gui.controls.Selected);
+                ViewAxes = gca();
+                set(ViewAxes, 'Parent', gui.Results.coreg );
+                colormap(gui.Results.coreg.Children,'gray')
+                close( temp );
+                temp = figure( 'Visible', 'off' );
+                osp_plotSegment(MRSCont, gui.controls.Selected);
+                ViewAxes = gca();
+                set(ViewAxes, 'Parent', gui.Results.coreg );
+                colormap(gui.Results.coreg.Children(1),'gray');
+                close( temp );
+            else % Only coreg has been run
+                osp_plotCoreg(MRSCont, gui.controls.Selected);
+                ViewAxes = gca();
+                set(ViewAxes, 'Parent', gui.Results.coreg );
+                colormap(gui.Results.coreg.Children,'gray');
+                close( temp );
+            end
+        elseif t == 2 % second structural tab
+            % If voxel has been registered to a second T1, add it here
+            if MRSCont.flags.hasSecondT1
+                temp = figure( 'Visible', 'off' );
+                osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+                ViewAxes = gca();
+                set(ViewAxes, 'Parent', gui.Results.coreg );
+                colormap(gui.Results.coreg.Children(1),'gray');
+                close( temp );
+            end
+        elseif t == 3 % PET tab
+            % If voxel has been registered to a PET image, add it here
+            if MRSCont.flags.hasPET
+                temp = figure( 'Visible', 'off' );
+                temp = osp_plotCoregPET(MRSCont, gui.controls.Selected);
+                set( temp.Children(2), 'Parent', gui.Results.coreg );
+                set( temp.Children(1), 'Parent', gui.Results.coreg );
+                set(gui.Results.coreg,'Heights', [-0.49 -0.49]);
+                set(gui.Results.coreg.Children(2), 'Units', 'normalized')
+                set(gui.Results.coreg.Children(2), 'OuterPosition', [0,0.5,1,0.5])
+                set(gui.Results.coreg.Children(1), 'Units', 'normalized')
+                set(gui.Results.coreg.Children(1), 'OuterPosition', [0,0,1,0.5])
+                colormap(gui.Results.coreg.Children(2),'gray');
+                close( temp );
+            end
         end
     end
     h = findall(groot,'Type','figure');
