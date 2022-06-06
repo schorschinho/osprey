@@ -28,7 +28,7 @@ function osp_iniCoregWindow(gui)
 % This function creates the initial coreg/seg window
     warning('off','MATLAB:handle_graphics:exceptions:SceneNode');
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
-    addpath(genpath([gui.folder.spmversion filesep])); % Add SPM path
+
     % Get variables regarding secondary T1 and PET images
     if MRSCont.flags.hasSecondT1
         gui.controls.NumberImages = gui.controls.NumberImages + 1;

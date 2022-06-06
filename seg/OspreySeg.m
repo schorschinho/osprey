@@ -110,9 +110,6 @@ for kk = 1:MRSCont.nDatasets(1)
                 singleTissueSegFile = 1;
             end
 
-
-
-
         else
             singleTissueSegFile = 0;
             segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
@@ -379,14 +376,15 @@ for kk = 1:MRSCont.nDatasets(1)
                 % Get the filename of the resliced voxel mask from the SPM volume
                 % in the MRSCont container
                 if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
-                    vol_mask_2nd = MRSCont.coreg.vol_mask_2nd{kk};
+                    mask_2nd = MRSCont.coreg.vol_mask_2nd{kk}.fname;
                     VoxelNum = '_Voxel-1';
                 else
-                    vol_mask_2nd = MRSCont.coreg.vol_mask_2nd{kk}{rr};
+                    mask_2nd = MRSCont.coreg.vol_mask_2nd{kk}{rr}.fname;
                     %Add voxel number for DualVoxel
                     VoxelNum = ['_Voxel-' num2str(rr)];
                 end
-                [maskDir2nd, maskName2nd, maskExt2nd] = fileparts(vol_mask_2nd.fname);
+                [maskDir2nd, maskName2nd, maskExt2nd] = fileparts(mask_2nd);
+                vol_mask_2nd = spm_vol(mask_2nd);
 
                 % Create and save masked tissue maps
                 % Get the input file name
@@ -445,7 +443,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 %%% 7. DETERMINE PET IMAGE INTENSITY %%%
                 % Get the histogram of PET image intensities inside the voxel
                 % Get the input file name and the PET image
-                vol_image_pet = MRSCont.coreg.vol_image_pet{kk};
+                vol_image_pet = spm_vol(MRSCont.coreg.vol_image_pet{kk}.fname);
 
                 % Loop over tissue types (for PET, do WM and GM only)
                 tissueTypes = {'GM', 'WM'};
@@ -535,8 +533,6 @@ fprintf('... done.\n');
 time = toc(refSegTime);
 [~] = printLog('done',time,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 MRSCont.runtime.Seg = time;
-fclose(fileID); %close log file
-
 
 %% Create table and csv file
 %Loop over voxels (for DualVoxel)
