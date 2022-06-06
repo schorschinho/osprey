@@ -549,8 +549,8 @@ for rr = 1 : Voxels
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = addprop(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), {'VariableLongNames'}, {'variable'}); % add long name to table properties
 
     % Populate descriptive fields of table for JSON export
-    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fGM'} = 'Voxel fraction of grey matter';
-    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fGM'} = 'Normalized fractional volume of grey matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fGM'} = 'Voxel fraction of gray matter';
+    MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fGM'} = 'Normalized fractional volume of gray matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fGM'} = 'arbitrary';
 
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fWM'} = 'Voxel fraction of white matter';
@@ -560,6 +560,20 @@ for rr = 1 : Voxels
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fCSF'} = 'Voxel fraction of Cerebrospinal Fluid';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fCSF'} = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = CSFsum / (GMsum + WMsum + CSFsum)';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fCSF'} = 'arbitrary';
+
+    if MRSCont.flags.hasSecondT1
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fGM_secondT1'} = 'Voxel fraction of gray matter in secondary image';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fGM_secondT1'} = 'Normalized fractional volume of gray matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fGM_secondT1'} = 'arbitrary';
+    
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fWM_secondT1'} = 'Voxel fraction of white matter in secondary image';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fWM_secondT1'} = 'Normalized fractional volume of white matter: fWM  = WMsum / (GMsum + WMsum + CSFsum)';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fWM_secondT1'} = 'arbitrary';
+    
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fCSF_secondT1'} = 'Voxel fraction of Cerebrospinal Fluid in secondary image';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fCSF_secondT1'} = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = CSFsum / (GMsum + WMsum + CSFsum)';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fCSF_secondT1'} = 'arbitrary';
+    end
 
     % Write the table to a file with json sidecar
     osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr)])
