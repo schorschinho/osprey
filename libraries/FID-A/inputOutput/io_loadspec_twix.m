@@ -46,7 +46,7 @@ version=twix_obj.image.softwareVersion;
 sqzSize=twix_obj.image.sqzSize; 
 sqzDims=twix_obj.image.sqzDims;
 
-%Check if the tiwx file is from a VE version
+%Check if the twix file is from a VE version
 if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'E11')
     disp('Changed software version to VE.');
     twix_obj.image.softwareVersion = 've';
@@ -93,8 +93,11 @@ elseif isUniversal
 elseif isMinn
     if ~isempty(strfind(sequence,'mslaser'))
         seq = 'MEGASLASER';        
-    else if ~isempty(strfind(sequence,'slaser'))
+    else
+        if ~isempty(strfind(sequence,'slaser'))
             seq = 'SLASER';
+        elseif ~isempty(strfind(sequence,'steam'))
+            seq = 'STEAM';
         else
             seq = 'MEGAPRESS';
         end
@@ -103,7 +106,7 @@ elseif isjnMP || isWIP529 || isWIP859 || isTLFrei || ismodWIP
     seq = 'MEGAPRESS';
 elseif isSiemens
     if ~isempty(strfind(sequence,'svs_st'))
-    seq = 'STEAM';
+        seq = 'STEAM';
     elseif ~isempty(strfind(sequence,'svs_se'))
         seq = 'PRESS';
     end
@@ -500,7 +503,7 @@ end
 
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
-elseif isSiemens && (~isMinn    || ~isConnectom)
+elseif isSiemens && (~isMinn && ~isConnectom)
     if ~strcmp(version,'ve')
         leftshift = twix_obj.image.freeParam(1);
     else
