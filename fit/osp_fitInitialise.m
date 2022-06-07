@@ -276,7 +276,17 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'irowen', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'icolst', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'icolen', '');
-
+                
+                % Add water-scaling-related flags only if water reference
+                % data has been provided
+                if MRSCont.flags.hasRef || MRSCont.flags.hasWater
+                    LCMparam = osp_editControlParameters(LCMparam, 'dows', 'T');
+                    LCMparam = osp_editControlParameters(LCMparam, 'atth2o', '1.0');
+                    LCMparam = osp_editControlParameters(LCMparam, 'attmet', '1.0');
+                    LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
+                    LCMparam = osp_editControlParameters(LCMparam, 'doecc', 'F');
+                end
+                
                 % Now loop over all datasets
                 for kk = 1:MRSCont.nDatasets
                     
@@ -304,20 +314,25 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'owner', '''Osprey processed spectra''');
                 LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' basisSetFile '''']);
                 LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.15');
-                LCMparam = osp_editControlParameters(LCMparam, 'dows', 'T');
-                LCMparam = osp_editControlParameters(LCMparam, 'atth2o', '1.0');
-                LCMparam = osp_editControlParameters(LCMparam, 'attmet', '1.0');
-                LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
                 LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
                 %LCMparam = osp_editControlParameters(LCMparam, 'wdline', '0');
                 LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
                 LCMparam = osp_editControlParameters(LCMparam, 'chomit', {'''Gly''','''Ser'''});
                 LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''Cr+PCr''');
-                LCMparam = osp_editControlParameters(LCMparam, 'doecc', 'F');
                 LCMparam = osp_editControlParameters(LCMparam, 'ppmst',  ['' sprintf('%4.2f', MRSCont.opts.fit.range(2)) '']);
                 LCMparam = osp_editControlParameters(LCMparam, 'ppmend', ['' sprintf('%4.2f', MRSCont.opts.fit.range(1)) '']);
 
+                % Add water-scaling-related flags only if water reference
+                % data has been provided
+                if MRSCont.flags.hasRef || MRSCont.flags.hasWater
+                    LCMparam = osp_editControlParameters(LCMparam, 'dows', 'T');
+                    LCMparam = osp_editControlParameters(LCMparam, 'atth2o', '1.0');
+                    LCMparam = osp_editControlParameters(LCMparam, 'attmet', '1.0');
+                    LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
+                    LCMparam = osp_editControlParameters(LCMparam, 'doecc', 'F');
+                end
+                
                 % Write control file
                 MRSCont = osp_writelcm_control(MRSCont, kk, 'A', LCMparam);
                 

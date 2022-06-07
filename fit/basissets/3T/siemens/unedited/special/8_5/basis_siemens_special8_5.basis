@@ -14245,7 +14245,7 @@
  $END
  $BASIS
  ID = 'glycine',
- METABO = 'GSH',
+ METABO = 'Gly',
  CONC =  40.,
  TRAMP =  1.,
  VOLUME =  1.,
@@ -22759,7 +22759,7 @@
  $END
  $BASIS
  ID = 'ascorbate',
- METABO = 'GSH',
+ METABO = 'Asc',
  CONC =  40.,
  TRAMP =  1.,
  VOLUME =  1.,
@@ -28432,7 +28432,7 @@
  $END
  $BASIS
  ID = 'serine',
- METABO = 'GSH',
+ METABO = 'Ser',
  CONC =  40.,
  TRAMP =  1.,
  VOLUME =  1.,
