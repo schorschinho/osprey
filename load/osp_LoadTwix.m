@@ -60,11 +60,14 @@ for kk = 1:MRSCont.nDatasets(1)
     for ll = 1: 1:MRSCont.nDatasets(2)
         [~] = printLog('OspreyLoad',kk,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 
-        if ~(MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+        if ~(MRSCont.flags.didLoad == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             % Read in the raw metabolite data
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
             raw                         = io_loadspec_twix(MRSCont.files{metab_ll,kk});
             raw                         = op_leftshift(raw,raw.pointsToLeftshift);
+            if strcmp(raw.seq,'SLASER_D')
+                raw = op_truncate(raw,2068,0);
+            end
             MRSCont.raw_uncomb{ll,kk}      = raw;
             % Read in the raw reference data. If a reference exists, perform the
             % coil combination based on the reference, and perform an eddy current
@@ -74,7 +77,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw_ref                     = io_loadspec_twix(MRSCont.files_ref{ref_ll,kk});
                 raw_ref                     = op_leftshift(raw_ref,raw_ref.pointsToLeftshift);
                 MRSCont.raw_ref_uncomb{ref_ll,kk}  = raw_ref;
-            else 
+            else
                 ref_ll = 1;
             end
             if MRSCont.flags.hasWater

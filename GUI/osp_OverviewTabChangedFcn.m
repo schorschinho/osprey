@@ -35,7 +35,7 @@ function osp_OverviewTabChangedFcn(src,~,gui)
                 if strcmp(splt_string{2},'ref') || strcmp(splt_string{2},'w')
                     gui.process.Selected = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{2}));
                 else
-                    gui.process.Selected = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{3}));
+                    gui.process.Selected = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{1}));
                 end
             end
             osp_updatemeanOvWindow(gui);

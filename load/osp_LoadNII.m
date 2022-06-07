@@ -67,7 +67,7 @@ end
 for kk = 1:MRSCont.nDatasets(1)
      for ll = 1: 1:MRSCont.nDatasets(2)
         [~] = printLog('OspreyLoad', kk,1, MRSCont.nDatasets ,progressText, MRSCont.flags.isGUI, MRSCont.flags.isMRSI);   
-        if ~(MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+        if ~(MRSCont.flags.didLoad == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
             % Read in the raw metabolite data.
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);

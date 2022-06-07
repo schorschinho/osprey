@@ -47,7 +47,7 @@ end
 % Version check and updating log file
 outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyLoad',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyLoad');
 
 % Determine data types
 [MRSCont, retMsg,reordered] = osp_detDataType(MRSCont);
@@ -56,7 +56,7 @@ MRSCont.flags.reordered = reordered;
 if length(MRSCont.opts.ECC.raw) == 1
     MRSCont.opts.ECC.raw = ones(size(MRSCont.files)) * MRSCont.opts.ECC.raw;
 end
-if length(MRSCont.opts.ECC.mm) == 1 && ~isempty(MRSCont.files_mm)  
+if length(MRSCont.opts.ECC.mm) == 1 && ~isempty(MRSCont.files_mm)
     MRSCont.opts.ECC.mm = ones(size(MRSCont.files_mm)) * MRSCont.opts.ECC.mm;
 end
 
@@ -117,7 +117,7 @@ if maxDatasets > 1
         MRSCont.opts.extras.exp_var = [];
         for ex = 1 : MRSCont.nDatasets(2)
             MRSCont.opts.extras.names{end+1} = ['Exp_' num2str(ex)];
-            MRSCont.opts.extras.exp_var(end+1) = 1; 
+            MRSCont.opts.extras.exp_var(end+1) = 1;
         end
     end
 else
@@ -267,7 +267,7 @@ end
 if MRSCont.flags.isUnEdited
     for kk = 1:MRSCont.nDatasets(1)
         raw                         = MRSCont.raw{kk};                                          % Get the kk-th dataset
-        
+
         %%% MERGE MULTIPLE DIMENSIONS %%%
         % If the dimensionality of the dataset isn't just along the
         % 'averages' dimension, we re-sort the other dimensions into the
@@ -315,7 +315,7 @@ end
 MRSCont = osp_scale_yaxis(MRSCont,'OspreyLoad');
 %% Clean up and save
 % Set exit flags and version
-MRSCont.flags.didLoadData           = 1;
+MRSCont.flags.didLoad           = 1;
 diary off
 
 % Save the output structure to the output folder

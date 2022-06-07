@@ -26,6 +26,7 @@ function osp_iniCoregWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. GET HANDLES %%%
 % This function creates the initial coreg/seg window
+    warning('off','MATLAB:handle_graphics:exceptions:SceneNode');
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
     gui.layout.tabs.TabEnables{4} = 'on';
     gui.layout.tabs.Selection  = 4;
@@ -179,5 +180,6 @@ function osp_iniCoregWindow(gui)
             close(h(ff))
         end
     end
+    warning('on','MATLAB:handle_graphics:exceptions:SceneNode');
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

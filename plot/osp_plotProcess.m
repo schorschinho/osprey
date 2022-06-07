@@ -215,6 +215,12 @@ else
                     if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES || MRSCont.flags.isMEGA
                         procDataToPlot = op_takesubspec(procDataToPlot,find(strcmp(which_sub_spec,procDataToPlot.names)));
                     end
+                    if isfield(MRSCont,'processed_no_align')
+                        NoAlignProcDataToPlot = op_takeextra(MRSCont.processed_no_align.(which_spec){kk},ExtraIndex);
+                        if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES || MRSCont.flags.isMEGA
+                            NoAlignProcDataToPlot = op_takesubspec(NoAlignProcDataToPlot,find(strcmp(which_sub_spec,NoAlignProcDataToPlot.names)));
+                        end
+                    end
                     % Get sub-spectra, depending on whether they are stored as such
                     if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
                         if raw.subspecs == 4
@@ -252,6 +258,10 @@ else
                     rawDataToPlot  = MRSCont.raw{ExtraIndex,kk};
                     procDataToPlot = op_takeextra(MRSCont.processed.(which_spec){kk},ExtraIndex);
                     procDataToPlot = op_takesubspec(procDataToPlot,find(strcmp(which_sub_spec,procDataToPlot.names)));
+                     if isfield(MRSCont,'processed_no_align')
+                        NoAlignProcDataToPlot = op_takeextra(MRSCont.processed_no_align.(which_spec){kk},ExtraIndex);
+                        NoAlignProcDataToPlot = op_takesubspec(NoAlignProcDataToPlot,find(strcmp(which_sub_spec,NoAlignProcDataToPlot.names)));
+                     end
                     if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
                             temp_spec = cat(3,rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(1)),rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(2)),...
                                             rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(3)),rawDataToPlot.specs(:,:,procDataToPlot.commuteOrder(4)));
@@ -491,21 +501,21 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
         end
     end
 else
-    if isfield(MRSCont.QM.freqShift, which_sub_spec)
+    if isfield(MRSCont.QM.freqShift, which_spec)
         switch which_sub_spec
             case {'A', 'B', 'C', 'D'} 
-                refShift = -repmat(MRSCont.QM.freqShift.(which_sub_spec)(kk), size(fs));
+                refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
                 for jj = 1:size(applyDataToScale.fids,2)
                     applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
             case {'diff1', 'diff2','diff3', 'sum'}
-                refShift = -repmat(MRSCont.QM.freqShift.(which_sub_spec)(kk), size(fs{1}));
+                refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
                     for jj = 1:size(applyDataToScale.fids,2)
-                        if size(applyDataToScale.fids) == 3
+                        if length(size(applyDataToScale.fids)) == 3
                             applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
                                 exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
                         else
@@ -743,21 +753,21 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
         end
     end
 else
-    if isfield(MRSCont.QM.freqShift, which_sub_spec)
+    if isfield(MRSCont.QM.freqShift, which_spec)
         switch which_sub_spec
             case {'A', 'B', 'C', 'D'} 
-                refShift = -repmat(MRSCont.QM.freqShift.(which_sub_spec)(kk), size(fs));
+                refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
                 for jj = 1:size(applyDataToPlot.fids,2)
                     applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
             case {'diff1', 'diff2', 'diff3', 'sum'}
-                refShift = -repmat(MRSCont.QM.freqShift.(which_sub_spec)(kk), size(fs{1}));
+                refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs{1}));
                 for ss = 1 : length(fs)
                     fs{ss} = fs{ss} - refShift;
                     for jj = 1:size(applyDataToPlot.fids,2)
-                        if size(applyDataToPlot.fids) == 3
+                        if length(size(applyDataToScale.fids)) == 3
                             applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
                                 exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
                         else
@@ -848,6 +858,24 @@ end
 %%% 6. PLOT PROCESSED %%%
 % Add the data and plot
 hold(ax_proc, 'on');
+if exist('NoAlignProcDataToPlot','var')
+    if isfield(MRSCont,'plot') && isfield(MRSCont.plot, 'processed') && (MRSCont.plot.processed.match == 1)
+        if MRSCont.flags.hasRef || MRSCont.flags.hasWater
+            if MRSCont.flags.hasRef
+                plot(ax_proc, NoAlignProcDataToPlot.ppm, real(NoAlignProcDataToPlot.specs)/MRSCont.plot.processed.ref.max(kk), 'Color',MRSCont.colormap.LightAccent, 'LineWidth', 1);
+            else
+                plot(ax_proc, NoAlignProcDataToPlot.ppm, real(NoAlignProcDataToPlot.specs)/MRSCont.plot.processed.w.max(kk), 'Color',MRSCont.colormap.LightAccent, 'LineWidth', 1);
+            end
+          
+        else        
+            plot(ax_proc, NoAlignProcDataToPlot.ppm, real(NoAlignProcDataToPlot.specs(:,1)), 'Color',MRSCont.colormap.LightAccent, 'LineWidth', 1);       
+        end
+    else
+        plot(ax_proc, NoAlignProcDataToPlot.ppm, real(NoAlignProcDataToPlot.specs(:,1))/max(real(NoAlignProcDataToPlot.specs(NoAlignProcDataToPlot.ppm>ppmmin&NoAlignProcDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.LightAccent, 'LineWidth', 1);
+    end
+    text(ax_proc, ppmmin+1.5, 1, 'pre alignment', 'Color', colormap.LightAccent);
+    text(ax_proc, ppmmin+1.5, 0.9, 'post alignment', 'Color', colormap.Foreground); 
+end
 if isfield(MRSCont,'plot') && isfield(MRSCont.plot, 'processed') && (MRSCont.plot.processed.match == 1)
     if MRSCont.flags.hasRef || MRSCont.flags.hasWater
         if MRSCont.flags.hasRef
@@ -948,8 +976,8 @@ end
 if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
     if isfield(MRSCont.QM{VoxelIndex}.drift.pre, which_sub_spec)
         if length(MRSCont.QM{VoxelIndex}.drift.pre.(which_sub_spec){kk}) > 1
-            crDriftPre = MRSCont.QM{VoxelIndex}.drift.pre.(which_sub_spec){kk} + MRSCont.QM{VoxelIndex}.freqShift.(which_sub_spec)(kk)/applyDataToPlot.txfrq*1e6;
-            crDriftPost = MRSCont.QM{VoxelIndex}.drift.post.(which_sub_spec){kk} + MRSCont.QM{VoxelIndex}.freqShift.(which_sub_spec)(kk)/applyDataToPlot.txfrq*1e6;
+            crDriftPre = MRSCont.QM{VoxelIndex}.drift.pre.(which_sub_spec){kk};
+            crDriftPost = MRSCont.QM{VoxelIndex}.drift.post.(which_sub_spec){kk};
             hold(ax_drift, 'on');
             colors = ones(length(crDriftPre),1).*colormap.Foreground;
             for dots = 1 : length(crDriftPre)
@@ -983,8 +1011,8 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
 elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
     if isfield(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.pre, which_sub_spec)
         if length(MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.pre.(which_sub_spec){kk}) > 1
-            crDriftPre = MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.pre.(which_sub_spec){kk} + MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_sub_spec)(kk)/applyDataToPlot.txfrq*1e6;
-            crDriftPost = MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.post.(which_sub_spec){kk} + MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.freqShift.(which_sub_spec)(kk)/applyDataToPlot.txfrq*1e6;
+            crDriftPre = MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.pre.(which_sub_spec){kk};
+            crDriftPost = MRSCont.QM{VoxelIndex(1), VoxelIndex(2)}.drift.post.(which_sub_spec){kk};
             hold(ax_drift, 'on');
             colors = ones(length(crDriftPre),1).*colormap.Foreground;
             for dots = 1 : length(crDriftPre)
@@ -1018,8 +1046,8 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
 else
     if isfield(MRSCont.QM.drift.pre, which_sub_spec) && ~strcmp(which_spec,'mm')
         if length(MRSCont.QM.drift.pre.(which_sub_spec){kk}) > 1
-            crDriftPre = MRSCont.QM.drift.pre.(which_sub_spec){kk} + MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/applyDataToPlot.txfrq*1e6;
-            crDriftPost = MRSCont.QM.drift.post.(which_sub_spec){kk} + MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/applyDataToPlot.txfrq*1e6;
+            crDriftPre = MRSCont.QM.drift.pre.(which_sub_spec){kk};
+            crDriftPost = MRSCont.QM.drift.post.(which_sub_spec){kk};
             hold(ax_drift, 'on');
             colors = ones(length(crDriftPre),1).*colormap.Foreground;
             for dots = 1 : length(crDriftPre)
@@ -1027,11 +1055,11 @@ else
                 colors(dots,2) = colors(dots,2) + (1 - colors(dots,2)) * (1-weights(dots,1));
                 colors(dots,3) = colors(dots,3) + (1 - colors(dots,3)) * (1-weights(dots,1));
             end
-            scatter(ax_drift, [1:length(crDriftPre)],crDriftPre'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,ones(length(crDriftPre),1).*colormap.LightAccent);
-            scatter(ax_drift, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormap.Foreground);    
+            scatter(ax_drift, [1:length(crDriftPre)],crDriftPre+(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,ones(length(crDriftPre),1).*colormap.LightAccent);
+            scatter(ax_drift, [1:length(crDriftPost)],crDriftPost+(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormap.Foreground);    
 
-            text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end)-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Pre', 'Color', colormap.LightAccent);
-            text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end)-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Post', 'Color', colormap.Foreground);
+            text(ax_drift, length(crDriftPre)*1.05, crDriftPre(end)+(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Pre', 'Color', colormap.LightAccent);
+            text(ax_drift, length(crDriftPost)*1.05, crDriftPost(end)+(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Post', 'Color', colormap.Foreground);
             set(ax_drift, 'YLim', [3.028-0.1 3.028+0.1]);
             yticks([3.028-0.08 3.028-0.04 3.028 3.028+0.04 3.028+0.08]);
             yticklabels({'2.94' '2.98' '3.02' '3.06' '3.10'});

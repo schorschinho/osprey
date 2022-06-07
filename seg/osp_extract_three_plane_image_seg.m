@@ -40,6 +40,6 @@ function [img_montage,size_vox_t] = osp_extract_three_plane_image_seg(ImageFile,
     vox_t_WM  = flipud(voxel2world_space(vol_WM_mask, voxel_ctr));
     vox_t_CSF = flipud(voxel2world_space(vol_CSF_mask, voxel_ctr));
     img_t = img_t/T1_max;
-    img_montage = [img_t+0.225*vox_t, img_t+0.3*vox_t_GM, img_t+0.225*vox_t_WM, img_t+0.4*vox_t_CSF];
+    img_montage = [img_t+0.175*vox_t, img_t+0.21*vox_t_GM, img_t+0.25*vox_t_WM, img_t+0.4*vox_t_CSF];
     size_vox_t = size(vox_t,2);
 end

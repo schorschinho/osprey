@@ -63,7 +63,6 @@ end
 if ~MRSCont.flags.didOverview
     error('Trying to create overview plots, but no overview data has been created. Run OspreyOverview first.')
 end
-[~] = osp_Toolbox_Check ('OspreyProcess',MRSCont.flags.isGUI);
 
 %%% 2. CREATE COLORMAP %%%
 [cb] = cbrewer('qual', 'Dark2', 12, 'pchip');

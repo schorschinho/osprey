@@ -66,11 +66,13 @@ for kk = 1:MRSCont.nDatasets(1)
     % For the separate (classic) MEGA fit, model the EDIT-OFF and DIFF
     % spectra separately.
     if strcmp(fitStyle, 'Separate')
-        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > size(MRSCont.fit.results.metab.fitParams,2))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             %%% 2a. FIT OFF-SPECTRUM
             % Apply scaling factor to the data
             dataToFit   = op_takesubspec(MRSCont.processed.metab{kk},'A');
             basisSetOff = MRSCont.fit.basisSet;
+            basisSetOff.name{1} = 'A'; 
+            load('BASIS_set_off_default.mat')
             basisSetOff.fids = basisSetOff.fids(:,:,1);
             basisSetOff.specs = basisSetOff.specs(:,:,1);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
@@ -101,6 +103,7 @@ for kk = 1:MRSCont.nDatasets(1)
             end
 
             fitOpts.GAP = MRSCont.opts.fit.GAP.diff1;
+            basisSetDiff1.name{1} = 'diff1';
             % Call the fit function
             [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
 

@@ -172,7 +172,28 @@ switch fitMethod
                     basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){VoxelIndex,1};
                 else
                     fitRangePPM = MRSCont.opts.fit.range;
+                    
+                    if strcmp(which_spec,'mm') && MRSCont.flags.isUnEdited
+                        fitRangePPM = [0.2 4.2];
+                    end
                     basisSet    = MRSCont.fit.resBasisSet.([which_spec]).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){VoxelIndex(3),1,VoxelIndex(2)};
+                    if VoxelIndex(3) == 2 % We need to insert the subject specific MM basis function into the basis set
+                        if VoxelIndex(2)==1
+                            index = find(strcmp(MRSCont.processed.mm{kk}.names,'A_spline')); 
+                        end
+                        if VoxelIndex(2)==2
+                            index = find(strcmp(MRSCont.processed.mm{kk}.names,'diff1_spline')); 
+                        end
+                        mm_clean_spline = op_takesubspec(MRSCont.processed.mm{kk},index);
+                        mm_clean_spline               = op_zeropad(mm_clean_spline, 2);  
+                        ind = find(strcmp(basisSet.name,'MMExp'));
+                        basisSetfactor = op_freqrange(basisSet,0,1.2);
+                        mm_clean_spline_factor = op_freqrange(mm_clean_spline,0.7,1.1);
+                        factor = (max(real(basisSetfactor.specs(:,ind)))/max(real(mm_clean_spline_factor.specs)));
+                        mm_clean_spline = op_ampScale(mm_clean_spline,factor);
+                        basisSet.fids(:,ind) = mm_clean_spline.fids;
+                        basisSet.specs(:,ind) = mm_clean_spline.specs;
+                    end
                 end
             end
             if  strcmp(which_spec, 'conc')
@@ -308,10 +329,10 @@ end
 %For MM, prepare a 'clean' MM spectrum that has metabolite signals pulled
 %out.
 if (strcmp(which_spec, 'mm'))
-    Met_corr_spectrum  = sum(ModelOutput.indivMets(:,1:end),2);
+    Met_corr_spectrum  = sum(ModelOutput.indivMets(:,1:basisSet.nMets),2);
 end
 if (strcmp(which_spec, 'diff1_mm'))
-   Met_corr_spectrum  = sum(ModelOutput.indivMets(:,1:2),2);
+   Met_corr_spectrum  = sum(ModelOutput.indivMets(:,1:basisSet.nMets),2);
 end
 
 
@@ -400,6 +421,9 @@ end
 % Add the data and plot
 hold on;
 plot(ppm, (zeros(1,length(ppm)) + stagData)/maxPlot, 'Color', colorData); % Zeroline
+if (contains(which_spec, 'mm'))
+   plot(ppm, (dataToPlot + stagData-Met_corr_spectrum)/maxPlot, 'Color',[1 0 0.1]); % Data
+end
 plot(ppm, (dataToPlot + stagData)/maxPlot, 'Color', colorData); % Data
 plot(ppm, (fit + stagData)/maxPlot, 'Color', colorFit, 'LineWidth', linewidthFit); % Fit
 plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot) + stagData)/maxPlot, 'Color', colorData, 'LineWidth', 1); % Maximum Data
@@ -408,16 +432,14 @@ plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/
 plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color', colorData, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
 plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'Color', colorData, 'LineWidth', 1); % Max Residue
 
-if (contains(which_spec, 'mm'))
-   plot(ppm, (dataToPlot + stagData-Met_corr_spectrum)/maxPlot, 'Color',[1 0 0.1]); % Data
-end
+
 
 text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 10,'Color', MRSCont.colormap.Foreground); %Zeroline text
 text(fitRangePPM(1), (0 + max(dataToPlot) + stagData)/maxPlot-0.05, num2str(max(dataToPlot),'%1.2e'), 'FontSize', 10,'Color', MRSCont.colormap.Foreground); % Maximum Data Text
 text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '0', 'FontSize', 10,'Color', MRSCont.colormap.Foreground); %Zeroline Residual text
 text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot +0.05, num2str(abs(max(dataToPlot - fit)),'%1.2e'), 'FontSize', 10,'Color', MRSCont.colormap.Foreground); %Max Residue text
 
-if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
+if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w') || contains(which_spec, 'mm')) 
     plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', colorBaseline);
 end
 

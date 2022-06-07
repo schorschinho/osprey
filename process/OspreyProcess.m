@@ -32,8 +32,7 @@ outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
 
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreyProcess');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check('OspreyProcess',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyProcess');
 
 
 %% Data post-processing starts here
@@ -52,7 +51,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
         [~] = printLog('OspreyProcess',kk,ll,MRSCont.nDatasets(1),progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 
 
-        if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > length(MRSCont.processed.A)))  || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+        if ~(MRSCont.flags.didProcess == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'processed') && (kk > size(MRSCont.processed.metab,2)))  || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
 %%          %%% 1. GET RAW DATA %%%
             raw                         = MRSCont.raw{metab_ll,kk};                                          % Get the kk-th dataset
@@ -478,6 +477,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 % raw struct
                 raw=op_HadamardScans(raw,[-1 1],'diff1');
                 raw=op_HadamardScans(raw,[1 1],'sum');
+                raw_no_subspec_aling = raw;
                 if ~raw.flags.isMRSI
 %                     [raw,~]       = op_phaseCrCho(raw, 1);
                     [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
@@ -500,9 +500,6 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     case 'L2Norm'
                         [raw]  = osp_editSubSpecAlign(raw, seq, target,MRSCont.opts.UnstableWater);
                     otherwise
-                        if ~MRSCont.flags.isMRSI
-                            raw_B     = op_addphase(raw_B, -ph*180/pi, 0, raw_B.centerFreq, 1);
-                        end
                 end
 
                 if MRSCont.flags.hasMM
@@ -532,6 +529,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 % Create the sum spectrum
                 raw=op_HadamardScans(raw,[1 1],'sum');
                 raw.target = target;
+                raw = op_freqshift(raw, refShift_SubSpecAlign);
             end
 
             if raw.flags.isHERMES || raw.flags.isHERCULES
@@ -546,6 +544,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw=op_HadamardScans(raw,[-1 1 -1 1],'diff3');
                 end
                 raw=op_HadamardScans(raw,[1 1 1 1],'sum');
+                raw_no_subspec_aling = raw;
 
                 % Correct the frequency axis so that Cr appears at 3.027 ppm
                 [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
@@ -581,7 +580,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw=op_HadamardScans(raw,[-1 1 -1 1],'diff3');
                 end
                 raw=op_HadamardScans(raw,[1 1 1 1],'sum');
-
+                raw = op_freqshift(raw, refShift_SubSpecAlign);
             end
             
 %%          %%% 7. REMOVE RESIDUAL WATER %%%
@@ -596,6 +595,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             end
             % Apply iterative water filter
             raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+            if exist('raw_no_subspec_aling','var')
+                raw_no_subspec_aling = op_iterativeWaterFilter(raw_no_subspec_aling, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+            end
 
             if MRSCont.flags.hasMM %re_mm
                 raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
@@ -608,6 +610,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 [refShift, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
             end
             [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation
+            if exist('raw_no_subspec_aling','var')
+                [raw_no_subspec_aling]             = op_freqshift(raw_no_subspec_aling,-refShift);            % Reference spectra by cross-correlation
+            end
 
             if MRSCont.flags.hasMM %re_mm
                 if raw_mm.flags.isMEGA
@@ -633,6 +638,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             [raw,SNR] = op_get_Multispectra_SNR(raw);
             FWHM = op_get_Multispectra_LW(raw);
             MRSCont.processed.metab{metab_ll,kk}     = raw;
+            if exist('raw_no_subspec_aling','var')
+                MRSCont.processed_no_align.metab{metab_ll,kk}     = raw_no_subspec_aling;
+            end
             for ss = 1 : length(SubSpec)
                 MRSCont.QM.SNR.metab(metab_ll,kk,ss)    = SNR{ss};
                 MRSCont.QM.FWHM.metab(metab_ll,kk,ss)   = FWHM(ss); % in Hz
@@ -640,11 +648,11 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 MRSCont.QM.res_water_amp.metab(metab_ll,kk,ss) = sum(MRSCont.processed.metab{kk}.watersupp{ss}.amp);
                 if strcmp(SubSpec{ss},'diff1') ||strcmp(SubSpec{ss},'diff2') || strcmp(SubSpec{ss},'diff3') ||strcmp(SubSpec{ss},'sum')
                     if raw.flags.isMEGA
-                        MRSCont.QM.drift.pre.(SubSpec{ss}){metab_ll,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'], [], 1)';
-                        MRSCont.QM.drift.post.(SubSpec{ss}){metab_ll,kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'], [], 1)';
+                        MRSCont.QM.drift.pre.(SubSpec{ss}){metab_ll,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'], 1, [])';
+                        MRSCont.QM.drift.post.(SubSpec{ss}){metab_ll,kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'], 1, [])';
                     else
-                        MRSCont.QM.drift.pre.(SubSpec{ss}){metab_ll,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'; MRSCont.QM.drift.pre.C{kk}'; MRSCont.QM.drift.pre.D{kk}'], [], 1)';
-                        MRSCont.QM.drift.post.(SubSpec{ss}){metab_ll,kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'; MRSCont.QM.drift.pre.C{kk}'; MRSCont.QM.drift.pre.D{kk}'], [], 1)';
+                        MRSCont.QM.drift.pre.(SubSpec{ss}){metab_ll,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'; MRSCont.QM.drift.pre.C{kk}'; MRSCont.QM.drift.pre.D{kk}'], 1, [])';
+                        MRSCont.QM.drift.post.(SubSpec{ss}){metab_ll,kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'; MRSCont.QM.drift.post.C{kk}'; MRSCont.QM.drift.post.D{kk}'], 1, [])';
                     end
                 end
                 MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(metab_ll,kk) = mean(MRSCont.QM.drift.pre.(SubSpec{ss}){kk} - 3.02);

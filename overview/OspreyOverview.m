@@ -31,8 +31,7 @@ outputFolder = MRSCont.outputFolder;
 diary(fullfile(outputFolder, 'LogFile.txt'));
 
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreyOverview');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreyOverview',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyOverview');
 
 
 %%% 2. INITIALIZE VARIABLES %%%
@@ -223,10 +222,30 @@ if MRSCont.flags.didFit
                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = ModelOutput.residual;
                             else % if metabolite or MM data, use the metabolite model
                                 fitRangePPM = MRSCont.opts.fit.range;
+                                if strcmp(FitSpecNames{ss}, 'mm')
+                                    fitRangePPM = [0.2 4.2];
+                                end
                                 if Voxels < 2
 
                                     dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
                                     basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
+                                    if bf == 2 % We need to insert the subject specific MM basis function into the basis set
+                                        if sf==1
+                                            index = find(strcmp(MRSCont.processed.mm{kk}.names,'A_spline')); 
+                                        end
+                                        if sf==2
+                                            index = find(strcmp(MRSCont.processed.mm{kk}.names,'diff1_spline')); 
+                                        end
+                                        mm_clean_spline = op_takesubspec(MRSCont.processed.mm{kk},index);
+                                        mm_clean_spline               = op_zeropad(mm_clean_spline, 2);  
+                                        ind = find(strcmp(basisSet.name,'MMExp'));
+                                        basisSetfactor = op_freqrange(basisSet,0,1.2);
+                                        mm_clean_spline_factor = op_freqrange(mm_clean_spline,0.7,1.1);
+                                        factor = (max(real(basisSetfactor.specs(:,ind)))/max(real(mm_clean_spline_factor.specs)));
+                                        mm_clean_spline = op_ampScale(mm_clean_spline,factor);
+                                        basisSet.fids(:,ind) = mm_clean_spline.fids;
+                                        basisSet.specs(:,ind) = mm_clean_spline.specs;
+                                    end
                                     fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
                                 else
                                    dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{ss}){kk},rr);
