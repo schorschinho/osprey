@@ -561,7 +561,7 @@ for rr = 1 : Voxels
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fCSF'} = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = CSFsum / (GMsum + WMsum + CSFsum)';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fCSF'} = 'arbitrary';
 
-    if MRSCont.flags.hasSecondT1
+    if MRSCont.flags.hasSecondT1 %If 2nd T1, write addtional segmentation to table
         MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fGM_secondT1'} = 'Voxel fraction of gray matter in secondary image';
         MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fGM_secondT1'} = 'Normalized fractional volume of gray matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
         MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fGM_secondT1'} = 'arbitrary';
@@ -573,8 +573,55 @@ for rr = 1 : Voxels
         MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fCSF_secondT1'} = 'Voxel fraction of Cerebrospinal Fluid in secondary image';
         MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fCSF_secondT1'} = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = CSFsum / (GMsum + WMsum + CSFsum)';
         MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fCSF_secondT1'} = 'arbitrary';
-    end
+        
+        if MRSCont.flags.hasPET %If PET data, then also save PET metrics to seg table
 
+            % Write GM & WM PET data
+            PETTable = horzcat(MRSCont.seg.pet.rawPETIntensitySum.GM, MRSCont.seg.pet.metrics.ThresholdedPETIntensitySum.GM, MRSCont.seg.pet.histogram.mostFrequentIntensity.GM, MRSCont.seg.pet.histogram.distFWHM.GM, ...
+                               MRSCont.seg.pet.rawPETIntensitySum.WM, MRSCont.seg.pet.metrics.ThresholdedPETIntensitySum.WM, MRSCont.seg.pet.histogram.mostFrequentIntensity.WM, MRSCont.seg.pet.histogram.distFWHM.WM);
+            Names = {'Intensity_Sum_GM','Thresholded_Sum_GM','Gaussian_Fit_GM','Gaussian_Width_GM','Intensity_Sum_WM','Thresholded_Sum_WM','Gaussian_Fit_WM','Gaussian_Width_WM'};
+            
+            MRSCont.seg.pet.tables = array2table(PETTable,'VariableNames',Names);
+            MRSCont.seg.pet.tables = addprop(MRSCont.seg.pet.tables, {'VariableLongNames'}, {'variable'}); % add long name to table properties
+            
+            % Populate descriptive fields of table for JSON export
+            MRSCont.seg.pet.tables.Properties.CustomProperties.VariableLongNames{'Intensity_Sum_GM'} = 'Sum of PET image intensity in gray matter';
+            MRSCont.seg.pet.tables.Properties.VariableDescriptions{'Intensity_Sum_GM'} = 'The sum of PET image intensities within the co-registered voxel in gray matter';
+            MRSCont.seg.pet.tables.Properties.VariableUnits{'Intensity_Sum_GM'} = 'SUV';
+        
+            MRSCont.seg.pet.tables.Properties.CustomProperties.VariableLongNames{'Thresholded_Sum_GM'} = 'Thresholded sum of PET image intensity in gray matter';
+            MRSCont.seg.pet.tables.Properties.VariableDescriptions{'Thresholded_Sum_GM'} = 'The sum of PET image intensities greater than 0.2 within the co-registered voxel in gray matter';
+            MRSCont.seg.pet.tables.Properties.VariableUnits{'Thresholded_Sum_GM'} = 'SUV';
+        
+            MRSCont.seg.pet.tables.Properties.CustomProperties.VariableLongNames{'Gaussian_Fit_GM'} = 'Peak of Gaussian fit of PET intensities in gray matter';
+            MRSCont.seg.pet.tables.Properties.VariableDescriptions{'Gaussian_Fit_GM'} = 'Center of Gaussian fit applied to distribution of PET intensities in gray matter';
+            MRSCont.seg.pet.tables.Properties.VariableUnits{'Gaussian_Fit_GM'} = 'SUV';
+        
+            MRSCont.seg.pet.tables.Properties.CustomProperties.VariableLongNames{'Gaussian_Width_GM'} = 'FWHM of Gaussian fit of PET intensities in gray matter';
+            MRSCont.seg.pet.tables.Properties.VariableDescriptions{'Gaussian_Width_GM'} = 'Full-width half-maximum of Gaussian fit applied to distribution of PET intensities in gray matter';
+            MRSCont.seg.pet.tables.Properties.VariableUnits{'Gaussian_Width_GM'} = 'SUV';
+    
+            MRSCont.seg.pet.tables.Properties.CustomProperties.VariableLongNames{'Intensity_Sum_WM'} = 'Sum of PET image intensity in white matter';
+            MRSCont.seg.pet.tables.Properties.VariableDescriptions{'Intensity_Sum_WM'} = 'The sum of PET image intensities within the co-registered voxel in white matter';
+            MRSCont.seg.pet.tables.Properties.VariableUnits{'Intensity_Sum_WM'} = 'SUV';
+        
+            MRSCont.seg.pet.tables.Properties.CustomProperties.VariableLongNames{'Thresholded_Sum_WM'} = 'Thresholded sum of PET image intensity in white matter';
+            MRSCont.seg.pet.tables.Properties.VariableDescriptions{'Thresholded_Sum_WM'} = 'The sum of PET image intensities greater than 0.2 within the co-registered voxel in white matter';
+            MRSCont.seg.pet.tables.Properties.VariableUnits{'Thresholded_Sum_WM'} = 'SUV';
+        
+            MRSCont.seg.pet.tables.Properties.CustomProperties.VariableLongNames{'Gaussian_Fit_WM'} = 'Peak of Gaussian fit of PET intensities in white matter';
+            MRSCont.seg.pet.tables.Properties.VariableDescriptions{'Gaussian_Fit_WM'} = 'Center of Gaussian fit applied to distribution of PET intensities in white matter';
+            MRSCont.seg.pet.tables.Properties.VariableUnits{'Gaussian_Fit_WM'} = 'SUV';
+        
+            MRSCont.seg.pet.tables.Properties.CustomProperties.VariableLongNames{'Gaussian_Width_WM'} = 'FWHM of Gaussian fit of PET intensities in white matter';
+            MRSCont.seg.pet.tables.Properties.VariableDescriptions{'Gaussian_Width_WM'} = 'Full-width half-maximum of Gaussian fit applied to distribution of PET intensities in white matter';
+            MRSCont.seg.pet.tables.Properties.VariableUnits{'Gaussian_Width_WM'} = 'SUV';
+            
+            % Write combined coreg/seg pet  tables to a file with json sidecar
+            osp_WriteBIDsTable([MRSCont.coreg.pet.tables, MRSCont.seg.pet.tables], fullfile(MRSCont.outputFolder,'pet_metrics'))
+        end
+    end
+    
     % Write the table to a file with json sidecar
     osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr)])
 end

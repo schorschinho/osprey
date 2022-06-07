@@ -366,7 +366,7 @@ for kk = 1:MRSCont.nDatasets(1)
             MRSCont.coreg.pet.histogram.rawYIntensity{kk}               = rawYIntensity;
             MRSCont.coreg.pet.histogram.fitParams{kk}                   = GaussModelParams;
             MRSCont.coreg.pet.histogram.mostFrequentIntensity(kk)       = GaussModelParams(3);
-            MRSCont.coreg.pet.histogram.distSD(kk)                      = abs(GaussModelParams(2));
+            MRSCont.coreg.pet.histogram.distFWHM(kk)                    = abs(GaussModelParams(2));
     
     
         end
@@ -381,6 +381,32 @@ for kk = 1:MRSCont.nDatasets(1)
             delete(vol_mask{2}.fname);
         end
     end
+end
+
+if (MRSCont.flags.hasSecondT1 && MRSCont.flags.hasPET) %Write PET metrics to table
+    PETTable = horzcat(MRSCont.coreg.pet.metrics.rawPETIntensitySum', MRSCont.coreg.pet.metrics.ThresholdedPETIntensitySum',MRSCont.coreg.pet.histogram.mostFrequentIntensity',MRSCont.coreg.pet.histogram.distFWHM');
+    Names = {'Intensity_Sum','Thresholded_Sum','Gaussian_Fit','Gaussian_Width'};
+
+    MRSCont.coreg.pet.tables = array2table(PETTable,'VariableNames',Names);
+    MRSCont.coreg.pet.tables = addprop(MRSCont.coreg.pet.tables, {'VariableLongNames'}, {'variable'}); % add long name to table properties
+
+    MRSCont.coreg.pet.tables.Properties.CustomProperties.VariableLongNames{'Intensity_Sum'} = 'Sum of PET image intensity';
+    MRSCont.coreg.pet.tables.Properties.VariableDescriptions{'Intensity_Sum'} = 'The sum of PET image intensities within the co-registered voxel';
+    MRSCont.coreg.pet.tables.Properties.VariableUnits{'Intensity_Sum'} = 'SUV';
+
+    MRSCont.coreg.pet.tables.Properties.CustomProperties.VariableLongNames{'Thresholded_Sum'} = 'Thresholded sum of PET image intensity';
+    MRSCont.coreg.pet.tables.Properties.VariableDescriptions{'Thresholded_Sum'} = 'The sum of PET image intensities greater than 0.2 within the co-registered voxel';
+    MRSCont.coreg.pet.tables.Properties.VariableUnits{'Thresholded_Sum'} = 'SUV';
+
+    MRSCont.coreg.pet.tables.Properties.CustomProperties.VariableLongNames{'Gaussian_Fit'} = 'Peak of Gaussian fit of PET intensities';
+    MRSCont.coreg.pet.tables.Properties.VariableDescriptions{'Gaussian_Fit'} = 'Center of Gaussian fit applied to distribution of PET intensities';
+    MRSCont.coreg.pet.tables.Properties.VariableUnits{'Gaussian_Fit'} = 'SUV';
+
+    MRSCont.coreg.pet.tables.Properties.CustomProperties.VariableLongNames{'Gaussian_Width'} = 'FWHM of Gaussian fit of PET intensities';
+    MRSCont.coreg.pet.tables.Properties.VariableDescriptions{'Gaussian_Width'} = 'Full-width half-maximum of Gaussian fit applied to distribution of PET intensities';
+    MRSCont.coreg.pet.tables.Properties.VariableUnits{'Gaussian_Width'} = 'SUV';
+
+    osp_WriteBIDsTable(MRSCont.coreg.pet.tables, fullfile(MRSCont.outputFolder,'pet_metrics'))
 end
 
 fprintf('... done.\n');

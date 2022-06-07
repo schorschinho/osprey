@@ -22,7 +22,11 @@ end
 
 % Write json structure to text file following jsonencode
 fid=fopen([OutLoc,'.json'],'w');
-fprintf(fid, jsonencode(JSON)); 
+if isMATLABReleaseOlderThan("R2021a")
+    fprintf(fid, jsonencode(JSON)); 
+else
+    fprintf(fid, jsonencode(JSON,PrettyPrint=true)); %If newer Matlab version, utilize prettyprint formatting for JSON
+end
 fclose(fid);
 
 end
