@@ -22,10 +22,10 @@ end
 
 % Write json structure to text file following jsonencode
 fid=fopen([OutLoc,'.json'],'w');
-if isMATLABReleaseOlderThan("R2021a")
+try %try/catch to avoid version check in standalone Osprey version
+    fprintf(fid, jsonencode(JSON,PrettyPrint=true)); %(R2021a or newer)
+catch
     fprintf(fid, jsonencode(JSON)); 
-else
-    fprintf(fid, jsonencode(JSON,PrettyPrint=true)); %If newer Matlab version, utilize prettyprint formatting for JSON
 end
 fclose(fid);
 
