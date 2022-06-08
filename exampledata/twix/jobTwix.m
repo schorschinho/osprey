@@ -202,7 +202,7 @@ clear files files_ref files_w files_nii files_mm
 % up the jobFile for your own data you can set a direct path to your data
 % folder e.g., data_folder = /Volumes/MyProject/data/'
 
-data_folder = fileparts(which('exampledata/twix/jobTwix.m')); 
+data_folder = fileparts(which(fullfile('exampledata','twix','jobTwix.m'))); 
 
 % The following lines perform an automated set-up of the jobFile which
 % takes advatage of the BIDS foramt. If you are not using BIDS (highly
