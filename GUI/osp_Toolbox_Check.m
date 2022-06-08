@@ -57,24 +57,8 @@ end
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
  
-% SPM
-if isfile(fullfile(ospFolder,'GUI','SPMpath.mat')) % Load path to SPM
-    load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
-    if exist(SPMpath, 'dir')
-        spmversion = SPMpath;
-    else  %This isn't the right SPM path (maybe it was copied from another machine)
-        spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
-        spmversion = spmversion{1};
-        SPMpath = spmversion;
-        save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
-    end
-else %Set path to SPM
-    spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
-    spmversion = spmversion{1};
-    SPMpath = spmversion;
-    save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
-end
-% Check if SPM12 is installed
+% Get SPM folder and check if SPM12 is installed
+spmversion = fileparts(which(fullfile('spm.m')));
 if isempty(spmversion)
     hasSPM = 0;
 elseif strcmpi(spmversion(end-3:end),'spm8')
