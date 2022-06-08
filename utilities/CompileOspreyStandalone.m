@@ -18,6 +18,7 @@ function CompileOspreyStandalone(OutputDir,SPM12Dir,WidgetsDir,GUILayoutDir)
 %   Comment out the whole 2. GET SPMPATH AND TOOLBOXES sessuib in osp_Toolbox_Check.m
 % 
 %   In addtion you should remove the startup.m file from your Matlab folder as this interfers with the compilation and results in non-crashing errors in the compiled version.
+%   Make sure to run a clear all before runnning the script.
 % 
 %   Add SPM12 to your path and include all subfolders!
 % 
@@ -251,7 +252,6 @@ opts = compiler.build.StandaloneApplicationOptions(appFile,...
     'AutoDetectDataFiles','On',...
     'TreatInputsAsNumeric','Off',...
     'Verbose','On');
-
 compiler.build.standaloneApplication(opts);
 
 %% 4. GUI export
