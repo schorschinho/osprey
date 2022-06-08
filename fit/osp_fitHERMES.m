@@ -45,7 +45,7 @@ for kk = 1:MRSCont.nDatasets
     % For the separate (classic) HERMES fit, model the two DIFF
     % spectra and the SUM spectrum separately.
     if strcmp(fitStyle, 'Separate')
-        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.sum.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)  
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > size(MRSCont.fit.results.metab.fitParams,2))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)  
 
             %%% 2a. FIT SUM-SPECTRUM
             % Apply scaling factor to the data

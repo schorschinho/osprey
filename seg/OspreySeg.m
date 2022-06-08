@@ -34,8 +34,7 @@ diary(fullfile(outputFolder, 'LogFile.txt'));
 
 warning('off','all');
 % Checking for version, toolbox, and previously run modules
-osp_CheckRunPreviousModule(MRSCont, 'OspreySeg');
-[~,MRSCont.ver.CheckOsp ] = osp_Toolbox_Check ('OspreySeg',MRSCont.flags.isGUI);
+[~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreySeg');
 
 % Set up SPM for batch processing
 spm('defaults','fmri');
@@ -86,44 +85,120 @@ for kk = 1:MRSCont.nDatasets(1)
         if strcmp(T1extini,'.gz')
             T1name = strrep(T1name, '.nii','');
         end
-
-        segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
-        % If a GM-segmented file doesn't exist, start the segmentation
-        if ~exist(segFile,'file')
-            %Uncompress .nii.gz if needed
-            if strcmp(T1extini,'.gz')
-                gunzip(niftiFile);
-                niftiFile = strrep(niftiFile,'.gz','');                
-            end  
-            T1ext = '.nii';
-            createSegJob(niftiFile);
-        else
-            if strcmp(T1extini,'.gz')
-                gunzip(niftiFile);
-                niftiFile = strrep(niftiFile,'.gz','');
-                T1ext = '.nii';
+        
+        if ~isempty(MRSCont.files_seg) %Use external segmentation
+            if length(MRSCont.files_seg{kk}) > 1
+                segFileGM   = MRSCont.files_seg{kk}{1};
+                segFileWM   = MRSCont.files_seg{kk}{2};
+                segFileCSF  = MRSCont.files_seg{kk}{3};
+                [~, ~, Segextini]  = fileparts(segFileGM);
+                if strcmp(Segextini,'.gz')
+                    gunzip(segFileGM);
+                    gunzip(segFileWM);
+                    gunzip(segFileCSF);
+                    segFileGM   = strrep(segFileGM,'.gz','');
+                    segFileWM   = strrep(segFileWM,'.gz','');
+                    segFileCSF  = strrep(segFileCSF,'.gz','');
+                end
+                singleTissueSegFile = 0;
             else
-                T1ext = T1extini;
-            end  
-            if exist(fullfile(T1dir, ['c1' T1name '.nii.gz']),'file')
-                gunzip(fullfile(T1dir, ['c1' T1name T1ext '.gz']));
-                gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
-                gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
+                segFile4D   = MRSCont.files_seg{kk}{1};
+                [~, ~, Segextini]  = fileparts(segFile4D);
+                 if strcmp(Segextini,'.gz')
+                    gunzip(segFile4D);
+                    segFile4D   = strrep(segFile4D,'.gz','');
+                end
+                singleTissueSegFile = 1;
             end
-            T1ext = '.nii';
-        end
 
+            
+
+            
+        else
+            singleTissueSegFile = 0;
+            segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
+            % If a GM-segmented file doesn't exist, start the segmentation
+            if ~exist(segFile,'file')
+                %Uncompress .nii.gz if needed
+                if strcmp(T1extini,'.gz')
+                    gunzip(niftiFile);
+                    niftiFile = strrep(niftiFile,'.gz','');                
+                end  
+                T1ext = '.nii';
+                createSegJob(niftiFile);
+            else
+                if strcmp(T1extini,'.gz')
+                    gunzip(niftiFile);
+                    niftiFile = strrep(niftiFile,'.gz','');
+                    T1ext = '.nii';
+                else
+                    T1ext = T1extini;
+                end  
+                if exist(fullfile(T1dir, ['c1' T1name '.nii.gz']),'file')
+                    gunzip(fullfile(T1dir, ['c1' T1name T1ext '.gz']));
+                    gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
+                    gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
+                end
+                T1ext = '.nii';
+            end
+        end
 
         %%% 2. CREATE MASKED TISSUE MAPS %%%
         % Define file names
-        segFileGM   = fullfile(T1dir, ['c1' T1name T1ext]);
-        segFileWM   = fullfile(T1dir, ['c2' T1name T1ext]);
-        segFileCSF  = fullfile(T1dir, ['c3' T1name T1ext]);
+        if isempty(MRSCont.files_seg) %Use SPM segmentation
+            segFileGM   = fullfile(T1dir, ['c1' T1name T1ext]);
+            segFileWM   = fullfile(T1dir, ['c2' T1name T1ext]);
+            segFileCSF  = fullfile(T1dir, ['c3' T1name T1ext]);
+        end
         % Load volumes
-        GMvol  = spm_vol(segFileGM);
-        WMvol  = spm_vol(segFileWM);
-        CSFvol = spm_vol(segFileCSF);
+        if ~singleTissueSegFile
+            GMvol  = spm_vol(segFileGM);
+            WMvol  = spm_vol(segFileWM);
+            CSFvol = spm_vol(segFileCSF);
+        else
+           SEGvol  = spm_vol(segFile4D);
+           if size(SEGvol,1)>1 % 4D volume
+               TissueSegFile4D = 1;
+           else % It's a 3D atlas with different numbers (we treat it as AAL atlas)
+               TissueSegFile4D = 0;
+           end
+
         
+            if ~TissueSegFile4D
+                % Get tissue maps from AAL atlas
+                [GM,WM,CSF,AAL]=AAL_to_3TissueSeg(SEGvol);
+                [AALpath,AALfilename,AALext] = fileparts(SEGvol.fname);
+                %Store them in SPM12 standard
+                GMvol.fname    = fullfile(AALpath,['c1' AALfilename AALext ]);
+                GMvol.descrip  = ['GMmask based on AAL atlas'];
+                GMvol.dim      = SEGvol.dim;
+                GMvol.dt       = SEGvol.dt;
+                GMvol.mat      = SEGvol.mat;
+                GMvol          = spm_write_vol(GMvol, GM);
+                
+                WMvol.fname    = fullfile(AALpath,['c2' AALfilename AALext ]);
+                WMvol.descrip  = ['WMmask based on AAL atlas'];
+                WMvol.dim      = SEGvol.dim;
+                WMvol.dt       = SEGvol.dt;
+                WMvol.mat      = SEGvol.mat;
+                WMvol          = spm_write_vol(WMvol, WM);
+                
+                CSFvol.fname    = fullfile(AALpath,['c3' AALfilename AALext ]);
+                CSFvol.descrip  = ['CSFmask based on AAL atlas'];
+                CSFvol.dim      = SEGvol.dim;
+                CSFvol.dt       = SEGvol.dt;
+                CSFvol.mat      = SEGvol.mat;
+                CSFvol          = spm_write_vol(CSFvol, CSF);
+                
+                AALvol.fname    = fullfile(AALpath,['aal' AALfilename AALext ]);
+                AALvol.descrip  = ['AAL atlas without L-R difference'];
+                AALvol.dim      = SEGvol.dim;
+                AALvol.dt       = SEGvol.dt;
+                AALvol.mat      = SEGvol.mat;
+                AALvol          = spm_write_vol(AALvol, AAL);
+            end
+        end
+
         %Loop over voxels (for DualVoxel)
         if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
             Voxels = 1;
@@ -163,7 +238,11 @@ for kk = 1:MRSCont.nDatasets(1)
             vol_GMMask.dim      = vol_mask.dim;
             vol_GMMask.dt       = vol_mask.dt;
             vol_GMMask.mat      = vol_mask.mat;
-            GM_voxmask_vol      = GMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            if ~singleTissueSegFile || ~TissueSegFile4D
+                GM_voxmask_vol      = GMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            else
+                GM_voxmask_vol      = SEGvol(1).private.dat(:,:,:,1) .* vol_mask.private.dat(:,:,:);
+            end
             vol_GMMask          = spm_write_vol(vol_GMMask, GM_voxmask_vol);
 
             % WM
@@ -172,7 +251,11 @@ for kk = 1:MRSCont.nDatasets(1)
             vol_WMMask.dim      = vol_mask.dim;
             vol_WMMask.dt       = vol_mask.dt;
             vol_WMMask.mat      = vol_mask.mat;
-            WM_voxmask_vol      = WMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            if ~singleTissueSegFile || ~TissueSegFile4D
+                WM_voxmask_vol      = WMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            else
+                WM_voxmask_vol      = SEGvol(2).private.dat(:,:,:,2) .* vol_mask.private.dat(:,:,:);
+            end
             vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
 
             % CSF
@@ -181,7 +264,11 @@ for kk = 1:MRSCont.nDatasets(1)
             vol_CSFMask.dim     = vol_mask.dim;
             vol_CSFMask.dt      = vol_mask.dt;
             vol_CSFMask.mat     = vol_mask.mat;
-            CSF_voxmask_vol     = CSFvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            if ~singleTissueSegFile || ~TissueSegFile4D
+                CSF_voxmask_vol     = CSFvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+            else
+                CSF_voxmask_vol      = SEGvol(3).private.dat(:,:,:,3) .* vol_mask.private.dat(:,:,:);
+            end
             vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
             
             % Save volume structures in MRSCont
@@ -263,21 +350,34 @@ for kk = 1:MRSCont.nDatasets(1)
             delete(vol_WMMask.fname);
             gzip(vol_CSFMask.fname);
             delete(vol_CSFMask.fname);
-            gzip(GMvol.fname);
-            delete(GMvol.fname);
-            gzip(WMvol.fname);
-            delete(WMvol.fname);
-            gzip(CSFvol.fname);
-            delete(CSFvol.fname);
-            delete(vol_mask.fname);
-            
-            if strcmp(T1extini,'.gz')
-                gzip(MRSCont.coreg.vol_image{kk}.fname)
-                delete(MRSCont.coreg.vol_image{kk}.fname);
+            if isempty(MRSCont.files_seg) %Standard SPM12 segmentation
+                gzip(GMvol.fname);
+                delete(GMvol.fname);
+                gzip(WMvol.fname);
+                delete(WMvol.fname);
+                gzip(CSFvol.fname);
+                delete(CSFvol.fname);
+            elseif strcmp(Segextini,'.gz') %External segmentation
+                if ~singleTissueSegFile
+                    gzip(GMvol.fname);
+                    delete(GMvol.fname);
+                    gzip(WMvol.fname);
+                    delete(WMvol.fname);
+                    gzip(CSFvol.fname);
+                    delete(CSFvol.fname);
+                else
+                    gzip(SEGvol(1).fname);
+                    delete(SEGvol(1).fname);
+                end
+
             end
-
-
-
+            delete(vol_mask.fname);  
+            if strcmp(T1extini,'.gz')
+                if ~exist([MRSCont.coreg.vol_image{kk}.fname,'.gz'],'file')
+                    gzip(MRSCont.coreg.vol_image{kk}.fname)
+                    delete(MRSCont.coreg.vol_image{kk}.fname);
+                end
+            end
 
             % Normalize
             fGM  = GMsum / (GMsum + WMsum + CSFsum);
@@ -399,4 +499,59 @@ spm_jobman('run',matlabbatch);
 end
 
 
+function [GM,WM,CSF,AAL]=AAL_to_3TissueSeg(vol_aseg_dseg)
+% This function is only working for a specific AAL atlas. You have to adapt
+% the lable numbers to make it work for your specific atlas.
 
+GM = zeros(vol_aseg_dseg.dim);
+WM = zeros(vol_aseg_dseg.dim);
+CSF = zeros(vol_aseg_dseg.dim);
+AAL = zeros(vol_aseg_dseg.dim);
+aseg_dseg = spm_read_vols(vol_aseg_dseg);
+
+% Sort AAL labels into gray matter, white matter, and CSF
+% Create white matter mask
+WM(aseg_dseg==2 | aseg_dseg == 41) = 1; %Cerebral-White-Matter 1
+WM(aseg_dseg == 16) = 1;% Brain-Stem 2
+
+% Create gray matter mask
+GM(aseg_dseg==3 | aseg_dseg == 42) = 1;% Cerebral-Cortex 3
+GM(aseg_dseg==8 | aseg_dseg == 47) = 1;% Cerebellum-Cortex 4
+GM(aseg_dseg==10 | aseg_dseg == 49) = 1;% Thalamus-Proper* 5
+GM(aseg_dseg==11 | aseg_dseg == 50) = 1;% Caudate 6
+GM(aseg_dseg==12 | aseg_dseg == 51) = 1;% Putamen 7
+GM(aseg_dseg==13 | aseg_dseg == 52) = 1;% Pallidum 8
+GM(aseg_dseg==17 | aseg_dseg == 53) = 1;% Hippocampus 9
+GM(aseg_dseg==18 | aseg_dseg == 54) = 1;% Amygdala 10
+GM(aseg_dseg==26 | aseg_dseg == 58) = 1;% Accumbens-area 11
+GM(aseg_dseg==27 | aseg_dseg == 59) = 1;% Substantia-Nigra 12
+GM(aseg_dseg==28 | aseg_dseg == 60) = 1;% VentralDC 13
+GM(aseg_dseg==172) = 1;% Vermis 14
+
+% Create csf mask
+CSF(aseg_dseg==4 | aseg_dseg == 43) = 1;%Lateral Ventricles 15
+CSF(aseg_dseg==14) = 1;% 3rd Ventricle 16
+CSF(aseg_dseg==15) = 1;% 4th Ventricle 17
+
+% Create a single aal volume
+AAL(aseg_dseg==2 | aseg_dseg == 41) = 1; %Cerebral-White-Matter
+AAL(aseg_dseg==16) = 2;% Brain-Stem
+
+AAL(aseg_dseg==3 | aseg_dseg == 42) = 3;% Cerebral-Cortex
+AAL(aseg_dseg==8 | aseg_dseg == 47) = 4;% Cerebellum-Cortex
+AAL(aseg_dseg==10 | aseg_dseg == 49) = 5;% Thalamus-Proper*
+AAL(aseg_dseg==11 | aseg_dseg == 50) = 6;% Caudate
+AAL(aseg_dseg==12 | aseg_dseg == 51) = 7;% Putamen
+AAL(aseg_dseg==13 | aseg_dseg == 52) = 8;% Pallidum
+AAL(aseg_dseg==17 | aseg_dseg == 53) = 9;% Hippocampus
+AAL(aseg_dseg==18 | aseg_dseg == 54) = 10;% Amygdala
+AAL(aseg_dseg==26 | aseg_dseg == 58) = 11;% Accumbens-area
+AAL(aseg_dseg==27 | aseg_dseg == 59) = 12;% Substantia-Nigra
+AAL(aseg_dseg==28 | aseg_dseg == 60) = 13;% VentralDC
+AAL(aseg_dseg==172) = 14;% Vermis
+
+AAL(aseg_dseg==4 | aseg_dseg == 43) = 15;%Lateral Ventricles
+AAL(aseg_dseg==14) = 16;% 3rd Ventricle
+AAL(aseg_dseg==15) = 17;% 4th Ventricle
+
+end

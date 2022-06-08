@@ -158,10 +158,10 @@ fprintf(fid,'\n \n');
 fprintf(fid,'|4. Data quality|  | \n');
 fprintf(fid,'|--|--| \n');
 if MRSCont.flags.isUnEdited || MRSCont.flags.isMEGA
-    fprintf(fid,'|a. SNR (NAA), linewidth (NAA) [Hz] | SNR: %.0f +- %.0f, linewidth %.2f +- %.2f Hz| \n', round(mean(MRSCont.QM.SNR.metab(1,:,1))),round(std(MRSCont.QM.SNR.metab(1,:,1)),2),round(mean(MRSCont.QM.FWHM.metab(1,:,1)),2),round(std(MRSCont.QM.FWHM.metab(1,:,1)),2)); % Here we need something for cases without fitting was done
+    fprintf(fid,'|a. SNR (Cr), linewidth (Cr) [Hz] | SNR: %.0f +- %.0f, linewidth %.2f +- %.2f Hz| \n', round(mean(MRSCont.QM.SNR.metab(1,:,1))),round(std(MRSCont.QM.SNR.metab(1,:,1)),2),round(mean(MRSCont.QM.FWHM.metab(1,:,1)),2),round(std(MRSCont.QM.FWHM.metab(1,:,1)),2)); % Here we need something for cases without fitting was done
 end
 if MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
-    fprintf(fid,'|a. SNR (NAA), linewidth (NAA) [Hz] | SNR: %.0f +- %.0f, linewidth %.2f +- %.2f Hz| \n', round(mean(MRSCont.QM.SNR.metab(1,:,7))),round(std(MRSCont.QM.SNR.metab(1,:,7)),2),round(mean(MRSCont.QM.FWHM.metab(1,:,7)),2),round(std(MRSCont.QM.FWHM.metab(1,:,7)),2)); % Here we need something for cases without fitting was done
+    fprintf(fid,'|a. SNR (Cr), linewidth (Cr) [Hz] | SNR: %.0f +- %.0f, linewidth %.2f +- %.2f Hz| \n', round(mean(MRSCont.QM.SNR.metab(1,:,7))),round(std(MRSCont.QM.SNR.metab(1,:,7)),2),round(mean(MRSCont.QM.FWHM.metab(1,:,7)),2),round(std(MRSCont.QM.FWHM.metab(1,:,7)),2)); % Here we need something for cases without fitting was done
 end
 fprintf(fid,'|b. Data exclusion criteria | %s| \n', 'None');
 if MRSCont.flags.isUnEdited

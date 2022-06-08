@@ -81,7 +81,9 @@ in.fids = squeeze(in.fids);
     if isfield(out, 'extra_names')
         out.extra_names = out.extra_names(index);
     end
-    out.names = out.names(index,:);
+    if isfield(out, 'names')
+        out.names = out.names(index,:);
+    end
     out.spectralwidth = out.spectralwidth(index);
     out.dwelltime = out.dwelltime(index);
     out.txfrq = out.txfrq(index);

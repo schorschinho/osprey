@@ -30,10 +30,13 @@ function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %
 %   HISTORY:
 %       2020-05-15: First version of the code.
-%%
-%%% 1. GET SPMPATH AND TOOLBOXES%%%
-OspreyVersion = 'Osprey 2.0.0';
+%% % 1. SAVE OSPREY VERSION%%%
+%%% 1. SAVE OSPREY VERSION%%%
+OspreyVersion = 'Osprey 2.2.0';
 fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
+hasSPM = 1; % For the compiled GUI
+%% % 2. GET SPMPATH AND TOOLBOXES%%%
+warning('off','MATLAB:javaclasspath:jarAlreadySpecified');
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
 for tl = 1 : size(addons,1)
@@ -42,6 +45,7 @@ for tl = 1 : size(addons,1)
     catch
     end
 end
+addons = matlab.addons.installedAddons;
 lic = strcmp({'Enabled'}, addons.Properties.VariableNames);
 if ~isempty(lic)
     enabled = table2cell(addons(:,lic==1));
@@ -53,24 +57,8 @@ end
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
  
-% SPM
-if isfile(fullfile(ospFolder,'GUI','SPMpath.mat')) % Load path to SPM
-    load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
-    if exist(SPMpath, 'dir')
-        spmversion = SPMpath;
-    else  %This isn't the right SPM path (maybe it was copied from another machine)
-        spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
-        spmversion = spmversion{1};
-        SPMpath = spmversion;
-        save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
-    end
-else %Set path to SPM
-    spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
-    spmversion = spmversion{1};
-    SPMpath = spmversion;
-    save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
-end
-% Check if SPM12 is installed
+% Get SPM folder and check if SPM12 is installed
+spmversion = fileparts(which(fullfile('spm.m')));
 if isempty(spmversion)
     hasSPM = 0;
 elseif strcmpi(spmversion(end-3:end),'spm8')
@@ -81,7 +69,6 @@ else
     available{end+1} = 'SPM12';
     enabled{end+1} = true;
     hasSPM = 1;
-    rmpath(genpath([spmversion filesep 'external' filesep 'fieldtrip' filesep 'external' filesep 'stats' filesep 'finv.m']));
 end 
 
 try
@@ -89,7 +76,7 @@ try
         available(find(cellfun(@(a)~isempty(a)&&a<1,enabled)), :) = [];
     end    
 
-    %%% 2. CHECK AVAILABILTY %%%
+    %%% 3. CHECK AVAILABILTY %%%
     switch Module
         case 'OspreyGUI'
             ModuleString = 'fully run \bfOsprey';
@@ -129,39 +116,39 @@ try
     missingSpecific = setdiff(neededSpecific,available);
     missing = setdiff(neededGlobal,available); 
 
-    %%% 3. CREATE WARNING MESSAGES %%%
+    %%% 4. CREATE WARNING MESSAGES %%%
     if ~ToolChecked
-        warning = cellstr({});
+        warningMsg = cellstr({});
         warning_count = 1;
         if ~isempty(missing) || ~isempty(missingSpecific)
             opts.Interpreter = 'tex';
             opts.WindowStyle = 'modal';
-            warning{1} = ['The following toolboxes are missing to ' ModuleString '\rm:'];
+            warningMsg{1} = ['The following toolboxes are missing to ' ModuleString '\rm:'];
             for i = 1 : length(missing)
-                warning{i+1} = ['\bf' missing{i} '\rm'];
+                warningMsg{i+1} = ['\bf' missing{i} '\rm'];
             end
             warning_count = warning_count +length(missing) + 1;
-            warning{warning_count} = ['Please install them to ' ModuleString '\rm'];
+            warningMsg{warning_count} = ['Please install them to ' ModuleString '\rm'];
             warning_count = warning_count + 1;
             if ~isempty(missingSpecific)
-                warning{warning_count} = ['The following toolboxes are missing to run ' Module ':']; 
+                warningMsg{warning_count} = ['The following toolboxes are missing to run ' Module ':']; 
                 warningc = ['Please install and include the following toolboxes to use ' Module ':'];
                 for i = 1 : length(missingSpecific)
-                    warning{warning_count + i} = ['\bf' missingSpecific{i} '\rm'];
+                    warningMsg{warning_count + i} = ['\bf' missingSpecific{i} '\rm'];
                     warningc = [warningc ' ' missingSpecific{i}];
                 end
-                warning{warning_count + length(missingSpecific) + 1} = ['Please install them to use \bf' Module '\rm'];
-                warndlg(warning,'Missing Toolboxes',opts);
+                warningMsg{warning_count + length(missingSpecific) + 1} = ['Please install them to use \bf' Module '\rm'];
+                warndlg(warningMsg,'Missing Toolboxes',opts);
                 error(warningc);
             end    
-            warndlg(warning,'Missing Toolboxes',opts);
+            warndlg(warningMsg,'Missing Toolboxes',opts);
         end
     end
 
 catch %If the MATLAB version pre-dates the inmplementation of matlab.addons.installedAddons
-    warning = cellstr({});
-    warning{1} = 'Your current MATLAB version does not allow the automated toolbox check. We assume that all required toolboxes are available.';
-    warndlg(warning,'Automated toolbox check not working.',opts);
+    warningMsg = cellstr({});
+    warningMsg{1} = 'Your current MATLAB version does not allow the automated toolbox check. We assume that all required toolboxes are available.';
+    warndlg(warningMsg,'Automated toolbox check not working.',opts);
 end   
-
+warning('on','MATLAB:javaclasspath:jarAlreadySpecified');
 end

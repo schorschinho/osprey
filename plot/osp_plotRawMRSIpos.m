@@ -34,7 +34,7 @@ function out = osp_plotRawMRSIpos(MRSCont, kk, VoxelIndex)
 %       2019-10-02: First version of the code.
 
 % Check that OspreyFit has been run before
-if ~MRSCont.flags.didLoadData
+if ~MRSCont.flags.didLoad
     
 error('Trying to visualize voxel position, but data has not been loaded yet. Run OspreyLoad first.')
 end

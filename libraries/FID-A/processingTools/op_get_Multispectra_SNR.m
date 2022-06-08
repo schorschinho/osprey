@@ -24,16 +24,16 @@ noiseppmmin=-2;
 
 if ~MM
     if in.flags.isUnEdited
-        SNRRange = {[1.8,2.2]};
-        QC_names = {'tNAA'};
+        SNRRange = {[2.9,3.1]};
+        QC_names = {'tCr'};
     end
     if in.flags.isMEGA
-        SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
-        QC_names = {'tNAA','tCr',in.target,'tCr'};
+        SNRRange = {[2.9,3.1],[2.9,3.1],[2.8,3.2],[2.9,3.1]};
+        QC_names = {'tCr','tCr',in.target,'tCr'};
     end
     if in.flags.isHERMES || in.flags.isHERCULES
-        SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
-        QC_names = {'tNAA','tCr','tCr','tNAA',in.target{1},in.target{2},'tCr'};
+        SNRRange = {[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.8,3.2],[2.8,3.2],[2.9,3.1]};
+        QC_names = {'tCr','tCr','tCr','tCr',in.target{1},in.target{2},'tCr'};
     end
 else
     if in.flags.isUnEdited

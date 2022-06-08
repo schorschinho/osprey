@@ -48,7 +48,7 @@ for kk = 1:MRSCont.nDatasets
     if strcmpi(MRSCont.opts.fit.method, 'Osprey')
         [~] = printLog('OspreyFit',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 
-        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.off.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+        if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > size(MRSCont.fit.results.metab.fitParams,2))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             % Apply scaling factor to the data
             dataToFit   = MRSCont.processed.metab{kk};
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
@@ -82,9 +82,10 @@ for kk = 1:MRSCont.nDatasets
                 %add some info from the metabolite fit
                 dataToFit_mm.lineShape  = fitParams.lineShape;
                 dataToFit_mm.refFWHM  = fitParams.refFWHM;
-                dataToFit_mm.refShift  = 0;
+%                 dataToFit_mm.refShift  = 0;
                 % Extract fit options
                 fitOpts_mm    = MRSCont.opts.fit;
+                fitOpts_mm.range = [0.2 4.2];
                 fitModel_mm    = fitOpts.method;
                 fitOpts_mm.sequence = 'unedited';
                 %Specify a reduced basis set for MM modeling
@@ -127,10 +128,10 @@ for kk = 1:MRSCont.nDatasets
                 fitOpts_mm_clean.range=[mm_clean.ppm(1) mm_clean.ppm(end)];
                 [~,mm_clean_spline] = fit_Osprey_SplineOnly(mm_clean, 0.1, fitOpts_mm_clean.range);
                 mm_clean_spline.names = {'A_spline'};
-                temp               = op_zeropad(mm_clean, 16);
-                [refShift_mm, ~] = osp_XReferencing(temp,[0.91],[1],[0 4.2],1);% determine frequency shift
-                [mm_clean]             = op_freqshift(mm_clean,-refShift_mm);
-                [mm_clean_spline]             = op_freqshift(mm_clean_spline,-refShift_mm);
+%                 temp               = op_zeropad(mm_clean, 16);
+%                 [refShift_mm, ~] = osp_XReferencing(temp,[0.91],[1],[0 4.2],1);% determine frequency shift
+                [mm_clean]             = op_freqshift(mm_clean,-fitParams_mm.refShift);
+                [mm_clean_spline]             = op_freqshift(mm_clean_spline,-fitParams_mm.refShift);
                 MRSCont.processed.mm{kk} = op_mergesubspec(MRSCont.processed.mm{kk},mm_clean);
                 MRSCont.processed.mm{kk} = op_mergesubspec(MRSCont.processed.mm{kk},mm_clean_spline);
 
