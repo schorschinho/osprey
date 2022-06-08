@@ -27,13 +27,13 @@ end
 zpfactor=8;
 if ~MM
     if in.flags.isUnEdited
-        SNRRange = {[1.8,2.2]};
+        SNRRange = {[2.9,3.1]};
     end
     if in.flags.isMEGA
-        SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
+        SNRRange = {[2.9,3.1],[2.9,3.1],[2.8,3.2],[2.9,3.1]};
     end
     if in.flags.isHERMES || in.flags.isHERCULES
-        SNRRange = {[1.8,2.2],[2.8,3.2],[2.8,3.2],[1.8,2.2],[2.8,3.2],[2.8,3.2],[2.8,3.2]};
+        SNRRange = {[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.8,3.2],[2.8,3.2],[2.9,3.1]};
     end
 else
     if in.flags.isUnEdited
