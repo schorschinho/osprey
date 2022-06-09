@@ -29,7 +29,11 @@ end
 % If PET data included, generate output table with PET metrics and metab/cr
 % ratios and write in BIDs format
 if MRSCont.flags.hasSecondT1 && MRSCont.flags.hasPET
-    osp_WriteBIDsTable([MRSCont.coreg.pet.tables, MRSCont.seg.pet.tables, MRSCont.quantify.tables.metab.tCr.Voxel_1{1}], fullfile(MRSCont.outputFolder,'pet_metrics'))
+    CoregTable = MRSCont.coreg.pet.tables;
+    CoregTable([MRSCont.exclude],:) = [];
+    SegTable = MRSCont.seg.pet.tables;
+    SegTable([MRSCont.exclude],:) = [];
+    osp_WriteBIDsTable([CoregTable, SegTable, MRSCont.quantify.tables.metab.tCr.Voxel_1{1}], fullfile(MRSCont.outputFolder,'pet_metrics'))
 end
 
 end

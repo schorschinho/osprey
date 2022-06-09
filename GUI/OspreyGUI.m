@@ -251,8 +251,8 @@ classdef OspreyGUI < handle
 %                 gui.quant.Number.Quants = 1;
 %                 gui.quant.Names.Quants = {};
                 for m = 1 : gui.quant.Number.Model
-                    gui.quant.Number.Metabs.(gui.quant.Names.Model{m}) = length(MRSCont.quantify.metabs.(gui.quant.Names.Model{m}));
-                    gui.quant.Names.Metabs.(gui.quant.Names.Model{m}) = MRSCont.quantify.metabs.(gui.quant.Names.Model{m});
+                    gui.quant.Number.Metabs.(gui.quant.Names.Model{m}) = length(MRSCont.quantify.names.metab{1}.(gui.quant.Names.Model{m}));
+                    gui.quant.Names.Metabs.(gui.quant.Names.Model{m}) = MRSCont.quantify.names.metab{1}.(gui.quant.Names.Model{m});
                 end
                 gui.quant.Selected.Metab = {'NAA'};
                 gui.quant.Selected.Model = 1;
@@ -270,10 +270,10 @@ classdef OspreyGUI < handle
                 gui.quant.Names.Model       = fieldnames(MRSCont.quantify.tables);
                 gui.quant.Number.Quants     = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1})));
                 gui.quant.Names.Quants      = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{1}));
-                gui.quant.Number.Metabs     = length(MRSCont.quantify.metabs);
-                gui.quant.Selected.Metab    = find(strcmp(MRSCont.quantify.metabs, 'tNAA'));
+                gui.quant.Number.Metabs     = length(MRSCont.quantify.names.metab{1});
+                gui.quant.Selected.Metab    = find(strcmp(MRSCont.quantify.names.metab{1}, 'tNAA'));
                 gui.quant.Selected.Model    = 1;
-                gui.quant.idx.GABA          = find(strcmp(MRSCont.quantify.metabs, 'GABA'));
+                gui.quant.idx.GABA          = find(strcmp(MRSCont.quantify.names.metab{1}, 'GABA'));
             end
 
             if MRSCont.flags.didOverview % Get variables for the overview tab
