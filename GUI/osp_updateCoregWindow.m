@@ -129,19 +129,94 @@ if gui.coreg.Selected == 1 %Is first structural tab?
     end
     
 elseif gui.coreg.Selected == 2 %Is this the tab for the second structural image?
-    delete( gui.Results.coreg.Children(1) );
-    temp = figure( 'Visible', 'off' );
-    temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected);
-    set( temp.Children, 'Parent', gui.Results.coreg);
-    colormap(gui.Results.coreg.Children(1),'gray');
-    close( temp );
-
+    if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 2 %Did seg & has been visualized already
+        temp = figure( 'Visible', 'off' );
+        if isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+            temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+        else
+            temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected,gui.controls.act_x);
+        end
+        set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(2));
+        delete( gui.Results.coreg.Children(2).Children(2) );
+        colormap(gui.Results.coreg.Children(1),'gray');
+        close( temp );
+        temp = figure( 'Visible', 'off' );
+        if gui.controls.Selected <= length(MRSCont.seg.tissue.secondT1.fGM)
+            if isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+                temp = osp_plotSegmentSecond(MRSCont, gui.controls.Selected);
+            else
+                temp = osp_plotSegmentSecond(MRSCont, gui.controls.Selected,gui.controls.act_x);
+            end
+            set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(1));
+            delete( gui.Results.coreg.Children(1).Children(10:end));
+            set(gui.Results.coreg.Children(1),'Children',flipud(gui.Results.coreg.Children(1).Children));
+            colormap(gui.Results.coreg.Children(1),'gray');
+            set( gui.Results.coreg.Children(2).Title, 'String', temp.Children.Title.String);
+            close( temp );
+            temp = figure( 'Visible', 'off' );
+            if gui.controls.Selected <= length(MRSCont.seg.tissue.secondT1.fGM)
+                if isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+                    temp = osp_plotSegmentSecond(MRSCont, gui.controls.Selected);
+                else
+                    temp = osp_plotSegmentSecond(MRSCont, gui.controls.Selected,gui.controls.act_x);
+                end
+                set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(1));
+                set( gui.Results.coreg.Children(1).Title, 'String', temp.Children.Title.String);
+                delete( gui.Results.coreg.Children(1).Children(10:end));
+                set(gui.Results.coreg.Children(1),'Children',flipud(gui.Results.coreg.Children(1).Children));
+                colormap(gui.Results.coreg.Children(1),'gray');
+                close( temp );
+            end
+        end
+    elseif MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 1 %Did seg but has not been visualized yet (Initial run of segement button)
+        temp = figure( 'Visible', 'off' );
+        if isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+            temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+        else
+            temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected,gui.controls.act_x);
+        end
+        set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(1));
+        colormap(gui.Results.coreg.Children(1),'gray');
+        close( temp );
+        temp = figure( 'Visible', 'off' );
+        if isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+            temp = osp_plotSegmentSecond(MRSCont, gui.controls.Selected);
+        else
+            temp = osp_plotSegmentSecond(MRSCont, gui.controls.Selected,gui.controls.act_x);
+        end
+        set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(2));
+        colormap(gui.Results.coreg.Children(1),'gray');
+        close( temp );
+    elseif length(gui.Results.coreg.Children) == 1 %Only coreg has been performed
+        temp = figure( 'Visible', 'off' );
+        if isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+            temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+        else
+            temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected,gui.controls.act_x);
+        end
+        set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(1) );
+        delete( gui.Results.coreg.Children(1).Children(2) );
+        colormap(gui.Results.coreg.Children,'gray')
+        set( gui.Results.coreg.Children(1).Title, 'String', temp.Children.Title.String);
+        close( temp );
+    else % Neither coreg nor segment has been performed
+        temp = figure( 'Visible', 'off' );
+        if isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+            temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+        else
+            temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected,gui.controls.act_x);
+        end
+        set( temp.Children, 'Parent', gui.Results.coreg );
+        colormap(gui.Results.coreg.Children,'gray')
+        close( temp );
+        set( temp.Children.Children, 'Parent', gui.Results.coreg.Children(1) );
+        delete( gui.Results.coreg.Children(1).Children(2) );
+        colormap(gui.Results.coreg.Children,'gray')
+        close( temp );
+    end
 elseif gui.coreg.Selected == 3 % Is this the tab for the PET image?
-
-    if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 3 % Did seg & has been visualized already
-        delete(gui.Results.coreg.Children(1)); %delete distribution plot
-        delete(gui.Results.coreg.Children(1)); %delete distribution plot
-        delete(gui.Results.coreg.Children(1)); %delete image
+    if MRSCont.flags.didSeg % Did seg?
+        delete(gui.Results.coreg.Children(:)); %delete distribution plots & image
         temp = figure('Visible', 'off');
         if gui.controls.Selected <= length(MRSCont.seg.tissue.fGM)
             temp = osp_plotSegmentPET(MRSCont, gui.controls.Selected);
@@ -152,51 +227,31 @@ elseif gui.coreg.Selected == 3 % Is this the tab for the PET image?
             set(gui.Results.coreg.Children(1), 'Units', 'normalized')
             set(gui.Results.coreg.Children(1), 'OuterPosition', [0,0.5,1,0.5])
             set(gui.Results.coreg.Children(2), 'Units', 'normalized')
-            set(gui.Results.coreg.Children(2), 'OuterPosition', [0,0,0.5,0.5])
+            set(gui.Results.coreg.Children(2), 'OuterPosition', [0,0,1/3,0.5])
             set(gui.Results.coreg.Children(3), 'Units', 'normalized')
-            set(gui.Results.coreg.Children(3), 'OuterPosition', [0.5,0,0.5,0.5])
+            set(gui.Results.coreg.Children(3), 'OuterPosition', [1/3,0,1/3,0.5])
+            set(gui.Results.coreg.Children(4), 'Units', 'normalized')
+            set(gui.Results.coreg.Children(4), 'OuterPosition', [2/3,0,1/3,0.5])
         end
-    else
-        if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 2 %Did seg but has not been visualized yet (Initial run of segment button)
-            delete(gui.Results.coreg.Children(1)); %delete distribution plot
-            delete(gui.Results.coreg.Children(1)); %delete image
-            temp = figure('Visible', 'off');
-            temp = osp_plotSegmentPET(MRSCont, gui.controls.Selected);
-            set(temp.Children, 'Parent', gui.Results.coreg);
-            colormap(gui.Results.coreg.Children(1), 'gray');
-            close(temp);
-            set(gui.Results.coreg, 'Heights', -0.49*ones(length(gui.Results.coreg.Children),1));
-            set(gui.Results.coreg.Children(1), 'Units', 'normalized')
-            set(gui.Results.coreg.Children(1), 'OuterPosition', [0,0.5,1,0.5])
-            set(gui.Results.coreg.Children(2), 'Units', 'normalized')
-            set(gui.Results.coreg.Children(2), 'OuterPosition', [0,0,0.5,0.5])
-            set(gui.Results.coreg.Children(3), 'Units', 'normalized')
-            set(gui.Results.coreg.Children(3), 'OuterPosition', [0.5,0,0.5,0.5])
-
-        else
-            if length(gui.Results.coreg.Children) == 2 %Only coreg has been performed
-                temp = figure('Visible', 'off');
-                temp = osp_plotCoregPET(MRSCont, gui.controls.Selected);
-                delete(gui.Results.coreg.Children(1));
-                delete(gui.Results.coreg.Children(1));
-                set(temp.Children, 'Parent', gui.Results.coreg );
-                colormap(gui.Results.coreg.Children(1), 'gray');
-                close(temp);
-                set(gui.Results.coreg, 'Heights', -0.49*ones(length(gui.Results.coreg.Children),1));
-                set(gui.Results.coreg.Children(1), 'Units', 'normalized')
-                set(gui.Results.coreg.Children(1), 'OuterPosition', [0,0.5,1,0.5])
-                set(gui.Results.coreg.Children(2), 'Units', 'normalized')
-                set(gui.Results.coreg.Children(2), 'OuterPosition', [0,0,1,0.5])
-            else % Neither coreg nor segment has been performed
-                temp = figure('Visible', 'off');
-                temp = osp_plotCoregPET(MRSCont, gui.controls.Selected);
-                set(temp.Children, 'Parent', gui.Results.coreg);
-                colormap(gui.Results.coreg.Children(1), 'gray')
-                close(temp);
-            end
-        end
+    elseif MRSCont.flags.didCoreg % Did coreg?
+        delete(gui.Results.coreg.Children(:));
+        temp = figure('Visible', 'off');
+        temp = osp_plotCoregPET(MRSCont, gui.controls.Selected);
+        set(temp.Children, 'Parent', gui.Results.coreg );
+        colormap(gui.Results.coreg.Children(1), 'gray');
+        close(temp);
+        set(gui.Results.coreg, 'Heights', -0.49*ones(length(gui.Results.coreg.Children),1));
+        set(gui.Results.coreg.Children(1), 'Units', 'normalized')
+        set(gui.Results.coreg.Children(1), 'OuterPosition', [0,0.5,1,0.5])
+        set(gui.Results.coreg.Children(2), 'Units', 'normalized')
+        set(gui.Results.coreg.Children(2), 'OuterPosition', [0,0,1,0.5])
+    else % Neither coreg nor segment has been performed
+        temp = figure('Visible', 'off');
+        temp = osp_plotCoregPET(MRSCont, gui.controls.Selected);
+        set(temp.Children, 'Parent', gui.Results.coreg);
+        colormap(gui.Results.coreg.Children(1), 'gray')
+        close(temp);
     end
-
 end
 
 % Clean up

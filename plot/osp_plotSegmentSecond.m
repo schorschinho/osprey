@@ -87,7 +87,7 @@ text(floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'GM', 'Color', MRSCont.c
 text(2*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'WM', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 text(3*floor(size(vox_t,2)) + floor(size(vox_t,2)/2), 15, 'CSF', 'Color', MRSCont.colormap.Background, 'FontSize', 14, 'HorizontalAlignment', 'center');
 colormap('gray');
-caxis([0 1])
+caxis([0 mean(img_montage(img_montage > 0.01)) + 3*std(img_montage(img_montage > 0.01))]);
 axis equal;
 axis tight;
 axis off;

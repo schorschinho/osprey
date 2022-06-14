@@ -225,7 +225,20 @@ for t = gui.controls.NumberImages : -1 : 1 % Loop over tabs
             end
         elseif t == 2 % second structural tab
             % If voxel has been registered to a second T1, add it here
-            if MRSCont.flags.hasSecondT1
+            if MRSCont.flags.didSeg && MRSCont.flags.hasSecondT1
+                temp = figure( 'Visible', 'off' );
+                osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+                ViewAxes = gca();
+                set(ViewAxes, 'Parent', gui.Results.coreg );
+                colormap(gui.Results.coreg.Children,'gray')
+                close( temp );
+                temp = figure( 'Visible', 'off' );
+                osp_plotSegmentSecond(MRSCont, gui.controls.Selected);
+                ViewAxes = gca();
+                set(ViewAxes, 'Parent', gui.Results.coreg );
+                colormap(gui.Results.coreg.Children(1),'gray');
+                close( temp );
+            else
                 temp = figure( 'Visible', 'off' );
                 osp_plotCoregSecond(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();

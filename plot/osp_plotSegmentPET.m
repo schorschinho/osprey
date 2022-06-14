@@ -75,7 +75,7 @@ else
     title(['Coregistration with PET: ' filename_voxel fileext_voxel ' & '  filename_image fileext_image], 'Interpreter', 'none','FontSize', 16,'Color', MRSCont.colormap.Foreground);
 end
 
-axesHandles.coregImage = subplot(2, 2, [1,2]);
+axesHandles.coregImage = subplot(2, 3, [1,2,3]);
 imagesc(axesHandles.coregImage, three_plane_img);
 colormap('gray');
 caxis([0 1])
@@ -90,15 +90,40 @@ end
 
 %%% 5. ADD PET IMAGE INTENSITY DISTRIBUTION PLOT %%%
 
+%First, plot overall distribution
+axesHandles.IntensityDistributionPlot{1} = subplot(2, 3, 4);
+xIntensity              = MRSCont.coreg.pet.histogram.xIntensity{kk};
+yIntensity              = MRSCont.coreg.pet.histogram.yIntensity{kk};
+GaussModelParams        = MRSCont.coreg.pet.histogram.fitParams{kk};
+yFit = GaussModel(GaussModelParams,xIntensity);
+plot(xIntensity, yIntensity, 'LineWidth', 1, 'Color', MRSCont.colormap.Foreground, 'Parent', axesHandles.IntensityDistributionPlot{1});
+hold on;
+plot(xIntensity, yFit, 'LineWidth', 1.6, 'Color', MRSCont.colormap.Accent, 'Parent', axesHandles.IntensityDistributionPlot{1});
+hold off;
+if ~MRSCont.flags.isGUI
+    title('Full voxel PET intensities and Gaussian fit', 'Interpreter', 'none','FontSize', 16);
+else
+    title('Full voxel PET intensities and Gaussian fit', 'Interpreter', 'none','FontSize', 16, 'Color', MRSCont.colormap.Foreground);
+end
+set(axesHandles.IntensityDistributionPlot{1}, 'LineWidth', 1, 'TickDir', 'out');
+set(axesHandles.IntensityDistributionPlot{1}, 'FontSize', 16);
+set(axesHandles.IntensityDistributionPlot{1}, 'Units', 'normalized');
+box off;
+xlab = 'Full voxel PET Image Intensity (a.u.)';
+ylab = 'Number of pixels';
+%legend(axesHandles.IntensityDistributionPlot, 'Image data', 'Gaussian fit');
+xlabel(axesHandles.IntensityDistributionPlot{1}, xlab, 'FontSize', 16);
+ylabel(axesHandles.IntensityDistributionPlot{1}, ylab, 'FontSize', 16);
+
+% Next plot GM/WM distributions
 rr=1; %CWDJ Assume 1st voxel
 if MRSCont.flags.isPRIAM
     warning('Assuming 1st voxel')
 end
-
 tissueTypes = {'GM', 'WM'};
 for tt = 1:length(tissueTypes)
     % Navigate to the appropriate subplot tile
-    axesHandles.IntensityDistributionPlot{tt} = subplot(2, 2, 2+tt);
+    axesHandles.IntensityDistributionPlot{tt+1} = subplot(2, 3, 4+tt);
     % Extract the parameters from the MRSCont
     rawPETIntensitySum      = MRSCont.seg.pet.rawPETIntensitySum.(tissueTypes{tt})(kk);
     xIntensity              = MRSCont.seg.pet.histogram.xIntensity.(tissueTypes{tt}){kk}{rr};
@@ -108,24 +133,24 @@ for tt = 1:length(tissueTypes)
     distFWHM                = MRSCont.seg.pet.histogram.distFWHM.(tissueTypes{tt})(kk);
     % Evaluate model
     yFit = GaussModel(GaussModelParams,xIntensity);
-    plot(xIntensity, yIntensity, 'LineWidth', 1, 'Color', MRSCont.colormap.Foreground, 'Parent', axesHandles.IntensityDistributionPlot{tt});
+    plot(xIntensity, yIntensity, 'LineWidth', 1, 'Color', MRSCont.colormap.Foreground, 'Parent', axesHandles.IntensityDistributionPlot{tt+1});
     hold on;
-    plot(xIntensity, yFit, 'LineWidth', 1.6, 'Color', MRSCont.colormap.Accent, 'Parent', axesHandles.IntensityDistributionPlot{tt});
+    plot(xIntensity, yFit, 'LineWidth', 1.6, 'Color', MRSCont.colormap.Accent, 'Parent', axesHandles.IntensityDistributionPlot{tt+1});
     hold off;
     if ~MRSCont.flags.isGUI
-        title([tissueTypes{tt} ' PET image intensity distribution and Gaussian fit'], 'Interpreter', 'none','FontSize', 16);
+        title([tissueTypes{tt} ' PET intensities and Gaussian fit'], 'Interpreter', 'none','FontSize', 16);
     else
-        title([tissueTypes{tt} ' PET image intensity distribution and Gaussian fit'], 'Interpreter', 'none','FontSize', 16, 'Color', MRSCont.colormap.Foreground);
+        title([tissueTypes{tt} ' PET intensities and Gaussian fit'], 'Interpreter', 'none','FontSize', 16, 'Color', MRSCont.colormap.Foreground);
     end
-    set(axesHandles.IntensityDistributionPlot{tt}, 'LineWidth', 1, 'TickDir', 'out');
-    set(axesHandles.IntensityDistributionPlot{tt}, 'FontSize', 16);
-    set(axesHandles.IntensityDistributionPlot{tt}, 'Units', 'normalized');
+    set(axesHandles.IntensityDistributionPlot{tt+1}, 'LineWidth', 1, 'TickDir', 'out');
+    set(axesHandles.IntensityDistributionPlot{tt+1}, 'FontSize', 16);
+    set(axesHandles.IntensityDistributionPlot{tt+1}, 'Units', 'normalized');
     box off;
     xlab = [tissueTypes{tt} ' PET Image Intensity (a.u.)'];
     ylab = 'Number of pixels';
     %legend(axesHandles.IntensityDistributionPlot, 'Image data', 'Gaussian fit');
-    xlabel(axesHandles.IntensityDistributionPlot{tt}, xlab, 'FontSize', 16);
-    ylabel(axesHandles.IntensityDistributionPlot{tt}, ylab, 'FontSize', 16);
+    xlabel(axesHandles.IntensityDistributionPlot{tt+1}, xlab, 'FontSize', 16);
+    ylabel(axesHandles.IntensityDistributionPlot{tt+1}, ylab, 'FontSize', 16);
 end
 
 %%% 6. ADD OSPREY LOGO %%%
