@@ -4,16 +4,16 @@
 %
 % USAGE:
 % out=io_loadspec_twix(filename);
-% 
+%
 % DESCRIPTION:
-% Reads in siemens twix raw data (.dat file) using the mapVBVD.m and 
+% Reads in siemens twix raw data (.dat file) using the mapVBVD.m and
 % twix_map_obj.m functions from Philipp Ehses (philipp.ehses@tuebingen.mpg.de).
-% 
+%
 % op_loadspec_twix outputs the data in structure format, with fields corresponding to time
 % scale, fids, frequency scale, spectra, and header fields containing
 % information about the acquisition.  The resulting matlab structure can be
 % operated on by the other functions in this MRS toolbox.
-% 
+%
 % INPUTS:
 % filename   = filename of Siemens twix data to load.
 %
@@ -23,13 +23,13 @@
 function out=io_loadspec_twix(filename);
 
 
-%read in the data using the new mapVBVD.  This code has been adapted to 
+%read in the data using the new mapVBVD.  This code has been adapted to
 %handle both single RAID files and multi-RAID files.  The vast majority of
-%Siemens twix data comes as a single RAID file, but I've encoundered a few 
+%Siemens twix data comes as a single RAID file, but I've encoundered a few
 %multi-RAID files, particularly when using VD13D.  The way to distinguish
-%them here is that a for a single RAID file, mapVBVD will output a struct, 
+%them here is that a for a single RAID file, mapVBVD will output a struct,
 %whereas for a multi-RAID file, mapVBVD will output a cell array of structs.
-%This code assumes that the data of interest is in the last element of the 
+%This code assumes that the data of interest is in the last element of the
 %cell array (possibly a bad assumption under some circumstances):
 twix_obj=mapVBVD(filename);
 if isstruct(twix_obj)
@@ -43,7 +43,7 @@ elseif iscell(twix_obj)
 end
 dOut.data=twix_obj.image();
 version=twix_obj.image.softwareVersion;
-sqzSize=twix_obj.image.sqzSize; 
+sqzSize=twix_obj.image.sqzSize;
 sqzDims=twix_obj.image.sqzDims;
 
 %Check if the twix file is from a VE version
@@ -56,14 +56,19 @@ end
 %find out what sequence, the data were acquired with.  If this is a
 %multi-raid file, then the header may contain multiple instances of
 %'tSequenceFileName' for different scans (including a pre-scan).
-%Therefore, if multi-raid file, we will need to do a bit of extra digging 
-%to find the correct sequence name.  
-sequence=twix_obj.hdr.Config.SequenceFileName;  
+%Therefore, if multi-raid file, we will need to do a bit of extra digging
+%to find the correct sequence name.
+sequence=twix_obj.hdr.Config.SequenceFileName;
 
 %Try to find out what sequnece this is:
 isSpecial=~isempty(strfind(sequence,'rm_special')) ||...  %Is this Ralf Mekle's SPECIAL sequence?
+            ~isempty(strfind(sequence,'lr_special')) || ... %This might be Layla Riemann?
             ~isempty(strfind(sequence,'vq_special'));  %or the CIBM SPECIAL sequence?
-isjnSpecial=~isempty(strfind(sequence,'jn_svs_special'));  %or Jamie Near's SPECIAL sequence?
+isjnSpecial=~isempty(strfind(sequence,'jn_svs_special')) ||...  %or Jamie Near's SPECIAL sequence?
+            ~isempty(strfind(sequence,'md_Adiab_Special')) ||... %or Masoumeh Dehghani's Adiabatic SPECIAL sequence?
+            ~isempty(strfind(sequence,'md_Special')) ||... %or another version of Masoumeh Dehghani's SPECIAL sequence?
+            ~isempty(strfind(sequence,'md_Inv_special')); %or Masoumeh Dehghani's Inversion Recovery SPECIAL sequence?
+ishdSPECIAL=~isempty(strfind(sequence,'md_dvox_special')); %Is this Masoumeh Dehghani's hadamard-encoded dual-SPECIAL sequence?
 isjnMP=~isempty(strfind(sequence,'jn_MEGA_GABA')); %Is this Jamie Near's MEGA-PRESS sequence?
 isjnseq=~isempty(strfind(sequence,'jn_')); %Is this another one of Jamie Near's sequences?
 isWIP529=~isempty(strfind(sequence,'edit_529'));%Is this WIP 529 (MEGA-PRESS)?
@@ -71,28 +76,28 @@ ismodWIP=(~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'e
 isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
 isTLFrei=~isempty(strfind(sequence,'md_svs_edit')); %Is Thomas Lange's MEGA-PRESS sequence
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
-isSiemens=~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
-            ~isempty(strfind(sequence,'svs_st'));    % or the Siemens STEAM sequence?
+isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
+            ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
+            isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
 isUniversal = ~isempty(strfind(sequence,'univ')); %Is JHU universal editing sequence
 isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implmented at Donders Institute NL
 isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
-        
 %Make a pulse sequence identifier for the header (out.seq);
-if isSpecial
+if isSpecial || isjnSpecial
     seq = 'SPECIAL';
 elseif isUniversal
-    if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 1 
+    if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 1
         seq = 'HERMES';
     else if isempty(twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8})
             seq = 'MEGAPRESS';
         else
             seq = 'HERCULES';
         end
-    end 
+    end
 elseif isMinn
     if ~isempty(strfind(sequence,'mslaser'))
-        seq = 'MEGASLASER';        
+        seq = 'MEGASLASER';
     else
         if ~isempty(strfind(sequence,'slaser'))
             seq = 'SLASER';
@@ -117,18 +122,19 @@ end
 if ~exist('seq')
     seq = 'HERMES';
 end
+
 %If this is the SPECIAL sequence, it probably contains both inversion-on
 %and inversion-off subspectra on a single dimension, unless it is the VB
 %version of Jamie Near's SPECIAL sequence, in which case the subspecs are
-%already stored on separate dimensions.  
-%Both Ralf Mekle's SPECIAL and the VD-VE version of Jamie Near's SPECIAL sequence 
-%do not store the subspectra along a separate dimension of the data array, 
+%already stored on separate dimensions.
+%Both Ralf Mekle's SPECIAL and the VD-VE version of Jamie Near's SPECIAL sequence
+%do not store the subspectra along a separate dimension of the data array,
 %so we will separate them artifically:
-%25 Oct 2018: Due to a recent change, the VE version of Jamie Near's MEGA-PRESS 
-%sequence also falls into this category. 
-if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequence 
+%25 Oct 2018: Due to a recent change, the VE version of Jamie Near's MEGA-PRESS
+%sequence also falls into this category.
+if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequence
         ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
-        ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence                                                   
+        ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence
     squeezedData=squeeze(dOut.data);
     if twix_obj.image.NCol>1 && twix_obj.image.NCha>1
         data(:,:,:,1)=squeezedData(:,:,[1:2:end-1]);
@@ -138,6 +144,26 @@ if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequenc
         data(:,:,1)=squeezedData(:,[1:2:end-1]);
         data(:,:,2)=squeezedData(:,[2:2:end]);
         sqzSize=[sqzSize(1) sqzSize(2)/2 2];
+    end
+    if isjnseq
+        sqzDims{end+1}='Set';
+    else
+        sqzDims{end+1}='Ida';
+    end
+elseif ishdSPECIAL %For Masoumeh Dehghani's hadamard-encoded dual-voxel SPECIAL sequence:
+    squeezedData=squeeze(dOut.data);
+    if twix_obj.image.NCol>1 && twix_obj.image.NCha>1
+        data(:,:,:,1)=squeezedData(:,:,[1:4:end-3]);
+        data(:,:,:,2)=squeezedData(:,:,[2:4:end-2]);
+        data(:,:,:,3)=squeezedData(:,:,[3:4:end-1]);
+        data(:,:,:,4)=squeezedData(:,:,[4:4:end]);
+        sqzSize=[sqzSize(1) sqzSize(2) sqzSize(3)/4 4];
+    elseif twix_obj.image.NCol>1 && twix_obj.image.NCha==1
+        data(:,:,1)=squeezedData(:,[1:4:end-3]);
+        data(:,:,2)=squeezedData(:,[2:4:end-2]);
+        data(:,:,3)=squeezedData(:,[3:4:end-1]);
+        data(:,:,4)=squeezedData(:,[4:4:end]);
+        sqzSize=[sqzSize(1) sqzSize(2)/4 4];
     end
     if isjnseq
         sqzDims{end+1}='Set';
@@ -176,7 +202,7 @@ Bo=twix_obj.hdr.Dicom.flMagneticFieldStrength;
 Naverages=twix_obj.hdr.Meas.Averages;
 
 %Find out if multiple coil elements were used:
-Ncoils=twix_obj.hdr.Meas.iMaxNoOfRxChannels;  
+Ncoils=twix_obj.hdr.Meas.iMaxNoOfRxChannels;
 
 %Find the TE:
 TE = twix_obj.hdr.MeasYaps.alTE{1};  %Franck Lamberton
@@ -202,7 +228,7 @@ else
     TwixHeader.VoIThickness  = twix_obj.hdr.Spice.VoiThickness; % Voxel size in slice selection direction [mm]
     TwixHeader.PosCor         = twix_obj.hdr.Spice.VoiPositionCor; % Coronal coordinate of voxel [mm]
     TwixHeader.PosSag         = twix_obj.hdr.Spice.VoiPositionSag; % Sagittal coordinate of voxel [mm]
-    TwixHeader.PosTra         = twix_obj.hdr.Spice.VoiPositionTra; % Transversal coordinate of voxel [mm]   
+    TwixHeader.PosTra         = twix_obj.hdr.Spice.VoiPositionTra; % Transversal coordinate of voxel [mm]
     TwixHeader.VoI_InPlaneRot = twix_obj.hdr.Spice.VoiInPlaneRot; % Voxel rotation in plane
     TwixHeader.NormCor        = twix_obj.hdr.Spice.VoiNormalCor; % Coronal component of normal vector of voxel
     TwixHeader.NormSag        = twix_obj.hdr.Spice.VoiNormalSag; % Sagittal component of normal vector of voxel
@@ -296,10 +322,10 @@ end
 %are any values left in the dimsToIndex vector, then there must be some
 %additional dimensions that need indexing.  We assume that if sub-spectra exist,
 %then these must be indexed in either the 'Ida' dimension (for all Jamie
-%Near's VB-version pulse sequences), the 'Set' dimension (for all Jamie 
+%Near's VB-version pulse sequences), the 'Set' dimension (for all Jamie
 %Near's VD/VE-version pulse sequences), the 'Eco' dimension (for the WIP
-%529 MEGA-PRESS sequence or the Minnesota MEGA-PRESS sequence), or the 'Ide' 
-% dimension (for the WIP 859 MEGA-PRESS sequence). 
+%529 MEGA-PRESS sequence or the Minnesota MEGA-PRESS sequence), or the 'Ide'
+% dimension (for the WIP 859 MEGA-PRESS sequence).
 if ~isempty(dimsToIndex)
     %Now index the dimension of the sub-spectra
     if isjnseq  || isSpecial
@@ -326,7 +352,7 @@ else
 end
 
 %And if any further dimensions exist after indexing the sub-spectra, call
-%these the 'extras' dimension.  
+%these the 'extras' dimension.
 if ~isempty(dimsToIndex)
     %Now index the 'extras' dimension
     dims.extras=dimsToIndex(1);
@@ -342,8 +368,8 @@ end
 
 %Now that we've indexed the dimensions of the data array, we now need to
 %permute it so that the order of the dimensions is standardized:  we want
-%the order to be as follows:  
-%   1) time domain data.  
+%the order to be as follows:
+%   1) time domain data.
 %   2) coils.
 %   3) averages.
 %   4) subSpecs.
@@ -392,7 +418,7 @@ elseif length(sqzDims)==1
     dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0;
 end
 
-%Now reorder the fids for the Universal MEGA implementation 
+%Now reorder the fids for the Universal MEGA implementation
 if strcmp(seq,'MEGAPRESS') && isUniversal
     % Can only do this if we have more than one row, which might not be the
     % case (e.g. for water)
@@ -406,7 +432,7 @@ if strcmp(seq,'MEGAPRESS') && isUniversal
     end
 end
 
-%Now reorder the fids for the Universal HERMES/HERCULES implementation 
+%Now reorder the fids for the Universal HERMES/HERCULES implementation
 if strcmp(seq,'HERMES') || strcmp(seq,'HERCULES')
     % Can only do this if we have more than one row, which might not be the
     % case (e.g. for water)
@@ -433,14 +459,14 @@ sz=size(fids);
 
 %Now take fft of time domain to get fid:
 specs=fftshift(fft(fids,[],dims.t),dims.t);
-    
+
 
 %Now get relevant scan parameters:*****************************
 
 %Get Spectral width and Dwell Time
 dwelltime = twix_obj.hdr.MeasYaps.sRXSPEC.alDwellTime{1}*1e-9;  %Franck Lamberton
 spectralwidth=1/dwelltime;
-    
+
 %Get TxFrq
 if strcmp(version,'ve')
     txfrq=twix_obj.hdr.Meas.lFrequency  ;
@@ -452,14 +478,14 @@ end
 %date = getfield(regexp(twix_obj.hdr.MeasYaps.tReferenceImage0, ...
 %'^".*\.(?<DATE>\d{8})\d*"$', 'names'), 'DATE');  %Franck Lamberton
 
-date=''; %The above code for extracting the date from the header 
+date=''; %The above code for extracting the date from the header
          %was causing problems.  Since date is not critical
          %for almost any applications, removing it now to be fixed at a
          %later date.
 
 %Find the number of averages.  'averages' will specify the current number
 %of averages in the dataset as it is processed, which may be subject to
-%change.  'rawAverages' will specify the original number of acquired 
+%change.  'rawAverages' will specify the original number of acquired
 %averages in the dataset, which is unchangeable.
 if dims.subSpecs ~=0
     if dims.averages~=0
@@ -481,7 +507,7 @@ end
 
 %Find the number of subspecs.  'subspecs' will specify the current number
 %of subspectra in the dataset as it is processed, which may be subject to
-%change.  'rawSubspecs' will specify the original number of acquired 
+%change.  'rawSubspecs' will specify the original number of acquired
 %subspectra in the dataset, which is unchangeable.
 if dims.subSpecs ~=0
     subspecs=sz(dims.subSpecs);
@@ -507,14 +533,14 @@ elseif isSiemens && (~isMinn && ~isConnectom)
     if ~strcmp(version,'ve')
         leftshift = twix_obj.image.freeParam(1);
     else
-       leftshift = twix_obj.image.iceParam(5,1); 
-    end        
+       leftshift = twix_obj.image.iceParam(5,1);
+    end
 elseif isMinn || isConnectom || isDondersMRSfMRI
     try
         leftshift = twix_obj.image.iceParam(5,1);
     catch
         leftshift = twix_obj.image.freeParam(1);
-    end       
+    end
 else
     leftshift = twix_obj.image.freeParam(1);
 end
@@ -537,8 +563,8 @@ t=[0:dwelltime:(sz(1)-1)*dwelltime];
 out.fids=fids;
 out.specs=specs;
 out.sz=sz;
-out.ppm=ppm;  
-out.t=t;    
+out.ppm=ppm;
+out.t=t;
 out.spectralwidth=spectralwidth;
 out.dwelltime=dwelltime;
 out.txfrq=txfrq;
@@ -578,9 +604,9 @@ out.flags.subtracted=0;
 out.flags.writtentotext=0;
 out.flags.downsampled=0;
 if out.dims.subSpecs==0
-    out.flags.isISIS=0;
+    out.flags.isFourSteps=0;
 else
-    out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
+    out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
 
 % Sequence flags

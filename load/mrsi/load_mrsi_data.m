@@ -1053,9 +1053,9 @@ for kk = 1:MRSCont.nDatasets
     out.flags.writtentotext=0;
     out.flags.downsampled=0;
     if out.dims.subSpecs==0
-        out.flags.isISIS=0;
+        out.flags.isFourSteps=0;
     else
-        out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
+        out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
     end
     % Sequence flags
     out.flags.isUnEdited = 0;
@@ -1129,9 +1129,9 @@ for kk = 1:MRSCont.nDatasets
         out_w.flags.writtentotext=0;
         out_w.flags.downsampled=0;
         if out_w.dims.subSpecs==0
-            out_w.flags.isISIS=0;
+            out_w.flags.isFourSteps=0;
         else
-            out_w.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
+            out_w.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
         end
         % Sequence flags
         out_w.flags.isUnEdited = 1;

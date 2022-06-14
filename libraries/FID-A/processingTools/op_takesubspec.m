@@ -26,7 +26,7 @@ if ~isnumeric(index)
     end
 end
 
-if in.flags.subtracted
+if in.flags.subtracted && ~strcmp(in.seq, 'SPECIAL')
     error('ERROR:  Subspectra have already been combined!  Aborting!');
 end
 % in.fids = squeeze(in.fids);
@@ -100,4 +100,4 @@ end
 %FILLING IN THE FLAGS
 out.flags=in.flags;
 out.flags.writtentostruct=1;
-out.flags.isISIS=0;
+out.flags.isFourSteps=0;

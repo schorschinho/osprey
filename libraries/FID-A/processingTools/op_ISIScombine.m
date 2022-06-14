@@ -22,7 +22,7 @@ function out=op_ISIScombine(in,addInd);
 
 
 
-if ~in.flags.isISIS
+if ~in.flags.isFourSteps
     error('ERROR:  requires a MEGA-SPECIAL dataset as input!  Aborting!');
 end
 if in.sz(end)~=4
@@ -67,5 +67,5 @@ out.subspecs=out.sz(out.dims.subSpecs);
 %FILLING IN THE FLAGS
 out.flags=in.flags;
 out.flags.writtentostruct=1;
-out.flags.isISIS=0;
+out.flags.isFourSteps=0;
 

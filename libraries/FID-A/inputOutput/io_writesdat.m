@@ -19,7 +19,7 @@
 function RF=io_writesdat(in,sdatFile);
 %function RF=writesdat(in,sdatFile);
 
-% if in.flags.isISIS
+% if in.flags.isFourSteps
 %     error('ERROR:  Must make subspecs first');
 % end
 
