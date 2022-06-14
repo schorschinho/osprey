@@ -875,9 +875,9 @@ else
     fprintf(fileID,msg);
     error(msg);
 end
-names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
+names = {'Cr_SNR','Cr_FWHM','residual_water_ampl','freqShift'};
 if MRSCont.flags.hasRef
-    names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
+    names = {'Cr_SNR','Cr_FWHM','water_FWHM','residual_water_ampl','freqShift'};
 end
 
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
@@ -893,13 +893,13 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     for JJ = 1:length(names)
         switch names{JJ}
             case 'NAA_SNR'
-                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'NAA_SNR'} = 'Signal to noise ratio of NAA';
-                MRSCont.QM.tables.Properties.VariableDescriptions{'NAA_SNR'} = ['The maximum amplitude of the NAA peak divided by twice the standard deviation of the noise calculated from subspectrum ' name];
-                MRSCont.QM.tables.Properties.VariableUnits{'NAA_SNR'} = 'arbitrary';
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'Cr_SNR'} = 'Signal to noise ratio of creatine';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'Cr_SNR'} = ['The maximum amplitude of the creatine peak divided by twice the standard deviation of the noise calculated from subspectrum ' name];
+                MRSCont.QM.tables.Properties.VariableUnits{'Cr_SNR'} = 'arbitrary';
             case 'NAA_FWHM'
-                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'NAA_FWHM'} = 'Full width at half maximum of NAA';
-                MRSCont.QM.tables.Properties.VariableDescriptions{'NAA_FWHM'} = ['The width of the NAA peak at half the maximum amplitude calculated as the average of the FWHM of the data and the FWHM of a lorentzian fit calculated from subspectrum ' name];
-                MRSCont.QM.tables.Properties.VariableUnits{'NAA_FWHM'} = 'Hz';
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'Cr_FWHM'} = 'Full width at half maximum of creatine';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'Cr_FWHM'} = ['The width of the creatine peak at half the maximum amplitude calculated as the average of the FWHM of the data and the FWHM of a lorentzian fit calculated from subspectrum ' name];
+                MRSCont.QM.tables.Properties.VariableUnits{'Cr_FWHM'} = 'Hz';
             case 'water_FWHM'
                 MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'water_FWHM'} = 'Full width at half maximum of reference water peak';
                 MRSCont.QM.tables.Properties.VariableDescriptions{'water_FWHM'} = 'The width of the water peak at half the maximum amplitude calculated as the average of the FWHM of the data and the FWHM of a lorentzian fit';

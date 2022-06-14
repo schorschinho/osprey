@@ -55,7 +55,7 @@ switch ext
     case '.json'
         jobFileFormat = 'json';
     otherwise
-        error('Unrecognized job file datatype. Job files need to end in .CSV, .M or .JASON');
+        error('Unrecognized job file datatype. Job files need to end in .CSV, .M or .JSON');
 end
 
 
@@ -245,7 +245,7 @@ if strcmp(jobFileFormat,'json')
         files_nii = jobStruct.files_nii';
     end
     if isfield(jobStruct, 'files_seg')
-        files_seg = jobStruct.files_seg';
+        files_seg = {jobStruct.files_seg}';
     end
     if isfield(jobStruct, 'files_sense')
         files_sense = jobStruct.sense';
@@ -475,6 +475,13 @@ switch seqType
             fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
             MRSCont.opts.fit.style = 'Separate';
         end
+        if isfield(opts.fit, 'coMM3')
+            MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
+            MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
+        else
+            MRSCont.opts.fit.coMM3 = 'freeGauss';
+            MRSCont.opts.fit.FWHMcoMM3 = 14;
+        end
         if ~isfield(MRSCont.opts.fit, 'GAP')
             MRSCont.opts.fit.GAP.sum = [];
             MRSCont.opts.fit.GAP.diff1 = [];
@@ -503,6 +510,13 @@ switch seqType
         if strcmp(opts.fit.style, 'Concatenated')
             fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
             MRSCont.opts.fit.style = 'Separate';
+        end
+        if isfield(opts.fit, 'coMM3')
+            MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
+            MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
+        else
+            MRSCont.opts.fit.coMM3 = 'freeGauss';
+            MRSCont.opts.fit.FWHMcoMM3 = 14;
         end
         if ~isfield(MRSCont.opts.fit, 'GAP')
             MRSCont.opts.fit.GAP.sum = [];
@@ -689,7 +703,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 2.1.0';
+MRSCont.ver.Osp             = 'Osprey 2.2.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

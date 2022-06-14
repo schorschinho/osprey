@@ -72,7 +72,6 @@ for kk = 1:MRSCont.nDatasets(1)
             dataToFit   = op_takesubspec(MRSCont.processed.metab{kk},'A');
             basisSetOff = MRSCont.fit.basisSet;
             basisSetOff.name{1} = 'A'; 
-            load('BASIS_set_off_default.mat')
             basisSetOff.fids = basisSetOff.fids(:,:,1);
             basisSetOff.specs = basisSetOff.specs(:,:,1);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});

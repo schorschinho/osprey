@@ -32,7 +32,7 @@ function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %% % 1. SAVE OSPREY VERSION%%%
 %%% 1. SAVE OSPREY VERSION%%%
-OspreyVersion = 'Osprey 2.1.0';
+OspreyVersion = 'Osprey 2.2.0';
 fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 hasSPM = 1; % For the compiled GUI
 %% % 2. GET SPMPATH AND TOOLBOXES%%%
@@ -57,24 +57,8 @@ end
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
  
-% SPM
-if isfile(fullfile(ospFolder,'GUI','SPMpath.mat')) % Load path to SPM
-    load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
-    if exist(SPMpath, 'dir')
-        spmversion = SPMpath;
-    else  %This isn't the right SPM path (maybe it was copied from another machine)
-        spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
-        spmversion = spmversion{1};
-        SPMpath = spmversion;
-        save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
-    end
-else %Set path to SPM
-    spmversion = uipickfiles('FilterSpec',ospFolder,'REFilter', '\','NumFiles',1,'Prompt','Select your SPM-folder (Will be saved in SPMpath.mat file in the GUI folder)');
-    spmversion = spmversion{1};
-    SPMpath = spmversion;
-    save(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath');
-end
-% Check if SPM12 is installed
+% Get SPM folder and check if SPM12 is installed
+spmversion = fileparts(which(fullfile('spm.m')));
 if isempty(spmversion)
     hasSPM = 0;
 elseif strcmpi(spmversion(end-3:end),'spm8')

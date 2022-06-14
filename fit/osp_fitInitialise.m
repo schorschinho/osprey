@@ -95,7 +95,7 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
             case 'Philips'
                 MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
             case 'GE'
-                MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
+                MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/hercules-press/basis_ge_hercules-press.mat']);
             case 'Siemens'
                 MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/hercules-press/basis_siemens_hercules-press.mat']);
         end
