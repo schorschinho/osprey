@@ -128,7 +128,6 @@ classdef OspreyGUI < handle
             gui.controls.Selected = 1;
             gui.controls.Tab = 1;
             gui.controls.Number = 1;
-            gui.controls.NumberImages = 1;
             gui.controls.KeyPress = 0;
         %File selections for each sub function
             gui.load.Selected = 1;

@@ -26,59 +26,60 @@ function osp_iniCoregWindow(gui)
 %       2020-01-16: First version of the code.
 %%% 1. GET HANDLES %%%
 % This function creates the initial coreg/seg window
-    warning('off','MATLAB:handle_graphics:exceptions:SceneNode');
-    MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
+warning('off','MATLAB:handle_graphics:exceptions:SceneNode');
+MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
 
-    % Get variables regarding secondary T1 and PET images
-    if MRSCont.flags.hasSecondT1
+gui.controls.NumberImages = 1; %Initialize number of images
+
+% Get variables regarding secondary T1 and PET images
+if MRSCont.flags.hasSecondT1
+    gui.controls.NumberImages = gui.controls.NumberImages + 1;
+    gui.load.Names.Images{2} = '2nd structural';
+    if MRSCont.flags.hasPET
         gui.controls.NumberImages = gui.controls.NumberImages + 1;
-        gui.load.Names.Images{2} = '2nd structural';
-        if MRSCont.flags.hasPET
-            gui.controls.NumberImages = gui.controls.NumberImages + 1;
-            gui.load.Names.Images{3} = 'PET';
-        end
-    else if MRSCont.flags.hasPET
-            gui.controls.NumberImages = gui.controls.NumberImages + 1;
-            gui.load.Names.Images{2} = 'PET';
-        end
+        gui.load.Names.Images{3} = 'PET';
     end
+elseif MRSCont.flags.hasPET
+        gui.controls.NumberImages = gui.controls.NumberImages + 1;
+        gui.load.Names.Images{2} = 'PET';
+end
 
-    gui.layout.tabs.TabEnables{4} = 'on';
-    gui.layout.tabs.Selection  = 4;
-    gui.layout.EmptyQuantPlot = 0;
+gui.layout.tabs.TabEnables{4} = 'on';
+gui.layout.tabs.Selection  = 4;
+gui.layout.EmptyQuantPlot = 0;
 
-    %%% 2. CREATING SUB TABS FOR THIS TAB %%%
-    % In this case one tab for each image (first structural, second
-    % structural, PET)
-    gui.layout.structuralLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background,'Spacing',5);
-    gui.layout.coregTab.TabWidth   = 115;
-    gui.layout.coregTab.Selection  = 1;
-    gui.layout.coregTabhandles = {'structuralLoTab'};
-    if gui.controls.NumberImages == 1
+%%% 2. CREATING SUB TABS FOR THIS TAB %%%
+% In this case one tab for each image (first structural, second
+% structural, PET)
+gui.layout.structuralLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background,'Spacing',5);
+gui.layout.coregTab.TabWidth   = 115;
+gui.layout.coregTab.Selection  = 1;
+gui.layout.coregTabhandles = {'structuralLoTab'};
+if gui.controls.NumberImages == 1
+    gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
+    gui.layout.coregTab.TabEnables = {'on'};
+end
+if gui.controls.NumberImages == 2
+    if MRSCont.flags.hasRef
+        gui.layout.secondstructuralLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background);
         gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
-        gui.layout.coregTab.TabEnables = {'on'};
+        gui.layout.coregTab.TabEnables = {'on', 'on'};
+        gui.layout.coregTabhandles = {'structuralLoTab', 'secondstructuralLoTab'};
     end
-    if gui.controls.NumberImages == 2
-        if MRSCont.flags.hasRef
-            gui.layout.secondstructuralLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background);
-            gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
-            gui.layout.coregTab.TabEnables = {'on', 'on'};
-            gui.layout.coregTabhandles = {'structuralLoTab', 'secondstructuralLoTab'};
-        end
-        if MRSCont.flags.hasWater
-            gui.layout.petLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background);
-            gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
-            gui.layout.coregTab.TabEnables = {'on', 'on'};
-            gui.layout.coregTabhandles = {'structuralLoTab', 'petLoTab'};
-        end
-    end
-    if gui.controls.NumberImages == 3
-        gui.layout.secondstructuralLoTab = uix.VBox('Parent', gui.layout.coregTab,  'BackgroundColor',gui.colormap.Background);
+    if MRSCont.flags.hasWater
         gui.layout.petLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background);
         gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
-        gui.layout.coregTab.TabEnables = {'on', 'on','on'};
-        gui.layout.coregTabhandles = {'structuralLoTab', 'secondstructuralLoTab', 'petLoTab'};
+        gui.layout.coregTab.TabEnables = {'on', 'on'};
+        gui.layout.coregTabhandles = {'structuralLoTab', 'petLoTab'};
     end
+end
+if gui.controls.NumberImages == 3
+    gui.layout.secondstructuralLoTab = uix.VBox('Parent', gui.layout.coregTab,  'BackgroundColor',gui.colormap.Background);
+    gui.layout.petLoTab = uix.VBox('Parent', gui.layout.coregTab, 'BackgroundColor',gui.colormap.Background);
+    gui.layout.coregTab.TabTitles  = gui.load.Names.Images;
+    gui.layout.coregTab.TabEnables = {'on', 'on','on'};
+    gui.layout.coregTabhandles = {'structuralLoTab', 'secondstructuralLoTab', 'petLoTab'};
+end
 
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
@@ -180,22 +181,20 @@ for t = gui.controls.NumberImages : -1 : 1 % Loop over tabs
 % In this case osp_plotCoreg or osp_plotSegment is used to visualize the
 % coregistration or the segmentation
     gui.Results.coreg = uix.VBox('Parent', gui.Plot.coreg,'BackgroundColor',gui.colormap.Background);
-    temp = figure( 'Visible', 'off' );
     if (isfield(MRSCont.flags, 'isPRIAM')) &&  MRSCont.flags.isPRIAM
         if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-            osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
+            temp = osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
             ViewAxes = gca();
             set(ViewAxes, 'Parent', gui.Results.coreg );
             colormap(gui.Results.coreg.Children,'gray')
             close( temp );
-            temp = figure( 'Visible', 'off' );
-            osp_plotSegment(MRSCont, gui.controls.Selected,gui.controls.act_x);
+            temp = osp_plotSegment(MRSCont, gui.controls.Selected,gui.controls.act_x);
             ViewAxes = gca();
             set(ViewAxes, 'Parent', gui.Results.coreg );
             colormap(gui.Results.coreg.Children(1),'gray');
             close( temp );
         else % Only coreg has been run
-            osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
+            temp = osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
             ViewAxes = gca();
             set(ViewAxes, 'Parent', gui.Results.coreg );
             colormap(gui.Results.coreg.Children,'gray');
@@ -205,19 +204,18 @@ for t = gui.controls.NumberImages : -1 : 1 % Loop over tabs
     else
         if t == 1 %First structural tab
             if MRSCont.flags.didSeg %Did segment. In this case coreg has already been performed. Visualize both
-                osp_plotCoreg(MRSCont, gui.controls.Selected);
+                temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', gui.Results.coreg );
                 colormap(gui.Results.coreg.Children,'gray')
                 close( temp );
-                temp = figure( 'Visible', 'off' );
-                osp_plotSegment(MRSCont, gui.controls.Selected);
+                temp = osp_plotSegment(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', gui.Results.coreg );
                 colormap(gui.Results.coreg.Children(1),'gray');
                 close( temp );
             else % Only coreg has been run
-                osp_plotCoreg(MRSCont, gui.controls.Selected);
+                temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', gui.Results.coreg );
                 colormap(gui.Results.coreg.Children,'gray');
@@ -226,21 +224,18 @@ for t = gui.controls.NumberImages : -1 : 1 % Loop over tabs
         elseif t == 2 % second structural tab
             % If voxel has been registered to a second T1, add it here
             if MRSCont.flags.didSeg && MRSCont.flags.hasSecondT1
-                temp = figure( 'Visible', 'off' );
-                osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+                temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', gui.Results.coreg );
                 colormap(gui.Results.coreg.Children,'gray')
                 close( temp );
-                temp = figure( 'Visible', 'off' );
                 osp_plotSegmentSecond(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', gui.Results.coreg );
                 colormap(gui.Results.coreg.Children(1),'gray');
                 close( temp );
             else
-                temp = figure( 'Visible', 'off' );
-                osp_plotCoregSecond(MRSCont, gui.controls.Selected);
+                temp = osp_plotCoregSecond(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', gui.Results.coreg );
                 colormap(gui.Results.coreg.Children(1),'gray');
@@ -249,7 +244,6 @@ for t = gui.controls.NumberImages : -1 : 1 % Loop over tabs
         elseif t == 3 % PET tab
             % If voxel has been registered to a PET image, add it here
             if MRSCont.flags.hasPET
-                temp = figure( 'Visible', 'off' );
                 temp = osp_plotCoregPET(MRSCont, gui.controls.Selected);
                 set( temp.Children(2), 'Parent', gui.Results.coreg );
                 set( temp.Children(1), 'Parent', gui.Results.coreg );

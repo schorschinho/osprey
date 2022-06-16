@@ -96,7 +96,7 @@ xIntensity              = MRSCont.coreg.pet.histogram.xIntensity{kk};
 yIntensity              = MRSCont.coreg.pet.histogram.yIntensity{kk};
 GaussModelParams        = MRSCont.coreg.pet.histogram.fitParams{kk};
 mostFrequentIntensity   = MRSCont.coreg.pet.histogram.mostFrequentIntensity(kk);
-distSD                  = MRSCont.coreg.pet.histogram.distSD(kk);
+distFWHM                = MRSCont.coreg.pet.histogram.distFWHM(kk);
 % Evaluate model
 yFit = GaussModel(GaussModelParams,xIntensity);
 plot(xIntensity, yIntensity, 'LineWidth', 1, 'Color', MRSCont.colormap.Foreground, 'Parent', axesHandles.IntensityDistributionPlot);
