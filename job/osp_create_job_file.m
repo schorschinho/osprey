@@ -67,6 +67,7 @@ switch app.IncludedMetabolitesDropDown.Value
         if app.bHGCheckBox.Value, if first, fprintf(fid,'%s','"bHG"'), first = 0;else fprintf(fid,'%s',',"bHG"'); end; end
         if app.CitCheckBox.Value, if first, fprintf(fid,'%s','"Cit"'), first = 0;else fprintf(fid,'%s',',"Cit"'); end; end
         if app.CrCheckBox.Value, if first, fprintf(fid,'%s','"Cr"'), first = 0;else fprintf(fid,'%s',',"Cr"'); end; end
+        if app.CystatCheckBox.Value, fprintf(fid,'%s',',"Cystat"'); end
         if app.CrCH2CheckBox.Value, fprintf(fid,'%s',',"CrCH2"'); end
         if app.EtOHCheckBox.Value, fprintf(fid,'%s',',"EtOH"'); end
         if app.GABACheckBox.Value, fprintf(fid,'%s',',"GABA"'); end
