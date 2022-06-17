@@ -195,12 +195,12 @@ if MRSCont.flags.didFit
                                 fitRangePPM = MRSCont.opts.fit.rangeWater;
                                 if Voxels < 2
                                     dataToPlot  = MRSCont.processed.(FitSpecNames{ss}){kk};
-                                    basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){1};
+                                    basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1};
                                     % Get the fit parameters
                                     fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{kk};
                                 else
                                     dataToPlot  = op_takeVoxel(MRSCont.processed.(FitSpecNames{ss}){kk},rr);
-                                    basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{bf,sf}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){1};
+                                    basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{bf,sf}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1};
                                     % Get the fit parameters
                                     fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{kk};
                                 end
@@ -228,7 +228,7 @@ if MRSCont.flags.didFit
                                 if Voxels < 2
 
                                     dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
-                                    basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
+                                    basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){bf,sf};
                                     if bf == 2 % We need to insert the subject specific MM basis function into the basis set
                                         if sf==1
                                             index = find(strcmp(MRSCont.processed.mm{kk}.names,'A_spline')); 
@@ -250,7 +250,7 @@ if MRSCont.flags.didFit
                                 else
                                    dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{ss}){kk},rr);
                                    fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{bf,kk,sf};
-                                   basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
+                                   basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){bf,sf};
                                 end
                                 % Pack up into structs to feed into the reconstruction functions
                                 inputData.dataToFit                 = dataToPlot;
