@@ -135,25 +135,25 @@ switch fitMethod
             if (MRSCont.flags.isPRIAM == 1)
                 if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
                     fitRangePPM = MRSCont.opts.fit.rangeWater;
-                    basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                    basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).water.(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                 else if strcmp(which_spec, 'conc')
                         fitRangePPM = MRSCont.opts.fit.range;
-                        basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                        basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                     else
                         fitRangePPM = MRSCont.opts.fit.range;
-                        basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                        basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                     end
                 end
             else
                 if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
                     fitRangePPM = MRSCont.opts.fit.rangeWater;
-                    basisSet    = MRSCont.fit.resBasisSet.(which_spec).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                    basisSet    = MRSCont.fit.resBasisSet.(which_spec).water.(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                 else if strcmp(which_spec, 'conc')
                         fitRangePPM = MRSCont.opts.fit.range;
-                        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                     else
                         fitRangePPM = MRSCont.opts.fit.range;
-                        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                     end
                 end
             end
@@ -166,17 +166,17 @@ switch fitMethod
 
             if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
                 fitRangePPM = MRSCont.opts.fit.rangeWater;
-                basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){VoxelIndex,1};
+                basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex,1};
             else if strcmp(which_spec, 'conc')
                     fitRangePPM = MRSCont.opts.fit.range;
-                    basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){VoxelIndex,1};
+                    basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex,1};
                 else
                     fitRangePPM = MRSCont.opts.fit.range;
                     
                     if strcmp(which_spec,'mm') && MRSCont.flags.isUnEdited
                         fitRangePPM = [0.2 4.2];
                     end
-                    basisSet    = MRSCont.fit.resBasisSet.([which_spec]).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){VoxelIndex(3),1,VoxelIndex(2)};
+                    basisSet    = MRSCont.fit.resBasisSet.([which_spec]).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex(3),1,VoxelIndex(2)};
                     if VoxelIndex(3) == 2 % We need to insert the subject specific MM basis function into the basis set
                         if VoxelIndex(2)==1
                             index = find(strcmp(MRSCont.processed.mm{kk}.names,'A_spline')); 

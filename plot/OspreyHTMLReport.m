@@ -712,10 +712,10 @@ for f = 1 : length(spec_names)
     dataToPlot = MRSCont.processed.(which_spec){kk};
      if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
         fitRangePPM = MRSCont.opts.fit.rangeWater;
-        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){VoxelIndex,1};
+        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex,1};
         fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk};
      else
-        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){1,1,VoxelIndex(2)};
+        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1,1,VoxelIndex(2)};
         dataToPlot   = op_takesubspec(MRSCont.processed.(which_spec){kk},find(strcmp(MRSCont.processed.(which_spec){kk}.names,basisSet.names{1})));
         fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk,VoxelIndex(2)};
         fitRangePPM = MRSCont.opts.fit.range;

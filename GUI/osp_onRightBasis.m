@@ -36,7 +36,7 @@ function osp_onRightBasis( ~, ~ ,gui)
         gui.fit.Style = 'conc';
     end
 
-    if gui.controls.act_basis < length(MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{1}.sz(1)) '_' num2str(MRSCont.processed.metab{1}.spectralwidth)]))
+    if gui.controls.act_basis < length(MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{1}.sz(1))) '_' num2str(round(MRSCont.processed.metab{1}.spectralwidth))]))
         gui.controls.act_basis = gui.controls.act_basis + 1;
 
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class

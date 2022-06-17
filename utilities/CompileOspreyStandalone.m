@@ -15,7 +15,7 @@ function CompileOspreyStandalone(OutputDir,SPM12Dir,WidgetsDir,GUILayoutDir)
 % 	        1 x in osp_fitUnedited.m
 % 	        1 x in osp_fitInitialise.m
 % 
-%   Comment out the whole 2. GET SPMPATH AND TOOLBOXES sessuib in osp_Toolbox_Check.m
+%   Comment out the whole 2. GET SPMPATH AND TOOLBOXES section in osp_Toolbox_Check.m
 % 
 %   In addtion you should remove the startup.m file from your Matlab folder as this interfers with the compilation and results in non-crashing errors in the compiled version.
 %   Make sure to run a clear all before runnning the script.
