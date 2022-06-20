@@ -37,7 +37,7 @@ if contains(seq,'slaser')
     seq = 'slaser';
 end
 
-if ~strcmp(seq,'press') && ~strcmp(seq,'slaser') %Unable to find the localization type we will assume it is PRESS
+if ~strcmp(seq,'press') && ~strcmp(seq,'slaser') && ~strcmp(seq,'special') %Unable to find the localization type we will assume it is PRESS
     warning('Unable to detect the localization type. We will assume it is PRESS')
     seq = 'press';
 end
@@ -53,6 +53,11 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         Bo = '3T';
     else
         Bo = '7T';
+    end
+    % Intercept non-integer echo times and replace the decimal point with
+    % an underscore to avoid file extension problems
+    if contains(te, '.')
+        te = strrep(te, '.', '_');
     end
 
     if MRSCont.flags.isUnEdited
@@ -90,7 +95,7 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
             case 'Philips'
                 MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
             case 'GE'
-                MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
+                MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/hercules-press/basis_ge_hercules-press.mat']);
             case 'Siemens'
                 MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/hercules-press/basis_siemens_hercules-press.mat']);
         end
@@ -250,6 +255,8 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'lcoord', '9');
                 LCMparam = osp_editControlParameters(LCMparam, 'ltable', '7');
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsv', '11');
+                LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
+                LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filps', '');
@@ -269,7 +276,17 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'irowen', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'icolst', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'icolen', '');
-
+                
+                % Add water-scaling-related flags only if water reference
+                % data has been provided
+                if MRSCont.flags.hasRef || MRSCont.flags.hasWater
+                    LCMparam = osp_editControlParameters(LCMparam, 'dows', 'T');
+                    LCMparam = osp_editControlParameters(LCMparam, 'atth2o', '1.0');
+                    LCMparam = osp_editControlParameters(LCMparam, 'attmet', '1.0');
+                    LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
+                    LCMparam = osp_editControlParameters(LCMparam, 'doecc', 'F');
+                end
+                
                 % Now loop over all datasets
                 for kk = 1:MRSCont.nDatasets
                     
@@ -297,20 +314,25 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'owner', '''Osprey processed spectra''');
                 LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' basisSetFile '''']);
                 LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.15');
-                LCMparam = osp_editControlParameters(LCMparam, 'dows', 'T');
-                LCMparam = osp_editControlParameters(LCMparam, 'atth2o', '1.0');
-                LCMparam = osp_editControlParameters(LCMparam, 'attmet', '1.0');
-                LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
                 LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
                 %LCMparam = osp_editControlParameters(LCMparam, 'wdline', '0');
                 LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
                 LCMparam = osp_editControlParameters(LCMparam, 'chomit', {'''Gly''','''Ser'''});
                 LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''Cr+PCr''');
-                LCMparam = osp_editControlParameters(LCMparam, 'doecc', 'F');
                 LCMparam = osp_editControlParameters(LCMparam, 'ppmst',  ['' sprintf('%4.2f', MRSCont.opts.fit.range(2)) '']);
                 LCMparam = osp_editControlParameters(LCMparam, 'ppmend', ['' sprintf('%4.2f', MRSCont.opts.fit.range(1)) '']);
 
+                % Add water-scaling-related flags only if water reference
+                % data has been provided
+                if MRSCont.flags.hasRef || MRSCont.flags.hasWater
+                    LCMparam = osp_editControlParameters(LCMparam, 'dows', 'T');
+                    LCMparam = osp_editControlParameters(LCMparam, 'atth2o', '1.0');
+                    LCMparam = osp_editControlParameters(LCMparam, 'attmet', '1.0');
+                    LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
+                    LCMparam = osp_editControlParameters(LCMparam, 'doecc', 'F');
+                end
+                
                 % Write control file
                 MRSCont = osp_writelcm_control(MRSCont, kk, 'A', LCMparam);
                 

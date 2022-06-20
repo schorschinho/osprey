@@ -123,10 +123,17 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 raw_mm_ref = MRSCont.raw_mm_ref{mm_ref_ll,kk};              % Get the kk-th dataset
                 raw_mm_ref = combine_water_subspecs(raw_mm_ref);
             end
+            
 %%          %%% 1D. GET REFERENCE DATA %%%
             if MRSCont.flags.hasRef
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 raw_ref = MRSCont.raw_ref{ref_ll,kk};              % Get the kk-th dataset
+                
+                % Combine SPECIAL sub-spectra
+                if MRSCont.flags.isSPECIAL
+                    raw_ref = combine_special_subspecs(raw_ref);
+                end
+            
                 raw_ref = combine_water_subspecs(raw_ref);                
             end
 
@@ -135,6 +142,12 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
              if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w                           = MRSCont.raw_w{w_ll,kk};                % Get the kk-th dataset
+                
+                % Combine SPECIAL sub-spectra
+                if MRSCont.flags.isSPECIAL
+                    raw_w = combine_special_subspecs(raw_w);
+                end
+                
                 if raw_w.averages > 1 && raw_w.flags.averaged == 0
                     [raw_w,~,~]                 = op_alignAverages(raw_w, 1, 'n');
                     raw_w                       = op_averaging(raw_w);              % Average
@@ -152,7 +165,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 MRSCont.processed.w{w_ll,kk}         = raw_w; % Save back to MRSCont container
             end
 
-%%          %%% 2. PHANTOM-SPECIFIC PRE-PROCESSING %%%
+%%          %%% 2a. PHANTOM-SPECIFIC PRE-PROCESSING %%%
             % If this is phantom data (assuming room temperature), we want to
             % perform a few specific pre-processing steps.
             if MRSCont.flags.isPhantom
@@ -186,6 +199,11 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
             end
 
+%%          %%% 2b. COMBINING SPECIAL SUB-SPECTRA %%%
+            if MRSCont.flags.isSPECIAL
+                raw = combine_special_subspecs(raw);
+            end
+        
 %%          %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
             if raw.averages > 1 && raw.flags.averaged == 0
                 % Calculate starting values for spectral registration
@@ -321,6 +339,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
                 MRSCont.processed.ref{metab_ll,kk}       = raw_ref;                          % Save back to MRSCont container
             end
+            
 %%          %%% 5. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%
             % Automate determination whether the Cr peak has positive polarity.
             % For water suppression methods like MOIST, the residual water may
@@ -773,7 +792,11 @@ else
 end
 
 end
+
+
+
 %% Functions for processing
+
 function [raw] = combine_water_subspecs(raw)
 % Some formats end up having subspectra in their reference scans
 % (e.g. Philips), as well as empty lines. Intercept these cases
@@ -810,6 +833,27 @@ function [raw] = combine_water_subspecs(raw)
     raw.names = {'A'};
 end
 
+function [raw] = combine_special_subspecs(raw)
+% For SPECIAL-localized data, we adopt the pipeline from 
+% https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+[raw_ai, fs_temp, phs_temp] = op_alignAverages(raw, 0.4, 'y');
+% fs_ai  = fs_temp;
+% phs_ai = phs_temp;
+[raw_ai, fs_temp, phs_temp] = op_alignISIS(raw_ai, 0.4);
+% fs_ai(:,2)  = fs_ai(:,2) + fs_temp;
+% phs_ai(:,2) = phs_ai(:,2) + phs_temp;
+[raw_ai, fs_temp, phs_temp] = op_alignAverages(raw_ai, 0.4, 'y');
+% fs_ai  = fs_ai + fs_temp;
+% phs_ai = phs_ai + phs_temp;
+[raw_ai, fs_temp, phs_temp] = op_alignISIS(raw_ai, 0.4);
+% fs_ai(:,2)  = fs_ai(:,2) + fs_temp;
+% phs_ai(:,2) = phs_ai(:,2) + phs_temp;
+
+%Now combine the SPECIAL subspecs
+raw = op_combinesubspecs(raw_ai, 'diff');
+
+end
+
 function MRSCont = calculate_QM(MRSCont)
 % Sort processed field
 MRSCont = osp_orderProcessFields(MRSCont);
@@ -831,9 +875,9 @@ else
     fprintf(fileID,msg);
     error(msg);
 end
-names = {'NAA_SNR','NAA_FWHM','residual_water_ampl','freqShift'};
+names = {'Cr_SNR','Cr_FWHM','residual_water_ampl','freqShift'};
 if MRSCont.flags.hasRef
-    names = {'NAA_SNR','NAA_FWHM','water_FWHM','residual_water_ampl','freqShift'};
+    names = {'Cr_SNR','Cr_FWHM','water_FWHM','residual_water_ampl','freqShift'};
 end
 
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
@@ -849,13 +893,13 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     for JJ = 1:length(names)
         switch names{JJ}
             case 'NAA_SNR'
-                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'NAA_SNR'} = 'Signal to noise ratio of NAA';
-                MRSCont.QM.tables.Properties.VariableDescriptions{'NAA_SNR'} = ['The maximum amplitude of the NAA peak divided by twice the standard deviation of the noise calculated from subspectrum ' name];
-                MRSCont.QM.tables.Properties.VariableUnits{'NAA_SNR'} = 'arbitrary';
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'Cr_SNR'} = 'Signal to noise ratio of creatine';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'Cr_SNR'} = ['The maximum amplitude of the creatine peak divided by twice the standard deviation of the noise calculated from subspectrum ' name];
+                MRSCont.QM.tables.Properties.VariableUnits{'Cr_SNR'} = 'arbitrary';
             case 'NAA_FWHM'
-                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'NAA_FWHM'} = 'Full width at half maximum of NAA';
-                MRSCont.QM.tables.Properties.VariableDescriptions{'NAA_FWHM'} = ['The width of the NAA peak at half the maximum amplitude calculated as the average of the FWHM of the data and the FWHM of a lorentzian fit calculated from subspectrum ' name];
-                MRSCont.QM.tables.Properties.VariableUnits{'NAA_FWHM'} = 'Hz';
+                MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'Cr_FWHM'} = 'Full width at half maximum of creatine';
+                MRSCont.QM.tables.Properties.VariableDescriptions{'Cr_FWHM'} = ['The width of the creatine peak at half the maximum amplitude calculated as the average of the FWHM of the data and the FWHM of a lorentzian fit calculated from subspectrum ' name];
+                MRSCont.QM.tables.Properties.VariableUnits{'Cr_FWHM'} = 'Hz';
             case 'water_FWHM'
                 MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'water_FWHM'} = 'Full width at half maximum of reference water peak';
                 MRSCont.QM.tables.Properties.VariableDescriptions{'water_FWHM'} = 'The width of the water peak at half the maximum amplitude calculated as the average of the FWHM of the data and the FWHM of a lorentzian fit';

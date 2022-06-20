@@ -46,7 +46,7 @@ end
 
 if nargin<11
     if nargin<4
-        ExpIndex =1; 
+        ExpIndex =1;
     end
         if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
             switch which
@@ -71,7 +71,7 @@ if nargin<11
                     else
                         [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
                         figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n']);
-                    end    
+                    end
                 case 'w'
                     [~,filen,ext] = fileparts(MRSCont.files_w{ExpIndex,kk});
                     figTitle = sprintf(['Load water data plot: ' filen ext '\n']);
@@ -80,10 +80,10 @@ if nargin<11
             end
         else
             if nargin<4
-                ExpIndex =1; 
+                ExpIndex =1;
             end
             if nargin<5
-                VoxelIndex = 1; 
+                VoxelIndex = 1;
             end
             switch which
                 case 'mets'
@@ -107,13 +107,13 @@ if nargin<11
                     else
                         [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
                         figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
-                    end    
+                    end
                 case 'w'
                     [~,filen,ext] = fileparts(MRSCont.files_w{ExpIndex,kk});
                     figTitle = sprintf(['Load water data plot: ' filen ext '\n Voxel ' num2str(VoxelIndex) ' ']);
                 otherwise
                     error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-            end      
+            end
         end
         if nargin<10
             ylab='';
@@ -144,9 +144,9 @@ if nargin<11
                         if nargin<6
                             stag = 0;
                             if nargin<5
-    %                             VoxelIndex = [];  
+    %                             VoxelIndex = [];
                             if nargin<4
-                                ExpIndex =1; 
+                                ExpIndex =1;
                                 if nargin < 3
                                     which = 'mets';
                                     if nargin < 2
@@ -168,7 +168,7 @@ end
 maxRef = ones(1,MRSCont.nDatasets(1),MRSCont.nDatasets(2));
 if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
     if MRSCont.flags.hasRef
-        maxRef = MRSCont.plot.load.ref.max;  
+        maxRef = MRSCont.plot.load.ref.max;
         if length(size(maxRef))>1
             maxRefN = maxRef(1,kk,ExpIndex);
         end
@@ -178,7 +178,7 @@ if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
                 maxRefN = maxRef(1,kk,ExpIndex);
             end
         end
-    end    
+    end
     ymin = min(MRSCont.plot.load.(which).min(1,kk,:)/maxRefN);
     ymax = 1.2*max(MRSCont.plot.load.(which).max(1,kk,:)/maxRefN);
     if ymin < 0
@@ -194,9 +194,9 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
         if ~exist('VoxelIndex') && (MRSCont.flags.isPRIAM == 1)
             VoxelIndex = 1;
         elseif ~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)
-            VoxelIndex = [1 1 1];  
+            VoxelIndex = [1 1 1];
         end
-        
+
     switch which
         case 'mets'
             dataToPlot=op_takeVoxel(MRSCont.raw{ExpIndex,kk},VoxelIndex);
@@ -209,7 +209,7 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
             dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
         case 'mm_ref'
             dataToPlot=op_takeVoxel(MRSCont.raw_mm_ref{ExpIndex,kk},VoxelIndex);
-            dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);    
+            dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
         case 'w'
             dataToPlot=op_takeVoxel(MRSCont.raw_w{ExpIndex,kk},VoxelIndex);
             dataToPlot  = op_freqrange(dataToPlot, ppmmin, ppmmax);
@@ -226,7 +226,7 @@ else
         case 'ref'
             dataToPlot  = op_freqrange(MRSCont.raw_ref{ExpIndex,kk}, ppmmin, ppmmax);
         case 'mm_ref'
-            dataToPlot  = op_freqrange(MRSCont.raw_mm_ref{ExpIndex,kk}, ppmmin, ppmmax);    
+            dataToPlot  = op_freqrange(MRSCont.raw_mm_ref{ExpIndex,kk}, ppmmin, ppmmax);
         case 'w'
             dataToPlot  = op_freqrange(MRSCont.raw_w{ExpIndex,kk}, ppmmin, ppmmax);
         otherwise
@@ -244,18 +244,33 @@ else
     out = figure;
 end
 % Divide the figure into tiles depending on the number of subspec
-% Add the data and plot   
+% Add the data and plot
 % Staggered plots will be in all black and separated by the mean of the
 % maximum across all averages divided by the number of averages
 stag = stag*max(abs(mean(max(real(dataToPlot.specs)),2)), abs(mean(min(real(dataToPlot.specs)),2)));
 
 if MRSCont.flags.isUnEdited
     axesHandles.A = gca();
-    nAvgs = dataToPlot.averages;
-    % Loop over all averages
-    for rr = 1:nAvgs
-        plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr)) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-        hold on; 
+    % For SPECIAL localization, show the individual sub-spectra in the same
+    % plot:
+    if MRSCont.flags.isSPECIAL
+        nRawSubSpecs = dataToPlot.rawSubspecs;
+        avgsPerSubSpec = dataToPlot.rawAverages / nRawSubSpecs;
+        % reduce dimension of the stag
+        for rr = 1:nRawSubSpecs
+            for qq = 1:avgsPerSubSpec
+                plot(axesHandles.A, dataToPlot.ppm, real(squeeze(dataToPlot.specs(:,qq,rr))) + qq*stag(rr), 'k', 'LineWidth', 0.5, 'Color', MRSCont.colormap.Foreground);
+                hold on;
+            end
+        end
+
+    else
+        % Loop over all averages
+        nAvgs = dataToPlot.averages;
+        for rr = 1:nAvgs
+            plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr)) + rr*stag, 'k', 'LineWidth', 0.5, 'Color', MRSCont.colormap.Foreground);
+            hold on;
+        end
     end
     axesNames = {'A'};
     TitleNames = {'A'};
@@ -284,7 +299,7 @@ else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref')|| st
     % Loop over all averages
     for rr = 1:nAvgs
         plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr)) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-        hold on; 
+        hold on;
     end
     axesNames = {'A'};
     if strcmp(which, 'w')
@@ -303,14 +318,14 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
         axesHandles.D  = subplot(2, 2, 4);
         nAvgs = dataToPlot.averages/4;
         hold(axesHandles.A, 'on');
-        hold(axesHandles.B, 'on');  
+        hold(axesHandles.B, 'on');
         hold(axesHandles.C, 'on');
-        hold(axesHandles.D, 'on');  
+        hold(axesHandles.D, 'on');
         % Loop over all averages
         for rr = 1:nAvgs
             plot(axesHandles.A,dataToPlot.ppm, real(dataToPlot.specs(:,rr,1) + rr*stag(1)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
             plot(axesHandles.B,dataToPlot.ppm, real(dataToPlot.specs(:,rr,2) + rr*stag(2)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            plot(axesHandles.C,dataToPlot.ppm, real(dataToPlot.specs(:,rr,3) + rr*stag(3)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground); 
+            plot(axesHandles.C,dataToPlot.ppm, real(dataToPlot.specs(:,rr,3) + rr*stag(3)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
             plot(axesHandles.D,dataToPlot.ppm, real(dataToPlot.specs(:,rr,4) + rr*stag(4)), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
         end
         axesNames = {'A','B','C','D'};
@@ -321,9 +336,9 @@ if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES)
         % Loop over all averages
         for rr = 1:nAvgs
             plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr) + rr*stag), 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);
-            hold on; 
+            hold on;
         end
-        axesNames = {'A'}; 
+        axesNames = {'A'};
         if strcmp(which, 'w')
             TitleNames = {'A'};
         else

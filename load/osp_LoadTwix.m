@@ -14,8 +14,8 @@ function [MRSCont] = osp_LoadTwix(MRSCont)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-02-20)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -58,7 +58,7 @@ end
 
 for kk = 1:MRSCont.nDatasets(1)
     for ll = 1: 1:MRSCont.nDatasets(2)
-        [~] = printLog('OspreyLoad',kk,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);  
+        [~] = printLog('OspreyLoad',kk,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 
         if ~(MRSCont.flags.didLoad == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
             % Read in the raw metabolite data
@@ -93,19 +93,19 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw_mm                       = io_loadspec_twix(MRSCont.files_mm{temp_ll,kk});
                 raw_mm                       = op_leftshift(raw_mm,raw_mm.pointsToLeftshift);
                 MRSCont.raw_mm_uncomb{temp_ll,kk}    = raw_mm;
-            end   
+            end
             if MRSCont.flags.hasMMRef
                 temp_ll = MRSCont.opts.MultipleSpectra.mm_ref(ll);
                 raw_mm_ref                       = io_loadspec_twix(MRSCont.files_mm_ref{temp_ll,kk});
                 raw_mm_ref                       = op_leftshift(raw_mm_ref,raw_mm_ref.pointsToLeftshift);
                 MRSCont.raw_mm_ref_uncomb{temp_ll,kk}    = raw_mm_ref;
-            end  
+            end
 
             % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
             if ~MRSCont.flags.isPRIAM
                     [MRSCont] = osp_combineCoils(MRSCont,kk,ll,ref_ll,w_ll);
             elseif MRSCont.flags.isPRIAM
-                
+
                 fprintf('Coming soon!');
                 error('Coming soon!');
                 %[MRSCont] = osp_senseRecon(MRSCont);
@@ -113,6 +113,8 @@ for kk = 1:MRSCont.nDatasets(1)
         end
     end
 end
+
+
 % Delete un-combined data to free up memory
 raw_fields = {'raw_uncomb','raw_ref_uncomb','raw_w_uncomb'};
 for kk = 1:length(raw_fields)
@@ -121,6 +123,7 @@ for kk = 1:length(raw_fields)
     end
 end
 time = toc(refLoadTime);
-[~] = printLog('done',time,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);  
+[~] = printLog('done',time,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 MRSCont.runtime.Load = time;
+
 end

@@ -31,7 +31,15 @@ ppmmin = 0.2;
 ppmmax=4.2;
 
 outputFolder    = fullfile(MRSCont.outputFolder,'Reports');
-outputFigures   = fullfile(MRSCont.outputFolder,'Reports','reportFigures',['sub-' num2str(kk)]);
+split_subject_path = strsplit(fileparts(MRSCont.files{kk}),filesep);
+str_ind_sub = find(contains(split_subject_path,'sub'));
+if ~isempty(str_ind_sub)
+    sub_str = split_subject_path(str_ind_sub(1));
+    sub_str = sub_str{1};
+else
+    sub_str = ['sub-' num2str(kk)];
+end
+outputFigures   = fullfile(MRSCont.outputFolder,'Reports','reportFigures',sub_str);
 [foldername,filename,~]  = fileparts(MRSCont.files{kk});
 
 if ~exist(outputFolder,'dir')
@@ -106,7 +114,7 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
      box off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_Aligned_',which_spec]),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_Aligned_',which_spec]),'jpg');
     close(out);
 
     
@@ -160,7 +168,7 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
     box off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_Drift_',which_spec]),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_Drift_',which_spec]),'jpg');
     close(out);
 
     ProcSpecNames = {'A'};
@@ -197,7 +205,7 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
         box off;
         set(out,'PaperUnits','centimeters');
         set(out,'PaperPosition',[0 0 20 15]);
-        saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_' which_spec,'_',which_sub_spec]),'jpg');
+        saveas(out,fullfile(outputFigures,[sub_str '_' which_spec,'_',which_sub_spec]),'jpg');
         close(out);
     end
 end
@@ -302,7 +310,7 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
      box off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_Aligned_',which_spec]),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_Aligned_',which_spec]),'jpg');
     close(out);
 
     
@@ -345,7 +353,7 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
     box off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_Drift_',which_spec]),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_Drift_',which_spec]),'jpg');
     close(out);
 
     ProcSpecNames = {'A','diff1'};
@@ -398,7 +406,7 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
         box off;
         set(out,'PaperUnits','centimeters');
         set(out,'PaperPosition',[0 0 20 15]);
-        saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_' which_spec '_' which_sub_spec]),'jpg');
+        saveas(out,fullfile(outputFigures,[sub_str '_' which_spec '_' which_sub_spec]),'jpg');
         close(out);
     end
 end
@@ -511,7 +519,7 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
      box off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_Aligned_',which_spec]),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_Aligned_',which_spec]),'jpg');
     close(out);
 
     
@@ -554,7 +562,7 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
     box off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_Drift_',which_spec]),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_Drift_',which_spec]),'jpg');
     close(out);
 
     ProcSpecNames = {'sum','diff1','diff2'};
@@ -607,7 +615,7 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
         box off;
         set(out,'PaperUnits','centimeters');
         set(out,'PaperPosition',[0 0 20 15]);
-        saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_' which_spec,'_',which_sub_spec]),'jpg');
+        saveas(out,fullfile(outputFigures,[sub_str '_' which_spec,'_',which_sub_spec]),'jpg');
         close(out);
     end
 end
@@ -638,7 +646,7 @@ if MRSCont.flags.hasRef
     box off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_' which_spec]),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_' which_spec]),'jpg');
     close(out);
 
 end
@@ -669,7 +677,7 @@ if MRSCont.flags.hasWater
     box off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_' which_spec]),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_' which_spec]),'jpg');
     close(out);
 
 end
@@ -704,10 +712,10 @@ for f = 1 : length(spec_names)
     dataToPlot = MRSCont.processed.(which_spec){kk};
      if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
         fitRangePPM = MRSCont.opts.fit.rangeWater;
-        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){VoxelIndex,1};
+        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex,1};
         fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk};
      else
-        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){1,1,VoxelIndex(2)};
+        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1,1,VoxelIndex(2)};
         dataToPlot   = op_takesubspec(MRSCont.processed.(which_spec){kk},find(strcmp(MRSCont.processed.(which_spec){kk}.names,basisSet.names{1})));
         fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk,VoxelIndex(2)};
         fitRangePPM = MRSCont.opts.fit.range;
@@ -806,7 +814,7 @@ for f = 1 : length(spec_names)
     hold off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_' which_spec '_' basisSet.names{1} '_model']),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_' which_spec '_' basisSet.names{1} '_model']),'jpg');
     close(out);
 end
 %% Coreg/Seg images export
@@ -820,7 +828,7 @@ if MRSCont.flags.didCoreg
     colormap(out.Children,'gray');
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 18 6]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_coreg_svs_space-scanner_mask']),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_coreg_svs_space-scanner_mask']),'jpg');
     close(out);
     close(temp);
 end
@@ -833,13 +841,13 @@ if MRSCont.flags.didSeg
     colormap(out.Children,'gray');
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 18 6]);
-    saveas(out,fullfile(outputFigures,['sub-' num2str(kk) '_seg_svs_space-scanner_mask']),'jpg');
+    saveas(out,fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_mask']),'jpg');
     close(out);
     close(temp);
 end
 %% Write report in HTML files
 %write an html report: 
-fid=fopen(fullfile(outputFolder,['sub-',num2str(kk),'-report.html']),'w+');
+fid=fopen(fullfile(outputFolder,[sub_str,'-report.html']),'w+');
 fprintf(fid,'<!DOCTYPE html>');
 fprintf(fid,'\n<html>');
 fprintf(fid,'\n<head>');
@@ -873,72 +881,167 @@ fprintf(fid,'\n</head>');
 fprintf(fid,'\n<body>');
 
 logoPath=which('osprey.png');
-fprintf(fid,'\n<img src= " %s " width="35" height="28">',logoPath);
-fprintf(fid,'\n<h1> Osprey Analysis Report</h1>');
-fprintf(fid,'\n<p>FILENAME: %s </p>',filename);
-fprintf(fid,'\n<p>DATE: %s </p>',date);
-fprintf(fid,'\n<p> </p>');
-fprintf(fid,'\n\n<h2>Results of spectral registration:</h2>');
+if ~isempty(logoPath)
+    fprintf(fid,'\n<img src= " %s " width="35" height="28"> <b> \tOsprey Analysis Report</b> ',logoPath);
+else
+    fprintf(fid,'\n<b> Osprey Analysis Report</b>');
+end
+fprintf(fid,'\n<p><b>DATE:</b> %s \t <b>FILENAME:</b> %s </p>',date,filename);
+fprintf(fid,'\n<h2>Summary:</h2>');
 fprintf(fid,'\n<div class="row">');
 fprintf(fid,'\n\t<div class="column3">');
-fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_Aligned_metab.jpg']));
-fprintf(fid,'\n\t</div>');
-fprintf(fid,'\n\t<div class="column3">');
-fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_Drift_metab.jpg']));
-fprintf(fid,'\n\t</div>');
-fprintf(fid,'\n</div>');
-fprintf(fid,'\n\n<p> </p>');
 
-fprintf(fid,'\n\n<h2>Averaged spectra:</h2>');
-fprintf(fid,'\n<p><b>signal-to-noise tNAA</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,1))); 
+fprintf(fid,'\n<p><b>signal-to-noise tCr</b> \t%5.2f',table2array(MRSCont.QM.tables(kk,1))); 
 if table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.1 
-    fprintf(fid,'\n<p style="color:green;"><b>linewidth tNAA [ppm]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6);
+    fprintf(fid,'\n<p  style="color:green;"><b>linewidth tCr [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2)));
 end
 if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.15
-    fprintf(fid,'\n<p style="color:orange;"><b>linewidth tNAA [ppm]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6);
+    fprintf(fid,'\n<p style="color:orange;"><b>linewidth tCr [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2)));
 end
 if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6 > 0.15
-    fprintf(fid,'\n<p style="color:red;"><b>linewidth tNAA [ppm]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6);
+    fprintf(fid,'\n<p style="color:red;"><b>linewidth tCr [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2)));
 end
 
 if MRSCont.flags.hasRef
-    if table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.1 
-        fprintf(fid,'\n<p style="color:green;"><b>linewidth water [ppm]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6);
+    if table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.1 
+        fprintf(fid,'\n<p style="color:green;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
     end
-    if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.15
-        fprintf(fid,'\n<p style="color:orange;"><b>linewidth water [ppm]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6);
+    if table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.15
+        fprintf(fid,'\n<p style="color:orange;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6);
     end   
-    if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.15
-        fprintf(fid,'\n<p style="color:red;"><b>linewidth water [ppm]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6);
+    if table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.15
+        fprintf(fid,'\n<p style="color:red;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
+    end
+end
+fprintf(fid,'\n\t</div>'); 
+fprintf(fid,'\n\t<div class="column3">');
+if MRSCont.processed.metab{kk}.flags.isUnEdited
+    fprintf(fid,'\n<p><b>Model Residual A [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,6)));
+end
+if MRSCont.processed.metab{kk}.flags.isMEGA
+    fprintf(fid,'\n<p><b>Model Residual diff1 [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,7)));
+    fprintf(fid,'\n<p><b>Model Residual A [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,6)));
+end
+if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.flags.isHERCULES
+    fprintf(fid,'\n<p><b>Model Residual diff1 [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,7)));
+    fprintf(fid,'\n<p><b>Model Residual diff2 [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,8)));
+    fprintf(fid,'\n<p><b>Model Residual sum [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,6)));
+end
+fprintf(fid,'\n\t</div>');
+fprintf(fid,'\n</div>');
+fprintf(fid,'\n<div class="row">');
+if MRSCont.processed.metab{kk}.flags.isUnEdited
+    fprintf(fid,'\n\t<div class="column3">');
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_A_model.jpg']));
+    fprintf(fid,'\n\t</div>');    
+end
+if MRSCont.processed.metab{kk}.flags.isMEGA
+    fprintf(fid,'\n\t<div class="column3">');
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff1_model.jpg']));
+    fprintf(fid,'\n\t</div>');
+    fprintf(fid,'\n\t<div class="column3">');
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_A_model.jpg']));
+    fprintf(fid,'\n\t</div>');
+end
+if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.flags.isHERCULES
+    fprintf(fid,'\n\t<div class="column3">');
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff1_model.jpg']));
+    fprintf(fid,'\n\t</div>');
+    fprintf(fid,'\n\t<div class="column3">');
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff2_model.jpg']));
+    fprintf(fid,'\n\t</div>');
+    fprintf(fid,'\n\t<div class="column3">');
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_sum_model.jpg']));
+    fprintf(fid,'\n\t</div>');
+end
+fprintf(fid,'\n</div>');
+if MRSCont.flags.hasRef || MRSCont.flags.hasWater
+    fprintf(fid,'\n<div class="row">');
+    if MRSCont.flags.hasRef 
+        fprintf(fid,'\n\t<div class="column3">');
+        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_ref_A_model.jpg']));
+        fprintf(fid,'\n\t</div>');
+        if MRSCont.flags.hasWater
+            fprintf(fid,'\n\t<div class="column3">');
+            fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_w_A_model.jpg']));
+            fprintf(fid,'\n\t</div>');
+        end
+    
+    end
+if MRSCont.flags.didCoreg
+    fprintf(fid,'\n\t<div class="column3">');
+    if MRSCont.flags.didSeg
+        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%"> \n\t\t <img src= " %s" style="width:100%%">',...
+            fullfile(outputFigures,[sub_str '_coreg_svs_space-scanner_mask.jpg']),...
+            fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_mask.jpg']));
+    else
+        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_coreg_svs_space-scanner_mask.jpg']));
+    end
+    fprintf(fid,'\n\t</div>');
+end
+fprintf(fid,'\n</div>');
+end
+fprintf(fid,'\n\n<p> </p>');
+fprintf(fid,'\n\n<h2>Results of spectral registration:</h2>');
+fprintf(fid,'\n<div class="row">');
+fprintf(fid,'\n\t<div class="column3">');
+fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_Aligned_metab.jpg']));
+fprintf(fid,'\n\t</div>');
+fprintf(fid,'\n\t<div class="column3">');
+fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_Drift_metab.jpg']));
+fprintf(fid,'\n\t</div>');
+fprintf(fid,'\n</div>');
+fprintf(fid,'\n\n<p> </p>');
+fprintf(fid,'\n\n<h2>Averaged spectra:</h2>');
+fprintf(fid,'\n<p><b>signal-to-noise tCr</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,1))); 
+if table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.1 
+    fprintf(fid,'\n<p style="color:green;"><b>linewidth tCr [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2)));
+end
+if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.15
+    fprintf(fid,'\n<p style="color:orange;"><b>linewidth tCr [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2)));
+end
+if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6 > 0.15
+    fprintf(fid,'\n<p style="color:red;"><b>linewidth tCr [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2)));
+end
+
+if MRSCont.flags.hasRef
+    if table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.1 
+        fprintf(fid,'\n<p style="color:green;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
+    end
+    if table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.15
+        fprintf(fid,'\n<p style="color:orange;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
+    end   
+    if table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.15
+        fprintf(fid,'\n<p style="color:red;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
     end
 end
 if MRSCont.processed.metab{kk}.flags.isUnEdited
     fprintf(fid,'\n<div class="row">');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_A.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_A.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n</div>');
 end
 if MRSCont.processed.metab{kk}.flags.isMEGA
     fprintf(fid,'\n<div class="row">');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_diff1.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff1.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_A.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_A.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n</div>');
 end
 if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.flags.isHERCULES
     fprintf(fid,'\n<div class="row">');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_diff1.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff1.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_diff2.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff2.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_sum.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_sum.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n</div>');
 end
@@ -946,12 +1049,12 @@ if MRSCont.flags.hasRef || MRSCont.flags.hasWater
     fprintf(fid,'\n<div class="row">');
     if MRSCont.flags.hasRef
         fprintf(fid,'\n\t<div class="column3">');
-        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_ref.jpg']));
+        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_ref.jpg']));
         fprintf(fid,'\n\t</div>');
     end
     if MRSCont.flags.hasWater
         fprintf(fid,'\n\t<div class="column3">');
-        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_w.jpg']));
+        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_w.jpg']));
         fprintf(fid,'\n\t</div>');
     end
     fprintf(fid,'\n</div>');
@@ -973,26 +1076,26 @@ end
 fprintf(fid,'\n<div class="row">');
 if MRSCont.processed.metab{kk}.flags.isUnEdited
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_A_model.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_A_model.jpg']));
     fprintf(fid,'\n\t</div>');    
 end
 if MRSCont.processed.metab{kk}.flags.isMEGA
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_diff1_model.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff1_model.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_A_model.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_A_model.jpg']));
     fprintf(fid,'\n\t</div>');
 end
 if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.flags.isHERCULES
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_diff1_model.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff1_model.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_diff2_model.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_diff2_model.jpg']));
     fprintf(fid,'\n\t</div>');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_metab_sum_model.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_sum_model.jpg']));
     fprintf(fid,'\n\t</div>');
 end
 fprintf(fid,'\n</div>');
@@ -1000,11 +1103,11 @@ if MRSCont.flags.hasRef || MRSCont.flags.hasWater
     fprintf(fid,'\n<div class="row">');
     if MRSCont.flags.hasRef 
         fprintf(fid,'\n\t<div class="column3">');
-        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_ref_A_model.jpg']));
+        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_ref_A_model.jpg']));
         fprintf(fid,'\n\t</div>');
         if MRSCont.flags.hasWater
             fprintf(fid,'\n\t<div class="column3">');
-            fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_w_A_model.jpg']));
+            fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_w_A_model.jpg']));
             fprintf(fid,'\n\t</div>');
         end
     
@@ -1016,12 +1119,12 @@ if MRSCont.flags.didCoreg
     fprintf(fid,'\n\n<h2>Coregistration & Segmentation:</h2>');
     fprintf(fid,'\n<div class="row">');
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_coreg_svs_space-scanner_mask.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_coreg_svs_space-scanner_mask.jpg']));
     fprintf(fid,'\n\t</div>');
 end
 if MRSCont.flags.didSeg
     fprintf(fid,'\n\t<div class="column3">');
-    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,['sub-' num2str(kk) '_seg_svs_space-scanner_mask.jpg']));
+    fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_mask.jpg']));
     fprintf(fid,'\n\t</div>');
 end
 fprintf(fid,'\n</div>');

@@ -147,11 +147,11 @@ opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
 % Select the metabolites to be included in the basis set as a cell array,
 % with entries separates by commas.
 % With default Osprey basis sets, you can select the following metabolites:
-% Ala, Asc, Asp, bHB, bHG, Cit, Cr, CrCH2, EtOH, GABA, GPC, GSH, Glc, Gln,
+% Ala, Asc, Asp, bHB, bHG, Cit, Cr, Cystat, CrCH2, EtOH, GABA, GPC, GSH, Glc, Gln,
 % Glu, Gly, H2O, mI, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, sI, Ser,
 % Tau, Tyros, MM09, MM12, MM14, MM17, MM20, Lip09, Lip13, Lip20.
 % If you enter 'default', the basis set will include all of the above
-% except for Ala, bHB, bHG, Cit, EtOH, Glc, Gly, Phenyl, Ser, and Tyros.
+% except for Ala, bHB, bHG, Cit, Cystat, EtOH, Glc, Gly, Phenyl, Ser, and Tyros.
 opts.fit.includeMetabs      = {'default'};      % OPTIONS:    - {'default'}
                                                 %             - {custom}
 
@@ -195,7 +195,7 @@ clear files files_ref files_w files_nii files_mm
 % up the jobFile for your own data you can set a direct path to your data
 % folder e.g., data_folder = /Volumes/MyProject/data/'
 
-data_folder = fileparts(which('exampledata/sdat/UnEdited/jobSDAT.m'));
+data_folder = fileparts(which(fullfile('exampledata','sdat','UnEdited','jobSDAT.m')));
 
 % The following lines perform an automated set-up of the jobFile which
 % takes advatage of the BIDS foramt. If you are not using BIDS (highly

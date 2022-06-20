@@ -21,30 +21,31 @@ close all;
 %%% 1. REQUIRED INPUT FLAGS %%%
 % Initialise MRSCont struct with default settings
 MRSCont = struct;
-MRSCont.flags.isUnEdited    = 0;
-MRSCont.flags.isMEGA        = 0;
-MRSCont.flags.isHERMES      = 0;
-MRSCont.flags.isHERCULES    = 0;
-MRSCont.flags.isPRIAM       = 0;
-MRSCont.flags.isMRSI        = 0;
-MRSCont.flags.addImages        = 0;
-MRSCont.flags.reordered        = 0;
+MRSCont.flags.isUnEdited            = 0;
+MRSCont.flags.isMEGA                = 0;
+MRSCont.flags.isHERMES              = 0;
+MRSCont.flags.isHERCULES            = 0;
+MRSCont.flags.isPRIAM               = 0;
+MRSCont.flags.isMRSI                = 0;
+MRSCont.flags.isSPECIAL             = 0;
+MRSCont.flags.addImages             = 0;
+MRSCont.flags.reordered             = 0;
 MRSCont.opts.savePDF                = 0;
 MRSCont.opts.saveLCM                = 0;
 MRSCont.opts.savejMRUI              = 0;
-MRSCont.opts.saveNII              = 0;
+MRSCont.opts.saveNII                = 0;
 MRSCont.opts.saveVendor             = 0;
-MRSCont.opts.fit.includeMetabs      = {'default'};      % Options: 'default', 'full', custom set       
+MRSCont.opts.fit.includeMetabs      = {'default'};      % Options: 'default', 'full', custom set
 MRSCont.opts.fit.method             = 'Osprey';         % Options: 'Osprey' (default), 'LCModel'
 MRSCont.opts.fit.range              = [0.2 4.2];        % Default: [0.2 4.2]
 MRSCont.opts.fit.rangeWater         = [2.0 7.4];        % Default: [2.0 7.4]
-MRSCont.opts.fit.style              = 'Separate';       % Options: 'Separate' (Default - will fit DIFF and OFF separately), 'Concatenated' (will fit DIFF and SUM simultaneously), 
+MRSCont.opts.fit.style              = 'Separate';       % Options: 'Separate' (Default - will fit DIFF and OFF separately), 'Concatenated' (will fit DIFF and SUM simultaneously),
 MRSCont.opts.fit.bLineKnotSpace     = 0.4;              % Baseline spline knot spacing [ppm]. Default: 0.4.
 MRSCont.opts.fit.fitMM              = 1;                % Add MM and lipid basis functions to basis set? Default: 1.
 MRSCont.opts.fit.coMM3              = 'none';           % Add co-edited MM3 peak model for GABA editing? Default: none.
 MRSCont.opts.fit.FWHMcoMM3          = 14;               % FWHM [Hz] of the co-edited peak Default: 14 Hz.
 MRSCont.opts.ECC.raw                = 1;                % Do ECC for all metabolite spectra.
-MRSCont.opts.ECC.mm                = 1;                 % Do ECC for all metabolite-nulled spectra.
+MRSCont.opts.ECC.mm                 = 1;                 % Do ECC for all metabolite-nulled spectra.
 
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
