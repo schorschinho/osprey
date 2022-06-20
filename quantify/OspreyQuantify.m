@@ -904,7 +904,7 @@ switch Bo
         relax.NAAG  = [1210 940 155 155]; % This is the 2.042 ppm acetyl signal (naag in the paper); aspartyl is naag1: [1310 1310 (108+87)/2 180]; % glutamate is NAAG2: [1310 1310 (110+78)/2 157];
         relax.PCh   = [1510 1320  153 153]; % Taken from tCho
         relax.PCr   = [1740 1780 107 107]; % Taken from tCr
-        relax.PE    = [1310 1320]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352
+        relax.PE    = [1310 1320 182 182]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352; No reference values available. T2s copied from Lac (closest match at 3T)
         relax.sI   = [1310 1230 105 105]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352 T2 from https://onlinelibrary.wiley.com/doi/full/10.1002/mrm.24352
         relax.Tau   = [2150 2090 97 97]; %T1 from Mlynarik et al. (2012) 10.1002/mrm.24352 % T2 as Gln
         relax.tNAA  = [1495 1385 155 155]; % Mean values from NAA + NAAG
