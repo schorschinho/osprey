@@ -30,9 +30,11 @@ end
 % ratios and write in BIDs format
 if MRSCont.flags.hasSecondT1 && MRSCont.flags.hasPET
     CoregTable = MRSCont.coreg.pet.tables;
-    CoregTable([MRSCont.exclude],:) = [];
     SegTable = MRSCont.seg.pet.tables;
-    SegTable([MRSCont.exclude],:) = [];
+    if isfield(MRSCont,'exclude')
+        CoregTable([MRSCont.exclude],:) = [];
+        SegTable([MRSCont.exclude],:) = [];
+    end
     osp_WriteBIDsTable([CoregTable, SegTable, MRSCont.quantify.tables.metab.tCr.Voxel_1{1}], fullfile(MRSCont.outputFolder,'pet_metrics'))
 end
 
