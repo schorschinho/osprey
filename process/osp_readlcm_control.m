@@ -52,16 +52,14 @@ for rr = 1:length(C)
     if length(C{rr}) == 2
         LCMparam = parseControlFileLine(LCMparam, C{rr});
     else
-        % If the title field is split, join back together
-        if strcmpi(C{rr}{1}, 'title')
-            title = C{rr}{2};
-            for kk = 3:length(C{rr})
-                title = [title, C{rr}{kk}];
-            end
+        if strcmpi(C{rr}{1}, 'title')% If the title field is split, join back together
+            title = strjoin(C{rr}(2:end));
             LCMparam.title = title;
-            
+        elseif length(C{rr}) == 3% If length=3, then assume 2-value input
+            P{1} = C{rr}{1};
+            P{2} = [C{rr}{2},',',C{rr}{3}];
+            LCMparam = parseControlFileLine(LCMparam,P);
         else
-            
             % If the number of entries in this line is even, proceed, otherwise
             % throw an error
             if mod(length(C{rr}),2) == 0
@@ -72,7 +70,7 @@ for rr = 1:length(C)
                     LCMparam = parseControlFileLine(LCMparam, P);
                 end
             else
-                error('Invalid control file line: %s', C{rr});
+                error('Invalid control file line: %s', strjoin(C{rr}));
             end
         
         end
