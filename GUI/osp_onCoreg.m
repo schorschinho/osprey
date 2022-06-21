@@ -40,6 +40,7 @@ function osp_onCoreg( ~, ~ ,gui)
             end
         end
     end
+    set(gui.layout.tabs,'SelectionChangedFcn','');
     gui.layout.tabs.Selection  = 4;
 %%% 2. CALL OSPREYCOREG %%%    
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);  
@@ -51,4 +52,5 @@ function osp_onCoreg( ~, ~ ,gui)
     osp_iniCoregWindow(gui);
     gui.layout.b_coreg.Enable = 'off';
     gui.layout.b_segm.Enable = 'on';
+    set(gui.layout.tabs,'SelectionChangedFcn',{@osp_SelectionChangedFcn,gui});
 end % onCoreg
