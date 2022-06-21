@@ -40,6 +40,7 @@ function osp_onSeg( ~, ~ ,gui)
             end
         end
     end
+    set(gui.layout.tabs,'SelectionChangedFcn','');
     gui.layout.tabs.Selection  = 4;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYSEG %%%    
@@ -61,4 +62,5 @@ function osp_onSeg( ~, ~ ,gui)
         gui.pop_distrOvQuantControls.String = gui.quant.Names.Quants;
         gui.pop_corrOvQuantControls.String = gui.quant.Names.Quants;
     end
+    set(gui.layout.tabs,'SelectionChangedFcn',{@osp_SelectionChangedFcn,gui});
 end % onSeg
