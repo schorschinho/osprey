@@ -37,19 +37,25 @@ end
 %%% 2. LOAD DATA TO PLOT %%%
 % Load T1 image, mask volume, T1 max value, and voxel center
 % Get the input file name
-[path_voxel,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
+[~,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
 [~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image_2nd{kk}.fname);
-% For batch analysis, get the last two sub-folders (e.g. site and
-% subject)
-path_split          = regexp(path_voxel,filesep,'split');
-if length(path_split) > 2
-    saveName = [path_split{end-1} '_' path_split{end} '_' filename_voxel];
-end
 
-segDestination = fullfile(MRSCont.outputFolder, 'SegMaps');
-GM  = fullfile(segDestination, [saveName '_GM_2ndT1.nii']);
-WM  = fullfile(segDestination, [saveName '_WM_2ndT1.nii']);
-CSF = fullfile(segDestination, [saveName '_CSF_2ndT1.nii']);
+[P,F,E] = fileparts(MRSCont.seg.vol_GM{kk}.fname);
+GM = fullfile(P,[F,'_2ndT1', E]);
+[P,F,E] = fileparts(MRSCont.seg.vol_WM{kk}.fname);
+WM = fullfile(P,[F,'_2ndT1', E]);
+[P,F,E] = fileparts(MRSCont.seg.vol_CSF{kk}.fname);
+CSF = fullfile(P,[F,'_2ndT1', E]);
+
+% if ~exist(GM,'file') && exist([GM,'.gz'],'file')
+%     gunzip([GM,'.gz']);
+% end
+% if ~exist(WM,'file') && exist([WM,'.gz'],'file')
+%     gunzip([WM,'.gz']);
+% end
+% if ~exist(CSF,'file') && exist([CSF,'.gz'],'file')
+%     gunzip([CSF,'.gz']);
+% end
 
 vol_GM_mask  = spm_vol(GM);
 vol_WM_mask  = spm_vol(WM);

@@ -229,7 +229,7 @@ for t = gui.controls.NumberImages : -1 : 1 % Loop over tabs
                 set(ViewAxes, 'Parent', gui.Results.coreg );
                 colormap(gui.Results.coreg.Children,'gray')
                 close( temp );
-                osp_plotSegmentSecond(MRSCont, gui.controls.Selected);
+                temp = osp_plotSegmentSecond(MRSCont, gui.controls.Selected);
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', gui.Results.coreg );
                 colormap(gui.Results.coreg.Children(1),'gray');

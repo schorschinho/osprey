@@ -61,6 +61,6 @@ vol_mask = spm_write_vol(vol_mask,vol_mask.private.dat(:,:,:)); % write mask to 
 [T1,~] = spm_read_vols(vol_image);
 T1_max = max(T1(:));
 
-voxel_ctr = [NiiVox.hdr.qoffset_x, NiiVox.hdr.qoffset_y, NiiVox.hdr.qoffset_z]; % CWDJ need to verify this
+voxel_ctr = [NiiVox.hdr.qoffset_x, NiiVox.hdr.qoffset_y, NiiVox.hdr.qoffset_z];
 
 end
