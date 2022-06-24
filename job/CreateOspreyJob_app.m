@@ -404,7 +404,6 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         % Button pushed function: H2OShortTEButton
         function H2OShortTEButtonPushed(app, event)
             info = 'Please select the water short-TE file to read';
-            [fname,pathname]=uigetfile('*.*',info);
             
             ndata = app.NumberofdatasetsEditField.Value;
             
@@ -492,7 +491,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             csvfiles = spm_select(ndata,'any',info,{},pwd,'.csv','1');
             
-            app.StatcsvEditField.Value = svfiles(1,:);
+            app.StatcsvEditField.Value = csvfiles(1,:);
         end
 
         % Button pushed function: basissetfileButton

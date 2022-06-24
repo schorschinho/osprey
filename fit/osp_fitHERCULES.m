@@ -32,7 +32,7 @@ if MRSCont.flags.isGUI
 else
     progressText = '';
 end
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     [~] = printLog('OspreyFit',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     %%% 1. DETERMINE THE FITTING STYLE %%%
     % Extract fit options

@@ -74,9 +74,9 @@ cb(4,:) = temp;
 ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.metab,model));
 quant_ind = [basis ind(1)];
 
-names_list = MRSCont.quantify.names.metab{quant_ind};
+names_list = MRSCont.quantify.names.metab{quant_ind(2)};
 idx_1  = find(strcmp(names_list,metab));
-metabolite_conc = MRSCont.quantify.tables.metab.(quant).(['Voxel_' num2str(VoxelIndex)]){quant_ind};
+metabolite_conc = MRSCont.quantify.tables.metab.(quant).(['Voxel_' num2str(VoxelIndex)]){quant_ind(2)};
 ConcData = metabolite_conc{:,idx_1}; 
 
 
@@ -89,7 +89,7 @@ end
 if ischar(corrData)
     metabFlag = 1;
     idx_1  = find(strcmp(names_list,corrData));
-    metabolite_conc = MRSCont.quantify.tables.metab.(quant).(['Voxel_' num2str(VoxelIndex)]){quant_ind};
+    metabolite_conc = MRSCont.quantify.tables.metab.(quant).(['Voxel_' num2str(VoxelIndex)]){quant_ind(2)};
     corrData = metabolite_conc{:,idx_1};  
 end
 

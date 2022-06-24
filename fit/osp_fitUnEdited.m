@@ -41,7 +41,7 @@ if MRSCont.flags.hasMM == 1
     basisSet_mm = fit_selectMetabs(basisSet_mm, metabList_mm, 1);
 end
 
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
 
 
     % ----- Osprey fit pipeline -----
