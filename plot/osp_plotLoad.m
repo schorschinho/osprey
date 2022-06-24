@@ -296,6 +296,9 @@ if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref')|| strcmp
 else if MRSCont.flags.isMEGA && (strcmp(which, 'w') || strcmp(which, 'ref')|| strcmp(which, 'mm_ref'))
     axesHandles.A = gca();
     nAvgs = dataToPlot.averages;
+    if nAvgs > dataToPlot.sz(dataToPlot.dims.averages)
+        nAvgs =dataToPlot.sz(dataToPlot.dims.averages);
+    end
     % Loop over all averages
     for rr = 1:nAvgs
         plot(axesHandles.A, dataToPlot.ppm, real(dataToPlot.specs(:,rr)) + rr*stag, 'k', 'LineWidth', 0.5, 'Color',MRSCont.colormap.Foreground);

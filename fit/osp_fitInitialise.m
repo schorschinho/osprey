@@ -155,7 +155,7 @@ switch MRSCont.opts.fit.method
         end
 
         % Determine the scaling factor between data and basis set for each dataset
-        for kk = 1:MRSCont.nDatasets
+        for kk = 1:MRSCont.nDatasets(1)
             if ~MRSCont.flags.isMRSI  && ~MRSCont.flags.isPRIAM
                 if ~MRSCont.flags.isUnEdited
                     dataToScale   = op_takesubspec(MRSCont.processed.metab{kk},1);

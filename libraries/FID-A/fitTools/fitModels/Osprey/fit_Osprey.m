@@ -181,7 +181,7 @@ if ~isfield(fitOpts,'mm_clean_spline') && ~isfield(fitOpts,'GaussLBMM')
         [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP);    
     end
 else
-    if fitOpts.GaussLBMM 
+    if fitOpts.GaussLBMM && resBasisSet.nMM == 1 % We only want to use a separate gaussian parameter for the single MM functions
         [fitParamsStep2] = fit_OspreyPrelimStep2MMExp(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP); 
     else
         [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM,fitOpts.GAP);   

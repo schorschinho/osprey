@@ -74,7 +74,7 @@ for rr = 1:length(requiredModules)
 end
 
 %Do the toolbox check here
-OspreyVersion = 'Osprey 2.2.0';
+OspreyVersion = 'Osprey 2.3.0';
 hasSPM = 1;
 [hasSPM,OspreyVersion ] = osp_Toolbox_Check (module,MRSCont.flags.isGUI);
 

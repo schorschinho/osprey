@@ -155,6 +155,10 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw_w.flags.averaged    = 1;
                     raw_w.dims.averages     = 0;
                 end
+
+                if raw_w.subspecs > 1
+                    raw_w = combine_water_subspecs(raw_w);
+                end
                 if ~MRSCont.flags.isMRSI
                     [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
                 else
