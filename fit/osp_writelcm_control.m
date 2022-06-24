@@ -95,6 +95,7 @@ else
     elseif exist('name_ref','var') && exist('name_w','var')
         selectedWaterRef = name_w;
     end
+    LCMparam = osp_editControlParameters(LCMparam, 'dows', 'T');
 end
 
 % Add the necessary parameters

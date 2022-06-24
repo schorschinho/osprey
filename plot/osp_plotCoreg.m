@@ -59,15 +59,6 @@ if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 1))
         [three_plane_img] = osp_extract_three_plane_image(MRSCont.coreg.vol_image{kk}.fname, MRSCont.coreg.vol_mask{kk}{VoxelIndex}.fname,MRSCont.coreg.voxel_ctr{kk}(:,:,VoxelIndex),MRSCont.coreg.T1_max{kk});
     end
 
-    if ~MRSCont.flags.didSeg
-        if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
-            delete(MRSCont.coreg.vol_mask{kk}.fname);
-        end
-        if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
-            delete(MRSCont.coreg.vol_image{kk}.fname);
-        end
-    end
-
     %%% 4. SET UP FIGURE LAYOUT %%%
     % Generate a new figure and keep the handle memorized
 

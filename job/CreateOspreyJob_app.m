@@ -31,6 +31,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         H2OReferenceButton              matlab.ui.control.Button
         MRSDataButton                   matlab.ui.control.Button
         SelectedMetabolitesPanel        matlab.ui.container.Panel
+        CystatCheckBox                  matlab.ui.control.CheckBox
         MM_CSOCheckBox                  matlab.ui.control.CheckBox
         MM_PCCCheckBox                  matlab.ui.control.CheckBox
         MMexpCheckBox                   matlab.ui.control.CheckBox
@@ -403,7 +404,6 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         % Button pushed function: H2OShortTEButton
         function H2OShortTEButtonPushed(app, event)
             info = 'Please select the water short-TE file to read';
-            [fname,pathname]=uigetfile('*.*',info);
             
             ndata = app.NumberofdatasetsEditField.Value;
             
@@ -491,7 +491,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             csvfiles = spm_select(ndata,'any',info,{},pwd,'.csv','1');
             
-            app.StatcsvEditField.Value = svfiles(1,:);
+            app.StatcsvEditField.Value = csvfiles(1,:);
         end
 
         % Button pushed function: basissetfileButton
@@ -1049,7 +1049,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.MM09CheckBox.Enable = 'off';
             app.MM09CheckBox.Text = 'MM09';
             app.MM09CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM09CheckBox.Position = [320 7 56 22];
+            app.MM09CheckBox.Position = [388 110 56 22];
             app.MM09CheckBox.Value = true;
 
             % Create MM12CheckBox
@@ -1057,7 +1057,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.MM12CheckBox.Enable = 'off';
             app.MM12CheckBox.Text = 'MM12';
             app.MM12CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM12CheckBox.Position = [388 112 56 22];
+            app.MM12CheckBox.Position = [388 84 56 22];
             app.MM12CheckBox.Value = true;
 
             % Create MM14CheckBox
@@ -1065,7 +1065,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.MM14CheckBox.Enable = 'off';
             app.MM14CheckBox.Text = 'MM14';
             app.MM14CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM14CheckBox.Position = [388 86 56 22];
+            app.MM14CheckBox.Position = [388 58 56 22];
             app.MM14CheckBox.Value = true;
 
             % Create MM17CheckBox
@@ -1073,7 +1073,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.MM17CheckBox.Enable = 'off';
             app.MM17CheckBox.Text = 'MM17';
             app.MM17CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM17CheckBox.Position = [388 60 56 22];
+            app.MM17CheckBox.Position = [388 32 56 22];
             app.MM17CheckBox.Value = true;
 
             % Create MM20CheckBox
@@ -1081,7 +1081,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.MM20CheckBox.Enable = 'off';
             app.MM20CheckBox.Text = 'MM20';
             app.MM20CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM20CheckBox.Position = [388 34 56 22];
+            app.MM20CheckBox.Position = [388 6 56 22];
             app.MM20CheckBox.Value = true;
 
             % Create Lip09CheckBox
@@ -1089,7 +1089,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.Lip09CheckBox.Enable = 'off';
             app.Lip09CheckBox.Text = 'Lip09';
             app.Lip09CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.Lip09CheckBox.Position = [388 8 52 22];
+            app.Lip09CheckBox.Position = [456 111 52 22];
             app.Lip09CheckBox.Value = true;
 
             % Create Lip13CheckBox
@@ -1097,7 +1097,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.Lip13CheckBox.Enable = 'off';
             app.Lip13CheckBox.Text = 'Lip13';
             app.Lip13CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.Lip13CheckBox.Position = [456 112 52 22];
+            app.Lip13CheckBox.Position = [456 85 52 22];
             app.Lip13CheckBox.Value = true;
 
             % Create Lip20CheckBox
@@ -1105,7 +1105,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.Lip20CheckBox.Enable = 'off';
             app.Lip20CheckBox.Text = 'Lip20';
             app.Lip20CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.Lip20CheckBox.Position = [456 86 52 22];
+            app.Lip20CheckBox.Position = [456 59 52 22];
             app.Lip20CheckBox.Value = true;
 
             % Create MM37CheckBox
@@ -1113,49 +1113,56 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.MM37CheckBox.Enable = 'off';
             app.MM37CheckBox.Text = 'MM37';
             app.MM37CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM37CheckBox.Position = [456 59 56 22];
+            app.MM37CheckBox.Position = [456 32 56 22];
 
             % Create MM38CheckBox
             app.MM38CheckBox = uicheckbox(app.SelectedMetabolitesPanel);
             app.MM38CheckBox.Enable = 'off';
             app.MM38CheckBox.Text = 'MM38';
             app.MM38CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM38CheckBox.Position = [456 33 56 22];
+            app.MM38CheckBox.Position = [456 6 56 22];
 
             % Create MM40CheckBox
             app.MM40CheckBox = uicheckbox(app.SelectedMetabolitesPanel);
             app.MM40CheckBox.Enable = 'off';
             app.MM40CheckBox.Text = 'MM40';
             app.MM40CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM40CheckBox.Position = [456 8 56 22];
+            app.MM40CheckBox.Position = [523 111 56 22];
 
             % Create MM42CheckBox
             app.MM42CheckBox = uicheckbox(app.SelectedMetabolitesPanel);
             app.MM42CheckBox.Enable = 'off';
             app.MM42CheckBox.Text = 'MM42';
             app.MM42CheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM42CheckBox.Position = [522 112 56 22];
+            app.MM42CheckBox.Position = [522 86 56 22];
 
             % Create MMexpCheckBox
             app.MMexpCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
             app.MMexpCheckBox.Enable = 'off';
             app.MMexpCheckBox.Text = 'MMexp';
             app.MMexpCheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MMexpCheckBox.Position = [522 86 63 22];
+            app.MMexpCheckBox.Position = [522 60 63 22];
 
             % Create MM_PCCCheckBox
             app.MM_PCCCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
             app.MM_PCCCheckBox.Enable = 'off';
             app.MM_PCCCheckBox.Text = 'MM_PCC';
             app.MM_PCCCheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM_PCCCheckBox.Position = [522 59 74 22];
+            app.MM_PCCCheckBox.Position = [522 33 74 22];
 
             % Create MM_CSOCheckBox
             app.MM_CSOCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
             app.MM_CSOCheckBox.Enable = 'off';
             app.MM_CSOCheckBox.Text = 'MM_CSO';
             app.MM_CSOCheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.MM_CSOCheckBox.Position = [522 33 74 22];
+            app.MM_CSOCheckBox.Position = [522 7 74 22];
+
+            % Create CystatCheckBox
+            app.CystatCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
+            app.CystatCheckBox.Enable = 'off';
+            app.CystatCheckBox.Text = 'Cystat';
+            app.CystatCheckBox.FontColor = [0.0392 0.2706 0.4314];
+            app.CystatCheckBox.Position = [320 8 57 22];
 
             % Create SpecifyMRSandAnatomicalImagingFilesPanel
             app.SpecifyMRSandAnatomicalImagingFilesPanel = uipanel(app.InteractiveOspreyjobfilegeneratorUIFigure);

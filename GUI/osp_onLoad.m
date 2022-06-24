@@ -27,6 +27,7 @@ function [gui] = osp_onLoad( ~, ~ ,gui)
 %%% 1. INITIALIZE DATA %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
     set(gui.figure,'HandleVisibility','off');
+    set(gui.layout.tabs,'SelectionChangedFcn','');
     gui.layout.tabs.Selection  = 1;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYLOAD %%%
@@ -64,9 +65,9 @@ function [gui] = osp_onLoad( ~, ~ ,gui)
     osp_iniLoadWindow(gui);
     gui.layout.b_load.Enable = 'off';
     gui.layout.b_proc.Enable = 'on';
-    if MRSCont.flags.hasSPM == 1
+    if MRSCont.flags.hasSPM == 1 &&  ~isempty(MRSCont.files_nii)
         gui.layout.b_coreg.Enable = 'on';
     end
     gui.layout.ListBox.Enable = 'on';
-
+    set(gui.layout.tabs,'SelectionChangedFcn',{@osp_SelectionChangedFcn,gui});
 end % onLoad

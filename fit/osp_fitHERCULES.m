@@ -32,7 +32,7 @@ if MRSCont.flags.isGUI
 else
     progressText = '';
 end
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     [~] = printLog('OspreyFit',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     %%% 1. DETERMINE THE FITTING STYLE %%%
     % Extract fit options
@@ -75,6 +75,7 @@ for kk = 1:MRSCont.nDatasets
             dataToFit.refFWHM   = fitParamsSum.refFWHM;
             
             if isfield(fitOpts, 'coMM3') && ~strcmp(fitOpts.coMM3, 'none')
+                fitOpts.CrFactor = 4;
                 [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetSum,fitOpts);
             end
 

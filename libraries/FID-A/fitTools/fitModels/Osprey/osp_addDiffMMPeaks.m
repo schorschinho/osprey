@@ -10,6 +10,8 @@ function [BASISdiff] = osp_addDiffMMPeaks(BASISdiff,BASISoff,fitOpts)
     % To scale the amplitudes correctly, we first need to determine the
     % area of the 3.027 ppm CH3 signal of creatine
     [CrArea] = detCrArea(BASISoff);
+    % Take into account whether off or sum spectrum is used
+    CrArea = CrArea/fitOpts.CrFactor;
     oneProtonArea = CrArea/3;
     
     % Next, we determine the area of a Gaussian singlet with nominal area 1
@@ -40,6 +42,18 @@ function [BASISdiff] = osp_addDiffMMPeaks(BASISdiff,BASISoff,fitOpts)
         BASISdiff.fids(:,idx_MM)  = BASISdiff.fids(:,idx_MM) +  MM3co.fids;
         BASISdiff.specs(:,idx_MM) = BASISdiff.specs(:,idx_MM) +  MM3co.specs;
     end   
+
+    if strcmp(fitOpts.coMM3, '3to2MMud') % 3:2 MM09 and co-edited MM3 model
+        idx_MM          = find(strcmp(BASISdiff.name,'MM09'));
+        if isempty(idx_MM)
+            error('No basis function with nametag ''MM09'' found! Abort!');
+        end
+        idx_MM2          = find(strcmp(BASISdiff.name,'MM30'));
+        BASISdiff.fids(:,idx_MM)  = BASISdiff.fids(:,idx_MM) +  BASISdiff.fids(:,idx_MM2);
+        BASISdiff.specs(:,idx_MM) = BASISdiff.specs(:,idx_MM) +  BASISdiff.specs(:,idx_MM2);
+        BASISdiff.fids(:,idx_MM2)  = zeros(length(BASISdiff.fids(:,idx_MM2)),1);
+        BASISdiff.specs(:,idx_MM2) = zeros(length(BASISdiff.specs(:,idx_MM2)),1);
+    end  
     
     if strcmp(fitOpts.coMM3, '3to2MMsoft') % 3:2 MM09 and co-edited MM3 model
         idx_MM          = find(strcmp(BASISdiff.name,'MM09'));

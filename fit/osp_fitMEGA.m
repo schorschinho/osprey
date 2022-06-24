@@ -98,6 +98,7 @@ for kk = 1:MRSCont.nDatasets(1)
             dataToFit.refFWHM   = fitParamsOff.refFWHM;
 
             if ~strcmp(fitOpts.coMM3, 'none')
+                fitOpts.CrFactor = 1;
                 [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,basisSetOff,fitOpts);
             end
 
@@ -272,6 +273,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 basisSetDiff1 = MRSCont.fit.basisSet;
                 basisSetDiff1.fids = basisSetDiff1.fids(:,:,3);
                 basisSetDiff1.specs = basisSetDiff1.specs(:,:,3);
+                fitOpts.CrFactor = 1;
                 [basisSetDiff1] = osp_addDiffMMPeaks(basisSetDiff1,fitOpts);
                 basisSetConc.fids(:,:,1) = basisSetDiff1.fids(:,:);
                 basisSetConc.specs(:,:,1) = basisSetDiff1.specs(:,:);

@@ -290,11 +290,11 @@ for t = 1 : gui.fit.Number %Loop over fits
             waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
             % Where are the metabolite names stored?
             if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{1}.sz(1)) '_' num2str(MRSCont.processed.metab{1}.spectralwidth)]){1,1}.name;
+                basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{1}.sz(1))) '_' num2str(round(MRSCont.processed.metab{1}.spectralwidth))]){1,1}.name;
             else if strcmp(gui.fit.Style, 'conc')
-                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{1}.sz(1)) '_' num2str(MRSCont.processed.metab{1}.spectralwidth)]){1,1}.name;
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{1}.sz(1))) '_' num2str(round(MRSCont.processed.metab{1}.spectralwidth))]){1,1}.name;
                 else
-                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(MRSCont.processed.metab{1}.sz(1)) '_' num2str(MRSCont.processed.metab{1}.spectralwidth)]){1,end}.name;
+                    basisSetNames = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{1}.sz(1))) '_' num2str(round(MRSCont.processed.metab{1}.spectralwidth))]){1,end}.name;
                 end
             end
              % Larger fonts for the results

@@ -35,7 +35,19 @@ function [MRSCont] = RunOspreyJob(jobFilePath)
 
     if ~isempty(MRSCont.files_nii)
         MRSCont = OspreyCoreg(MRSCont);
-        MRSCont = OspreySeg(MRSCont);
+        if ~isempty(MRSCont.files_seg)
+            seg = [num2str(~isempty(MRSCont.files_seg)) num2str(exist(MRSCont.files_seg{1}{1},'file'))];
+        else
+            seg = '00';
+        end
+        switch seg
+            case '00' %Do normal segmentation (No files_seg)
+                MRSCont = OspreySeg(MRSCont);
+            case '11' %files_seg are defined and finished.
+                MRSCont = OspreySeg(MRSCont);
+            otherwise % (10) files_seg are defined, but not finished yet. (Do nothing)
+        end
+        
     end
 
     MRSCont = OspreyQuantify(MRSCont);

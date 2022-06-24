@@ -256,7 +256,7 @@ if strcmp(jobFileFormat,'json')
         error('Invalid job file! A job file needs to specify an output folder.');
     end
     if isfield(jobStruct, 'file_stat')
-        outputFolder = jobStruct.file_stat{1};
+        file_stat = jobStruct.file_stat{1};
     else
         '';
     end
@@ -307,10 +307,13 @@ if strcmp(jobFileFormat,'json')
         MRSCont.opts.ECC.mm = str2num(jobStruct.ECCmm);
     end
     if isfield(jobStruct,'MM3coModel')
-        MRSCont.opts.fit.coMM3 = jobStruct.MM3coModel;
+        opts.fit.coMM3 = jobStruct.MM3coModel;
     end
     if isfield(jobStruct,'FWHMMM3co')
-        MRSCont.opts.fit.FWHMcoMM3= num2str(jobStruct.FWHMMM3co);
+        opts.fit.FWHMcoMM3= str2num(jobStruct.FWHMMM3co);
+        if isempty(opts.fit.FWHMcoMM3) || strcmp(opts.fit.FWHMcoMM3,' ')
+            opts.fit.FWHMcoMM3 = 14;
+        end
     end
     if isfield(jobStruct,'saveLCM')
         MRSCont.opts.saveLCM = str2num(jobStruct.saveLCM);
@@ -444,6 +447,11 @@ switch seqType
         else
             MRSCont.opts.fit.coMM3 = 'none';
             MRSCont.opts.fit.FWHMcoMM3 = 14;
+        end
+        if isfield(MRSCont.opts.fit, 'FWHMcoMM3')
+            if isempty(MRSCont.opts.fit.FWHMcoMM3)
+                MRSCont.opts.fit.FWHMcoMM3 = 14;
+            end
         end
         if ~isfield(MRSCont.opts.fit, 'GAP')
             MRSCont.opts.fit.GAP.A = [];
@@ -703,7 +711,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 2.2.0';
+MRSCont.ver.Osp             = 'Osprey 2.3.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

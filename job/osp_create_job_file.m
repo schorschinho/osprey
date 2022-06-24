@@ -32,11 +32,11 @@ fprintf(fid,'%s','{');
 fprintf(fid,'\n\t%s',['"seqType": "' app.SequenceTypeDropDown.Value '",']);
 
 if strcmp(app.SequenceTypeDropDown.Value,'MEGA')
-    fprintf(fid,'\n\t%s',['"editTarget": "' app.EditingTargetsDropDown.Value '",']);
+    fprintf(fid,'\n\t%s',['"editTarget": ["' app.EditingTargetsDropDown.Value '"],']);
 end
 if strcmp(app.SequenceTypeDropDown.Value,'HERMES') || strcmp(app.SequenceTypeDropDown.Value,'HERCULES')
     if strcmp(app.EditingTargetsDropDown.Value, 'GABA, GSH')
-        fprintf(fid,'\n\t%s',['"editTarget": "''GABA'',''GSH''",']);
+        fprintf(fid,'\n\t%s',['"editTarget": ["GABA","GSH"],']);
     end
 end
 
@@ -67,6 +67,7 @@ switch app.IncludedMetabolitesDropDown.Value
         if app.bHGCheckBox.Value, if first, fprintf(fid,'%s','"bHG"'), first = 0;else fprintf(fid,'%s',',"bHG"'); end; end
         if app.CitCheckBox.Value, if first, fprintf(fid,'%s','"Cit"'), first = 0;else fprintf(fid,'%s',',"Cit"'); end; end
         if app.CrCheckBox.Value, if first, fprintf(fid,'%s','"Cr"'), first = 0;else fprintf(fid,'%s',',"Cr"'); end; end
+        if app.CystatCheckBox.Value, fprintf(fid,'%s',',"Cystat"'); end
         if app.CrCH2CheckBox.Value, fprintf(fid,'%s',',"CrCH2"'); end
         if app.EtOHCheckBox.Value, fprintf(fid,'%s',',"EtOH"'); end
         if app.GABACheckBox.Value, fprintf(fid,'%s',',"GABA"'); end
@@ -106,7 +107,7 @@ switch app.IncludedMetabolitesDropDown.Value
         fprintf(fid,'%s','],');
     
     otherwise
-        fprintf(fid,'\n\t%s',['"includeMetabs": "' app.IncludedMetabolitesDropDown.Value '",']);
+        fprintf(fid,'\n\t%s',['"includeMetabs": ["' app.IncludedMetabolitesDropDown.Value '"],']);
 end
 
 fprintf(fid,'\n\t%s',['"style": "' app.FittingStyleDropDown.Value '",']);

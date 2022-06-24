@@ -91,7 +91,7 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                             fitRangePPM = MRSCont.opts.fit.range;
     
                             dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
-                            basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]){bf,sf};
+                            basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){bf,sf};
                             if bf == 2 % We need to insert the subject specific MM basis function into the basis set
                                 if sf==1
                                     index = find(strcmp(MRSCont.processed.mm{kk}.names,'A_spline')); 

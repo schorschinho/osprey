@@ -81,7 +81,7 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
     if MRSCont.flags.hasRef
         refFitTime = tic;
         % Loop over all the datasets here
-        for kk = 1:MRSCont.nDatasets
+        for kk = 1:MRSCont.nDatasets(1)
             [~] = printLog('OspreyFitRef',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
             if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.ref.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
                 [MRSCont] = osp_fitWater(MRSCont, kk, 'ref');
@@ -101,7 +101,7 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
     if MRSCont.flags.hasWater
         waterFitTime = tic;
         % Loop over all the datasets here
-        for kk = 1:MRSCont.nDatasets
+        for kk = 1:MRSCont.nDatasets(1)
             [~] = printLog('OspreyFitWater',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
             if ~(MRSCont.flags.didFit == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'fit') && (kk > length(MRSCont.fit.results.w.fitParams))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
                 [MRSCont] = osp_fitWater(MRSCont, kk, 'w');
