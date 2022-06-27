@@ -55,6 +55,9 @@ for rr = 1:length(C)
         if strcmpi(C{rr}{1}, 'title')% If the title field is split, join back together
             title = strjoin(C{rr}(2:end));
             LCMparam.title = title;
+        elseif strcmp(C{rr}{1}(1:6),'CHSIMU') % simulation parameters contains '='
+            P{1} = C{rr}{1};
+            P{2} = strjoin(C{rr}(2:end));
         elseif length(C{rr}) == 3% If length=3, then assume 2-value input
             P{1} = C{rr}{1};
             P{2} = [C{rr}{2},',',C{rr}{3}];
