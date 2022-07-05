@@ -14,13 +14,22 @@ function out = osp_plotFit(MRSCont, kk, which_spec,VoxelIndex, conc, stagFlag, x
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
 %       which    = String for the spectrum to plot (optional)
-%                   OPTIONS:    'off' (default)
-%                               'diff1'
-%                               'diff2'
-%                               'sum'
+%                   OPTIONS:    'metab' (default)
 %                               'ref'
 %                               'w'
-%                                 'mm' re_mm
+%                               'mm' re_mm
+%       VoxelIndex = Vector with three entries experiment number (1), subspectrum (2),
+%                    and basisset (3).
+%                   OPTIONS: experiment number only supports 1 for now
+%                            subspectra = 1 for unedited, off (MEGA), sum (HERMES/HERCULES)
+%                            subspectra = 2 for diff1 (MEGA), diff2 (HERMES/HERCULES)
+%                            subspectra = 3 for diff3 (HERMES/HERCULES)
+%                            basisset = 1 for default parameterization
+%                            basisset = 2 for subject-specific measured MM
+%                            (if metabolite-nulled spectra are supplied)
+%                            basisset = 3 for cohort-mean measured MM
+%                            (if metabolite-nulled spectra are supplied & opts.fit.MeanMM = 1)
+%                            
 %       conc      = flag if concatenate fitting was used
 %       stagFlag  = flag to decide whether basis functions should be plotted
 %                   vertically staggered or simply over one another
@@ -71,7 +80,7 @@ if nargin<9
         end
     else
         if nargin<4
-            VoxelIndex = [1 1];
+            VoxelIndex = [1 1 1];
         end
         if strcmp(which_spec, 'conc')
             figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
@@ -88,7 +97,7 @@ if nargin<9
                 if nargin<5
                     conc = 'diff1';
                     if nargin<4
-                        VoxelIndex = 1;
+                        VoxelIndex = [1 1 1];
                         if nargin < 3
                             which_spec = 'off';
                             if nargin < 2
@@ -120,7 +129,7 @@ switch fitMethod
             if ~exist('VoxelIndex') && (MRSCont.flags.isPRIAM == 1)
                 VoxelIndex = 1;
             elseif ~exist('VoxelIndex') && (MRSCont.flags.isMRSI == 1)
-                VoxelIndex = [1 1];
+                VoxelIndex = [1 1 1];
             end
             if  strcmp(which_spec, 'conc')
                 dataToPlot=op_takeVoxel(MRSCont.processed.(conc){kk},VoxelIndex);
