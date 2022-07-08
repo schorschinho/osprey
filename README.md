@@ -100,7 +100,11 @@ Should you publish material that made use of Osprey, please cite the following p
 
 This work has been supported by NIH grants R01 EB016089, P41 EB15909, P41 EB031771, R01 EB023963, and K99 AG062230.
 
-We wish to thank the following individuals for their contributions to the
+We wish to thank collaborators and partners for providing LCModel basis sets and control files. If you use these resources for your analysis of the following data types, please mention the respective individuals in your acknowledgements:
+- Siemens 7T STEAM (TE = 5 ms): Dr. Dinesh Deelchand (University of Minnesota)
+- Siemens 3T and 7T SPECIAL (TE = 8.5/9 ms): Dr. Ariane Fillmer (PTB Berlin)
+
+We also wish to thank the following individuals for their contributions to the
 development of Osprey and shared processing code:
 
 - Jamie Near (McGill University, Montreal)
