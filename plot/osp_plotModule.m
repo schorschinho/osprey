@@ -284,6 +284,7 @@ switch Module
                       else
                         temp = osp_plotLoad(MRSCont, kk,'ref',Exp,[Index(2) Index(3) Index(4)]);
                 end
+                drawnow;
                 ViewAxes = gca(); %re_mm
                 set( ViewAxes, 'Parent', Plot );
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_Exp_' num2str(Exp) '_OspreyLoad_ref.pdf'];
@@ -299,6 +300,7 @@ switch Module
               else
                 temp = osp_plotLoad(MRSCont, kk,'w',Exp,[Index(2) Index(3) Index(4)]);
                 end
+                drawnow;
                 ViewAxes = gca(); %re_mm
                 set( ViewAxes, 'Parent', Plot );
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex)  '_Exp_' num2str(Exp) '_OspreyLoad_w.pdf'];
