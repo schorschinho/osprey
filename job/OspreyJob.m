@@ -150,6 +150,11 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Spectral Registration is set to ''RobSpecReg'' (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.SpecReg = 'RobSpecReg';
     end
+    if isfield(jobStruct,'AvoidProcessing')
+        MRSCont.opts.AvoidProcessing = jobStruct(1).AvoidProcessing;
+    else
+        MRSCont.opts.AvoidProcessing = 0;
+    end
     if isfield(jobStruct,'saveLCM')
         MRSCont.opts.saveLCM = jobStruct(1).saveLCM;
     else

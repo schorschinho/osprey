@@ -132,7 +132,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
 
 %%           %%% 1E. GET SHORT-TE WATER DATA %%%
              % And do the processing
-             if MRSCont.flags.hasWater
+             if MRSCont.flags.hasWater && ~MRSCont.opts.AvoidProcessing
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w                           = MRSCont.raw_w{w_ll,kk};                % Get the kk-th dataset
                 if raw_w.averages > 1 && raw_w.flags.averaged == 0
@@ -164,30 +164,31 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
     %                 raw.fids(:,rr) = raw.fids(:,rr) .* phi';
     %                 raw.specs = fftshift(fft(raw.fids,[],1));
     %             end
-
-                % Next, shift the entire metabolite spectrum by 0.15 ppm.
-                % This doesn't have to be completely accurate, since additional
-                % referencing steps are performed in the later stages of
-                % post-processing and modelling, but we want the prominent singlets
-                % to appear within 0.1 ppm of their expected in-vivo positions.
-                phantomShiftPPM = 0.15 * raw.txfrq*1e-6;
-                raw = op_freqshift(raw, -phantomShiftPPM);
-
-                % Finally, apply some linebroadening. High-quality in-vitro
-                % data may have linewidth lower than the simulated basis set
-                % data.
-                raw = op_filter(raw, 2);
-                if MRSCont.flags.hasRef
-                    raw_ref = op_filter(raw_ref, 2);
-                end
-                if MRSCont.flags.hasWater
-                    raw_w = op_filter(raw_w, 2);
-                    MRSCont.processed.w{ll,kk}         = raw_w; % Save back to MRSCont container
+                if ~MRSCont.opts.AvoidProcessing
+                    % Next, shift the entire metabolite spectrum by 0.15 ppm.
+                    % This doesn't have to be completely accurate, since additional
+                    % referencing steps are performed in the later stages of
+                    % post-processing and modelling, but we want the prominent singlets
+                    % to appear within 0.1 ppm of their expected in-vivo positions.
+                    phantomShiftPPM = 0.15 * raw.txfrq*1e-6;
+                    raw = op_freqshift(raw, -phantomShiftPPM);
+    
+                    % Finally, apply some linebroadening. High-quality in-vitro
+                    % data may have linewidth lower than the simulated basis set
+                    % data.
+                    raw = op_filter(raw, 2);
+                    if MRSCont.flags.hasRef
+                        raw_ref = op_filter(raw_ref, 2);
+                    end
+                    if MRSCont.flags.hasWater
+                        raw_w = op_filter(raw_w, 2);
+                        MRSCont.processed.w{ll,kk}         = raw_w; % Save back to MRSCont container
+                    end
                 end
             end
 
 %%          %%% 3. FREQUENCY/PHASE CORRECTION AND AVERAGING %%%
-            if raw.averages > 1 && raw.flags.averaged == 0
+            if (raw.averages > 1 && raw.flags.averaged == 0) && ~MRSCont.opts.AvoidProcessing
                 % Calculate starting values for spectral registration
                  [refShift_ind_ini]=op_preref(raw,seq);
                 % Perform robust spectral correction with weighted averaging.
@@ -296,7 +297,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
 %%          %%% 4. GET REFERENCE DATA / EDDY CURRENT CORRECTION %%%
             % If there are reference scans, load them here to allow eddy-current
             % correction of the raw data.
-            if MRSCont.flags.hasRef
+            if MRSCont.flags.hasRef && ~MRSCont.opts.AvoidProcessing
                 if MRSCont.flags.hasMM
                     if MRSCont.flags.hasMMRef
                         if MRSCont.opts.ECC.mm(mm_ref_ll,kk)
@@ -320,40 +321,44 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
                 [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
                 MRSCont.processed.ref{metab_ll,kk}       = raw_ref;                          % Save back to MRSCont container
+            else
+                MRSCont.processed.ref{metab_ll,kk}       = raw_ref;
             end
 %%          %%% 5. DETERMINE POLARITY OF SPECTRUM (EG FOR MOIST WATER SUPP) %%%
             % Automate determination whether the Cr peak has positive polarity.
             % For water suppression methods like MOIST, the residual water may
             % actually have negative polarity, but end up positive in the data, so
             % that the spectrum needs to be flipped.
-            if ~isfield(MRSCont.opts.SubSpecAlignment, 'polResidCr')
-                raw_Cr     = op_freqrange(raw,2.8,3.2);
-                % Determine the polarity of the respective peak: if the absolute of the
-                % maximum minus the absolute of the minimum is positive, the polarity
-                % of the respective peak is positive; if the absolute of the maximum
-                % minus the absolute of the minimum is negative, the polarity is negative.
-                polResidCr = abs(max(real(raw_Cr.specs))) - abs(min(real(raw_Cr.specs)));
-                polResidCr = squeeze(polResidCr);
-                polResidCr(polResidCr<0) = -1;
-                polResidCr(polResidCr>0) = 1;
-            else
-                polResidCr = MRSCont.opts.SubSpecAlignment.polResidCr;
-            end
-            raw = op_ampScale(raw,polResidCr);
-            MRSCont.raw{metab_ll,kk} = op_ampScale(MRSCont.raw{metab_ll,kk},polResidCr);
-
-            % Do the same for the metabolite-nulled data
-            if MRSCont.flags.hasMM
-                raw_Cr39    = op_freqrange(raw_mm,3.7,4.1);
-                polResidCr39  = abs(max(real(raw_Cr39.specs))) - abs(min(real(raw_Cr39.specs)));
-                polResidCr39(polResidCr39<0) = -1;
-                polResidCr39(polResidCr39>0) = 1;
-                if polResidCr39(1) ~= polResidCr(1)
-                    raw_mm = op_ampScale(raw_mm,polResidCr);
+            if ~MRSCont.opts.AvoidProcessing
+                if ~isfield(MRSCont.opts.SubSpecAlignment, 'polResidCr')
+                    raw_Cr     = op_freqrange(raw,2.8,3.2);
+                    % Determine the polarity of the respective peak: if the absolute of the
+                    % maximum minus the absolute of the minimum is positive, the polarity
+                    % of the respective peak is positive; if the absolute of the maximum
+                    % minus the absolute of the minimum is negative, the polarity is negative.
+                    polResidCr = abs(max(real(raw_Cr.specs))) - abs(min(real(raw_Cr.specs)));
+                    polResidCr = squeeze(polResidCr);
+                    polResidCr(polResidCr<0) = -1;
+                    polResidCr(polResidCr>0) = 1;
                 else
-                    raw_mm = op_ampScale(raw_mm,polResidCr39);
+                    polResidCr = MRSCont.opts.SubSpecAlignment.polResidCr;
                 end
-
+                raw = op_ampScale(raw,polResidCr);
+                MRSCont.raw{metab_ll,kk} = op_ampScale(MRSCont.raw{metab_ll,kk},polResidCr);
+    
+                % Do the same for the metabolite-nulled data
+                if MRSCont.flags.hasMM
+                    raw_Cr39    = op_freqrange(raw_mm,3.7,4.1);
+                    polResidCr39  = abs(max(real(raw_Cr39.specs))) - abs(min(real(raw_Cr39.specs)));
+                    polResidCr39(polResidCr39<0) = -1;
+                    polResidCr39(polResidCr39>0) = 1;
+                    if polResidCr39(1) ~= polResidCr(1)
+                        raw_mm = op_ampScale(raw_mm,polResidCr);
+                    else
+                        raw_mm = op_ampScale(raw_mm,polResidCr39);
+                    end
+    
+                end
             end
 
 %%          %%% 6. DETERMINE ON/OFF STATUS FOR EDITED DATA & NAMES
@@ -380,20 +385,22 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw.flags.orderswitched = 0;
                 end
                 % Save drift information back to container
-                if ~switchOrder
-                    MRSCont.QM.drift.pre.A{kk} = driftPre{1};
-                    MRSCont.QM.drift.pre.B{kk} = driftPre{2};
-                    MRSCont.QM.drift.post.A{kk} = driftPost{1};
-                    MRSCont.QM.drift.post.B{kk} = driftPost{1};
-
-                else
-                    MRSCont.QM.drift.pre.A{kk} = driftPre{2};
-                    MRSCont.QM.drift.pre.B{kk} = driftPre{1};
-                    MRSCont.QM.drift.post.A{kk} = driftPost{2};
-                    MRSCont.QM.drift.post.B{kk} = driftPost{1};
-                    raw.specReg{1}.fs              = raw.specReg{1}.fs(:,[2 1]); % save align parameters
-                    raw.specReg{1}.phs             = raw.specReg{1}.phs(:,[2 1]); % save align parameters
-                    raw.specReg{1}.weights         = raw.specReg{1}.weights([2 1]); % save align parameters);
+                if ~MRSCont.opts.AvoidProcessing
+                    if ~switchOrder
+                        MRSCont.QM.drift.pre.A{kk} = driftPre{1};
+                        MRSCont.QM.drift.pre.B{kk} = driftPre{2};
+                        MRSCont.QM.drift.post.A{kk} = driftPost{1};
+                        MRSCont.QM.drift.post.B{kk} = driftPost{1};
+    
+                    else
+                        MRSCont.QM.drift.pre.A{kk} = driftPre{2};
+                        MRSCont.QM.drift.pre.B{kk} = driftPre{1};
+                        MRSCont.QM.drift.post.A{kk} = driftPost{2};
+                        MRSCont.QM.drift.post.B{kk} = driftPost{1};
+                        raw.specReg{1}.fs              = raw.specReg{1}.fs(:,[2 1]); % save align parameters
+                        raw.specReg{1}.phs             = raw.specReg{1}.phs(:,[2 1]); % save align parameters
+                        raw.specReg{1}.weights         = raw.specReg{1}.weights([2 1]); % save align parameters);
+                    end
                 end
             end
             if raw.flags.isHERMES || raw.flags.isHERCULES
@@ -411,9 +418,11 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 raw.target = MRSCont.opts.editTarget';
                 driftPre = driftPre(:,commuteOrder);
                 driftPost = driftPost(:,commuteOrder);
-                raw.specReg{1}.fs = raw.specReg{1}.fs(:,commuteOrder);
-                raw.specReg{1}.phs = raw.specReg{1}.phs(:,commuteOrder);
-                raw.specReg{1}.weights = raw.specReg{1}.weights(:,commuteOrder);
+                if ~MRSCont.opts.AvoidProcessing
+                    raw.specReg{1}.fs = raw.specReg{1}.fs(:,commuteOrder);
+                    raw.specReg{1}.phs = raw.specReg{1}.phs(:,commuteOrder);
+                    raw.specReg{1}.weights = raw.specReg{1}.weights(:,commuteOrder);
+                end
                 % Save drift information back to container
                 MRSCont.QM.drift.pre.A{kk} = driftPre{1};
                 MRSCont.QM.drift.pre.B{kk} = driftPre{2};
@@ -459,7 +468,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 raw=op_HadamardScans(raw,[-1 1],'diff1');
                 raw=op_HadamardScans(raw,[1 1],'sum');
                 raw_no_subspec_aling = raw;
-                if ~raw.flags.isMRSI
+                if ~raw.flags.isMRSI && ~MRSCont.opts.AvoidProcessing
 %                     [raw,~]       = op_phaseCrCho(raw, 1);
                     [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
                     if abs(refShift_SubSpecAlign) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
@@ -474,16 +483,18 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 else
                     refShift_SubSpecAlign =0;
                 end
-
-                switch MRSCont.opts.SubSpecAlignment.mets
-                    case 'L1Norm'
-                        [raw]  = osp_editSubSpecAlignLNorm(raw,seq);
-                    case 'L2Norm'
-                        [raw]  = osp_editSubSpecAlign(raw, seq, target,MRSCont.opts.UnstableWater);
-                    otherwise
+                
+                if ~MRSCont.opts.AvoidProcessing
+                    switch MRSCont.opts.SubSpecAlignment.mets
+                        case 'L1Norm'
+                            [raw]  = osp_editSubSpecAlignLNorm(raw,seq);
+                        case 'L2Norm'
+                            [raw]  = osp_editSubSpecAlign(raw, seq, target,MRSCont.opts.UnstableWater);
+                        otherwise
+                    end
                 end
 
-                if MRSCont.flags.hasMM
+                if MRSCont.flags.hasMM && ~MRSCont.opts.AvoidProcessing
                     raw_mm=op_HadamardScans(raw_mm,[-1 1],'diff1');
 %                     diff1_mm = op_takesubspec(raw_mm,3);
 %                     [diff1_mm,~]          = op_autophase(diff1_mm,0.5,1.1);
@@ -510,7 +521,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 % Create the sum spectrum
                 raw=op_HadamardScans(raw,[1 1],'sum');
                 raw.target = target;
-                raw = op_freqshift(raw, refShift_SubSpecAlign);
+                if ~MRSCont.opts.AvoidProcessing
+                    raw = op_freqshift(raw, refShift_SubSpecAlign);
+                end
             end
 
             if raw.flags.isHERMES || raw.flags.isHERCULES
@@ -526,62 +539,66 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
                 raw=op_HadamardScans(raw,[1 1 1 1],'sum');
                 raw_no_subspec_aling = raw;
+                
+                if ~MRSCont.opts.AvoidProcessing
+                    % Correct the frequency axis so that Cr appears at 3.027 ppm
+                    [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
+                    if abs(refShift_SubSpecAlign) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
+                        [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
+                    end
 
-                % Correct the frequency axis so that Cr appears at 3.027 ppm
-                [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
-                if abs(refShift_SubSpecAlign) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
-                    [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
+                    % Apply initial referencing shift
+                    raw = op_freqshift(raw, -refShift_SubSpecAlign);
+                    % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+                    % with the negative phase of that fit
+                    [raw,~] = op_phaseCrCho(raw, 1);
+                    % Align the sub-spectra to one another by minimizing the difference
+                    % between the common 'reporter' signals.
+                    switch MRSCont.opts.SubSpecAlignment.mets
+                        case 'L1Norm'
+                            [raw]  = osp_editSubSpecAlignLNorm(raw,seq);
+                        case 'L2Norm'
+                            if ~exist('target3', 'var')
+                                [raw]  = osp_editSubSpecAlign(raw, seq, target1,target2,MRSCont.opts.UnstableWater);
+                            else
+                                [raw]  = osp_editSubSpecAlign(raw, seq, target2,target3,MRSCont.opts.UnstableWater);
+                            end
+                        otherwise
+                    end
+                    % Update all Hadamard combinations after subspectra alignment
+                    if ~exist('target3', 'var')
+                        raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
+                        raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
+                    else  % For HERMES 4 acqusitions
+                        raw=op_HadamardScans(raw,[1 -1 -1 1],'diff1');
+                        raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
+                        raw=op_HadamardScans(raw,[-1 1 -1 1],'diff3');
+                    end
+                    raw=op_HadamardScans(raw,[1 1 1 1],'sum');
+                    raw = op_freqshift(raw, refShift_SubSpecAlign);
                 end
-
-                % Apply initial referencing shift
-                raw = op_freqshift(raw, -refShift_SubSpecAlign);
-                % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
-                % with the negative phase of that fit
-                [raw,~] = op_phaseCrCho(raw, 1);
-                % Align the sub-spectra to one another by minimizing the difference
-                % between the common 'reporter' signals.
-                switch MRSCont.opts.SubSpecAlignment.mets
-                    case 'L1Norm'
-                        [raw]  = osp_editSubSpecAlignLNorm(raw,seq);
-                    case 'L2Norm'
-                        if ~exist('target3', 'var')
-                            [raw]  = osp_editSubSpecAlign(raw, seq, target1,target2,MRSCont.opts.UnstableWater);
-                        else
-                            [raw]  = osp_editSubSpecAlign(raw, seq, target2,target3,MRSCont.opts.UnstableWater);
-                        end
-                    otherwise
-                end
-                % Update all Hadamard combinations after subspectra alignment
-                if ~exist('target3', 'var')
-                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
-                    raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
-                else  % For HERMES 4 acqusitions
-                    raw=op_HadamardScans(raw,[1 -1 -1 1],'diff1');
-                    raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
-                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff3');
-                end
-                raw=op_HadamardScans(raw,[1 1 1 1],'sum');
-                raw = op_freqshift(raw, refShift_SubSpecAlign);
             end
             
 %%          %%% 7. REMOVE RESIDUAL WATER %%%
             % Define different water removal frequency ranges, depending on
             % whether this is phantom data
-            if MRSCont.flags.isPhantom
-                waterRemovalFreqRange = [4.5 5];
-                fracFID = 0.2;
-            else
-                waterRemovalFreqRange = [4.2 4.9];
-                fracFID = 0.75;
-            end
-            % Apply iterative water filter
-            raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-            if exist('raw_no_subspec_aling','var')
-                raw_no_subspec_aling = op_iterativeWaterFilter(raw_no_subspec_aling, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-            end
-
-            if MRSCont.flags.hasMM %re_mm
-                raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
+            if ~MRSCont.opts.AvoidProcessing
+                if MRSCont.flags.isPhantom
+                    waterRemovalFreqRange = [4.5 5];
+                    fracFID = 0.2;
+                else
+                    waterRemovalFreqRange = [4.2 4.9];
+                    fracFID = 0.75;
+                end
+                % Apply iterative water filter
+                raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+                if exist('raw_no_subspec_aling','var')
+                    raw_no_subspec_aling = op_iterativeWaterFilter(raw_no_subspec_aling, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+                end
+    
+                if MRSCont.flags.hasMM %re_mm
+                    raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
+                end
             end
 
 %%          %%% 8. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
@@ -590,29 +607,28 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
                 [refShift, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
             end
-            [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation
-            if exist('raw_no_subspec_aling','var')
-                [raw_no_subspec_aling]             = op_freqshift(raw_no_subspec_aling,-refShift);            % Reference spectra by cross-correlation
-            end
-
-            if MRSCont.flags.hasMM %re_mm
-                if raw_mm.flags.isMEGA
-                    temp = op_takesubspec(raw_mm,3);
-                    [temp,~]          = op_autophase(temp,0.5,1.1);
-                    raw_mm = op_mergesubspec(raw_mm,temp);
+            if ~MRSCont.opts.AvoidProcessing
+                [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation
+                if exist('raw_no_subspec_aling','var')
+                    [raw_no_subspec_aling]             = op_freqshift(raw_no_subspec_aling,-refShift);            % Reference spectra by cross-correlation
                 end
-                [refShift_mm, ~] = fit_OspreyReferencingMM(raw_mm);
-                [raw_mm]             = op_freqshift(raw_mm,-refShift_mm);            % Reference spectra by cross-correlation
+                if MRSCont.flags.hasMM %re_mm
+                    if raw_mm.flags.isMEGA
+                        temp = op_takesubspec(raw_mm,3);
+                        [temp,~]          = op_autophase(temp,0.5,1.1);
+                        raw_mm = op_mergesubspec(raw_mm,temp);
+                    end
+                    [refShift_mm, ~] = fit_OspreyReferencingMM(raw_mm);
+                    [raw_mm]             = op_freqshift(raw_mm,-refShift_mm);            % Reference spectra by cross-correlation
+                end
+                % Save back to MRSCont container
+                if (strcmp(MRSCont.vendor,'Siemens') && raw.flags.isUnEdited) || MRSCont.flags.isMRSI
+                    % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+                    % with the negative phase of that fit
+                    [raw,globalPhase]       = op_phaseCrCho(raw, 1);
+                    raw.specReg{1}.phs = raw.specReg{1}.phs - globalPhase*180/pi;
+                end
             end
-
-            % Save back to MRSCont container
-            if (strcmp(MRSCont.vendor,'Siemens') && raw.flags.isUnEdited) || MRSCont.flags.isMRSI
-                % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
-                % with the negative phase of that fit
-                [raw,globalPhase]       = op_phaseCrCho(raw, 1);
-                raw.specReg{1}.phs = raw.specReg{1}.phs - globalPhase*180/pi;
-            end
-
 %%          %%% 9. QUALITY CONTROL PARAMETERS %%%
             SubSpec = raw.names;
             % Calculate some spectral quality metrics here;
@@ -626,7 +642,11 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 MRSCont.QM.SNR.metab(metab_ll,kk,ss)    = SNR{ss};
                 MRSCont.QM.FWHM.metab(metab_ll,kk,ss)   = FWHM(ss); % in Hz
                 MRSCont.QM.freqShift.metab(metab_ll,kk,ss)  = refShift;
-                MRSCont.QM.res_water_amp.metab(metab_ll,kk,ss) = sum(MRSCont.processed.metab{kk}.watersupp{ss}.amp);
+                if ~MRSCont.opts.AvoidProcessing
+                   MRSCont.QM.res_water_amp.metab(metab_ll,kk,ss) = sum(MRSCont.processed.metab{kk}.watersupp{ss}.amp);
+                else
+                    MRSCont.QM.res_water_amp.metab(metab_ll,kk,ss) = nan;
+                end
                 if strcmp(SubSpec{ss},'diff1') ||strcmp(SubSpec{ss},'diff2') || strcmp(SubSpec{ss},'diff3') ||strcmp(SubSpec{ss},'sum')
                     if raw.flags.isMEGA
                         MRSCont.QM.drift.pre.(SubSpec{ss}){metab_ll,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'], 1, [])';

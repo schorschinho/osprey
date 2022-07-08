@@ -41,7 +41,12 @@ end
 
 Vimage=spm_vol(MRSCont.coreg.vol_image_2nd{kk}.fname);
 Vmask=spm_vol(MRSCont.coreg.vol_mask_2nd{kk}.fname);
-voxel_ctr = MRSCont.coreg.voxel_ctr{kk};
+
+NiiVox = nii_tool('load',MRSCont.coreg.vol_mask_2nd{kk}.fname);
+
+Voff = [NiiVox.hdr.qoffset_x, NiiVox.hdr.qoffset_y, NiiVox.hdr.qoffset_z];
+CtrCalc = [mean(find(sum(NiiVox.img,[2,3]))),mean(find(sum(NiiVox.img,[1,3]))),mean(find(sum(NiiVox.img,[1,2])))];
+voxel_ctr = CtrCalc+Voff;
 
 %%% 3. SET UP THREE PLANE IMAGE %%%
 % Generate three plane image for the output
