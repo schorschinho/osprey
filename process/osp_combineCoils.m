@@ -77,54 +77,58 @@ if nargin<5
                 
                 MRSCont.raw{ll,kk}     = raw_comb;
                 MRSCont.raw_ref{ll,kk} = raw_ref_comb;
-                if MRSCont.raw_ref{ll,kk}.subspecs > 1 && ~isSpecial
-                    if MRSCont.flags.isMEGA
-                        raw_ref_A               = op_takesubspec(MRSCont.raw_ref{ll,kk},1);
-                        raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ll,kk},2);
-                        MRSCont.raw_ref{ll,kk} = op_concatAverages(raw_ref_A,raw_ref_B);
+                if ~isSpecial
+                    MRSCont.raw_ref{ll,kk} = op_combine_water_subspecs(MRSCont.raw_ref{ll,kk},0);
+                end
+                
+            else if MRSCont.flags.hasWater
+                        if isSpecial
+                            % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+                            cweights_w          = op_getcoilcombos(op_combinesubspecs(MRSCont.raw_w_uncomb{ll,kk}, 'diff'), 1, 'h');
+                        else
+                            cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{ll,kk}, 1, 'h');
+                        end
+                        raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{ll,kk},1,'h',cweights_w);
+                        if MRSCont.flags.isUnEdited
+                            raw_comb.flags.isUnEdited = 1;
+                        elseif MRSCont.flags.isMEGA
+                            raw_comb.flags.isMEGA = 1;
+                        elseif MRSCont.flags.isHERMES
+                            raw_comb.flags.isHERMES = 1;
+                        elseif MRSCont.flags.isHERCULES
+                            raw_comb.flags.isHERCULES = 1;
+                        end
+                        MRSCont.raw{ll,kk}     = raw_comb;
+    
+    
+                        raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{ll,kk},1,'h',cweights_w);
+                        raw_w_comb.flags.isUnEdited = 1;
+                        MRSCont.raw_w{ll,kk}   = raw_w_comb;
+                        MRSCont.raw_w{ll,kk} = op_combine_water_subspecs(MRSCont.raw_w{ll,kk},0);
+                else
+                    
+        
+                    % if not, use the metabolite scan itself
+                    if isSpecial
+                        % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+                        cweights          = op_getcoilcombos_specReg(op_combinesubspecs(op_averaging(MRSCont.raw_uncomb{ll,kk}), 'diff'), 0, 0.01, 2);
                     else
-                        raw_ref_A               = op_takesubspec(MRSCont.raw_ref{ll,kk},1);
-                        raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ll,kk},2);
-                        raw_ref_C               = op_takesubspec(MRSCont.raw_ref{ll,kk},3);
-                        raw_ref_D               = op_takesubspec(MRSCont.raw_ref{ll,kk},4);
-                        MRSCont.raw_ref{ll,kk} = op_concatAverages(op_concatAverages(raw_ref_A,raw_ref_B),op_concatAverages(raw_ref_C,raw_ref_D));
+                        cweights          = op_getcoilcombos(MRSCont.raw_uncomb{ll,kk}, 1, 'h');
                     end
+                    
+                    raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{ll,kk},1,'h',cweights);
+                    if MRSCont.flags.isUnEdited
+                        raw_comb.flags.isUnEdited = 1;
+                    elseif MRSCont.flags.isMEGA
+                        raw_comb.flags.isMEGA = 1;
+                    elseif MRSCont.flags.isHERMES
+                        raw_comb.flags.isHERMES = 1;
+                    elseif MRSCont.flags.isHERCULES
+                        raw_comb.flags.isHERCULES = 1;
+                    end
+                    MRSCont.raw{ll,kk}     = raw_comb;
                 end
-                
-            else
-                
-                % if not, use the metabolite scan itself
-                if isSpecial
-                    % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
-                    cweights          = op_getcoilcombos_specReg(op_combinesubspecs(op_averaging(MRSCont.raw_uncomb{ll,kk}), 'diff'), 0, 0.01, 2);
-                else
-                    cweights          = op_getcoilcombos(MRSCont.raw_uncomb{ll,kk}, 1, 'h');
-                end
-                
-                raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{ll,kk},1,'h',cweights);
-                if MRSCont.flags.isUnEdited
-                    raw_comb.flags.isUnEdited = 1;
-                elseif MRSCont.flags.isMEGA
-                    raw_comb.flags.isMEGA = 1;
-                elseif MRSCont.flags.isHERMES
-                    raw_comb.flags.isHERMES = 1;
-                elseif MRSCont.flags.isHERCULES
-                    raw_comb.flags.isHERCULES = 1;
-                end
-                MRSCont.raw{ll,kk}     = raw_comb;
-            end
             
-            % Now do the same for the (short-TE) water signal
-            if MRSCont.flags.hasWater
-                if isSpecial
-                    % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
-                    cweights_w          = op_getcoilcombos(op_combinesubspecs(MRSCont.raw_w_uncomb{ll,kk}, 'diff'), 1, 'h');
-                else
-                    cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{ll,kk}, 1, 'h');
-                end
-                raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{ll,kk},1,'h',cweights_w);
-                raw_w_comb.flags.isUnEdited = 1;
-                MRSCont.raw_w{ll,kk}   = raw_w_comb;
             end
         end
         
@@ -163,17 +167,7 @@ else
             MRSCont.raw{ll,kk}     = raw_comb;
             MRSCont.raw_ref{ref_ll,kk} = raw_ref_comb;
             if MRSCont.raw_ref{ref_ll,kk}.subspecs > 1 && ~isSpecial && (length(size(MRSCont.raw_ref{ref_ll,kk}.fids)) > 2)
-                if MRSCont.flags.isMEGA
-                    raw_ref_A               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},1);
-                    raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},2);
-                    MRSCont.raw_ref{ref_ll,kk} = op_concatAverages(raw_ref_A,raw_ref_B);
-                else
-                    raw_ref_A               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},1);
-                    raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},2);
-                    raw_ref_C               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},3);
-                    raw_ref_D               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},4);
-                    MRSCont.raw_ref{ref_ll,kk} = op_concatAverages(op_concatAverages(raw_ref_A,raw_ref_B),op_concatAverages(raw_ref_C,raw_ref_D));
-                end
+                MRSCont.raw_ref{ll,kk} = op_combine_water_subspecs(MRSCont.raw_ref{ll,kk},0);
             else
                 % Maintain spatial sub-spectra for SPECIAL-localized data.
                 if ~isSpecial
@@ -210,17 +204,7 @@ else
             MRSCont.raw{kk}     = raw_comb;
             MRSCont.raw_ref{ref_ll,kk} = raw_ref_comb;
             if MRSCont.raw_ref{ref_ll,kk}.subspecs > 1 && ~isSpecial && (length(size(MRSCont.raw_ref{ref_ll,kk}.fids)) > 2)
-                if MRSCont.flags.isMEGA
-                    raw_ref_A               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},1);
-                    raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},2);
-                    MRSCont.raw_ref{ref_ll,kk} = op_concatAverages(raw_ref_A,raw_ref_B);
-                else
-                    raw_ref_A               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},1);
-                    raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},2);
-                    raw_ref_C               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},3);
-                    raw_ref_D               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},4);
-                    MRSCont.raw_ref{ref_ll,kk} = op_concatAverages(op_concatAverages(raw_ref_A,raw_ref_B),op_concatAverages(raw_ref_C,raw_ref_D));
-                end
+                MRSCont.raw_ref{ll,kk} = op_combine_water_subspecs(MRSCont.raw_ref{ll,kk},0);
             else
                 % Maintain spatial sub-spectra for SPECIAL-localized data.
                 if ~isSpecial
@@ -230,39 +214,51 @@ else
             end
         end
         
-    else
-        % if not, use the metabolite scan itself
-        if isSpecial
-            % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
-            cweights          = op_getcoilcombos_specReg(op_combinesubspecs(op_averaging(MRSCont.raw_uncomb{ll,kk}), 'diff'), 0, 0.01, 2);
-        else
-            cweights          = op_getcoilcombos(MRSCont.raw_uncomb{ll,kk}, 1, 'h');
-        end
-        raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{ll,kk},1,'h',cweights);
-        if MRSCont.flags.isUnEdited
-            raw_comb.flags.isUnEdited = 1;
-        elseif MRSCont.flags.isMEGA
-            raw_comb.flags.isMEGA = 1;
-        elseif MRSCont.flags.isHERMES
-            raw_comb.flags.isHERMES = 1;
-        elseif MRSCont.flags.isHERCULES
-            raw_comb.flags.isHERCULES = 1;
-        end
-        MRSCont.raw{ll,kk}     = raw_comb;
-    end
+    else if MRSCont.flags.hasWater % Now do the same for the (short-TE) water signal
+            if isSpecial
+                % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+                cweights_w          = op_getcoilcombos(op_combinesubspecs(MRSCont.raw_w_uncomb{w_ll,kk}, 'diff'), 1, 'h');
+            else
+                cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{w_ll,kk}, 1, 'h');
+            end
+            raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{w_ll,kk},1,'h',cweights_w);
+            
+            raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{ll,kk},1,'h',cweights_w);
+            if MRSCont.flags.isUnEdited
+                raw_comb.flags.isUnEdited = 1;
+            elseif MRSCont.flags.isMEGA
+                raw_comb.flags.isMEGA = 1;
+            elseif MRSCont.flags.isHERMES
+                raw_comb.flags.isHERMES = 1;
+            elseif MRSCont.flags.isHERCULES
+                raw_comb.flags.isHERCULES = 1;
+            end
+            MRSCont.raw{ll,kk}     = raw_comb;
     
-    % Now do the same for the (short-TE) water signal
-    if MRSCont.flags.hasWater
-        if isSpecial
-            % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
-            cweights_w          = op_getcoilcombos(op_combinesubspecs(MRSCont.raw_w_uncomb{w_ll,kk}, 'diff'), 1, 'h');
+            raw_w_comb.flags.isUnEdited = 1;
+            MRSCont.raw_w{w_ll,kk}   = raw_w_comb;
+            MRSCont.raw_w{ll,kk} = op_combine_water_subspecs(MRSCont.raw_w{ll,kk},0);
         else
-            cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{w_ll,kk}, 1, 'h');
+            % if not, use the metabolite scan itself
+            if isSpecial
+                % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+                cweights          = op_getcoilcombos_specReg(op_combinesubspecs(op_averaging(MRSCont.raw_uncomb{ll,kk}), 'diff'), 0, 0.01, 2);
+            else
+                cweights          = op_getcoilcombos(MRSCont.raw_uncomb{ll,kk}, 1, 'h');
+            end
+            raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{ll,kk},1,'h',cweights);
+            if MRSCont.flags.isUnEdited
+                raw_comb.flags.isUnEdited = 1;
+            elseif MRSCont.flags.isMEGA
+                raw_comb.flags.isMEGA = 1;
+            elseif MRSCont.flags.isHERMES
+                raw_comb.flags.isHERMES = 1;
+            elseif MRSCont.flags.isHERCULES
+                raw_comb.flags.isHERCULES = 1;
+            end
+            MRSCont.raw{ll,kk}     = raw_comb;
         end
-        raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{w_ll,kk},1,'h',cweights_w);
-        raw_w_comb.flags.isUnEdited = 1;
-        MRSCont.raw_w{w_ll,kk}   = raw_w_comb;
-    end
+    end        
 end
 %% Clean up and save
 

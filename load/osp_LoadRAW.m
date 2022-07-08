@@ -87,6 +87,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 if MRSCont.flags.isUnEdited
                     raw_ref = io_loadspec_lcmraw(MRSCont.files_ref{ref_ll,kk});
+                    raw_ref = op_combine_water_subspecs(raw_ref,0);
                     raw_ref.flags.isUnEdited = 1;
                 end
                 MRSCont.raw_ref{ref_ll,kk}  = raw_ref;
@@ -96,6 +97,7 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w   = io_loadspec_lcmraw(MRSCont.files_w{w_ll,kk});
+                raw_w = op_combine_water_subspecs(raw_w,0);
                 raw_w.flags.isUnEdited = 1;
                 MRSCont.raw_w{w_ll,kk}    = raw_w;
             end

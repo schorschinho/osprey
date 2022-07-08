@@ -78,19 +78,8 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.hasRef
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 raw_ref = io_loadspec_dicom(MRSCont.files_ref{ref_ll,kk});
+                raw_ref = op_combine_water_subspecs(raw_ref,0);
                 MRSCont.raw_ref{ref_ll,kk}  = raw_ref;
-                if MRSCont.raw_ref{ref_ll,kk}.subspecs > 1
-                    if MRSCont.flags.isMEGA
-                        raw_ref_A               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},1);
-                        raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},2);
-                        MRSCont.raw_ref{ref_ll,kk} = op_concatAverages(raw_ref_A,raw_ref_B);
-                    else
-                        raw_ref_A               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},1);
-                        raw_ref_B               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},2);
-                        raw_ref_C               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},3);
-                        raw_ref_D               = op_takesubspec(MRSCont.raw_ref{ref_ll,kk},4);                    
-                        MRSCont.raw_ref{ref_ll,kk} = op_concatAverages(op_concatAverages(raw_ref_A,raw_ref_B),op_concatAverages(raw_ref_C,raw_ref_D));
-                    end
                 end
                 if MRSCont.flags.isUnEdited
                     MRSCont.raw_ref{ref_ll,kk}.flags.isUnEdited = 1;
@@ -102,6 +91,7 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w   = io_loadspec_dicom(MRSCont.files_w{w_ll,kk});
+                raw_w = op_combine_water_subspecs(raw_w,0);
                 MRSCont.raw_w{w_ll,kk}    = raw_w;
                 if MRSCont.flags.isUnEdited
                     MRSCont.raw_w{w_ll,kk}.flags.isUnEdited = 1;
