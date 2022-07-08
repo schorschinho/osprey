@@ -96,10 +96,12 @@ for kk = 1:MRSCont.nDatasets(1)
                 MRSCont.raw{metab_ll,kk}      = raw;
 
                 if MRSCont.flags.hasRef
+                    raw_ref = op_combine_water_subspecs(raw_ref,0);
                     MRSCont.raw_ref{ref_ll,kk}  = raw_ref;
                 end
 
                 if MRSCont.flags.hasWater
+                    raw_w = op_combine_water_subspecs(raw_w,0);
                     MRSCont.raw_w{w_ll,kk}    = raw_w;
                 end
 

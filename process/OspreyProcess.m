@@ -121,7 +121,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             if MRSCont.flags.hasMMRef
                 mm_ref_ll = MRSCont.opts.MultipleSpectra.mm_ref(ll);
                 raw_mm_ref = MRSCont.raw_mm_ref{mm_ref_ll,kk};              % Get the kk-th dataset
-                raw_mm_ref = combine_water_subspecs(raw_mm_ref);
+                raw_mm_ref = op_combine_water_subspecs(raw_mm_ref);
             end
             
 %%          %%% 1D. GET REFERENCE DATA %%%
@@ -134,7 +134,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw_ref = combine_special_subspecs(raw_ref);
                 end
             
-                raw_ref = combine_water_subspecs(raw_ref);                
+                raw_ref = op_combine_water_subspecs(raw_ref);                
             end
 
 %%           %%% 1E. GET SHORT-TE WATER DATA %%%
@@ -157,7 +157,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
 
                 if raw_w.subspecs > 1
-                    raw_w = combine_water_subspecs(raw_w);
+                    raw_w = op_combine_water_subspecs(raw_w);
                 end
                 if ~MRSCont.flags.isMRSI
                     [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
@@ -800,43 +800,6 @@ end
 
 
 %% Functions for processing
-
-function [raw] = combine_water_subspecs(raw)
-% Some formats end up having subspectra in their reference scans
-% (e.g. Philips), as well as empty lines. Intercept these cases
-% here.
-    if raw.subspecs == 2
-        raw_A               = op_takesubspec(raw,1);
-        [raw_A]             = op_rmempty(raw_A);            % Remove empty lines
-        raw_B               = op_takesubspec(raw,2);
-        [raw_B]             = op_rmempty(raw_B);            % Remove empty lines
-        raw                 = op_concatAverages(raw_A,raw_B);
-    end
-
-    if raw.subspecs == 4
-        raw_A               = op_takesubspec(raw,1);
-        [raw_A]             = op_rmempty(raw_A);            % Remove empty lines
-        raw_B               = op_takesubspec(raw,2);
-        [raw_B]             = op_rmempty(raw_B);            % Remove empty lines
-        raw_C               = op_takesubspec(raw,3);
-        [raw_C]             = op_rmempty(raw_C);            % Remove empty lines
-        raw_D               = op_takesubspec(raw,4);
-        [raw_D]             = op_rmempty(raw_D);            % Remove empty lines
-        raw                 = op_concatAverages(op_concatAverages(raw_A,raw_B),op_concatAverages(raw_C,raw_D));
-    end
-
-    % Align and verage the refernce data
-    if raw.averages > 1 && ~raw.flags.averaged
-        [raw]             = op_rmempty(raw);
-        [raw,~,~]               = op_alignAverages(raw, 1, 'n');
-        raw                     = op_averaging(raw);            % Average
-    else
-        raw.flags.averaged  = 1;
-        raw.dims.averages   = 0;
-    end
-    raw.names = {'A'};
-end
-
 function [raw] = combine_special_subspecs(raw)
 % For SPECIAL-localized data, we adopt the pipeline from 
 % https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
