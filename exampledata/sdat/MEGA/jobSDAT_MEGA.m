@@ -141,7 +141,7 @@ opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 
 % Save PDF output for all Osprey modules and subjects?
-opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
+opts.savePDF             = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 
 % Choose the fitting algorithm
