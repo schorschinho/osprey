@@ -103,7 +103,7 @@ for kk = 1:MRSCont.nDatasets(1)
 
             % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
             if ~MRSCont.flags.isPRIAM
-                    [MRSCont] = osp_combineCoils(MRSCont,kk,ll,ref_ll,w_ll);
+                    [MRSCont] = osp_combineCoils(MRSCont,kk,metab_ll,ref_ll,w_ll);
             elseif MRSCont.flags.isPRIAM
 
                 fprintf('Coming soon!');
