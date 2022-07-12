@@ -112,7 +112,6 @@ for kk = 1:MRSCont.nDatasets(1)
                 end
             end        
         end
-    end
 end
 time = toc(refLoadTime);
 [~] = printLog('done',time,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
