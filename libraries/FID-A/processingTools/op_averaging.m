@@ -20,7 +20,7 @@ if in.flags.averaged
     error('ERROR:  Averaging has already been performed!  Aborting!');
 end
 
-if in.dims.averages==0 || in.averages<2
+if in.dims.averages==0 || in.averages<2 || (length(in.sz)< in.dims.averages)
     %DO NOTHING
     warning('Just one average found. Returning input without modification!');
     %change the dims variables.
