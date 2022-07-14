@@ -137,7 +137,7 @@ elseif MRSCont.flags.isMRSI == 1
             for y = 1 : YVox 
             [~] = printLog('OspreyFitWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
                 try
-                if MRSCont.mask{kk}(y,x,z)
+                if MRSCont.mask{kk}(x,y,z)
                     for kk = 1 :MRSCont.nDatasets
                         if ZVox <=1
                             dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},[x,y]);  
