@@ -189,10 +189,10 @@ ub = [ub_ph0; ub_ph1; ub_gaussLB; ub_lorentzLB_mets; ub_lorentzLB_MM; ub_freqShi
 opts.Display    = 'off';
 opts.TolFun     = 1e-6;
 opts.TolX       = 1e-6;
-opts.MaxIter    = 400;
+opts.MaxIter    = 75;
 % opts.Jacobian   = 'on';
-% opts.Broyden_updates=2;  
-[x,Res,~,~,~,~,~,J] = LevenbergMarquardt(@(x) fit_Osprey_PrelimStep2_Model(x, inputData, inputSettings), x0, lb, ub, opts);
+opts.Broyden_updates=5;  
+[x,Res,~,~,~,LM_out,~,~] = LevenbergMarquardt(@(x) fit_Osprey_PrelimStep2_Model(x, inputData, inputSettings), x0, lb, ub, opts);
 
 
 %%% 4. PERFORM FINAL COMPUTATION OF LINEAR PARAMETERS %%%
@@ -200,8 +200,9 @@ opts.MaxIter    = 400;
 % final evaluation of the linear parameters (i.e. the amplitudes and
 % baseline parameters).
 [fitParamsFinal] = fit_Osprey_PrelimStep2_finalLinear(x, inputData, inputSettings);
+fitParamsFinal.LM_out = LM_out;
 fitParamsFinal.Res = Res;
-fitParamsFinal.J = J;
+% fitParamsFinal.J = J;
 
 %%% 5. CREATE OUTPUT %%%
 % Return the fit parameters from the final linear computation to be used in

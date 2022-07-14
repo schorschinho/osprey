@@ -129,6 +129,10 @@ elseif MRSCont.flags.isMRSI == 1
                         end
                     end
                 end
+                
+                if (x==8) && (y==10) && (z==2)
+                    x
+                end
                 if MRSCont.flags.isUnEdited
                     [procMRSCont] = osp_processUnEdited(procMRSCont);
                     if ~strcmp(MRSCont.opts.MoCo.target, 'none')

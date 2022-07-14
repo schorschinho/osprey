@@ -1,4 +1,4 @@
-function [k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft] = process_wat_ref(this_file, k_zfill, seq_type)
+function [k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft,coilcombos,coilcombos_b4_2dfft] = process_wat_ref(this_file, k_zfill, seq_type,coilcombo)
 
     fprintf('\nReading water scan parameters.')
     [data] = loadRawKspace(this_file);
@@ -92,6 +92,10 @@ k_sort = k_sort.*hanning_y;
 k_sort_b4_2dfft = k_sort;
 
 % ------------------------------------------------------------------------------------------
+% Let's calcualte k-space ph with the angle function
+coilcombos_b4_2dfft.ph = angle(k_sort(:,:,:,:,1));
+
+% ------------------------------------------------------------------------------------------
 % For each point in time and coil take the 2D fft
 if ~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice')
     sz_k_sort = size(k_sort);
@@ -134,4 +138,35 @@ else
             end
         end
     end
+end
+
+% ------------------------------------------------------------------------------------------
+% Let's calcualte ph with the angle function after 2dfft
+coilcombos.ph = angle(k_fft2_wat_ref_no_k_zfill(:,:,:,:,1));
+
+if ~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice')
+else
+    for kz = 1 : size(k_fft2_wat_ref_no_k_zfill,1)
+        for kx = 1 : size(k_fft2_wat_ref_no_k_zfill,3)
+            for ky = 1 : size(k_fft2_wat_ref_no_k_zfill,2)
+              for c = 1 : size(k_fft2_wat_ref_no_k_zfill,4)  
+                  if strcmp(coilcombo,'h')
+                    S=max(abs(k_fft2_wat_ref_no_k_zfill(kz,ky,kx,c,1)));
+                    N=std(k_fft2_wat_ref_no_k_zfill(kz,ky,kx,c,end-25:end));
+                    coilcombos.sig(kz,ky,kx,c)=(S/(N.^2));
+                  else
+                    coilcombos.sig(kz,ky,kx,c)=(abs(k_fft2_wat_ref_no_k_zfill(kz,ky,kx,c,1)));
+                  end
+              end
+            end
+        end
+    end
+    for kz = 1 : size(k_fft2_wat_ref_no_k_zfill,1)
+        for kx = 1 : size(k_fft2_wat_ref_no_k_zfill,3)
+            for ky = 1 : size(k_fft2_wat_ref_no_k_zfill,2)
+                coilcombos.sig(kz,ky,kx,:)=coilcombos.sig(kz,ky,kx,:)/max(coilcombos.sig(kz,ky,kx,:));
+            end
+        end
+    end
+end
 end

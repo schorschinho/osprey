@@ -142,6 +142,7 @@ sz_map = size(map);
 if mask
     mask = MRSCont.mask{kk};
     mask = mask(:,:,slice);
+    mask(mask > 1) = 1;
 end
 
 map = map(:,:,slice);
@@ -165,7 +166,8 @@ end
 map_mean = mean(mean(map));
 
 colormap = viridis(100);
-heatmap(rot90(map,2),'Colormap',colormap);
+heatmap(fliplr(map),'Colormap',colormap);
+% heatmap(map,'Colormap',colormap);
 
 
 % heatmap(map,'Colormap',gray);

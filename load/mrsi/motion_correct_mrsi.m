@@ -53,8 +53,8 @@ for this_kz = 1:size(on_spec_k_1,1)
                 this_ky;
             end
             % Water approximate range
-            met_start_wat = find(round(ppm_axis*100)/100 >= 4.4);
-            met_end_wat = find(round(ppm_axis*100)/100 <= 5.2);
+            met_start_wat = find(round(ppm_axis*100)/100 >= 4.2);
+            met_end_wat = find(round(ppm_axis*100)/100 <= 6.5);
             if length(met_start_wat) > 1
                 met_start_wat = met_start_wat(1);
             end
@@ -197,10 +197,10 @@ for this_kz = 1:size(on_spec_k_1,1)
                     k_sort_off(this_kz, this_kx,this_ky,:,:) = zeros([size(k_sort_on,4), size(k_sort_on,5)]);
                     k_sort_off2(this_kz, this_kx,this_ky,:,:) = zeros([size(k_sort_on,4), size(k_sort_on,5)]);
 
-                    on_spec_k_1(this_kz, this_kx,this_ky,:) = zeros(1,spec_zfill*size(k_sort_on,5));
-                    on_spec_k_2(this_kz, this_kx,this_ky,:) = zeros(1,spec_zfill*size(k_sort_on,5));
-                    off_spec_k_1(this_kz, this_kx,this_ky,:) = zeros(1,spec_zfill*size(k_sort_on,5));
-                    off_spec_k_2(this_kz, this_kx,this_ky,:) = zeros(1,spec_zfill*size(k_sort_on,5));
+                    on_spec_k_1(this_kz, this_kx,this_ky,:) = zeros(1,size(on_spec_k_1,4));
+                    on_spec_k_2(this_kz, this_kx,this_ky,:) = zeros(1,size(on_spec_k_1,4));
+                    off_spec_k_1(this_kz, this_kx,this_ky,:) = zeros(1,size(on_spec_k_1,4));
+                    off_spec_k_2(this_kz, this_kx,this_ky,:) = zeros(1,size(on_spec_k_1,4));
 
                     zero_replace_track(this_kz, this_kx,this_ky) = 1;
                 else

@@ -115,14 +115,20 @@ for kk = 1:MRSCont.nDatasets
             raw.specReg.phs             = phs; % save align parameters
             raw.specReg.weights         = weights; % save align parameters            
         else
+            if MRSCont.flags.isMRSI
+                if MRSCont.opts.MoCo.lb > 0
+                    raw = op_filter(raw, MRSCont.opts.MoCo.lb);
+                end
+            end
+                
             raw.flags.averaged  = 1;
             raw.dims.averages   = 0;
             raw.specReg.fs              = zeros(1,2); % save align parameters
             raw.specReg.phs             = zeros(1,2); % save align parameters
-            raw.specReg.weights{1}         = ones(1,1); % save align parameters
-            raw.specReg.weights{2}         = ones(1,1); % save align parameters
-            driftPre{1} = 0;
-            driftPre{2} = 0;
+            raw.specReg.weights{1,1}         = ones(512,1); % save align parameters
+            raw.specReg.weights{1,2}         = ones(512,1); % save align parameters
+            driftPre{1} = zeros(2,1);
+            driftPre{2} = zeros(2,1);
             driftPost = driftPre;
             if MRSCont.flags.isPhantom
                 % Next, shift the entire metabolite spectrum by 0.15 ppm.
@@ -242,21 +248,32 @@ for kk = 1:MRSCont.nDatasets
         % For water suppression methods like MOIST, the residual water may
         % actually have negative polarity, but end up positive in the data, so
         % that the spectrum needs to be flipped.
-        raw_A_Cr    = op_freqrange(raw_A,2.8,3.2);
-        % Determine the polarity of the respective peak: if the absolute of the
-        % maximum minus the absolute of the minimum is positive, the polarity 
-        % of the respective peak is positive; if the absolute of the maximum 
-        % minus the absolute of the minimum is negative, the polarity is negative.
-        polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));
+        if isfield(MRSCont,'polResidCr')
+            polResidCr = MRSCont.polResidCr;
+        else
+            raw_A_Cr    = op_freqrange(raw_A,2.8,3.2);
+            % Determine the polarity of the respective peak: if the absolute of the
+            % maximum minus the absolute of the minimum is positive, the polarity 
+            % of the respective peak is positive; if the absolute of the maximum 
+            % minus the absolute of the minimum is negative, the polarity is negative.
+            polResidCr  = abs(max(real(raw_A_Cr.specs))) - abs(min(real(raw_A_Cr.specs)));            
+        end
         if polResidCr < 0
             raw_A = op_ampScale(raw_A,-1);
         end
-                raw_B_Cr    = op_freqrange(raw_B,2.8,3.2);
-        % Determine the polarity of the respective peak: if the absolute of the
-        % maximum minus the absolute of the minimum is positive, the polarity 
-        % of the respective peak is positive; if the absolute of the maximum 
-        % minus the absolute of the minimum is negative, the polarity is negative.
-        polResidCr  = abs(max(real(raw_B_Cr.specs))) - abs(min(real(raw_B_Cr.specs)));
+        if isfield(MRSCont,'polResidCr')
+            polResidCr = MRSCont.polResidCr;
+        else
+            raw_B_Cr    = op_freqrange(raw_B,2.8,3.2);
+            % Determine the polarity of the respective peak: if the absolute of the
+            % maximum minus the absolute of the minimum is positive, the polarity 
+            % of the respective peak is positive; if the absolute of the maximum 
+            % minus the absolute of the minimum is negative, the polarity is negative.
+            polResidCr  = abs(max(real(raw_B_Cr.specs))) - abs(min(real(raw_B_Cr.specs)));
+            if isfield(MRSCont,'polResidCr')
+                polResidCr = MRSCont.polResidCr;
+            end
+        end
         if polResidCr < 0
             raw_B = op_ampScale(raw_B,-1);
         end
@@ -277,7 +294,15 @@ for kk = 1:MRSCont.nDatasets
         %%% 4. DETERMINE ON/OFF STATUS
         % Classify the two sub-spectra such that the OFF spectrum is stored to
         % field A, and the ON spectrum is stored to field B.
-        [raw_A, raw_B, switchOrder]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
+        if isfield(MRSCont,'switchOrder')
+            switchOrder = MRSCont.switchOrder;
+            temp = raw_A;
+            raw_A = raw_B;
+            raw_B = temp;
+        else
+            [raw_A, raw_B, switchOrder]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
+        end
+        
         % Save drift information back to container
         if ~switchOrder
             MRSCont.QM.drift.pre.A{kk} = driftPre{1};
@@ -326,6 +351,7 @@ for kk = 1:MRSCont.nDatasets
             % Align the sub-spectra to one another by minimizing the difference
             % between the common 'reporter' signals.
         else
+            MRSCont.opts.UnstableWater = 1;
             refShift_SubSpecAlign =0;
         end
         
@@ -395,18 +421,74 @@ for kk = 1:MRSCont.nDatasets
         % components. Loop over decreasing numbers of components here.        
         % Define different water removal frequency ranges, depending on
         % whether this is phantom data
+        
+        
+%         ZF = raw_A.sz(1); % zerofill points
+%         EP = raw_A.dwelltime;  % echo position 0~1
+% 
+%         %SW, Datapoints, Zerofill, Lipid_Left, Lipid_Right, damp, damp_range, spe_number, echopos
+%         lip1 = generator_lipid(raw.spectralwidth(1),512, ZF, 375, 460, 10, 10, ZF, EP); % generation of lipid basic matrix
+%         % SW, Datapoints, Zerofill, wat_frq_range, damp, damp_range, Watnum, echoposition
+%         wat1 = generator_water(raw.spectralwidth(1), 512, ZF, 40, 10, 5, 20, EP); % generation of water basic matrix
+%         lip2 = generator_lipid(raw_A.spectralwidth(1),512, ZF, 240, 460, 10, 30, ZF, EP); % generation of lipid basic matrix
+%         
+% 
+%         specs = watersup_sim(flipud(raw_A.specs(:)), real(wat1), 3);
+%         raw_A.specs(:) = flipud(specs);                       
+%         raw_A.fids = ifft(fftshift(raw_A.specs,1),[],1);
+%         
+% %         specs = watersup_sim(flipud(raw_A.specs(:)), real(lip1), 3);
+% %         raw_A.specs(:) = flipud(specs);                       
+% %         raw_A.fids = ifft(fftshift(raw_A.specs,1),[],1);
+%         
+%         specs = watersup_sim(flipud(raw_B.specs(:)), real(wat1), 3);
+%         raw_B.specs(:) = flipud(specs);                       
+%         raw_B.fids = ifft(fftshift(raw_B.specs,1),[],1);
+%         
+% %         specs = watersup_sim(flipud(raw_B.specs(:)), real(lip1), 3);
+% %         raw_B.specs(:) = flipud(specs);                       
+% %         raw_B.fids = ifft(fftshift(raw_B.specs,1),[],1);
+%         
+%         specs = watersup_sim(flipud(Sum.specs(:)), real(wat1), 3);
+%         Sum.specs(:) = flipud(specs);                       
+%         Sum.fids = ifft(fftshift(Sum.specs,1),[],1);
+%         
+% %         specs = watersup_sim(flipud(Sum.specs(:)), real(lip1), 3);
+% %         Sum.specs(:) = flipud(specs);                       
+% %         Sum.fids = ifft(fftshift(Sum.specs,1),[],1);
+%         
+%         specs = watersup_sim(flipud(diff1.specs(:)), real(wat1), 3);
+%         diff1.specs(:) = flipud(specs);                       
+%         diff1.fids = ifft(fftshift(diff1.specs,1),[],1);
+%         
+% %         specs = watersup_sim(flipud(diff1.specs(:)), real(lip2), 3);
+% %         diff1.specs(:) = flipud(specs);                       
+% %         diff1.fids = ifft(fftshift(diff1.specs,1),[],1);
+%         
+%         raw_A     = op_fddccorr(raw_A,100); % Correct back to baseline
+%         raw_B     = op_fddccorr(raw_B,100); % Correct back to baseline
+%         Sum     = op_fddccorr(Sum,100); % Correct back to baseline
+%         diff1     = op_fddccorr(diff1,100); % Correct back to baseline
+%         
+%         raw_A.watersupp.amp = 0;
+%         raw_B.watersupp.amp = 0;
+%         Sum.watersupp.amp = 0;
+%         diff1.watersupp.amp = 0;
+        
+        
         if MRSCont.flags.isPhantom
             waterRemovalFreqRange = [4.5 5];
             fracFID = 0.5;
         else
-            waterRemovalFreqRange = [4.2 8];
-            fracFID = 0.75;
+            waterRemovalFreqRange = [4.2 6];
+            fracFID = 0.3;
         end
+
         % Apply iterative water filter
-        raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+        raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
+        raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
+        diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
+        Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
         if MRSCont.flags.hasMM
             raw_mm_A = op_iterativeWaterFilter(raw_mm_A, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
             raw_mm_B = op_iterativeWaterFilter(raw_mm_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
@@ -417,11 +499,15 @@ for kk = 1:MRSCont.nDatasets
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
         % Reference resulting data correctly and consistently
-        [refShift_final, ~] = osp_CrChoReferencing(Sum);
-        [raw_A]             = op_freqshift(raw_A,-refShift_final);            % Apply same shift to edit-OFF
-        [raw_B]             = op_freqshift(raw_B,-refShift_final);            % Apply same shift to edit-OFF
-        [diff1]             = op_freqshift(diff1,-refShift_final);            % Apply same shift to diff1
-        [Sum]               = op_freqshift(Sum,-refShift_final);              % Apply same shift to sum
+        if ~MRSCont.flags.isMRSI
+            [refShift_final, ~] = osp_CrChoReferencing(Sum);
+            [raw_A]             = op_freqshift(raw_A,-refShift_final);            % Apply same shift to edit-OFF
+            [raw_B]             = op_freqshift(raw_B,-refShift_final);            % Apply same shift to edit-OFF
+            [diff1]             = op_freqshift(diff1,-refShift_final);            % Apply same shift to diff1
+            [Sum]               = op_freqshift(Sum,-refShift_final);              % Apply same shift to sum
+        else
+            refShift_final = 0;
+        end
         if MRSCont.flags.hasMM
             [diff1_mm,~]          = op_autophase(diff1_mm,0.5,1.1);
             [refShift_mm, ~] = fit_OspreyReferencingMM(diff1_mm);
@@ -441,6 +527,7 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.processed.B{kk}     = raw_B;                                    % Save edit-ON back to MRSCont container
         MRSCont.processed.diff1{kk} = diff1;                                    % Save diff1 back to MRSCont container
         MRSCont.processed.sum{kk}   = Sum;                                      % Save sum back to MRSCont container
+        
 
 
 %         %%% 9. GET SHORT-TE WATER DATA %%%

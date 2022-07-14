@@ -1,4 +1,4 @@
-function out = osp_plotFitMRSIMatrix(MRSCont, kk, which_spec,conc,coord, ppmmin, ppmmax,which_slice,yLim)
+function out = osp_plotFitMRSIMatrix(MRSCont, kk, which_spec,conc,coord, ppmmin, ppmmax,which_slice,yLim,mask)
 %% out = osp_plotProcessMRSI(MRSCont, kk, which, ppmmin, ppmmax)
 %   Creates a figure showing processed data stored in an Osprey data container,
 %   ie in the raw fields. This function will display the *processed and
@@ -39,13 +39,13 @@ function out = osp_plotFitMRSIMatrix(MRSCont, kk, which_spec,conc,coord, ppmmin,
 if ~MRSCont.flags.didProcess
     error('Trying to plot processed data, but data has not been processed yet. Run OspreyProcess first.')
 end
-
+out= figure;
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Get the fit method and style
 fitMethod   = MRSCont.opts.fit.method;
 fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
-if nargin <10
+% if nargin <10
 %     yLim = [];
 %     if nargin < 9
 %         which_slice =1;
@@ -108,7 +108,7 @@ else
     colormap.Foreground     = [0 0 0];
     colormap.Accent         = [11/255 71/255 111/255];
 end
-
+mask = ((mask(:,:,which_slice)));
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract raw and processed spectra in the plot range
@@ -186,9 +186,13 @@ inputSettings.concatenated.Subspec  = conc;
 
 plot_index = 1;
 
+t=tiledlayout(coord(2,2)-coord(2,1)+1,coord(1,2)-coord(1,1)+1,'TileSpacing','compact');
+
+
 for y = coord(2,1) : coord(2,2)
     for x = coord(1,1) : coord(1,2)
-        out = subaxis(coord(2,2)-coord(2,1)+1,coord(1,2)-coord(1,1)+1,plot_index, 'Spacing', 0.01, 'Padding', 0, 'Margin', 0, 'MarginLeft', 0.075, 'MarginBottom', 0.1);
+%         out = subaxis(coord(2,2)-coord(2,1)+1,coord(1,2)-coord(1,1)+1,plot_index, 'Spacing', 0.01, 'Padding', 0, 'Margin', 0, 'MarginLeft', 0.075, 'MarginBottom', 0.1);
+        nexttile
         hold on
         
         if  strcmp(which_spec, 'conc')
@@ -202,7 +206,7 @@ for y = coord(2,1) : coord(2,2)
         end
          inputData.dataToFit                 = dataToPlot;
          fitParams   = MRSCont.fit.results{x, y, which_slice}.(which_spec).fitParams{kk};
-         
+%          fitParams.LM_out.iteration
          switch fitMethod
             % Depending on whether metabolite or water data are to be
             % displayed, create the plots via different models
@@ -246,16 +250,25 @@ for y = coord(2,1) : coord(2,2)
          
         plot(ModelOutput.ppm,ModelOutput.data,'Color',colormap.Foreground);    
         plot(ModelOutput.ppm,ModelOutput.completeFit,'Color',colormap.Accent);
-%         plot(ModelOutput.ppm,ModelOutput.residual + yLim(2)*0.9,'Color',colormap.Foreground);
-        
+        plot(ModelOutput.ppm,ModelOutput.residual + yLim(2)*1.1,'Color',colormap.ForegroundTint{1});
+%          text(ppmmax,yLim(2),[num2str(x) ' ' num2str(y)]);
         plot_index = plot_index +1;    
         box off;
-        set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', [yLim(1) yLim(2) * 1.1]);
+        set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', [yLim(1) yLim(2) * 1.2]);
         set(gca, 'LineWidth', 1, 'TickDir', 'in', 'XMinorTick', 'Off','TickLength', [0.03 0.025]);
         set(gca, 'XColor', colormap.Foreground, 'YColor', colormap.Foreground);
+
+        if ~mask(x,y)
+            set(gca, 'XColor', colormap.Background, 'YColor', colormap.Background);
+        end
         
         if x ~= coord(1,1)
             set(gca,'YTickLabel',{})
+            else
+            text(ppmmax,yLim(2),[num2str(y)]);
+        end
+        if y == coord(2,1)
+            text(ppmmax,yLim(2),[num2str(x)]);
         end
         if y ~= coord(2,2)
             set(gca,'XTickLabel',{})

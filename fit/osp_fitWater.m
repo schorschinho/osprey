@@ -92,7 +92,7 @@ elseif MRSCont.flags.isMRSI == 1
 
    cx = round(XVox/2);
    cy = round(YVox/2);
-   cz = round(ZVox/2);
+   cz = 3;
    if ZVox <=1
         dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},[cx,cy]);  
     else
@@ -107,6 +107,29 @@ elseif MRSCont.flags.isMRSI == 1
         MRSCont.fit.resBasisSet{cx,cy,cz}.(str).water{kk}      = resBasisSetWater;
         MRSCont.fit.results{cx,cy,cz}.(str).fitParams{kk}   = fitParamsWater;
     end
+
+    for z = 1 : ZVox
+            for x = 1 : XVox
+                for y = 1 : YVox
+                         % 2D MRSI data
+                        if ZVox <=1
+                            MRSCont.fit.resBasisSet{x,y}.(str).water{kk}      = resBasisSetWater;
+                            MRSCont.fit.results{x,y}.(str).fitParams{kk}   = fitParamsWater;
+                        else  % 3D MRSI data
+                            MRSCont.fit.resBasisSet{x,y,z}.(str).water{kk}      = resBasisSetWater;
+                            MRSCont.fit.results{x,y,z}.(str).fitParams{kk}   = fitParamsWater;
+                        end
+                    if ~((x == cx) && (y == cy) && (z == cz)) % Do not overwrite the center voxel
+                        if ZVox <=1
+                            MRSCont.fit.results{x,y}.(str).fitParams{kk}.ampl = 0;
+                        else
+                            MRSCont.fit.results{x,y,z}.(str).fitParams{kk}.ampl = 0;
+                        end
+                    end
+                end
+            end
+        end
+
    
     % Fit all voxels
     for z = 1 : ZVox 
@@ -114,6 +137,7 @@ elseif MRSCont.flags.isMRSI == 1
             for y = 1 : YVox 
             [~] = printLog('OspreyFitWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
                 try
+                if MRSCont.mask{kk}(y,x,z)
                     for kk = 1 :MRSCont.nDatasets
                         if ZVox <=1
                             dataToFit = op_takeVoxel(MRSCont.processed.(fitWhich){kk},[x,y]);  
@@ -133,7 +157,7 @@ elseif MRSCont.flags.isMRSI == 1
                         MRSCont.fit.resBasisSet{x,y,z}.(str).water{kk}      = resBasisSetWater;
                         MRSCont.fit.results{x,y,z}.(str).fitParams{kk}   = fitParamsWater;
                     end
-
+                end
                 catch
                     if ZVox <=1
                         MRSCont.fit.results{x,y}.(str).fitParams{kk}   = MRSCont.fit.results{cx,cy}.(str).fitParams{kk};

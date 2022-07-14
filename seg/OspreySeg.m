@@ -195,7 +195,7 @@ for kk = 1:MRSCont.nDatasets
                 CSF_MRSI=spm_vol(CSFvol);
                 CSF_MRSI=spm_read_vols(CSF_MRSI);
                 
-                brain = (GM_MRSI > 0.5 | WM_MRSI > 0.5 | CSF_MRSI > 0.5);
+                brain = (GM_MRSI > 0.01 | WM_MRSI > 0.01 | CSF_MRSI > 0.01);
                 
                 
                 
@@ -220,12 +220,27 @@ for kk = 1:MRSCont.nDatasets
                 end
                 non_zero_slice = find(non_zero);
                 brain_vox = brain(:,:,non_zero_slice(1):non_zero_slice(end));
-                brain_vox = imresize3(double(brain_vox),[MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels,MRSCont.raw{kk}.nZvoxels]);
+%                 res_brain_vox = zeros(MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels,size(brain_vox,3));
+%                 for i = 1 : size(brain_vox,3)
+%                    res_brain_vox(:,:,i)= imresize(double(squeeze(brain_vox(:,:,i))),[MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels],'method','bilinear');
+%                 end
+%                 full_res_brain = zeros(14,17,3);
+%                 full_res_brain(:,:,1) = sum(res_brain_vox(:,:,1:22),3);
+%                 full_res_brain(:,:,2) = sum(res_brain_vox(:,:,23:45),3);
+%                 full_res_brain(:,:,3) = sum(res_brain_vox(:,:,46:end),3);
+%                 full_res_brain(full_res_brain>0)=1;
+%                 for i = 1 : size(full_res_brain,3)
+%                     brain_vox_rot(:,:,i) = rot90(full_res_brain(:,:,i));  
+%             	end
+
+                brain_vox = imresize3(double(brain_vox),[MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels,MRSCont.raw{kk}.nZvoxels],'method','linear');
                 brain_vox(brain_vox<(max(max(brain_vox))/200)) = 0;
                 brain_vox(brain_vox > 0) = 1;
+%                 se = offsetstrel('ball',5,5);
                 brain_vox_rot = zeros(size(brain_vox,2),size(brain_vox,1),size(brain_vox,3));
                 for i = 1 : size(brain_vox,3)
-                	brain_vox_rot(:,:,i) = rot90(brain_vox(:,:,i));   
+                    brain_vox_rot(:,:,i) = rot90(brain_vox(:,:,i));  
+%                 	brain_vox_rot(:,:,i) = imerode(rot90(brain_vox(:,:,i)),se);  
                 end
                 MRSCont.mask{kk} = brain_vox_rot;
                 if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
@@ -322,8 +337,6 @@ else
 end
 
 end
-
-
 
 
 function createSegJob(T1file)

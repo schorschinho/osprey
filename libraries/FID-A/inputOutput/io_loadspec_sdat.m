@@ -98,7 +98,12 @@ geometry.pos.cc = header.cc_off_center; % voxel center offset in CC direction [m
 geometry.rot.ap = header.ap_angulation; % angulation around AP axis [deg]
 geometry.rot.lr = header.lr_angulation; % angulation around LR axis [deg]
 geometry.rot.cc = header.cc_angulation; % angulation around CC axis [deg]
-
+if isfield(header,'slice_distance')
+    geometry.slice_distance = header.slice_distance;
+end
+if isfield(header,'phase_encoding_fov')
+    geometry.phase_encoding_fov = header.phase_encoding_fov;
+end
 % Produce specs
 specs = fftshift(fft(fids,[],dims.t),dims.t);
 % Calculate t and ppm arrays using the calculated parameters:
