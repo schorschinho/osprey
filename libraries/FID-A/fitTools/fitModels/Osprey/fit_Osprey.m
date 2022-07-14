@@ -151,7 +151,12 @@ if isfield(fitOpts,'coMM3') && isfield(dataToFit,'refShift') && ~isfield(fitOpts
             [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
     end             
 else
-    [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);    
+%     if ~isfield(fitOpts, 'MRSIpriors') && (~isfield(fitOpts, 'IDEAL') ||  (isfield(fitOpts, 'IDEAL')  && fitOpts.IDEAL == 1))     
+        [fitParamsStep2] = fit_OspreyPrelimStep2(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM);
+%     else
+%         fitParamsStep1 = fitOpts.MRSIpriors;
+%         [fitParamsStep2] = fit_OspreyPrelimStep2IDEAL(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM, fitParamsStep1, refFWHM); 
+%     end
 end
 
 % [J,~,CRLB] = fit_Osprey_CRLB(dataToFitRef, resBasisSet, minKnotSpacingPPM, fitRangePPM,fitParamsStep2,refShift);

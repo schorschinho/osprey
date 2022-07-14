@@ -63,7 +63,7 @@ end
 % alignment shift by determining the difference between the two maxima in
 % the respective peak range (water, NAA, or Cho).
 freq = inA.ppm;
-freqLim(1,:) = freq <= 4.2 & freq >= 0;
+freqLim(1,:) = freq <= 4.2 & freq >= 2.79;
 x0(1,:) = [0 0];
 
 

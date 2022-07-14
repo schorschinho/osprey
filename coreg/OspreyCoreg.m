@@ -101,15 +101,17 @@ for kk = 1:MRSCont.nDatasets
                          if ~MRSCont.flags.isMRSI % SVS coregistration
                             [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
                          else
-                              [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,2);
+                              [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,[MRSCont.raw{kk}.nZvoxels MRSCont.raw{kk}.nXvoxels MRSCont.raw{kk}.nYvoxels]);
 %                                MRSCont.coreg.vol_mask_mrsi{kk} = vol_mask_mrsi;
                          end
                     case 'DATA'
                         if isfield(MRSCont.raw{kk}, 'geometry')
-                            if ~MRSCont.flags.isPRIAM % SVS coregistration
+                            if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI% SVS coregistration
                                 [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
-                            else 
+                            elseif ~MRSCont.flags.isMRSI % PRIAM coregistration 
                                 [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
+                            else
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,[MRSCont.raw{kk}.nZvoxels MRSCont.raw{kk}.nXvoxels MRSCont.raw{kk}.nYvoxels]);
                             end
                         else
                         msg = 'Philips DATA files do not contain voxel geometry information.';

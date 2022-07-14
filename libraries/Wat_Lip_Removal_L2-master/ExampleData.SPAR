@@ -1,0 +1,258 @@
+!--------------------------------------------------------------------
+
+!
+
+!
+
+!      CAUTION - Investigational device.
+
+!      Limited by Federal Law to investigational use.
+
+!
+
+!
+
+!      GYROSCAN spectro parameter file. 
+
+!      Last revised 05-July-2007.
+
+!--------------------------------------------------------------------
+
+!   This file contains time domain data in the spectral dimension.
+
+!   S15/ACS: set of *.SPAR and *.SDAT files is created, (dataformat: VAX CPX floats)
+
+!--------------------------------------------------------------------
+
+examination_name : #-#/b5/barker/3T
+
+scan_id : 4SL_MRSI_140
+
+scan_date : 2017.11.30 11:59:04
+
+patient_name :  
+
+patient_birth_date :  
+
+patient_position : "head_first"
+
+patient_orientation : "supine"
+
+samples : 512
+
+rows : 768
+
+synthesizer_frequency : 127798258
+
+offset_frequency : 0
+
+sample_frequency : 2000
+
+echo_nr : 1
+
+mix_number : 1
+
+nucleus : 1H
+
+t0_mu1_direction : 23.41441345
+
+echo_time : 140
+
+repetition_time : 3200
+
+averages : 1     
+
+volume_selection_enable : "yes"
+
+volumes : 1
+
+ap_size : 160.0617676
+
+lr_size : 126.1483917
+
+cc_size : 67.5
+
+ap_off_center : 5.660750866
+
+lr_off_center : -4.205764294
+
+cc_off_center : 30.92842865
+
+ap_angulation : -0.002594029531
+
+lr_angulation : -5.905580044
+
+cc_angulation : -0.08141181618
+
+volume_selection_method : 1
+
+t1_measurement_enable : "no"
+
+t2_measurement_enable : "no"
+
+time_series_enable : "no"
+
+phase_encoding_enable : "yes"
+
+nr_phase_encoding_profiles : 32
+
+si_ap_off_center : 0.7093802691
+
+si_lr_off_center : -2.279635191
+
+si_cc_off_center : 31.44067764
+
+si_ap_off_angulation : -0.002594029531
+
+si_lr_off_angulation : -5.905580044
+
+si_cc_off_angulation : -0.08141181618
+
+t0_kx_direction : 50
+
+t0_ky_direction : 50
+
+nr_of_phase_encoding_profiles_ky : 32
+
+phase_encoding_direction : "trans"
+
+phase_encoding_fov : 172.5
+
+slice_thickness : 67.5
+
+image_plane_slice_thickness : 0
+
+slice_distance : 17.5
+
+nr_of_slices_for_multislice : 4
+
+Spec.image in plane transf : "minB-plusA"
+
+!---------------------------------------------
+
+spec_data_type : cf
+
+spec_sample_extension :[V]
+
+!--------------------
+
+! Column parameters 
+
+!--------------------
+
+spec_num_col : 512
+
+spec_col_lower_val : -1000
+
+spec_col_upper_val : -999.7440186
+
+spec_col_extension :[sec]
+
+!-----------------
+
+! Row parameters 
+
+!-----------------
+
+spec_num_row : 768
+
+spec_row_lower_val : 1
+
+spec_row_upper_val : 768
+
+spec_row_extension :[index]
+
+!-------------------------------------------------
+
+! Extra parameters in order to make data transfer 
+
+! possible between S15/ACS and SUNSPEC: 
+
+!-------------------------------------------------
+
+num_dimensions : 4
+
+!-------------------------------------------------
+
+dim1_ext       :[sec]
+
+dim1_pnts : 512
+
+dim1_low_val : -1000
+
+dim1_step : 0.0005000000237
+
+dim1_direction : mu1
+
+dim1_t0_point : 23.41441345
+
+!-----------------------------------------------------
+
+dim2_ext :[num]
+
+dim2_pnts : 24
+
+dim2_low_val : 1.000000
+
+dim2_step : 1.000000
+
+dim2_direction : x
+
+dim2_t0_point : 50
+
+!-----------------------------------------------------
+
+dim3_ext :[num]
+
+dim3_pnts : 32
+
+dim3_low_val : 1.000000
+
+dim3_step : 1.000000
+
+dim3_direction : y
+
+dim3_t0_point : 50
+
+!-----------------------------------------------------
+
+dim4_ext :[index]
+
+dim4_pnts : 4
+
+dim4_low_val : 1.000000
+
+dim4_step : 1.000000
+
+dim4_direction : slice
+
+dim4_t0_point : -
+
+!---------------------------------------------------
+
+!   Additional parameters
+
+!---------------------------------------------------
+
+echo_acquisition : ECHO
+
+TSI_factor : 1
+
+spectrum_echo_time : 140
+
+spectrum_inversion_time : 0
+
+image_chemical_shift : 0
+
+resp_motion_comp_technique : NONE
+
+de_coupling : NO
+
+equipment_sw_verions : 5.1.7 ; .1.7 ; 
+
+placeholder1 : 
+
+placeholder2 : 
+
+!-----------------------------------------------------
+

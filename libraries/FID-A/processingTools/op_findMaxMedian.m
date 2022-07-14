@@ -35,7 +35,7 @@ else
     specs=abs(real(in.specs));
 end
 
-    out = max(specs);
+    out = max(max(max(max(specs))));
     while length(out) > 1
         out = mean(out);
     end

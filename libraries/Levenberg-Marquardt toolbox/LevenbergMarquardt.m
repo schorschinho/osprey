@@ -328,6 +328,7 @@ while Resnorm>AccTol && funccount< MaxFunEvals && iteration < MaxIter && stop==f
             T=eye(size(JJ,1));
     end
     LMStepFun=@(lambda)pinv((JJ+lambda*T),eps)*ygradient;
+%     LMStepFun=@(lambda)lsqminnorm((JJ+lambda*T),ygradient);
     MaxEigJJ=max(eig(JJ));
     if MaxEigJJ<MaxEigTol && (Jacobian_counter==1 || ~conservative_updates)
         how='largest eigenvalue';

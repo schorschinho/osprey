@@ -38,7 +38,7 @@ x = ppm;
 y = zeros(size(x));
 
 % Set up delta functions
-% [a,b] = min((abs(x-2.01)));
+[a,b] = min((abs(x-2.01)));
 [c,d] = min((abs(x-3.03)));
 [e,f] = min((abs(x-3.22)));
 % y(b) = 1;
@@ -60,18 +60,19 @@ limits      = newx >= 0.94*length(spec) & newx <= 1.06*length(spec);
 [max_value,max_ind] = max(r(limits));
 tempx = newx(limits);
 tempr = r(limits);
-gtHalfMax=find(tempr >= 0.5 * max_value);
-HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
-if HWHM == 0
-    gtHalfMax=find(tempr >= 0.3 * max_value);
-    HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
-end
-
-nlinopts    = statset('nlinfit');
-% nlinopts    = statset(nlinopts,'MaxIter',1e8,'MaxFunEvals',1e8,'TolX',1e-10,'TolFun',1e-10);
-LorentzModelInit = [1 HWHM tempx(max_ind) 0];
-
 try
+    gtHalfMax=find(tempr >= 0.5 * max_value);
+    HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
+    if HWHM == 0
+        gtHalfMax=find(tempr >= 0.3 * max_value);
+        HWHM=abs(tempx(gtHalfMax(1)) - tempx(gtHalfMax(end)))/2 * 0.8;
+    end
+    
+    nlinopts    = statset('nlinfit');
+    % nlinopts    = statset(nlinopts,'MaxIter',1e8,'MaxFunEvals',1e8,'TolX',1e-10,'TolFun',1e-10);
+    LorentzModelInit = [1 HWHM tempx(max_ind) 0];
+
+
     LorentzModelParam = lsqcurvefit(@LorentzModel,LorentzModelInit,newx(limits),real(r(limits)),[1 0 tempx(1) -180],[1 2*HWHM tempx(end) 180],nlinopts);
     % Return FWHM and reference shift
     refFWHM     = 2 * LorentzModelParam(2) * abs(ppm(1)-ppm(2));

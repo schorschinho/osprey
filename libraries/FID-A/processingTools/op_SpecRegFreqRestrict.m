@@ -254,6 +254,9 @@ for mm=1:numSubSpecs
     w{mm} = w{mm}/sum(w{mm});
     w{mm} = repmat(w{mm}, [size(fids(:,:,mm),1) 1]);
     
+    if noAlign == 0
+        w{mm} = ones(size(w{mm}));
+    end
     % Apply the weighting
 fids_out(:,:,mm) = w{mm} .* fids(:,:,mm);
     

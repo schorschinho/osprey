@@ -207,7 +207,7 @@ if exist('opts','var')
         else
         	names_fit = fields(opts.(names{f}));
             for nf = 1 : length(names_fit)
-                MRSCont.opts.fit.(names_fit{nf}) = opts.fit.(names_fit{nf}); 
+                MRSCont.opts.fit.(names_fit{nf}) = opts.fit.(names_fit{nf});
             end
         end
     end
@@ -228,11 +228,11 @@ switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
         MRSCont.opts.editTarget             = {'none'};
-        MRSCont.opts.fit.style = opts.fit.style; 
+        MRSCont.opts.fit.style = opts.fit.style;
         if strcmp(opts.fit.style, 'Concatenated')
             fprintf('Fitting style was changed to Separate, because this is unedited data. Please indicate otherwise in the csv-file or the GUI \n');
             MRSCont.opts.fit.style = 'Separate';
-        end        
+        end
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
         MRSCont.opts.editTarget             = editTarget;
@@ -303,7 +303,10 @@ if exist('MultiVoxel','var')
     if ~isfield(MRSCont.opts.MoCo, 'thresh')
         MRSCont.opts.MoCo.thresh.thresh = 0.8;
         MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
-        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;  
+        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;
+    end
+    if ~isfield(MRSCont.opts.MoCo, 'coilcombo')
+            MRSCont.opts.MoCo.coilcombo = 'c';
     end
 end
 
@@ -426,10 +429,10 @@ if ~GUI
                      askloadMRSCont = input('Do you want to load the corresponding MRS Container and attach new files (y/n)? [y]   ','s');
                 case '01'
                 askloadMRSCont = 'y';
-            end    
+            end
              if isempty(askloadMRSCont)
                 askloadMRSCont = 'y';
-             end 
+             end
              if askloadMRSCont=='n' || askloadMRSCont=='N'
                 disp('Aborted! No new job loaded.');
                 return;
@@ -440,7 +443,7 @@ if ~GUI
                         while (isempty(setdiff(MRSCont.files(kk),MRSContNew.files(kk))))
                             kk = kk + 1;
                             if kk > length(MRSCont.files)
-                                kk = kk - 1; 
+                                kk = kk - 1;
                                 break
                             end
                         end
@@ -465,8 +468,8 @@ if ~GUI
                         MRSCont.flags.speedUp        = 1;
                     end
              end
-        elseif askOverWriteJob=='y' || askOverWriteJob=='Y'            
-            delete(fullfile(outputFolder, 'LogFile.txt'));   
+        elseif askOverWriteJob=='y' || askOverWriteJob=='Y'
+            delete(fullfile(outputFolder, 'LogFile.txt'));
             diary(fullfile(outputFolder, 'LogFile.txt'));
             disp('Continue with loading new job, overwriting existing job.');
             fprintf([jobFile '\n']);
@@ -504,7 +507,7 @@ else
                                               'Load MRS Container', 'Yes','No',opts);
                 case '01'
                     askloadMRSCont = 'Yes';
-            end 
+            end
 
              if strcmp(askloadMRSCont, 'No')
                 disp('Aborted! No new job loaded.');
@@ -516,7 +519,7 @@ else
                         while (isempty(setdiff(MRSCont.files(kk),MRSContNew.files(kk))))
                             kk = kk + 1;
                             if kk > length(MRSCont.files)
-                                kk = kk - 1; 
+                                kk = kk - 1;
                                 break
                             end
                         end
@@ -568,4 +571,3 @@ diary off
 close all;
 
 end
-

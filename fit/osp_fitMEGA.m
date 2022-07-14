@@ -53,7 +53,14 @@ for kk = 1:MRSCont.nDatasets
             basisSetOff.fids = basisSetOff.fids(:,:,1);
             basisSetOff.specs = basisSetOff.specs(:,:,1);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
-
+            
+            if MRSCont.flags.isMRSI && isfield(MRSCont.fit,'MRSIpriors')
+                fitOpts.MRSIpriors.ph0 = MRSCont.fit.MRSIpriors.A.ph0;
+                fitOpts.MRSIpriors.ph1 = MRSCont.fit.MRSIpriors.A.ph1;
+                fitOpts.MRSIpriors.gaussLB = MRSCont.fit.MRSIpriors.A.gaussLB;
+                fitOpts.MRSIpriors.prelimParams = MRSCont.fit.MRSIpriors.A.prelimParams;
+                
+            end
             % Call the fit function
             [fitParamsOff, resBasisSetOff] = fit_runFit(dataToFit, basisSetOff, fitModel, fitOpts);
 
@@ -65,6 +72,13 @@ for kk = 1:MRSCont.nDatasets
             %%% 2b. FIT DIFF1-SPECTRUM
             % Apply scaling factor to the data
             fitOpts     = MRSCont.opts.fit;
+            fitOpts.range = [2.79 4.2];
+            if MRSCont.flags.isMRSI && isfield(MRSCont.fit,'MRSIpriors')
+                fitOpts.MRSIpriors.ph0 = MRSCont.fit.MRSIpriors.diff1.ph0;
+                fitOpts.MRSIpriors.ph1 = MRSCont.fit.MRSIpriors.diff1.ph1;
+                fitOpts.MRSIpriors.gaussLB = MRSCont.fit.MRSIpriors.diff1.gaussLB;
+                fitOpts.MRSIpriors.prelimParams = MRSCont.fit.MRSIpriors.diff1.prelimParams;
+            end
             dataToFit   = MRSCont.processed.diff1{kk};
             basisSetDiff1 = MRSCont.fit.basisSet;
             basisSetDiff1.fids = basisSetDiff1.fids(:,:,3);

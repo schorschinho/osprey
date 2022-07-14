@@ -161,6 +161,13 @@ if in.nZvoxels > 1
     end
 end
 
+if in.nZvoxels > 1
+    fids = flip(fids,dims.Zvoxels);
+    fids = flip(fids, dims.Xvoxels);
+else
+    fids = flip(fids, dims.Xvoxels);
+end
+
 
 %re-calculate Specs using fft
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
@@ -183,6 +190,12 @@ if ~out.flags.averaged
         out.averages = out.sz(2);
     end
 end
+
+%UPDATE THE GEOMETRY INFORMATION
+% We have to update geomtry information because the volume in the sdat
+% doesn't represent the FOV of the MRSI
+out.geometry.size.lr = out.geometry.phase_encoding_fov;
+out.geometry.size.ap = out.geometry.phase_encoding_fov * (out.nYvoxels/out.nXvoxels);
 
 %FILLING IN THE FLAGS
 out.flags=in.flags;
