@@ -338,7 +338,11 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 if MRSCont.opts.ECC.raw(metab_ll,kk)
                     [raw,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
                 else
-                    [~,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
+                    try
+                        [~,raw_ref]                   = op_eccKlose(raw, raw_ref);        % Klose eddy current correction
+                    catch
+                        [~,raw_ref]                   = op_eccKlose(raw_ref, raw_ref);        % Klose eddy current correction
+                    end
                 end
                 [raw_ref,~]                     = op_ppmref(raw_ref,4.6,4.8,4.68);  % Reference to water @ 4.68 ppm
                 MRSCont.processed.ref{metab_ll,kk}       = raw_ref;                          % Save back to MRSCont container
