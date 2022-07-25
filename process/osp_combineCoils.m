@@ -278,7 +278,13 @@ else
     end        
 end
 %% Clean up and save
-
+% Delete un-combined data to free up memory
+raw_fields = {'raw_uncomb','raw_ref_uncomb','raw_w_uncomb'};
+for kk = 1:length(raw_fields)
+    if isfield(MRSCont, raw_fields{kk})
+        MRSCont = rmfield(MRSCont, raw_fields{kk});
+    end
+end
 % Set flags
 MRSCont.flags.coilsCombined     = 1;
 
