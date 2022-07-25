@@ -41,10 +41,10 @@ XYZ = XYZ + repmat(halfpixshift, [1 size(XYZ,2)]);
 
 %%% 2. PREPARE THE MRS VOXEL COORDINATES %%%
 % Convert from RAS to LPS
-VoxOffs  = geom.pos .* [-1 1 1];
-tlhc_LPS = geom.rot.tlhc .* [-1 1 1];
-trhc_LPS = geom.rot.trhc .* [-1 1 1];
-brhc_LPS = geom.rot.brhc .* [-1 1 1];
+VoxOffs  = geom.pos .* [1 1 1];
+tlhc_LPS = geom.rot.tlhc .* [1 1 1];
+trhc_LPS = geom.rot.trhc .* [1 1 1];
+brhc_LPS = geom.rot.brhc .* [1 1 1];
 
 e1_SVS_n = trhc_LPS - tlhc_LPS;
 e1_SVS_n = e1_SVS_n ./ norm(e1_SVS_n);
@@ -132,7 +132,7 @@ mrs_box_ind = sub2ind(vol_image.dim,mrs_box_sub(1,:),mrs_box_sub(2,:),mrs_box_su
 
 mask(mrs_box_ind) = 1;
 
-%mask = flip(mask,2);
+% mask = flip(mask,1);
 
 % Fill in the SPM volume header information
 vol_mask.fname   = maskFile;
