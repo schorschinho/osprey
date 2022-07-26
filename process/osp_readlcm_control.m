@@ -55,11 +55,17 @@ for rr = 1:length(C)
         if strcmpi(C{rr}{1}, 'title')% If the title field is split, join back together
             title = strjoin(C{rr}(2:end));
             LCMparam.title = title;
-        elseif length(strrep(C{rr}{1},"'",''))<=1
+        elseif strlength(strrep(C{rr}{1},"'",''))<=1
             % Ignore line
         elseif strcmp(C{rr}{1}(1:6),'CHSIMU') % simulation parameters contains '='
             P{1} = C{rr}{1};
-            P{2} = strjoin(C{rr}(2:end));
+            for pp=2:length(C{rr})
+                if length(C{rr}{pp})>4 && (strcmp(C{rr}{pp}(end-3:end),'FWHM') || strcmp(C{rr}{pp}(end-2:end),'AMP'))
+                    C{rr}{pp} = [C{rr}{pp},'=']; %Re-add the "="
+                end
+            end
+            P(2) = join(C{rr}(2:end));
+            LCMparam = parseControlFileLine(LCMparam,P);
         elseif length(C{rr}) == 3% If length=3, then assume 2-value input
             P{1} = C{rr}{1};
             P{2} = [C{rr}{2},',',C{rr}{3}];
