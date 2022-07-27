@@ -417,15 +417,15 @@ switch Module
                 waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 % Where are the metabolite names stored?
                 if strcmp(which, 'ref') || strcmp(which, 'w')
-                    basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.metab{kk}.sz(1)) '_' num2str(MRSCont.processed.metab{kk}.spectralwidth)]){1};
+                    basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(round(MRSCont.processed.metab{kk}.sz(1))) '_' num2str(round(MRSCont.processed.metab{kk}.spectralwidth))]){1};
                     basisSetNames = basisSet.name;
                     subSpecName = which;
                 else if strcmp(which, 'conc')
-                        basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.metab{kk}.sz(1)) '_' num2str(MRSCont.processed.metab{kk}.spectralwidth)]){basis,1};
+                        basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(round(MRSCont.processed.metab{kk}.sz(1))) '_' num2str(round(MRSCont.processed.metab{kk}.spectralwidth))]){basis,1};
                         basisSetNames = basisSet.name;
                         subSpecName = basisSet.names{1};
                     else
-                        basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.metab{kk}.sz(1)) '_' num2str(MRSCont.processed.metab{kk}.spectralwidth)]){basis,1,subspectrum};
+                        basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(round(MRSCont.processed.metab{kk}.sz(1))) '_' num2str(round(MRSCont.processed.metab{kk}.spectralwidth))]){basis,1,subspectrum};
                         basisSetNames = basisSet.name;
                         subSpecName = basisSet.names{1};
                     end
