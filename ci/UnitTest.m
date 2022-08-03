@@ -56,20 +56,6 @@ else if segmentation == 1
         rt{2} = table(results{2});
     end
 
-    dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-01' filesep 'anat']);
-    delete(fullfile(dir,'c1sub-01_T1w.nii.gz'));
-    delete(fullfile(dir,'c2sub-01_T1w.nii.gz'));
-    delete(fullfile(dir,'c3sub-01_T1w.nii.gz'));
-    delete(fullfile(dir,'sub-01_T1w.nii'));
-    delete(fullfile(dir,'sub-01_T1w_seg8.mat'));
-
-    dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-02' filesep 'anat']);
-    delete(fullfile(dir,'c1sub-02_T1w.nii.gz'));
-    delete(fullfile(dir,'c2sub-02_T1w.nii.gz'));
-    delete(fullfile(dir,'c3sub-02_T1w.nii.gz'));
-    delete(fullfile(dir,'sub-02_T1w.nii'));
-    delete(fullfile(dir,'sub-02_T1w_seg8.mat'));
-
     dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],'derivatives');
     rmdir(dir,'s')
 
@@ -81,13 +67,6 @@ else if segmentation == 1
 
         results{2} = runtests('Osprey_Plot_GUI_test.m');
         rt{2} = table(results{2});
-
-        dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],['rawdata_CI' filesep 'sub-01' filesep 'anat']);
-        delete(fullfile(dir,'c1sub-01_T1w.nii.gz'));
-        delete(fullfile(dir,'c2sub-01_T1w.nii.gz'));
-        delete(fullfile(dir,'c3sub-01_T1w.nii.gz'));
-        delete(fullfile(dir,'sub-01_T1w.nii'));
-        delete(fullfile(dir,'sub-01_T1w_seg8.mat'));
 
         dir = strrep(which(['ci' filesep 'job' sequence '.m']),['job' sequence '.m'],'derivatives');
         rmdir(dir,'s')
