@@ -41,11 +41,63 @@ spm('defaults','fmri');
 spm_jobman('initcfg');
 
 % Set up saving location
-saveDestination = fullfile(MRSCont.outputFolder, 'SegMaps');
-if ~exist(saveDestination,'dir')
-    mkdir(saveDestination);
+saveDestinationSegMaps = fullfile(MRSCont.outputFolder, 'SegMaps');
+if ~exist(saveDestinationSegMaps,'dir')
+    mkdir(saveDestinationSegMaps);
 end
 
+%Do some check on the naming convention first to avoid overwriting the
+%output due to non BIDS conform data names
+switch MRSCont.vendor
+    case {'Siemens', 'Philips'}
+        % For Siemens and Philips data, this is simply the file that
+        % is directly pointed to in the job file
+        niftiFile = MRSCont.files_nii{1};
+        if MRSCont.nDatasets(1) > 1
+            niftiFile2 = MRSCont.files_nii{2};
+        end
+    case 'GE'
+        % For GE data, SPM has created a *.nii file in the DICOM folder
+        % that has been pointed to in the job file. We need to be
+        % careful not to select potentially segmented files, so we'll
+        % pick the filename that starts with an s (there should only be
+        % one!).
+        niftiList = dir([MRSCont.files_nii{1} filesep 's*.nii']);
+        niftiFile = fullfile(MRSCont.files_nii{1}, niftiList.name);
+        if MRSCont.nDatasets(1) > 1
+            niftiList2 = dir([MRSCont.files_nii{2} filesep 's*.nii']);
+            niftiFile2 = fullfile(MRSCont.files_nii{2}, niftiList2.name);
+        end
+    otherwise
+        msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
+        fprintf(msg);
+        error(msg);
+end
+SameName = 0;
+if MRSCont.nDatasets(1) > 1
+    [~, T1name, ~]  = fileparts(niftiFile);
+    [~, T1name2, ~]  = fileparts(niftiFile2);
+    SameName = strcmp(T1name,T1name2);
+end
+
+% Let's write the SPM12 propabilistic maps in a higher folder structure 
+SepOutputFolder =  split(MRSCont.outputFolder, filesep);
+SepOutputFolder(strcmp(SepOutputFolder,''))=[];
+ind = find(strcmpi(SepOutputFolder,'derivatives')); %Do we have a folder named derivatives?
+if ~isempty(ind) && ind ~= length(SepOutputFolder)
+    goUpNTimes = length(SepOutputFolder) - ind;
+    saveDestinationFilesSPM = fullfile(MRSCont.outputFolder,repmat(['..' filesep],[1 goUpNTimes]));
+    tempDir = dir(saveDestinationFilesSPM);
+    saveDestinationFilesSPM = fullfile(tempDir(1).folder,'FilesSPM');
+else
+    saveDestinationFilesSPM = fullfile(MRSCont.outputFolder,repmat(['..' filesep],[1 1]));
+    tempDir = dir(saveDestinationFilesSPM);
+    saveDestinationFilesSPM = fullfile(MRSCont.outputFolder, 'FilesSPM');
+end
+
+if ~exist(saveDestinationFilesSPM,'dir')
+    mkdir(saveDestinationFilesSPM);
+end
 %% Loop over all datasets
 refSegTime = tic;
 if MRSCont.flags.isGUI
@@ -53,11 +105,10 @@ if MRSCont.flags.isGUI
 else
     progressText = '';
 end
-for kk = 1:MRSCont.nDatasets(1) 
+for kk = 1:MRSCont.nDatasets(1)
     [~] = printLog('OspreySeg',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
     if ~(MRSCont.flags.didSeg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'seg') && (kk > length(MRSCont.seg.tissue.fGM))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
 
-    
         %%% 1. CHECK WHETHER SEGMENTATION HAS BEEN RUN BEFORE %%%
         % First, we need to find the T1-NIfTI file again:
         switch MRSCont.vendor
@@ -76,16 +127,22 @@ for kk = 1:MRSCont.nDatasets(1)
             otherwise
                 msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                 fprintf(msg);
-                error(msg);                  
+                error(msg);
+        end
+        
+        if SameName
+            [PreFix] = osp_generate_SubjectAndSessionPrefix(niftiFile,kk);
+            PreFix = [PreFix '_'];
+        else
+            PreFix = '';
         end
 
-        
         % Get the input file name
         [T1dir, T1name, T1extini]  = fileparts(niftiFile);
         if strcmp(T1extini,'.gz')
             T1name = strrep(T1name, '.nii','');
         end
-        
+
         if ~isempty(MRSCont.files_seg) %Use external segmentation
             if length(MRSCont.files_seg{kk}) > 1
                 segFileGM   = MRSCont.files_seg{kk}{1};
@@ -110,22 +167,33 @@ for kk = 1:MRSCont.nDatasets(1)
                 end
                 singleTissueSegFile = 1;
             end
-
-            
-
-            
         else
             singleTissueSegFile = 0;
-            segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
+            segFile               = fullfile(saveDestinationFilesSPM, [PreFix T1name '_seg8.mat']);
+            if ~exist(segFile,'file') %Keep backward compabilities
+                segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
+                if exist(segFile,'file')
+                    movefile(fullfile(T1dir, ['c1' T1name '.nii.gz']),fullfile(saveDestinationFilesSPM,['c1_' PreFix T1name '_space-scanner_spm12_pseg.nii.gz']));
+                    movefile(fullfile(T1dir, ['c2' T1name '.nii.gz']),fullfile(saveDestinationFilesSPM,['c2_' PreFix T1name '_space-scanner_spm12_pseg.nii.gz']));
+                    movefile(fullfile(T1dir, ['c3' T1name '.nii.gz']),fullfile(saveDestinationFilesSPM,['c3_' PreFix T1name '_space-scanner_spm12_pseg.nii.gz']));
+                    movefile(fullfile(T1dir, [T1name '_seg8.mat']),fullfile(saveDestinationFilesSPM,[PreFix T1name '_seg8.mat']));
+                    segFile               = fullfile(saveDestinationFilesSPM, [PreFix T1name '_seg8.mat']);
+                end
+            end
             % If a GM-segmented file doesn't exist, start the segmentation
             if ~exist(segFile,'file')
                 %Uncompress .nii.gz if needed
                 if strcmp(T1extini,'.gz')
                     gunzip(niftiFile);
-                    niftiFile = strrep(niftiFile,'.gz','');                
-                end  
+                    niftiFile = strrep(niftiFile,'.gz','');
+                end
                 T1ext = '.nii';
                 createSegJob(niftiFile);
+                movefile(fullfile(T1dir, ['c1' T1name T1ext]),fullfile(saveDestinationFilesSPM,['c1_' PreFix T1name '_space-scanner_spm12_pseg' T1ext]));
+                movefile(fullfile(T1dir, ['c2' T1name T1ext]),fullfile(saveDestinationFilesSPM,['c2_' PreFix T1name '_space-scanner_spm12_pseg' T1ext]));
+                movefile(fullfile(T1dir, ['c3' T1name T1ext]),fullfile(saveDestinationFilesSPM,['c3_' PreFix T1name '_space-scanner_spm12_pseg' T1ext]));
+                movefile(fullfile(T1dir, ['y_' T1name T1ext]),fullfile(saveDestinationFilesSPM,[PreFix T1name '_spm12-transformation_field' T1ext]));
+                movefile(fullfile(T1dir, [T1name '_seg8.mat']),fullfile(saveDestinationFilesSPM,[PreFix T1name '_seg8.mat']));
             else
                 if strcmp(T1extini,'.gz')
                     gunzip(niftiFile);
@@ -133,11 +201,14 @@ for kk = 1:MRSCont.nDatasets(1)
                     T1ext = '.nii';
                 else
                     T1ext = T1extini;
-                end  
-                if exist(fullfile(T1dir, ['c1' T1name '.nii.gz']),'file')
-                    gunzip(fullfile(T1dir, ['c1' T1name T1ext '.gz']));
-                    gunzip(fullfile(T1dir, ['c2' T1name T1ext '.gz']));
-                    gunzip(fullfile(T1dir, ['c3' T1name T1ext '.gz']));                 
+                end
+                if exist(fullfile(saveDestinationFilesSPM,['c1_' PreFix T1name '_space-scanner_spm12_pseg.nii.gz']),'file')
+                    gunzip(fullfile(saveDestinationFilesSPM, ['c1_' PreFix T1name '_space-scanner_spm12_pseg' T1ext '.gz']));
+                    gunzip(fullfile(saveDestinationFilesSPM, ['c2_' PreFix T1name '_space-scanner_spm12_pseg' T1ext '.gz']));
+                    gunzip(fullfile(saveDestinationFilesSPM, ['c3_' PreFix T1name '_space-scanner_spm12_pseg' T1ext '.gz']));
+                    if exist(fullfile(saveDestinationFilesSPM,[PreFix T1name '_spm12-transformation_field' T1ext '.gz']),'file')
+                        gunzip(fullfile(saveDestinationFilesSPM, [PreFix T1name '_spm12-transformation_field' T1ext '.gz']));
+                    end
                 end
                 T1ext = '.nii';
             end
@@ -146,9 +217,9 @@ for kk = 1:MRSCont.nDatasets(1)
         %%% 2. CREATE MASKED TISSUE MAPS %%%
         % Define file names
         if isempty(MRSCont.files_seg) %Use SPM segmentation
-            segFileGM   = fullfile(T1dir, ['c1' T1name T1ext]);
-            segFileWM   = fullfile(T1dir, ['c2' T1name T1ext]);
-            segFileCSF  = fullfile(T1dir, ['c3' T1name T1ext]);
+            segFileGM   = fullfile(saveDestinationFilesSPM, ['c1_' PreFix T1name '_space-scanner_spm12_pseg' T1ext]);
+            segFileWM   = fullfile(saveDestinationFilesSPM, ['c2_' PreFix T1name '_space-scanner_spm12_pseg' T1ext]);
+            segFileCSF  = fullfile(saveDestinationFilesSPM, ['c3_' PreFix T1name '_space-scanner_spm12_pseg' T1ext]);
         end
         % Load volumes
         if ~singleTissueSegFile
@@ -163,7 +234,7 @@ for kk = 1:MRSCont.nDatasets(1)
                TissueSegFile4D = 0;
            end
 
-        
+
             if ~TissueSegFile4D
                 % Get tissue maps from AAL atlas
                 [GM,WM,CSF,AAL]=AAL_to_3TissueSeg(SEGvol);
@@ -175,21 +246,21 @@ for kk = 1:MRSCont.nDatasets(1)
                 GMvol.dt       = SEGvol.dt;
                 GMvol.mat      = SEGvol.mat;
                 GMvol          = spm_write_vol(GMvol, GM);
-                
+
                 WMvol.fname    = fullfile(AALpath,['c2' AALfilename AALext ]);
                 WMvol.descrip  = ['WMmask based on AAL atlas'];
                 WMvol.dim      = SEGvol.dim;
                 WMvol.dt       = SEGvol.dt;
                 WMvol.mat      = SEGvol.mat;
                 WMvol          = spm_write_vol(WMvol, WM);
-                
+
                 CSFvol.fname    = fullfile(AALpath,['c3' AALfilename AALext ]);
                 CSFvol.descrip  = ['CSFmask based on AAL atlas'];
                 CSFvol.dim      = SEGvol.dim;
                 CSFvol.dt       = SEGvol.dt;
                 CSFvol.mat      = SEGvol.mat;
                 CSFvol          = spm_write_vol(CSFvol, CSF);
-                
+
                 AALvol.fname    = fullfile(AALpath,['aal' AALfilename AALext ]);
                 AALvol.descrip  = ['AAL atlas without L-R difference'];
                 AALvol.dim      = SEGvol.dim;
@@ -219,11 +290,16 @@ for kk = 1:MRSCont.nDatasets(1)
 
             % Get the input file name
             [~,filename,~]   = fileparts(MRSCont.files{kk});
+            if MRSCont.coreg.SameName
+                [PreFixMask] = osp_generate_SubjectAndSessionPrefix(MRSCont.files{kk},kk);
+            else
+                PreFixMask = '';
+            end
             
             % <source_entities>[_space-<space>][_res-<label>][_label-<label>][_desc-<label>]_probseg.nii.gz
             % e.g.
             % sub-01_acq-press_space-individual_desc-dlpfc_label-GM_probseg.nii.gz
-            saveName = [osp_RemoveSuffix(filename),'_space-scanner']; %CWDJ Check space.
+            saveName = [PreFixMask '_' filename '_space-scanner']; %CWDJ Check space.
 
             %Add voxel number for DualVoxel
             if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
@@ -231,9 +307,9 @@ for kk = 1:MRSCont.nDatasets(1)
             else
                 VoxelNum = ['_Voxel-' num2str(rr)];
             end
-            
+
             % GM
-            vol_GMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_label-GM' maskExt]);
+            vol_GMMask.fname    = fullfile(saveDestinationSegMaps, [saveName VoxelNum '_label-GM' maskExt]);
             vol_GMMask.descrip  = ['GMmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_GMMask.dim      = vol_mask.dim;
             vol_GMMask.dt       = vol_mask.dt;
@@ -246,7 +322,7 @@ for kk = 1:MRSCont.nDatasets(1)
             vol_GMMask          = spm_write_vol(vol_GMMask, GM_voxmask_vol);
 
             % WM
-            vol_WMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_label-WM' maskExt]);
+            vol_WMMask.fname    = fullfile(saveDestinationSegMaps, [saveName VoxelNum '_label-WM' maskExt]);
             vol_WMMask.descrip  = ['WMmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_WMMask.dim      = vol_mask.dim;
             vol_WMMask.dt       = vol_mask.dt;
@@ -259,7 +335,7 @@ for kk = 1:MRSCont.nDatasets(1)
             vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
 
             % CSF
-            vol_CSFMask.fname   = fullfile(saveDestination, [saveName VoxelNum '_label-CSF' maskExt]);
+            vol_CSFMask.fname   = fullfile(saveDestinationSegMaps, [saveName VoxelNum '_label-CSF' maskExt]);
             vol_CSFMask.descrip = ['CSFmasked_MRS_Voxel_Mask_' VoxelNum];
             vol_CSFMask.dim     = vol_mask.dim;
             vol_CSFMask.dt      = vol_mask.dt;
@@ -270,7 +346,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 CSF_voxmask_vol      = SEGvol(3).private.dat(:,:,:,3) .* vol_mask.private.dat(:,:,:);
             end
             vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
-            
+
             % Save volume structures in MRSCont
             if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
                 MRSCont.seg.vol_GM{kk} = vol_GMMask;
@@ -285,17 +361,17 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.isMRSI
                 GM_MRSI=spm_vol(GMvol);
                 GM_MRSI=spm_read_vols(GM_MRSI);
-                
+
                 WM_MRSI=spm_vol(WMvol);
                 WM_MRSI=spm_read_vols(WM_MRSI);
-                
+
                 CSF_MRSI=spm_vol(CSFvol);
                 CSF_MRSI=spm_read_vols(CSF_MRSI);
-                
+
                 brain = (GM_MRSI > 0.5 | WM_MRSI > 0.5 | CSF_MRSI > 0.5);
-                
-                
-                
+
+
+
                 if ~exist(MRSCont.coreg.vol_image{kk}.fname,'file')
                     gunzip([MRSCont.coreg.vol_image{kk}.fname, '.gz']);
                 end
@@ -305,9 +381,9 @@ for kk = 1:MRSCont.nDatasets(1)
 
                 Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);
                 Vmask=spm_read_vols(Vmask);
-                
+
                 brain = brain .* Vmask;
-                
+
                 non_zero = zeros(size(brain,3),1);
                 for i = 1 : size(brain,3)
                     if sum(sum(brain(:,:,i))) > 0
@@ -322,7 +398,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 brain_vox(brain_vox > 0) = 1;
                 brain_vox_rot = zeros(size(brain_vox,2),size(brain_vox,1),size(brain_vox,3));
                 for i = 1 : size(brain_vox,3)
-                	brain_vox_rot(:,:,i) = rot90(brain_vox(:,:,i));   
+                	brain_vox_rot(:,:,i) = rot90(brain_vox(:,:,i));
                 end
                 MRSCont.mask{kk} = brain_vox_rot;
                 if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
@@ -337,12 +413,24 @@ for kk = 1:MRSCont.nDatasets(1)
             GMsum  = sum(sum(sum(vol_GMMask.private.dat(:,:,:))));
             WMsum  = sum(sum(sum(vol_WMMask.private.dat(:,:,:))));
             CSFsum = sum(sum(sum(vol_CSFMask.private.dat(:,:,:))));
-            
+
             % Save three plane image to container
-            if MRSCont.flags.addImages                
+            if MRSCont.flags.addImages
                 [MRSCont.seg.img_montage{kk},MRSCont.seg.size_vox_t(kk)] = osp_extract_three_plane_image_seg(niftiFile, vol_mask,vol_GMMask,vol_WMMask,vol_CSFMask,MRSCont.coreg.voxel_ctr{kk},MRSCont.coreg.T1_max{kk});
             end
-            
+
+            % Apply the deformation field for overlay
+            [MaskDir, MaskName, MaskExt]  = fileparts(vol_mask.fname);
+            MaskNameSPM152 = strrep(MaskName,'space-scanner','space-spm152');
+            DeformField = 0;
+            if exist(fullfile(saveDestinationFilesSPM, [PreFix T1name '_spm12-transformation_field' T1ext]))
+                DeformField = 1;
+            end
+            if ~exist(fullfile(MaskDir,[MaskNameSPM152 MaskExt '.gz'])) && exist(fullfile(saveDestinationFilesSPM, [PreFix T1name '_spm12-transformation_field' T1ext]))
+                ApplyInverseDeformationField(fullfile(saveDestinationFilesSPM, [PreFix T1name '_spm12-transformation_field' T1ext]),vol_mask.fname)
+                movefile(fullfile(MaskDir,['w' MaskName MaskExt]), fullfile(MaskDir,[MaskNameSPM152 MaskExt]));
+            end
+
             %Compress nifit and delete uncompressed files
             gzip(vol_GMMask.fname);
             delete(vol_GMMask.fname);
@@ -350,6 +438,14 @@ for kk = 1:MRSCont.nDatasets(1)
             delete(vol_WMMask.fname);
             gzip(vol_CSFMask.fname);
             delete(vol_CSFMask.fname);
+            if exist(fullfile(saveDestinationFilesSPM,[PreFix T1name '_spm12-transformation_field' T1ext]),'file')
+                gzip(fullfile(saveDestinationFilesSPM, [PreFix T1name '_spm12-transformation_field' T1ext]));
+                delete(fullfile(saveDestinationFilesSPM, [PreFix T1name '_spm12-transformation_field' T1ext]));
+            end
+            if exist(fullfile(MaskDir,[MaskNameSPM152,MaskExt]),'file')
+                gzip(fullfile(MaskDir,[MaskNameSPM152,MaskExt]));
+                delete(fullfile(MaskDir,[MaskNameSPM152,MaskExt]));
+            end
             if isempty(MRSCont.files_seg) %Standard SPM12 segmentation
                 gzip(GMvol.fname);
                 delete(GMvol.fname);
@@ -371,12 +467,10 @@ for kk = 1:MRSCont.nDatasets(1)
                 end
 
             end
-            delete(vol_mask.fname);  
+            delete(vol_mask.fname);
             if strcmp(T1extini,'.gz')
-                if ~exist([MRSCont.coreg.vol_image{kk}.fname,'.gz'],'file')
-                    gzip(MRSCont.coreg.vol_image{kk}.fname)
-                    delete(MRSCont.coreg.vol_image{kk}.fname);
-                end
+                gzip(MRSCont.coreg.vol_image{kk}.fname)
+                delete(MRSCont.coreg.vol_image{kk}.fname);
             end
 
             % Normalize
@@ -387,10 +481,42 @@ for kk = 1:MRSCont.nDatasets(1)
             % Save normalized fractional tissue volumes to MRSCont
             MRSCont.seg.tissue.fGM(kk,rr)  = fGM;
             MRSCont.seg.tissue.fWM(kk,rr)  = fWM;
-            MRSCont.seg.tissue.fCSF(kk,rr) = fCSF;            
-            
+            MRSCont.seg.tissue.fCSF(kk,rr) = fCSF;
+
         end
-    end 
+    end
+end
+
+% Calculate the overlap image
+if DeformField
+    for kk = 1:MRSCont.nDatasets(1)
+        vol_mask = MRSCont.coreg.vol_mask{kk};
+        [MaskDir, MaskName, MaskExt]  = fileparts(vol_mask.fname);
+        MaskNameSPM152 = strrep(MaskName,'space-scanner','space-spm152');
+        if ~exist(fullfile(MaskDir,[MaskNameSPM152, MaskExt]),'file') && exist(strrep(fullfile(MaskDir,[MaskNameSPM152, MaskExt]),'.nii','.nii.gz'),'file')
+            gunzip(strrep(fullfile(MaskDir,[MaskNameSPM152, MaskExt]),'.nii','.nii.gz'));
+        end
+        if kk == 1
+            Files{1} = fullfile(MaskDir,[MaskNameSPM152, MaskExt, ',1']);
+        else
+            Files{end+1} = fullfile(MaskDir,[MaskNameSPM152, MaskExt, ',1']);
+        end
+    end
+    if isfield(MRSCont, 'exclude')
+        Files(MRSCont.exclude)=[];
+    end
+    CalculateMaskOverlap(Files',[osp_RemovePreFix(MaskName) '_VoxelOverlap'],MaskDir);
+    
+    for kk = 1:MRSCont.nDatasets(1)
+        vol_mask = MRSCont.coreg.vol_mask{kk};
+        [MaskDir, MaskName, MaskExt]  = fileparts(vol_mask.fname);
+        MaskNameSPM152 = strrep(MaskName,'space-scanner','space-spm152');
+        gzip(fullfile(MaskDir,[MaskNameSPM152, MaskExt]));
+        delete(fullfile(MaskDir,[MaskNameSPM152, MaskExt]));
+    end
+    gzip(fullfile(MaskDir,[osp_RemovePreFix(MaskName) '_VoxelOverlap.nii']));
+    delete(fullfile(MaskDir,[osp_RemovePreFix(MaskName) '_VoxelOverlap.nii']));
+    MRSCont.seg.overlapfile = fullfile(MaskDir,[osp_RemovePreFix(MaskName) '_VoxelOverlap.nii']);
 end
 time = toc(refSegTime);
 [~] = printLog('done',time,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
@@ -403,7 +529,7 @@ for rr = 1 : Voxels
     tissue = horzcat(MRSCont.seg.tissue.fGM(:,rr),MRSCont.seg.tissue.fWM(:,rr),MRSCont.seg.tissue.fCSF(:,rr));
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = array2table(tissue,'VariableNames',tissueTypes);
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = addprop(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), {'VariableLongNames'}, {'variable'}); % add long name to table properties
-    
+
     % Populate descriptive fields of table for JSON export
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fGM'} = 'Voxel fraction of grey matter';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fGM'} = 'Normalized fractional volume of grey matter: fGM  = GMsum / (GMsum + WMsum + CSFsum)';
@@ -412,13 +538,13 @@ for rr = 1 : Voxels
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fWM'} = 'Voxel fraction of white matter';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fWM'} = 'Normalized fractional volume of white matter: fWM  = WMsum / (GMsum + WMsum + CSFsum)';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fWM'} = 'arbitrary';
-    
+
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fCSF'} = 'Voxel fraction of Cerebrospinal Fluid';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fCSF'} = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = CSFsum / (GMsum + WMsum + CSFsum)';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fCSF'} = 'arbitrary';
 
     % Write the table to a file with json sidecar
-    osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestination  filesep 'TissueFractions_Voxel_' num2str(rr)])
+    osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestinationSegMaps  filesep 'TissueFractions_Voxel_' num2str(rr)])
 end
 
 %% Clean up and save
@@ -492,7 +618,8 @@ matlabbatch{1}.spm.spatial.preproc.warp.reg = [0 0.001 0.5 0.05 0.2];
 matlabbatch{1}.spm.spatial.preproc.warp.affreg = 'mni';
 matlabbatch{1}.spm.spatial.preproc.warp.fwhm = 0;
 matlabbatch{1}.spm.spatial.preproc.warp.samp = 3;
-matlabbatch{1}.spm.spatial.preproc.warp.write = [0 0];
+% matlabbatch{1}.spm.spatial.preproc.warp.write = [0 0];
+matlabbatch{1}.spm.spatial.preproc.warp.write = [1 1];
 
 spm_jobman('run',matlabbatch);
 
@@ -554,4 +681,39 @@ AAL(aseg_dseg==4 | aseg_dseg == 43) = 15;%Lateral Ventricles
 AAL(aseg_dseg==14) = 16;% 3rd Ventricle
 AAL(aseg_dseg==15) = 17;% 4th Ventricle
 
+end
+
+function ApplyInverseDeformationField(TransformationField,maskFile)
+    template = which('osprey/libraries/MRIcroGL/templates/spm152.nii');
+    template = spm_vol(template);
+    [BB,vx] = spm_get_bbox(template);
+    matlabbatch{1}.spm.spatial.normalise.write.subj.def = {TransformationField};
+    matlabbatch{1}.spm.spatial.normalise.write.subj.resample = {[maskFile ',1']};
+    matlabbatch{1}.spm.spatial.normalise.write.woptions.bb = BB;
+    matlabbatch{1}.spm.spatial.normalise.write.woptions.vox = vx;
+    matlabbatch{1}.spm.spatial.normalise.write.woptions.interp = 0;
+    matlabbatch{1}.spm.spatial.normalise.write.woptions.prefix = 'w';
+    spm_jobman('run',matlabbatch);
+end
+
+function CalculateMaskOverlap(Files,outputName,outputDir)
+    exp = '(';
+    for kk = 1 : length(Files)
+        exp = [exp 'i' num2str(kk)];
+        if kk ~= length(Files)
+            exp = [exp '+'];
+        else
+            exp = [exp ')/' num2str(length(Files))];
+        end
+    end
+    matlabbatch{1}.spm.util.imcalc.input = Files;
+    matlabbatch{1}.spm.util.imcalc.output = outputName;
+    matlabbatch{1}.spm.util.imcalc.outdir = {outputDir};
+    matlabbatch{1}.spm.util.imcalc.expression = exp;
+    matlabbatch{1}.spm.util.imcalc.var = struct('name', {}, 'value', {});
+    matlabbatch{1}.spm.util.imcalc.options.dmtx = 0;
+    matlabbatch{1}.spm.util.imcalc.options.mask = 0;
+    matlabbatch{1}.spm.util.imcalc.options.interp = 0;
+    matlabbatch{1}.spm.util.imcalc.options.dtype = 4;
+    spm_jobman('run',matlabbatch);
 end
