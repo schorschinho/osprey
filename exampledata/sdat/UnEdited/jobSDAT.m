@@ -240,7 +240,7 @@ for kk = 1:length(subs)
         % (OPTIONAL)
         % Link to single NIfTI (*.nii) files for Siemens and Philips data
         % Link to DICOM (*.dcm) folders for GE data
-        files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep sess(ll).name '_T1w.nii.gz']};
+        files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep subs(kk).name '_' sess(ll).name '_T1w.nii.gz']};
 
         % External segmentation results
         % (OPTIONAL)

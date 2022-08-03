@@ -58,10 +58,10 @@ switch sequence
         metabList.MM12     = 1;
         metabList.MM14     = 1;
         metabList.MM17     = 1;
-        metabList.MM20     = 1;
+        metabList.MM20     = 0;
         metabList.Lip09    = 1;
         metabList.Lip13    = 1;
-        metabList.Lip20    = 1;
+        metabList.Lip20    = 0;
     case 'MEGA'
         % Select metabolites to include in basis set
         metabList.Ala      = 0;
