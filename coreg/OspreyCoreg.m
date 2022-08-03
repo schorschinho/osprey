@@ -38,6 +38,17 @@ warning('off','all');
 % Checking for version, toolbox, and previously run modules
 [~,MRSCont.ver.CheckOsp ] = osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg');
 
+%Do some check on the naming convention first to avoid overwriting the
+%output due to non BIDS conform data names
+SameName = 0;
+if MRSCont.nDatasets(1) > 1
+    specFile = MRSCont.files{1};
+    specFile2 = MRSCont.files{2};
+    [~, SpecName, ~]  = fileparts(specFile);
+    [~, SpecName2, ~]  = fileparts(specFile2);
+    SameName = strcmp(SpecName,SpecName2);
+end
+MRSCont.coreg.SameName = SameName;
 
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'VoxelMasks'); %CWDJ - Address in future update
@@ -55,6 +66,12 @@ end
 for kk = 1:MRSCont.nDatasets(1)
      [~] = printLog('OspreyCoreg',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);  
     if ~(MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
+        
+        if SameName
+            [PreFix] = osp_generate_SubjectAndSessionPrefix(MRSCont.files{kk},kk);
+        else
+            PreFix = '';
+        end
 
         % Get the input file name
         [~,filename,~]   = fileparts(MRSCont.files{kk});
@@ -62,7 +79,7 @@ for kk = 1:MRSCont.nDatasets(1)
         [~,~,T1ext]   = fileparts(MRSCont.files_nii{kk});
         
         %<source_entities>[_space-<space>][_res-<label>][_den-<label>][_label-<label>][_desc-<label>]_mask.nii.gz
-        saveName = [osp_RemoveSuffix(filename),'_space-scanner']; %CWDJ Check space.
+        saveName = [PreFix '_' filename '_space-scanner']; %CWDJ Check space.
         
         % Generate file name for the voxel mask NIfTI file to be saved under
         maskFile            = fullfile(saveDestination, [saveName '_mask.nii']);
