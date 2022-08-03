@@ -166,16 +166,39 @@ end
         specs = temp_proc.specs(:,av:av+(round(temp_proc.averages*0.1)-1));
         temp_spec.fids = mean(fids,2); % store average fid
         temp_spec.specs = mean(specs,2); % store average spectra
-        [refShift, ~] = osp_XReferencing(temp_spec,frequencies,polarity,lim,realpart);% determine frequency shift
-        refShift_ind_ini(av : av+round(temp_proc.averages*0.1)-1) = refShift; %save initial frequency guess
+        try
+            [refShift, ~] = osp_XReferencing(temp_spec,frequencies,polarity,lim,realpart);% determine frequency shift
+            if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
+                [refShift, ~] = osp_XReferencing(temp_spec,2.01,1,[1.85 4.2]);% determine frequency shift
+            end
+            refShift_ind_ini(av : av+round(temp_proc.averages*0.1)-1) = refShift; %save initial frequency guess
+        catch
+            [refShift, ~] = osp_XReferencing(temp_spec,frequencies,polarity,lim,0);% determine frequency shift
+            if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
+                [refShift, ~] = osp_XReferencing(temp_spec,2.01,1,[1.85 4.2],0);% determine frequency shift
+            end
+            refShift_ind_ini(av : av+round(temp_proc.averages*0.1)-1) = refShift; %save initial frequency guess
+        end
     end
     if mod(temp_proc.averages,round(temp_proc.averages*0.1)) > 0 % remaining averages if data isn't a multiple of 10.
         fids = temp_proc.fids(:,end-(mod(temp_proc.averages,round(temp_proc.averages*0.1))-1):end);
         specs = temp_proc.specs(:,end-(mod(temp_proc.averages,round(temp_proc.averages*0.1))-1):end);
         temp_spec.fids = mean(fids,2); % store average fid
         temp_spec.specs = mean(specs,2); % store average spectra
-        [refShift, ~] = osp_XReferencing(temp_spec,frequencies,polarity,lim,realpart);% determine frequency shift
-        refShift_ind_ini(end-(mod(temp_proc.averages,round(temp_proc.averages*0.1))-1) : temp_proc.averages) = refShift; %save initial frequency guess
+        try
+            [refShift, ~] = osp_XReferencing(temp_spec,frequencies,polarity,lim,realpart);% determine frequency shift
+            if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
+                [refShift, ~] = osp_XReferencing(temp_spec,2.01,1,[1.85 4.2]);% determine frequency shift
+            end
+            refShift_ind_ini(end-(mod(temp_proc.averages,round(temp_proc.averages*0.1))-1) : temp_proc.averages) = refShift; %save initial frequency guess
+        catch
+            [refShift, ~] = osp_XReferencing(temp_spec,frequencies,polarity,lim,0);% determine frequency shift
+            if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
+                [refShift, ~] = osp_XReferencing(temp_spec,2.01,1,[1.85 4.2],0);% determine frequency shift
+            end
+            refShift_ind_ini(end-(mod(temp_proc.averages,round(temp_proc.averages*0.1))-1) : temp_proc.averages) = refShift; %save initial frequency guess
+        
+        end
     end
     
     
