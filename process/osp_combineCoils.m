@@ -81,7 +81,19 @@ if nargin<5
                 if ~isSpecial
                     MRSCont.raw_ref{ref_ll,kk} = op_combine_water_subspecs(MRSCont.raw_ref{ref_ll,kk},0);
                 end
-                
+                if MRSCont.flags.hasWater
+                    w_ll = MRSCont.opts.MultipleSpectra.w(ll);
+                    if isSpecial
+                        % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+                        cweights_w          = op_getcoilcombos(op_combinesubspecs(MRSCont.raw_w_uncomb{w_ll,kk}, 'diff'), 1, 'h');
+                    else
+                        cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{w_ll,kk}, 1, 'h');
+                    end
+                    raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{w_ll,kk},1,'h',cweights_w);
+                    raw_w_comb.flags.isUnEdited = 1;
+                    MRSCont.raw_w{w_ll,kk}   = raw_w_comb;
+                    MRSCont.raw_w{w_ll,kk} = op_combine_water_subspecs(MRSCont.raw_w{w_ll,kk},0);
+                end
             else if MRSCont.flags.hasWater
                     w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                         if isSpecial
@@ -103,8 +115,7 @@ if nargin<5
                             raw_comb.flags.isSPECIAL = 1;
                         end
                         MRSCont.raw{metab_ll,kk}     = raw_comb;
-    
-    
+                        raw_w_comb.flags.isUnEdited = 1;
                         raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{w_ll,kk},1,'h',cweights_w);
                         raw_w_comb.flags.isUnEdited = 1;
                         MRSCont.raw_w{w_ll,kk}   = raw_w_comb;
@@ -185,7 +196,18 @@ else
                     MRSCont.raw_ref{kk}.dims.subSpecs=0;
                 end
             end
-            
+            if MRSCont.flags.hasWater % Now do the same for the (short-TE) water signal
+                if isSpecial
+                    % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+                    cweights_w          = op_getcoilcombos(op_combinesubspecs(MRSCont.raw_w_uncomb{w_ll,kk}, 'diff'), 1, 'h');
+                else
+                    cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{w_ll,kk}, 1, 'h');
+                end
+                raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{w_ll,kk},1,'h',cweights_w);        
+                raw_w_comb.flags.isUnEdited = 1;
+                MRSCont.raw_w{w_ll,kk}   = raw_w_comb;
+                MRSCont.raw_w{ll,kk} = op_combine_water_subspecs(MRSCont.raw_w{ll,kk},0);
+            end
         catch
             
             % if wrong number of channels etc, use the metabolite scan itself
@@ -224,6 +246,18 @@ else
                     MRSCont.raw_ref{kk}.subspecs = 1;
                     MRSCont.raw_ref{kk}.dims.subSpecs=0;
                 end
+            end
+            if MRSCont.flags.hasWater % Now do the same for the (short-TE) water signal
+                if isSpecial
+                    % Workflow adopted from https://github.com/CIC-methods/FID-A/blob/master/exampleRunScripts/run_specialproc_auto.m
+                    cweights_w          = op_getcoilcombos(op_combinesubspecs(MRSCont.raw_w_uncomb{w_ll,kk}, 'diff'), 1, 'h');
+                else
+                    cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{w_ll,kk}, 1, 'h');
+                end
+                raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{w_ll,kk},1,'h',cweights_w);        
+                raw_w_comb.flags.isUnEdited = 1;
+                MRSCont.raw_w{w_ll,kk}   = raw_w_comb;
+                MRSCont.raw_w{ll,kk} = op_combine_water_subspecs(MRSCont.raw_w{ll,kk},0);
             end
         end
         
