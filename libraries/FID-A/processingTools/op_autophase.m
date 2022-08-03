@@ -47,22 +47,22 @@ else
     end
     dimNum=1;
 end
-
+in_sub = op_takesubspec(in,dimNum);
 %Zeropad the data if it hasn't already been done
 if ~in.flags.zeropadded
-    in_zp=op_zeropad(in,10);
+    in_zp=op_zeropad(in_sub,10);
 else
-    in_zp=in;
+    in_zp=in_sub;
 end
 
 %Narrow the frequency range:
 in_zp=op_freqrange(in_zp,ppmmin,ppmmax);
 
 %Find the ppm of the maximum peak magnitude within the given range:
-ppmindex=find(abs(in_zp.specs(:,dimNum))==max(abs(in_zp.specs(:,dimNum))));
+ppmindex=find(abs(in_zp.specs(:))==max(abs(in_zp.specs(:))));
 
 %now do automatic zero-order phase correction (Use Creatine Peak):
-ph0=-phase(in_zp.specs(ppmindex,dimNum))*180/pi;
+ph0=-phase(in_zp.specs(ppmindex))*180/pi;
 
 if length(ph0) > 1
     ph0 = ph0(1);
