@@ -1,0 +1,218 @@
+!--------------------------------------------------------------------
+
+!
+
+!
+
+!      CAUTION - Investigational device.
+
+!      Limited by Federal Law to investigational use.
+
+!
+
+!
+
+!      GYROSCAN spectro parameter file. 
+
+!      Last revised 05-July-2007.
+
+!--------------------------------------------------------------------
+
+!   This file contains time domain data in the spectral dimension.
+
+!   S15/ACS: set of *.SPAR and *.SDAT files is created, (dataformat: VAX CPX floats)
+
+!--------------------------------------------------------------------
+
+examination_name : 
+
+scan_id : PRESS
+
+scan_date : 
+
+patient_name : 
+
+patient_birth_date : 
+
+patient_position : "head_first"
+
+patient_orientation : "supine"
+
+samples : 2048
+
+rows : 1
+
+synthesizer_frequency : 127755472
+
+offset_frequency : 0
+
+sample_frequency : 2000
+
+echo_nr : 1
+
+mix_number : 2
+
+nucleus : 1H
+
+t0_mu1_direction : 0
+
+echo_time : 30
+
+repetition_time : 2000
+
+averages : 48    
+
+volume_selection_enable : "yes"
+
+volumes : 1
+
+ap_size : 26
+
+lr_size : 26
+
+cc_size : 30
+
+ap_off_center : 38.18052292
+
+lr_off_center : -6.734508038
+
+cc_off_center : 18.97854996
+
+ap_angulation : 2.13929224
+
+lr_angulation : 38.08924484
+
+cc_angulation : 6.074772835
+
+volume_selection_method : 1
+
+phase_encoding_enable : "no"
+
+t1_measurement_enable : "no"
+
+t2_measurement_enable : "no"
+
+time_series_enable :  "no"
+
+image_plane_slice_thickness : 0
+
+slice_distance : 0
+
+nr_of_slices_for_multislice : 1
+
+Spec.image in plane transf : "plusA-plusB"
+
+!---------------------------------------------
+
+spec_data_type : cf
+
+spec_sample_extension :[V]
+
+!--------------------
+
+! Column parameters 
+
+!--------------------
+
+spec_num_col : 2048
+
+spec_col_lower_val : -1000
+
+spec_col_upper_val : -998.9760132
+
+spec_col_extension :[sec]
+
+!-----------------
+
+! Row parameters 
+
+!-----------------
+
+spec_num_row : 1
+
+spec_row_lower_val : 1
+
+spec_row_upper_val : 1
+
+spec_row_extension :[index]
+
+!-------------------------------------------------
+
+! Extra parameters in order to make data transfer 
+
+! possible between S15/ACS and SUNSPEC: 
+
+!-------------------------------------------------
+
+num_dimensions : 2
+
+!-------------------------------------------------
+
+dim1_ext       :[sec]
+
+dim1_pnts : 2048
+
+dim1_low_val : -1000
+
+dim1_step : 0.0005000000237
+
+dim1_direction : mu1
+
+dim1_t0_point : 0
+
+!-----------------------------------------------------
+
+dim2_ext :[num]
+
+dim2_pnts : 1
+
+dim2_low_val : 1.000000
+
+dim2_step : 1.000000
+
+dim2_direction : x
+
+dim2_t0_point : 50
+
+!-----------------------------------------------------
+
+dim3_ext :[num]
+
+dim3_pnts : 1
+
+dim3_low_val : 1.000000
+
+dim3_step : 1.000000
+
+dim3_direction : y
+
+dim3_t0_point : 50
+
+!---------------------------------------------------
+
+!   Additional parameters
+
+!---------------------------------------------------
+
+echo_acquisition : ECHO
+
+TSI_factor : 1
+
+spectrum_echo_time : 30
+
+spectrum_inversion_time : 0
+
+image_chemical_shift : 0
+
+resp_motion_comp_technique : NONE
+
+de_coupling : NO
+
+equipment_sw_verions : 6.0.541 ; .0.541 ; 
+
+placeholder1 : 
+
+placeholder2 : 
+
+!-----------------------------------------------------
+
