@@ -40,16 +40,16 @@ if in.dims.subSpecs>0
 else
     dimNum=1;
 end
-
+in_sub = op_takesubspec(in,dimNum);
 % %Zeropad the data if it hasn't already been done
-if ~in.flags.zeropadded
-    in_zp=op_zeropad(in,4);
+if ~in_sub.flags.zeropadded
+    in_zp=op_zeropad(in_sub,4);
 else
-    in_zp=in;
+    in_zp=in_sub;
 end
 
 %Find the ppm of the maximum peak magnitude within the given range:
-ppmindex=find(abs(in_zp.specs(in_zp.ppm>ppmmin & in_zp.ppm<ppmmax,dimNum))==max(abs(in_zp.specs(in_zp.ppm>ppmmin & in_zp.ppm<ppmmax,dimNum))));
+ppmindex=find(abs(in_zp.specs(in_zp.ppm>ppmmin & in_zp.ppm<ppmmax))==max(abs(in_zp.specs(in_zp.ppm>ppmmin & in_zp.ppm<ppmmax))));
 ppmrange=in_zp.ppm(in_zp.ppm>ppmmin & in_zp.ppm<ppmmax);
 ppmmax=ppmrange(ppmindex);
 
