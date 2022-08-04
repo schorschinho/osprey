@@ -305,6 +305,8 @@ if strcmp(jobFileFormat,'json')
     end
     if isfield(jobStruct,'ECCmm')
         MRSCont.opts.ECC.mm = str2num(jobStruct.ECCmm);
+    else
+        MRSCont.opts.ECC.mm = 1;
     end
     if isfield(jobStruct,'MM3coModel')
         opts.fit.coMM3 = jobStruct.MM3coModel;
@@ -381,12 +383,12 @@ end
 if exist('opts','var')
     names = fields(opts);
     for f = 1 : length(names)
-        if ~strcmp(names{f},'fit')
+        if ~strcmp(names{f},'fit') && ~strcmp(names{f},'ECC')
             MRSCont.opts.(names{f}) = opts.(names{f});
         else
-        	names_fit = fields(opts.(names{f}));
-            for nf = 1 : length(names_fit)
-                MRSCont.opts.fit.(names_fit{nf}) = opts.fit.(names_fit{nf}); 
+        	names_second = fields(opts.(names{f}));
+            for nf = 1 : length(names_second)
+                MRSCont.opts.(names{f}).(names_second{nf}) = opts.(names{f}).(names_second{nf}); 
             end
         end
     end
@@ -711,7 +713,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 2.3.0';
+MRSCont.ver.Osp             = 'Osprey 2.4.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
@@ -752,7 +754,7 @@ if ~GUI
              if askloadMRSCont=='n' || askloadMRSCont=='N'
                 disp('Aborted! No new job loaded.');
                 return;
-                else if askloadMRSCont=='y' || askloadMRSCont=='y'
+                else if askloadMRSCont=='y' || askloadMRSCont=='Y'
                         MRSContNew = MRSCont;
                         load(fullfile(outputFolder, outputFile));
                         kk = 1;

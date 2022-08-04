@@ -128,10 +128,10 @@ for kk = 1:MRSCont.nDatasets(1)
                 fitOpts_mm_clean.range=[mm_clean.ppm(1) mm_clean.ppm(end)];
                 [~,mm_clean_spline] = fit_Osprey_SplineOnly(mm_clean, 0.1, fitOpts_mm_clean.range);
                 mm_clean_spline.names = {'A_spline'};
-%                 temp               = op_zeropad(mm_clean, 16);
-%                 [refShift_mm, ~] = osp_XReferencing(temp,[0.91],[1],[0 4.2],1);% determine frequency shift
-                [mm_clean]             = op_freqshift(mm_clean,-fitParams_mm.refShift);
-                [mm_clean_spline]             = op_freqshift(mm_clean_spline,-fitParams_mm.refShift);
+                temp               = op_zeropad(mm_clean_spline, 16);
+                [refShift_mm, ~] = osp_XReferencing(temp,[0.91],[1],[0 4.2],1);% determine frequency shift
+                [mm_clean]             = op_freqshift(mm_clean,-refShift_mm);
+                [mm_clean_spline]             = op_freqshift(mm_clean_spline,-refShift_mm);
                 MRSCont.processed.mm{kk} = op_mergesubspec(MRSCont.processed.mm{kk},mm_clean);
                 MRSCont.processed.mm{kk} = op_mergesubspec(MRSCont.processed.mm{kk},mm_clean_spline);
 

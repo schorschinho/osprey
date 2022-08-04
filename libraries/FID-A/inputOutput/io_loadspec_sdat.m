@@ -26,15 +26,18 @@
 % OUTPUTS:
 % out        = Input dataset in FID-A structure format.
 
-function out = io_loadspec_sdat(filename,subspecs)
+function out = io_loadspec_sdat(filename,subspecs,series)
 
+if nargin<3
+    series = 0;
+end
 % Read in the data and header information
 [data, header] = philipsLoad(filename);
 
 % Determine the dimensions of the data
 data_size       = size(data);
 dims.t          = find(data_size == header.samples);
-if header.rows > 1 && header.averages > 1
+if (header.rows > 1 && header.averages > 1) && series
     if length(data_size) > 2 % Data has averages and series
         dims.averages   = find(data_size == header.averages);
         dims.extras   = find(data_size == header.rows);
@@ -52,7 +55,7 @@ if (isfield(header, 'nr_of_slices_for_multislice') && header.nr_of_slices_for_mu
     dims.Zvoxels = 3;
     dims.averages = 2;
     dims.extras = 0;
-else if header.rows > 1 && header.averages > 1
+else if (header.rows > 1 && header.averages > 1) && series
         if length(data_size) > 2 % Data has averages and series
             data = permute(data ,[dims.t dims.extras dims.averages]);
             dims.averages = 2;

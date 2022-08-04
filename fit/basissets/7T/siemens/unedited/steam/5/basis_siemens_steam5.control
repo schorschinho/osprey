@@ -1,0 +1,50 @@
+ $LCMODL
+ title= 'LMP_KECK_124_7T_BHB (22.06.02-09:36:59-DST-1.3.12.2.1107.5.2.34.18001) Series/Acq=17/1 (2022.06.02 10:30) svs_te5_vapor TR/TE/NS=4500/5/80, 8.000E+00mL (F 042Y, 66.6780868719kg) INVESTIGATORS Lilly  (MGH 7T)'
+ srcraw= '/autofs/space/countvronsky_001/users/antoine/Gannet/S124/BHB/PRE/LMP_KECK_124_7T_BHB.MR.INVESTIGATORS_LILLY.0017.0001.2022.06.02.11.21.07.262125.51170355.IMA'
+ srch2o= '/autofs/space/countvronsky_001/users/antoine/Gannet/S124/BHB/PRE/LMP_KECK_124_7T_BHB.MR.INVESTIGATORS_LILLY.0018.0001.2022.06.02.11.21.07.262125.51173433.IMA'
+ shifmx= 0.3 0.3
+ shifmn= -0.2 -0.1
+ savdir= '/autofs/space/countvronsky_001/users/antoine/Gannet/S124/BHB/PRE/'
+ rfwhm= 2.5
+ ppmst= 4.2
+ ppmshf= 0.0
+ ppmend= 0.5
+ pgnorm= 'US'
+ nuse1= 5
+ nunfil= 2048
+ nsimul= 0
+ nratio= 0
+ nomit= 5
+ ncombi= 5
+ namrel= 'Cr+PCr'
+ ltable= 7
+ lps= 8
+ lcsv= 11
+ hzpppm= 2.9705e+02
+ fwhmba= 0.0050
+ filtab= '/autofs/homes/003/ai926/.lcmodel/temp/08d-10h-31m-48s-10787pid/table'
+ filraw= '/autofs/homes/003/ai926/.lcmodel/temp/08d-10h-31m-48s-10787pid/met/RAW'
+ filps= '/autofs/homes/003/ai926/.lcmodel/temp/08d-10h-31m-48s-10787pid/ps'
+ filh2o= '/autofs/homes/003/ai926/.lcmodel/temp/08d-10h-31m-48s-10787pid/h2o/RAW'
+ filcsv= '/autofs/homes/003/ai926/.lcmodel/temp/08d-10h-31m-48s-10787pid/spreadsheet.csv'
+ filbas= '/autofs/homes/003/ai926/.lcmodel/basis-sets/steam7T_TE5ms_TM75ms_2.BASIS'
+ echot= 5.00
+ dows= T
+ doecc= T
+ dkntmn= 0.25
+ deltat= 2.500e-04
+ degzer= 0
+ degppm= 0
+ conrel= 8
+ chomit(5)= 'Ace'
+ chomit(4)= 'ATP'
+ chomit(3)= 'Gly'
+ chomit(2)= 'Thr'
+ chomit(1)= 'Cho'
+ chcomb(5)= 'PCho+GPC'
+ chcomb(4)= 'Cr+PCr'
+ chcomb(3)= 'NAA+NAAG'
+ chcomb(2)= 'Glu+Gln'
+ chcomb(1)= 'Glc+Tau'
+lcsi_sav_1 = 12,  filcsi_sav_1 = '/autofs/homes/003/ai926/.lcmodel/temp/08d-10h-31m-48s-10787pid/filcsi_sav_1', lcsi_sav_2 = 13,  filcsi_sav_2 = '/autofs/homes/003/ai926/.lcmodel/temp/08d-10h-31m-48s-10787pid/filcsi_sav_2'
+ $END

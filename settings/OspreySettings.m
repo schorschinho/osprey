@@ -28,6 +28,7 @@ MRSCont.flags.isHERCULES            = 0;
 MRSCont.flags.isPRIAM               = 0;
 MRSCont.flags.isMRSI                = 0;
 MRSCont.flags.isSPECIAL             = 0;
+MRSCont.flags.isSERIES              = 0;
 MRSCont.flags.addImages             = 0;
 MRSCont.flags.reordered             = 0;
 MRSCont.opts.savePDF                = 0;

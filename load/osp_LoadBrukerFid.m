@@ -137,51 +137,19 @@ for kk = 1:MRSCont.nDatasets(1)
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 if MRSCont.flags.isUnEdited
                     raw_ref = io_loadspec_bruk(MRSCont.files_ref{ref_ll,kk},1);
-                    [raw_ref] = op_rmempty(raw_ref);
+                    raw_ref = op_combine_water_subspecs(raw_ref,0);
                     raw_ref.flags.isUnEdited = 1;                
                 elseif MRSCont.flags.isMEGA
                     raw_ref = io_loadspec_bruk(MRSCont.files_ref{ref_ll,kk},2);
-                    if raw_ref.subspecs > 1
-                        raw_ref_A               = op_takesubspec(raw_ref,1);
-                        [raw_ref_A]             = op_rmempty(raw_ref_A);            % Remove empty lines
-                        raw_ref_B               = op_takesubspec(raw_ref,2);
-                        [raw_ref_B]             = op_rmempty(raw_ref_B);            % Remove empty lines
-                        raw_ref                 = op_concatAverages(raw_ref_A,raw_ref_B);
-                    else
-                        [raw_ref] = op_rmempty(raw_ref);
-                    end
+                    raw_ref = op_combine_water_subspecs(raw_ref,0);
                     raw_ref.flags.isMEGA = 1;
                 elseif MRSCont.flags.isHERMES
                     raw_ref = io_loadspec_bruk(MRSCont.files_ref{ref_ll,kk},1);
-                    if raw_ref.subspecs > 1
-                        raw_ref_A               = op_takesubspec(raw_ref,1);
-                        [raw_ref_A]             = op_rmempty(raw_ref_A);            % Remove empty lines
-                        raw_ref_B               = op_takesubspec(raw_ref,2);
-                        [raw_ref_B]             = op_rmempty(raw_ref_B);            % Remove empty lines
-                        raw_ref_C               = op_takesubspec(raw_ref,3);
-                        [raw_ref_C]             = op_rmempty(raw_ref_C);            % Remove empty lines
-                        raw_ref_D               = op_takesubspec(raw_ref,4);
-                        [raw_ref_D]             = op_rmempty(raw_ref_D);            % Remove empty lines
-                        raw_ref                 = op_concatAverages(raw_ref_A,raw_ref_B,raw_ref_C,raw_ref_D);  
-                    else
-                        [raw_ref] = op_rmempty(raw_ref); 
-                    end
+                    raw_ref = op_combine_water_subspecs(raw_ref,0);
                     raw_ref.flags.isHERMES = 1;
                 elseif MRSCont.flags.isHERCULES
                     raw_ref = io_loadspec_bruk(MRSCont.files_ref{ref_ll,kk},1);
-                    if raw_ref.subspecs > 1
-                        raw_ref_A               = op_takesubspec(raw_ref,1);
-                        [raw_ref_A]             = op_rmempty(raw_ref_A);            % Remove empty lines
-                        raw_ref_B               = op_takesubspec(raw_ref,2);
-                        [raw_ref_B]             = op_rmempty(raw_ref_B);            % Remove empty lines
-                        raw_ref_C               = op_takesubspec(raw_ref,3);
-                        [raw_ref_C]             = op_rmempty(raw_ref_C);            % Remove empty lines
-                        raw_ref_D               = op_takesubspec(raw_ref,4);
-                        [raw_ref_D]             = op_rmempty(raw_ref_D);            % Remove empty lines
-                        raw_ref                 = op_concatAverages(raw_ref_A,raw_ref_B,raw_ref_C,raw_ref_D);  
-                    else
-                        [raw_ref] = op_rmempty(raw_ref); 
-                    end
+                    raw_ref = op_combine_water_subspecs(raw_ref,0);
                     raw_ref.flags.isHERCULES = 1;
                 end
                 MRSCont.raw_ref{ref_ll,kk}  = raw_ref;
@@ -189,6 +157,7 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w   = io_loadspec_bruk(MRSCont.files_w{w_ll,kk},1);
+                raw_w = op_combine_water_subspecs(raw_w,0);
                 raw_w.flags.isUnEdited = 1;
                 MRSCont.raw_w{w_ll,kk}    = raw_w;
             end

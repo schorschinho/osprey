@@ -284,6 +284,7 @@ switch Module
                       else
                         temp = osp_plotLoad(MRSCont, kk,'ref',Exp,[Index(2) Index(3) Index(4)]);
                 end
+                drawnow;
                 ViewAxes = gca(); %re_mm
                 set( ViewAxes, 'Parent', Plot );
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex) '_Exp_' num2str(Exp) '_OspreyLoad_ref.pdf'];
@@ -299,6 +300,7 @@ switch Module
               else
                 temp = osp_plotLoad(MRSCont, kk,'w',Exp,[Index(2) Index(3) Index(4)]);
                 end
+                drawnow;
                 ViewAxes = gca(); %re_mm
                 set( ViewAxes, 'Parent', Plot );
                 outputFile      = [filename '_Voxel_' num2str(VoxelIndex)  '_Exp_' num2str(Exp) '_OspreyLoad_w.pdf'];
@@ -415,15 +417,15 @@ switch Module
                 waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 % Where are the metabolite names stored?
                 if strcmp(which, 'ref') || strcmp(which, 'w')
-                    basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.metab{kk}.sz(1)) '_' num2str(MRSCont.processed.metab{kk}.spectralwidth)]){1};
+                    basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(round(MRSCont.processed.metab{kk}.sz(1))) '_' num2str(round(MRSCont.processed.metab{kk}.spectralwidth))]){1};
                     basisSetNames = basisSet.name;
                     subSpecName = which;
                 else if strcmp(which, 'conc')
-                        basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.metab{kk}.sz(1)) '_' num2str(MRSCont.processed.metab{kk}.spectralwidth)]){basis,1};
+                        basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(round(MRSCont.processed.metab{kk}.sz(1))) '_' num2str(round(MRSCont.processed.metab{kk}.spectralwidth))]){basis,1};
                         basisSetNames = basisSet.name;
                         subSpecName = basisSet.names{1};
                     else
-                        basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(MRSCont.processed.metab{kk}.sz(1)) '_' num2str(MRSCont.processed.metab{kk}.spectralwidth)]){basis,1,subspectrum};
+                        basisSet = MRSCont.fit.resBasisSet.(which).(['np_sw_' num2str(round(MRSCont.processed.metab{kk}.sz(1))) '_' num2str(round(MRSCont.processed.metab{kk}.spectralwidth))]){basis,1,subspectrum};
                         basisSetNames = basisSet.name;
                         subSpecName = basisSet.names{1};
                     end

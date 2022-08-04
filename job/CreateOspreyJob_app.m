@@ -538,6 +538,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.InteractiveOspreyjobfilegeneratorUIFigure.Color = [1 0.9882 0.9882];
             app.InteractiveOspreyjobfilegeneratorUIFigure.Position = [100 100 643 850];
             app.InteractiveOspreyjobfilegeneratorUIFigure.Name = 'Interactive Osprey jobfile generator';
+            app.InteractiveOspreyjobfilegeneratorUIFigure.Scrollable = 'on';
 
             % Create SpecifySequenceInformationPanel
             app.SpecifySequenceInformationPanel = uipanel(app.InteractiveOspreyjobfilegeneratorUIFigure);

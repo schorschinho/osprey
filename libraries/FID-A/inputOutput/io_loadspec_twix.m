@@ -80,7 +80,7 @@ isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
 isUniversal = ~isempty(strfind(sequence,'univ')); %Is JHU universal editing sequence
-isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implmented at Donders Institute NL
+isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implemented at Donders Institute NL
 isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
 %Make a pulse sequence identifier for the header (out.seq);
@@ -117,7 +117,7 @@ elseif isSiemens
     end
 end
 if isDondersMRSfMRI
-    seq = 'SLASER';
+    seq = 'SLASER_D';
 end
 if ~exist('seq')
     seq = 'HERMES';
@@ -200,6 +200,9 @@ Bo=twix_obj.hdr.Dicom.flMagneticFieldStrength;
 
 %Find the number of averages:
 Naverages=twix_obj.hdr.Meas.Averages;
+if isempty(Naverages)
+    Naverages=twix_obj.hdr.MeasYaps.lAverages;
+end
 
 %Find out if multiple coil elements were used:
 Ncoils=twix_obj.hdr.Meas.iMaxNoOfRxChannels;
@@ -471,7 +474,14 @@ spectralwidth=1/dwelltime;
 if strcmp(version,'ve')
     txfrq=twix_obj.hdr.Meas.lFrequency  ;
 else
-    txfrq=twix_obj.hdr.Meas.Frequency;
+    try
+        txfrq=twix_obj.hdr.Meas.Frequency;
+    catch
+        txfrq=twix_obj.hdr.MeasYaps.sTXSPEC.asNucleusInfo{1, 1}.lFrequency;
+    end
+    if isempty(txfrq)
+        txfrq=twix_obj.hdr.MeasYaps.sTXSPEC.asNucleusInfo{1, 1}.lFrequency;
+    end
 end
 
 %Get Date

@@ -14,16 +14,12 @@ function out = osp_plotProcess(MRSCont, kk, which_spec,SubSpectraIndex,ExtraInde
 %   OUTPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
-%       which    = String for the spectrum to fit (optional)
-%                   OPTIONS:    'A' (default)
-%                               'B' (for MEGA, HERMES, HERCULES)
-%                               'C' (for HERMES, HERCULES)
-%                               'D' (for HERMES, HERCULES)
-%                               'diff1' (for MEGA, HERMES, HERCULES)
-%                               'diff2' (for HERMES, HERCULES)
-%                               'sum' (for MEGA, HERMES, HERCULES)
+%       which_spec  = String for the spectrum to fit (optional)
+%                   OPTIONS:    'metab' (default)
+%                               'mm'
 %                               'ref'
 %                               'w'
+%       SubSpectraIndex = Index for the subspectra dimension
 %       ExtraIndex = Index for the extra dimension
 %       VoxelIndex = Index for the Voxel
 %       xlab     = Label for the x-axis (optional.  Default = 'Frequency (ppm)');
@@ -97,14 +93,24 @@ else
     colormap.Accent         = [11/255 71/255 111/255];
 end
 
+if ~isnumeric(SubSpectraIndex)
+    SubSpectraIndex = find(strcmp(MRSCont.processed.(which_spec){kk}.names,SubSpectraIndex));
+    if isempty(SubSpectraIndex)
+        SubSpectraIndex = 1;
+    end
+end
 % Pick right entries from the processed struct
 switch which_spec
-    case {'A', 'B', 'C', 'D','diff1','diff2','diff3','sum','metab'} 
-        which_sub_spec = MRSCont.processed.(which_spec){kk}.names{ExtraIndex,SubSpectraIndex};
+    case {'A', 'B', 'C', 'D','diff1','diff2','diff3','sum'} 
         which_spec = 'metab';
-    case {'A_mm', 'B_mm', 'C_mm', 'D_mm','diff1_mm','diff2_mm','diff3_mm','sum_mm','mm'}
-        which_sub_spec = MRSCont.processed.(which_spec){kk}.names{ExtraIndex,SubSpectraIndex};
+        which_sub_spec = MRSCont.processed.(which_spec){kk}.names{ExtraIndex,SubSpectraIndex}; 
+    case {'A_mm', 'B_mm', 'C_mm', 'D_mm','diff1_mm','diff2_mm','diff3_mm','sum_mm'}
         which_spec = 'mm';
+        which_sub_spec = MRSCont.processed.(which_spec){kk}.names{ExtraIndex,SubSpectraIndex};
+    case {'metab'} 
+        which_sub_spec = MRSCont.processed.(which_spec){kk}.names{ExtraIndex,SubSpectraIndex};
+    case {'mm'}
+        which_sub_spec = MRSCont.processed.(which_spec){kk}.names{ExtraIndex,SubSpectraIndex};
     otherwise
         which_sub_spec = which_spec;
 end  

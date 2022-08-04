@@ -200,7 +200,11 @@ function osp_updateLoadWindow(gui)
                 set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children);
                 set(gui.Plot.data{gui.load.Selected}.Children.Title, 'String', ViewAxes.Title.String);
                 set(gui.Plot.data{gui.load.Selected}.Children, 'XLim',ViewAxes.XLim);
-                set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files_ref{Exp,gui.controls.Selected}] );
+                if ~isempty(MRSCont.files_ref)
+                    set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files_ref{Exp,gui.controls.Selected}] );
+                else
+                    set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files{Exp,gui.controls.Selected}] );
+                end
             case 'MM reference'
                 if Exp > max(MRSCont.opts.MultipleSpectra.mm_ref)
                     Exp = 1;

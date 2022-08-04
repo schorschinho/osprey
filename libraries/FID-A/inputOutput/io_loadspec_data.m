@@ -371,8 +371,15 @@ if n_mixes == 2
         end
     else
         if dims_w.averages~=0
-            averages_w=sz_w(dims_w.averages);
-            rawAverages_w=averages_w;
+            try
+                averages_w=sz_w(dims_w.averages);
+                rawAverages_w=averages_w;
+            catch
+                averages_w=1;
+                rawAverages_w=1;
+                dims_w.averages=0;
+            end
+                
         else
             averages_w=1;
             rawAverages_w=1;
