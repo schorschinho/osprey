@@ -1,5 +1,5 @@
 # Pull request CI pipeline for Osprey
-# Triggers for each pull request into the develop branch
+# Triggers for each pull request into the develop branch 
 # Starts with a quick Single Subject PRESS test
 # If the first stage is successful a Full PRESS job is triggered
 
