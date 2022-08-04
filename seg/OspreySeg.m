@@ -683,9 +683,13 @@ AAL(aseg_dseg==15) = 17;% 4th Ventricle
 end
 
 function ApplyInverseDeformationField(TransformationField,maskFile)
-    template = which('osprey/libraries/MRIcroGL/templates/spm152.nii');
-    template = spm_vol(template);
-    [BB,vx] = spm_get_bbox(template);
+    % Set the BB from spm152 template here
+%     template = which('osprey/libraries/MRIcroGL/templates/spm152.nii');
+%     template = spm_vol(template);
+%     [BB,vx] = spm_get_bbox(template);
+    BB = [-75.7625,-110.7625,-71.7625;...
+            76.1549,77.2906,86.0546];
+    vx = [0.7375,0.7375,0.7375];
     matlabbatch{1}.spm.spatial.normalise.write.subj.def = {TransformationField};
     matlabbatch{1}.spm.spatial.normalise.write.subj.resample = {[maskFile ',1']};
     matlabbatch{1}.spm.spatial.normalise.write.woptions.bb = BB;
