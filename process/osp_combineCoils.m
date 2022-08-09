@@ -187,7 +187,7 @@ else
             end
             MRSCont.raw{metab_ll,kk}     = raw_comb;
             MRSCont.raw_ref{ref_ll,kk} = raw_ref_comb;
-            if MRSCont.raw_ref{ref_ll,kk}.subspecs > 1 && ~isSpecial && (length(size(MRSCont.raw_ref{ref_ll,kk}.fids)) > 2)
+            if MRSCont.raw_ref{ref_ll,kk}.subspecs > 1 && ~isSpecial && (length(size(MRSCont.raw_ref{ref_ll,kk}.fids)) >= 2)
                 MRSCont.raw_ref{ll,kk} = op_combine_water_subspecs(MRSCont.raw_ref{ll,kk},0);
             else
                 % Maintain spatial sub-spectra for SPECIAL-localized data.
@@ -238,7 +238,7 @@ else
             end
             MRSCont.raw{metab_ll,kk}     = raw_comb;
             MRSCont.raw_ref{ref_ll,kk} = raw_ref_comb;
-            if MRSCont.raw_ref{ref_ll,kk}.subspecs > 1 && ~isSpecial && (length(size(MRSCont.raw_ref{ref_ll,kk}.fids)) > 2)
+            if MRSCont.raw_ref{ref_ll,kk}.subspecs > 1 && ~isSpecial && (length(size(MRSCont.raw_ref{ref_ll,kk}.fids)) >= 2)
                 MRSCont.raw_ref{ll,kk} = op_combine_water_subspecs(MRSCont.raw_ref{ll,kk},0);
             else
                 % Maintain spatial sub-spectra for SPECIAL-localized data.

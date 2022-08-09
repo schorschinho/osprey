@@ -79,7 +79,8 @@ isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's 
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
-isUniversal = ~isempty(strfind(sequence,'univ')); %Is JHU universal editing sequence
+isUniversal = ~isempty(strfind(sequence,'univ')) ||... %Is JHU universal editing sequence
+              ~isempty(strfind(sequence,'smm_svs_herc')); % Is Pavi's HERCULES sequence
 isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implemented at Donders Institute NL
 isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
