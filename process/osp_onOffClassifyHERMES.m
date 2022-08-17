@@ -1,5 +1,5 @@
-function [out, commuteOrder] = osp_onOffClassifyHERMES(in, target)
-%% [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(inA, inB, inC, inD)
+function [out, commuteOrder] = osp_onOffClassifyHERMES(in, target,Order)
+%% [outA, outB, outC, outD, commuteOrder] = osp_onOffClassifyHERMES(in, target,Order)
 %   This function decides how the four-provided HERMES/HERCULES sub-spectra are
 %   being edited. Currently, this function works for all combinations of
 %   HERMES and HERCULES that include GABA and GSH editing.
@@ -16,10 +16,12 @@ function [out, commuteOrder] = osp_onOffClassifyHERMES(in, target)
 %       - the GABA-ON-GSH-ON spectrum to field D
 %
 %   USAGE:
-%       [out] = osp_onOffClassifyMEGA(in)
+%       [out] = osp_onOffClassifyHERMES(in, target,Order)
 %
 %   INPUTS:
 %       in     = FID-A structure containing the all sub-spectra.
+%       target = editing targets
+%       Order  = manual overwrite order
 %
 %   OUTPUTS:
 %       out    = FID-A structure containing sorted sub-spectra.
@@ -40,68 +42,111 @@ function [out, commuteOrder] = osp_onOffClassifyHERMES(in, target)
 
 if nargin < 2
     target = 'GABAGSH';
+    Order = [];
+end
+if nargin < 3
+    Order = [];
 end
 
-inA = op_takesubspec(in,1);
-inB = op_takesubspec(in,2);
-inC = op_takesubspec(in,3);
-inD = op_takesubspec(in,4);
-
-
-switch target
-    case 'GABAGSH'
-        % Determine maximum signal intensities for water and NAA in each
-        % sub-spectrum.
-        [max_first(1), max_second(1)]  = findMaxNAAw(inA);
-        [max_first(2), max_second(2)]  = findMaxNAAw(inB);
-        [max_first(3), max_second(3)]  = findMaxNAAw(inC);
-        [max_first(4), max_second(4)]  = findMaxNAAw(inD);
-    case 'GABALac'
-        [max_first(1), max_second(1)]  = findMaxNAACr(inA);
-        [max_first(2), max_second(2)]  = findMaxNAACr(inB);
-        [max_first(3), max_second(3)]  = findMaxNAACr(inC);
-        [max_first(4), max_second(4)]  = findMaxNAACr(inD);
-    otherwise
-        [max_first(1), max_second(1)]  = findMaxNAAw(inA);
-        [max_first(2), max_second(2)]  = findMaxNAAw(inB);
-        [max_first(3), max_second(3)]  = findMaxNAAw(inC);
-        [max_first(4), max_second(4)]  = findMaxNAAw(inD);
-end
-
-% Sort the intensities in ascending order
-[~,order_first]   = sort(max_first);
-[~,order_second] = sort(max_second);
-
-% Now loop over the subspectra indices (A = 1, B = 2, etc) to determine
-% whether the respective experiments have high or low intensities:
-for ll = 1:4
-    idx_first   = find(order_first == ll);
-    idx_second = find(order_second == ll);
-
-    if ismember(idx_first,[3 4])
-        first.ON(ll) = 0;
-    elseif ismember(idx_first,[1 2])
-        first.ON(ll) = 1;
+if isempty(Order)
+    inA = op_takesubspec(in,1);
+    inB = op_takesubspec(in,2);
+    inC = op_takesubspec(in,3);
+    inD = op_takesubspec(in,4);
+    
+    
+    switch target
+        case 'GABAGSH'
+            % Determine maximum signal intensities for water and NAA in each
+            % sub-spectrum.
+            [max_first(1), max_second(1)]  = findMaxNAAw(inA);
+            [max_first(2), max_second(2)]  = findMaxNAAw(inB);
+            [max_first(3), max_second(3)]  = findMaxNAAw(inC);
+            [max_first(4), max_second(4)]  = findMaxNAAw(inD);
+        case 'GABALac'
+            [max_first(1), max_second(1)]  = findMaxNAACr(inA);
+            [max_first(2), max_second(2)]  = findMaxNAACr(inB);
+            [max_first(3), max_second(3)]  = findMaxNAACr(inC);
+            [max_first(4), max_second(4)]  = findMaxNAACr(inD);
+        otherwise
+            [max_first(1), max_second(1)]  = findMaxNAAw(inA);
+            [max_first(2), max_second(2)]  = findMaxNAAw(inB);
+            [max_first(3), max_second(3)]  = findMaxNAAw(inC);
+            [max_first(4), max_second(4)]  = findMaxNAAw(inD);
     end
-
-    if ismember(idx_second,[3 4])
-        second.ON(ll) = 0;
-    elseif ismember(idx_second,[1 2])
-        second.ON(ll) = 1;
+    
+    % Sort the intensities in ascending order
+    [~,order_first]   = sort(max_first);
+    [~,order_second] = sort(max_second);
+    
+    % Now loop over the subspectra indices (A = 1, B = 2, etc) to determine
+    % whether the respective experiments have high or low intensities:
+    for ll = 1:4
+        idx_first   = find(order_first == ll);
+        idx_second = find(order_second == ll);
+    
+        if ismember(idx_first,[3 4])
+            first.ON(ll) = 0;
+        elseif ismember(idx_first,[1 2])
+            first.ON(ll) = 1;
+        end
+    
+        if ismember(idx_second,[3 4])
+            second.ON(ll) = 0;
+        elseif ismember(idx_second,[1 2])
+            second.ON(ll) = 1;
+        end
+    
     end
-
-end
-
-% Determine the sub-spectra indices belonging to each editing pattern
-idx_OFF_OFF = ~second.ON & ~first.ON;
-idx_ON_OFF  = second.ON & ~first.ON;
-idx_OFF_ON  = ~second.ON & first.ON;
-idx_ON_ON   = second.ON & first.ON;
-
-% Commute for output
-try
+    
+    % Determine the sub-spectra indices belonging to each editing pattern
+    idx_OFF_OFF = ~second.ON & ~first.ON;
+    idx_ON_OFF  = second.ON & ~first.ON;
+    idx_OFF_ON  = ~second.ON & first.ON;
+    idx_ON_ON   = second.ON & first.ON;
+    
+    % Commute for output
+    try
+        temp = in;
+        out = in;
+        out.specs(:,1) = temp.specs(:,idx_OFF_OFF);
+        out.specs(:,2) = temp.specs(:,idx_ON_OFF);
+        out.specs(:,3) = temp.specs(:,idx_OFF_ON);
+        out.specs(:,4) = temp.specs(:,idx_ON_ON);
+        out.fids(:,1) = temp.fids(:,idx_OFF_OFF);
+        out.fids(:,2) = temp.fids(:,idx_ON_OFF);
+        out.fids(:,3) = temp.fids(:,idx_OFF_ON);
+        out.fids(:,4) = temp.fids(:,idx_ON_ON);
+    catch
+        idx_OFF_OFF = logical([0 0 0 1]);
+        idx_ON_OFF  = logical([0 1 0 0]);
+        idx_OFF_ON  = logical([1 0 0 0]);
+        idx_ON_ON   = logical([0 0 1 0]);
+        temp = in;
+        out = in;
+        out.specs(:,1) = temp.specs(:,idx_OFF_OFF);
+        out.specs(:,2) = temp.specs(:,idx_ON_OFF);
+        out.specs(:,3) = temp.specs(:,idx_OFF_ON);
+        out.specs(:,4) = temp.specs(:,idx_ON_ON);
+        out.fids(:,1) = temp.fids(:,idx_OFF_OFF);
+        out.fids(:,2) = temp.fids(:,idx_ON_OFF);
+        out.fids(:,3) = temp.fids(:,idx_OFF_ON);
+        out.fids(:,4) = temp.fids(:,idx_ON_ON);
+    end
+    
+    % Save commute order
+    commuteOrder = [find(idx_OFF_OFF), find(idx_ON_OFF), find(idx_OFF_ON), find(idx_ON_ON)];
+else
     temp = in;
     out = in;
+    idx_OFF_OFF = logical([0 0 0 0]);
+    idx_ON_OFF  = logical([0 0 0 0]);
+    idx_OFF_ON  = logical([0 0 0 0]);
+    idx_ON_ON   = logical([0 0 0 0]);
+    idx_OFF_OFF(Order(1)) = 1;
+    idx_ON_OFF(Order(2)) = 1;
+    idx_OFF_ON(Order(3)) = 1;
+    idx_ON_ON(Order(4)) = 1;
     out.specs(:,1) = temp.specs(:,idx_OFF_OFF);
     out.specs(:,2) = temp.specs(:,idx_ON_OFF);
     out.specs(:,3) = temp.specs(:,idx_OFF_ON);
@@ -110,25 +155,9 @@ try
     out.fids(:,2) = temp.fids(:,idx_ON_OFF);
     out.fids(:,3) = temp.fids(:,idx_OFF_ON);
     out.fids(:,4) = temp.fids(:,idx_ON_ON);
-catch
-    idx_OFF_OFF = logical([0 0 0 1]);
-    idx_ON_OFF  = logical([0 1 0 0]);
-    idx_OFF_ON  = logical([1 0 0 0]);
-    idx_ON_ON   = logical([0 0 1 0]);
-    temp = in;
-    out = in;
-    out.specs(:,1) = temp.specs(:,idx_OFF_OFF);
-    out.specs(:,2) = temp.specs(:,idx_ON_OFF);
-    out.specs(:,3) = temp.specs(:,idx_OFF_ON);
-    out.specs(:,4) = temp.specs(:,idx_ON_ON);
-    out.fids(:,1) = temp.fids(:,idx_OFF_OFF);
-    out.fids(:,2) = temp.fids(:,idx_ON_OFF);
-    out.fids(:,3) = temp.fids(:,idx_OFF_ON);
-    out.fids(:,4) = temp.fids(:,idx_ON_ON);
+    % Save commute order
+    commuteOrder = Order;
 end
-
-% Save commute order
-commuteOrder = [find(idx_OFF_OFF), find(idx_ON_OFF), find(idx_OFF_ON), find(idx_ON_ON)];
 
 end
 
