@@ -398,6 +398,10 @@ if ~isfield(MRSCont.opts, 'UnstableWater')
     MRSCont.opts.UnstableWater = 0;
 end
 
+if ~isfield(MRSCont.opts, 'Order')
+    MRSCont.opts.Order = [];
+end
+
 if ~isfield(MRSCont.opts, 'SubSpecAlignment')
     MRSCont.opts.SubSpecAlignment.mets = 'L2Norm';
     MRSCont.opts.SubSpecAlignment.mm = 'none';

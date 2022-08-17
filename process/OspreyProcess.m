@@ -397,7 +397,12 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             end
             if raw.flags.isMEGA
                 target = MRSCont.opts.editTarget{1}; % GABA editing as default
-                [raw, switchOrder]  = osp_onOffClassifyMEGA(raw, target);
+                if isfield(MRSCont.opts, 'Order')
+                    Order = MRSCont.opts.Order;
+                else
+                    Order = [];
+                end
+                [raw, switchOrder]  = osp_onOffClassifyMEGA(raw, target,Order);
                 raw.names = {'A','B'};
                 raw.target = MRSCont.opts.editTarget';
 
@@ -432,7 +437,12 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 if length(MRSCont.opts.editTarget) > 2
                    target3 = MRSCont.opts.editTarget{3};
                 end
-                [raw, commuteOrder] = osp_onOffClassifyHERMES(raw,[target1 target2]);
+                if isfield(MRSCont.opts, 'Order')
+                    Order = MRSCont.opts.Order;
+                else
+                    Order = [];
+                end
+                [raw, commuteOrder] = osp_onOffClassifyHERMES(raw,[target1 target2],Order);
                 raw.commuteOrder = commuteOrder;
                 raw.names = {'A', 'B', 'C', 'D'};
                 raw.target = MRSCont.opts.editTarget';
@@ -863,11 +873,11 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     % Loop over field names to populate descriptive fields of table for JSON export
     for JJ = 1:length(names)
         switch names{JJ}
-            case 'NAA_SNR'
+            case 'Cr_SNR'
                 MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'Cr_SNR'} = 'Signal to noise ratio of creatine';
                 MRSCont.QM.tables.Properties.VariableDescriptions{'Cr_SNR'} = ['The maximum amplitude of the creatine peak divided by twice the standard deviation of the noise calculated from subspectrum ' name];
                 MRSCont.QM.tables.Properties.VariableUnits{'Cr_SNR'} = 'arbitrary';
-            case 'NAA_FWHM'
+            case 'Cr_FWHM'
                 MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'Cr_FWHM'} = 'Full width at half maximum of creatine';
                 MRSCont.QM.tables.Properties.VariableDescriptions{'Cr_FWHM'} = ['The width of the creatine peak at half the maximum amplitude calculated as the average of the FWHM of the data and the FWHM of a lorentzian fit calculated from subspectrum ' name];
                 MRSCont.QM.tables.Properties.VariableUnits{'Cr_FWHM'} = 'Hz';
