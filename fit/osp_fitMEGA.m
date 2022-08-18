@@ -71,7 +71,7 @@ for kk = 1:MRSCont.nDatasets(1)
             % Apply scaling factor to the data
             dataToFit   = op_takesubspec(MRSCont.processed.metab{kk},'A');
             basisSetOff = MRSCont.fit.basisSet;
-            basisSetOff.name{1} = 'A'; 
+            basisSetOff.names{1} = 'A'; 
             basisSetOff.fids = basisSetOff.fids(:,:,1);
             basisSetOff.specs = basisSetOff.specs(:,:,1);
             dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
@@ -103,7 +103,7 @@ for kk = 1:MRSCont.nDatasets(1)
             end
 
             fitOpts.GAP = MRSCont.opts.fit.GAP.diff1;
-            basisSetDiff1.name{1} = 'diff1';
+            basisSetDiff1.names{1} = 'diff1';
             % Call the fit function
             [fitParamsDiff1, resBasisSetDiff1]  = fit_runFit(dataToFit, basisSetDiff1, fitModel, fitOpts);
 
