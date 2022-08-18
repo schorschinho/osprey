@@ -343,7 +343,7 @@ if strcmp(jobFileFormat,'json')
         MRSCont.opts.savePDF = 0;
     end
     if isfield(jobStruct,'includeMetabs')
-        opts.fit.includeMetabs = jobStruct.includeMetabs';
+        opts.fit.includeMetabs = {jobStruct.includeMetabs'};
     else
         opts.fit.includeMetabs = {'default'};
     end
