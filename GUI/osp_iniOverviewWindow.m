@@ -499,6 +499,7 @@ end
                     [temp] = osp_plotScatter(MRSCont, MRSCont.overview.FitSpecNamesStruct.(FitNames{1}){1,1}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.overview.Selected.Metab},MRSCont.QM{1,gui.controls.act_x}.SNR.A(1,:,1)',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
                 end
                 ViewAxes = gca();
+                drawnow
                 set(ViewAxes, 'Parent', gui.Plot.corrOv);
                 set(gui.Plot.corrOv,'Heights', [-0.1 -0.87 -0.03]);
                 gui.Plot.corrOv.Children(3).Legend.Location = 'North';
