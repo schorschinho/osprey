@@ -23,13 +23,16 @@ if ~contains(Name,{'ses'},'IgnoreCase',true)
 else
     SepFiles =  split(Name, filesep);
     SepFiles(strcmp(SepFiles,''))=[];
-    ind = find(contains(ses,'ses'));
+    ind = find(contains(SepFiles,'ses'));
+    if length(ind) > 1
+        ind = ind(1);
+    end
     goUpNTimes = length(SepFiles) - ind;
     tempDir = fullfile(Name,repmat(['..' filesep],[1 goUpNTimes]));
     tempDir = dir(tempDir);
     tempDir = tempDir(1).folder;
     SepFiles =  split(tempDir, filesep);
-    PreFix = [PreFix '_' SepFiles{end-1}];
+    PreFix = [PreFix '_' SepFiles{end}];
 end
 
 end

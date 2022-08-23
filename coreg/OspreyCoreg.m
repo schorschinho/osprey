@@ -46,7 +46,19 @@ if MRSCont.nDatasets(1) > 1
     specFile2 = MRSCont.files{2};
     [~, SpecName, ~]  = fileparts(specFile);
     [~, SpecName2, ~]  = fileparts(specFile2);
-    SameName = strcmp(SpecName,SpecName2);
+    if ~isempty(SpecName) && ~isempty(SpecName2)
+        SameName = strcmp(SpecName,SpecName2);
+    else
+        [DirName, ~, ~]  = fileparts(specFile);
+        [DirName2, ~, ~]  = fileparts(specFile2);
+        SepFiles =  split(DirName, filesep);
+        SepFiles(strcmp(SepFiles,''))=[];
+        DirName = SepFiles{end};
+        SepFiles =  split(DirName2, filesep);
+        SepFiles(strcmp(SepFiles,''))=[];
+        DirName2 = SepFiles{end};
+        SameName = strcmp(DirName,DirName2);
+    end
 end
 MRSCont.coreg.SameName = SameName;
 
@@ -69,17 +81,25 @@ for kk = 1:MRSCont.nDatasets(1)
         
         if SameName
             [PreFix] = osp_generate_SubjectAndSessionPrefix(MRSCont.files{kk},kk);
+            PreFix = [PreFix '_'];
         else
             PreFix = '';
         end
 
         % Get the input file name
-        [~,filename,~]   = fileparts(MRSCont.files{kk});
+        if ~exist('DirName','var')
+            [~,filename,~]   = fileparts(MRSCont.files{kk});
+        else
+            [dirname,~,~]   = fileparts(MRSCont.files{kk});
+            SepFiles =  split(dirname, filesep);
+            SepFiles(strcmp(SepFiles,''))=[];
+            filename = SepFiles{end};
+        end
         % Get the nii file name
         [~,~,T1ext]   = fileparts(MRSCont.files_nii{kk});
         
         %<source_entities>[_space-<space>][_res-<label>][_den-<label>][_label-<label>][_desc-<label>]_mask.nii.gz
-        saveName = [PreFix '_' filename '_space-scanner']; %CWDJ Check space.
+        saveName = [PreFix filename '_space-scanner']; %CWDJ Check space.
         
         % Generate file name for the voxel mask NIfTI file to be saved under
         maskFile            = fullfile(saveDestination, [saveName '_mask.nii']);

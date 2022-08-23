@@ -290,8 +290,15 @@ for kk = 1:MRSCont.nDatasets(1)
 
             % Get the input file name
             [~,filename,~]   = fileparts(MRSCont.files{kk});
+            if isempty(filename)
+                [dirname,~,~]   = fileparts(MRSCont.files{kk});
+                SepFiles =  split(dirname, filesep);
+                SepFiles(strcmp(SepFiles,''))=[];
+                filename = SepFiles{end};
+            end
             if MRSCont.coreg.SameName
                 [PreFixMask] = osp_generate_SubjectAndSessionPrefix(MRSCont.files{kk},kk);
+                PreFix = [PreFix '_'];
             else
                 PreFixMask = '';
             end
@@ -299,7 +306,7 @@ for kk = 1:MRSCont.nDatasets(1)
             % <source_entities>[_space-<space>][_res-<label>][_label-<label>][_desc-<label>]_probseg.nii.gz
             % e.g.
             % sub-01_acq-press_space-individual_desc-dlpfc_label-GM_probseg.nii.gz
-            saveName = [PreFixMask '_' filename '_space-scanner']; %CWDJ Check space.
+            saveName = [PreFixMask filename '_space-scanner']; %CWDJ Check space.
 
             %Add voxel number for DualVoxel
             if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
