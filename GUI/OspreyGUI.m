@@ -272,7 +272,10 @@ classdef OspreyGUI < handle
             %Version check and updating log file
             MRSCont.flags.isGUI = 1;
             outputFolder = MRSCont.outputFolder;
-        
+            
+            %Add cosmetics
+            MRSCont.opts.cosmetics.LB = 0;
+            MRSCont.opts.cosmetics.Zoom = 2.75;
             %% Create the overall figure            
             gui.figure = figure('Name', 'Osprey', 'Tag', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on','Menu', 'none',...
                                 'ToolBar', 'none', 'HandleVisibility', 'on', 'Renderer', 'painters', 'Color', gui.colormap.Background);

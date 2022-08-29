@@ -26,9 +26,9 @@ function osp_updateFitWindow(gui)
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         Selection = gui.fit.Names{gui.fit.Selected};
 
-        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
-        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
-        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(4).Children(1).Children.Children(4),'String',gui.controls.act_z)
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(4).Children(1).Children.Children(5),'String',gui.controls.act_y)
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(4).Children(1).Children.Children(6),'String',gui.controls.act_x)
         switch MRSCont.opts.fit.method
             case 'LCModel'
                 gui.Results.FitTextCRLB = gui.Results.fit{gui.fit.Selected}.Children.Children(1);
