@@ -72,7 +72,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 mm_ll = MRSCont.opts.MultipleSpectra.mm(ll);
                 raw_mm                         = MRSCont.raw_mm{mm_ll,kk};              % Get the kk-th dataset re_mm
                 if raw_mm.averages > 1 && raw_mm.flags.averaged == 0 %re_mm
-                    [raw_mm,fs,phs]               = op_alignAverages(raw_mm, 1, 'n'); %re_mm
+                    [raw_mm,fs,phs]            = op_alignAverages(raw_mm, 1, 'n'); %re_mm
                     raw_mm                     = op_averaging(raw_mm);            % Average re_mm
                 else %re_mm
                     raw_mm.flags.averaged  = 1; %re_mm
@@ -88,7 +88,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw_mm.target = {''};
                     raw_mm.specReg{1}.fs              = fs; % save align parameters
                     raw_mm.specReg{1}.phs             = phs; % save align parameters
-                    raw_mm.specReg{1}.weights{1}         = ones(size(phs)); % save align parameters
+                    raw_mm.specReg{1}.weights{1}      = ones(size(phs)); % save align parameters
                     driftPre = 0;
                 end
                 if raw_mm.flags.isMEGA
@@ -160,7 +160,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw_w = op_combine_water_subspecs(raw_w);
                 end
                 if ~MRSCont.flags.isMRSI
-                    [raw_w,~]                       = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
+                    [raw_w,~,inph]              = op_eccKlose(raw_w, raw_w);        % Klose eddy current correction
                 else
                     [raw_w,~]=op_autophase(raw_w,2,2*4.68);
                 end
