@@ -3,7 +3,7 @@ function osp_exportParam(MRSCont,path)
 % osp_exportParam is used to export the fitting parameters for each metabolite
 % and the spectrum as a whole.
   
-names = {'ph1','gauss','gaussMM','lorentzMetab','lorentzMM','ph0','ecc','fshift'};
+names = {'amplitude','lorentz','gauss','fshift','ph0','ph1','SNR','SNRstd','ecc'};
 num_basis_fcns = shape(MRSCont.fit.basisSet{?})
 % Define storage matrix as: [nDatasets,metab_amp,Lorentzians,Gaussians,fshifts,phi0,phi1,SNR,ecc]
 % index_dict stores names/indices
@@ -19,7 +19,7 @@ for kk = 1:MRSCont.nDatasets(1)
     parameters(kk,105)     = fit.results.metab.fitParams{?, kk}.ph0; % rad2deg()
     parameters(kk,106)     = fit.results.metab.fitParams{?, kk}.ph1; % rad2deg()
     parameters(kk,107)     = fit.results.metab.fitParams{?, kk}.SNR;
-    parameters(kk,107)     = fit.results.metab.fitParams{?, kk}.SNR;
+    parameters(kk,107)     = fit.results.metab.fitParams{?, kk}.SNRstd;
     parameters(kk,108)     = fit.results.metab.fitParams{?, kk}.ecc;
     
 %     MMdef(kk,1) = FullDefSin.fit.results.metab.fitParams{1, kk}.ph1;
@@ -66,15 +66,18 @@ for kk = 1:MRSCont.nDatasets(1)
 
 end
 
-csv_paths = fullfile(path,{'def.csv','upd.csv','M_sin.csv','M_sep.csv','iM_sin.csv','iM_sep.csv'})
+% csv_paths = fullfile(path,{'def.csv','upd.csv','M_sin.csv','M_sep.csv','iM_sin.csv','iM_sep.csv'})
 
     
-writetable(array2table(MMdef,'VariableNames',names),csv_paths{1},'Delimiter',','); % Write table with tab delimiter
-writetable(array2table(MMupd,'VariableNames',names),csv_paths{2},'Delimiter',','); % Write table with tab delimiter
-writetable(array2table(MM1G, 'VariableNames',names),csv_paths{3},'Delimiter',','); % Write table with tab delimiter
-writetable(array2table(MM2G, 'VariableNames',names),csv_paths{4},'Delimiter',','); % Write table with tab delimiter
-writetable(array2table(iMM1G,'VariableNames',names),csv_paths{5},'Delimiter',','); % Write table with tab delimiter
-writetable(array2table(iMM2G,'VariableNames',names),csv_paths{6},'Delimiter',','); % Write table with tab delimiter
+% writetable(array2table(MMdef,'VariableNames',names),csv_paths{1},'Delimiter',','); % Write table with tab delimiter
+% writetable(array2table(MMupd,'VariableNames',names),csv_paths{2},'Delimiter',','); % Write table with tab delimiter
+% writetable(array2table(MM1G, 'VariableNames',names),csv_paths{3},'Delimiter',','); % Write table with tab delimiter
+% writetable(array2table(MM2G, 'VariableNames',names),csv_paths{4},'Delimiter',','); % Write table with tab delimiter
+% writetable(array2table(iMM1G,'VariableNames',names),csv_paths{5},'Delimiter',','); % Write table with tab delimiter
+% writetable(array2table(iMM2G,'VariableNames',names),csv_paths{6},'Delimiter',','); % Write table with tab delimiter
+
+writetable(array2table(parameters, 'VariableNames', names), fullfile(path,'parameters.csv'),'Delimiter',',');
+save(fullfile(path,'parameters.mat'),'names',names,'parameters',parameters','linenames',basisfcn_names)
 
   
 end
