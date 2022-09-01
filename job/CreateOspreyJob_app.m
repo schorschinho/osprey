@@ -77,6 +77,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         AscCheckBox                     matlab.ui.control.CheckBox
         AlaCheckBox                     matlab.ui.control.CheckBox
         SpecifyDataHandlingandModelingOptionsPanel  matlab.ui.container.Panel
+        basissetfolderButton            matlab.ui.control.Button
         SavePDFCheckBox                 matlab.ui.control.CheckBox
         unstablewaterCheckBox           matlab.ui.control.CheckBox
         ECCmmMRSCheckBox                matlab.ui.control.CheckBox
@@ -451,10 +452,10 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
 
         % Button pushed function: OutputFolderButton
         function OutputFolderButtonPushed(app, event)
-            info = 'Please select the output folder';
-            pathname=uigetdir('*.*',info);
-            
-            app.OutputFolderEditField.Value = pathname;
+            info = 'Please select output folder';           
+            ndata = 1;
+            pathname  = spm_select(ndata,'dir',info,{},pwd);
+            app.OutputFolderEditField.Value = pathname(1,:);
         end
 
         % Button pushed function: CANCELButton
@@ -500,7 +501,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             ndata = 1;
             
-            basisfiles = spm_select(ndata,'any',info,{},pwd,'.mat','1');
+            basisfiles = spm_select(ndata,'any',info,{},pwd,'any','1');
             
             app.BasisSetEditField.Value = basisfiles(1,:);
         
@@ -524,6 +525,15 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.MM3coDropDownLabel.Enable = 'Off';
 
             end
+        end
+
+        % Button pushed function: basissetfolderButton
+        function basissetfolderButtonPushed(app, event)
+            info = 'Select the folder that contains all basis set files';           
+            ndata = 1;
+            basisfiles  = spm_select(ndata,'dir',info,{},pwd);
+            app.BasisSetEditField.Value = basisfiles(1,:);
+        
         end
     end
 
@@ -811,6 +821,15 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SavePDFCheckBox.Text = 'Save PDF';
             app.SavePDFCheckBox.FontColor = [0.0392 0.2706 0.4314];
             app.SavePDFCheckBox.Position = [552 95 75 22];
+
+            % Create basissetfolderButton
+            app.basissetfolderButton = uibutton(app.SpecifyDataHandlingandModelingOptionsPanel, 'push');
+            app.basissetfolderButton.ButtonPushedFcn = createCallbackFcn(app, @basissetfolderButtonPushed, true);
+            app.basissetfolderButton.FontWeight = 'bold';
+            app.basissetfolderButton.FontColor = [0.0392 0.2706 0.4314];
+            app.basissetfolderButton.Tooltip = {'Specify the folder that contains all the basis set files. This will envoke the automated basis set picker. This is not necessary when the basissets folder is in the Applications folder.'};
+            app.basissetfolderButton.Position = [313 10 119 22];
+            app.basissetfolderButton.Text = 'basis set folder';
 
             % Create SelectedMetabolitesPanel
             app.SelectedMetabolitesPanel = uipanel(app.InteractiveOspreyjobfilegeneratorUIFigure);
@@ -1179,7 +1198,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create MRSDataButton
             app.MRSDataButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.MRSDataButton.ButtonPushedFcn = createCallbackFcn(app, @MRSDataButtonPushed, true);
-            app.MRSDataButton.BackgroundColor = [0.8 0.8 0.8];
+            app.MRSDataButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.MRSDataButton.FontWeight = 'bold';
             app.MRSDataButton.FontColor = [0.0392 0.2706 0.4314];
             app.MRSDataButton.Tooltip = {'Add metaoblite data.'};
@@ -1189,7 +1208,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create H2OReferenceButton
             app.H2OReferenceButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.H2OReferenceButton.ButtonPushedFcn = createCallbackFcn(app, @H2OReferenceButtonPushed, true);
-            app.H2OReferenceButton.BackgroundColor = [0.8 0.8 0.8];
+            app.H2OReferenceButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.H2OReferenceButton.FontWeight = 'bold';
             app.H2OReferenceButton.FontColor = [0.0392 0.2706 0.4314];
             app.H2OReferenceButton.Enable = 'off';
@@ -1200,7 +1219,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create H2OShortTEButton
             app.H2OShortTEButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.H2OShortTEButton.ButtonPushedFcn = createCallbackFcn(app, @H2OShortTEButtonPushed, true);
-            app.H2OShortTEButton.BackgroundColor = [0.8 0.8 0.8];
+            app.H2OShortTEButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.H2OShortTEButton.FontWeight = 'bold';
             app.H2OShortTEButton.FontColor = [0.0392 0.2706 0.4314];
             app.H2OShortTEButton.Enable = 'off';
@@ -1211,7 +1230,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create MetaboliteNulledButton
             app.MetaboliteNulledButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.MetaboliteNulledButton.ButtonPushedFcn = createCallbackFcn(app, @MetaboliteNulledButtonPushed, true);
-            app.MetaboliteNulledButton.BackgroundColor = [0.8 0.8 0.8];
+            app.MetaboliteNulledButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.MetaboliteNulledButton.FontWeight = 'bold';
             app.MetaboliteNulledButton.FontColor = [0.0392 0.2706 0.4314];
             app.MetaboliteNulledButton.Enable = 'off';
@@ -1222,7 +1241,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create T1DataniftiniiButton
             app.T1DataniftiniiButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.T1DataniftiniiButton.ButtonPushedFcn = createCallbackFcn(app, @T1DataniftiniiButtonPushed, true);
-            app.T1DataniftiniiButton.BackgroundColor = [0.8 0.8 0.8];
+            app.T1DataniftiniiButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.T1DataniftiniiButton.FontWeight = 'bold';
             app.T1DataniftiniiButton.FontColor = [0.0392 0.2706 0.4314];
             app.T1DataniftiniiButton.Enable = 'off';
@@ -1297,7 +1316,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create OutputFolderButton
             app.OutputFolderButton = uibutton(app.SpecifyOutputFolderPanel, 'push');
             app.OutputFolderButton.ButtonPushedFcn = createCallbackFcn(app, @OutputFolderButtonPushed, true);
-            app.OutputFolderButton.BackgroundColor = [0.8 0.8 0.8];
+            app.OutputFolderButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.OutputFolderButton.FontWeight = 'bold';
             app.OutputFolderButton.FontColor = [0.0392 0.2706 0.4314];
             app.OutputFolderButton.Tooltip = {'Specifiy the output folder.'};
@@ -1353,7 +1372,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create StatcsvFileButton
             app.StatcsvFileButton = uibutton(app.InteractiveOspreyjobfilegeneratorUIFigure, 'push');
             app.StatcsvFileButton.ButtonPushedFcn = createCallbackFcn(app, @StatcsvFileButtonPushed, true);
-            app.StatcsvFileButton.BackgroundColor = [0.8 0.8 0.8];
+            app.StatcsvFileButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.StatcsvFileButton.FontWeight = 'bold';
             app.StatcsvFileButton.FontColor = [0.0392 0.2706 0.4314];
             app.StatcsvFileButton.Tooltip = {'Specifiy the statistics csv file.'};
@@ -1369,11 +1388,11 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create basissetfileButton
             app.basissetfileButton = uibutton(app.InteractiveOspreyjobfilegeneratorUIFigure, 'push');
             app.basissetfileButton.ButtonPushedFcn = createCallbackFcn(app, @basissetfileButtonPushed, true);
-            app.basissetfileButton.BackgroundColor = [0.8 0.8 0.8];
+            app.basissetfileButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.basissetfileButton.FontWeight = 'bold';
             app.basissetfileButton.FontColor = [0.0392 0.2706 0.4314];
             app.basissetfileButton.Tooltip = {'Specify basis set file in .mat format'};
-            app.basissetfileButton.Position = [318 481 119 23];
+            app.basissetfileButton.Position = [318 464 119 23];
             app.basissetfileButton.Text = 'basis set file';
 
             % Create FWHMMM3coLabel

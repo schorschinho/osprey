@@ -188,7 +188,9 @@ for kk = 1:MRSCont.nDatasets(1)
         if ~exist([pathLCModelBinary filesep bin],'file') %Binary is still missing
             error('ERROR: No LCModel binary found.  Aborting!!');
         else
-            addpath(which('libraries/LCModel'));
+            if ~(ismcc || isdeployed)
+                addpath(which('libraries/LCModel'));
+            end
         end
 
         callLCModel(MRSCont, MRSCont.opts.fit.lcmodel.controlfileA{kk},[pathLCModelBinary filesep bin]);

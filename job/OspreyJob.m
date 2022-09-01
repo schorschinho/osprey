@@ -219,6 +219,10 @@ if strcmp(jobFileFormat,'json')
     raw = fread(fid,inf); 
     str = char(raw'); 
     fclose(fid); 
+    if strcmp('win',osp_platform('filesys'))
+        str = strrep(str,'\','\\');
+    end
+    str = replace(str, whitespacePattern + '"', '"');
     jobStruct  = jsondecode(str);
 
     % Check whether the relevant fieldnames have been entered,
@@ -376,6 +380,13 @@ if strcmp(jobFileFormat,'json')
         MRSCont.opts.fit.fitMM = str2num(jobStruct.fitMM);
     else
         MRSCont.opts.fit.fitMM = 1;
+    end
+    if isfield(jobStruct,'basisSet')
+        if isfolder(jobStruct.basisSet)
+            opts.fit.basissetFolder = jobStruct.basisSet;
+        else
+            opts.fit.basisSetFile = jobStruct.basisSet;
+        end
     end
     debug = '11';
 end

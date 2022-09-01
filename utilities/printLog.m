@@ -191,7 +191,7 @@ if strcmp(Module,'OspreySeg')
         fprintf([reverseStr, msg]);
      end
     if GUI        
-        set(progressText,'String' ,sprintf('Coregistering voxel from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1)));
+        set(progressText,'String' ,sprintf('Segmenting structural image from dataset %3i out of %3i total datasets...\n', kk, nDatasets(1)));
         drawnow
     end   
 end

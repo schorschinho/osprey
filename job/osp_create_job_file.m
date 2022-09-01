@@ -120,6 +120,9 @@ fprintf(fid,'\n\t%s',['"uplim_rangew": "' num2str(num2str(rangew{2})) '",']);
 fprintf(fid,'\n\t%s',['"bLineKnotSpace": "' num2str(app.BaselineknotspacingppmEditField.Value) '",']);
 fprintf(fid,'\n\t%s',['"fitMM": "' num2str(app.AddMMandLipbasisfunctionstofitCheckBox.Value) '",']);
 
+if ~isempty(app.BasisSetEditField.Value)
+    fprintf(fid,'\n\t%s',['"basisSet": "' app.BasisSetEditField.Value '",']);
+end
 
 if isempty(app.MRSDataText.Value{1})
     error('A MRS data file should be specified')

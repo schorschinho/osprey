@@ -74,7 +74,7 @@ gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBa
     set(gui.Buttons, 'ButtonSize', [300 60]);
     % Create Job
     gui.CreateJob = uicontrol('Parent', gui.Buttons,'Style','PushButton','String','Create Job','ForegroundColor', gui.colormap.Foreground,...
-                               'TooltipString', 'Create a OspreyJob .m-file');
+                               'TooltipString', 'Create a OspreyJob .json-file');
     set(gui.CreateJob,'Units','Normalized','Position',[0.1 0.9 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold');
     set(gui.CreateJob,'Callback',{@onCreateJob});
     % JobFile input button
