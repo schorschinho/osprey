@@ -47,7 +47,8 @@ MRSCont.opts.fit.coMM3              = 'none';           % Add co-edited MM3 peak
 MRSCont.opts.fit.FWHMcoMM3          = 14;               % FWHM [Hz] of the co-edited peak Default: 14 Hz.
 MRSCont.opts.ECC.raw                = 1;                % Do ECC for all metabolite spectra.
 MRSCont.opts.ECC.mm                 = 1;                 % Do ECC for all metabolite-nulled spectra.
-
+MRSCont.opts.cosmetics.LB           = 0;                % Do cosmetic LB
+MRSCont.opts.cosmetics.Zoom         = 2.75;             % Do cosmetic Zoom
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
@@ -92,5 +93,22 @@ MRSCont.flags.didSeg        = 0;
 MRSCont.flags.didFit        = 0;
 MRSCont.flags.didQuantify   = 0;
 MRSCont.flags.didOverview   = 0;
+
+if (ismcc || isdeployed)
+    currentDir = ctfroot;
+    [currentDir,~,~] = fileparts(currentDir);
+    SepFileList =  split(currentDir, filesep);
+    if ismac
+        index = find(strcmp(SepFileList,'application'));
+        if ~isempty(index)
+            MRSCont.opts.fit.basissetFolder = fullfile(SepFileList{1:index},'basissets');
+        else
+            MRSCont.opts.fit.basissetFolder = [];
+        end
+    end
+else
+    MRSCont.opts.fit.basissetFolder = [];
+end
+
 
 end
