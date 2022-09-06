@@ -80,7 +80,6 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw_ref = io_loadspec_dicom(MRSCont.files_ref{ref_ll,kk});
                 raw_ref = op_combine_water_subspecs(raw_ref,0);
                 MRSCont.raw_ref{ref_ll,kk}  = raw_ref;
-                end
                 if MRSCont.flags.isUnEdited
                     MRSCont.raw_ref{ref_ll,kk}.flags.isUnEdited = 1;
                 end
