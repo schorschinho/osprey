@@ -36,6 +36,10 @@ h2o_idx = find(strcmp(basisSet.name, 'H2O'));
 if isempty(h2o_idx)
     basisSet = load(MRSCont.opts.fit.basisSetFile);
     basisSet = basisSet.BASIS;
+    % Add basis spectra (if they were removed to reduce thhe file size)
+    if ~isfield(basisSet,'specs')
+        [basisSet]=osp_recalculate_basis_specs(basisSet);
+    end
     h2o_idx = find(strcmp(basisSet.name, 'H2O'));
 end
 idx_toKeep = zeros(basisSet.nMets + basisSet.nMM,1);
@@ -165,4 +169,16 @@ else
         MRSCont.fit.results.(str).fitParams{kk}   = fitParamsWater;
 end
                
+end
+
+function [basisSet]=osp_recalculate_basis_specs(basisSet)
+    % This function recalculates the basis spectra and ppm-axis of the
+    % basis set
+
+    basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
+
+    % Calcualte ppm-axis
+    f = [(-basisSet.spectralwidth/2)+(basisSet.spectralwidth/(2*basisSet.sz(1))):basisSet.spectralwidth/(basisSet.sz(1)):(basisSet.spectralwidth/2)-(basisSet.spectralwidth/(2*basisSet.sz(1)))];
+    basisSet.ppm = f/(basisSet.Bo*42.577);
+    basisSet.ppm=basisSet.ppm + basisSet.centerFreq;
 end

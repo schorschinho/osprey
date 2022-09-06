@@ -185,6 +185,11 @@ switch MRSCont.opts.fit.method
         basisSet = load(MRSCont.opts.fit.basisSetFile);
         basisSet = basisSet.BASIS;
 
+        % Add basis spectra (if they were removed to reduce thhe file size)
+        if ~isfield(basisSet,'specs')
+            [basisSet]=osp_recalculate_basis_specs(basisSet);
+        end
+
         % Generate the list of basis functions that are supposed to be included in
         % the basis set
         if ext
@@ -281,6 +286,10 @@ switch MRSCont.opts.fit.method
                 % to LCModel format (.basis)
                 basisSet = load(MRSCont.opts.fit.basisSetFile);
                 basisSet = basisSet.BASIS;
+                % Add basis spectra (if they were removed to reduce thhe file size)
+                if ~isfield(basisSet,'specs')
+                    [basisSet]=osp_recalculate_basis_specs(basisSet);
+                end
                 [~]      = io_writelcmBASIS(basisSet,[path filesep Bo '_' seq '_' MRSCont.vendor '_' te 'ms_noMM.BASIS'], MRSCont.vendor, seq);
                 % Save the newly generated .basis file back into the
                 % container.
@@ -396,4 +405,15 @@ switch MRSCont.opts.fit.method
 
 end
 
+end
+function [basisSet]=osp_recalculate_basis_specs(basisSet)
+    % This function recalculates the basis spectra and ppm-axis of the
+    % basis set
+
+    basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
+
+    % Calcualte ppm-axis
+    f = [(-basisSet.spectralwidth/2)+(basisSet.spectralwidth/(2*basisSet.sz(1))):basisSet.spectralwidth/(basisSet.sz(1)):(basisSet.spectralwidth/2)-(basisSet.spectralwidth/(2*basisSet.sz(1)))];
+    basisSet.ppm = f/(basisSet.Bo*42.577);
+    basisSet.ppm=basisSet.ppm + basisSet.centerFreq;
 end
