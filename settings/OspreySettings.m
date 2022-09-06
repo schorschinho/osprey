@@ -95,10 +95,10 @@ MRSCont.flags.didQuantify   = 0;
 MRSCont.flags.didOverview   = 0;
 
 if (ismcc || isdeployed)
-    currentDir = ctfroot;
-    [currentDir,~,~] = fileparts(currentDir);
-    SepFileList =  split(currentDir, filesep);
     if ismac
+        currentDir = ctfroot;
+        [currentDir,~,~] = fileparts(currentDir);
+         SepFileList =  split(currentDir, filesep);
         index = find(strcmp(SepFileList,'application'));
         if ~isempty(index)
             MRSCont.opts.fit.basissetFolder = fullfile(SepFileList{1:index},'basissets');
@@ -106,6 +106,19 @@ if (ismcc || isdeployed)
             MRSCont.opts.fit.basissetFolder = [];
         end
     end
+    if ispc
+        [~, result] = system('path');
+        currentDir = char(regexpi(result, 'Path=(.*?);', 'tokens', 'once'));
+        SepFileList =  split(currentDir, filesep);
+        MRSCont.opts.fit.basissetFolder =currentDir;
+        index = find(strcmp(SepFileList,'application'));
+        if ~isempty(index)
+            MRSCont.opts.fit.basissetFolder = fullfile(SepFileList{1:index},'basissets');
+        else
+            MRSCont.opts.fit.basissetFolder = [];
+        end
+    end
+    
 else
     MRSCont.opts.fit.basissetFolder = [];
 end

@@ -497,11 +497,11 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
 
         % Button pushed function: basissetfileButton
         function basissetfileButtonPushed(app, event)
-            info = 'Select a .mat basis file to overwrite the automatic basis set selection';
+            info = 'Select a basis file (.mat for Osprey / .basis for LCModel) to overwrite the automatic basis set selection';
             
             ndata = 1;
             
-            basisfiles = spm_select(ndata,'any',info,{},pwd,'any','1');
+            basisfiles = spm_select(ndata,'any',info,{},pwd,{'.mat','.BASIS','.basis'},'1');
             
             app.BasisSetEditField.Value = basisfiles(1,:);
         
