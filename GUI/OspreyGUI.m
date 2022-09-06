@@ -540,10 +540,18 @@ classdef OspreyGUI < handle
             close(gui.controls.waitbar);
         %% Here we add callback listeners triggered on selection changes
             set(gui.layout.tabs,'SelectionChangedFcn',{@osp_SelectionChangedFcn,gui});
-            set(gui.layout.rawTab, 'SelectionChangedFcn',{@osp_RawTabChangeFcn,gui});
-            set(gui.layout.proTab,'SelectionChangedFcn',{@osp_ProTabChangeFcn,gui});
-            set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});
-            set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});
+            if MRSCont.flags.didLoad
+                set(gui.layout.rawTab, 'SelectionChangedFcn',{@osp_RawTabChangeFcn,gui});
+            end
+            if MRSCont.flags.didProcess
+                set(gui.layout.proTab,'SelectionChangedFcn',{@osp_ProTabChangeFcn,gui});
+            end
+            if MRSCont.flags.didFit
+                set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});
+            end
+            if MRSCont.flags.didQuantify
+                set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});
+            end
             set(gui.layout.ListBox,'Callback', {@osp_onListSelection,gui},'KeyPressFcn',{@osp_WindowKeyDown,gui}, 'KeyReleaseFcn', {@osp_WindowKeyUp,gui});
                        
         end
