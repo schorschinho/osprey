@@ -55,7 +55,7 @@ for ll=1:(basisSet.nMets + basisSet.nMM)
             fids_interp(:,ll,rr)   = ifft(fftshift(specs_interp(:,ll,rr),1),[],1);
         else
             %disp('Length of vector is odd.  Doing circshift by 1');
-            fids_interp(:,ll,rr)   = ifft(circshift(fftshift(specs_interp(:,ll,rr),1)),[],1);
+            fids_interp(:,ll,rr)   = ifft(circshift(fftshift(specs_interp(:,ll,rr)),1),[],1);
         end
     end
 end
