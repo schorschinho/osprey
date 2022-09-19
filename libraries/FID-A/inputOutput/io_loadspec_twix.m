@@ -77,7 +77,8 @@ isjnseq=~isempty(strfind(sequence,'jn_')); %Is this another one of Jamie Near's 
 isWIP529=~isempty(strfind(sequence,'edit_529'));%Is this WIP 529 (MEGA-PRESS)?
 ismodWIP=(~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'edit_859'))); %Modified WIP
 isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
-isTLFrei=~isempty(strfind(sequence,'md_svs_edit')); %Is Thomas Lange's MEGA-PRESS sequence
+isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA-PRESS sequence
+         ~isempty(strfind(sequence,'md_svs_slaser_edit')); %Is Thomas Lange's MEGA-s-LASER sequence
 isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
@@ -114,6 +115,8 @@ elseif isMinn
             seq = 'MEGAPRESS';
         end
     end
+elseif isTLFrei && ~isempty(strfind(sequence,'md_svs_slaser_edit'))
+    seq = 'MEGASLASER';
 elseif isjnMP || isWIP529 || isWIP859 || isTLFrei || ismodWIP
     seq = 'MEGAPRESS';
 elseif isSiemens
@@ -564,6 +567,8 @@ elseif isMinn || isConnectom || isDondersMRSfMRI
     catch
         leftshift = twix_obj.image.freeParam(1);
     end
+elseif isTLFrei && strcmp(seq,'MEGASLASER')
+    leftshift = twix_obj.image.iceParam(5,1);
 else
     leftshift = twix_obj.image.freeParam(1);
 end
