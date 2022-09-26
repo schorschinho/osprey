@@ -25,8 +25,12 @@ function osp_updateQuantifyWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         gui.layout.EmptyQuantPlot = 0;
-        basisSet = MRSCont.fit.resBasisSet.metab.(['np_sw_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth))]){gui.controls.act_z,1,gui.controls.act_y};
-        subSpecName = basisSet.names{1};
+        try
+            basisSet = MRSCont.fit.resBasisSet.metab.(['np_sw_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth))]){gui.controls.act_z,1,gui.controls.act_y};
+            subSpecName = basisSet.names{1};
+        catch % For LCModel wrapper
+            subSpecName = MRSCont.quantify.names.SubSpectra{1};
+        end
         if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
             gui.upperBox.quant.Info = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(1);          
             set(gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(2).Children.Children.Children(4),'String',gui.controls.act_z)
