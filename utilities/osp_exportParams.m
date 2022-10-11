@@ -37,7 +37,7 @@ header.nDatasets     = MRSCont.nDatasets(1);
 
 
 % Define the structure for storage
-fields = fieldnames(MRSCont.fit.results.metab.fitParams{1, 1});
+fields = fieldnames(MRSCont.fit.results.metab.fitParams{1, 1})';
 fields(strcmp(fields, 'prelimParams')) = [];
 sz = [];
 for i=1:length(fields)
@@ -55,7 +55,7 @@ fields{length(fields)+1} = 'ECC';
 
 
 % Prepare for adding data
-params = cell2struct(params, fields, dim=1);
+params = cell2struct(params, fields);
 params.header = header; % Add the header
 
 
