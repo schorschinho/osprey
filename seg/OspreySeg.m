@@ -188,12 +188,6 @@ for kk = 1:MRSCont.nDatasets(1)
             end
             % If a GM-segmented file doesn't exist, start the segmentation
             if ~exist(segFile,'file')
-                %Uncompress .nii.gz if needed
-                if strcmp(T1extini,'.gz')
-                    gunzip(niftiFile);
-                    niftiFile = strrep(niftiFile,'.gz','');
-                end
-                T1ext = '.nii';
                 createSegJob(niftiFile);
                 movefile(fullfile(T1dir, ['c1' T1name T1ext]),fullfile(saveDestinationFilesSPM,['c1_' PreFix T1name '_space-scanner_spm12_pseg' T1ext]));
                 movefile(fullfile(T1dir, ['c2' T1name T1ext]),fullfile(saveDestinationFilesSPM,['c2_' PreFix T1name '_space-scanner_spm12_pseg' T1ext]));
@@ -201,13 +195,6 @@ for kk = 1:MRSCont.nDatasets(1)
                 movefile(fullfile(T1dir, ['y_' T1name T1ext]),fullfile(saveDestinationFilesSPM,[PreFix T1name '_spm12-transformation_field' T1ext]));
                 movefile(fullfile(T1dir, [T1name '_seg8.mat']),fullfile(saveDestinationFilesSPM,[PreFix T1name '_seg8.mat']));
             else
-                if strcmp(T1extini,'.gz')
-                    gunzip(niftiFile);
-                    niftiFile = strrep(niftiFile,'.gz','');
-                    T1ext = '.nii';
-                else
-                    T1ext = T1extini;
-                end
                 if exist(fullfile(saveDestinationFilesSPM,['c1_' PreFix T1name '_space-scanner_spm12_pseg.nii.gz']),'file')
                     gunzip(fullfile(saveDestinationFilesSPM, ['c1_' PreFix T1name '_space-scanner_spm12_pseg' T1ext '.gz']));
                     gunzip(fullfile(saveDestinationFilesSPM, ['c2_' PreFix T1name '_space-scanner_spm12_pseg' T1ext '.gz']));
