@@ -41,12 +41,14 @@ inph=unwrap(angle(inw.fids));
 
 % Now apply the eddy current correction to both the water-suppressed and the
 % water-unsuppressed data:
- out=in;
+out=in;
+out.phase_ecc = inph;
 if in.te == inw.te   
     out.fids=out.fids.*exp(1i*-inph);
     out.specs=fftshift(fft(out.fids,[],1),1);          
 end
 
 outw=inw;
+outw.phase_ecc = inph;
 outw.fids=outw.fids.*exp(1i*-inph);
 outw.specs=fftshift(fft(outw.fids,[],1),1);
