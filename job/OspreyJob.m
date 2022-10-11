@@ -249,7 +249,7 @@ if strcmp(jobFileFormat,'json')
         files_nii = jobStruct.files_nii';
     end
     if isfield(jobStruct, 'files_seg')
-        files_seg = {jobStruct.files_seg}';
+        files_seg = jobStruct.files_seg';
     end
     if isfield(jobStruct, 'files_sense')
         files_sense = jobStruct.sense';

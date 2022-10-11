@@ -142,7 +142,13 @@ for kk = 1:MRSCont.nDatasets(1)
         if strcmp(T1extini,'.gz')
             T1name = strrep(T1name, '.nii','');
         end
-
+        if strcmp(T1extini,'.gz')
+            gunzip(niftiFile);
+            niftiFile = strrep(niftiFile,'.gz','');
+            T1ext = '.nii';
+        else
+            T1ext = T1extini;
+        end
         if ~isempty(MRSCont.files_seg) %Use external segmentation
             if length(MRSCont.files_seg{kk}) > 1
                 segFileGM   = MRSCont.files_seg{kk}{1};
