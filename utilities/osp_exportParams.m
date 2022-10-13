@@ -53,6 +53,10 @@ params{length(params)+1} = empty([MRSCont.nDatasets(1), ...
                                   size(MRSCont.processed.metab{1,1}.phase_ecc)]);
 fields{length(fields)+1} = 'ECC';
 
+params{length(params)+1} = zeros([MRSCont.nDatasets(1), ...
+                                  size(MRSCont.QM.SNR.metab{1,1})]);
+fields{length(fields)+1} = 'SNR';
+
 
 % Prepare for adding data
 params = cell2struct(params, fields);
@@ -65,6 +69,7 @@ for k = 1:MRSCont.nDatasets(1)
         params.(fields{i})(k,:,:) = MRSCont.fit.results.metab.fitParams{1,k}(fields{i});
     end
     params.ECC(k,:,:) = MRSCont.processed.metab{1,k}.phase_ecc;
+    params.SNR(k,:,:) = MRSCont.QM.SNR.metab{1,k};
 end
 
 
