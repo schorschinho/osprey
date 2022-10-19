@@ -80,7 +80,8 @@ isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
 isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA-PRESS sequence
          ~isempty(strfind(sequence,'md_svs_slaser_edit')); %Is Thomas Lange's MEGA-s-LASER sequence
 isMinn=~isempty(strfind(sequence,'eja_svs_')) ||... %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
-       ~isempty(strfind(sequence,'svs_slaserVOI_dkd'));              % ... or Dinesh Deelchand's 2022 'plug and play' sLASER sequence?
+       ~isempty(strfind(sequence,'svs_slaser_dkd')) ||...   % ... or Dinesh Deelchand's 2016 sLASER sequence?
+       ~isempty(strfind(sequence,'svs_slaserVOI_dkd'));     % ... or Dinesh Deelchand's 2022 'plug and play' sLASER sequence?
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.

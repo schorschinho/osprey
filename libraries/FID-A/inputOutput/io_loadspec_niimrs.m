@@ -363,7 +363,7 @@ end
 % Calculate t and ppm arrays using the calculated parameters:
 f   =[(-sw/2) + (sw/(2*nPts)) : sw/(nPts) : (sw/2) - (sw/(2*nPts))];
 ppm = f / (Bo(1)*42.577);
-centerFreq = 4.65;
+centerFreq = 4.68;
 ppm = ppm + centerFreq;
 t   = [0 : dt : (nPts-1)*dt];
 
@@ -388,8 +388,8 @@ out.subspecs = subspecs;
 out.rawSubspecs = rawSubspecs;
 
 % Echo/repetition time
-out.te = hdr_ext.EchoTime;
-out.tr = hdr_ext.RepetitionTime;
+out.te = hdr_ext.EchoTime * 1e3;        % convert to [ms]
+out.tr = hdr_ext.RepetitionTime * 1e3;  % convert to [ms]
 
 % time and frequency axis
 out.t   = t;
