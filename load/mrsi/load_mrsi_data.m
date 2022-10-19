@@ -668,7 +668,18 @@ end
         geometry.rot.ap = str2double(sparheader{sparidx+2});
         sparidx=find(ismember(sparheader, 'cc_angulation')==1);
         geometry.rot.cc = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'slice_distance')==1);
+        geometry.slice_distance = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'phase_encoding_fov')==1);
+        geometry.phase_encoding_fov = str2double(sparheader{sparidx+2});
         fclose(sparname);
+
+
+        %UPDATE THE GEOMETRY INFORMATION
+        % We have to update geomtry information because the volume in the sdat
+        % doesn't represent the FOV of the MRSI
+        geometry.size.lr = geometry.phase_encoding_fov;
+        geometry.size.ap = geometry.phase_encoding_fov * (kx_tot/ky_tot);
     end
 
 

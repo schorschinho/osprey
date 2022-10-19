@@ -205,7 +205,7 @@ for kk = 1:MRSCont.nDatasets
 %         
 %           raw     = op_fddccorr(raw,100); % Correct back to baseline
 
-        raw.watersupp.amp = 0;
+%         raw.watersupp.amp = 0;
 
         
 

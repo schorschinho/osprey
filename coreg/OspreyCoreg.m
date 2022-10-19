@@ -101,8 +101,7 @@ for kk = 1:MRSCont.nDatasets
                          if ~MRSCont.flags.isMRSI % SVS coregistration
                             [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
                          else
-                              [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,[MRSCont.raw{kk}.nZvoxels MRSCont.raw{kk}.nXvoxels MRSCont.raw{kk}.nYvoxels]);
-%                                MRSCont.coreg.vol_mask_mrsi{kk} = vol_mask_mrsi;
+                              [vol_mask, T1_max, voxel_ctr,MRSI_res_mask] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,[MRSCont.raw{kk}.nZvoxels MRSCont.raw{kk}.nXvoxels MRSCont.raw{kk}.nYvoxels]);
                          end
                     case 'DATA'
                         if isfield(MRSCont.raw{kk}, 'geometry')
@@ -111,7 +110,7 @@ for kk = 1:MRSCont.nDatasets
                             elseif ~MRSCont.flags.isMRSI % PRIAM coregistration 
                                 [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
                             else
-                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,[MRSCont.raw{kk}.nZvoxels MRSCont.raw{kk}.nXvoxels MRSCont.raw{kk}.nYvoxels]);
+                                [vol_mask, T1_max, voxel_ctr,MRSI_res_mask] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,[MRSCont.raw{kk}.nZvoxels MRSCont.raw{kk}.nXvoxels MRSCont.raw{kk}.nYvoxels]);
                             end
                         else
                         msg = 'Philips DATA files do not contain voxel geometry information.';
@@ -156,6 +155,7 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.vol_mask{kk}  = vol_mask;
         MRSCont.coreg.T1_max{kk}    = T1_max;
         MRSCont.coreg.voxel_ctr{kk} = voxel_ctr;
+        MRSCont.coreg.MRSI_res_mask{kk} = MRSI_res_mask;
         
         if MRSCont.flags.addImages
             [MRSCont.coreg.three_plane_img{kk}] = osp_extract_three_plane_image(vol_image, vol_mask,voxel_ctr,T1_max);
@@ -166,8 +166,10 @@ for kk = 1:MRSCont.nDatasets
             delete(MRSCont.files_nii{kk});
             MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},'.nii','.nii.gz');
          end
-         gzip(vol_mask.fname);
-         delete(vol_mask.fname);
+         if ~MRSCont.flags.isMRSI
+             gzip(vol_mask.fname);
+             delete(vol_mask.fname);
+         end
             
     end
 end

@@ -1,4 +1,4 @@
-function out = osp_plotFit(MRSCont, kk, which_spec,VoxelIndex, conc, stagFlag, xlab, ylab, figTitle)
+function [out, ModelOutput] = osp_plotFit(MRSCont, kk, which_spec,VoxelIndex, conc, stagFlag, xlab, ylab, figTitle)
 %% out = osp_plotFit(MRSCont, kk, which, stagFlag, xlab, ylab, figTitle)
 %   Creates a figure showing data stored in an Osprey data container, as
 %   well as the fit to it, the baseline, the residual, and contributions
@@ -74,9 +74,9 @@ if nargin<9
                 VoxelIndex = [1 1];
              end
             if strcmp(which_spec, 'conc')
-                figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
+                figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2)) ' ' num2str(VoxelIndex(3))]);
             else
-                figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
+                figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2)) ' ' num2str(VoxelIndex(3))]);
             end
     end
     if nargin<8
@@ -141,20 +141,38 @@ if (MRSCont.flags.isPRIAM == 1) || (MRSCont.flags.isMRSI == 1)
             end
         end
     else
-        if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
-            fitRangePPM = MRSCont.opts.fit.rangeWater;
-            basisSet    = MRSCont.fit.resBasisSet.(which_spec).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
-        else if strcmp(which_spec, 'conc')
-                fitRangePPM = MRSCont.opts.fit.range;
-                basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
-            else if strcmp(which_spec, 'off')
+        try
+            if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+                fitRangePPM = MRSCont.opts.fit.rangeWater;
+                basisSet    = MRSCont.fit.resBasisSet.(which_spec).water.(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+            else if strcmp(which_spec, 'conc')
                     fitRangePPM = MRSCont.opts.fit.range;
                     basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
-                else
-                    fitRangePPM = MRSCont.opts.fit.range;
-                    basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                else if strcmp(which_spec, 'off')
+                        fitRangePPM = MRSCont.opts.fit.range;
+                        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                    else
+                        fitRangePPM = MRSCont.opts.fit.range;
+                        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(dataToPlot.sz(1)) '_' num2str(dataToPlot.spectralwidth)]);
+                    end
                 end
             end
+        catch
+            if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+                fitRangePPM = MRSCont.opts.fit.rangeWater;
+                basisSet    = MRSCont.fit.resBasisSet.(which_spec).water{1};
+            else if strcmp(which_spec, 'conc')
+                    fitRangePPM = MRSCont.opts.fit.range;
+                    basisSet    = MRSCont.fit.resBasisSet.(which_spec){MRSCont.info.diff1.unique_ndatapoint_indsort(kk)};
+                else if strcmp(which_spec, 'off')
+                        fitRangePPM = MRSCont.opts.fit.range;
+                        basisSet    = MRSCont.fit.resBasisSet.(which_spec){kk};
+                    else
+                        fitRangePPM = MRSCont.opts.fit.range;
+                        basisSet    = MRSCont.fit.resBasisSet.(which_spec){kk};
+                    end
+                end
+            end    
         end
     end
 else
@@ -193,7 +211,7 @@ end
 if (MRSCont.flags.isPRIAM == 1)
     fitParams   = MRSCont.fit.results{VoxelIndex}.(which_spec).fitParams{kk};
 elseif (MRSCont.flags.isMRSI == 1)
-    fitParams   = MRSCont.fit.results{VoxelIndex(1), VoxelIndex(2)}.(which_spec).fitParams{kk};
+    fitParams   = MRSCont.fit.results{VoxelIndex(1), VoxelIndex(2), VoxelIndex(3)}.(which_spec).fitParams{kk};
 else
     fitParams   = MRSCont.fit.results.(which_spec).fitParams{kk};
 end
@@ -216,6 +234,8 @@ inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
 inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
 inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
 inputSettings.concatenated.Subspec  = conc;
+
+fitParams.lb=2;
 
 %%% 3. PREPARE LINES TO DISPLAY %%%
 % Extract data, ppm axes, fit, residual, baseline, and individual
@@ -369,9 +389,10 @@ if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
 
         % Loop over all basis functions
         for rr = 1:nBasisFct
-            plot(ppm, indivPlots(:,rr)/maxPlot, 'Color', colours(rr,:), 'LineWidth', 1);
+%             plot(ppm, indivPlots(:,rr)/maxPlot, 'Color', colours(rr,:), 'LineWidth', 1);
+              plot(ppm, indivPlots(:,rr)/maxPlot, 'Color', MRSCont.colormap.Foreground, 'LineWidth', 1);
         end
-        legend([newline, basisSet.name], 'Orientation', 'horizontal');
+%         legend([newline, basisSet.name], 'Orientation', 'horizontal');
         hold off
 
     end

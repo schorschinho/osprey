@@ -86,6 +86,11 @@ for kk = 1:MRSCont.nDatasets
         if strcmp(T1ext,'.gz')
             T1name = strrep(T1name, '.nii','');
         end
+        if exist(fullfile(T1dir,['r' T1name '_pad.nii']))
+            [T1dir, T1name, T1ext]  = fileparts(fullfile(T1dir,['r' T1name '_pad.nii']));
+            niftiFile = fullfile(T1dir,[T1name T1ext]);
+        end
+        
 
         segFile               = fullfile(T1dir, [T1name '_seg8.mat']);
         % If a GM-segmented file doesn't exist, start the segmentation
@@ -123,138 +128,121 @@ for kk = 1:MRSCont.nDatasets
         CSFvol = spm_vol(segFileCSF);
         
         %Loop over voxels (for DualVoxel)
-        if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+        if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 0))
             Voxels = 1;
         else
-            Voxels = 2;
+            if ~MRSCont.flags.isMRSI
+                Voxels = 2;
+            else
+                Voxels = MRSCont.raw{kk}.nZvoxels;
+            end
         end
         for rr = 1 : Voxels
+            if ~MRSCont.flags.isMRSI
             % Get voxel mask filename
-            if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
-                vol_mask = MRSCont.coreg.vol_mask{kk};
-            else
-                vol_mask = MRSCont.coreg.vol_mask{kk}{rr};
+                if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+                    vol_mask = MRSCont.coreg.vol_mask{kk};
+                else
+                    vol_mask = MRSCont.coreg.vol_mask{kk}{rr};
+                end
+                if ~exist(vol_mask.fname,'file') && exist(strrep(vol_mask.fname,'.nii','.nii.gz'),'file')
+                    gunzip(strrep(vol_mask.fname,'.nii','.nii.gz'));
+                end
+                [maskDir, maskName, maskExt] = fileparts(vol_mask.fname);
+    
+                % Create and save masked tissue maps
+                % Get the input file name
+                [path,filename,~]   = fileparts(MRSCont.files{kk});
+                % For batch analysis, get the last two sub-folders (e.g. site and
+                % subject)
+                path_split          = regexp(path,filesep,'split');
+                if length(path_split) > 2
+                    saveName = [path_split{end-1} '_' path_split{end} '_' filename];
+                end
+                
+                %Add voxel number for DualVoxel
+                if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
+                    VoxelNum = '_Voxel_1';
+                else
+                    VoxelNum = ['_Voxel_' num2str(rr)];
+                end
+                
+                % GM
+                vol_GMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_GM' maskExt]);
+                vol_GMMask.descrip  = ['GMmasked_MRS_Voxel_Mask_' VoxelNum];
+                vol_GMMask.dim      = vol_mask.dim;
+                vol_GMMask.dt       = vol_mask.dt;
+                vol_GMMask.mat      = vol_mask.mat;
+                GM_voxmask_vol      = GMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+                vol_GMMask          = spm_write_vol(vol_GMMask, GM_voxmask_vol);
+    
+                % WM
+                vol_WMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_WM' maskExt]);
+                vol_WMMask.descrip  = ['WMmasked_MRS_Voxel_Mask_' VoxelNum];
+                vol_WMMask.dim      = vol_mask.dim;
+                vol_WMMask.dt       = vol_mask.dt;
+                vol_WMMask.mat      = vol_mask.mat;
+                WM_voxmask_vol      = WMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+                vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
+    
+                % CSF
+                vol_CSFMask.fname   = fullfile(saveDestination, [saveName VoxelNum '_CSF' maskExt]);
+                vol_CSFMask.descrip = ['CSFmasked_MRS_Voxel_Mask_' VoxelNum];
+                vol_CSFMask.dim     = vol_mask.dim;
+                vol_CSFMask.dt      = vol_mask.dt;
+                vol_CSFMask.mat     = vol_mask.mat;
+                CSF_voxmask_vol     = CSFvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
+                vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
             end
-            if ~exist(vol_mask.fname,'file') && exist(strrep(vol_mask.fname,'.nii','.nii.gz'),'file')
-                gunzip(strrep(vol_mask.fname,'.nii','.nii.gz'));
-            end
-            [maskDir, maskName, maskExt] = fileparts(vol_mask.fname);
-
-            % Create and save masked tissue maps
-            % Get the input file name
-            [path,filename,~]   = fileparts(MRSCont.files{kk});
-            % For batch analysis, get the last two sub-folders (e.g. site and
-            % subject)
-            path_split          = regexp(path,filesep,'split');
-            if length(path_split) > 2
-                saveName = [path_split{end-1} '_' path_split{end} '_' filename];
-            end
-            
-            %Add voxel number for DualVoxel
-            if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
-                VoxelNum = '_Voxel_1';
-            else
-                VoxelNum = ['_Voxel_' num2str(rr)];
-            end
-            
-            % GM
-            vol_GMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_GM' maskExt]);
-            vol_GMMask.descrip  = ['GMmasked_MRS_Voxel_Mask_' VoxelNum];
-            vol_GMMask.dim      = vol_mask.dim;
-            vol_GMMask.dt       = vol_mask.dt;
-            vol_GMMask.mat      = vol_mask.mat;
-            GM_voxmask_vol      = GMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
-            vol_GMMask          = spm_write_vol(vol_GMMask, GM_voxmask_vol);
-
-            % WM
-            vol_WMMask.fname    = fullfile(saveDestination, [saveName VoxelNum '_WM' maskExt]);
-            vol_WMMask.descrip  = ['WMmasked_MRS_Voxel_Mask_' VoxelNum];
-            vol_WMMask.dim      = vol_mask.dim;
-            vol_WMMask.dt       = vol_mask.dt;
-            vol_WMMask.mat      = vol_mask.mat;
-            WM_voxmask_vol      = WMvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
-            vol_WMMask          = spm_write_vol(vol_WMMask, WM_voxmask_vol);
-
-            % CSF
-            vol_CSFMask.fname   = fullfile(saveDestination, [saveName VoxelNum '_CSF' maskExt]);
-            vol_CSFMask.descrip = ['CSFmasked_MRS_Voxel_Mask_' VoxelNum];
-            vol_CSFMask.dim     = vol_mask.dim;
-            vol_CSFMask.dt      = vol_mask.dt;
-            vol_CSFMask.mat     = vol_mask.mat;
-            CSF_voxmask_vol     = CSFvol.private.dat(:,:,:) .* vol_mask.private.dat(:,:,:);
-            vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
 
             % For MRSI data
             if MRSCont.flags.isMRSI
-                GM_MRSI=spm_vol(GMvol);
-                GM_MRSI=spm_read_vols(GM_MRSI);
-                
-                WM_MRSI=spm_vol(WMvol);
-                WM_MRSI=spm_read_vols(WM_MRSI);
-                
-                CSF_MRSI=spm_vol(CSFvol);
-                CSF_MRSI=spm_read_vols(CSF_MRSI);
-                
-                brain = (GM_MRSI > 0.01 | WM_MRSI > 0.01 | CSF_MRSI > 0.01);
-                
-                
-                
-                if ~exist(MRSCont.coreg.vol_image{kk}.fname,'file')
-                    gunzip([MRSCont.coreg.vol_image{kk}.fname, '.gz']);
-                end
-                if ~exist(MRSCont.coreg.vol_mask{kk}.fname,'file')
-                    gunzip([MRSCont.coreg.vol_mask{kk}.fname, '.gz']);
-                end
-
-                Vmask=spm_vol(MRSCont.coreg.vol_mask{kk}.fname);
-                Vmask=spm_read_vols(Vmask);
-                
-                brain = brain .* Vmask;
-                
-                non_zero = zeros(size(brain,3),1);
-                for i = 1 : size(brain,3)
-                    if sum(sum(brain(:,:,i))) > 0
-                        non_zero(i) = 1;
+                vol_mask = MRSCont.coreg.vol_mask{kk}{rr};
+                maskFile = vol_mask.fname;
+                index_maskFileOut            = vol_mask.fname;  
+                index_maskFileOut = strrep(index_maskFileOut,'VoxelMask_','IndexVoxelMask_');
+                vol_slice = spm_vol(index_maskFileOut);
+                [index_mask,~]    = spm_read_vols(vol_slice);
+                index_mask = round(index_mask);
+                for y = 1 : MRSCont.raw{kk}.nYvoxels
+                    for x = 1 : MRSCont.raw{kk}.nXvoxels
+                        index = str2num([sprintf('%02d',x) sprintf('%02d',y) ]);  
+                        index_mask_temp =zeros(size(index_mask));
+                        index_mask_temp(index_mask==index) =1;
+                        GM_voxmask_vol = GMvol.private.dat(:,:,:) .* index_mask_temp;
+                        WM_voxmask_vol = WMvol.private.dat(:,:,:) .* index_mask_temp;
+                        CSF_voxmask_vol = CSFvol.private.dat(:,:,:) .* index_mask_temp;
+                        GMsum  = sum(sum(sum(GM_voxmask_vol(:,:,:))));
+                        WMsum  = sum(sum(sum(WM_voxmask_vol(:,:,:))));
+                        CSFsum = sum(sum(sum(CSF_voxmask_vol(:,:,:))));
+                        if sum([GMsum WMsum CSFsum])==0
+                            fGM  = 0;
+                            fWM  = 0;
+                            fCSF = 0;
+                        else
+                            fGM  = GMsum / (GMsum + WMsum + CSFsum);
+                            fWM  = WMsum / (GMsum + WMsum + CSFsum);
+                            fCSF = CSFsum / (GMsum + WMsum + CSFsum);
+                        end
+                        MRSCont.seg.tissue.fGM(kk,x,y,rr)  = fGM;
+                        MRSCont.seg.tissue.fWM(kk,x,y,rr)  = fWM;
+                        MRSCont.seg.tissue.fCSF(kk,x,y,rr) = fCSF; 
+                        if (fGM + fWM) > .3
+                            MRSCont.seg.tissue.brain(kk,x,y,rr) = 1;  
+                        else
+                            MRSCont.seg.tissue.brain(kk,x,y,rr) = 0;  
+                        end
                     end
-
                 end
-                non_zero_slice = find(non_zero);
-                brain_vox = brain(:,:,non_zero_slice(1):non_zero_slice(end));
-%                 res_brain_vox = zeros(MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels,size(brain_vox,3));
-%                 for i = 1 : size(brain_vox,3)
-%                    res_brain_vox(:,:,i)= imresize(double(squeeze(brain_vox(:,:,i))),[MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels],'method','bilinear');
-%                 end
-%                 full_res_brain = zeros(14,17,3);
-%                 full_res_brain(:,:,1) = sum(res_brain_vox(:,:,1:22),3);
-%                 full_res_brain(:,:,2) = sum(res_brain_vox(:,:,23:45),3);
-%                 full_res_brain(:,:,3) = sum(res_brain_vox(:,:,46:end),3);
-%                 full_res_brain(full_res_brain>0)=1;
-%                 for i = 1 : size(full_res_brain,3)
-%                     brain_vox_rot(:,:,i) = rot90(full_res_brain(:,:,i));  
-%             	end
-
-                brain_vox = imresize3(double(brain_vox),[MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels,MRSCont.raw{kk}.nZvoxels],'method','linear');
-                brain_vox(brain_vox<(max(max(brain_vox))/200)) = 0;
-                brain_vox(brain_vox > 0) = 1;
-%                 se = offsetstrel('ball',5,5);
-                brain_vox_rot = zeros(size(brain_vox,2),size(brain_vox,1),size(brain_vox,3));
-                for i = 1 : size(brain_vox,3)
-                    brain_vox_rot(:,:,i) = rot90(brain_vox(:,:,i));  
-%                 	brain_vox_rot(:,:,i) = imerode(rot90(brain_vox(:,:,i)),se);  
-                end
-                MRSCont.mask{kk} = brain_vox_rot;
-                if exist([MRSCont.coreg.vol_mask{kk}.fname, '.gz'],'file')
-                    delete(MRSCont.coreg.vol_mask{kk}.fname);
-                end
-                if exist([MRSCont.coreg.vol_image{kk}.fname, '.gz'],'file')
-                    delete(MRSCont.coreg.vol_image{kk}.fname);
-                end
+    
             end
             %%% 3. DETERMINE FRACTIONAL TISSUE VOLUMES %%%
             % Sum image intensities over the entire masked tissue specific volume
-            GMsum  = sum(sum(sum(vol_GMMask.private.dat(:,:,:))));
-            WMsum  = sum(sum(sum(vol_WMMask.private.dat(:,:,:))));
-            CSFsum = sum(sum(sum(vol_CSFMask.private.dat(:,:,:))));
+            if ~MRSCont.flags.isMRSI
+                GMsum  = sum(sum(sum(vol_GMMask.private.dat(:,:,:))));
+                WMsum  = sum(sum(sum(vol_WMMask.private.dat(:,:,:))));
+                CSFsum = sum(sum(sum(vol_CSFMask.private.dat(:,:,:))));
+            end
             
             % Save three plane image to container
             if MRSCont.flags.addImages                
@@ -262,37 +250,42 @@ for kk = 1:MRSCont.nDatasets
             end
             
             %Compress nifit and delete uncompressed files
-            gzip(vol_GMMask.fname);
-            delete(vol_GMMask.fname);
-            gzip(vol_WMMask.fname);
-            delete(vol_WMMask.fname);
-            gzip(vol_CSFMask.fname);
-            delete(vol_CSFMask.fname);
-            gzip(GMvol.fname);
-            delete(GMvol.fname);
-            gzip(WMvol.fname);
-            delete(WMvol.fname);
-            gzip(CSFvol.fname);
-            delete(CSFvol.fname);
-            delete(vol_mask.fname);
-            try
-                gzip(MRSCont.coreg.vol_image{kk}.fname)
-                delete(MRSCont.coreg.vol_image{kk}.fname);
-            catch
+            if ~MRSCont.flags.isMRSI
+                gzip(vol_GMMask.fname);
+                delete(vol_GMMask.fname);
+                gzip(vol_WMMask.fname);
+                delete(vol_WMMask.fname);
+                gzip(vol_CSFMask.fname);
+                delete(vol_CSFMask.fname);
+            
+                gzip(GMvol.fname);
+                delete(GMvol.fname);
+                gzip(WMvol.fname);
+                delete(WMvol.fname);
+                gzip(CSFvol.fname);
+                delete(CSFvol.fname);
+                delete(vol_mask.fname);
+                
+                try
+                    gzip(MRSCont.coreg.vol_image{kk}.fname)
+                    delete(MRSCont.coreg.vol_image{kk}.fname);
+                catch
+                end
             end
 
 
 
-
-            % Normalize
-            fGM  = GMsum / (GMsum + WMsum + CSFsum);
-            fWM  = WMsum / (GMsum + WMsum + CSFsum);
-            fCSF = CSFsum / (GMsum + WMsum + CSFsum);
-
-            % Save normalized fractional tissue volumes to MRSCont
-            MRSCont.seg.tissue.fGM(kk,rr)  = fGM;
-            MRSCont.seg.tissue.fWM(kk,rr)  = fWM;
-            MRSCont.seg.tissue.fCSF(kk,rr) = fCSF;            
+            if ~MRSCont.flags.isMRSI
+                % Normalize
+                fGM  = GMsum / (GMsum + WMsum + CSFsum);
+                fWM  = WMsum / (GMsum + WMsum + CSFsum);
+                fCSF = CSFsum / (GMsum + WMsum + CSFsum);
+    
+                % Save normalized fractional tissue volumes to MRSCont
+                MRSCont.seg.tissue.fGM(kk,rr)  = fGM;
+                MRSCont.seg.tissue.fWM(kk,rr)  = fWM;
+                MRSCont.seg.tissue.fCSF(kk,rr) = fCSF;   
+            end
             
         end
     end 
