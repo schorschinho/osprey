@@ -81,6 +81,19 @@ for ii=1:nBasisFcts
 end
 basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
 
+if isfield(fitParams,'lb') 
+    if fitParams.lb >0
+        t2=1/(pi*fitParams.lb);    
+        %Create an exponential decay (lorentzian filter):
+        lor=exp(-t/t2);
+        for ii=1:nBasisFcts
+            basisSet.fids(:,ii) = basisSet.fids(:,ii) .* lor';
+        end
+        basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
+    end
+    dataToFit = op_filter(dataToFit,fitParams.lb);
+end
+
 % Run the frequency-domain operations on the basis functions
 % (first order phase correction)
 % Cut out the frequency range of the basis set
@@ -108,6 +121,24 @@ B = [real(B)];
 A = real(basisSet.specs);
 for kk = 1:basisSet.nMets
     A(:,kk) = conv(A(:,kk), lineShape, 'same');
+end
+
+if isfield(fitParams,'lb') 
+    if fitParams.lb >0
+        t2=1/(pi*fitParams.lb);    
+        %Create an exponential decay (lorentzian filter):
+        lor=exp(-t/t2);        
+        B = [splineArray(:,:,1) + 1i*splineArray(:,:,2)];
+        B = ifft(fftshift(B,1),[],1);
+        for ii=1:length(fitParams.beta_j)
+            B_temp = zeros(length(lor),1);
+            B_temp(ppm_ax > fitRangePPM(1) & ppm_ax <fitRangePPM(2)) = B(:,ii);
+            B_temp = B_temp .* lor';
+            B(:,ii) = B_temp(ppm_ax > fitRangePPM(1) & ppm_ax <fitRangePPM(2));
+        end
+        B = fftshift(fft(B,[],1),1);
+        B = [real(B)];
+    end
 end
 
 % Calculate the final baseline

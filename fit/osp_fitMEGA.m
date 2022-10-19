@@ -72,7 +72,7 @@ for kk = 1:MRSCont.nDatasets
             %%% 2b. FIT DIFF1-SPECTRUM
             % Apply scaling factor to the data
             fitOpts     = MRSCont.opts.fit;
-            fitOpts.range = [2.79 4.2];
+            fitOpts.range = [1.95 4];
             if MRSCont.flags.isMRSI && isfield(MRSCont.fit,'MRSIpriors')
                 fitOpts.MRSIpriors.ph0 = MRSCont.fit.MRSIpriors.diff1.ph0;
                 fitOpts.MRSIpriors.ph1 = MRSCont.fit.MRSIpriors.diff1.ph1;
