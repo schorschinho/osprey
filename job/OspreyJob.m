@@ -168,6 +168,10 @@ if strcmp(jobFileFormat,'csv')
         fprintf('NIfTI-MRS files will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.saveNII = 0;
     end
+    if isfield(jobStruct, 'mailtoConfig') && isfield(jobStruct, 'mailtorecipients')
+        MRSCont.opts.mailto.config = jobStruct.mailtoConfig;
+        MRSCont.opts.mailto.recipients = jobStruct.mailtoRecipients;
+    end
     if isfield(jobStruct,'includeMetabs')
         opts.fit.includeMetabs = jobStruct(1).includeMetabs;
     else
@@ -345,6 +349,10 @@ if strcmp(jobFileFormat,'json')
         MRSCont.opts.savePDF = str2num(jobStruct.savePDF);
     else
         MRSCont.opts.savePDF = 0;
+    end
+    if isfield(jobStruct, 'mailtoConfig') && isfield(jobStruct, 'mailtorecipients')
+        MRSCont.opts.mailto.config = jobStruct.mailtoConfig;
+        MRSCont.opts.mailto.recipients = jobStruct.mailtoRecipients;
     end
     if isfield(jobStruct,'includeMetabs')
         opts.fit.includeMetabs = jobStruct.includeMetabs';

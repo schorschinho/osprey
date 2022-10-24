@@ -57,6 +57,9 @@ function [MRSCont] = RunOspreyJob(jobFilePath)
     for kk = 1 : MRSCont.nDatasets
         [MRSCont] = OspreyHTMLReport(MRSCont,kk);
     end
-
+    
+    if isfield(MRSCont.opts, 'mailto')
+        OspreyAutoMail(MRSCont)
+    end
 end
 
