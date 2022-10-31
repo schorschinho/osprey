@@ -88,7 +88,10 @@ for kk = 1:MRSCont.nDatasets(1)
 
         % Get the input file name
         if ~exist('DirName','var')
-            [~,filename,~]   = fileparts(MRSCont.files{kk});
+            [~,filename,fileext]   = fileparts(MRSCont.files{kk});
+            if strcmp(fileext,'.gz')
+                [~,filename,~]   = fileparts(filename);
+            end
         else
             [dirname,~,~]   = fileparts(MRSCont.files{kk});
             SepFiles =  split(dirname, filesep);
