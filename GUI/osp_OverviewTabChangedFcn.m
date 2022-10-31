@@ -28,9 +28,9 @@ function osp_OverviewTabChangedFcn(src,~,gui)
     switch NewValue
        case 1
             osp_updateSpecsOvWindow(gui);
-            set(gui.controls.pop_specsOvPlot, 'value',gui.process.Selected)
+            set(gui.controls.pop_specsOvPlot, 'value',gui.overview.Selected.Spec)
        case 2
-            splt_string =  strsplit(gui.controls.pop_specsOvPlot.String{gui.process.Selected});
+            splt_string =  strsplit(gui.controls.pop_specsOvPlot.String{gui.overview.Selected.Spec});
             if length(splt_string) > 1
                 if strcmp(splt_string{2},'ref') || strcmp(splt_string{2},'w')
                     gui.process.Selected = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{2}));
@@ -39,7 +39,7 @@ function osp_OverviewTabChangedFcn(src,~,gui)
                 end
             end
             osp_updatemeanOvWindow(gui);
-            set(gui.controls.pop_meanOvPlot, 'value',gui.process.Selected)
+            set(gui.controls.pop_meanOvPlot, 'value',gui.overview.Selected.Spec)
        case 3
             set(gui.layout.overviewTab, 'selection', 3);
        case 4
