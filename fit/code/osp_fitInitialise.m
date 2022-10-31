@@ -153,6 +153,12 @@ end
 % Clear existing basis set
 MRSCont.fit.basisSet = [];
 
+if ~isfile(MRSCont.opts.fit.basisSetFile) && (ismcc || isdeployed)
+    if ~strcmp(MRSCont.opts.fit.basisSetFile(1),filesep)
+        MRSCont.opts.fit.basisSetFile = [filesep MRSCont.opts.fit.basisSetFile];
+    end
+end
+
 % Check if automated basis set pick worked, otherwise the basis set from
 % the user folder is loaded.
 if isfield(MRSCont.opts.fit, 'basisSetFile') && ~strcmpi(MRSCont.opts.fit.method, 'LCModel')
