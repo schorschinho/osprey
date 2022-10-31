@@ -29,7 +29,7 @@ function osp_updatemeanOvWindow(gui)
         set(gui.layout.(gui.layout.overviewTabhandels{selectedOvTab}).Children(1).Children(1).Children(3).Children(1).Children(1).Children(4),'String',gui.controls.act_x)       
         delete(gui.Plot.meanOv.Children(2).Children)
 %%% 2. VISUALIZATION PART OF THIS TAB %%%
-        Selection = gui.controls.pop_meanOvPlot.String(gui.process.Selected);
+        Selection = gui.controls.pop_meanOvPlot.String(gui.overview.Selected.Spec);
         if gui.controls.GM == 0
             for g = 1 :  gui.overview.Number.Groups
                 if gui.overview.Number.Groups > 1

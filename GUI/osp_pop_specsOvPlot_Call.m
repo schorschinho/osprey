@@ -25,6 +25,6 @@ function osp_pop_specsOvPlot_Call(src,~,gui)
 %       2020-01-16: First version of the code.
         idx=(src.Value);
         src.Value=idx;
-        gui.process.Selected = idx;
+        gui.overview.Selected.Spec = idx;
         osp_updateSpecsOvWindow(gui);
 end % pop_specsOvPlot_Call

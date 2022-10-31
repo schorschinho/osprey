@@ -134,6 +134,7 @@ classdef OspreyGUI < handle
             gui.controls.act_y = 1;
             gui.controls.act_z = 1;
             gui.controls.act_basis = 1;
+            gui.overview.Selected.Spec = 1;
         %Names for each selection
             gui.load.Names.Spec = {'metabolites'};
         %Inital number of datasets
