@@ -46,14 +46,26 @@ switch Src
         warning('Email source: "%s" is not currently explicitly supported. Trying anyway!...',Src)
 end
 
-Subject = 'Osprey auto-email';
-Message = sprintf('Hi,\n\nHere are your MRS results!\n\nBest wishes,\nTeam Osprey.'); % main body of email.
-
-if exist(fullfile(MRSCont.outputFolder,'Reports'),'dir')
-    zip(fullfile(MRSCont.outputFolder,'MRS_Reports'), fullfile(MRSCont.outputFolder,'Reports/*.html'));
-    sendmail(MRSCont.opts.mailto.recipients, Subject, Message, fullfile(MRSCont.outputFolder,'MRS_Reports.zip'));
-    delete(fullfile(MRSCont.outputFolder,'MRS_Reports.zip'));
+% Look for relevant files to include in email
+Include = cell(0);
+if exist(fullfile(MRSCont.outputFolder,'Reports'),'dir') % If reports exist, send them
+    Include = [Include,fullfile(MRSCont.outputFolder,'Reports/*.html')];
+    NReports = length(dir(fullfile(MRSCont.outputFolder,'Reports/*.html')));
+else
+    NReports = 0;
 end
+if exist(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'file') % If log file exists, send it
+    Include = [Include,fullfile(MRSCont.outputFolder, 'LogFile.txt')];
+end
+zip(fullfile(MRSCont.outputFolder,'MRS_Reports'), Include); % Create zipfile with includes
+
+Subject = 'Osprey auto-email'; % Email subject
+Message = sprintf('Hi,\n\nHere are your MRS results!\n We found %i reports to attach.\n\nBest wishes,\nTeam Osprey.',NReports); % main body of email.
+
+sendmail(MRSCont.opts.mailto.recipients, Subject, Message, fullfile(MRSCont.outputFolder,'MRS_Reports.zip')); % Send email with zipfile
+
+% Cleanup:
+delete(fullfile(MRSCont.outputFolder,'MRS_Reports.zip')); % Remove zipfile
 
 % Remove the preferences (for privacy reasons)
 setpref('Internet','E_mail','');
