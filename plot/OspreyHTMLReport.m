@@ -45,8 +45,17 @@ outputFigures   = fullfile(MRSCont.outputFolder,'Reports','reportFigures',sub_st
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-if ~exist(outputFigures,'dir')
-    mkdir(outputFigures);
+
+try
+    if ~exist(outputFigures,'dir')
+        mkdir(outputFigures);
+    end
+catch
+    sub_str = ['sub-' num2str(kk)];
+    outputFigures   = fullfile(MRSCont.outputFolder,'Reports','reportFigures',sub_str);
+    if ~exist(outputFigures,'dir')
+        mkdir(outputFigures);
+    end
 end
 
 %% Process images export

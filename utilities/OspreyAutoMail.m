@@ -49,8 +49,8 @@ end
 % Look for relevant files to include in email
 Include = cell(0);
 if exist(fullfile(MRSCont.outputFolder,'Reports'),'dir') % If reports exist, send them
-    Include = [Include,fullfile(MRSCont.outputFolder,'Reports/*.html')];
-    NReports = length(dir(fullfile(MRSCont.outputFolder,'Reports/*.html')));
+    Include = [Include,fullfile(MRSCont.outputFolder,'Reports')];
+    NReports = length(dir(fullfile(MRSCont.outputFolder,'Reports','*.html')));
 else
     NReports = 0;
 end
