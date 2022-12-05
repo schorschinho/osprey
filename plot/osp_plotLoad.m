@@ -278,7 +278,7 @@ end
 if MRSCont.flags.isMEGA && ~(strcmp(which, 'w') || strcmp(which, 'ref')|| strcmp(which, 'mm_ref'))
     axesHandles.A  = subplot(2, 1, 1);
     axesHandles.B  = subplot(2, 1, 2);
-    nAvgs = dataToPlot.rawAverages/2;
+    nAvgs = round(dataToPlot.rawAverages/2);
     hold(axesHandles.A, 'on');
     hold(axesHandles.B, 'on');
     if dataToPlot.dims.averages ~= 0
