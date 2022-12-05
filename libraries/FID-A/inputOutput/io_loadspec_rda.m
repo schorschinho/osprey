@@ -224,7 +224,7 @@ elseif length(filesInFolder) == 1
     subspecs =1;
     rawSubspecs = 'na';
 else
-    if contains(seqtype,'edit')
+    if contains(seqtype,'edit') || contains(seqtype,'mpress')
         subspecs = 2;
         rawSubspecs = 2;
         % Distinguish whether MEGA data have been averaged on-scanner or
