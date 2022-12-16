@@ -4,35 +4,36 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Chapter 5 Osprey basis set tools | osprey-documentation.utf8</title>
-  <meta name="description" content="" />
-  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
+  <title>Chapter 7 Osprey basis set tools | Osprey Documentation</title>
+  <meta name="description" content="Osprey is an all-in-one software suite for state-of-the art processing and quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data." />
+  <meta name="generator" content="bookdown 0.29 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Chapter 5 Osprey basis set tools | osprey-documentation.utf8" />
+  <meta property="og:title" content="Chapter 7 Osprey basis set tools | Osprey Documentation" />
   <meta property="og:type" content="book" />
   
-  
-  
-  
+  <meta property="og:description" content="Osprey is an all-in-one software suite for state-of-the art processing and quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data." />
+  <meta name="github-repo" content="schorschinho/osprey" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Chapter 5 Osprey basis set tools | osprey-documentation.utf8" />
+  <meta name="twitter:title" content="Chapter 7 Osprey basis set tools | Osprey Documentation" />
   
-  
+  <meta name="twitter:description" content="Osprey is an all-in-one software suite for state-of-the art processing and quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data." />
   
 
+<meta name="author" content="Georg Oeltzschner" />
 
 
+<meta name="date" content="2022-12-02" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="osprey-gui-tutorial.html"/>
+<link rel="prev" href="osprey-command-line-tutorial.html"/>
 
-<script src="libs/header-attrs-2.6/header-attrs.js"></script>
-<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -48,13 +49,16 @@
 
 
 
-
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
 
 
 <style type="text/css">
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
 pre.sourceCode { margin: 0; }
 @media screen {
@@ -115,6 +119,7 @@ code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
+
 <link rel="stylesheet" href="css/style.css" type="text/css" />
 </head>
 
@@ -137,45 +142,70 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#developers"><i class="fa fa-check"></i>Developers</a></li>
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html#acknowledgements"><i class="fa fa-check"></i>Acknowledgements</a></li>
 </ul></li>
-<li class="chapter" data-level="1" data-path="getting-started.html"><a href="getting-started.html"><i class="fa fa-check"></i><b>1</b> Getting started</a>
+<li class="chapter" data-level="1" data-path="faqs.html"><a href="faqs.html"><i class="fa fa-check"></i><b>1</b> FAQs</a></li>
+<li class="chapter" data-level="2" data-path="getting-started.html"><a href="getting-started.html"><i class="fa fa-check"></i><b>2</b> Getting started</a>
 <ul>
-<li class="chapter" data-level="1.1" data-path="getting-started.html"><a href="getting-started.html#system-requirements"><i class="fa fa-check"></i><b>1.1</b> System requirements</a></li>
-<li class="chapter" data-level="1.2" data-path="getting-started.html"><a href="getting-started.html#installing-osprey"><i class="fa fa-check"></i><b>1.2</b> Installing Osprey</a></li>
-<li class="chapter" data-level="1.3" data-path="getting-started.html"><a href="getting-started.html#how-to-organize-your-raw-data"><i class="fa fa-check"></i><b>1.3</b> How to organize your raw data</a></li>
+<li class="chapter" data-level="2.1" data-path="getting-started.html"><a href="getting-started.html#system-requirements"><i class="fa fa-check"></i><b>2.1</b> System requirements</a></li>
+<li class="chapter" data-level="2.2" data-path="getting-started.html"><a href="getting-started.html#installing-osprey"><i class="fa fa-check"></i><b>2.2</b> Installing Osprey</a></li>
+<li class="chapter" data-level="2.3" data-path="getting-started.html"><a href="getting-started.html#how-to-organize-your-raw-data"><i class="fa fa-check"></i><b>2.3</b> How to organize your raw data</a></li>
 </ul></li>
-<li class="chapter" data-level="2" data-path="the-osprey-workflow.html"><a href="the-osprey-workflow.html"><i class="fa fa-check"></i><b>2</b> The Osprey Workflow</a></li>
-<li class="chapter" data-level="3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html"><i class="fa fa-check"></i><b>3</b> The Osprey job file</a>
+<li class="chapter" data-level="3" data-path="the-osprey-workflow.html"><a href="the-osprey-workflow.html"><i class="fa fa-check"></i><b>3</b> The Osprey Workflow</a></li>
+<li class="chapter" data-level="4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html"><i class="fa fa-check"></i><b>4</b> The Osprey job file</a>
 <ul>
-<li class="chapter" data-level="3.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#example-job-file"><i class="fa fa-check"></i><b>3.1</b> Example job file</a>
+<li class="chapter" data-level="4.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#example-job-file"><i class="fa fa-check"></i><b>4.1</b> Example job file</a></li>
+<li class="chapter" data-level="4.2" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-sequence-information"><i class="fa fa-check"></i><b>4.2</b> Specifying Sequence Information</a>
 <ul>
-<li class="chapter" data-level="3.1.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#sequence-information"><i class="fa fa-check"></i><b>3.1.1</b> Sequence Information</a></li>
-<li class="chapter" data-level="3.1.2" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#data-handling-and-modeling-options"><i class="fa fa-check"></i><b>3.1.2</b> Data handling and modeling options</a></li>
-<li class="chapter" data-level="3.1.3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-mrs-data-and-structural-imaging-files"><i class="fa fa-check"></i><b>3.1.3</b> Specifying MRS data and structural imaging files</a></li>
-<li class="chapter" data-level="3.1.4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-the-output-folder"><i class="fa fa-check"></i><b>3.1.4</b> 4. Specifying the output folder</a></li>
+<li class="chapter" data-level="4.2.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#sequence-type"><i class="fa fa-check"></i><b>4.2.1</b> Sequence Type</a></li>
+<li class="chapter" data-level="4.2.2" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#editing-targets"><i class="fa fa-check"></i><b>4.2.2</b> Editing Targets</a></li>
+<li class="chapter" data-level="4.2.3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#data-scenario"><i class="fa fa-check"></i><b>4.2.3</b> Data Scenario</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#data-handling-and-modeling-options"><i class="fa fa-check"></i><b>4.3</b> Data handling and modeling options</a>
+<ul>
+<li class="chapter" data-level="4.3.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#spectral-registration-options"><i class="fa fa-check"></i><b>4.3.1</b> Spectral registration options</a></li>
+<li class="chapter" data-level="4.3.2" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#sub-spectral-alignment"><i class="fa fa-check"></i><b>4.3.2</b> Sub-spectral alignment</a></li>
+<li class="chapter" data-level="4.3.3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#eddy-current-correction"><i class="fa fa-check"></i><b>4.3.3</b> Eddy-current correction</a></li>
+<li class="chapter" data-level="4.3.4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#saving-data-to-external-formats"><i class="fa fa-check"></i><b>4.3.4</b> Saving data to external formats</a></li>
+<li class="chapter" data-level="4.3.5" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#matbolites-included-in-the-basis-set"><i class="fa fa-check"></i><b>4.3.5</b> Matbolites included in the basis-set</a></li>
+<li class="chapter" data-level="4.3.6" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#lcmodel-specific-options"><i class="fa fa-check"></i><b>4.3.6</b> LCModel-specific options</a></li>
+<li class="chapter" data-level="4.3.7" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#fit-style"><i class="fa fa-check"></i><b>4.3.7</b> Fit style</a></li>
+<li class="chapter" data-level="4.3.8" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#fitting-range"><i class="fa fa-check"></i><b>4.3.8</b> Fitting range</a></li>
+<li class="chapter" data-level="4.3.9" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#baseline-knot-spacing"><i class="fa fa-check"></i><b>4.3.9</b> Baseline knot spacing</a></li>
+<li class="chapter" data-level="4.3.10" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#macromolecule-and-lipid-signals"><i class="fa fa-check"></i><b>4.3.10</b> Macromolecule and lipid signals</a></li>
+<li class="chapter" data-level="4.3.11" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#co-edited-macrommolecules"><i class="fa fa-check"></i><b>4.3.11</b> Co-edited macrommolecules</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-mrs-data-and-structural-imaging-files"><i class="fa fa-check"></i><b>4.4</b> Specifying MRS data and structural imaging files</a>
+<ul>
+<li class="chapter" data-level="4.4.1" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#metabolite-data"><i class="fa fa-check"></i><b>4.4.1</b> Metabolite data</a></li>
+<li class="chapter" data-level="4.4.2" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#lineshape-reference-data"><i class="fa fa-check"></i><b>4.4.2</b> Lineshape reference data</a></li>
+<li class="chapter" data-level="4.4.3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#short-te-water-data"><i class="fa fa-check"></i><b>4.4.3</b> Short-TE water data</a></li>
+<li class="chapter" data-level="4.4.4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#structural-images"><i class="fa fa-check"></i><b>4.4.4</b> Structural images</a></li>
+<li class="chapter" data-level="4.4.5" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-stat-file"><i class="fa fa-check"></i><b>4.4.5</b> Specifying stat file</a></li>
+<li class="chapter" data-level="4.4.6" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-the-output-folder"><i class="fa fa-check"></i><b>4.4.6</b> Specifying the output folder</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="4" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html"><i class="fa fa-check"></i><b>4</b> Osprey GUI tutorial</a>
+<li class="chapter" data-level="5" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html"><i class="fa fa-check"></i><b>5</b> Osprey GUI tutorial</a>
 <ul>
-<li class="chapter" data-level="4.1" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#starting-osprey"><i class="fa fa-check"></i><b>4.1</b> Starting Osprey</a></li>
-<li class="chapter" data-level="4.2" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#loading-a-job-file"><i class="fa fa-check"></i><b>4.2</b> Loading a job file</a></li>
-<li class="chapter" data-level="4.3" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#loading-the-raw-mrs-data"><i class="fa fa-check"></i><b>4.3</b> Loading the raw MRS data</a></li>
-<li class="chapter" data-level="4.4" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#processing-the-raw-data"><i class="fa fa-check"></i><b>4.4</b> Processing the raw data</a></li>
-<li class="chapter" data-level="4.5" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#fitting-the-spectra"><i class="fa fa-check"></i><b>4.5</b> Fitting the spectra</a></li>
-<li class="chapter" data-level="4.6" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#co-registering-to-an-anatomical-image"><i class="fa fa-check"></i><b>4.6</b> Co-registering to an anatomical image</a></li>
-<li class="chapter" data-level="4.7" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#segmentation-and-tissue-fraction-calculation"><i class="fa fa-check"></i><b>4.7</b> Segmentation and tissue fraction calculation</a></li>
-<li class="chapter" data-level="4.8" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#quantification"><i class="fa fa-check"></i><b>4.8</b> Quantification</a></li>
-<li class="chapter" data-level="4.9" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#overview"><i class="fa fa-check"></i><b>4.9</b> Overview</a></li>
+<li class="chapter" data-level="5.1" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#starting-osprey"><i class="fa fa-check"></i><b>5.1</b> Starting Osprey</a></li>
+<li class="chapter" data-level="5.2" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#loading-a-job-file"><i class="fa fa-check"></i><b>5.2</b> Loading a job file</a></li>
+<li class="chapter" data-level="5.3" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#loading-the-raw-mrs-data"><i class="fa fa-check"></i><b>5.3</b> Loading the raw MRS data</a></li>
+<li class="chapter" data-level="5.4" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#processing-the-raw-data"><i class="fa fa-check"></i><b>5.4</b> Processing the raw data</a></li>
+<li class="chapter" data-level="5.5" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#fitting-the-spectra"><i class="fa fa-check"></i><b>5.5</b> Fitting the spectra</a></li>
+<li class="chapter" data-level="5.6" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#co-registering-to-an-anatomical-image"><i class="fa fa-check"></i><b>5.6</b> Co-registering to an anatomical image</a></li>
+<li class="chapter" data-level="5.7" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#segmentation-and-tissue-fraction-calculation"><i class="fa fa-check"></i><b>5.7</b> Segmentation and tissue fraction calculation</a></li>
+<li class="chapter" data-level="5.8" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#quantification"><i class="fa fa-check"></i><b>5.8</b> Quantification</a></li>
+<li class="chapter" data-level="5.9" data-path="osprey-gui-tutorial.html"><a href="osprey-gui-tutorial.html#overview"><i class="fa fa-check"></i><b>5.9</b> Overview</a></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html"><i class="fa fa-check"></i><b>5</b> Osprey basis set tools</a>
+<li class="chapter" data-level="6" data-path="osprey-command-line-tutorial.html"><a href="osprey-command-line-tutorial.html"><i class="fa fa-check"></i><b>6</b> Osprey command line tutorial</a></li>
+<li class="chapter" data-level="7" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html"><i class="fa fa-check"></i><b>7</b> Osprey basis set tools</a>
 <ul>
-<li class="chapter" data-level="5.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#io_lcmbasis"><i class="fa fa-check"></i><b>5.1</b> io_LCMBasis</a></li>
-<li class="chapter" data-level="5.2" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#fit_makebasis"><i class="fa fa-check"></i><b>5.2</b> fit_makeBasis</a>
+<li class="chapter" data-level="7.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#io_lcmbasis"><i class="fa fa-check"></i><b>7.1</b> io_LCMBasis</a></li>
+<li class="chapter" data-level="7.2" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#fit_makebasis"><i class="fa fa-check"></i><b>7.2</b> fit_makeBasis</a>
 <ul>
-<li class="chapter" data-level="5.2.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#complete-syntax"><i class="fa fa-check"></i><b>5.2.1</b> Complete syntax</a></li>
+<li class="chapter" data-level="7.2.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#complete-syntax"><i class="fa fa-check"></i><b>7.2.1</b> Complete syntax</a></li>
 </ul></li>
-<li class="chapter" data-level="5.3" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#fit_plotbasis"><i class="fa fa-check"></i><b>5.3</b> fit_plotBasis</a>
+<li class="chapter" data-level="7.3" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#fit_plotbasis"><i class="fa fa-check"></i><b>7.3</b> fit_plotBasis</a>
 <ul>
-<li class="chapter" data-level="5.3.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#complete-syntax-1"><i class="fa fa-check"></i><b>5.3.1</b> Complete syntax</a></li>
+<li class="chapter" data-level="7.3.1" data-path="osprey-basis-set-tools.html"><a href="osprey-basis-set-tools.html#complete-syntax-1"><i class="fa fa-check"></i><b>7.3.1</b> Complete syntax</a></li>
 </ul></li>
 </ul></li>
 <li class="divider"></li>
@@ -190,7 +220,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"></a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Osprey Documentation</a>
           </h1>
         </div>
 
@@ -198,39 +228,43 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="osprey-basis-set-tools" class="section level1" number="5">
-<h1><span class="header-section-number">Chapter 5</span> Osprey basis set tools</h1>
+<div id="osprey-basis-set-tools" class="section level1 hasAnchor" number="7">
+<h1><span class="header-section-number">Chapter 7</span> Osprey basis set tools<a href="osprey-basis-set-tools.html#osprey-basis-set-tools" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>Being a linear-combination modelling software, <strong>Osprey</strong> requires prior spectral knowledge in the form of so-called <em>basis sets</em>. These are collections of model spectra (<em>basis functions</em>) for the various metabolites you wish to quantify.</p>
 <p>Historically, basis functions were acquired experimentally from aqueous solutions, which was a laborious and often incredibly frustrating task. Fortunately, many free software solutions open up a world of simulating any NMR experiment, and can generate noise-free model spectra of most of the spin systems we could be interested in.</p>
 <p>In this chapter, you will learn how to generate an <strong>Osprey</strong> basis set. You can either import an existing complete basis set in LCModel format (<code>.BASIS</code>), or you can compile an <strong>Osprey</strong> basis set from a set of synthetic spectra that have been simulated using the <a href="https://github.com/CIC-methods/FID-A">FID-A software</a>. Please refer to the example scripts in the repository for directions and how to do this. You can also ask for advice in the <a href="https://forum.mrshub.org/c/analysis-modeling/spectral-simulation/22">Spectral Simulation</a> and <a href="https://forum.mrshub.org/c/analysis-modeling/basis-sets/23">Basis Sets</a> categories of the <a href="https://forum.mrshub.org">MRSHub forum</a>.</p>
-<div id="io_lcmbasis" class="section level2" number="5.1">
-<h2><span class="header-section-number">5.1</span> io_LCMBasis</h2>
+
+<div class="rmdnote">
+It is now also possible to simulate basis sets for <strong>Osprey</strong> using a cloud-based simulation platform, <a href="https://braingps.mricloud.org/">MRSCloud</a>. For further information, please refer to the full <a href="https://doi.org/10.1002/mrm.29370">publication</a>, or the source code available on <a href="https://github.com/shui5/MRSCloud">Github</a>.
+</div>
+<div id="io_lcmbasis" class="section level2 hasAnchor" number="7.1">
+<h2><span class="header-section-number">7.1</span> io_LCMBasis<a href="osprey-basis-set-tools.html#io_lcmbasis" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>If you have an existing LCModel basis set (<code>.BASIS</code>), you can import it into <strong>Osprey</strong>. Assuming the basis set is located at <code>/Users/Georg/LCModelBasissets/GE/press144</code>, you can execute the following command at the MATLAB prompt after you have run <code>OspreyJob</code>:</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb25-1"><a href="osprey-basis-set-tools.html#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> file <span class="op">=</span> <span class="st">&#39;/Users/Georg/LCModelBasissets/GE/press144&#39;</span><span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb1-1"><a href="osprey-basis-set-tools.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> file <span class="op">=</span> <span class="st">&#39;/Users/Georg/LCModelBasissets/GE/press144&#39;</span><span class="op">;</span></span></code></pre></div>
 <p>You can then call <strong>Osprey</strong>’s <code>io_LCMBasis</code> function to create a basis set:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb26-1"><a href="osprey-basis-set-tools.html#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> [BASIS] <span class="op">=</span> io_LCMBasis(file<span class="op">,</span> <span class="fl">1</span><span class="op">,</span> <span class="st">&#39;unedited&#39;</span><span class="op">,</span> <span class="st">&#39;none&#39;</span>)<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb2-1"><a href="osprey-basis-set-tools.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> [BASIS] <span class="op">=</span> io_LCMBasis(file<span class="op">,</span> <span class="fl">1</span><span class="op">,</span> <span class="st">&#39;unedited&#39;</span><span class="op">,</span> <span class="st">&#39;none&#39;</span>)<span class="op">;</span></span></code></pre></div>
 <p>Follow the instructions in the MATLAB prompt, and from then on, OspreyFit will automatically pick this basis set, but only if there is no internal existing <strong>Osprey</strong> basis set with matching parameters. We will soon provide the option to specify an individual basis set in the job file.</p>
 </div>
-<div id="fit_makebasis" class="section level2" number="5.2">
-<h2><span class="header-section-number">5.2</span> fit_makeBasis</h2>
+<div id="fit_makebasis" class="section level2 hasAnchor" number="7.2">
+<h2><span class="header-section-number">7.2</span> fit_makeBasis<a href="osprey-basis-set-tools.html#fit_makebasis" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>For the purpose of this tutorial, we will assume that you have a set of FID-A simulations saved in a folder on your hard drive. Your folder may look like this:</p>
-<div class="figure"><span id="fig:ospreyFIDASims"></span>
+<div class="figure"><span style="display:block;" id="fig:ospreyFIDASims"></span>
 <img src="img/05-fid-a-folder.png" alt="A folder full of FID-A simulations." width="300" />
 <p class="caption">
-Figure 5.1: A folder full of FID-A simulations.
+Figure 7.1: A folder full of FID-A simulations.
 </p>
 </div>
 <p>In this case, we have simulated a bunch of metabolites for the GE PRESS sequence at an echo time of 144 ms.</p>
 <p>If this folder is located at, say, <code>/Users/Georg/MRS_Simulations/GE/press144</code>, you can create a variable called <code>folder</code> at the MATLAB prompt:</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb27-1"><a href="osprey-basis-set-tools.html#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> folder <span class="op">=</span> <span class="st">&#39;/Users/Georg/MRS_Simulations/GE/press144&#39;</span><span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb3-1"><a href="osprey-basis-set-tools.html#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> folder <span class="op">=</span> <span class="st">&#39;/Users/Georg/MRS_Simulations/GE/press144&#39;</span><span class="op">;</span></span></code></pre></div>
 <p>You can then call <strong>Osprey</strong>’s <code>fit_makeBasis</code> function to create a basis set:</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb28-1"><a href="osprey-basis-set-tools.html#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> [BASIS] <span class="op">=</span> fit_makeBasis(folder<span class="op">,</span> <span class="fl">1</span><span class="op">,</span> <span class="st">&#39;unedited&#39;</span>)<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb4-1"><a href="osprey-basis-set-tools.html#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> [BASIS] <span class="op">=</span> fit_makeBasis(folder<span class="op">,</span> <span class="fl">1</span><span class="op">,</span> <span class="st">&#39;unedited&#39;</span>)<span class="op">;</span></span></code></pre></div>
 <p>This will generate a struct array called <code>BASIS</code> in the MATLAB workspace, and also save it to the current MATLAB working directory. This file is your new <strong>Osprey</strong> basis set. If the <code>addMMFlag</code> argument (see below) is set to <code>1</code>, the filename of the basis set is going to be <code>BASIS_MM.mat</code>; if it is set to <code>0</code>, the filename will be <code>BASIS_noMM.mat</code>.</p>
-<div id="complete-syntax" class="section level3" number="5.2.1">
-<h3><span class="header-section-number">5.2.1</span> Complete syntax</h3>
-<div class="sourceCode" id="cb29"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb29-1"><a href="osprey-basis-set-tools.html#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> [BASIS] <span class="op">=</span> fit_makeBasis(folder<span class="op">,</span> addMMFlag<span class="op">,</span> sequence<span class="op">,</span> editTarget)<span class="op">;</span></span></code></pre></div>
-<div id="inputs" class="section level4 unnumbered">
-<h4>Inputs</h4>
+<div id="complete-syntax" class="section level3 hasAnchor" number="7.2.1">
+<h3><span class="header-section-number">7.2.1</span> Complete syntax<a href="osprey-basis-set-tools.html#complete-syntax" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb5-1"><a href="osprey-basis-set-tools.html#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> [BASIS] <span class="op">=</span> fit_makeBasis(folder<span class="op">,</span> addMMFlag<span class="op">,</span> sequence<span class="op">,</span> editTarget)<span class="op">;</span></span></code></pre></div>
+<div id="inputs" class="section level4 unnumbered hasAnchor">
+<h4>Inputs<a href="osprey-basis-set-tools.html#inputs" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <table>
 <colgroup>
 <col width="11%" />
@@ -280,9 +314,16 @@ Figure 5.1: A folder full of FID-A simulations.
 </tbody>
 </table>
 </div>
-<div id="outputs" class="section level4 unnumbered">
-<h4>Outputs</h4>
+<div id="outputs" class="section level4 unnumbered hasAnchor">
+<h4>Outputs<a href="osprey-basis-set-tools.html#outputs" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <table>
+<colgroup>
+<col width="11%" />
+<col width="11%" />
+<col width="31%" />
+<col width="25%" />
+<col width="20%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th>Output</th>
@@ -305,18 +346,18 @@ Figure 5.1: A folder full of FID-A simulations.
 </div>
 </div>
 </div>
-<div id="fit_plotbasis" class="section level2" number="5.3">
-<h2><span class="header-section-number">5.3</span> fit_plotBasis</h2>
+<div id="fit_plotbasis" class="section level2 hasAnchor" number="7.3">
+<h2><span class="header-section-number">7.3</span> fit_plotBasis<a href="osprey-basis-set-tools.html#fit_plotbasis" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Once you have generated the basis set, you may want to plot the basis functions and inspect that they look like you expect them to. For this purpose, <strong>Osprey</strong> includes a function called <code>fit_plotBasis</code>.</p>
 <p><code>fit_plotBasis</code> acts on the contents of an <strong>Osprey</strong> <code>.MAT</code> basis set file. If you load any basis set into MATLAB by double-clicking on it, you will see the struct <code>BASIS</code> in the MATLAB workspace:</p>
-<div class="figure"><span id="fig:ospreyBasisInWorkspace"></span>
+<div class="figure"><span style="display:block;" id="fig:ospreyBasisInWorkspace"></span>
 <img src="img/05-basis-in-workspace.png" alt="An Osprey basis set after loading into MATLAB." width="549" />
 <p class="caption">
-Figure 5.2: An Osprey basis set after loading into MATLAB.
+Figure 7.2: An Osprey basis set after loading into MATLAB.
 </p>
 </div>
 <p>You can then call <code>fit_plotBasis</code> to create a plot overview of the basis set:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb30-1"><a href="osprey-basis-set-tools.html#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> fit_plotBasis(BASIS<span class="op">,</span> <span class="fl">1</span><span class="op">,</span> <span class="fl">1</span>)<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb6-1"><a href="osprey-basis-set-tools.html#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> fit_plotBasis(BASIS<span class="op">,</span> <span class="fl">1</span><span class="op">,</span> <span class="fl">1</span>)<span class="op">;</span></span></code></pre></div>
 <p>This command will generate a stack plot of all basis functions (including macromolecules and lipids, if you have chosen to include them in the basis set) along with a ppm axis:</p>
 <div class="figure">
 <img src="img/05-plot-basis.png" alt="Output from fit_plotBasis." width="699" />
@@ -324,11 +365,11 @@ Figure 5.2: An Osprey basis set after loading into MATLAB.
 (#fig:ospreyFit_plotBasis)Output from fit_plotBasis.
 </p>
 </div>
-<div id="complete-syntax-1" class="section level3" number="5.3.1">
-<h3><span class="header-section-number">5.3.1</span> Complete syntax</h3>
-<div class="sourceCode" id="cb31"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb31-1"><a href="osprey-basis-set-tools.html#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> out <span class="op">=</span> fit_plotBasis(basisSet<span class="op">,</span> dim<span class="op">,</span> stagFlag<span class="op">,</span> ppmmin<span class="op">,</span> ppmmax<span class="op">,</span> xlab<span class="op">,</span> ylab<span class="op">,</span> figTitle)<span class="op">;</span></span></code></pre></div>
-<div id="inputs-1" class="section level4 unnumbered">
-<h4>Inputs</h4>
+<div id="complete-syntax-1" class="section level3 hasAnchor" number="7.3.1">
+<h3><span class="header-section-number">7.3.1</span> Complete syntax<a href="osprey-basis-set-tools.html#complete-syntax-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb7-1"><a href="osprey-basis-set-tools.html#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> out <span class="op">=</span> fit_plotBasis(basisSet<span class="op">,</span> dim<span class="op">,</span> stagFlag<span class="op">,</span> ppmmin<span class="op">,</span> ppmmax<span class="op">,</span> xlab<span class="op">,</span> ylab<span class="op">,</span> figTitle)<span class="op">;</span></span></code></pre></div>
+<div id="inputs-1" class="section level4 unnumbered hasAnchor">
+<h4>Inputs<a href="osprey-basis-set-tools.html#inputs-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <table>
 <colgroup>
 <col width="11%" />
@@ -406,9 +447,16 @@ Figure 5.2: An Osprey basis set after loading into MATLAB.
 </tbody>
 </table>
 </div>
-<div id="outputs-1" class="section level4 unnumbered">
-<h4>Outputs</h4>
+<div id="outputs-1" class="section level4 unnumbered hasAnchor">
+<h4>Outputs<a href="osprey-basis-set-tools.html#outputs-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <table>
+<colgroup>
+<col width="11%" />
+<col width="11%" />
+<col width="31%" />
+<col width="25%" />
+<col width="20%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th>Output</th>
@@ -438,12 +486,11 @@ Figure 5.2: An Osprey basis set after loading into MATLAB.
           </div>
         </div>
       </div>
-<a href="osprey-gui-tutorial.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="osprey-command-line-tutorial.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
 
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
-<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
 <script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
@@ -462,6 +509,7 @@ gitbook.start({
 "weibo": false,
 "instapaper": false,
 "vk": false,
+"whatsapp": false,
 "all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
 },
 "fontsettings": {
@@ -470,7 +518,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/schorschinho/osprey/edit/master/05-helpers.Rmd",
+"link": "https://github.com/schorschinho/osprey/edit/master/06-helpers.Rmd",
 "text": "Edit"
 },
 "history": {
@@ -482,6 +530,10 @@ gitbook.start({
 "text": null
 },
 "download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
 "toc": {
 "collapse": "subsection"
 }

@@ -387,7 +387,7 @@ out.rawAverages = rawAverages;
 out.subspecs = subspecs;
 out.rawSubspecs = rawSubspecs;
 
-% Echo/repetition time
+
 out.te = hdr_ext.EchoTime * 1e3;        %convert to [ms]
 out.tr = hdr_ext.RepetitionTime * 1e3;  %convert to [ms]
 

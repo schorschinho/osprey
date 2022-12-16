@@ -260,28 +260,31 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
 
             else
-                raw.fids = squeeze(sum(raw.fids, raw.dims.averages));
-                raw.specs=fftshift(fft(raw.fids,[],raw.dims.t),raw.dims.t);
-                if raw.dims.t>raw.dims.averages
-                    raw.dims.t=raw.dims.t-1;
-                else
-                    raw.dims.t=raw.dims.t;
-                end
-                if raw.dims.coils>raw.dims.averages
-                    raw.dims.coils=raw.dims.coils-1;
-                else
-                    raw.dims.coils=raw.dims.coils;
-                end
-                raw.dims.averages=0;
-                if raw.dims.subSpecs>raw.dims.averages
-                    raw.dims.subSpecs=raw.dims.subSpecs-1;
-                else
-                    raw.dims.subSpecs=raw.dims.subSpecs;
-                end
-                if raw.dims.extras>raw.dims.averages
-                    raw.dims.extras=raw.dims.extras-1;
-                else
-                    raw.dims.extras=raw.dims.extras;
+                % If there is still an average dimension, squeeze
+                if raw.dims.averages > 0
+                    raw.fids = squeeze(sum(raw.fids, raw.dims.averages));
+                    raw.specs=fftshift(fft(raw.fids,[],raw.dims.t),raw.dims.t);
+                    if raw.dims.t>raw.dims.averages
+                        raw.dims.t=raw.dims.t-1;
+                    else
+                        raw.dims.t=raw.dims.t;
+                    end
+                    if raw.dims.coils>raw.dims.averages
+                        raw.dims.coils=raw.dims.coils-1;
+                    else
+                        raw.dims.coils=raw.dims.coils;
+                    end
+                    raw.dims.averages=0;
+                    if raw.dims.subSpecs>raw.dims.averages
+                        raw.dims.subSpecs=raw.dims.subSpecs-1;
+                    else
+                        raw.dims.subSpecs=raw.dims.subSpecs;
+                    end
+                    if raw.dims.extras>raw.dims.averages
+                        raw.dims.extras=raw.dims.extras-1;
+                    else
+                        raw.dims.extras=raw.dims.extras;
+                    end
                 end
                 raw.sz=size(raw.fids);
 
