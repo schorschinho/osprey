@@ -24,14 +24,22 @@ else
     else
         names = {};
     end
+    if isfield(in1, 'exp_var')
+        exp_var = in1.exp_var;
+    else
+        exp_var = 1;
+    end
     if ~ischar(varargin{end})
         error('You have to at indicate an extra name as last argument')     
     else
         names{end+1} = varargin{end};
     end
     
-    in1.extras = 1;
+    if ~isfield(in1, 'extras')
+        in1.extras = 1;
+    end
     in1.extra_names = names;
+    in1.exp_var = exp_var;
     
     if ischar(in1.seq)
         temp_seq = in1.seq;
@@ -82,9 +90,16 @@ else
         in1.te(end+1) = in2.te;
         in1.tr(end+1) = in2.tr;
         in1.centerFreq(end+1) = in2.centerFreq;
-        in1.pointsToLeftshift(end+1) = in2.pointsToLeftshift;
+        if isfield(in1, 'pointsToLeftshift')
+            in1.pointsToLeftshift(end+1) = in2.pointsToLeftshift;
+        end
         if isfield(in1,'specReg')
             in1.specReg{end+1} = in2.specReg;
+        end
+        if isfield(in2,'exp_var')
+            in1.exp_var(end+1) = in2.exp_var;
+        else
+            in1.exp_var(end+1) = 1;
         end
         if size(in1.names,2) > size(in2.names,2)
             in2.names = cat(2,in2.names,cell(1,size(in1.names,2)-size(in2.names,2)));

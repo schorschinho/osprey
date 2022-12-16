@@ -59,7 +59,11 @@ for kk = 1:MRSCont.nDatasets
     % session, and scan)
     path_split          = regexp(path,filesep,'split');
     if length(path_split) >= 3
-        name = [path_split{end-2} '_' path_split{end-1} '_' path_split{end} '_' filename];
+        if ~contains(filename,'ses')
+            name = [path_split{end-2} '_' path_split{end-1} '_' path_split{end} '_' filename];
+        else
+            name = filename;
+        end
     elseif length(path_split) == 2
         name = [path_split{end-1} '_' path_split{end} '_' filename];
     elseif length(path_split) == 1

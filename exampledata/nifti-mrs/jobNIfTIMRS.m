@@ -127,14 +127,14 @@ opts.ECC.mm                = 1;                 %             - '0' (no)
                                                 %             - [] array    
 
 % Save LCModel-exportable files for each spectrum?
-opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
+opts.saveLCM                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 % Save jMRUI-exportable files for each spectrum?
-opts.savejMRUI              = 1;                % OPTIONS:    - 0 (no, default)
+opts.savejMRUI              = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
-opts.saveVendor             = 1;                % OPTIONS:    - 0 (no, default)
+opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Save processed spectra in NIfTI-MRS format?

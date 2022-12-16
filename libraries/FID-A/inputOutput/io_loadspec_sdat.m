@@ -207,6 +207,7 @@ if dims.extras > 0 % Is a series
    out.extra_names = extra_names;
    if dims.averages == 0
       out.averages=1;
+      out.flags.averaged = 1;
    end
    out.spectralwidth = ones(1,out.extras)*spectralwidth;
    out.dwelltime = ones(1,out.extras)*dwelltime;

@@ -72,7 +72,7 @@ for kk = 1:MRSCont.nDatasets(1)
             % Read in the raw metabolite data.
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
             raw 	= io_loadspec_niimrs(MRSCont.files{metab_ll,kk});
-
+            raw.flags.isUnEdited = MRSCont.flags.isUnEdited;
             % Read in the MM data.
             % Leave until we have example data.
 
@@ -80,12 +80,14 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.hasRef
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 raw_ref     = io_loadspec_niimrs(MRSCont.files_ref{ref_ll,kk});
+                raw_ref.flags.isUnEdited = MRSCont.flags.isUnEdited;
             end
 
             % Read in the short-TE water data.
             if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w       = io_loadspec_niimrs(MRSCont.files_w{w_ll,kk});
+                raw_w.flags.isUnEdited = MRSCont.flags.isUnEdited;
             end
 
 

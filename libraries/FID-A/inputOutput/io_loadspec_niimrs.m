@@ -363,7 +363,7 @@ end
 % Calculate t and ppm arrays using the calculated parameters:
 f   =[(-sw/2) + (sw/(2*nPts)) : sw/(nPts) : (sw/2) - (sw/(2*nPts))];
 ppm = f / (Bo(1)*42.577);
-centerFreq = 4.65;
+centerFreq = 4.68;
 ppm = ppm + centerFreq;
 t   = [0 : dt : (nPts-1)*dt];
 
@@ -388,8 +388,8 @@ out.subspecs = subspecs;
 out.rawSubspecs = rawSubspecs;
 
 % Echo/repetition time
-out.te = hdr_ext.EchoTime;
-out.tr = hdr_ext.RepetitionTime;
+out.te = hdr_ext.EchoTime * 1e3;        %convert to [ms]
+out.tr = hdr_ext.RepetitionTime * 1e3;  %convert to [ms]
 
 % time and frequency axis
 out.t   = t;
@@ -459,6 +459,44 @@ if strcmp(seq,'HERCULES')
     out.flags.isHERCULES = 1;
 end
 
+% Store additional information from the nii header 
+    if out.dims.extras
+        if ischar(out.seq)
+            temp_seq = out.seq;
+            out = rmfield(out,'seq');
+            out.seq{1} = temp_seq;
+        end
+        for ex = 1 : out.sz(out.dims.extras)
+            out.seq{ex} = out.seq{1};
+            out.spectralwidth(ex) = out.spectralwidth(1);
+            out.dwelltime(ex) = out.dwelltime(1);
+            out.centerFreq(ex) = out.centerFreq(1);
+            out.txfrq(ex) = out.txfrq(1);
+            
+            if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'EchoTime')
+                out.te(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).EchoTime(ex) * 1e3; % convert to [ms]
+                out.extra_names{ex} = ['TE_' num2str(ex)];
+                out.exp_var(ex) = out.te(ex);
+            else
+                out.te(ex) = out.te(1);
+            end
 
+            if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'RepetitionTime')
+                out.tr(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).RepetitionTime(ex) * 1e3; % convert to [ms]
+                out.extra_names{ex} = ['TR_' num2str(ex)];
+                out.exp_var(ex) = out.tr(ex);
+            else
+                out.tr(ex) = out.te(1);
+            end
+
+            if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'InversionTime')
+                out.ti(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).InversionTime(ex) * 1e3; % convert to [ms]
+                out.extra_names{ex} = ['TI_' num2str(ex)];
+                out.exp_var(ex) = out.ti(ex);
+            end
+        end
+        out.extras = out.sz(out.dims.extras);
+
+    end
 end
 

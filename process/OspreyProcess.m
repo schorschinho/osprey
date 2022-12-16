@@ -643,7 +643,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             end
 
             % Save back to MRSCont container
-            if (strcmp(MRSCont.vendor,'Siemens') && raw.flags.isUnEdited) || MRSCont.flags.isMRSI
+            if (strcmp(MRSCont.vendor,'Siemens') && raw.flags.isUnEdited && ~MRSCont.flags.isPhantom) || MRSCont.flags.isMRSI
                 % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
                 % with the negative phase of that fit
                 [raw,globalPhase]       = op_phaseCrCho(raw, 1);
@@ -735,9 +735,15 @@ if MRSCont.nDatasets(2) > 1
     for ss = 1 : NoSubSpec
         for kk = 1:MRSCont.nDatasets(1)
             if size(MRSCont.processed.(SubSpecNames{ss}),1) > 1
-                MRSCont.processed.(SubSpecNames{ss}){1,kk}.extra_names{1} = MRSCont.opts.extras.names{1};
+                if ~isfield(MRSCont.processed.(SubSpecNames{ss}){1,kk}, 'extra_names')
+                    MRSCont.processed.(SubSpecNames{ss}){1,kk}.extra_names{1}= MRSCont.opts.extras.names{1};
+                end
                 for ll = 2:MRSCont.nDatasets(2)
-                    MRSCont.processed.(SubSpecNames{ss}){1,kk}= op_mergeextra(MRSCont.processed.(SubSpecNames{ss}){1,kk},MRSCont.processed.(SubSpecNames{ss}){ll,kk},MRSCont.opts.extras.names{ll});
+                    if isfield(MRSCont.processed.(SubSpecNames{ss}){ll,kk}, 'extra_names')
+                        MRSCont.processed.(SubSpecNames{ss}){1,kk}= op_mergeextra(MRSCont.processed.(SubSpecNames{ss}){1,kk},MRSCont.processed.(SubSpecNames{ss}){ll,kk},MRSCont.processed.(SubSpecNames{ss}){ll,kk}.extra_names{1});
+                    else
+                        MRSCont.processed.(SubSpecNames{ss}){1,kk}= op_mergeextra(MRSCont.processed.(SubSpecNames{ss}){1,kk},MRSCont.processed.(SubSpecNames{ss}){ll,kk},MRSCont.opts.extras.names{ll});
+                    end
                 end
             end
         end
