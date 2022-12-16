@@ -580,7 +580,7 @@ if exist('dataScenario','var')
             MRSCont.opts.fit.bLineKnotSpace = 1.0;
             MRSCont.opts.fit.fitMM          = 0;
         case 'Series'
-            MRSCont.flags.isSeries = 1; 
+            MRSCont.flags.isSERIES = 1; 
             MRSCont.flags.isPhantom = 0;
         otherwise
             MRSCont.flags.isPhantom = 0;

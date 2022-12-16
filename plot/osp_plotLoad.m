@@ -47,6 +47,19 @@ end
 if nargin<11
     if nargin<4
         ExpIndex =1;
+        if MRSCont.flags.isSERIES
+            TempExpIndex = ExpIndex;
+            ExpIndex = 1;
+        else
+            TempExpIndex = 1;
+        end
+    else
+        if MRSCont.flags.isSERIES
+            TempExpIndex = ExpIndex;
+            ExpIndex = 1;
+        else
+            TempExpIndex = 1;
+        end
     end
         if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
             switch which
@@ -164,6 +177,7 @@ if nargin<11
         end
     end
 end
+ExpIndex = TempExpIndex;
 %Get y-axis values
 maxRef = ones(1,MRSCont.nDatasets(1),MRSCont.nDatasets(2));
 if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
@@ -218,21 +232,21 @@ if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) || (isfiel
     end
     dataToPlot.specs = dataToPlot.specs/maxRef(kk);
 else
-    switch which
-        case 'mets'
-            dataToPlot  = op_freqrange(MRSCont.raw{ExpIndex,kk}, ppmmin, ppmmax);
-        case 'mm' %re_mm
-            dataToPlot  = op_freqrange(MRSCont.raw_mm{ExpIndex,kk}, ppmmin, ppmmax);   %re_mm
-        case 'ref'
-            dataToPlot  = op_freqrange(MRSCont.raw_ref{ExpIndex,kk}, ppmmin, ppmmax);
-        case 'mm_ref'
-            dataToPlot  = op_freqrange(MRSCont.raw_mm_ref{ExpIndex,kk}, ppmmin, ppmmax);
-        case 'w'
-            dataToPlot  = op_freqrange(MRSCont.raw_w{ExpIndex,kk}, ppmmin, ppmmax);
-        otherwise
-            error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
-    end
-    dataToPlot.specs = dataToPlot.specs/maxRef(1,kk,ExpIndex);
+       switch which
+            case 'mets'
+                dataToPlot  = op_freqrange(MRSCont.raw{ExpIndex,kk}, ppmmin, ppmmax);
+            case 'mm' %re_mm
+                dataToPlot  = op_freqrange(MRSCont.raw_mm{ExpIndex,kk}, ppmmin, ppmmax);   %re_mm
+            case 'ref'
+                dataToPlot  = op_freqrange(MRSCont.raw_ref{ExpIndex,kk}, ppmmin, ppmmax);
+            case 'mm_ref'
+                dataToPlot  = op_freqrange(MRSCont.raw_mm_ref{ExpIndex,kk}, ppmmin, ppmmax);
+            case 'w'
+                dataToPlot  = op_freqrange(MRSCont.raw_w{ExpIndex,kk}, ppmmin, ppmmax);
+            otherwise
+                error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
+        end
+        dataToPlot.specs = dataToPlot.specs/maxRef(1,kk,ExpIndex);
 end
 
 

@@ -156,7 +156,11 @@ classdef OspreyGUI < handle
                     if strcmp(sprintf('\n'),MRSCont.raw{1,gui.controls.Selected}.seq(end)) %Clean up Sequence Name if needed
                         gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq(1:end-1);
                     else
-                        gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq;
+                        if iscell(MRSCont.raw{1,gui.controls.Selected}.seq)
+                            gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq{1,1};
+                        else
+                            gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq
+                        end
                     end
                 else
                     if MRSCont.flags.isUnEdited
@@ -201,10 +205,9 @@ classdef OspreyGUI < handle
                 end
             end
             
-            if gui.controls.nExperiments > 1
-                gui.info.nXvoxels = gui.controls.nExperiments;
-                gui.info.nExperiments = gui.controls.nExperiments;
-            end
+            gui.info.nXvoxels = gui.controls.nExperiments;
+            gui.info.nExperiments = gui.controls.nExperiments;
+
             if MRSCont.flags.didProcess %Get variables regarding the processing
                 gui.process.Number = length(fieldnames(MRSCont.processed));
                 gui.info.nYvoxels = MRSCont.processed.metab{1, 1}.subspecs;
@@ -417,7 +420,10 @@ classdef OspreyGUI < handle
                 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground,'Tag','SubjectListPanel');
             gui.layout.fileList = MRSCont.files(1,:);
             if ~MRSCont.flags.moved
-                [~, ~] = osp_detDataType(MRSCont);
+                try
+                    [~, ~] = osp_detDataType(MRSCont);
+                catch
+                end
             end
             SepFileList = cell(1,MRSCont.nDatasets(1));
             gui.layout.RedFileList = cell(1,MRSCont.nDatasets(1));
