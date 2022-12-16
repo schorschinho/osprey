@@ -6,6 +6,10 @@ Historically, basis functions were acquired experimentally from aqueous solution
 
 In this chapter, you will learn how to generate an **Osprey** basis set. You can either import an existing complete basis set in LCModel format (`.BASIS`), or you can compile an **Osprey** basis set from a set of synthetic spectra that have been simulated using the [FID-A software](https://github.com/CIC-methods/FID-A). Please refer to the example scripts in the repository for directions and how to do this. You can also ask for advice in the [Spectral Simulation](https://forum.mrshub.org/c/analysis-modeling/spectral-simulation/22) and [Basis Sets](https://forum.mrshub.org/c/analysis-modeling/basis-sets/23) categories of the [MRSHub forum](https://forum.mrshub.org).
 
+```{block2, noteOutputFolder, type='rmdnote'}
+It is now also possible to simulate basis sets for **Osprey** using a cloud-based simulation platform, [MRSCloud](https://braingps.mricloud.org/). For further information, please refer to the full [publication](https://doi.org/10.1002/mrm.29370), or the source code available on [Github](https://github.com/shui5/MRSCloud).
+``` 
+
 ## io_LCMBasis
 
 If you have an existing LCModel basis set (`.BASIS`), you can import it into **Osprey**. Assuming the basis set is located at `/Users/Georg/LCModelBasissets/GE/press144`, you can execute the following command at the MATLAB prompt after you have run `OspreyJob`:
