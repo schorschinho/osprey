@@ -1,44 +1,46 @@
-function [MRSCont] = OspreyGenerateSpectra(nDatasets,outputFolder,saveSpec,alter,changedComb,zeroed)
-
-if nargin < 6
-    zeroed.ph0 = 0;
-    zeroed.ph1 = 0;
-    zeroed.gaussLB = 0;
-    zeroed.lorentzLB = zeros(27,1);
-    zeroed.freqShift = zeros(27,1);
-    zeroed.ampl = zeros(35,1);
-    zeroed.beta_j = 0;
-    zeroed.lineShape = 0;
-    if nargin < 5
-        changedComb = 1;
-        if nargin <4
-            alter.Group1.ph0 = 0;
-            alter.Group1.ph1 = 0;
-            alter.Group1.gaussLB = 0;
-            alter.Group1.lorentzLB = zeros(27,1);
-            alter.Group1.freqShift = zeros(27,1);
-            alter.Group1.ampl = zeros(35,1);
-            alter.Group1.beta_j = zeros(14,1);
-            alter.Group1.lineShape = zeros(1,29);
-            alter.Group1.SNR = 0;
-    
-            alter.Group1.ph0_SD = 0;
-            alter.Group1.ph1_SD = 0;
-            alter.Group1.gaussLB_SD = 0;
-            alter.Group1.lorentzLB_SD = zeros(27,1);
-            alter.Group1.freqShift_SD = zeros(27,1);
-            alter.Group1.ampl_SD = zeros(35,1);
-            alter.Group1.beta_j_SD = zeros(14,1);
-            alter.Group1.lineShape_SD = zeros(1,29);
-            alter.Group1.SNR_SD = 0;
-            if nargin <3
-                saveSpec = 0;
-                if nargin<2
-                     [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
-                    allFolders      = strsplit(settingsFolder, filesep);
-                    outputFolder       = [strjoin(allFolders(1:end-1), filesep) 'simulated' filesep]; % parent folder (= Osprey folder)
-                    if nargin<1
-                        nDatasets=1;
+function [MRSCont] = OspreyGenerateSpectra(nDatasets,outputFolder,saveSpec,alter,changedComb,zeroed,shareLorentzLB)
+if nargin < 7
+    shareLorentzLB = 0;
+    if nargin < 6
+        zeroed.ph0 = 0;
+        zeroed.ph1 = 0;
+        zeroed.gaussLB = 0;
+        zeroed.lorentzLB = zeros(27,1);
+        zeroed.freqShift = zeros(27,1);
+        zeroed.ampl = zeros(35,1);
+        zeroed.beta_j = 0;
+        zeroed.lineShape = 0;
+        if nargin < 5
+            changedComb = 1;
+            if nargin <4
+                alter.Group1.ph0 = 0;
+                alter.Group1.ph1 = 0;
+                alter.Group1.gaussLB = 0;
+                alter.Group1.lorentzLB = zeros(27,1);
+                alter.Group1.freqShift = zeros(27,1);
+                alter.Group1.ampl = zeros(35,1);
+                alter.Group1.beta_j = zeros(14,1);
+                alter.Group1.lineShape = zeros(1,29);
+                alter.Group1.SNR = 0;
+        
+                alter.Group1.ph0_SD = 0;
+                alter.Group1.ph1_SD = 0;
+                alter.Group1.gaussLB_SD = 0;
+                alter.Group1.lorentzLB_SD = zeros(27,1);
+                alter.Group1.freqShift_SD = zeros(27,1);
+                alter.Group1.ampl_SD = zeros(35,1);
+                alter.Group1.beta_j_SD = zeros(14,1);
+                alter.Group1.lineShape_SD = zeros(1,29);
+                alter.Group1.SNR_SD = 0;
+                if nargin <3
+                    saveSpec = 0;
+                    if nargin<2
+                         [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
+                        allFolders      = strsplit(settingsFolder, filesep);
+                        outputFolder       = [strjoin(allFolders(1:end-1), filesep) 'simulated' filesep]; % parent folder (= Osprey folder)
+                        if nargin<1
+                            nDatasets=1;
+                        end
                     end
                 end
             end
@@ -48,12 +50,12 @@ end
 refSimTime = tic;
 %% Load known values and dummies
 prior_knowledge_folder = fileparts(which(fullfile('utilities','simulation-prior-knowledge','MRS_BigPRESS_Philips.mat')));
-load(fullfile(prior_knowledge_folder,'MRS_BigPRESS_Philips_Lookup_with_updated_lineShape.mat'));
+load(fullfile(prior_knowledge_folder,'MRS_BigPRESS_Philips.mat'));
 load(fullfile(prior_knowledge_folder,'splineArray.mat'));
 load(fullfile(prior_knowledge_folder,'ResampledBASIS.mat'));
-load(fullfile(prior_knowledge_folder,'DataDummy.mat'));
+load(fullfile(prior_knowledge_folder,'DummyData.mat'));
 load(fullfile(prior_knowledge_folder,'DummyContainer.mat'));
-load(fullfile(prior_knowledge_folder,'DummyNIIMRSHeader.mat'))
+load(fullfile(prior_knowledge_folder,'DummyNiiHeader.mat'))
 MRSCont.flags.hasMMRef = 0;
 
 %% Update nii header
@@ -154,6 +156,9 @@ for gg = 1 : NoGroups
     end      
 end
 
+if shareLorentzLB
+    par.lorentzLB = ones(1,size(par.lorentzLB,2)) .* mean(par.lorentzLB,2);
+end
 
 % Let's replace the anti-correlated amplitudes to create more realisitc
 % results.
