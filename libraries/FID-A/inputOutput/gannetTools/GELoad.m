@@ -271,65 +271,13 @@ data_elements = npoints * 2;
 totalframes = nrows * nechoes; % RTN nechoes mulitply
 data_elements = data_elements * totalframes * nreceivers;
 
+fseek(fid, pfile_header_size, 'bof');
 % Read data: point_size = 2 means 16-bit data, point_size = 4 means EDR
 if point_size == 2
-    read_type='integer*2';
+    raw_data = fread(fid, data_elements, 'integer*2');
 else
-    read_type='integer*4';
+    raw_data = fread(fid, data_elements, 'integer*4');
 end
-
-fseek(fid, pfile_header_size, 'bof');
-
-raw_data = fread(fid, data_elements, read_type);
-
-% ARC 2022-12-30 : When only a subset of available receivers are used, data layout deviates a little from the typical scenario. Here we try to detect and handle this case: {{{
-
-% check for any additional elements at the end of the file
-fseek(fid, 0,'eof');
-available_bytes = ftell(fid) - pfile_header_size;
-available_elements=available_bytes/point_size;
-
-if available_elements > data_elements
-    disp(sprintf('Beware: extra data elements remain at the end of the P-file: %d read out of %d total', data_elements, available_elements))
-end
-
-arc_nreceivers_full_inferred = available_elements/(npoints*2*totalframes);
-
-arc_use_piecewise_read = 0;
-
-if floor(arc_nreceivers_full_inferred)<arc_nreceivers_full_inferred
-    % If this ever happens, the data is either incomplete or in an unexpected layout
-    error('Calculated nreceivers is non-integer: something is awry.')
-elseif arc_nreceivers_full_inferred > nreceivers
-    disp(sprintf('It would appear that only a subset of available receivers are present in this dataset (%d of %d)', nreceivers, arc_nreceivers_full_inferred));
-    disp('Attempting to handle this with alternative reader -- EXPERIMENTAL! Plese check the outcome carefully.');
-    arc_use_piecewise_read = 1;
-    clear('raw_data');
-end
-
-if arc_use_piecewise_read
-
-    fseek(fid, pfile_header_size, 'bof');
-
-    ShapeData=zeros(2,npoints,totalframes,nreceivers);
-
-    for rec=1:nreceivers
-        read_size       = 2 * npoints * totalframes * (arc_nreceivers_full_inferred / nreceivers);
-        read_size       = round(read_size,0);
-        read_size_valid = 2 * npoints * totalframes;
-
-        %read_data=fread(fid, read_size, read_type);
-        %read_valid=read_data(1:read_size_valid);
-        read_valid = fread(fid, read_size_valid, read_type);
-        fseek(fid, (read_size - read_size_valid) * point_size, 0);
-
-        read_shape = reshape(read_valid, [ 2 npoints totalframes ]);
-        ShapeData(:,:,:,rec)=read_shape;
-    end
-end
-
-% ARC }}}
-
 fclose(fid);
 
 % 110303 CJE
@@ -383,9 +331,7 @@ else
         error('# of totalframes not same as (dataframes + refframes + 1) * nechoes');
     end
     
-    if ~arc_use_piecewise_read
-        ShapeData = reshape(raw_data, [2 npoints totalframes nreceivers]);
-    end
+    ShapeData = reshape(raw_data, [2 npoints totalframes nreceivers]);
     
     % MM (180404)
     [X1,X2] = ndgrid(1:refframes, 1:nechoes);
