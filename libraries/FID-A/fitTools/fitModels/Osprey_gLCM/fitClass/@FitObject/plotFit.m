@@ -21,7 +21,7 @@ function plotFit(obj,step, plotRange)
     plot(ppm, real(fit), 'r');
     plot(ppm, real(residual) + max(real(data)), 'k');
     for rr = 1:size(metabs,2)
-        plot(ppm, real(metabs(:,rr) + baseline'), 'g');
+        plot(ppm, real(metabs(:,rr) + baseline), 'g');
     end
     plot(ppm, real(baseline'), 'b');
     hold off;
