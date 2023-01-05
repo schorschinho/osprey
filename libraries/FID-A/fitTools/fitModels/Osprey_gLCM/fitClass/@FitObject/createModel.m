@@ -37,7 +37,7 @@ function obj = createModel(obj)
     ub = h.pars2x(parsub);
     
     % Setup lossfunction outputs
-    switch obj.Options{obj.step}.solver
+    switch solver
         case {'lbfgsb', 'fminsearch'}
             sse = 'sos';
         case 'lsqnonlin'
@@ -47,7 +47,7 @@ function obj = createModel(obj)
     % Prepare the function wrapper
     fcn  = @(x) h.lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Domain,sse);
    
-    switch obj.Options{obj.step}.solver
+    switch solver
         case 'lbfgsb'
             grad = @(x) h.forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart);
              % Request very high accuracy:
@@ -97,30 +97,19 @@ function obj = createModel(obj)
     obj.Model{obj.step}.info          = info;
     
     % Calculate CRLB
-    jac = h.forwardJacobian(xk, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart);
-    
+    jac = h.forwardJacobian(xk, data, basisSet, baselineBasis, ppm, t, fitRange, 'C');
     jac = -jac;
     
     % estimating the sigma based on the residual
     [indMin, indMax] = h.ppmToIndex(ppm, fitRange);
-    sigma   = std(obj.Model{obj.step}.fit.residual(indMin:indMax));
-
-    % remove zero lines
-    NonZeroLines = find(sum(real(jac),1)~=0);
-    howMany = length(NonZeroLines);
-    jac = jac(NonZeroLines,:);
+    sigma   = std(real(obj.Model{obj.step}.fit.residual(indMin:indMax)));
 
     %calculate the fisher matrix
-    fisher = (1./(sigma^2)) .* jac'*jac;
+    fisher = (1./(sigma^2)) .* real(jac'*jac);
     
     %fisher = fisher + ones(size(fisher))*eps;
     invFisher = pinv(fisher);
-    crlbs_cut = sqrt(diag(invFisher));
-    crlbs = zeros(size(jac,1),1);
-    crlbs(NonZeroLines) = crlbs_cut;
-    crlbs = real(crlbs);
-
-    
+    crlbs = sqrt(diag(invFisher));
     CRLB = h.x2pars(crlbs, nBasisFcts);
     
    

@@ -4,7 +4,7 @@ classdef FitObject < handle
     properties
         % Everything we need to perform a fit and store the results.
         step = [];
-        Data = struct('fids', [], 'DwellTime', [] , 'SpectralWidth', [], 'txfrq', [], 't', [], 'ppm', []);
+        Data = struct('fids', [], 'DwellTime', [] , 'SpectralWidth', [], 'txfrq', [], 't', [], 'ppm', [], 'nucleus', []);
         BasisSets = struct('fids', [], 'names', [], 'includeInFit', []);
         BaselineBasis = struct('specs', []);
         Options = {struct};
@@ -29,15 +29,20 @@ classdef FitObject < handle
                 obj.Data.SpectralWidth   = data.spectralwidth;
                 obj.Data.txfrq           = data.txfrq;
                 obj.Data.t               = data.t;
+                obj.Data.nucleus         = data.nucleus;
                 
                 % Calculate the ppm axis
-                npts            = size(data.fids, 1);
-                spectralwidth   = data.spectralwidth;
-                f   = (-spectralwidth/2) + (spectralwidth/(2*npts)) : spectralwidth/npts : (spectralwidth/2) - (spectralwidth/(2*npts));
-                obj.Data.ppm = f / (data.txfrq * 1e-6) + 4.68;
+                nptsData        = size(data.fids, 1);
+                obj.Data.ppm    = calculatePPMAxis(nptsData, data.spectralwidth, data.txfrq, data.nucleus);
             
-                
                 %%% BASIS SET %%%
+                % Assume that the basis set nucleus matches the data
+                % nucleus
+                basis.nucleus = data.nucleus;
+                
+                % Calculate the receiver frequency
+                basis.txfrq  = basis.Bo * lookUpGyromagRatioForNucleus(basis.nucleus) * 1e6;
+
                 % Check that basis set and data have the same resolution
                 if abs(basis.dwelltime - obj.Data.DwellTime) > eps
                     warning('Dwell time does not agree between basis set (%5.2e) and data (%5.2e).', obj.Data.DwellTime, basis.dwelltime);

@@ -210,6 +210,10 @@ function [jac] = forwardJacobian(x, data, basisSet, baselineBasis, ppm, t, fitRa
     if strcmp(SignalPart,'A') 
         jac         = abs(jac);
     end
+    if strcmp(SignalPart,'C')
+        % just return the complex
+    end
+    
     jac = (-1) * jac;
 end
 
