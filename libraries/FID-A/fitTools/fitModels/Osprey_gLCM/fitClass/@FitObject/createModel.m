@@ -14,6 +14,7 @@ function obj = createModel(obj)
     Domain              = obj.Options{obj.step}.optimDomain;
     fitRange            = obj.Options{obj.step}.optimFreqFitRange;
     SignalPart          = obj.Options{obj.step}.optimSignalPart;
+    solver          = obj.Options{obj.step}.solver;
     
     
     % Only use basis functions that are included
@@ -21,7 +22,8 @@ function obj = createModel(obj)
     
     % Create x0, lb, ub vectors by iteratively calling the
     % parameter-class-specific initialization
-    pars = {'ph0', 'ph1', 'gaussLB', 'metAmpl', 'freqShift', 'lorentzLB', 'baseAmpl'};
+%     pars = {'ph0', 'ph1', 'gaussLB', 'metAmpl', 'freqShift', 'lorentzLB', 'baseAmpl'};
+    pars = obj.Options{obj.step}.parameter;
     parsInit = [];
     parslb = [];
     parsub = [];
@@ -34,19 +36,50 @@ function obj = createModel(obj)
     lb = h.pars2x(parslb);
     ub = h.pars2x(parsub);
     
+    % Setup lossfunction outputs
+    switch obj.Options{obj.step}.solver
+        case {'lbfgsb', 'fminsearch'}
+            sse = 'sos';
+        case 'lsqnonlin'
+            sse = 'res';
+    end
+
     % Prepare the function wrapper
-    fcn  = @(x) h.lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Domain);
-    grad = @(x) h.forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitRange);
-    fun  = @(x) h.fminunc_wrapper(x, fcn, grad);
-    % Request very high accuracy:
-    opts            = struct('factr', 1e7, 'pgtol', 1e-2, 'm', 5);
-    opts.printEvery = 1;
-    % Run the algorithm:
-    % Feed initial guess from the input parameters
-    opts.x0 = x0;
-    tstart = tic;
-    [xk, ~, info] = lbfgsb(fun, lb, ub, opts );
-    time = toc(tstart);
+    fcn  = @(x) h.lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Domain,sse);
+   
+    switch obj.Options{obj.step}.solver
+        case 'lbfgsb'
+            grad = @(x) h.forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart);
+             % Request very high accuracy:
+            opts            = struct('factr', 1e7, 'pgtol', 1e-2, 'm', 5);
+            opts.printEvery = 1;
+            % Run the algorithm:
+            % Feed initial guess from the input parameters
+            opts.x0 = x0;
+            tstart = tic;
+            [xk, ~, info] = lbfgsb({fcn,grad}, lb, ub, opts );
+            time = toc(tstart);
+        case 'lsqnonlin'
+            jac = @(x) h.forwardJacobian(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart);
+            fun  = @(x) h.fminunc_wrapper(x, fcn, jac);
+            if obj.Options{obj.step}.CheckGradient
+                CheckGrad = true;
+            else
+                CheckGrad = false;
+            end
+            opts = optimoptions('lsqnonlin','Display','iter','Algorithm','levenberg-marquardt','SpecifyObjectiveGradient',true,'CheckGradients',CheckGrad,'FiniteDifferenceType','central');
+            tstart = tic;            
+            [xk,info.resnorm,info.residual,info.exitflag,info.output,info.lambda,info.jacobian] = lsqnonlin(fun, x0, lb, ub, opts );
+            time = toc(tstart);    
+        case 'fminsearch'
+            opts = optimset('fminsearch');
+            opts.Display = 'iter';
+            % Run the algorithm:
+            % Feed initial guess from the input parameters
+            tstart = tic;
+            [xk, ~, info] = fminsearchbnd(fcn, x0, lb, ub, opts);
+            time = toc(tstart);
+    end
     
 
     
@@ -64,38 +97,39 @@ function obj = createModel(obj)
     obj.Model{obj.step}.info          = info;
     
     % Calculate CRLB
-    [jac, ~] = h.forwardGradient(xk, data, basisSet, baselineBasis, ppm, t, fitRange);
+    jac = h.forwardJacobian(xk, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart);
     
-    jac = jac';
+    jac = -jac;
     
     % estimating the sigma based on the residual
     [indMin, indMax] = h.ppmToIndex(ppm, fitRange);
     sigma   = std(obj.Model{obj.step}.fit.residual(indMin:indMax));
 
     % remove zero lines
-    zeroLines = find(sum(real(jac),1));
-    howMany = length(jac) - length(zeroLines);
-    jac = jac(zeroLines);
+    NonZeroLines = find(sum(real(jac),1)~=0);
+    howMany = length(NonZeroLines);
+    jac = jac(NonZeroLines,:);
 
     %calculate the fisher matrix
     fisher = (1./(sigma^2)) .* jac'*jac;
     
     %fisher = fisher + ones(size(fisher))*eps;
     invFisher = pinv(fisher);
-    crlbs = sqrt(diag(invFisher));
-    crlbs = cat(1, zeros(howMany, 1), crlbs);
+    crlbs_cut = sqrt(diag(invFisher));
+    crlbs = zeros(size(jac,1),1);
+    crlbs(NonZeroLines) = crlbs_cut;
+    crlbs = real(crlbs);
+
     
     CRLB = h.x2pars(crlbs, nBasisFcts);
     
-%             %Calculate relativ error of the amplitude estimates
-%             CRLBMatrix   = sqrtm(invFisher);
-%             CRLB = FitObject.getDiagonalElementsOfCRLB(CRLBMatrix, nBasisFcts);
-    
+   
     %Relative CRLBs in percent
     relativeCRLB = CRLB.metAmpl./parsOut.metAmpl * 100;
 
     % Save table with basis function names and relative CRLB
     % Only use basis functions that are included
+    obj.Model{obj.step}.rawCRLB = CRLB;
     obj.Model{obj.step}.CRLB = table(basisSet.names(:, logical(basisSet.includeInFit))', relativeCRLB);
 
 end

@@ -1,7 +1,8 @@
-function [ModelParameter] = Osprey_gLCM(DataToModel,JsonModelFile)
+function [ModelParameter] = Osprey_gLCM(DataToModel,JsonModelFile,CheckGradient)
 %% Global function for new Osprey LCM
 % Inputs:   DataToModel - FID-A/Osprey struct with data or cell of structs
 %           JsonModelFile - Master model file for all steps
+%           CheckGradient - Do a gradient check in the lsqnonlin solver    
 % Outputs:  explicit - Struct with model parameters
 %           implicit - NII results file 
 
@@ -12,7 +13,10 @@ function [ModelParameter] = Osprey_gLCM(DataToModel,JsonModelFile)
 %       2a. Do on-the-fly generation of MMs
 %   3. Prepare data according to model json & Run steps defined in model json
 %   4. Save results (and export as NII)
-
+%% 0. Set up check gradient
+if nargin < 3
+    CheckGradient = 0;
+end
 %% 1. Decode model json file
 % Read the json file and generate a ModelProcedure struct from it which will guide the
 % rest of the analysis. Catch missing parameters here?
@@ -32,7 +36,7 @@ ModelProcedure  = jsondecode(str);
 % the DataToModel. Generate a basisset matrix for each step? including the
 % indirect dimensions for MSM.
 
-basisSet = load(ModelProcedure.Steps{1}.basisset.file);
+basisSet = load(ModelProcedure.Steps(1).basisset.file);
 basisSet = basisSet.BASIS;
 basisSet = osp_recalculate_basis_specs(basisSet);          % HZ re-calculate specs
 basisSet = fit_sortBasisSet(basisSet);
@@ -42,12 +46,17 @@ basisSet = fit_sortBasisSet(basisSet);
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
 for ss = 1 : length(ModelProcedure.Steps)
-    opts.dkntmn             = ModelProcedure.Steps{ss}.fit_opts.baseline.dkntmn; % minimum spacing between two neighboring spline knots
-    opts.optimDomain        = ModelProcedure.Steps{ss}.fit_opts.optimDomain; % do the least-squares optimization in the frequency domain
-    opts.optimSignalPart    = ModelProcedure.Steps{ss}.fit_opts.optimSignalPart; % do the least-squares optimization over the real part of the spectrum
-    opts.optimFreqFitRange  = ModelProcedure.Steps{ss}.fit_opts.ppm; % set the frequency-domain fit range to the fit range specified in the Osprey container
-    if isfield(ModelProcedure.Steps{ss},'initials')
-        opts.initials  = ModelProcedure.Steps{ss}.initials; % specify initials constructor
+    opts.dkntmn             = ModelProcedure.Steps(ss).fit_opts.baseline.dkntmn; % minimum spacing between two neighboring spline knots
+    opts.optimDomain        = ModelProcedure.Steps(ss).fit_opts.optimDomain; % do the least-squares optimization in the frequency domain
+    opts.optimSignalPart    = ModelProcedure.Steps(ss).fit_opts.optimSignalPart; % do the least-squares optimization over the real part of the spectrum
+    opts.optimFreqFitRange  = ModelProcedure.Steps(ss).fit_opts.ppm; % set the frequency-domain fit range to the fit range specified in the Osprey container
+    opts.solver  = ModelProcedure.Steps(ss).fit_opts.solver; % set the solver specified in the Osprey container
+    opts.CheckGradient = CheckGradient; % Do a gradient check in the lsqnonlin solver
+    if isfield(ModelProcedure.Steps(ss),'parameter')
+        opts.parameter  = ModelProcedure.Steps(ss).parameter; % specify parmetrizations constructor
+    end
+    if isfield(ModelProcedure.Steps(ss),'parametrizations')
+        opts.parametrizations  = ModelProcedure.Steps(ss).parametrizations; % specify parmetrizations constructor
     end
     if ~iscell(DataToModel)
         % Create an instance of the class
@@ -57,7 +66,7 @@ for ss = 1 : length(ModelProcedure.Steps)
             ModelParameter{1}.updateOptsAccordingToStep(opts);
         end
         ModelParameter{1}.excludeBasisFunctionFromFit('all');
-        ModelParameter{1}.includeBasisFunctionInFit(ModelProcedure.Steps{ss}.basisset.include);
+        ModelParameter{1}.includeBasisFunctionInFit(ModelProcedure.Steps(ss).basisset.include);
         % Run steps defined ModelProcedure struct
         % Loop across all steps with anonymous calls defined in the ModelProcedure struct
 %         ModelParameter{1}.initFit;
@@ -67,7 +76,7 @@ for ss = 1 : length(ModelProcedure.Steps)
             % Create an instance of the class
             ModelParameter{kk} = FitObject(DataToModel{kk}, basisSet, opts);
             ModelParameter{kk}.excludeBasisFunctionFromFit('all');
-            ModelParameter{kk}.includeBasisFunctionInFit(ModelProcedure.Steps{ss}.basisset.include);
+            ModelParameter{kk}.includeBasisFunctionInFit(ModelProcedure.Steps(ss).basisset.include);
             % Run steps defined ModelProcedure struct
             % Loop across all steps with anonymous calls defined in the ModelProcedure struct
 %             ModelParameter{kk}.initFit;
