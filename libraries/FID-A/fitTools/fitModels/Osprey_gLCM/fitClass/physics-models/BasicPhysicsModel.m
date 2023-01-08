@@ -10,8 +10,7 @@ function fh = BasicPhysicsModel
 end
 
 % Forward models, loss functions, Jacobian and gradient functions
-        % below
-function sse = lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Domain,SSE)
+function sse = lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE)
     
     if strcmp(Domain,'FD')   
         [indMin, indMax] = ppmToIndex(ppm, fitRange);
@@ -24,27 +23,27 @@ function sse = lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange,S
     prediction  = forwardModel(x, basisSet, baselineBasis, ppm, t);
     diffVec     = data(indMin:indMax) - prediction(indMin:indMax);
 
-    if strcmp(SignalPart,'R') 
-        residual         = real(diffVec);
+    switch SignalPart
+        case 'R'
+            residual = real(diffVec);
+        case 'I'
+            residual = imag(diffVec);
+        case {'RI', 'IR'}
+            residual = cat(1, real(diffVec), imag(diffVec));
+        case 'A'
+            residual = abs(diffVec);
     end
-    if strcmp(SignalPart,'I') 
-        residual         = imag(diffVec);
-    end
-    if strcmp(SignalPart,'RI') 
-        residual = cat(1, real(diffVec), imag(diffVec));
-    end
-    if strcmp(SignalPart,'A') 
-        residual         = abs(diffVec);
-    end
+    
     switch SSE
         case 'res'
             sse = residual;
         case 'sos'
             sse = sum(residual.^2);
     end
+    
 end
 
-function [grad] = forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart)
+function [grad] = forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitRange, SignalPart)
             
     [indMin, indMax] = ppmToIndex(ppm, fitRange);
     
@@ -237,21 +236,17 @@ function [Y, baseline, metabs] = forwardModel(x, basisSet, baselineBasis, ppm, t
         timeDomainMultiplier(:,ll) = exp(-(1i*freqShift(ll) + lorentzLB(ll) + gaussLB.^2.*t).*t)';    
     end
     
-    
     Fl = timeDomainMultiplier .* fids;
     specs = fftshift(fft(Fl, [], 1),1);
-    mets = specs * metAmpl;
-    baseline = baselineBasis * baseAmpl;
-    
     
     T_ph = exp(-1j .* (ph0 + ph1.*ppm)');
-    Y = T_ph .* (mets + baseline);  
-    
-    metabs = T_ph .* mets;
+    mets = specs * metAmpl;
+    baseline = baselineBasis * baseAmpl;
 
-    Y = complex(Y);
-    metabs = complex(metabs);
-    baseline = complex(baseline);
+    % Return full model, metabolites, and baseline for plotting
+    Y = T_ph .* (mets + baseline);
+    metabs = repmat(T_ph, [1 size(specs,2)]) .* specs .* repmat(metAmpl', [size(specs,1) 1]);
+    baseline = T_ph .* baseline;
 end
 
 function paramStruct = x2pars(x, nBasisFcts)
