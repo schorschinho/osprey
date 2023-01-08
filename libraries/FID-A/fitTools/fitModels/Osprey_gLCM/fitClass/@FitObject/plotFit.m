@@ -18,17 +18,16 @@ function plotFit(obj,step, plotRange)
     figure;
     hold;
     plot(ppm, real(data), 'k');
-    plot(ppm, real(fit), 'r');
     plot(ppm, real(residual) + max(real(data)), 'k');
     for rr = 1:size(metabs,2)
         plot(ppm, real(metabs(:,rr) + baseline), 'g');
     end
-    plot(ppm, real(baseline'), 'b');
+    plot(ppm, real(baseline), 'b');
+    plot(ppm, real(fit), 'r', 'LineWidth', 0.1);
     hold off;
     
     set(gca, 'XDir', 'reverse', 'XLim', plotRange);
     xlabel('chemical shift (ppm');
     
-    set(gca, 'XDir', 'reverse', 'XLim', plotRange);
-    xlabel('chemical shift (ppm');
+    legend('data', 'residual', 'metabolites', 'baseline', 'fit');
 end

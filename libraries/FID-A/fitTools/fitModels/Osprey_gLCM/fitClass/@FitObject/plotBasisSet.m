@@ -1,9 +1,12 @@
-function plotBasisSet(obj, plotRange)
-        
-        % default to the provided fit range
-        if nargin < 2
-            plotRange = obj.Options.optimFreqFitRange;
-        end
+function plotBasisSet(obj, step, plotRange)
+% default to the provided fit range
+if nargin < 3
+    plotRange = obj.Options{step}.optimFreqFitRange;
+    if nargin < 2
+        step = obj.step;
+        plotRange = obj.Options{step}.optimFreqFitRange;
+    end
+end
             
         % fft time-domain basis set
         fdBasisSpecs = real(fftshift(fft(obj.BasisSets.fids,[],1),1));

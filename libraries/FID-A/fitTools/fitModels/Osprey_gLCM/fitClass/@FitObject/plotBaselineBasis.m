@@ -1,8 +1,11 @@
-function plotBaselineBasis(obj, plotRange)
-    
+function plotBaselineBasis(obj, step, plotRange)
     % default to the provided fit range
-    if nargin < 2
-        plotRange = obj.Options.optimFreqFitRange;
+    if nargin < 3
+        plotRange = obj.Options{step}.optimFreqFitRange;
+        if nargin < 2
+            step = obj.step;
+            plotRange = obj.Options{step}.optimFreqFitRange;
+        end
     end
         
     figure;
