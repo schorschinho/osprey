@@ -7,6 +7,10 @@ function includeBasisFunctionInFit(obj, input)
         input = {input};
     end
     
+    if strcmpi(input, 'all')
+        input = obj.BasisSets.names;
+    end
+    
     for ii = length(input)
         % Check which metabolites are available in the basis set
         % and match the input
