@@ -1,4 +1,4 @@
-function [ModelParameter] = Osprey_gLCM(DataToModel,JsonModelFile,CheckGradient)
+function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, CheckGradient)
 %% Global function for new Osprey LCM
 % Inputs:   DataToModel - FID-A/Osprey struct with data or cell of structs
 %           JsonModelFile - Master model file for all steps
@@ -6,6 +6,14 @@ function [ModelParameter] = Osprey_gLCM(DataToModel,JsonModelFile,CheckGradient)
 % Outputs:  explicit - Struct with model parameters
 %           implicit - NII results file 
 
+%% 0. Check inputs
+arguments
+    % Argument validation introduced in relatively recent MATLAB versions
+    % (2019f?)
+    DataToModel struct
+    JsonModelFile string
+    CheckGradient double {mustBeNumeric} = 0; % optional
+end
 
 %% What happens here:
 %   1. Decode model json file 
@@ -13,23 +21,11 @@ function [ModelParameter] = Osprey_gLCM(DataToModel,JsonModelFile,CheckGradient)
 %       2a. Do on-the-fly generation of MMs
 %   3. Prepare data according to model json & Run steps defined in model json
 %   4. Save results (and export as NII)
-%% 0. Set up check gradient
-if nargin < 3
-    CheckGradient = 0;
-end
+
 %% 1. Decode model json file
 % Read the json file and generate a ModelProcedure struct from it which will guide the
 % rest of the analysis. Catch missing parameters here?
-
-fid = fopen(JsonModelFile); 
-raw = fread(fid,inf); 
-str = char(raw'); 
-fclose(fid); 
-if strcmp('win',osp_platform('filesys'))
-    str = strrep(str,'\','\\');
-end
-str = replace(str, whitespacePattern + '"', '"');
-ModelProcedure  = jsondecode(str);
+ModelProcedure = jsonToStruct(JsonModelFile);
 
 %% 2. Prepare basisset matrix (and export as NII)
 % Load basisset files, add MMs if needed, resample basis sets according to
@@ -38,8 +34,9 @@ ModelProcedure  = jsondecode(str);
 
 basisSet = load(ModelProcedure.Steps(1).basisset.file);
 basisSet = basisSet.BASIS;
-basisSet = osp_recalculate_basis_specs(basisSet);          % HZ re-calculate specs
+basisSet = recalculateBasisSpecs(basisSet);          % HZ re-calculate specs
 basisSet = fit_sortBasisSet(basisSet);
+
 %% 3. Prepare data according to model json and model data
 % Prepare data for each fit step, again, including the indirect dimensions
 % for MSM

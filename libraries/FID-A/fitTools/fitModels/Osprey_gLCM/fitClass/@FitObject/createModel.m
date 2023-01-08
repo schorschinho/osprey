@@ -14,7 +14,7 @@ function obj = createModel(obj)
     Domain              = obj.Options{obj.step}.optimDomain;
     fitRange            = obj.Options{obj.step}.optimFreqFitRange;
     SignalPart          = obj.Options{obj.step}.optimSignalPart;
-    solver          = obj.Options{obj.step}.solver;
+    solver              = obj.Options{obj.step}.solver;
     
     
     % Only use basis functions that are included
