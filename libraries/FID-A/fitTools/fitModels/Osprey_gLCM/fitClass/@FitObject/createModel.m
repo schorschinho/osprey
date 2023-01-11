@@ -18,7 +18,7 @@ function obj = createModel(obj)
     
     
     % Only use basis functions that are included
-    basisSet.fids   = basisSet.fids(:, logical(basisSet.includeInFit));
+    basisSet.fids   = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:);
     
     % Create x0, lb, ub vectors by iteratively calling the
     % parameter-class-specific initialization
@@ -31,7 +31,7 @@ function obj = createModel(obj)
         [parsInit, parslb, parsub] = initializeParameters(obj, parsInit, parslb, parsub, pars{pp});
     end
 
-    h = BasicPhysicsModel;
+    eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])
     x0 = h.pars2x(parsInit);
     lb = h.pars2x(parslb);
     ub = h.pars2x(parsub);
@@ -119,6 +119,6 @@ function obj = createModel(obj)
     % Save table with basis function names and relative CRLB
     % Only use basis functions that are included
     obj.Model{obj.step}.rawCRLB = CRLB;
-    obj.Model{obj.step}.CRLB = table(basisSet.names(:, logical(basisSet.includeInFit))', relativeCRLB);
+    obj.Model{obj.step}.CRLB = table(basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)))', relativeCRLB);
 
 end

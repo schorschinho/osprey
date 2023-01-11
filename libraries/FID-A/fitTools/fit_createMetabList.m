@@ -30,7 +30,7 @@ end
 
 % Select metabolites to include in basis set depending on user input
 % If 'default' or 'full' are input, fill appropriately...
-if length(includeMetabs) == 1
+if length(includeMetabs) == 1 && ~strcmp(includeMetabs{1},'H2O')
     if strcmpi(includeMetabs{1}, 'default')
         % Define the default set
         defaultMets = {'Asc','Asp','Cr','CrCH2' ...

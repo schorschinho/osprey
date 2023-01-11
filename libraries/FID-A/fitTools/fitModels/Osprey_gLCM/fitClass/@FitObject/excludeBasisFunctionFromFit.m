@@ -17,7 +17,7 @@ function excludeBasisFunctionFromFit(obj, input)
         [metsToInclude, ~, ~] = intersect(obj.BasisSets.names, input, 'stable');
         for rr = 1:length(metsToInclude)
             idxToInclude = find(strcmp(metsToInclude{rr}, obj.BasisSets.names));
-            obj.BasisSets.includeInFit(idxToInclude) = 0;
+            obj.BasisSets.includeInFit(obj.step+1,idxToInclude) = 0;
         end
         
     end
