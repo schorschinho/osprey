@@ -99,5 +99,7 @@ basisSetOut.nMM = sum(idx_toKeepMM);
 basisSetOut.name   = basisSetOut.name(logical(idx_toKeep));
 basisSetOut.fids   = basisSetOut.fids(:,logical(idx_toKeep),:);
 basisSetOut.specs  = basisSetOut.specs(:,logical(idx_toKeep),:);
+basisSetOut.sz = size(basisSetOut.fids);
+
 
 end

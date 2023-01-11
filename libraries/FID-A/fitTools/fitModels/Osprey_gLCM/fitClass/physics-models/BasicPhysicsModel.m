@@ -87,7 +87,11 @@ function [grad] = forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitR
     dYdgaussLB      = T_ph .* Fmett2gauss * metAmpl;
     dYdph0          = (-1j) .* prediction;
     dYdph1          = (-1j) .* ppm' .* prediction;
-    dYdBj           = T_ph_baseline .* baselineBasis;
+    if nBaselineComps ~= 0
+        dYdBj           = T_ph_baseline .* baselineBasis;
+    else
+        dYdBj = [];
+    end
                 
     % reduce to fit range
     dYdph0          = dYdph0(indMin:indMax,:);
@@ -96,7 +100,9 @@ function [grad] = forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitR
     dYdlorentzLB    = dYdlorentzLB(indMin:indMax,:);
     dYdfreqShift    = dYdfreqShift(indMin:indMax,:);
     dYdmetAmpl      = dYdmetAmpl(indMin:indMax,:);
-    dYdBj           = dYdBj(indMin:indMax,:);
+    if nBaselineComps ~= 0
+        dYdBj           = dYdBj(indMin:indMax,:);
+    end
     
     % reduce prediction to fit range;
     prediction = prediction(indMin:indMax);
@@ -177,7 +183,11 @@ function [jac] = forwardJacobian(x, data, basisSet, baselineBasis, ppm, t, fitRa
     dYdgaussLB      = T_ph .* Fmett2gauss * metAmpl;
     dYdph0          = (-1j) .* prediction;
     dYdph1          = (-1j) .* ppm' .* prediction;
-    dYdBj           = T_ph_baseline .* baselineBasis;
+    if nBaselineComps ~= 0
+        dYdBj           = T_ph_baseline .* baselineBasis;
+    else
+        dYdBj = [];
+    end
                 
     % reduce to fit range
     dYdph0          = dYdph0(indMin:indMax,:);
@@ -186,7 +196,9 @@ function [jac] = forwardJacobian(x, data, basisSet, baselineBasis, ppm, t, fitRa
     dYdlorentzLB    = dYdlorentzLB(indMin:indMax,:);
     dYdfreqShift    = dYdfreqShift(indMin:indMax,:);
     dYdmetAmpl      = dYdmetAmpl(indMin:indMax,:);
-    dYdBj           = dYdBj(indMin:indMax,:);
+    if nBaselineComps ~= 0
+        dYdBj           = dYdBj(indMin:indMax,:);
+    end
     
     % reduce prediction to fit range;
     prediction = prediction(indMin:indMax);
@@ -220,7 +232,7 @@ function [Y, baseline, metabs] = forwardModel(x, basisSet, baselineBasis, ppm, t
             
     % Define the default 1-D forward model first
     fids = basisSet.fids;
-    nBasisFcts = sum(basisSet.includeInFit);
+    nBasisFcts = sum(basisSet.includeInFit(end,:));
     
     inputParams     = x2pars(x, nBasisFcts);
     gaussLB     = inputParams.gaussLB;
@@ -244,9 +256,15 @@ function [Y, baseline, metabs] = forwardModel(x, basisSet, baselineBasis, ppm, t
     baseline = baselineBasis * baseAmpl;
 
     % Return full model, metabolites, and baseline for plotting
-    Y = T_ph .* (mets + baseline);
+    if ~isempty(baseline)
+        Y = T_ph .* (mets + baseline);
+        baseline = T_ph .* baseline;
+    else
+        Y = T_ph .* mets;
+        baseline = zeros(size(specs));
+    end
     metabs = repmat(T_ph, [1 size(specs,2)]) .* specs .* repmat(metAmpl', [size(specs,1) 1]);
-    baseline = T_ph .* baseline;
+    
 end
 
 function paramStruct = x2pars(x, nBasisFcts)
@@ -258,7 +276,11 @@ function paramStruct = x2pars(x, nBasisFcts)
     paramStruct.lorentzLB = x(4:3+nBasisFcts);
     paramStruct.freqShift = x(4+nBasisFcts:3+2*nBasisFcts);
     paramStruct.metAmpl = x(4+2*nBasisFcts:3+3*nBasisFcts);
-    paramStruct.baseAmpl = x(4+3*nBasisFcts:end);
+    if ~(4+3*nBasisFcts > length(x))
+        paramStruct.baseAmpl = x(4+3*nBasisFcts:end);
+    else
+        paramStruct.baseAmpl = [];
+    end
 
     
 end
@@ -267,9 +289,15 @@ function x = pars2x(paramStruct)
             
     % Converts a parameter struct into a 1-D x vector that can be
     % passed on to solvers
-    x = [paramStruct.ph0, paramStruct.ph1, paramStruct.gaussLB, ...
-         paramStruct.lorentzLB, paramStruct.freqShift, ... 
-         paramStruct.metAmpl, paramStruct.baseAmpl]';
+    if ~isempty(paramStruct.baseAmpl)
+        x = [paramStruct.ph0, paramStruct.ph1, paramStruct.gaussLB, ...
+             paramStruct.lorentzLB, paramStruct.freqShift, ... 
+             paramStruct.metAmpl, paramStruct.baseAmpl]';
+    else
+        x = [paramStruct.ph0, paramStruct.ph1, paramStruct.gaussLB, ...
+             paramStruct.lorentzLB, paramStruct.freqShift, ... 
+             paramStruct.metAmpl]';
+    end
     
 end
 

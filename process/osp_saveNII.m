@@ -72,7 +72,11 @@ for kk = 1:MRSCont.nDatasets
     
     if MRSCont.flags.isUnEdited
         outfile         = fullfile(saveDestination, [name '_A.nii.gz']);
-        RF              = outputFunction(MRSCont.processed.metab{kk},outfile);
+        if MRSCont.processed.metab{kk}.dims.extras == 0
+            RF              = outputFunction(MRSCont.processed.metab{kk},outfile);
+        else
+            RF              = outputFunction(MRSCont.processed.metab{kk},outfile,{MRSCont.processed.metab{kk}.nii_mrs.hdr_ext.dim_5});
+        end
     elseif MRSCont.flags.isMEGA
         outfileA        = fullfile(saveDestination, [name '_A.nii.gz']);
         RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA);

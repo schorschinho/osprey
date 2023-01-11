@@ -1,12 +1,15 @@
 function [init, lb, ub] = initializeParameters(obj, init, lb, ub, parameter)
     
     % Collect number of basis functions and baseline spline elements
-    nBasisFcts = sum(obj.BasisSets.includeInFit);
+    nBasisFcts = sum(obj.BasisSets.includeInFit(obj.step,:));
     nBaselineComps = size(obj.BaselineBasis, 2);
-    if ~isfield(obj.Options{obj.step}.parametrizations,parameter)
+    if ~isfield(obj.Options{obj.step},'parametrizations')
         obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter);
-    else
-        obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.parametrizations.(parameter));
+    else if ~isfield(obj.Options{obj.step}.parametrizations,parameter)
+            obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter);
+        else
+            obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.parametrizations.(parameter));
+        end
     end
     if strcmp(obj.Options{obj.step}.parametrizations.(parameter).fun, 'free')
         switch parameter
@@ -67,7 +70,7 @@ function parametrizations = set_parameter(obj,parameter,predefined)
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = 0;
-        parametrizations.ub      = 10;
+        parametrizations.ub      = Inf;
         parametrizations.init    = log(2);
         
         case 'freqShift'

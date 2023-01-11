@@ -25,15 +25,15 @@ classdef FitObject < handle
                 % Copy the information necessary to create appropriate time-
                 % and frequency-domain signals:
                 obj.Data.fids            = data.fids;
-                obj.Data.DwellTime       = data.dwelltime;
-                obj.Data.SpectralWidth   = data.spectralwidth;
-                obj.Data.txfrq           = data.txfrq;
+                obj.Data.DwellTime       = data.dwelltime(1);
+                obj.Data.SpectralWidth   = data.spectralwidth(1);
+                obj.Data.txfrq           = data.txfrq(1);
                 obj.Data.t               = data.t;
                 obj.Data.nucleus         = data.nucleus;
                 
                 % Calculate the ppm axis
                 nptsData        = size(data.fids, 1);
-                obj.Data.ppm    = calculatePPMAxis(nptsData, data.spectralwidth, data.txfrq, data.nucleus);
+                obj.Data.ppm    = calculatePPMAxis(nptsData, data.spectralwidth(1), data.txfrq(1), data.nucleus);
             
                 %%% BASIS SET %%%
                 % Assume that the basis set nucleus matches the data
@@ -92,19 +92,29 @@ classdef FitObject < handle
                 % Save the property struct
                 obj.Options{1} = options;
                 
-                
-                %%% CREATE BASELINE SPLINE BASIS %%%
-                % Combine real and imaginary part to form a complex spline array.
-                % Use the new, corrected function from here on
-                fitRange    = obj.Options{1}.optimFreqFitRange;
-                dkntmn      = obj.Options{1}.dkntmn;
-                [splineArray] = osp_gLCM_makeSplineBasis(data, fitRange, dkntmn);
-                B = splineArray;
+                % Setup baseline model 
+                switch obj.Options{1}.baseline.type
+                    case 'spline'
+                        %%% CREATE BASELINE SPLINE BASIS %%%
+                        % Combine real and imaginary part to form a complex spline array.
+                        % Use the new, corrected function from here on
+                        fitRange    = obj.Options{1}.optimFreqFitRange;
+                        dkntmn      = obj.Options{1}.baseline.dkntmn;
+                        [splineArray] = osp_gLCM_makeSplineBasis(data, fitRange, dkntmn);   
+                        % Save into the property
+                        obj.BaselineBasis = splineArray;
+                    case 'poly'
+                        %%% CREATE BASELINE POLYNOMIAL BASIS %%%
+                        fitRange    = obj.Options{1}.optimFreqFitRange;
+                        order      = obj.Options{1}.baseline.order;
+                        [splineArray] = osp_gLCM_makePolyBasis(data, fitRange, order);   
+                        % Save into the property
+                        obj.BaselineBasis = splineArray;
 
-                paddedBaseline = B;
-                
-                % Save into the property
-                obj.BaselineBasis = paddedBaseline;
+                    case 'none'
+                        %%% NO BASELINE %%%
+                        obj.BaselineBasis = []; 
+                end
             
             end
             

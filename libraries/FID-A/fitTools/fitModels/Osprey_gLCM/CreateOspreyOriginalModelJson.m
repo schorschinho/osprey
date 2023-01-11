@@ -6,11 +6,12 @@
 % LCM.Steps{1}.ppm_limits = [1.85, 4.2];
 % LCM.Steps{1}.realpart = 0;
 % LCM.Steps{1}.extra = 1;
-
+LCM.basisset.file = {'/Volumes/Samsung/working/Shandong2/MSM/basissets/sLASER/BASIS_Philips_UnEdited_sLASER_GABA30_wMM.mat'};
 %% Step 2 Preliminary fit to generate initial guess
+
 LCM.Steps(1).module = 'Model';
-LCM.Steps(1).extra = 1;
-LCM.Steps(1).basisset.file = '/Users/helge/Documents/GitHub/osprey/fit/basissets/3T/philips/unedited/press/35/basis_philips_press35.mat';
+LCM.Steps(1).ModelFunction = 'BasicPhysicsModel';
+LCM.Steps(1).extra = 0;
 LCM.Steps(1).basisset.spec = 1;
 LCM.Steps(1).basisset.include = {'Cr'};
 LCM.Steps(1).fit_opts.ppm = [0.5 4];
@@ -31,8 +32,9 @@ LCM.Steps(1).parametrizations.baseAmpl.lb = [0];
 %% Step 3 Final fit 
 
 LCM.Steps(2).module = 'Model';
-LCM.Steps(2).extra = 1;
-LCM.Steps(2).basisset.file = '/Users/helge/Documents/GitHub/osprey/fit/basissets/3T/philips/unedited/press/35/basis_philips_press35.mat';
+LCM.Steps(2).ModelFunction = 'BasicPhysicsModel';
+LCM.Steps(2).extra = 0;
+LCM.Steps(2).basisset.file = '/Volumes/Samsung/working/Shandong2/MSM/basissets/sLASER/BASIS_Philips_UnEdited_sLASER_GABA30_wMM.mat';
 LCM.Steps(2).basisset.spec = 1;
 LCM.Steps(2).basisset.include = {'Cr'};
 LCM.Steps(2).fit_opts.ppm = [0.5 4];
@@ -53,6 +55,6 @@ LCM.Steps(2).parametrizations.metAmpl.init = [0];
 LCM.Steps(2).parametrizations.baseAmpl.init = [0];
 
 %%
-fid=fopen(['/Volumes/Samsung/working/Shandong2/MSM/code/DefaultOsprey.json'],'w');
+fid=fopen(['/Volumes/Samsung/working/Shandong2/MSM/code/ModelProcedures/DefaultOsprey.json'],'w');
 fprintf(fid, jsonencode(LCM, "PrettyPrint", true)); 
 fclose(fid);
