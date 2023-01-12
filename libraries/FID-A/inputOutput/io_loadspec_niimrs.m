@@ -3,14 +3,14 @@
 %
 % USAGE:
 % out = io_loadspec_niimrs(filename);
-% 
+%
 % DESCRIPTION:
 % Reads in MRS data stored according to the NIfTI MRS format.
 % See the specification under
 % https://docs.google.com/document/d/1tC4ugzGUPLoqHRGrWvOcGCuCh_Dogx_uu0cxKub0EsM/edit
-% 
-% io_loadspec_niimrs outputs the data in structure format, with fields 
-% corresponding to time scale, fids, frequency scale, spectra, and header 
+%
+% io_loadspec_niimrs outputs the data in structure format, with fields
+% corresponding to time scale, fids, frequency scale, spectra, and header
 % fields containing information about the acquisition. The resulting matlab
 % structure can be operated on by the other functions in this MRS toolbox.
 %
@@ -27,7 +27,7 @@
 % This function requires the dcm2nii toolbox (Xiangrui Li) to be on the
 % MATLAB path
 % https://github.com/xiangruili/dicm2nii
-% 
+%
 % INPUTS:
 % filename   = filename of NIfTI MRS file (*.nii) to load.
 %
@@ -85,7 +85,7 @@ dims.extras = 0;
 % dim_6 and dim_7.
 if isfield(hdr_ext, 'dim_5')
     dim_number = 5;
-    
+
     % This field may come in as a cell or a string.
     if iscell(hdr_ext.dim_5)
         dim_5 = hdr_ext.dim_5{1};
@@ -120,12 +120,12 @@ if isfield(hdr_ext, 'dim_5')
         otherwise
             error('Unknown dimension value specified in dim_5: %s', dim_5);
     end
-       
+
 end
 
 if isfield(hdr_ext, 'dim_6')
     dim_number = 6;
-    
+
     % This field may come in as a cell or a string.
     if iscell(hdr_ext.dim_6)
         dim_6 = hdr_ext.dim_6{1};
@@ -163,7 +163,7 @@ if isfield(hdr_ext, 'dim_6')
 end
 if isfield(hdr_ext, 'dim_7')
     dim_number = 7;
-        
+
     % This field may come in as a cell or a string.
     if iscell(hdr_ext.dim_7)
         dim_7 = hdr_ext.dim_7{1};
@@ -208,7 +208,7 @@ nPts = allDims(dims.t);
 
 % Find the number of averages.  'averages' will specify the current number
 % of averages in the dataset as it is processed, which may be subject to
-% change.  'rawAverages' will specify the original number of acquired 
+% change.  'rawAverages' will specify the original number of acquired
 % averages in the dataset, which is unchangeable.
 if dims.subSpecs ~= 0
     if dims.averages ~= 0
@@ -229,8 +229,8 @@ else
 end
 
 % FIND THE NUMBER OF SUBSPECS
-% 'subspecs' will specify the current number of subspectra in the dataset 
-% as it is processed, which may be subject to change. 'rawSubspecs' will 
+% 'subspecs' will specify the current number of subspectra in the dataset
+% as it is processed, which may be subject to change. 'rawSubspecs' will
 % specify the original number of acquired  subspectra in the dataset, which
 % is unchangeable.
 if dims.subSpecs ~=0
@@ -253,7 +253,7 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
     dims.y = 0;
     dims.z = 0;
     fids = squeeze(fids);
-    
+
     %Now that we've indexed the dimensions of the data array, we now need to
     %permute it so that the order of the dimensions is standardized:  we want
     %the order to be as follows:
@@ -317,13 +317,13 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
     elseif length(sqzDims)==1
         dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0;
     end
-    
+
     %Now get the size of the data array:
     sz=size(fids);
-    
+
     %Compared to NIfTI MRS, FID-A needs the conjugate
     fids = conj(fids);
-    
+
     %Now take fft of time domain to get fid:
     specs=fftshift(fft(fids,[],dims.t),dims.t);
 
@@ -387,7 +387,7 @@ out.rawAverages = rawAverages;
 out.subspecs = subspecs;
 out.rawSubspecs = rawSubspecs;
 
-
+% Echo/repetition time
 out.te = hdr_ext.EchoTime * 1e3;        %convert to [ms]
 out.tr = hdr_ext.RepetitionTime * 1e3;  %convert to [ms]
 
@@ -459,7 +459,7 @@ if strcmp(seq,'HERCULES')
     out.flags.isHERCULES = 1;
 end
 
-% Store additional information from the nii header 
+% Store additional information from the nii header
     if out.dims.extras
         if ischar(out.seq)
             temp_seq = out.seq;
@@ -472,7 +472,7 @@ end
             out.dwelltime(ex) = out.dwelltime(1);
             out.centerFreq(ex) = out.centerFreq(1);
             out.txfrq(ex) = out.txfrq(1);
-            
+
             if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'EchoTime')
                 out.te(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).EchoTime(ex) * 1e3; % convert to [ms]
                 out.extra_names{ex} = ['TE_' num2str(ex)];
@@ -499,4 +499,3 @@ end
 
     end
 end
-
