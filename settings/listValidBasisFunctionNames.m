@@ -23,38 +23,57 @@ switch type
     case 'mets'
         
         listOfValidNames =  {...
+            'AcAc',...  % Acetoacetate
+            {'Ace', 'Act'},...   % Acetate
+            {'AcO', 'Acn'},...   % Acetone
             'Ala',...   % Alanine
             'Asc',...   % Ascorbate
             'Asp',...   % Aspartate
-            'bHB',...   % beta-hydroxybutyrate
+            'Bet',...   % Betaine
+            {'bHB', 'bHb'},...   % beta-hydroxybutyrate
             {'bHG', '2HG', '2-HG'},...   % 2-hydroxyglutarate
+            'Car', ...  % Carnitine
             'Cit',...   % Citrate
             {'Cr', 'Cre'},...    % Cr
+            'Cys', ...  % Cysteic acid
             'Cystat',...% Cystat
             'CrCH2',... % negative CrCH2 correction signal
             'EA',...    % Ethanolamine
-            'EtOH',...  % Ethanol
-            'fCho',...  % free choline
+            {'EtOH', 'Eth'},...  % Ethanol
+            {'fCho', 'Cho'},...  % free choline
+            'Fuc',...   % Fucose
             'GABA',...  % GABA
+            'Gcn',...   % Glucone
+            'Gcr',...   % Glucoronic acid
             'GPC',...   % Glycerophosphocholine
             'GSH',...   % Glutathione (reduced)
             'Glc',...   % Glucose
             'Gln',...   % Glutamine
             'Glu',...   % Glutamate
             {'Gly', 'Glyc'},...   % Glycine
+            'Gua',...   % Guanidinoacetate
             'H2O',...   % H2O
+            'HCar',...  % Homocarnosine
+            'ILc',...   % Isoleucine
             {'mI', 'Ins', 'mIns'},...    % myo-inositol
             'Lac',...   % Lactate
+            'Leu',...   % Leucine
+            'Lys',...   % Lysine
             'NAA',...   % N-Acetylaspartate
             'NAAG',...  % N-Acetylaspartylglutamate
-            'PCh',...   % Phosphocholine
+            {'PCh', 'PCho'},...   % Phosphocholine
             'PCr',...   % Phosphocreatine
             'PE',...    % Phosphoethanolamine
-            'Phenyl',...    % Phenylalanine
+            'Pgc',...   % Propyleneglycol
+            {'Phenyl', 'PAl'},...    % Phenylalanine
+            'Pyr',...   % Pyruvate
             {'sI', 'Scyllo', 'sIns'},...    % scyllo-inositol
             'Ser',...   % Serine
+            'Suc',...   % Succinate
             'Tau',...   % Taurine
+            'Thr',...   % Threonine
             'Tyros',... % Tyrosine
+            'Val',...   % Valine
             'NAA_Ace',...   % NAA acetyl
             'NAA_Asp',...   % NAA aspartyl
             };
@@ -77,7 +96,7 @@ switch type
             'MM38',...
             'MM40',...
             'MM42',...
-            {'MMexp','Mac'},... % Typical names for measured MM
+            {'MMexp','Mac', 'MMmeas'},... % Typical names for measured MM
             'MM_PRESS_PCC',...
             'MM_PRESS_CSO',...
             };
