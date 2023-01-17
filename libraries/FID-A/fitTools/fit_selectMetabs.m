@@ -38,9 +38,7 @@ if nargin<3
     fitMM = 1;
 end
 % Save all available metabolite names in a cell
-all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','Cystat','CrCH2','EA','EtOH','fCho','GABA','GPC','GSH','Glc','Gln' ...
-    ,'Glu','Gly','HCar','H2O','mI','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
-    ,'sI','Ser','Tau','Tyros','NAA_Ace','NAA_Asp'};
+all_mets = listStandardBasisFunctionNames('mets');
 
 % Duplicate the input basis set
 basisSetOut = basisSetIn;
@@ -64,7 +62,7 @@ basisSetOut.nMets = sum(idx_toKeep);
 % If the flag for including MM/lipid basis functions is set in osp_FitInitialise,
 % include them now
 
-all_MMs = {'MM09','MM12','MM14','MM17','MM20','MM22', 'MM27','MM30','MM32','Lip09','Lip13','Lip20','MM37','MM38','MM40','MM42','MMexp','MM_PRESS_PCC','MM_PRESS_CSO'};
+all_MMs = listStandardBasisFunctionNames('mm');
 
 % Check which of these are available in the basis set
 MMsInBasisSet = basisSetIn.name;

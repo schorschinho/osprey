@@ -20,10 +20,10 @@
 function metabList = fit_createMetabList(includeMetabs)
 
 % Define the set of available metabolites
-all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','Cystat','CrCH2','EA','EtOH','GABA','GPC','GSH','Glc','Gln' ...
-    ,'Glu','Gly','HCar','H2O','mI','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
-    ,'sI','Ser','Tau','Tyros','NAA_Ace','NAA_Asp','MM09','MM12','MM14','MM17','MM20','MM22', 'MM27','MM30','MM32' ...
-    ,'Lip09','Lip13','Lip20','MM37','MM38','MM40','MM42','MMexp','MM_PRESS_PCC','MM_PRESS_CSO'};
+all_mets = listStandardBasisFunctionNames('mets');
+all_mm   = listStandardBasisFunctionNames('mm');
+all_mets = horzcat(all_mets, all_mm);
+
 for rr = 1:length(all_mets)
     metabList.(all_mets{rr}) = 0;
 end
