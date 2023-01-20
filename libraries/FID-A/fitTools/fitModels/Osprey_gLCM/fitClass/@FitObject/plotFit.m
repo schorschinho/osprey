@@ -1,10 +1,15 @@
-function plotFit(obj,step, plotRange)
+function plotFit(obj,step,secDim, plotRange)
     % default to the provided fit range
-    if nargin < 3
+    if nargin < 4
         plotRange = obj.Options{step}.optimFreqFitRange;
-        if nargin < 2
-            step = obj.step;
+        if nargin < 3
+            secDim = 1;
             plotRange = obj.Options{step}.optimFreqFitRange;
+            if nargin < 2
+                step = obj.step;
+                secDim = 1;
+                plotRange = obj.Options{step}.optimFreqFitRange;
+            end
         end
     end
         
@@ -17,13 +22,13 @@ function plotFit(obj,step, plotRange)
     metabs = obj.Model{step}.fit.metabs;
     figure;
     hold;
-    plot(ppm, real(data), 'k');
-    plot(ppm, real(residual) + max(real(data)), 'k');
+    plot(ppm, real(data(:,secDim)), 'k');
+    plot(ppm, real(residual(:,secDim)) + max(real(data(:,secDim))), 'k');
     for rr = 1:size(metabs,2)
-        plot(ppm, real(metabs(:,rr) + baseline), 'g');
+        plot(ppm, real(metabs(:,rr,secDim) + baseline(:,secDim)), 'g');
     end
-    plot(ppm, real(baseline), 'b');
-    plot(ppm, real(fit), 'r', 'LineWidth', 0.1);
+    plot(ppm, real(baseline(:,secDim)), 'b');
+    plot(ppm, real(fit(:,secDim)), 'r', 'LineWidth', 0.1);
     hold off;
     
     set(gca, 'XDir', 'reverse', 'XLim', plotRange);
