@@ -10,7 +10,7 @@ function fh = BasicPhysicsModel
 end
 
 % Forward models, loss functions, Jacobian and gradient functions
-function sse = lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE)
+function sse = lossFunction(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE)
     
     if strcmp(Domain,'FD')   
         [indMin, indMax] = ppmToIndex(ppm, fitRange);
@@ -41,9 +41,12 @@ function sse = lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange, 
             sse = sum(residual.^2);
     end
     
+    SigmaSquared = (NormNoise * length(data(indMin:indMax)))^2;
+    sse = sse / SigmaSquared;
+    
 end
 
-function [grad] = forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitRange, SignalPart)
+function [grad] = forwardGradient(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange, SignalPart)
             
     [indMin, indMax] = ppmToIndex(ppm, fitRange);
     
@@ -137,9 +140,12 @@ function [grad] = forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitR
     grad = sum((data - prediction).*(-conj(jac)) + (-jac .* conj(data-prediction)));
     grad = grad';
 
+    SigmaSquared = (NormNoise * length(data))^2;
+    grad = grad / SigmaSquared;
+
 end
 
-function [jac] = forwardJacobian(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart)
+function [jac] = forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart)
             
     [indMin, indMax] = ppmToIndex(ppm, fitRange);
     
@@ -226,6 +232,9 @@ function [jac] = forwardJacobian(x, data, basisSet, baselineBasis, ppm, t, fitRa
     end
     
     jac = (-1) * jac;
+
+    SigmaSquared = (NormNoise * length(data))^2;
+    jac = jac / SigmaSquared;
 end
 
 function [Y, baseline, metabs] = forwardModel(x, basisSet, baselineBasis, ppm, t)

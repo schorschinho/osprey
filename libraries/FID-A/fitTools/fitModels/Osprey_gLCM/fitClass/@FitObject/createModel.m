@@ -15,6 +15,7 @@ function obj = createModel(obj)
     fitRange            = obj.Options{obj.step}.optimFreqFitRange;
     SignalPart          = obj.Options{obj.step}.optimSignalPart;
     solver              = obj.Options{obj.step}.solver;
+    NormNoise           = obj.NormNoise;   
     
     
     % Only use basis functions that are included
@@ -27,14 +28,28 @@ function obj = createModel(obj)
     parsInit = [];
     parslb = [];
     parsub = [];
+    parsfun = [];
     for pp = 1:length(pars)
-        [parsInit, parslb, parsub] = initializeParameters(obj, parsInit, parslb, parsub, pars{pp});
+        [parsInit, parslb, parsub, parsfun] = initializeParameters(obj, parsInit, parslb, parsub, parsfun, pars{pp});
     end
 
+    % Set handles and create x0, lb, and ub vectors
     eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])
-    x0 = h.pars2x(parsInit);
-    lb = h.pars2x(parslb);
-    ub = h.pars2x(parsub);
+    [x0, indexStruct] = h.pars2x(parsInit);
+    [lb,~] = h.pars2x(parslb);
+    [ub,~] = h.pars2x(parsub);
+    
+    % Update the parametrization according to the 2D json file. This is
+    % crucial to define the type (free, fixed, dynamic) and new bounds
+    for pp = 1:length(pars)
+        obj.Options{obj.step}.parametrizations.(pars{pp}).start = indexStruct.(pars{pp}).start;
+        obj.Options{obj.step}.parametrizations.(pars{pp}).end = indexStruct.(pars{pp}).end;
+        obj.Options{obj.step}.parametrizations.(pars{pp}).init = parsInit.(pars{pp});
+        obj.Options{obj.step}.parametrizations.(pars{pp}).lb = parslb.(pars{pp});
+        obj.Options{obj.step}.parametrizations.(pars{pp}).ub = parsub.(pars{pp});
+        obj.Options{obj.step}.parametrizations.(pars{pp}).type = parsfun.(pars{pp});
+    end
+    parametrizations = obj.Options{obj.step}.parametrizations;
     
     % Setup lossfunction outputs
     switch solver
@@ -45,11 +60,11 @@ function obj = createModel(obj)
     end
 
     % Prepare the function wrapper
-    fcn  = @(x) h.lossFunction(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Domain,sse);
+    fcn  = @(x) h.lossFunction(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Domain,sse,parametrizations);
    
     switch solver
         case 'lbfgsb'
-            grad = @(x) h.forwardGradient(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart);
+            grad = @(x) h.forwardGradient(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,parametrizations);
              % Request very high accuracy:
             opts            = struct('factr', 1e7, 'pgtol', 1e-2, 'm', 5);
             opts.printEvery = 1;
@@ -60,14 +75,15 @@ function obj = createModel(obj)
             [xk, ~, info] = lbfgsb({fcn,grad}, lb, ub, opts );
             time = toc(tstart);
         case 'lsqnonlin'
-            jac = @(x) h.forwardJacobian(x, data, basisSet, baselineBasis, ppm, t, fitRange,SignalPart);
+            jac = @(x) h.forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,parametrizations);
             fun  = @(x) h.fminunc_wrapper(x, fcn, jac);
             if obj.Options{obj.step}.CheckGradient
                 CheckGrad = true;
             else
                 CheckGrad = false;
             end
-            opts = optimoptions('lsqnonlin','Display','iter','Algorithm','levenberg-marquardt','SpecifyObjectiveGradient',true,'CheckGradients',CheckGrad,'FiniteDifferenceType','central');
+            opts = optimoptions('lsqnonlin','Display','iter','Algorithm','levenberg-marquardt','SpecifyObjectiveGradient',true,...
+                                'CheckGradients',CheckGrad,'FiniteDifferenceType','central','MaxIterations',1000);
             tstart = tic;            
             [xk,info.resnorm,info.residual,info.exitflag,info.output,info.lambda,info.jacobian] = lsqnonlin(fun, x0, lb, ub, opts );
             time = toc(tstart);    
@@ -86,8 +102,9 @@ function obj = createModel(obj)
     % Save modeling results
     spec            = fftshift(fft(data, [], 1), 1);
     nBasisFcts      = size(basisSet.fids, 2);
-    parsOut         = h.x2pars(xk, nBasisFcts);
-    [fit, baseline, metabs] = h.forwardModel(xk, basisSet, baselineBasis, ppm, t);
+    secDim          = size(data,2);      
+    parsOut         = h.x2pars(xk, secDim, parametrizations);
+    [fit, baseline, metabs] = h.forwardModel(xk, basisSet, baselineBasis, ppm, t, parametrizations);
     obj.Model{obj.step}.fit.fit       = fit;
     obj.Model{obj.step}.fit.baseline  = baseline;
     obj.Model{obj.step}.fit.residual  = spec - fit;
@@ -97,11 +114,13 @@ function obj = createModel(obj)
     obj.Model{obj.step}.info          = info;
     
     % Calculate CRLB
-    jac = h.forwardJacobian(xk, data, basisSet, baselineBasis, ppm, t, fitRange, 'C');
-    jac = -jac;
+    [indMin, indMax] = h.ppmToIndex(ppm, fitRange);
+    jac = h.forwardJacobian(xk, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange, 'C',parametrizations);
+    SigmaSquared = (NormNoise * length(data(indMin:indMax)))^2;
+    jac = -jac * SigmaSquared;
     
     % estimating the sigma based on the residual
-    [indMin, indMax] = h.ppmToIndex(ppm, fitRange);
+    
     sigma   = std(real(obj.Model{obj.step}.fit.residual(indMin:indMax)));
 
     %calculate the fisher matrix
@@ -110,7 +129,7 @@ function obj = createModel(obj)
     %fisher = fisher + ones(size(fisher))*eps;
     invFisher = pinv(fisher);
     crlbs = sqrt(diag(invFisher));
-    CRLB = h.x2pars(crlbs, nBasisFcts);
+    CRLB = h.x2pars(crlbs, secDim, parametrizations);
     
    
     %Relative CRLBs in percent
@@ -119,6 +138,9 @@ function obj = createModel(obj)
     % Save table with basis function names and relative CRLB
     % Only use basis functions that are included
     obj.Model{obj.step}.rawCRLB = CRLB;
-    obj.Model{obj.step}.CRLB = table(basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)))', relativeCRLB);
+    try
+        obj.Model{obj.step}.CRLB = table(basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)))', relativeCRLB);
+    catch
+    end
 
 end

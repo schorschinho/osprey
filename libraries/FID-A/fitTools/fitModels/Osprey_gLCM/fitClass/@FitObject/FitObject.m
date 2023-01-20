@@ -7,6 +7,7 @@ classdef FitObject < handle
         Data = struct('fids', [], 'DwellTime', [] , 'SpectralWidth', [], 'txfrq', [], 't', [], 'ppm', [], 'nucleus', []);
         BasisSets = struct('fids', [], 'names', [], 'includeInFit', []);
         BaselineBasis = struct('specs', []);
+        NormNoise = [];
         Options = {struct};
         Model = {struct};
         Results = struct;
@@ -60,6 +61,8 @@ classdef FitObject < handle
                 obj.BasisSets.names = basis.name;
                 obj.BasisSets.includeInFit = ones(size(basis.name));
                 
+                % Estimate noise for normalization
+                obj.NormNoise = osp_gLCM_getOnePointNoise(data);
                 
                 %%% OPTIONS %%%
                 % Initialize an empty container

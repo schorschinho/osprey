@@ -159,6 +159,10 @@ for JJ = 1:length(dimname)
     in.nii_mrs.hdr_ext.(sprintf('dim_%i',JJ+4)) = dimname{JJ};
 end
 
+if ~iscell(in.nii_mrs.hdr_ext.SpectrometerFrequency)
+    in.nii_mrs.hdr_ext.SpectrometerFrequency = {in.nii_mrs.hdr_ext.SpectrometerFrequency};
+end
+
 nii.ext.ecode = 44;
 nii.ext.edata_decoded = jsonencode(in.nii_mrs.hdr_ext);
 len = int32(numel(nii.ext.edata_decoded));

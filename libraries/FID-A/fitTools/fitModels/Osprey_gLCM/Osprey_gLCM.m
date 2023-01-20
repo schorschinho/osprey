@@ -75,6 +75,9 @@ for ss = 1 : length(ModelProcedure.Steps)
     if isfield(ModelProcedure.Steps(ss),'parametrizations')
         opts.parametrizations  = ModelProcedure.Steps(ss).parametrizations; % specify parmetrizations constructor
     end
+    if ModelProcedure.Steps(ss).extra.flag == 1 && isfield(ModelProcedure.Steps(ss).extra,'DynamicModelJson')
+        opts.paraIndirect  = jsonToStruct(ModelProcedure.Steps(ss).extra.DynamicModelJson); % specify parmetrizations constructor for indirect dimension
+    end
     if ~iscell(DataToModel)
         % Create an instance of the class
         if ss == 1
