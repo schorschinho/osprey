@@ -49,6 +49,7 @@ MRSCont.opts.ECC.raw                = 1;                % Do ECC for all metabol
 MRSCont.opts.ECC.mm                 = 1;                 % Do ECC for all metabolite-nulled spectra.
 MRSCont.opts.cosmetics.LB           = 0;                % Do cosmetic LB
 MRSCont.opts.cosmetics.Zoom         = 2.75;             % Do cosmetic Zoom
+MRSCont.opts.img.deface             = 0;                % Deface data
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));

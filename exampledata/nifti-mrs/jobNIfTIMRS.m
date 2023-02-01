@@ -178,7 +178,11 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 % Optional: In case the automatic basisset picker is not working you can manually
 % select the path to the basis set in the osprey/fit/basis, i.e.:
-% opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';                                                
+% opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';   
+
+% Optional: Deface the strucutral images in the Coreg/Seg figures for HIPAA
+% compliance 
+opts.img.deface     = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

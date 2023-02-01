@@ -192,6 +192,17 @@ for kk = 1:MRSCont.nDatasets(1)
             end
         end
 
+        if MRSCont.opts.img.deface
+            [anaon_vol_image] = spm_deface({vol_image.fname});
+            saveDestinationAnon = fullfile(MRSCont.outputFolder, 'DefacedNII'); %CWDJ - Address in future update
+            if ~exist(saveDestinationAnon,'dir')
+                mkdir(saveDestinationAnon);
+            end
+            [~,AnonName,AnonExt] = fileparts(anaon_vol_image{1});
+            [~] = movefile(anaon_vol_image{1}, fullfile(saveDestinationAnon,[AnonName AnonExt]));
+            vol_image = spm_vol(fullfile(saveDestinationAnon,[AnonName AnonExt]));
+        end
+
         % Save back the image and voxel mask volumes to MRSCont
         MRSCont.coreg.vol_image{kk} = vol_image;
         MRSCont.coreg.vol_mask{kk}  = vol_mask;

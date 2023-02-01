@@ -72,7 +72,23 @@ for kk = 1:MRSCont.nDatasets(1)
             % Read in the raw metabolite data.
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
             raw 	= io_loadspec_niimrs(MRSCont.files{metab_ll,kk});
-            raw.flags.isUnEdited = MRSCont.flags.isUnEdited;
+
+            % If the sequence flags are not parsed form the nii header
+            if sum([raw.flags.isUnEdited raw.flags.isMEGA raw.flags.isHERMES raw.flags.isHERCULES]) == 0
+                if MRSCont.flags.isUnEdited
+                    raw.flags.isUnEdited = 1;
+                end
+                if MRSCont.flags.isMEGA
+                    raw.flags.isMEGA = 1;
+                end
+                if MRSCont.flags.isHERMES
+                    raw.flags.isHERMES = 1;
+                end
+                if MRSCont.flags.isHERCULES
+                    raw.flags.isHERCULES = 1;
+                end
+            end
+
             % Read in the MM data.
             % Leave until we have example data.
 
@@ -80,15 +96,48 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.hasRef
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 raw_ref     = io_loadspec_niimrs(MRSCont.files_ref{ref_ll,kk});
-                raw_ref.flags.isUnEdited = MRSCont.flags.isUnEdited;
+                % If the sequence flags are not parsed form the nii header
+                if sum([raw_ref.flags.isUnEdited raw_ref.flags.isMEGA raw_ref.flags.isHERMES raw_ref.flags.isHERCULES]) == 0
+                    if MRSCont.flags.isUnEdited
+                        raw_ref.flags.isUnEdited = 1;
+                    end
+                    if MRSCont.flags.isMEGA
+                        raw_ref.flags.isMEGA = 1;
+                    end
+                    if MRSCont.flags.isHERMES
+                        raw_ref.flags.isHERMES = 1;
+                    end
+                    if MRSCont.flags.isHERCULES
+                        raw_ref.flags.isHERCULES = 1;
+                    end
+                end
+
             end
 
             % Read in the short-TE water data.
             if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w       = io_loadspec_niimrs(MRSCont.files_w{w_ll,kk});
-                raw_w.flags.isUnEdited = MRSCont.flags.isUnEdited;
+                % If the sequence flags are not parsed form the nii header
+                if sum([raw_w.flags.isUnEdited raw_w.flags.isMEGA raw_w.flags.isHERMES raw_w.flags.isHERCULES]) == 0
+                    if MRSCont.flags.isUnEdited
+                        raw_w.flags.isUnEdited = 1;
+                    end
+                    if MRSCont.flags.isMEGA
+                        raw_w.flags.isMEGA = 1;
+                    end
+                    if MRSCont.flags.isHERMES
+                        raw_w.flags.isHERMES = 1;
+                    end
+                    if MRSCont.flags.isHERCULES
+                        raw_w.flags.isHERCULES = 1;
+                    end
+                end
+
             end
+
+            
+            
 
 
             % Set flag and save data under appropriate name
@@ -127,6 +176,28 @@ for kk = 1:MRSCont.nDatasets(1)
     % Set flag and save data under appropriate name
     if raw.dims.coils == 0
         MRSCont.flags.coilsCombined = 1;
+        % Do some houskeeping on the metabolite data if the nii-mrs conversion
+        % did not work correctly 
+        if (raw.flags.isMEGA || raw.flags.isHERMES || raw.flags.isHERCULES) && (raw.dims.subSpecs == 0)
+            if raw.flags.isMEGA
+                raw.fids = reshape(raw.fids,[raw.sz(raw.dims.t) raw.sz(raw.dims.averages)/2 2]);
+                raw.specs = reshape(raw.specs,[raw.sz(raw.dims.t) raw.sz(raw.dims.averages)/2 2]);
+                raw.averages = raw.sz(raw.dims.averages)/2;
+                raw.sz = size(raw.fids);
+                raw.subspecs = 2;
+                raw.rawSubspecs = 2;
+                raw.dims.subSpecs = 3;
+            end
+            if raw.flags.isHERMES || raw.flags.isHERCULES
+                raw.fids = reshape(raw.fids,[raw.sz(raw.dims.t) raw.sz(raw.dims.averages)/4 4]);
+                raw.specs = reshape(raw.specs,[raw.sz(raw.dims.t) raw.sz(raw.dims.averages)/4 4]);
+                raw.averages = raw.sz(raw.dims.averages)/4;
+                raw.sz = size(raw.fids);
+                raw.subspecs = 4;
+                raw.rawSubspecs = 4;  
+                raw.dims.subSpecs = 3;
+            end
+        end
         MRSCont.raw{kk}      = raw;
         if MRSCont.flags.hasRef
             MRSCont.raw_ref{kk}  = raw_ref;
@@ -135,9 +206,30 @@ for kk = 1:MRSCont.nDatasets(1)
         if MRSCont.flags.hasWater
             MRSCont.raw_w{kk}    = raw_w;
         end
-        
     else
         MRSCont.flags.coilsCombined = 0;
+        % Do some houskeeping on the metabolite data if the nii-mrs conversion
+        % did not work correctly 
+        if (raw.flags.isMEGA || raw.flags.isHERMES || raw.flags.isHERCULES) && (raw.dims.subSpecs == 0)
+            if raw.flags.isMEGA
+                raw.fids = reshape(raw.fids,[raw.sz(raw.dims.t) raw.sz(raw.dims.coils) raw.sz(raw.dims.averages)/2 2]);
+                raw.specs = reshape(raw.specs,[raw.sz(raw.dims.t) raw.sz(raw.dims.coils) raw.sz(raw.dims.averages)/2 2]);
+                raw.averages = raw.sz(raw.dims.averages)/2;
+                raw.sz = size(raw.fids);
+                raw.subspecs = 2;
+                raw.rawSubspecs = 2;
+                raw.dims.subSpecs = 4;
+            end
+            if raw.flags.isHERMES || raw.flags.isHERCULES
+                raw.fids = reshape(raw.fids,[raw.sz(raw.dims.t) raw.sz(raw.dims.coils) raw.sz(raw.dims.averages)/4 4]);
+                raw.specs = reshape(raw.specs,[raw.sz(raw.dims.t) raw.sz(raw.dims.coils) raw.sz(raw.dims.averages)/4 4]);
+                raw.averages = raw.sz(raw.dims.averages)/4;
+                raw.sz = size(raw.fids);
+                raw.subspecs = 4;
+                raw.rawSubspecs = 4;   
+                raw.dims.subSpecs = 4;
+            end
+        end
         MRSCont.raw_uncomb{kk}      = raw;
         if MRSCont.flags.hasRef
             MRSCont.raw_ref_uncomb{kk}  = raw_ref;
@@ -147,6 +239,7 @@ for kk = 1:MRSCont.nDatasets(1)
             MRSCont.raw_w_uncomb{kk}    = raw_w;
         end
     end
+
 end
 % Try to get some params from NIFTI
 if isfield(raw.nii_mrs.hdr_ext,'Manufacturer')
