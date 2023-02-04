@@ -310,9 +310,34 @@ switch MRSCont.opts.fit.method
             end
             basisSetFile = MRSCont.opts.fit.basisSetFile;
             
+            % Now we need to determine which metabolites that are in this
+            % just-specified basis set need to be excluded via 'chomit' in
+            % the control parameter. We only want those mets in the fit
+            % that the user has specified in the Osprey job file.
+            metabsToInclude = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
+            metabsInBasis   = fit_readLCMBasisSetMetabs(basisSetFile);
+            % Loop over metabolites in the basis set
+            chOmitList = {};
+            for qq = 1:length(metabsInBasis)
+                % Take current name
+                currentName = metabsInBasis{qq};
+                % Locate it in the list
+                idx         = find(ismember(fieldnames(metabsToInclude),currentName));
+                if ~isempty(idx)
+                    % If it's a match, check whether it should be included
+                    if metabsToInclude.(currentName) == 1
+                    else
+                        chOmitList{end+1} = ['''' currentName ''''];
+                    end
+                else
+                    chOmitList{end+1} = ['''' currentName ''''];
+                end
+                
+            end
             
         end
         
+            
         % Read in the user-supplied control file (if there is one)
         if isfield(MRSCont.opts.fit,'controlFile')
             if ~isempty(MRSCont.opts.fit.controlFile)
@@ -327,6 +352,7 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsv', '11');
                 LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
+                LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList);
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filps', '');
@@ -388,7 +414,7 @@ switch MRSCont.opts.fit.method
                 %LCMparam = osp_editControlParameters(LCMparam, 'wdline', '0');
                 LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
-                LCMparam = osp_editControlParameters(LCMparam, 'chomit', {'''Gly''','''Ser'''});
+                LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList);
                 LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''Cr+PCr''');
                 LCMparam = osp_editControlParameters(LCMparam, 'ppmst',  ['' sprintf('%4.2f', MRSCont.opts.fit.range(2)) '']);
                 LCMparam = osp_editControlParameters(LCMparam, 'ppmend', ['' sprintf('%4.2f', MRSCont.opts.fit.range(1)) '']);
