@@ -507,7 +507,7 @@ if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
                         else
                             GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:) + MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_2,:);
                         end
-                        MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_GABAp,:) = GABAp;
+                        MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_GABAp,:) = GABAp*2;
                     end
                 end
             else if strcmp(MRSCont.opts.fit.coMM3, '3to2MM') % fixed MM09 coMM3 model
@@ -806,19 +806,20 @@ CorrFactor = (meanfGM + alpha.*meanfWM) ./ ((fGM + alpha.*fWM) .* (meanfGM + mea
 
 for mm = 1 : size(amplMets,1)
     for ss = 1 : size(amplMets,3)
-        % GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015))
-        idx_GABA  = find(strcmp(metsName.metab{mm,ss},'GABA'));
-        [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.metab{mm,ss}{idx_GABA},Bo);
-        % average across GM and WM
-        T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
-        T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
-        ConcIU_TissCorr_Harris{mm,ss} = (amplMets{mm,ss}.metab(idx_GABA) ./ amplWater) ...
-            .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-            fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-            fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
-
-        AlphaCorrWaterScaled{mm,ss} = ConcIU_TissCorr_Harris{mm,ss} ./ (fGM + alpha*fWM);
-        AlphaCorrWaterScaledGroupNormed{mm,ss} = ConcIU_TissCorr_Harris{mm,ss} .* CorrFactor;
+        for AlphaMets = 1 : length(metabNames)
+            idx  = find(strcmp(metsName.metab{mm,ss},metabNames{AlphaMets}));
+            [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.metab{mm,ss}{idx},Bo);
+            % average across GM and WM
+            T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
+            T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
+            ConcIU_TissCorr_Harris{mm,ss} = (amplMets{mm,ss}.metab(idx) ./ amplWater) ...
+                    .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+                        fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+                        fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
+    
+            AlphaCorrWaterScaled{mm,ss}(:,AlphaMets) = ConcIU_TissCorr_Harris{mm,ss} ./ (fGM + alpha*fWM);
+            AlphaCorrWaterScaledGroupNormed{mm,ss}(:,AlphaMets) = ConcIU_TissCorr_Harris{mm,ss} .* CorrFactor;
+        end
 
         if ~isempty(find(strcmp(metsName.metab{mm,ss},'GABAplus')))
             % GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015))
@@ -833,8 +834,8 @@ for mm = 1 : size(amplMets,1)
                 fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
                 fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
 
-            AlphaCorrWaterScaled{mm,ss}(:,2) = ConcIU_TissCorr_Harris{mm,ss} ./ (fGM + alpha*fWM);
-            AlphaCorrWaterScaledGroupNormed{mm,ss}(:,2) = ConcIU_TissCorr_Harris{mm,ss} .* CorrFactor;
+            AlphaCorrWaterScaled{mm,ss}(:,end+1) = ConcIU_TissCorr_Harris{mm,ss} ./ (fGM + alpha*fWM);
+            AlphaCorrWaterScaledGroupNormed{mm,ss}(:,end+1) = ConcIU_TissCorr_Harris{mm,ss} .* CorrFactor;
         end
     end
 end
@@ -1003,9 +1004,9 @@ else
         for mm = 1 : size(MRSCont.quantify.metab.(qtfyType),1)
             for rr = 1  : size(MRSCont.quantify.metab.(qtfyType){1,1,1},3)
                 if ~isempty(MRSCont.quantify.metab.(qtfyType){mm,1,ss})
-                    names = {'GABA'};
-                    if size(MRSCont.quantify.metab.(qtfyType){1,1,2},2) == 2
-                        names = {'GABA','GABAplus'};
+                    names = {'GABA','Glu','Gln','Glx'};
+                    if size(MRSCont.quantify.metab.(qtfyType){mm,1,ss},2) == 5
+                        names = {'GABA','Glu','Gln','Glx','GABAplus'};    
                     end
                     conc = zeros(MRSCont.nDatasets(1),length(names));
                     for kk = 1:MRSCont.nDatasets(1)
