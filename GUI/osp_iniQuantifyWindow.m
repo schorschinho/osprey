@@ -145,17 +145,13 @@ if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(M
                 for q = 1 : gui.quant.Number.Quants % Collect all results
                     QuantText(1,q+1) = gui.quant.Names.Quants(q);
                     if (strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')) && isfield(MRSCont.quantify.tables.(gui.quant.Names.Model{t}),'AlphaCorrWaterScaled')                       
-                        idx_GABA  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y},'GABA'));
-                        if strcmp(MRSCont.opts.fit.coMM3, 'none')                            
-                                    tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y}),1);
-                                    tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:))';
-                        else                              
-                                     tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y}),1);
-                                     tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:);
-                                     tempQuantText(idx_GABA) = table2cell(tempQuants(1,1));
-                                     idx_GABAp  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y},'GABAplus'));
-                                     tempQuantText(idx_GABAp) = table2cell(tempQuants(1,2));
-                        end                         
+                        AlphaMetNames = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:).Properties.VariableNames;
+                        tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y}),1);
+                        tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:);
+                        for AlM = 1 : length(AlphaMetNames)
+                            idx  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y},AlphaMetNames{AlM}));
+                            tempQuantText(idx) = table2cell(tempQuants(1,AlM));
+                        end                       
                         QuantText(2:end,q+1) = tempQuantText;
                     else
                         QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:))';
