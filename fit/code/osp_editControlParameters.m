@@ -1,5 +1,5 @@
 function LCMparam = osp_editControlParameters(LCMparam, key, value)
-%% LCMparam = osp_readlcm_control(controlFile)
+%% LCMparam = osp_editControlParameters(LCMparam, key, value)
 %   This function edits a set of control parameters saved as a struct.
 %
 %   If the assigned value is '', the key is being removed.

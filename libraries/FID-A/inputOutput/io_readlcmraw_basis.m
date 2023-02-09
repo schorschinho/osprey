@@ -19,7 +19,6 @@ function [out]=io_readlcmraw_basis(filename)
 
 % Begin to read the data.
 fid=fopen(filename);
-linenum=1;
 line=fgets(fid);
 
 %look for FWHMBA

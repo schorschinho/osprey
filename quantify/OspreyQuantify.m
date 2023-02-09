@@ -47,39 +47,39 @@ diary(fullfile(outputFolder, 'LogFile.txt'));
 qtfyCr = 1;
 
 % Check which types of metabolite data are available
-SubSpectraFitted =size(MRSCont.fit.results.metab.fitParams,3);
-BasisSetsFitted =size(MRSCont.fit.results.metab.fitParams,1);
-
+SubSpectraFitted = size(MRSCont.fit.results.metab.fitParams,3);
+BasisSetsFitted  = size(MRSCont.fit.results.metab.fitParams,1);
 
 % Check which types of water data are available
 if [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 1]
-        % If both water reference and short-TE water data have been
-        % provided, use the one with shorter echo time.
-        qtfyH2O     = 1;
-        waterType   = 'w';
+    % If both water reference and short-TE water data have been
+    % provided, use the one with shorter echo time.
+    qtfyH2O     = 1;
+    waterType   = 'w';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 0]
-        % If only one type of water data has been provided, use it.
-        qtfyH2O     = 1;
-        waterType   = 'ref';
+    % If only one type of water data has been provided, use it.
+    qtfyH2O     = 1;
+    waterType   = 'ref';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [0 1]
-        % If only one type of water data has been provided, use it.
-        qtfyH2O     = 1;
-        waterType   = 'w';
+    % If only one type of water data has been provided, use it.
+    qtfyH2O     = 1;
+    waterType   = 'w';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [0 0]
-        % If no water ref has been provided, only tCr ratios can be
-        % provided.
-        qtfyH2O     = 0;
+    % If no water ref has been provided, only tCr ratios can be
+    % provided.
+    qtfyH2O     = 0;
 end
 
 % Get the fieldstrength for proper relaxation correction
 if qtfyH2O
     Bo = MRSCont.raw{1}.Bo;
     if (Bo >= 2.8 && Bo < 3.1)
-            Bo = '3T';
+        Bo = '3T';
     else
-            Bo = '7T';
+        Bo = '7T';
     end
 end
+
 % Check whether segmentation has been run, and whether tissue parameters
 % exist. In that case, we can do CSF correction, and full tissue
 % correction.
@@ -96,9 +96,10 @@ end
 % (Harris et al, J Magn Reson Imaging 42:1431-40 (2015)).
 if qtfyTiss == 1 && MRSCont.flags.isMEGA && (strcmp(MRSCont.opts.editTarget{1},'GABA'))
     qtfyAlpha   = 1;
-else if qtfyTiss == 1 && (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && (strcmp(MRSCont.opts.editTarget{1},'GABA') || strcmp(MRSCont.opts.editTarget{2},'GABA'))
-    qtfyAlpha   = 1;
-     else
+else
+    if qtfyTiss == 1 && (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && (strcmp(MRSCont.opts.editTarget{1},'GABA') || strcmp(MRSCont.opts.editTarget{2},'GABA'))
+        qtfyAlpha   = 1;
+    else
         qtfyAlpha   = 0;
     end
 end
@@ -121,8 +122,8 @@ for ss = 1 : SubSpectraFitted
                     MRSCont.quantify.names.metab{mm,ss} = MRSCont.fit.resBasisSet.metab.(MRSCont.info.metab.unique_ndatapoint_spectralwidth{1}){mm,1,ss}.name;
                     MRSCont.quantify.names.SubSpectra{mm,ss} = MRSCont.fit.resBasisSet.metab.(MRSCont.info.metab.unique_ndatapoint_spectralwidth{1}){mm,1,ss}.names{1};
                 else %Is DualVoxel
-                   MRSCont.quantify.names.metab{mm,ss} = MRSCont.fit.resBasisSet{1,1}.metab.(MRSCont.info.metab.unique_ndatapoint_spectralwidth{1}){mm,1,ss}.name;
-                   MRSCont.quantify.names.SubSpectra{mm,ss} = MRSCont.fit.resBasisSet{1,1}.metab.(MRSCont.info.metab.unique_ndatapoint_spectralwidth{1}){mm,1,ss}.names{1};
+                    MRSCont.quantify.names.metab{mm,ss} = MRSCont.fit.resBasisSet{1,1}.metab.(MRSCont.info.metab.unique_ndatapoint_spectralwidth{1}){mm,1,ss}.name;
+                    MRSCont.quantify.names.SubSpectra{mm,ss} = MRSCont.fit.resBasisSet{1,1}.metab.(MRSCont.info.metab.unique_ndatapoint_spectralwidth{1}){mm,1,ss}.names{1};
                 end
             end
         end
@@ -139,8 +140,8 @@ for ss = 1 : SubSpectraFitted
                 if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
                     MRSCont.quantify.amplMets{mm,kk,ss}.metab = MRSCont.fit.results.metab.fitParams{mm,kk,ss}.ampl;
                 else %Is DualVoxel
-                   MRSCont.quantify.amplMets{mm,kk,ss}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{mm,kk,ss}.ampl;
-                   MRSCont.quantify.amplMets{mm,kk,ss}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{mm,kk,ss}.ampl;
+                    MRSCont.quantify.amplMets{mm,kk,ss}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{mm,kk,ss}.ampl;
+                    MRSCont.quantify.amplMets{mm,kk,ss}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{mm,kk,ss}.ampl;
                 end
             end
         end
@@ -151,12 +152,18 @@ if strcmp(MRSCont.opts.fit.method, 'LCModel')
     for kk = 1:MRSCont.nDatasets(1)
         if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
             MRSCont.quantify.CRLB{kk}.metab = MRSCont.fit.results.metab.fitParams{kk}.CRLB';
-            MRSCont.quantify.h2oarea{kk}.metab = MRSCont.fit.results.metab.fitParams{kk}.h2oarea;
+
+            if qtfyH2O
+                MRSCont.quantify.h2oarea{kk}.metab = MRSCont.fit.results.metab.fitParams{kk}.h2oarea;
+            end
         else %Is DualVoxel
             MRSCont.quantify.CRLB{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{kk}.CRLB';
-           MRSCont.quantify.CRLB{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{kk}.CRLB';
-           MRSCont.quantify.h2oarea{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{kk}.h2oarea;
-           MRSCont.quantify.h2oarea{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{kk}.h2oarea;
+            MRSCont.quantify.CRLB{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{kk}.CRLB';
+
+            if qtfyH2O
+                MRSCont.quantify.h2oarea{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{kk}.h2oarea;
+                MRSCont.quantify.h2oarea{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{kk}.h2oarea;
+            end
         end
     end
 end
@@ -208,8 +215,8 @@ for kk = 1:MRSCont.nDatasets(1)
             if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
                 amplWater = MRSCont.fit.results.(waterType).fitParams{kk}.ampl;
             else %Is DualVoxel
-               amplWater(:,1) = MRSCont.fit.results{1}.(waterType).fitParams{kk}.ampl;
-               amplWater(:,2) = MRSCont.fit.results{2}.(waterType).fitParams{kk}.ampl;
+                amplWater(:,1) = MRSCont.fit.results{1}.(waterType).fitParams{kk}.ampl;
+                amplWater(:,2) = MRSCont.fit.results{2}.(waterType).fitParams{kk}.ampl;
             end
         else
             % Get WCONC, ATTMET, and ATTH2O from control file
@@ -223,7 +230,7 @@ for kk = 1:MRSCont.nDatasets(1)
             if isfield(LCMparam, 'ATTMET') % User-supplied ATTMET
                 amplWater = amplWater * str2double(LCMparam.ATTMET);
             else
-                 %Do nothing as LCModel default ATTMET is 1
+                %Do nothing as LCModel default ATTMET is 1
             end
 
             if isfield(LCMparam, 'ATTH2O') % User-supplied ATTH2O
@@ -302,10 +309,10 @@ for kk = 1:MRSCont.nDatasets(1)
 
         % We don't want to remove excluded subjects from the alpah
         % correction.
-%         if isfield(MRSCont,'exclude')
-%             fGM(MRSCont.exclude) = nan;
-%             fWM(MRSCont.exclude) = nan;
-%         end
+        %         if isfield(MRSCont,'exclude')
+        %             fGM(MRSCont.exclude) = nan;
+        %             fWM(MRSCont.exclude) = nan;
+        %         end
         % Calculate mean WM/GM fractions
         meanfGM = mean(MRSCont.seg.tissue.fGM,1); % average GM fraction across datasets
         meanfWM = mean(MRSCont.seg.tissue.fWM,1); % average WM fraction across datasets
@@ -346,7 +353,7 @@ end
 if strcmp(MRSCont.opts.fit.method, 'LCModel')
     [MRSCont] = osp_createTable(MRSCont,'CRLB');
     if qtfyH2O
-     [MRSCont] = osp_createTable(MRSCont,'h2oarea');
+        [MRSCont] = osp_createTable(MRSCont,'h2oarea');
     end
 end
 %% Clean up and save
@@ -370,7 +377,7 @@ if MRSCont.flags.isGUI
     save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
     MRSCont.flags.isGUI = 1;
 else
-   save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
 end
 
 end
@@ -480,67 +487,67 @@ if ~strcmp(MRSCont.opts.fit.method, 'LCModel')
         end
 
         for ss = 1 : size(MRSCont.fit.results.metab.fitParams,3)
-        %GABA+coMM3
-        if strcmp(MRSCont.opts.fit.coMM3, '1to1GABA') % fixed GABA coMM3 model
-            for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
-                idx_1 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABA'));
-                if mm == 1
-                    idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MM3co'));
-                else
-                    idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MMExp'));
-                end
-                if  ~isempty(idx_1) && ss == 2
-                    idx_3 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
-                    if isempty(idx_3)
-                        MRSCont.quantify.names.metab{mm,ss}{length(MRSCont.quantify.names.metab{mm,ss})+1} = 'GABAplus';
-                    end
-                    idx_GABAp = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
-                    if  isempty(idx_2)
-                        GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:);
-                    else
-                        GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:) + MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_2,:);
-                    end
-                    MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_GABAp,:) = GABAp*2;
-                end
-            end
-        else if strcmp(MRSCont.opts.fit.coMM3, '3to2MM') % fixed MM09 coMM3 model
-                 for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
-                    idx_1 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABA'));
-                    if mm == 1
-                        idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MM09'));
-                    else
-                        idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MMExp'));
-                    end
-                    if  (~isempty(idx_1) && ~isempty(idx_2))  && ss ==2
-                        idx_3 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
-                        if isempty(idx_3)
-                            MRSCont.quantify.names.metab{mm,ss}{length(MRSCont.quantify.names.metab{mm,ss})+1} = 'GABAplus';
-                        end
-                        idx_GABAp = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
-                        GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:) + MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_2,:);
-                        MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_GABAp,:) = GABAp;
-                    end
-                 end
-            else % Models with a separate comMM3 function or without a co-edited MM function
+            %GABA+coMM3
+            if strcmp(MRSCont.opts.fit.coMM3, '1to1GABA') % fixed GABA coMM3 model
                 for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
                     idx_1 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABA'));
                     if mm == 1
-                            idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MM3co'));
-                        else
-                            idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MMExp'));
+                        idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MM3co'));
+                    else
+                        idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MMExp'));
                     end
-                    if  (~isempty(idx_1) && ~isempty(idx_2))  && ss ==2
+                    if  ~isempty(idx_1) && ss == 2
                         idx_3 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
                         if isempty(idx_3)
                             MRSCont.quantify.names.metab{mm,ss}{length(MRSCont.quantify.names.metab{mm,ss})+1} = 'GABAplus';
                         end
                         idx_GABAp = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
-                        GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:) + MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_2,:);
+                        if  isempty(idx_2)
+                            GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:);
+                        else
+                            GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:) + MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_2,:);
+                        end
                         MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_GABAp,:) = GABAp;
                     end
                 end
+            else if strcmp(MRSCont.opts.fit.coMM3, '3to2MM') % fixed MM09 coMM3 model
+                    for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
+                        idx_1 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABA'));
+                        if mm == 1
+                            idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MM09'));
+                        else
+                            idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MMExp'));
+                        end
+                        if  (~isempty(idx_1) && ~isempty(idx_2))  && ss ==2
+                            idx_3 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
+                            if isempty(idx_3)
+                                MRSCont.quantify.names.metab{mm,ss}{length(MRSCont.quantify.names.metab{mm,ss})+1} = 'GABAplus';
+                            end
+                            idx_GABAp = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
+                            GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:) + MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_2,:);
+                            MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_GABAp,:) = GABAp;
+                        end
+                    end
+                else % Models with a separate comMM3 function or without a co-edited MM function
+                    for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
+                        idx_1 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABA'));
+                        if mm == 1
+                            idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MM3co'));
+                        else
+                            idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'MMExp'));
+                        end
+                        if  (~isempty(idx_1) && ~isempty(idx_2))  && ss ==2
+                            idx_3 = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
+                            if isempty(idx_3)
+                                MRSCont.quantify.names.metab{mm,ss}{length(MRSCont.quantify.names.metab{mm,ss})+1} = 'GABAplus';
+                            end
+                            idx_GABAp = find(strcmp(MRSCont.quantify.names.metab{mm,ss},'GABAplus'));
+                            GABAp = MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_1,:) + MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_2,:);
+                            MRSCont.quantify.amplMets{mm,kk,ss}.metab(idx_GABAp,:) = GABAp;
+                        end
+                    end
+                end
             end
-        end
         end
     end
 end
@@ -680,8 +687,8 @@ switch Bo
         T2w_CSF   = 0.503;
     case '7T'
         % Water relaxation 7 T
-         % T1 from Rooney et al. 2007 (MRM)
-         % T2 from Bartha et al. 2002 (MRM)
+        % T1 from Rooney et al. 2007 (MRM)
+        % T2 from Bartha et al. 2002 (MRM)
         T1w_WM    = 1.220;
         T2w_WM    = 0.050;
         T1w_GM    = 2.130;
@@ -712,7 +719,7 @@ molal_fWM  = (fWM*concW_WM) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
 molal_fCSF = (fCSF*concW_CSF) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
 
 for mm = 1 : size(amplMets,1)
-     for ss = 1 : size(amplMets,3)
+    for ss = 1 : size(amplMets,3)
         % Metabolites
         for kk = 1:length(metsName.metab{mm,ss})
             [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss}{kk},Bo);
@@ -725,12 +732,12 @@ for mm = 1 : size(amplMets,1)
             if ~isempty(amplMets{mm,1,ss})
                 TissCorrWaterScaled{mm,ss}.metab(kk,:) = (amplMets{mm,ss}.metab(kk,:) ./ amplWater) .* molal_concW ...
                     .* (molal_fGM  * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
-                        molal_fWM  * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
-                        molal_fCSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk)))) ./ ...
-                        (1 - molal_fCSF);
+                    molal_fWM  * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+                    molal_fCSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk)))) ./ ...
+                    (1 - molal_fCSF);
             end
         end
-     end
+    end
 end
 end
 %%% /Calculate CSF-corrected water-scaled estimates %%%
@@ -766,8 +773,8 @@ switch Bo
         T2w_CSF   = 0.503;
     case '7T'
         % Water relaxation 7 T
-         % T1 from Rooney et al. 2007 (MRM)
-         % T2 from Bartha et al. 2002 (MRM)
+        % T1 from Rooney et al. 2007 (MRM)
+        % T2 from Bartha et al. 2002 (MRM)
         T1w_WM    = 1.220;
         T2w_WM    = 0.050;
         T1w_GM    = 2.130;
@@ -800,21 +807,18 @@ CorrFactor = (meanfGM + alpha.*meanfWM) ./ ((fGM + alpha.*fWM) .* (meanfGM + mea
 for mm = 1 : size(amplMets,1)
     for ss = 1 : size(amplMets,3)
         % GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015))
-        
-        for AlphaMets = 1 : length(metabNames)
-            idx  = find(strcmp(metsName.metab{mm,ss},metabNames{AlphaMets}));
-            [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.metab{mm,ss}{idx},Bo);
-            % average across GM and WM
-            T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
-            T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
-            ConcIU_TissCorr_Harris{mm,ss} = (amplMets{mm,ss}.metab(idx) ./ amplWater) ...
-                    .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-                        fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-                        fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
-    
-            AlphaCorrWaterScaled{mm,ss}(:,AlphaMets) = ConcIU_TissCorr_Harris{mm,ss} ./ (fGM + alpha*fWM);
-            AlphaCorrWaterScaledGroupNormed{mm,ss}(:,AlphaMets) = ConcIU_TissCorr_Harris{mm,ss} .* CorrFactor;
-        end
+        idx_GABA  = find(strcmp(metsName.metab{mm,ss},'GABA'));
+        [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.metab{mm,ss}{idx_GABA},Bo);
+        % average across GM and WM
+        T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
+        T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
+        ConcIU_TissCorr_Harris{mm,ss} = (amplMets{mm,ss}.metab(idx_GABA) ./ amplWater) ...
+            .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+            fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+            fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
+
+        AlphaCorrWaterScaled{mm,ss} = ConcIU_TissCorr_Harris{mm,ss} ./ (fGM + alpha*fWM);
+        AlphaCorrWaterScaledGroupNormed{mm,ss} = ConcIU_TissCorr_Harris{mm,ss} .* CorrFactor;
 
         if ~isempty(find(strcmp(metsName.metab{mm,ss},'GABAplus')))
             % GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015))
@@ -825,12 +829,12 @@ for mm = 1 : size(amplMets,1)
             T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
             T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
             ConcIU_TissCorr_Harris{mm,ss} = (amplMets{mm,ss}.metab(idx_GABAp) ./ amplWater) ...
-                    .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-                        fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-                        fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
+                .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+                fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
+                fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
 
-            AlphaCorrWaterScaled{mm,ss}(:,end+1) = ConcIU_TissCorr_Harris{mm,ss} ./ (fGM + alpha*fWM);
-            AlphaCorrWaterScaledGroupNormed{mm,ss}(:,end+1) = ConcIU_TissCorr_Harris{mm,ss} .* CorrFactor;
+            AlphaCorrWaterScaled{mm,ss}(:,2) = ConcIU_TissCorr_Harris{mm,ss} ./ (fGM + alpha*fWM);
+            AlphaCorrWaterScaledGroupNormed{mm,ss}(:,2) = ConcIU_TissCorr_Harris{mm,ss} .* CorrFactor;
         end
     end
 end
@@ -889,10 +893,10 @@ switch Bo
             T2_WM = 169 * 1e-3;
         end
     case '7T'
-         % T2 values of water, NAA, tCr, tCho, sI, mI, Glu,GSH, mI,
-         % and Tau are taken from Marjanska et al. 2011 (NMR
-         % 10.1002/nbm.1754). It was averaged across 4 regions OCC, SM1, BG, CER
-         % Penner et al (2014) https://doi.org/10.1002/mrm.25380 for
+        % T2 values of water, NAA, tCr, tCho, sI, mI, Glu,GSH, mI,
+        % and Tau are taken from Marjanska et al. 2011 (NMR
+        % 10.1002/nbm.1754). It was averaged across 4 regions OCC, SM1, BG, CER
+        % Penner et al (2014) https://doi.org/10.1002/mrm.25380 for
         relax.Asc   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and mI
         relax.Asp   = [1530 1484 127 128]; % This is the average from tNAA, tCr, tCho, Glx, and mI
         relax.Cr    = [1740 1780 107 107]; % Taken from tCr
@@ -938,74 +942,17 @@ end
 
 %%% Function to create metabolite overview in MATLAB table format %%%
 function [MRSCont] = osp_createTable(MRSCont, qtfyType)
-    if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWaterScaledGroupNormed'))
-        if ~(strcmp(qtfyType, 'amplMets') || strcmp(qtfyType, 'CRLB') ||strcmp(qtfyType, 'h2oarea') )
-            % Extract metabolite names from basisset
-            for ss = 1 : size(MRSCont.fit.results.metab.fitParams,3)
-                for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
-                    names = MRSCont.quantify.names.metab{mm,ss};
-                    for rr = 1  : size(MRSCont.quantify.metab.(qtfyType){1,1,1},2)
-                        if ~isempty(MRSCont.quantify.metab.(qtfyType){mm,1,ss})
-                            conc = zeros(MRSCont.nDatasets(1),length(names));
-                            for kk = 1:MRSCont.nDatasets(1)
-                                conc(kk,:) = MRSCont.quantify.metab.(qtfyType){mm,kk,ss}(:,rr)';
-                            end
-                            % Save back to Osprey data container
-                            if isfield(MRSCont, 'exclude')
-                                if~isempty(MRSCont.exclude)
-                                    conc(MRSCont.exclude,:) = [];
-                                end
-                            end
-                            MRSCont.quantify.tables.metab.(qtfyType).(['Voxel_' num2str(rr)]){mm,ss}  = array2table(conc,'VariableNames',names);
-                        end
-                    end
-                end
-            end
-        else
-            % Extract metabolite names from basisset
-            for ss = 1 : size(MRSCont.fit.results.metab.fitParams,3)
-                for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
-                    if (strcmp(qtfyType, 'amplMets') || strcmp(qtfyType, 'CRLB'))
-                        names = MRSCont.quantify.names.metab{mm,ss};
-                    else
-                        names = {'h2oarea'};
-                    end
-                    for rr = 1  : size(MRSCont.quantify.(qtfyType){1,1,1}.metab,2)
-                        if ~isempty(MRSCont.quantify.(qtfyType){mm,1,ss})
-                            conc = zeros(MRSCont.nDatasets(1),length(names));
-
-                            for kk = 1:MRSCont.nDatasets(1)
-                                if (strcmp(qtfyType, 'h2oarea') || strcmp(qtfyType, 'CRLB'))
-                                    conc(kk,:) = MRSCont.quantify.(qtfyType){kk}.metab(:,rr);
-                                else
-                                    conc(kk,:) = MRSCont.quantify.(qtfyType){mm,kk,ss}.metab(:,rr)';
-                                end
-                            end
-                            % Save back to Osprey data container
-                            if isfield(MRSCont, 'exclude')
-                                if~isempty(MRSCont.exclude)
-                                    conc(MRSCont.exclude,:) = [];
-                                end
-                            end
-                            MRSCont.quantify.tables.metab.(qtfyType).(['Voxel_' num2str(rr)]){mm,ss} = array2table(conc,'VariableNames',names);
-                        end
-                    end
-                end
-            end
-        end
-    else
+if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWaterScaledGroupNormed'))
+    if ~(strcmp(qtfyType, 'amplMets') || strcmp(qtfyType, 'CRLB') ||strcmp(qtfyType, 'h2oarea') )
         % Extract metabolite names from basisset
         for ss = 1 : size(MRSCont.fit.results.metab.fitParams,3)
-            for mm = 1 : size(MRSCont.quantify.metab.(qtfyType),1)
-                 for rr = 1  : size(MRSCont.quantify.metab.(qtfyType){1,1,1},3)
-                     if ~isempty(MRSCont.quantify.metab.(qtfyType){mm,1,ss})
-                        names = {'GABA','Glu','Gln','Glx'};
-                        if size(MRSCont.quantify.metab.(qtfyType){mm,1,ss},2) == 5
-                            names = {'GABA','Glu','Gln','Glx','GABAplus'};    
-                        end
+            for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
+                names = MRSCont.quantify.names.metab{mm,ss};
+                for rr = 1  : size(MRSCont.quantify.metab.(qtfyType){1,1,1},2)
+                    if ~isempty(MRSCont.quantify.metab.(qtfyType){mm,1,ss})
                         conc = zeros(MRSCont.nDatasets(1),length(names));
                         for kk = 1:MRSCont.nDatasets(1)
-                            conc(kk,:) = MRSCont.quantify.metab.(qtfyType){mm,kk,ss}(rr,:)';
+                            conc(kk,:) = MRSCont.quantify.metab.(qtfyType){mm,kk,ss}(:,rr)';
                         end
                         % Save back to Osprey data container
                         if isfield(MRSCont, 'exclude')
@@ -1014,10 +961,67 @@ function [MRSCont] = osp_createTable(MRSCont, qtfyType)
                             end
                         end
                         MRSCont.quantify.tables.metab.(qtfyType).(['Voxel_' num2str(rr)]){mm,ss}  = array2table(conc,'VariableNames',names);
-                     end
-                 end
+                    end
+                end
+            end
+        end
+    else
+        % Extract metabolite names from basisset
+        for ss = 1 : size(MRSCont.fit.results.metab.fitParams,3)
+            for mm = 1: size(MRSCont.fit.results.metab.fitParams,1)
+                if (strcmp(qtfyType, 'amplMets') || strcmp(qtfyType, 'CRLB'))
+                    names = MRSCont.quantify.names.metab{mm,ss};
+                else
+                    names = {'h2oarea'};
+                end
+                for rr = 1  : size(MRSCont.quantify.(qtfyType){1,1,1}.metab,2)
+                    if ~isempty(MRSCont.quantify.(qtfyType){mm,1,ss})
+                        conc = zeros(MRSCont.nDatasets(1),length(names));
+
+                        for kk = 1:MRSCont.nDatasets(1)
+                            if (strcmp(qtfyType, 'h2oarea') || strcmp(qtfyType, 'CRLB'))
+                                conc(kk,:) = MRSCont.quantify.(qtfyType){kk}.metab(:,rr);
+                            else
+                                conc(kk,:) = MRSCont.quantify.(qtfyType){mm,kk,ss}.metab(:,rr)';
+                            end
+                        end
+                        % Save back to Osprey data container
+                        if isfield(MRSCont, 'exclude')
+                            if~isempty(MRSCont.exclude)
+                                conc(MRSCont.exclude,:) = [];
+                            end
+                        end
+                        MRSCont.quantify.tables.metab.(qtfyType).(['Voxel_' num2str(rr)]){mm,ss} = array2table(conc,'VariableNames',names);
+                    end
+                end
+            end
+        end
+    end
+else
+    % Extract metabolite names from basisset
+    for ss = 1 : size(MRSCont.fit.results.metab.fitParams,3)
+        for mm = 1 : size(MRSCont.quantify.metab.(qtfyType),1)
+            for rr = 1  : size(MRSCont.quantify.metab.(qtfyType){1,1,1},3)
+                if ~isempty(MRSCont.quantify.metab.(qtfyType){mm,1,ss})
+                    names = {'GABA'};
+                    if size(MRSCont.quantify.metab.(qtfyType){1,1,2},2) == 2
+                        names = {'GABA','GABAplus'};
+                    end
+                    conc = zeros(MRSCont.nDatasets(1),length(names));
+                    for kk = 1:MRSCont.nDatasets(1)
+                        conc(kk,:) = MRSCont.quantify.metab.(qtfyType){mm,kk,ss}(rr,:)';
+                    end
+                    % Save back to Osprey data container
+                    if isfield(MRSCont, 'exclude')
+                        if~isempty(MRSCont.exclude)
+                            conc(MRSCont.exclude,:) = [];
+                        end
+                    end
+                    MRSCont.quantify.tables.metab.(qtfyType).(['Voxel_' num2str(rr)]){mm,ss}  = array2table(conc,'VariableNames',names);
+                end
             end
         end
     end
 end
-%%% Function to create metaboite overview in MATLAB table format %%%
+end
+%%% Function to create metabolite overview in MATLAB table format %%%
