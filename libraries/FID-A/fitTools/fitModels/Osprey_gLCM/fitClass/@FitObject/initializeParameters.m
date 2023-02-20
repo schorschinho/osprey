@@ -28,7 +28,11 @@ function [init, lb, ub, fun] = initializeParameters(obj, init, lb, ub, fun, para
         if isfield(obj.Options{obj.step}, 'paraIndirect')   % json file for 2D model supplied
             if isfield(obj.Options{obj.step}.paraIndirect.parameters,parameter)
                 if ~isfield(obj.Options{obj.step}.paraIndirect.parameters.(parameter),'parametrizations')   % Update parametrization
-                    obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter);
+                    if ~isfield(obj.Options{obj.step}.paraIndirect.parameters,parameter)
+                        obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter);
+                    else
+                        obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.paraIndirect.parameters.(parameter));
+                    end
                 else
                     obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.paraIndirect.parameters.(parameter).parametrizations);
                 end
@@ -46,7 +50,24 @@ function [init, lb, ub, fun] = initializeParameters(obj, init, lb, ub, fun, para
             end
         end
         if ~iscell(obj.Options{obj.step}.parametrizations.(parameter).init)
-            init.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).init, [nParamsPerIndir, nParamsPerSpec]));
+            if ~strcmp(type,'dynamic')
+                switch num2str([ size(obj.Options{obj.step}.parametrizations.(parameter).init,1) == nParamsPerIndir size(obj.Options{obj.step}.parametrizations.(parameter).init,2) == nParamsPerSpec])
+                    case '1  1'
+                        init.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).init;
+                    case '0  0'
+                        init.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).init, [nParamsPerIndir, nParamsPerSpec]));
+                    case '0  1'
+                        init.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).init, [nParamsPerIndir, 1]));
+                    case '1  0'
+                        init.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).init, [1, nParamsPerSpec]));            
+                end
+            else
+                if size(obj.Options{obj.step}.parametrizations.(parameter).init,2) == nParamsPerSpec
+                    init.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).init;
+                else
+                    init.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).init, [nParamsPerIndir, nParamsPerSpec]));
+                end
+            end
         else
             step_to_get_ini = split(obj.Options{obj.step}.parametrizations.(parameter).init{1},' ');
             step_to_get_ini = str2num(step_to_get_ini{2});
@@ -143,19 +164,37 @@ function parametrizations = set_parameter(obj,parameter,predefined)
                 parametrizations.(pars{ff}) = str2num(predefined.(pars{ff}));
             else
                 for pp = 1 : length(predefined.(pars{ff}))
-                    parametrizations.(pars{ff})(pp,1) = str2num(predefined.(pars{ff}){pp});
+                    if ischar(predefined.(pars{ff}){pp})
+                        if ~strcmp(predefined.(pars{ff}){pp}(1:2),'St')
+                            parametrizations.(pars{ff})(pp,1) = str2num(predefined.(pars{ff}){pp});
+                        else
+                            step_to_get_ini = split(predefined.(pars{ff}){pp},' ');
+                            step_to_get_ini = str2num(step_to_get_ini{2});
+                            parametrizations.(pars{ff}) = squeeze(obj.Model{step_to_get_ini}.parsOut.(parameter));
+                        end
+                    else
+                        if size(parametrizations.(pars{ff}),2) == 1
+                            parametrizations.(pars{ff})(pp,1) = predefined.(pars{ff}){pp};
+                        else
+                            parametrizations.(pars{ff})(pp,:) = repmat(predefined.(pars{ff}){pp},[1, size(parametrizations.(pars{ff}),2)]);
+                        end
+                    end
                 end
             end
             end
         end
     end
-    if ~strcmp(parametrizations.fun, 'free') && ~strcmp(parametrizations.fun, 'fixed')              % Dynamic parameter across indirect dim
-        pars = {'lb', 'ub', 'init'};
-        newPars = max([length(parametrizations.lb) length(parametrizations.ub) length(parametrizations.init)]); %Add new parameter names
-        for ff = 1 : length(pars)
-            if length(parametrizations.(pars{ff})) < newPars
-                parametrizations.(pars{ff}) = repmat(parametrizations.(pars{ff}), [newPars, 1]);
-            end
-        end
-    end
+%     if ~strcmp(parametrizations.fun, 'free') && ~strcmp(parametrizations.fun, 'fixed')              % Dynamic parameter across indirect dim
+%         pars = {'lb', 'ub', 'init'};
+%         newPars = max([length(parametrizations.lb) length(parametrizations.ub) length(parametrizations.init)]); %Add new parameter names
+%         
+%         for ff = 1 : length(pars)
+%             if length(parametrizations.(pars{ff})) < newPars
+%                 parametrizations.(pars{ff}) = repmat(parametrizations.(pars{ff}), [newPars, 1]);
+%             end
+%             if size(parametrizations.(pars{ff}),2)>1 % Not sure if this works for reparametrizations with > 2 new parameters
+%                 parametrizations.(pars{ff}) = kron(parametrizations.(pars{ff})(1,:), [1 0]) + kron(parametrizations.(pars{ff})(2,:), [0 1]);
+%             end
+%         end
+%     end
 end

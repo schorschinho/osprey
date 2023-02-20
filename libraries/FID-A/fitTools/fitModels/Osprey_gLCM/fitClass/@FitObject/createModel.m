@@ -2,9 +2,19 @@ function obj = createModel(obj)
             
     % This is the heart and soul of this class. This function takes
     % the parametrizations defined in the options, and translates
-    % them into the appropriate loss and gradient functions.
+    % them into the appropriate loss and gradient functions.    
     
     obj.step            = obj.step + 1;
+    % If an inital fit should be performed on a single spectrum we need to
+    % restore pick this single spectrum
+    if isfield(obj.Options{obj.step}, 'InitialPick')
+        if obj.Options{obj.step}.InitialPick > 0
+            temp.BasisSets.fids  = obj.BasisSets.fids;
+            temp.Data.fids       = obj.Data.fids;
+            obj.BasisSets.fids   = squeeze(obj.BasisSets.fids(:,:,obj.Options{obj.step}.InitialPick));
+            obj.Data.fids        = obj.Data.fids(:,obj.Options{obj.step}.InitialPick);            
+        end
+    end
     % Collect the basis functions
     basisSet            = obj.BasisSets;
     baselineBasis       = obj.BaselineBasis;
@@ -17,6 +27,8 @@ function obj = createModel(obj)
     solver              = obj.Options{obj.step}.solver;
     NormNoise           = obj.NormNoise;   
     
+    
+
     
     % Only use basis functions that are included
     basisSet.fids   = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:);
@@ -77,13 +89,18 @@ function obj = createModel(obj)
         case 'lsqnonlin'
             jac = @(x) h.forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,parametrizations);
             fun  = @(x) h.fminunc_wrapper(x, fcn, jac);
+            if obj.Options{obj.step}.NumericJacobian
+                SpecifyObjectiveGradient = false;
+            else
+                SpecifyObjectiveGradient = true;
+            end
             if obj.Options{obj.step}.CheckGradient
                 CheckGrad = true;
             else
                 CheckGrad = false;
             end
-            opts = optimoptions('lsqnonlin','Display','iter','Algorithm','levenberg-marquardt','SpecifyObjectiveGradient',true,...
-                                'CheckGradients',CheckGrad,'FiniteDifferenceType','central','MaxIterations',1000);
+            opts = optimoptions('lsqnonlin','Display','iter','Algorithm','levenberg-marquardt','SpecifyObjectiveGradient',SpecifyObjectiveGradient,...
+                                'CheckGradients',CheckGrad,'FiniteDifferenceType','central','MaxIterations',1000,'Display','iter');
             tstart = tic;            
             [xk,info.resnorm,info.residual,info.exitflag,info.output,info.lambda,info.jacobian] = lsqnonlin(fun, x0, lb, ub, opts );
             time = toc(tstart);    
@@ -117,7 +134,7 @@ function obj = createModel(obj)
     [indMin, indMax] = h.ppmToIndex(ppm, fitRange);
     jac = h.forwardJacobian(xk, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange, 'C',parametrizations);
     SigmaSquared = (NormNoise * length(data(indMin:indMax)))^2;
-    jac = -jac * SigmaSquared;
+%     jac = -jac * SigmaSquared;
     
     % estimating the sigma based on the residual
     
@@ -139,8 +156,17 @@ function obj = createModel(obj)
     % Only use basis functions that are included
     obj.Model{obj.step}.rawCRLB = CRLB;
     try
-        obj.Model{obj.step}.CRLB = table(basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)))', relativeCRLB);
+        obj.Model{obj.step}.CRLB = array2table(relativeCRLB,'VariableNames',basisSet.names(:, logical(basisSet.includeInFit(obj.step,:))));
     catch
+    end
+
+    % If an inital fit was performed on a single spectrum we need to
+    % restore the original dimensions
+    if isfield(obj.Options{obj.step}, 'InitialPick')
+        if obj.Options{obj.step}.InitialPick > 0
+            obj.BasisSets.fids  = temp.BasisSets.fids;
+            obj.Data.fids       = temp.Data.fids;       
+        end
     end
 
 end

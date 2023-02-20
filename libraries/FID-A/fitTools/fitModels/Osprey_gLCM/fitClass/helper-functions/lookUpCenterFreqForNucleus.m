@@ -1,7 +1,9 @@
 function centerFreq = lookUpCenterFreqForNucleus(nucleus)
 % Returns the ppm value at the center of the spectrum depending
 % on the nucleus.
-
+if iscell(nucleus)
+    nucleus = nucleus{1};
+end
 switch strtrim(nucleus)
     case '1H'
         centerFreq = 4.68;

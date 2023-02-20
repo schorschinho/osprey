@@ -1,7 +1,9 @@
 function gamma = lookUpGyromagRatioForNucleus(nucleus)
 % Returns the gyromagnetic ratio [MHz/T] depending
 % on the nucleus.
-
+if iscell(nucleus)
+    nucleus = nucleus{1};
+end
 switch strtrim(nucleus)
     case '1H'
         gamma = 42.577478518;

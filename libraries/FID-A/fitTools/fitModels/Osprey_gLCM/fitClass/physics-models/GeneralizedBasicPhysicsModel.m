@@ -189,8 +189,8 @@ function [jac] = forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, pp
         freqShift = squeeze(inputParams.freqShift(sD,:));
         metAmpl = squeeze(inputParams.metAmpl(sD,:))';
         baseAmpl = squeeze(inputParams.baseAmpl(sD,:))';
-        ph0 = squeeze(inputParams.ph0(sD,:));
-        ph1 = squeeze(inputParams.ph1(sD,:));
+        ph0 = squeeze(inputParams.ph0(sD));
+        ph1 = squeeze(inputParams.ph1(sD));
         
         timeDomainMultiplier = zeros(size(fids));
         for ll = 1:nBasisFcts
@@ -214,8 +214,8 @@ function [jac] = forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, pp
         dYdfreqShift    = cat(3,dYdfreqShift,T_ph_basis .* (-1j) .* Fmett .* metAmpl');
         dYdlorentzLB    = cat(3,dYdlorentzLB,T_ph_basis  .* Fmett .* metAmpl');
         dYdgaussLB      = cat(3,dYdgaussLB,T_ph .* Fmett2gauss * metAmpl);
-        dYdph0          = cat(3,dYdph0,(-1j) .* prediction(:,secDim));
-        dYdph1          = cat(3,dYdph1,(-1j) .* ppm' .* prediction(:,secDim));
+        dYdph0          = cat(3,dYdph0,(-1j) .* prediction(:,sD));
+        dYdph1          = cat(3,dYdph1,(-1j) .* ppm' .* prediction(:,sD));
         if nBaselineComps ~= 0
             dYdbaseAmpl           = cat(3,dYdbaseAmpl,T_ph_baseline .* baselineBasis);
         else
@@ -311,14 +311,14 @@ function [dYdX] = updateJacobianBlock(dYdX,parameterName, parametrizations,input
         dYdX = [];
         % Loop over new parameters
         for rp = 1 : length(parametrizations.(parameterName).parameterNames)
-            dYdX = cat(2,dYdX,dYdXOrginal .* factor(:,rp,:,:));
+            dYdX = cat(4,dYdX,dYdXOrginal .* factor(:,:,:,rp));
         end
         dYdX = squeeze(dYdX);                                               %Remove length 1 dims
         if ndims(dYdX) ==3                                                  % Dims have to be nPoints secDim nLines*nPars 
             dYdX = permute(dYdX,[1 3 2]);
             secDim = size(dYdX,3);
         else
-            secDim = size(dYdX,2);                                          %THIS MIGHT BE THE PROBLEM FOR CASE nBasiss > 1
+            secDim = size(dYdX,4);                                          %THIS MIGHT BE THE PROBLEM FOR CASE nBasiss > 1
         end
         
     end
@@ -330,7 +330,7 @@ function [dYdX] = updateJacobianBlock(dYdX,parameterName, parametrizations,input
             if strcmp(parametrizations.(parameterName).type,'fixed')
                 dYdX = permute(dYdX,[1 3 2]);
             end
-            if strcmp(parameterName,'baseAmpl')
+            if strcmp(parameterName,'baseAmpl') || strcmp(parameterName,'metAmpl') || strcmp(parameterName,'freqShift') || strcmp(parameterName,'lorentzLB')
                 secDim = nLines;
             end
             dYdX = reshape(dYdX,[],secDim);
@@ -362,8 +362,8 @@ function [Y, baseline, metabs] = forwardModel(x, basisSet, baselineBasis, ppm, t
         freqShift   = squeeze(inputParams.freqShift(sD,:));
         metAmpl     = squeeze(inputParams.metAmpl(sD,:))';
         baseAmpl    = squeeze(inputParams.baseAmpl(sD,:))';
-        ph0         = squeeze(inputParams.ph0(sD,:));
-        ph1         = squeeze(inputParams.ph1(sD,:));
+        ph0         = squeeze(inputParams.ph0(sD));
+        ph1         = squeeze(inputParams.ph1(sD));
     
         timeDomainMultiplier = zeros(size(fids));
         for ll = 1:nBasisFcts
@@ -382,7 +382,7 @@ function [Y, baseline, metabs] = forwardModel(x, basisSet, baselineBasis, ppm, t
             Y = cat(2,Y,T_ph .* (mets + bl));
             baseline = cat(2,baseline,T_ph .* bl);
         else
-            Y = T_ph .* mets;
+            Y = cat(2,Y,T_ph .* mets);
             baseline = cat(2,baseline,zeros(size(specs)));
         end
         metabs = cat(3,metabs,repmat(T_ph, [1 size(specs,2)]) .* specs .* repmat(metAmpl', [size(specs,1) 1]));

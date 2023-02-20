@@ -1,8 +1,9 @@
-function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, CheckGradient)
+function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, NumericJacobian, CheckGradient, BasisSetStruct)
 %% Global function for new Osprey LCM
 % Inputs:   DataToModel - FID-A/Osprey struct with data or cell of structs
 %           JsonModelFile - Master model file for all steps
-%           CheckGradient - Do a gradient check in the lsqnonlin solver    
+%           CheckGradient - Do a gradient check in the lsqnonlin solver  
+%           BasisSetStruct - Include predefined basisset struct
 % Outputs:  explicit - Struct with model parameters
 %           implicit - NII results file 
 
@@ -12,7 +13,9 @@ arguments
     % (2019f?)
     DataToModel {isStructOrCell}
     JsonModelFile string
+    NumericJacobian double {mustBeNumeric} = 0; % optional
     CheckGradient double {mustBeNumeric} = 0; % optional
+    BasisSetStruct struct = []; %optional
 end
 
 %% What happens here:
@@ -31,29 +34,34 @@ ModelProcedure = jsonToStruct(JsonModelFile);
 % Load basisset files, add MMs if needed, resample basis sets according to
 % the DataToModel. Generate a basisset matrix for each step? including the
 % indirect dimensions for MSM.
-if length(ModelProcedure.basisset.file) == 1  
-    basisSet = load(ModelProcedure.basisset.file{1});
-    basisSet = basisSet.BASIS;
-    basisSet = recalculateBasisSpecs(basisSet);
-    basisSet = fit_sortBasisSet(basisSet);
-else
-    for bb = 1 : length(ModelProcedure.basisset.file)
-        if bb == 1
-            basisSet = load(ModelProcedure.basisset.file{bb});
-            basisSet = basisSet.BASIS;
-            basisSet = recalculateBasisSpecs(basisSet);
-            basisSet = fit_sortBasisSet(basisSet);
-        else
-            basisSetToAdd = load(ModelProcedure.basisset.file{bb});
-            basisSetToAdd = basisSetToAdd.BASIS;
-            basisSetToAdd = recalculateBasisSpecs(basisSetToAdd);
-            basisSetToAdd = fit_sortBasisSet(basisSetToAdd);
-            basisSet.fids = cat(3,basisSet.fids,basisSetToAdd.fids);
-            basisSet.specs = cat(3,basisSet.specs,basisSetToAdd.specs);
+if isempty(BasisSetStruct)
+    if length(ModelProcedure.basisset.file) == 1  
+        basisSet = load(ModelProcedure.basisset.file{1});
+        basisSet = basisSet.BASIS;
+        basisSet = recalculateBasisSpecs(basisSet);
+        basisSet = fit_sortBasisSet(basisSet);
+    else
+        for bb = 1 : length(ModelProcedure.basisset.file)
+            if bb == 1
+                basisSet = load(ModelProcedure.basisset.file{bb});
+                basisSet = basisSet.BASIS;
+                basisSet = recalculateBasisSpecs(basisSet);
+                basisSet = fit_sortBasisSet(basisSet);
+            else
+                basisSetToAdd = load(ModelProcedure.basisset.file{bb});
+                basisSetToAdd = basisSetToAdd.BASIS;
+                basisSetToAdd = recalculateBasisSpecs(basisSetToAdd);
+                basisSetToAdd = fit_sortBasisSet(basisSetToAdd);
+                basisSet.fids = cat(3,basisSet.fids,basisSetToAdd.fids);
+                basisSet.specs = cat(3,basisSet.specs,basisSetToAdd.specs);
+            end
         end
+        basisSet.sz = size(basisSet.fids);
+        basisSet.nExtra = basisSet.sz(3);
     end
-    basisSet.sz = size(basisSet.fids);
-    basisSet.nExtra = basisSet.sz(3);
+else
+    basisSet = BasisSetStruct;
+    basisSet.nExtra = 0;
 end
 
 %% 3. Prepare data according to model json and model data
@@ -68,7 +76,11 @@ for ss = 1 : length(ModelProcedure.Steps)
     opts.optimSignalPart    = ModelProcedure.Steps(ss).fit_opts.optimSignalPart; % do the least-squares optimization over the real part of the spectrum
     opts.optimFreqFitRange  = ModelProcedure.Steps(ss).fit_opts.ppm; % set the frequency-domain fit range to the fit range specified in the Osprey container
     opts.solver  = ModelProcedure.Steps(ss).fit_opts.solver; % set the solver specified in the Osprey container
+    opts.NumericJacobian = NumericJacobian; % Use numerical jacobian instead of the analytical jacobian
     opts.CheckGradient = CheckGradient; % Do a gradient check in the lsqnonlin solver
+    if isfield(ModelProcedure.Steps(ss).fit_opts,'InitialPick')
+        opts.InitialPick  = ModelProcedure.Steps(ss).fit_opts.InitialPick; % Do inital fit on specific spectrum
+    end
     if isfield(ModelProcedure.Steps(ss),'parameter')
         opts.parameter  = ModelProcedure.Steps(ss).parameter; % specify parmetrizations constructor
     end
@@ -91,7 +103,7 @@ for ss = 1 : length(ModelProcedure.Steps)
         % Loop across all steps with anonymous calls defined in the ModelProcedure struct
         ModelParameter{1}.createModel;
     else
-        for kk = 1 : length(DataToModel)
+        for kk = 1 : length(DataToModel)            
             % Create an instance of the class
             if ss == 1
                 ModelParameter{kk} = FitObject(DataToModel{kk}, basisSet, opts);
