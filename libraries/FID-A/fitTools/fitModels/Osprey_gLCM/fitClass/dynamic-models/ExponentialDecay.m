@@ -19,7 +19,7 @@ function [jac] = ExpDecayJac(x, t)
     metDecay    = x(2,:);   
    
     dYdmetAmpl = exp(-t./metDecay);
-    dYdmetDecay = -t .* metAmpl .* exp(-t./metDecay);
+    dYdmetDecay = t .* metAmpl .* (1./(metDecay.^2)) .* exp(-t./metDecay);
 
     jac = cat(3,dYdmetAmpl,dYdmetDecay);
     jac = squeeze(jac);

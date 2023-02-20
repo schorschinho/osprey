@@ -356,35 +356,38 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             % For water suppression methods like MOIST, the residual water may
             % actually have negative polarity, but end up positive in the data, so
             % that the spectrum needs to be flipped.
-            if ~isfield(MRSCont.opts.SubSpecAlignment, 'polResidCr')
-                raw_Cr     = op_freqrange(raw,2.8,3.2);
-                % Determine the polarity of the respective peak: if the absolute of the
-                % maximum minus the absolute of the minimum is positive, the polarity
-                % of the respective peak is positive; if the absolute of the maximum
-                % minus the absolute of the minimum is negative, the polarity is negative.
-                polResidCr = abs(max(real(raw_Cr.specs))) - abs(min(real(raw_Cr.specs)));
-                polResidCr = squeeze(polResidCr);
-                polResidCr(polResidCr<0) = -1;
-                polResidCr(polResidCr>0) = 1;
-            else
-                polResidCr = MRSCont.opts.SubSpecAlignment.polResidCr;
-            end
-            raw = op_ampScale(raw,polResidCr);
-            MRSCont.raw{metab_ll,kk} = op_ampScale(MRSCont.raw{metab_ll,kk},polResidCr);
-
-            % Do the same for the metabolite-nulled data
-            if MRSCont.flags.hasMM
-                raw_Cr39    = op_freqrange(raw_mm,3.7,4.1);
-                polResidCr39  = abs(max(real(raw_Cr39.specs))) - abs(min(real(raw_Cr39.specs)));
-                polResidCr39(polResidCr39<0) = -1;
-                polResidCr39(polResidCr39>0) = 1;
-                if polResidCr39(1) ~= polResidCr(1)
-                    raw_mm = op_ampScale(raw_mm,polResidCr);
+            if ~MRSCont.opts.SubSpecAlignment.PreservePolarity
+                if ~isfield(MRSCont.opts.SubSpecAlignment, 'polResidCr')
+                    raw_Cr     = op_freqrange(raw,2.8,3.2);
+                    % Determine the polarity of the respective peak: if the absolute of the
+                    % maximum minus the absolute of the minimum is positive, the polarity
+                    % of the respective peak is positive; if the absolute of the maximum
+                    % minus the absolute of the minimum is negative, the polarity is negative.
+                    polResidCr = abs(max(real(raw_Cr.specs))) - abs(min(real(raw_Cr.specs)));
+                    polResidCr = squeeze(polResidCr);
+                    polResidCr(polResidCr<0) = -1;
+                    polResidCr(polResidCr>0) = 1;
                 else
-                    raw_mm = op_ampScale(raw_mm,polResidCr39);
+                    polResidCr = MRSCont.opts.SubSpecAlignment.polResidCr;
                 end
-
+                raw = op_ampScale(raw,polResidCr);
+                MRSCont.raw{metab_ll,kk} = op_ampScale(MRSCont.raw{metab_ll,kk},polResidCr);
+    
+                % Do the same for the metabolite-nulled data
+                if MRSCont.flags.hasMM
+                    raw_Cr39    = op_freqrange(raw_mm,3.7,4.1);
+                    polResidCr39  = abs(max(real(raw_Cr39.specs))) - abs(min(real(raw_Cr39.specs)));
+                    polResidCr39(polResidCr39<0) = -1;
+                    polResidCr39(polResidCr39>0) = 1;
+                    if polResidCr39(1) ~= polResidCr(1)
+                        raw_mm = op_ampScale(raw_mm,polResidCr);
+                    else
+                        raw_mm = op_ampScale(raw_mm,polResidCr39);
+                    end    
+                end
             end
+            
+            
 
 %%          %%% 6. DETERMINE ON/OFF STATUS FOR EDITED DATA & NAMES
             % Classify the MEGA sub-spectra such that the OFF spectrum is stored in
@@ -492,23 +495,25 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             end
 
 %%          %%% 6b. BUILD SUM AND DIFF SPECTRA %%%
-            % Correct the frequency axis so that Cr appears at 3.027 ppm
+            % Perform sub-specta alignment and build combinations
+            if raw.flags.isUnEdited && MRSCont.opts.PhaseSpectra
+                [raw,~]=op_phaseCrCho(raw, 1);
+            end
             if raw.flags.isMEGA
                 % Create all Hadamard combinations to generate a well defined
                 % raw struct
                 raw=op_HadamardScans(raw,[-1 1],'diff1');
                 raw=op_HadamardScans(raw,[1 1],'sum');
                 raw_no_subspec_aling = raw;
-                if ~raw.flags.isMRSI
-%                     [raw,~]       = op_phaseCrCho(raw, 1);
+                if ~raw.flags.isMRSI                    
                     [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
                     if abs(refShift_SubSpecAlign) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
                         [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
                     end
-%                     % Apply initial referencing shift
+                    % Apply initial referencing shift
                     raw = op_freqshift(raw, -refShift_SubSpecAlign);
-%                     % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
-%                     % with the negative phase of that fit
+                    % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+                    % with the negative phase of that fit
                     [raw,ph]       = op_phaseCrCho(raw, 1);
 
                 else
