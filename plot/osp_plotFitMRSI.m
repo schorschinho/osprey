@@ -304,7 +304,7 @@ gcf = out;
 set(gcf, 'Color', MRSCont.colormap.Background);        
 box off;
 set(gca, 'XDir', 'reverse');
-
+set(gca, 'XTick', unique(round(gca().XTick)));
 
 if ~MRSCont.flags.isGUI
     set(gca, 'YColor', 'w');

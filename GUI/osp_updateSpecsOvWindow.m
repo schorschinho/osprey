@@ -54,12 +54,15 @@ function osp_updateSpecsOvWindow(gui)
             case {'metab','mm'}        
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', ax.XTick)
             case {'ref','w','mm_ref'}
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0 2*4.68])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', ax.XTick)
             otherwise
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', ax.XTick)
         end
         h = findall(groot,'Type','figure');
         for ff = 1 : length(h)

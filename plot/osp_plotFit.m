@@ -508,6 +508,7 @@ end
 set(gca, 'XDir', 'reverse', 'XLim', [fitRangePPM(1), fitRangePPM(end)], 'XMinorTick', 'On');
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
+set(gca, 'XTick', unique(round(gca().XTick)));
 % If no y caption, remove y axis
 if isempty(ylab)
     if ~MRSCont.flags.isGUI
