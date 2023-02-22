@@ -134,7 +134,7 @@ else if maxDatasets > 1
 end
     if ~MRSCont.flags.isSERIES
         if length(MRSCont.opts.ECC.raw) == 1
-            MRSCont.opts.ECC.raw = ones(size(MRSCont.raw)) * MRSCont.opts.ECC.raw;
+            MRSCont.opts.ECC.raw = ones(size(MRSCont.files)) * MRSCont.opts.ECC.raw;
         else
             MRSCont.opts.ECC.raw = repmat(MRSCont.opts.ECC.raw, [ MRSCont.nDatasets(2) 1]);
         end  
