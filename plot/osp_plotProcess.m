@@ -398,8 +398,14 @@ ax_drift    = subplot(2, 2, 2);
 % Generate global yLimits
 applyDataToScale = rawDataToScale;
 t = rawDataToScale.t;
+if isfield(procDataToPlot,'AveragesToKeep')
+    goodAverages=procDataToPlot.AveragesToKeep;
+    applyDataToScale.fids=applyDataToScale.fids(:,goodAverages,:,:);
+    applyDataToScale.specs=fftshift(ifft(applyDataToScale.fids,[],applyDataToScale.dims.t),applyDataToScale.dims.t);
+    applyDataToScale.sz=size(applyDataToScale.fids);
+end
 switch which_sub_spec
-    case {'A', 'B', 'C', 'D'} 
+    case {'A', 'B', 'C', 'D','ref','w'} 
         if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
             fs = procDataToPlot.specReg{VoxelIndex}.fs;
             phs = procDataToPlot.specReg{VoxelIndex}.phs;
@@ -407,8 +413,10 @@ switch which_sub_spec
             fs = procDataToPlot.specReg{VoxelIndex(1), VoxelIndex(2)}.fs;
             phs = procDataToPlot.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
         else
-            fs = procDataToPlot.specReg{1}.fs(:,SubSpectraIndex);
-            phs = procDataToPlot.specReg{1}.phs(:,SubSpectraIndex);           
+            if isfield(procDataToPlot,'specReg')
+                fs = procDataToPlot.specReg{1}.fs(:,SubSpectraIndex);
+                phs = procDataToPlot.specReg{1}.phs(:,SubSpectraIndex);  
+            end
         end
     case {'diff1', 'diff2','diff3', 'sum'}
         if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
@@ -507,31 +515,38 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
         end
     end
 else
-    if isfield(MRSCont.QM.freqShift, which_spec)
-        switch which_sub_spec
-            case {'A', 'B', 'C', 'D'} 
+    
+    switch which_sub_spec
+        case {'A', 'B', 'C', 'D','ref','w'} 
+            if isfield(MRSCont.QM.freqShift, which_spec)
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
+            end
+            if isfield(applyDataToScale,'specReg')
                 for jj = 1:size(applyDataToScale.fids,2)
                     applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
-            case {'diff1', 'diff2','diff3', 'sum'}
+            end
+        case {'diff1', 'diff2','diff3', 'sum'}
+            if isfield(MRSCont.QM.freqShift, which_spec)
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs{1}));
-                for ss = 1 : length(fs)
-                    fs{ss} = fs{ss} - refShift;
-                    for jj = 1:size(applyDataToScale.fids,2)
-                        if length(size(applyDataToScale.fids)) == 3
-                            applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
-                                exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
-                        else
-                            applyDataToScale.fids(:,ss) = applyDataToScale.fids(:,ss) .* ...
-                                exp(1i*fs{ss}(1)*2*pi*t') * exp(1i*pi/180*phs{ss}(1));
-                        end
+            else
+                refShift = 0;
+            end
+            for ss = 1 : length(fs)
+                fs{ss} = fs{ss} - refShift;
+                for jj = 1:size(applyDataToScale.fids,2)
+                    if length(size(applyDataToScale.fids)) == 3
+                        applyDataToScale.fids(:,jj,ss) = applyDataToScale.fids(:,jj,ss) .* ...
+                            exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                    else
+                        applyDataToScale.fids(:,ss) = applyDataToScale.fids(:,ss) .* ...
+                            exp(1i*fs{ss}(1)*2*pi*t') * exp(1i*pi/180*phs{ss}(1));
                     end
                 end
-        end
-    end    
+            end
+    end  
 end
 
 
@@ -643,8 +658,14 @@ end
 % Apply stored corrections to calculate the spectra to display
 applyDataToPlot = rawDataToPlot;
 t = rawDataToPlot.t;
+if isfield(procDataToPlot,'AveragesToKeep')
+    goodAverages=procDataToPlot.AveragesToKeep;
+    applyDataToPlot.fids=applyDataToPlot.fids(:,goodAverages,:,:);
+    applyDataToPlot.specs=fftshift(ifft(applyDataToPlot.fids,[],applyDataToPlot.dims.t),applyDataToPlot.dims.t);
+    applyDataToPlot.sz=size(applyDataToPlot.fids);
+end
 switch which_sub_spec
-    case {'A', 'B', 'C', 'D'} 
+    case {'A', 'B', 'C', 'D','ref','w'} 
         if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1)) 
             fs = procDataToPlot.specReg{VoxelIndex}.fs;
             phs = procDataToPlot.specReg{VoxelIndex}.phs;
@@ -654,9 +675,13 @@ switch which_sub_spec
             phs = procDataToPlot.specReg{VoxelIndex(1), VoxelIndex(2)}.phs;
             weights = MRSCont.processed.(which_spec){kk}.specReg{VoxelIndex(1), VoxelIndex(2)}.weights;
         else
-            fs = procDataToPlot.specReg{1}.fs;
-            phs = procDataToPlot.specReg{1}.phs;
-            weights = MRSCont.processed.(which_spec){kk}.specReg{1}.weights{find(strcmp(which_sub_spec,{'A', 'B', 'C', 'D'}))};            
+            if isfield(procDataToPlot,'specReg')
+                fs = procDataToPlot.specReg{1}.fs;
+                phs = procDataToPlot.specReg{1}.phs;
+                if isfield(MRSCont.processed.(which_spec){kk}.specReg{1},'weights')
+                    weights = MRSCont.processed.(which_spec){kk}.specReg{1}.weights{find(strcmp(which_sub_spec,{'A', 'B', 'C', 'D'}))};  
+                end
+            end
         end
     case {'diff1', 'diff2', 'diff3', 'sum'}
         if (isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
@@ -759,33 +784,47 @@ elseif (isfield(MRSCont.flags,'isMRSI') && (MRSCont.flags.isMRSI == 1))
         end
     end
 else
-    if isfield(MRSCont.QM.freqShift, which_spec)
-        switch which_sub_spec
-            case {'A', 'B', 'C', 'D'} 
+    
+    switch which_sub_spec
+        case {'A', 'B', 'C', 'D','ref','w'} 
+            if isfield(MRSCont.QM.freqShift, which_spec)
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
+            end
+            if isfield(applyDataToPlot,'specReg')
                 for jj = 1:size(applyDataToPlot.fids,2)
                     applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
                 end
-            case {'diff1', 'diff2', 'diff3', 'sum'}
+            end
+        case {'diff1', 'diff2', 'diff3', 'sum'}
+            if isfield(MRSCont.QM.freqShift, which_spec)
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs{1}));
-                for ss = 1 : length(fs)
-                    fs{ss} = fs{ss} - refShift;
-                    for jj = 1:size(applyDataToPlot.fids,2)
-                        if length(size(applyDataToScale.fids)) == 3
-                            applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
-                                exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
-                        else
-                            applyDataToPlot.fids(:,ss) = applyDataToPlot.fids(:,ss) .* ...
-                                exp(1i*fs{ss}(1)*2*pi*t') * exp(1i*pi/180*phs{ss}(1));
-                        end
+            else
+                refShift = 0;
+            end
+            for ss = 1 : length(fs)
+                fs{ss} = fs{ss} - refShift;
+                for jj = 1:size(applyDataToPlot.fids,2)
+                    if length(size(applyDataToScale.fids)) == 3
+                        applyDataToPlot.fids(:,jj,ss) = applyDataToPlot.fids(:,jj,ss) .* ...
+                            exp(1i*fs{ss}(jj)*2*pi*t') * exp(1i*pi/180*phs{ss}(jj));
+                    else
+                        applyDataToPlot.fids(:,ss) = applyDataToPlot.fids(:,ss) .* ...
+                            exp(1i*fs{ss}(1)*2*pi*t') * exp(1i*pi/180*phs{ss}(1));
                     end
                 end
-        end
+            end
     end
 end
 applyDataToPlot.specs = fftshift(fft(applyDataToPlot.fids,[],rawDataToPlot.dims.t),rawDataToPlot.dims.t);
+
+% Loop over all averages
+try
+    nAvgsRaw = applyDataToPlot.sz(applyDataToPlot.dims.averages);
+catch % This is a wild guess in case no averages dimension is stored 
+    nAvgsRaw = applyDataToPlot.sz(2);
+end
 
 hold(ax_aligned, 'on');    
 % Loop over all averages
@@ -1098,7 +1137,9 @@ for ll = 1:length(axs)
     gca = axs{ll};
     set(gca, 'LineWidth', 1, 'TickDir', 'out', 'XMinorTick', 'On');
     set(gca, 'FontSize', 16);
-
+    if ll ~= 3
+        set(gca, 'XTick', unique(round(gca().XTick)));
+    end
     % Black axes, white background
     if ~MRSCont.flags.isGUI
         set(gca, 'XColor', 'k');
