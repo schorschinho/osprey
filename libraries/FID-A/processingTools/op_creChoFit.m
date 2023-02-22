@@ -26,10 +26,6 @@ if nargin < 2
     echo = 0;
 end
 
-if in.flags.isISIS
-    error('ERROR:  must have combined subspecs in order to do this!  ABORTING');
-end
-
 if ~in.flags.averaged
     error('ERROR:  must have averaged in order to do this!  ABORTING');
 end

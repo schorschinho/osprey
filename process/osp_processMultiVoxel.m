@@ -130,7 +130,7 @@ elseif MRSCont.flags.isMRSI == 1
                     end
                 end
                 
-                if (x==8) && (y==10) && (z==2)
+                if (x==8) && (y==9) && (z==2)
                     x
                 end
                 if MRSCont.flags.isUnEdited

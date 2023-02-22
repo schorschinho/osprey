@@ -296,9 +296,11 @@ for kk = 1:MRSCont.nDatasets
         % field A, and the ON spectrum is stored to field B.
         if isfield(MRSCont,'switchOrder')
             switchOrder = MRSCont.switchOrder;
-            temp = raw_A;
-            raw_A = raw_B;
-            raw_B = temp;
+            if switchOrder
+                temp = raw_A;
+                raw_A = raw_B;
+                raw_B = temp;
+            end
         else
             [raw_A, raw_B, switchOrder]  = osp_onOffClassifyMEGA(raw_A, raw_B, target);
         end
