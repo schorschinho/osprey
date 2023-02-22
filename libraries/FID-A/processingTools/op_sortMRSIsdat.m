@@ -161,12 +161,12 @@ if in.nZvoxels > 1
     end
 end
 
-if in.nZvoxels > 1
-    fids = flip(fids,dims.Zvoxels);
+% if in.nZvoxels > 1
+%     fids = flip(fids,dims.Zvoxels);
+%     fids = flip(fids, dims.Xvoxels);
+% else
     fids = flip(fids, dims.Xvoxels);
-else
-    fids = flip(fids, dims.Xvoxels);
-end
+% end
 
 
 %re-calculate Specs using fft

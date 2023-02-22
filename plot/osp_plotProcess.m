@@ -972,7 +972,7 @@ box off;
 if ~MRSCont.flags.isGUI
     [I, map] = imread('osprey.gif','gif');
     axes(out, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
-    text(gca, 0, -0.1, [MRSCont.ver.Osp ' ' MRSCont.ver.Pro],'Color', colormap.Foreground);
+    text(gca, 0, -0.1, [MRSCont.ver.Osp],'Color', colormap.Foreground);
     imshow(I, map);
     axis off;
 end

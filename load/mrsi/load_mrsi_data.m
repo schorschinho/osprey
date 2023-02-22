@@ -48,7 +48,7 @@ function [MRSCont] = load_mrsi_data(MRSCont)
 %   HISTORY:
 %       2021-02-01: Adaptions for Osprey.
 %%
-spec_zfill =2;
+spec_zfill =8;
 k_zfill = 1;
 if MRSCont.flags.isUnEdited
    seq_type = 'SE multislice';
@@ -93,6 +93,8 @@ if MRSCont.flags.hasWater
     end
 end
 
+
+
 %% Get the data (loop over all datasets)
 refLoadTime = tic;
 if MRSCont.flags.isGUI
@@ -113,11 +115,7 @@ for kk = 1:MRSCont.nDatasets
         [k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft,coilcombos, coilcombos_b4_2dfft] = process_wat_ref(MRSCont.files_w{kk}, k_zfill, 'water reference',coilcombo);
         save(fullfile(outputFolder,'water_k_sort.mat'),'k_sort_b4_2dfft');
     end
-%     if (contains(seq_type, 'multislice'))
-%         k_fft2_wat_ref(:,:,:,:,:) = k_fft2_wat_ref([1 3 2],:,:,:,:);
-%         k_fft2_wat_ref_no_k_zfill(:,:,:,:,:) = k_fft2_wat_ref_no_k_zfill([1 3 2],:,:,:,:);
-%         k_sort_b4_2dfft(:,:,:,:,:) = k_sort_b4_2dfft([1 3 2],:,:,:,:);            
-%     end
+
     [~] = printLog('OspreyLoad',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
     
     if ((MRSCont.flags.didLoadData == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~isfield(MRSCont.ver, 'Load') || ~strcmp(MRSCont.ver.Load,MRSCont.ver.CheckLoad))
@@ -137,6 +135,7 @@ for kk = 1:MRSCont.nDatasets
         filename = MRSCont.files{kk};
         [data] = loadRawKspace(filename);
 
+        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Determine dimensions of the acquisition
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -169,7 +168,114 @@ for kk = 1:MRSCont.nDatasets
     data.aver = data.aver + 1;
     data.chan = data.chan + 1;
     
-            
+    % Get meta data of the scans that might by useful first
+     % Extract information from SPAR files that is not in DATA/LIST
+    hasSPAR = 0;
+    [~,~,ext] = fileparts(filename);
+    % Get the appropriate raw_act.spar
+    spar_file = strrep(filename,ext, '_raw_act.spar'); % it's automatically case-insensitive
+    
+    if ~isfile(spar_file)
+        spar_file = strrep(filename,ext, '_raw_act.SPAR'); % it's automatically case-insensitive
+    end
+    if ~isfile(spar_file)    
+        if ~isempty(statFile) % Has stat csv file
+            statCSV = readtable(statFile, 'Delimiter', ',','ReadVariableNames',1); % Load it
+            name = statCSV.Properties.VariableNames;
+            tr_idx = find(strcmp(name,'tr'));
+            if isempty(tr_idx)
+                tr_idx = find(strcmp(name,'TR'));
+            end
+            te_idx = find(strcmp(name,'te'));        
+            if isempty(te_idx)
+                te_idx = find(strcmp(name,'TE'));
+            end
+            sw_idx = find(strcmp(name,'sw'));        
+            if isempty(sw_idx)
+                sw_idx = find(strcmp(name,'SW'));
+            end 
+            Larmor_idx = find(strcmp(name,'Larmor')); 
+            date_idx = find(strcmp(name,'date'));    
+            seq_idx = find(strcmp(name,'seq')); 
+            if ~isempty(tr_idx) && ~isempty(te_idx) && ~isempty(sw_idx) && ~isempty(Larmor_idx)
+                tr = statCSV{kk,tr_idx};
+                te = statCSV{kk,te_idx}; 
+                sw = statCSV{kk,sw_idx}; 
+                Larmor = statCSV{kk,Larmor_idx}; 
+                if ~isempty(date_idx)
+                    date = statCSV{kk,date_idx}{1};
+                else
+                    date = '';
+                end
+                if ~isempty(seq_idx)
+                    seq = statCSV{kk,seq_idx}{1};
+                else
+                    seq = 'PRESS'; % Let's assume it is a PRESS sequence 
+                end
+            else
+                msg = 'You need a SPAR file that has the same name as the .data/.list file with the extension _raw_act.spar. Otherwise you can supply TR, TE, SW (spectralwidth), Larmor (larmor frequency in MHz), and seq (localization) in the stat.csv file.';
+                error(msg);    
+            end
+        else
+            msg = 'You need a SPAR file that has the same name as the .data/.list file with the extension _raw_act.spar. Otherwise you can supply TR, TE, SW (spectralwidth), and Larmor (larmor frequency in MHz), and seq (localization) in the stat.csv file.';
+            error(msg);          
+        end
+    else
+        hasSPAR = 1;    
+    end
+    
+    if hasSPAR
+        % Open spar file and read parameters
+        sparname = fopen(spar_file,'r');
+        sparheader = textscan(sparname, '%s');
+        sparheader = sparheader{1};
+        sparidx=find(ismember(sparheader, 'repetition_time')==1); % TR
+        tr = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'echo_time')==1); % TE
+        te = str2double(sparheader{sparidx+2}); % 
+        sparidx=find(ismember(sparheader, 'synthesizer_frequency')==1); % F0
+        Larmor = str2double(sparheader{sparidx+2})/1e6;
+        sparidx=find(ismember(sparheader, 'sample_frequency')==1); % readout bandwidth
+        sw = str2double(sparheader{sparidx+2});
+    
+        % Read voxel geometry information.
+        % THIS IS IN THE ORDER LR-AP-FH
+        sparidx=find(ismember(sparheader, 'scan_date')==1); % voxel size 
+        date = sparheader{sparidx+2};
+        sparidx=find(ismember(sparheader, 'scan_id')==1); % voxel size 
+        seq = sparheader{sparidx+2};
+        sparidx=find(ismember(sparheader, 'lr_size')==1); % voxel size 
+        geometry.size.lr = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'ap_size')==1);
+        geometry.size.ap = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'cc_size')==1);
+        geometry.size.cc = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'lr_off_center')==1); % voxel center offset
+        geometry.pos.lr = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'ap_off_center')==1);
+        geometry.pos.ap = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'cc_off_center')==1);
+        geometry.pos.cc = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'lr_angulation')==1); % voxel angulation (radians)
+        geometry.rot.lr = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'ap_angulation')==1);
+        geometry.rot.ap = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'cc_angulation')==1);
+        geometry.rot.cc = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'slice_distance')==1);
+        geometry.slice_distance = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'phase_encoding_fov')==1);
+        geometry.phase_encoding_fov = str2double(sparheader{sparidx+2});
+        fclose(sparname);
+    
+    
+        %UPDATE THE GEOMETRY INFORMATION
+        % We have to update geomtry information because the volume in the sdat
+        % doesn't represent the FOV of the MRSI
+        geometry.size.lr = geometry.phase_encoding_fov;
+        geometry.size.ap = geometry.phase_encoding_fov * (kx_tot/ky_tot);
+    end
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Start splitting the list of total scans into its parts:
     % Noise scans, water-suppressed scans, and water-unsuppressed scans.
@@ -183,7 +289,8 @@ for kk = 1:MRSCont.nDatasets
 
     disp('Reorganizing k-space locations.')
         k_sort = zeros(kz_tot,kx_tot, ky_tot, n_coils, n_points,n_averages);
-
+        
+        first = [data.loca(1+noise_line),data.kx(1+noise_line), data.ky(1+noise_line)];
         
         % Rearrange k-space values (so no negative indices)
         for dl = 1:size(data_matrix,1)            
@@ -194,8 +301,8 @@ for kk = 1:MRSCont.nDatasets
             end
         end
          if strcmp(seq_type, 'MEGA multislice') 
-             k_merge_on = k_sort(:,:,:,:,:,1:2:end);
-             k_merge_off = k_sort(:,:,:,:,:,2:2:end);
+             k_merge_off = k_sort(:,:,:,:,:,1:2:end);
+             k_merge_on = k_sort(:,:,:,:,:,2:2:end);
              k_sort = cat(7,k_merge_on,k_merge_off);
               n_averages = n_averages/2;
          end
@@ -298,7 +405,7 @@ for kk = 1:MRSCont.nDatasets
         k_sort_no_MoCo = k_sort;
         k_sort_phased_k = k_sort_phased;
 
-        motion_corr_lb = 2;
+        motion_corr_lb = 0;
         exp_lb = permute(squeeze((repmat(exp(-(motion_corr_lb*pi*(1:n_points))/n_points), [1 1 size(k_sort_phased_k,1) size(k_sort_phased_k,2) size(k_sort_phased_k,3)]))), [2 3 4 1]);
 
         % Form spectra in k-space.
@@ -311,6 +418,8 @@ for kk = 1:MRSCont.nDatasets
             ~, ~, ~, ~,replace_track] = motion_correct_mrsi_full(k_sort(:,:,:,:,:,1,1), k_sort(:,:,:,:,:,2,1), k_sort(:,:,:,:,:,1,2), k_sort(:,:,:,:,:,2,2),...
                                                                                         spec_k(:,:,:,:,1,1), spec_k(:,:,:,:,2,1), spec_k(:,:,:,:,1,2), spec_k(:,:,:,:,2,2),...
                                                                                         spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
+            elseif strcmp(MRSCont.opts.MoCo.target, 'RobustMoCo')  
+                [k_fs_corr, k_ph_corr, k_w_corr] = robust_motion_correct_mrsi(spec_k,first,Larmor);
             else
             
             [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
@@ -332,7 +441,7 @@ for kk = 1:MRSCont.nDatasets
             
         end
        
-       if ~strcmp(seq_type, 'SE multislice') 
+       if ~strcmp(seq_type, 'SE multislice') && ~strcmp(MRSCont.opts.MoCo.target, 'RobustMoCo') 
            k_sort_merge_on = cat(6, k_sort_on,k_sort_on2);
            k_sort_merge_off = cat(6, k_sort_off,k_sort_off2);
            k_sort = cat(7,k_sort_merge_on,k_sort_merge_off);
@@ -347,7 +456,6 @@ if strcmp(seq_type, 'MEGA multislice')
                 % For each point in time and coil take the 2D fft
                     sz_k_sort = size(k_sort);
                     k_fft2 = zeros([3, kx_tot,ky_tot,sz_k_sort(4:end)]);
-                    sz_k_on = size(k_sort_on);
                     if ~MRSCont.flags.hasWater
                         k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4), sz_k_sort(6:end)]);
                     else
@@ -357,7 +465,7 @@ if strcmp(seq_type, 'MEGA multislice')
                 
                 disp('Taking Fourier transforms of non corrected data.')
                 count_ft = 0;
-                for c_idx = 1:size(k_sort_on,4) % Each coil
+                for c_idx = 1:size(k_sort,4) % Each coil
                     if ~MRSCont.flags.hasWater
                         wat_peak = squeeze(k_sort_no_MoCo(:,:,:,c_idx,1,:,:));
                         for s_idx = 1:3
@@ -369,7 +477,7 @@ if strcmp(seq_type, 'MEGA multislice')
                             k_fft2_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
                         end
                     end
-                    for t_idx = 1:size(k_sort_on, 5) % Each point in time
+                    for t_idx = 1:size(k_sort, 5) % Each point in time
                         for s_idx = 1:3
                             k_fft2(s_idx,:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort_no_MoCo(s_idx,:,:,c_idx,t_idx,:,:)),kx_tot,ky_tot); % zerofill k-space
                         end
@@ -421,7 +529,6 @@ if strcmp(seq_type, 'MEGA multislice')
             % For each point in time and coil take the 2D fft
                 sz_k_sort = size(k_sort);
                 k_fft2 = zeros([3, kx_tot,ky_tot,sz_k_sort(4:end)]);
-                sz_k_on = size(k_sort_on);
                 if ~MRSCont.flags.hasWater
                         k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4), sz_k_sort(6:end)]);
                 else
@@ -437,11 +544,21 @@ if strcmp(seq_type, 'MEGA multislice')
                     k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 3 6 7 4 5]);  
                     k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
                 end
+                if strcmp(MRSCont.opts.MoCo.target, 'RobustMoCo') 
+                    spectralwidth=sw;
+                    dwelltime=1/spectralwidth;
+                    t=[0:dwelltime:(size(k_sort,5)-1)*dwelltime];
+                    t = repmat(t', [1 size(k_sort,1) size(k_sort,2) size(k_sort,3) size(k_sort,4) size(k_sort,6) size(k_sort,7)]); 
+                    t = permute(t, [2 3 4 5 1 6 7]); 
+                    k_fs_corr_rep = repmat(k_fs_corr, [1 1 1 1 1 size(k_sort,4) size(k_sort, 5)]);
+                    k_fs_corr_rep = permute(k_fs_corr_rep, [ 1 2 3 6 7 4 5]);   
+                    k_sort = k_sort.*exp(-1i.*k_fs_corr_rep.*2.*pi.*t);
+                end
 
             save(fullfile(outputFolder,'k_sort_filt_phased_MoCo.mat'),'k_sort');
             disp('Taking Fourier transforms.')
             count_ft = 0;
-            for c_idx = 1:size(k_sort_on,4) % Each coil
+            for c_idx = 1:size(k_sort,4) % Each coil
                 if ~MRSCont.flags.hasWater
                         wat_peak = squeeze(k_sort(:,:,:,c_idx,1,:,:));
                         for s_idx = 1:3
@@ -453,7 +570,7 @@ if strcmp(seq_type, 'MEGA multislice')
                             k_fft2_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
                         end
                     end
-                for t_idx = 1:size(k_sort_on, 5) % Each point in time
+                for t_idx = 1:size(k_sort, 5) % Each point in time
                     for s_idx = 1:3
                         k_fft2(s_idx,:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort(s_idx,:,:,c_idx,t_idx,:,:)),kx_tot,ky_tot); % zerofill k-space
                     end
@@ -574,115 +691,7 @@ end
         end
 
     
-   % Now we need to bring everything into the Osprey struct format
-   % Extract information from SPAR files that is not in DATA/LIST
-    hasSPAR = 0;
-    [~,~,ext] = fileparts(filename);
-    % Get the appropriate raw_act.spar
-    spar_file = strrep(filename,ext, '_raw_act.spar'); % it's automatically case-insensitive
-
-    if ~isfile(spar_file)
-        spar_file = strrep(filename,ext, '_raw_act.SPAR'); % it's automatically case-insensitive
-    end
-    if ~isfile(spar_file)    
-        if ~isempty(statFile) % Has stat csv file
-            statCSV = readtable(statFile, 'Delimiter', ',','ReadVariableNames',1); % Load it
-            name = statCSV.Properties.VariableNames;
-            tr_idx = find(strcmp(name,'tr'));
-            if isempty(tr_idx)
-                tr_idx = find(strcmp(name,'TR'));
-            end
-            te_idx = find(strcmp(name,'te'));        
-            if isempty(te_idx)
-                te_idx = find(strcmp(name,'TE'));
-            end
-            sw_idx = find(strcmp(name,'sw'));        
-            if isempty(sw_idx)
-                sw_idx = find(strcmp(name,'SW'));
-            end 
-            Larmor_idx = find(strcmp(name,'Larmor')); 
-            date_idx = find(strcmp(name,'date'));    
-            seq_idx = find(strcmp(name,'seq')); 
-            if ~isempty(tr_idx) && ~isempty(te_idx) && ~isempty(sw_idx) && ~isempty(Larmor_idx)
-                tr = statCSV{kk,tr_idx};
-                te = statCSV{kk,te_idx}; 
-                sw = statCSV{kk,sw_idx}; 
-                Larmor = statCSV{kk,Larmor_idx}; 
-                if ~isempty(date_idx)
-                    date = statCSV{kk,date_idx}{1};
-                else
-                    date = '';
-                end
-                if ~isempty(seq_idx)
-                    seq = statCSV{kk,seq_idx}{1};
-                else
-                    seq = 'PRESS'; % Let's assume it is a PRESS sequence 
-                end
-            else
-                msg = 'You need a SPAR file that has the same name as the .data/.list file with the extension _raw_act.spar. Otherwise you can supply TR, TE, SW (spectralwidth), Larmor (larmor frequency in MHz), and seq (localization) in the stat.csv file.';
-                error(msg);    
-            end
-        else
-            msg = 'You need a SPAR file that has the same name as the .data/.list file with the extension _raw_act.spar. Otherwise you can supply TR, TE, SW (spectralwidth), and Larmor (larmor frequency in MHz), and seq (localization) in the stat.csv file.';
-            error(msg);          
-        end
-    else
-        hasSPAR = 1;    
-    end
-
-    if hasSPAR
-        % Open spar file and read parameters
-        sparname = fopen(spar_file,'r');
-        sparheader = textscan(sparname, '%s');
-        sparheader = sparheader{1};
-        sparidx=find(ismember(sparheader, 'repetition_time')==1); % TR
-        tr = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'echo_time')==1); % TE
-        te = str2double(sparheader{sparidx+2}); % 
-        sparidx=find(ismember(sparheader, 'synthesizer_frequency')==1); % F0
-        Larmor = str2double(sparheader{sparidx+2})/1e6;
-        sparidx=find(ismember(sparheader, 'sample_frequency')==1); % readout bandwidth
-        sw = str2double(sparheader{sparidx+2});
-
-        % Read voxel geometry information.
-        % THIS IS IN THE ORDER LR-AP-FH
-        sparidx=find(ismember(sparheader, 'scan_date')==1); % voxel size 
-        date = sparheader{sparidx+2};
-        sparidx=find(ismember(sparheader, 'scan_id')==1); % voxel size 
-        seq = sparheader{sparidx+2};
-        sparidx=find(ismember(sparheader, 'lr_size')==1); % voxel size 
-        geometry.size.lr = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'ap_size')==1);
-        geometry.size.ap = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'cc_size')==1);
-        geometry.size.cc = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'lr_off_center')==1); % voxel center offset
-        geometry.pos.lr = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'ap_off_center')==1);
-        geometry.pos.ap = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'cc_off_center')==1);
-        geometry.pos.cc = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'lr_angulation')==1); % voxel angulation (radians)
-        geometry.rot.lr = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'ap_angulation')==1);
-        geometry.rot.ap = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'cc_angulation')==1);
-        geometry.rot.cc = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'slice_distance')==1);
-        geometry.slice_distance = str2double(sparheader{sparidx+2});
-        sparidx=find(ismember(sparheader, 'phase_encoding_fov')==1);
-        geometry.phase_encoding_fov = str2double(sparheader{sparidx+2});
-        fclose(sparname);
-
-
-        %UPDATE THE GEOMETRY INFORMATION
-        % We have to update geomtry information because the volume in the sdat
-        % doesn't represent the FOV of the MRSI
-        geometry.size.lr = geometry.phase_encoding_fov;
-        geometry.size.ap = geometry.phase_encoding_fov * (kx_tot/ky_tot);
-    end
-
-
+   % Now we need to bring everything into the Osprey struct format 
     
     % Do a re-ordering of the slices here
     if (strcmp(seq_type, 'MEGA multislice')|| strcmp(seq_type, 'SE multislice'))
@@ -696,10 +705,12 @@ end
             specs_no_MoCo(3,:,:,:,:,:) = spec_temp(2,:,:,:,:,:);
             specs_no_MoCo(2,:,:,:,:,:) = spec_temp(3,:,:,:,:,:);
         end
-        spec_temp = specs_w;
-        specs_w(1,:,:,:,:,:) = spec_temp(1,:,:,:,:,:); 
-        specs_w(3,:,:,:,:,:) = spec_temp(2,:,:,:,:,:);
-        specs_w(2,:,:,:,:,:) = spec_temp(3,:,:,:,:,:);
+        if MRSCont.flags.hasWater
+            spec_temp = specs_w;
+            specs_w(1,:,:,:,:,:) = spec_temp(1,:,:,:,:,:); 
+            specs_w(3,:,:,:,:,:) = spec_temp(2,:,:,:,:,:);
+            specs_w(2,:,:,:,:,:) = spec_temp(3,:,:,:,:,:);
+        end
     end
 
 
@@ -754,6 +765,10 @@ end
         ky_dim = find(sz==ky_tot);
         if kz_tot > 1
             kz_dim = find(sz==kz_tot);
+        end
+        if kx_tot == ky_tot
+            kx_dim = kx_dim(1);
+            ky_dim = kx_dim + 1;
         end
         dims.subSpecs=0;
         dims.averages=0;

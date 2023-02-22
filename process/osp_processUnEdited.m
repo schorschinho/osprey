@@ -187,23 +187,23 @@ for kk = 1:MRSCont.nDatasets
             raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
         end
 
-%         ZF = raw.sz(1); % zerofill points
-%         EP = 0.25;  % echo position 0~1
-% 
-%         %SW, Datapoints, Zerofill, Lipid_Left, Lipid_Right, damp, damp_range, spe_number, echopos
-%         lip1 = generator_lipid(raw.spectralwidth(1),512, ZF, 375, 460, 10, 10, ZF, EP); % generation of lipid basic matrix
-%         % SW, Datapoints, Zerofill, wat_frq_range, damp, damp_range, Watnum, echoposition
+        ZF = raw.sz(1); % zerofill points
+        EP = 0.25;  % echo position 0~1
+
+        %SW, Datapoints, Zerofill, Lipid_Left, Lipid_Right, damp, damp_range, spe_number, echopos
+        lip1 = generator_lipid(raw.spectralwidth(1),512, ZF, 345, 512, 10, 10, ZF, EP); % generation of lipid basic matrix
+        % SW, Datapoints, Zerofill, wat_frq_range, damp, damp_range, Watnum, echoposition
 %         wat1 = generator_water(raw.spectralwidth(1), 512, ZF, 70, 10, 30, 1000, 0.25); % generation of water basic matrix     
-%       
+      
 %         specs = watersup_sim(flipud(raw.specs(:)), real(wat1), 3);
 %         raw.specs(:) = flipud(specs);                       
 %         raw.fids = ifft(fftshift(raw.specs,1),[],1);
-%         
-% %         specs = watersup_sim(flipud(raw.specs(:)), real(lip1), 3);
-% %         raw.specs(:) = flipud(specs);                       
-% %         raw.fids = ifft(fftshift(raw.specs,1),[],1);
-%         
-%           raw     = op_fddccorr(raw,100); % Correct back to baseline
+        
+        specs = watersup_sim(flipud(raw.specs(:)), real(lip1), 3);
+        raw.specs(:) = flipud(specs);                       
+        raw.fids = ifft(fftshift(raw.specs,1),[],1);
+        
+          raw     = op_fddccorr(raw,100); % Correct back to baseline
 
 %         raw.watersupp.amp = 0;
 
@@ -211,9 +211,9 @@ for kk = 1:MRSCont.nDatasets
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
         %%% DATA
-        refShift = 0;
-%         [refShift, ~] = osp_CrChoReferencing(raw);
-%         [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation     
+%         refShift = 0;
+        [refShift, ~] = osp_CrChoReferencing(raw);
+        [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation     
         
         if MRSCont.flags.hasMM %re_mm
             [refShift_mm, ~] = fit_OspreyReferencingMM(raw_mm);
@@ -223,7 +223,7 @@ for kk = 1:MRSCont.nDatasets
 
         
         % Save back to MRSCont container
-        if strcmp(MRSCont.vendor,'Siemens') %|| MRSCont.flags.isMRSI
+        if strcmp(MRSCont.vendor,'Siemens') || MRSCont.flags.isMRSI
             % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
             % with the negative phase of that fit
             [raw,globalPhase]       = op_phaseCrCho(raw, 1);
