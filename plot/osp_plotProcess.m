@@ -1138,7 +1138,8 @@ for ll = 1:length(axs)
     set(gca, 'LineWidth', 1, 'TickDir', 'out', 'XMinorTick', 'On');
     set(gca, 'FontSize', 16);
     if ll ~= 3
-        set(gca, 'XTick', unique(round(gca().XTick)));
+        ticks = get(gca,'XTick');
+        set(gca, 'XTick', unique(round(ticks)));
     end
     % Black axes, white background
     if ~MRSCont.flags.isGUI
