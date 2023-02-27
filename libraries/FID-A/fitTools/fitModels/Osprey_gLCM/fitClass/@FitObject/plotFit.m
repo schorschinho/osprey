@@ -21,6 +21,11 @@ function plotFit(obj,step,secDim, plotRange)
     residual = obj.Model{step}.fit.residual;
     baseline = obj.Model{step}.fit.baseline;
     metabs = obj.Model{step}.fit.metabs;
+    names   = obj.BasisSets.names(logical(obj.BasisSets.includeInFit(obj.step,:)));
+    MMind = cat(2,find(contains(names,'MM')),find(contains(names,'Lip')));
+    if isempty(MMind)
+       MMind = size(metabs,2) + 1;
+    end
 
     figure
     if size(data,2) > 1 && isempty(secDim)
@@ -34,7 +39,11 @@ function plotFit(obj,step,secDim, plotRange)
             hold;
             
             for rr = 1:size(metabs,2)
-                plot(ppm, real(metabs(:,rr,secDim) + baseline(:,secDim)),'Color', [110/255 136/255 164/255]);
+                if rr < MMind(1)
+                    plot(ppm, real(metabs(:,rr,secDim)) - shift/3,'Color', [110/255 136/255 164/255]);
+                else
+                    plot(ppm, real(metabs(:,rr,secDim)) - shift*2/3,'Color', [110/255 136/255 164/255]);
+                end
             end
             plot(ppm, real(data(:,secDim)),'Color', [11/255 71/255 111/255]);
             plot(ppm, real(residual(:,secDim)) + shift,'Color', [11/255 71/255 111/255]);
@@ -50,18 +59,23 @@ function plotFit(obj,step,secDim, plotRange)
     else
         secDim = 1;
         hold;
-            plot(ppm, real(data(:,secDim)), 'k');
-            plot(ppm, real(residual(:,secDim)) + max(real(data(:,secDim))), 'k');
-            for rr = 1:size(metabs,2)
-                plot(ppm, real(metabs(:,rr,secDim) + baseline(:,secDim)), 'g');
+        shift = max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:)))));    
+        for rr = 1:size(metabs,2)
+            if rr < MMind(1)
+                    plot(ppm, real(metabs(:,rr,secDim)) - shift/3,'Color', [110/255 136/255 164/255]);
+            else
+                plot(ppm, real(metabs(:,rr,secDim)) - shift*2/3,'Color', [110/255 136/255 164/255]);
             end
-            
-            plot(ppm, real(fit(:,secDim)), 'r', 'LineWidth', 0.1);
-            plot(ppm, real(baseline(:,secDim)), 'b');
-            hold off;
-            
-            set(gca, 'XDir', 'reverse', 'XLim', plotRange);
-            xlabel('chemical shift (ppm)');
+        end
+        
+        plot(ppm, real(data(:,secDim)),'Color', [11/255 71/255 111/255]);
+        plot(ppm, real(residual(:,secDim)) + shift,'Color', [11/255 71/255 111/255]);
+        plot(ppm, real(fit(:,secDim)), 'Color',[254/255 186/255 47/255], 'LineWidth', 0.1);
+        plot(ppm, real(baseline(:,secDim)),'Color', [11/255 71/255 111/255], 'LineWidth', 0.1);
+        hold off;
+        
+        set(gca, 'XDir', 'reverse', 'XLim', plotRange);
+        xlabel('chemical shift (ppm)');
             
         %     legend('data', 'residual', 'metabolites', 'baseline', 'fit');
     end
