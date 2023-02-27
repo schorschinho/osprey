@@ -36,6 +36,7 @@ end
 if MRSCont.flags.hasMM == 1
     basisSet_mm = load(MRSCont.opts.fit.basisSetFile);
     basisSet_mm = basisSet_mm.BASIS;
+    basisSet_mm = osp_recalculate_basis_specs(basisSet_mm);
     basisSet_mm = fit_sortBasisSet(basisSet_mm);
     metabList_mm = fit_createMetabListMM('unedited');
     basisSet_mm = fit_selectMetabs(basisSet_mm, metabList_mm, 1);

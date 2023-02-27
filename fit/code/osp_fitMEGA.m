@@ -34,23 +34,23 @@ else
 end
 
 if MRSCont.flags.hasMM == 1
+    % Load basis set, calculate specs, and sort:
     basisSet_mm = load(MRSCont.opts.fit.basisSetFile);
     basisSet_mm = basisSet_mm.BASIS;
+    basisSet_mm = osp_recalculate_basis_specs(basisSet_mm);
     basisSet_mm = fit_sortBasisSet(basisSet_mm);
+    
+    % Extract edit-off spectrum from the basis:
     metabList_mm = fit_createMetabListMM('unedited');
-    basisSet_mm = fit_selectMetabs(basisSet_mm, metabList_mm, 1);
-    basisSet_mm.fids = basisSet_mm.fids(:,:,1);
-    basisSet_mm.specs = basisSet_mm.specs(:,:,1);
-    basisSet_mm_A = basisSet_mm;
-
-    basisSet_mm = load(MRSCont.opts.fit.basisSetFile);
-    basisSet_mm = basisSet_mm.BASIS;
-    basisSet_mm = fit_sortBasisSet(basisSet_mm);
+    basisSet_mm_A = fit_selectMetabs(basisSet_mm, metabList_mm, 1);
+    basisSet_mm_A.fids = basisSet_mm_A.fids(:,:,1);
+    basisSet_mm_A.specs = basisSet_mm_A.specs(:,:,1);
+    
+    % Extract difference spectrum from the basis:
     metabList_mm = fit_createMetabListMM('MEGA');
-    basisSet_mm = fit_selectMetabs(basisSet_mm, metabList_mm, 1);
-    basisSet_mm.fids = basisSet_mm.fids(:,:,3);
-    basisSet_mm.specs = basisSet_mm.specs(:,:,3);
-    basisSet_mm_diff1 = basisSet_mm;
+    basisSet_mm_diff1 = fit_selectMetabs(basisSet_mm, metabList_mm, 1);
+    basisSet_mm_diff1.fids = basisSet_mm_diff1.fids(:,:,3);
+    basisSet_mm_diff1.specs = basisSet_mm_diff1.specs(:,:,3);
 end
 
 for kk = 1:MRSCont.nDatasets(1)
