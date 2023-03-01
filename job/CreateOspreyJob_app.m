@@ -51,7 +51,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         NAAGCheckBox                    matlab.ui.control.CheckBox
         TauCheckBox                     matlab.ui.control.CheckBox
         SerCheckBox                     matlab.ui.control.CheckBox
-        ScylloCheckBox                  matlab.ui.control.CheckBox
+        sICheckBox                      matlab.ui.control.CheckBox
         PhenylCheckBox                  matlab.ui.control.CheckBox
         PECheckBox                      matlab.ui.control.CheckBox
         PCrCheckBox                     matlab.ui.control.CheckBox
@@ -59,7 +59,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         GluCheckBox                     matlab.ui.control.CheckBox
         NAACheckBox                     matlab.ui.control.CheckBox
         LacCheckBox                     matlab.ui.control.CheckBox
-        InsCheckBox                     matlab.ui.control.CheckBox
+        mICheckBox                      matlab.ui.control.CheckBox
         H2OCheckBox                     matlab.ui.control.CheckBox
         GlyCheckBox                     matlab.ui.control.CheckBox
         GlnCheckBox                     matlab.ui.control.CheckBox
@@ -201,8 +201,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.GlyCheckBox.Enable = 'Off';
                     app.H2OCheckBox.Value = true;
                     app.H2OCheckBox.Enable = 'Off';
-                    app.InsCheckBox.Value = true;
-                    app.InsCheckBox.Enable = 'Off';
+                    app.mICheckBox.Value = true;
+                    app.mICheckBox.Enable = 'Off';
                     app.LacCheckBox.Value = true;
                     app.LacCheckBox.Enable = 'Off';
                     app.NAACheckBox.Value = true;
@@ -217,8 +217,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.PECheckBox.Enable = 'Off';
                     app.PhenylCheckBox.Value = false;
                     app.PhenylCheckBox.Enable = 'Off';
-                    app.ScylloCheckBox.Value = true;
-                    app.ScylloCheckBox.Enable = 'Off';
+                    app.sICheckBox.Value = true;
+                    app.sICheckBox.Enable = 'Off';
                     app.SerCheckBox.Value = false;
                     app.SerCheckBox.Enable = 'Off';
                     app.TauCheckBox.Value = true;
@@ -276,8 +276,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.GlyCheckBox.Enable = 'Off';
                     app.H2OCheckBox.Value = true;
                     app.H2OCheckBox.Enable = 'Off';
-                    app.InsCheckBox.Value = true;
-                    app.InsCheckBox.Enable = 'Off';
+                    app.mICheckBox.Value = true;
+                    app.mICheckBox.Enable = 'Off';
                     app.LacCheckBox.Value = true;
                     app.LacCheckBox.Enable = 'Off';
                     app.NAACheckBox.Value = true;
@@ -292,8 +292,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.PECheckBox.Enable = 'Off';
                     app.PhenylCheckBox.Value = true;
                     app.PhenylCheckBox.Enable = 'Off';
-                    app.ScylloCheckBox.Value = true;
-                    app.ScylloCheckBox.Enable = 'Off';
+                    app.sICheckBox.Value = true;
+                    app.sICheckBox.Enable = 'Off';
                     app.SerCheckBox.Value = true;
                     app.SerCheckBox.Enable = 'Off';
                     app.TauCheckBox.Value = true;
@@ -334,7 +334,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.GluCheckBox.Enable = 'Off';
                     app.GlyCheckBox.Enable = 'On';
                     app.H2OCheckBox.Enable = 'On';
-                    app.InsCheckBox.Enable = 'Off';
+                    app.mICheckBox.Enable = 'Off';
                     app.LacCheckBox.Enable = 'On';
                     app.NAACheckBox.Enable = 'Off';
                     app.NAAGCheckBox.Enable = 'On';
@@ -342,7 +342,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.PCrCheckBox.Enable = 'On';
                     app.PECheckBox.Enable = 'On';
                     app.PhenylCheckBox.Enable = 'On';
-                    app.ScylloCheckBox.Enable = 'On';
+                    app.sICheckBox.Enable = 'On';
                     app.SerCheckBox.Enable = 'On';
                     app.TauCheckBox.Enable = 'On';
                     app.TyrosCheckBox.Enable = 'On';
@@ -810,7 +810,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
 
             % Create unstablewaterCheckBox
             app.unstablewaterCheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
-            app.unstablewaterCheckBox.Tooltip = {'Do eddy current correction on metabolite data?'};
+            app.unstablewaterCheckBox.Tooltip = {'Minimize the choline signal in the difference spectrum instead of water. This only works for L2Norm and GABA-edited MRS,'};
             app.unstablewaterCheckBox.Text = 'unstable water';
             app.unstablewaterCheckBox.FontColor = [0.0392 0.2706 0.4314];
             app.unstablewaterCheckBox.Position = [458 140 101 22];
@@ -963,13 +963,13 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.H2OCheckBox.Position = [187 85 46 22];
             app.H2OCheckBox.Value = true;
 
-            % Create InsCheckBox
-            app.InsCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
-            app.InsCheckBox.Enable = 'off';
-            app.InsCheckBox.Text = 'Ins';
-            app.InsCheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.InsCheckBox.Position = [187 57 38 22];
-            app.InsCheckBox.Value = true;
+            % Create mICheckBox
+            app.mICheckBox = uicheckbox(app.SelectedMetabolitesPanel);
+            app.mICheckBox.Enable = 'off';
+            app.mICheckBox.Text = 'mI';
+            app.mICheckBox.FontColor = [0.0392 0.2706 0.4314];
+            app.mICheckBox.Position = [187 57 35 22];
+            app.mICheckBox.Value = true;
 
             % Create LacCheckBox
             app.LacCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
@@ -1026,13 +1026,13 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.PhenylCheckBox.FontColor = [0.0392 0.2706 0.4314];
             app.PhenylCheckBox.Position = [250 7 58 22];
 
-            % Create ScylloCheckBox
-            app.ScylloCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
-            app.ScylloCheckBox.Enable = 'off';
-            app.ScylloCheckBox.Text = 'Scyllo';
-            app.ScylloCheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.ScylloCheckBox.Position = [320 112 54 22];
-            app.ScylloCheckBox.Value = true;
+            % Create sICheckBox
+            app.sICheckBox = uicheckbox(app.SelectedMetabolitesPanel);
+            app.sICheckBox.Enable = 'off';
+            app.sICheckBox.Text = 'sI';
+            app.sICheckBox.FontColor = [0.0392 0.2706 0.4314];
+            app.sICheckBox.Position = [320 112 31 22];
+            app.sICheckBox.Value = true;
 
             % Create SerCheckBox
             app.SerCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
