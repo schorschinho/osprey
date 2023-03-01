@@ -21,57 +21,92 @@ function osp_exportParams(MRSCont,path)
 % 
   
 % Define header fields
-x = fieldnames(MRSCont.fit.resBasisSet.metab);
-header.names         = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.name; 
-header.nMets         = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.nMets; 
-header.nMM           = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.nMM; 
-header.spectralwidth = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.spectralwidth;
-header.dwelltime     = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.dwelltime;
-header.ppm           = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.ppm;
-header.t             = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.t;
-header.te            = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.te;
-header.Bo            = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.Bo;
-header.seq           = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.seq;
-header.centerFreq    = MRSCont.fit.resBasisSet.metab.(x{1}){1,1}.centerFreq;
+[hdr, label] = get_header(MRSCont);
+header.names         = hdr.name; 
+header.nMets         = hdr.nMets; 
+header.nMM           = hdr.nMM; 
+header.spectralwidth = hdr.spectralwidth;
+header.dwelltime     = hdr.dwelltime;
+header.ppm           = hdr.ppm;
+header.t             = hdr.te;
+header.Bo            = hdr.Bo;
+header.seq           = hdr.seq;
+header.centerFreq    = hdr.centerFreq;
 header.nDatasets     = MRSCont.nDatasets(1);
+header.isMRSI        = MRSCont.flags.isMRSI;
 
 
 % Define the structure for storage
-fields = fieldnames(MRSCont.fit.results.metab.fitParams{1, 1})';
+fitParams = get_fitParams(MRSCont);
+
+num_voxels = numel(fitParams);
+num_datasets = numel(fitParams{1}.(label{1}).fitParams); % ==MRSCont.nDatasets(1)
+total = num_voxels * num_datasets;
+
+fields = fieldnames(fitParams{1}.(label{1}).fitParams{1,1})';
+% % % List fieldnames to ignore % % %
 fields(strcmp(fields, 'prelimParams')) = [];
-sz = [];
+fields(strcmp(fields, 'LM_out')) = [];
+
 for i=1:length(fields)
-    sz = [MRSCont.nDatasets(1), ...
-          size(MRSCont.fit.results.metab.fitParams{1, 1}.(fields{i}))];
-    params{i} = empty(sz);
+    sz = [total, size(fitParams{1}.(label{1}).fitParams{1}.(fields{i})), 1];
+    params{i} = ones(sz);
 end
+
+
+% Used to create continuity between SVS and MRSI
+MRSCont.processed = assertCell(MRSCont.processed);
+MRSCont.QM        = assertCell(MRSCont.QM);
+
+
 
 % To add additional fitting parameters, the following two statements need to be 
 % copied and modified to indicate the new parameter. Then add another line to 
 % the end of the outer for-loop in the compiling section below.
-params{length(params)+1} = empty([MRSCont.nDatasets(1), ...
-                                  size(MRSCont.processed.metab{1,1}.phase_ecc)]);
-fields{length(fields)+1} = 'ECC';
+ignore = 0;
+% % Eddy currents
+if ismember('phase_ecc',fieldnames(MRSCont.processed{1}.(label{2}){1}))
+    params{length(params)+1} = ones([total, ...
+                                     size(MRSCont.processed{1}.(label{2}){1}.phase_ecc)]);
+    fields{length(fields)+1} = 'ECC';
+    ignore = ignore + 1;
+    ecc = 1;
+else
+    ecc = 0;
+end
 
-params{length(params)+1} = zeros([MRSCont.nDatasets(1), ...
-                                  size(MRSCont.QM.SNR.metab{1,1})]);
+% % SNR
+params{length(params)+1} = ones([total, ...
+                                 size(MRSCont.QM{1}.SNR.(label{2})(1))]);
 fields{length(fields)+1} = 'SNR';
+ignore = ignore + 1;
+
 
 
 % Prepare for adding data
-params = cell2struct(params, fields);
+params = cell2struct(params, fields, 2);
 params.header = header; % Add the header
 
-
 % Compile the variables
-for k = 1:MRSCont.nDatasets(1)
-    for i = 1:length(fields)
-        params.(fields{i})(k,:,:) = MRSCont.fit.results.metab.fitParams{1,k}(fields{i});
+cnt = 0;
+for m=1:num_voxels
+    voxel = fitParams{m}.(label{1}).fitParams;
+    for n=1:num_datasets
+        cnt = cnt + 1;
+        vxl = voxel{n};
+        for i = 1:length(fields)-ignore
+            try
+                params.(fields{i})(cnt,:) = vxl.(fields{i});
+            catch 
+                params.(fields{i})(cnt,:,:) = vxl.(fields{i});
+            end
+        end
+        if ecc==1 
+            params.ECC(cnt,:,:) = MRSCont.processed{m}.(label{2}){n}.phase_ecc;
+        end
+        params.SNR(cnt,:) = MRSCont.QM{m}.SNR.(label{2})(n);
     end
-    params.ECC(k,:,:) = MRSCont.processed.metab{1,k}.phase_ecc;
-    params.SNR(k,:,:) = MRSCont.QM.SNR.metab{1,k};
 end
-
 
 % Save the structure as a mat file
 % The table option does not work because the contents do not have the same dimensions.
@@ -79,5 +114,41 @@ end
 %            fullfile(path,'parameters.csv'),'Delimiter',',');
 save(fullfile(path,'parameters.mat'),'params')
 
-  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%    Auxiliary Functions    %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [hdr, label] = get_header(MRSCont)
+    possible_keys = {{'metab','metab'},     % SVS
+                     {'off','A'}};          % MRSI - edited?
+    fields = fieldnames(MRSCont.fit.resBasisSet)';
+    for i=1:length(fields)
+        for n=1:length(possible_keys)
+            if strcmpi(fields{i},possible_keys{n}{1})
+                label = possible_keys{n};
+            end
+        end
+    end
+    if iscell(MRSCont.fit.resBasisSet.(label{1}))
+        hdr = MRSCont.fit.resBasisSet.(label{1}){1,1};
+    else % Assume struct
+        x = fieldnames(MRSCont.fit.resBasisSet.(label{1}));
+        hdr = MRSCont.fit.resBasisSet.(label{1}).(x{1}){1,1};
+    end
+end
+
+function fitParams = get_fitParams(MRSCont)
+    fitParams = MRSCont.fit.results;
+    if isstruct(fitParams)
+        fitParams = assertCell(fitParams);
+    end
+end
+
+function cont = assertCell(cont)
+    if ~iscell(cont)
+        cont = {cont};
+    end
+end
+
 end
