@@ -291,7 +291,7 @@ for kk = 1:MRSCont.nDatasets(1)
             end
             if MRSCont.coreg.SameName
                 [PreFixMask] = osp_generate_SubjectAndSessionPrefix(MRSCont.files{kk},kk);
-                PreFix = [PreFix '_'];
+                PreFixMask = [PreFix '_'];
             else
                 PreFixMask = '';
             end
