@@ -18,6 +18,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         OutputFolderButton              matlab.ui.control.Button
         OutputFolderEditField           matlab.ui.control.EditField
         SpecifyMRSandAnatomicalImagingFilesPanel  matlab.ui.container.Panel
+        T1DICOMCheck                    matlab.ui.control.CheckBox
         T1DataText                      matlab.ui.control.TextArea
         MetaboliteNulledText            matlab.ui.control.TextArea
         H2OReferenceText                matlab.ui.control.TextArea
@@ -364,26 +365,27 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = app.NumberofdatasetsEditField.Value;
             
             mrsfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
-
-            [~,file_basename,file_exten]=fileparts(mrsfiles(1,:));
-            
             filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} mrsfiles(i,:)};
+            if ~isempty(mrsfiles)
+                [~,file_basename,file_exten]=fileparts(mrsfiles(1,:));
+                                
+                for i=1:ndata
+                    filelist = {filelist{:} mrsfiles(i,:)};
+                end
+                
+                app.MRSDataText.Value = filelist;
+                
+                if strcmp(file_exten,'.7')
+                    app.H2OReferenceButton.Enable = 'Off';
+                else
+                    app.H2OReferenceButton.Enable = 'On';
+                end
+                
+                app.H2OShortTEButton.Enable = 'On';
+                app.MetaboliteNulledButton.Enable = 'On';
+                app.T1DataniftiniiButton.Enable = 'On';
+                app.NumberofdatasetsEditField.Enable = 'Off';
             end
-            
-            app.MRSDataText.Value = filelist;
-            
-            if strcmp(file_exten,'.7')
-                app.H2OReferenceButton.Enable = 'Off';
-            else
-                app.H2OReferenceButton.Enable = 'On';
-            end
-            
-            app.H2OShortTEButton.Enable = 'On';
-            app.MetaboliteNulledButton.Enable = 'On';
-            app.T1DataniftiniiButton.Enable = 'On';
-            app.NumberofdatasetsEditField.Enable = 'Off';
         end
 
         % Button pushed function: H2OReferenceButton
@@ -393,13 +395,14 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = app.NumberofdatasetsEditField.Value;
             
             h2oreffiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
-            
             filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} h2oreffiles(i,:)};
+            if ~isempty(h2oreffiles)               
+                for i=1:ndata
+                    filelist = {filelist{:} h2oreffiles(i,:)};
+                end
+                
+                app.H2OReferenceText.Value = filelist;
             end
-            
-            app.H2OReferenceText.Value = filelist;
         end
 
         % Button pushed function: H2OShortTEButton
@@ -411,11 +414,13 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             h2ostefiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
             
             filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} h2ostefiles(i,:)};
+            if ~isempty(h2ostefiles)   
+                for i=1:ndata
+                    filelist = {filelist{:} h2ostefiles(i,:)};
+                end
+                
+                app.H2OShortTEText.Value = filelist;
             end
-            
-            app.H2OShortTEText.Value = filelist;
         end
 
         % Button pushed function: MetaboliteNulledButton
@@ -427,27 +432,36 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             metnulfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
             
             filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} metnulfiles(i,:)};
+            if ~isempty(metnulfiles)  
+                for i=1:ndata
+                    filelist = {filelist{:} metnulfiles(i,:)};
+                end
+                
+                app.MetaboliteNulledText.Value = filelist;
             end
-            
-            app.MetaboliteNulledText.Value = filelist;
         end
 
         % Button pushed function: T1DataniftiniiButton
         function T1DataniftiniiButtonPushed(app, event)
-            info = 'Please select the T1 Data file to read';
+            info = 'Please select the T1 Data file or DICOM folder to read';
             
             ndata = app.NumberofdatasetsEditField.Value;
-            
-            t1imfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
-            
-            filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} t1imfiles(i,:)};
+            isDICOM = app.T1DICOMCheck.Value;
+
+            if ~isDICOM
+                t1imfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
+            else
+                t1imfiles = spm_select(ndata,'dir',info,{},pwd,'.*','1');
             end
             
-            app.T1DataText.Value = filelist;
+            if ~isempty(t1imfiles)
+                filelist = {};
+                for i=1:ndata
+                    filelist = {filelist{:} t1imfiles(i,:)};
+                end
+                
+                app.T1DataText.Value = filelist;
+            end
         end
 
         % Button pushed function: OutputFolderButton
@@ -455,7 +469,9 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             info = 'Please select output folder';           
             ndata = 1;
             pathname  = spm_select(ndata,'dir',info,{},pwd);
-            app.OutputFolderEditField.Value = pathname(1,:);
+            if ~isempty(pathname)  
+                app.OutputFolderEditField.Value = pathname(1,:);
+            end
         end
 
         % Button pushed function: CANCELButton
@@ -491,8 +507,9 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = 1;
             
             csvfiles = spm_select(ndata,'any',info,{},pwd,'.csv','1');
-            
-            app.StatcsvEditField.Value = csvfiles(1,:);
+            if ~isempty(csvfiles) 
+                app.StatcsvEditField.Value = csvfiles(1,:);
+            end
         end
 
         % Button pushed function: basissetfileButton
@@ -502,8 +519,9 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = 1;
             
             basisfiles = spm_select(ndata,'any',info,{},pwd,{'.mat','.BASIS','.basis'},'1');
-            
-            app.BasisSetEditField.Value = basisfiles(1,:);
+            if ~isempty(basisfiles) 
+                app.BasisSetEditField.Value = basisfiles(1,:);
+            end
         
         end
 
@@ -532,8 +550,20 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             info = 'Select the folder that contains all basis set files';           
             ndata = 1;
             basisfiles  = spm_select(ndata,'dir',info,{},pwd);
-            app.BasisSetEditField.Value = basisfiles(1,:);
+            if ~isempty(basisfiles) 
+                app.BasisSetEditField.Value = basisfiles(1,:);
+            end
         
+        end
+
+        % Value changed function: T1DICOMCheck
+        function T1DICOMCheckValueChanged(app, event)
+            value = app.T1DICOMCheck.Value;
+            if value
+                app.T1DataniftiniiButton.Text = 'T1 Data (DICOM)';
+            else
+                app.T1DataniftiniiButton.Text = 'T1 Data (nifti *.nii)';
+            end
         end
     end
 
@@ -1295,6 +1325,15 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.T1DataText.Editable = 'off';
             app.T1DataText.FontColor = [0.0392 0.2706 0.4314];
             app.T1DataText.Position = [143 5 154 25];
+
+            % Create T1DICOMCheck
+            app.T1DICOMCheck = uicheckbox(app.SpecifyMRSandAnatomicalImagingFilesPanel);
+            app.T1DICOMCheck.ValueChangedFcn = createCallbackFcn(app, @T1DICOMCheckValueChanged, true);
+            app.T1DICOMCheck.Tooltip = {'Check this box if you are using a DICOM T1 directory. This is only working for GE.'};
+            app.T1DICOMCheck.Text = 'DICOM T1 data (GE only)';
+            app.T1DICOMCheck.WordWrap = 'on';
+            app.T1DICOMCheck.FontColor = [0.0392 0.2706 0.4314];
+            app.T1DICOMCheck.Position = [325 6 157 22];
 
             % Create SpecifyOutputFolderPanel
             app.SpecifyOutputFolderPanel = uipanel(app.InteractiveOspreyjobfilegeneratorUIFigure);
