@@ -94,10 +94,10 @@ end
 % Check whether tissue correction is available and whether GABA-edited
 % MEGA-PRESS has been run. In this case, we can apply the alpha correction
 % (Harris et al, J Magn Reson Imaging 42:1431-40 (2015)).
-if qtfyTiss == 1 && MRSCont.flags.isMEGA && (strcmp(MRSCont.opts.editTarget{1},'GABA'))
+if qtfyTiss == 1
     qtfyAlpha   = 1;
 else
-    if qtfyTiss == 1 && (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && (strcmp(MRSCont.opts.editTarget{1},'GABA') || strcmp(MRSCont.opts.editTarget{2},'GABA'))
+    if qtfyTiss == 1 
         qtfyAlpha   = 1;
     else
         qtfyAlpha   = 0;
