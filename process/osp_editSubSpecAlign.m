@@ -110,6 +110,7 @@ x0(1,:) = [f0 0];
     
 % NAA
 freqLim(2,:) = freq <= 2.01+0.13 & freq >= 2.01-0.13;
+peaks = '2.01 ppm (A/B)';
 switch seqType
     case 'HERCULES'
         [~,i] = max([abs(real(inA.specs(freqLim(2,:)))) abs(real(inC.specs(freqLim(2,:))))]);
@@ -299,7 +300,19 @@ if strcmp(seqType, 'HERMES') || strcmp(seqType, 'HERCULES')
             outD.fids = fidsD;
             outD.specs = specsD;
     end
-    out=op_mergesubspec(outA,outB,outC,outD);
+    % Create output
+    out = op_mergesubspec(outA,outB,outC,outD);
+
+    % Add NIfTI-MRS provenance
+    % Generate fields for provenance
+    if unstableWater
+       peaks = '3.2 ppm (A/B), 2.01 ppm (B/C), 3.2 (C/D)';
+    else
+       peaks = '4.68 ppm (A/B), 2.01 ppm (B/C), 3.2 (C/D)';
+    end
+    fields.Method   = 'Aligment of subtraction sub-spectra';
+    fields.Details  = ['L2 optimization of HADAMARD spectra (Mikkelsen et al. 2018), dim = DIM_EDIT, reference = ' peaks];
+    out = op_add_analysis_provenance(out,fields);
     
 elseif strcmp(seqType, 'MEGA')
     % For MEGA-edited data, the 'reporter signal' that is used to align the
@@ -316,7 +329,8 @@ elseif strcmp(seqType, 'MEGA')
             a = max(max([abs(real(inA.specs)) abs(real(inB.specs))]));
             fun = @(x) objFunc(op_ampScale(inA, 1/a), op_ampScale(inB, 1/a), freqLim(1,:), t, x);
             param(1,:) = lsqnonlin(fun, x0(1,:), [], [], lsqnonlinopts);
-    
+            peaks = '4.7 ppm (A/B)';
+
         case 'GSH'
             % For GSH-edited data, align the GSH-ON spectrum using the
             % NAA peak.
@@ -368,6 +382,17 @@ elseif strcmp(seqType, 'MEGA')
     outB.fids = fidsB;
     outB.specs = specsB;
     out=op_mergesubspec(outA,outB);
+
+    % Add NIfTI-MRS provenance
+    % Generate fields for provenance
+    if unstableWater
+       peaks = '3.68 ppm (A/B)';
+    end
+    fields.Method   = 'Aligment of subtraction sub-spectra';
+    fields.Details  = ['L2 optimization of ON/OFF spectra (Mikkelsen et al. 2018), dim = DIM_EDIT, reference = ' peaks];
+    out = op_add_analysis_provenance(out,fields);
+
+    varargout{1} = out;
     
 end
 

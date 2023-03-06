@@ -1,9 +1,9 @@
 function [MRSCont] = osp_saveNII(MRSCont)
 %% [MRSCont] = osp_saveNII(MRSCont)
 %   This function writes all processed MRS data to NIfTI-MRS files.
-%   
-%   One file is produced for unedited MRS data (PRESS, sLASER, etc.), four 
-%   files are produced for MEGA-edited data (A, B, sum, difference), and 
+%
+%   One file is produced for unedited MRS data (PRESS, sLASER, etc.), four
+%   files are produced for MEGA-edited data (A, B, sum, difference), and
 %   seven files are produced for HERMES/HERCULES-edited data
 %   (A, B, C, D, sum, diff1, diff2).
 %
@@ -23,8 +23,8 @@ function [MRSCont] = osp_saveNII(MRSCont)
 %   AUTHOR:
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-08-06)
 %       goeltzs1@jhmi.edu
-%   
-%   CREDITS:    
+%
+%   CREDITS:
 %       This code is based on numerous functions from the FID-A toolbox by
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
@@ -41,12 +41,12 @@ outputFunction = @io_writeniimrs;
 
 % Loop over all datasets
 for kk = 1:MRSCont.nDatasets
-    
+
     % Set up saving location
     if ~exist(saveDestination,'dir')
         mkdir(saveDestination);
     end
-        
+
     % Write NIfTI-MRS files depending on sequence type
     % Get the input file name
     [path,filename,ext]       = fileparts(MRSCont.files{kk});
@@ -54,7 +54,7 @@ for kk = 1:MRSCont.nDatasets
         % If compressed, remove the .nii part as well
         filename = strrep(filename, '.nii', '');
     end
-    
+
     % For batch analysis, get the last three sub-folders (e.g. subject,
     % session, and scan)
     path_split          = regexp(path,filesep,'split');
@@ -69,7 +69,7 @@ for kk = 1:MRSCont.nDatasets
     elseif length(path_split) == 1
         name = [path_split{1} '_' filename];
     end
-    
+
     if MRSCont.flags.isUnEdited
         outfile         = fullfile(saveDestination, [name '_A.nii.gz']);
         if MRSCont.processed.metab{kk}.dims.extras == 0
@@ -79,32 +79,32 @@ for kk = 1:MRSCont.nDatasets
         end
     elseif MRSCont.flags.isMEGA
         outfileA        = fullfile(saveDestination, [name '_A.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA,{},MRSCont.ver.Osp);
         outfileB        = fullfile(saveDestination, [name '_B.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB,{},MRSCont.ver.Osp);
         outfileDiff1    = fullfile(saveDestination, [name '_DIFF1.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},3),outfileDiff1);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},3),outfileDiff1,{},MRSCont.ver.Osp);
         outfileSum      = fullfile(saveDestination, [name '_SUM.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},4),outfileSum);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},4),outfileSum,{},MRSCont.ver.Osp);
     elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
         outfileA        = fullfile(saveDestination, [name '_A.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},1),outfileA,{},MRSCont.ver.Osp);
         outfileB        = fullfile(saveDestination, [name '_B.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},2),outfileB,{},MRSCont.ver.Osp);
         outfileC        = fullfile(saveDestination, [name '_C.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},3),outfileC);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},3),outfileC,{},MRSCont.ver.Osp);
         outfileD        = fullfile(saveDestination, [name '_D.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},4),outfileD);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},4),outfileD,{},MRSCont.ver.Osp);
         outfileDiff1    = fullfile(saveDestination, [name '_DIFF1.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},5),outfileDiff1);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},5),outfileDiff1,{},MRSCont.ver.Osp);
         outfileDiff2    = fullfile(saveDestination, [name '_DIFF2.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},6),outfileDiff2);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},6),outfileDiff2,{},MRSCont.ver.Osp);
         outfileSum      = fullfile(saveDestination, [name '_SUM.nii.gz']);
-        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},7),outfileSum);
+        RF              = outputFunction(op_takesubspec(MRSCont.processed.metab{kk},7),outfileSum,{},MRSCont.ver.Osp);
     else
         error('No flag set for sequence type!');
     end
-    
+
     % Check if reference scans exist, if so, write LCM .RAW file
     if MRSCont.flags.hasRef
         % Get the input file name. For GE, the water reference is
@@ -129,9 +129,9 @@ for kk = 1:MRSCont.nDatasets
             name_ref = [path_ref_split{1} '_' filename_ref];
         end
         outfileRef      = fullfile(saveDestination, [name_ref '_REF.nii.gz']);
-        RF              = outputFunction(MRSCont.processed.ref{kk},outfileRef);
+        RF              = outputFunction(MRSCont.processed.ref{kk},outfileRef,{},MRSCont.ver.Osp);
     end
-    
+
     % Now do the same for the (short-TE) water signal
     if MRSCont.flags.hasWater
         % Get TE and the input file name
@@ -151,7 +151,7 @@ for kk = 1:MRSCont.nDatasets
             name_w = [path_w_split{1} '_' filename_w];
         end
         outfileW        = fullfile(saveDestination, [name_w '_W.nii.gz']);
-        RF              = outputFunction(MRSCont.processed.w{kk},outfileW);
+        RF              = outputFunction(MRSCont.processed.w{kk},outfileW,{},MRSCont.ver.Osp);
     end
 end
 

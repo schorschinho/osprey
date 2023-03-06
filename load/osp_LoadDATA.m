@@ -87,16 +87,23 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw.flags.isHERCULES = 1;
                 raw_ref.flags.isHERCULES = 1;
             end
+            % Add NIfTI-MRS information
+            raw  = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);
             MRSCont.raw_uncomb{metab_ll,kk}      = raw;
 
             if ~MRSCont.flags.hasRef && ~isempty(raw_ref)
+                % Add NIfTI-MRS information
+                raw_ref  = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp);
                 MRSCont.raw_ref_uncomb{metab_ll,kk}  = raw_ref;
                 if kk == MRSCont.nDatasets
                     MRSCont.flags.hasRef = 1;
+                    MRSCont.opts.MultipleSpectra.ref = MRSCont.opts.MultipleSpectra.metab;
                 end
             else if MRSCont.flags.hasRef
                     ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                     [~,raw_ref]=io_loadspec_data(MRSCont.files_ref{ref_ll,kk},1,kk,statFile);
+                    % Add NIfTI-MRS information
+                    raw_ref  = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp);
                     MRSCont.raw_ref_uncomb{ref_ll,kk}  = raw_ref;
                 end
             end
@@ -105,12 +112,15 @@ for kk = 1:MRSCont.nDatasets(1)
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 [~,raw_w]=io_loadspec_data(MRSCont.files_w{w_ll,kk},1,kk,statFile);
                 raw_w.flags.UnEdited = 1;
+                % Add NIfTI-MRS information
+                raw_w  = osp_add_nii_mrs_field(raw_w,MRSCont.ver.Osp);
                 MRSCont.raw_w_uncomb{w_ll,kk}    = raw_w;
             end
         end
     end
     
 end
+
 
 time = toc(refLoadTime);
 [~] = printLog('done',time,MRSCont.nDatasets(1),MRSCont.nDatasets(2),progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 

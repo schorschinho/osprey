@@ -133,6 +133,27 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 if MRSCont.flags.isSPECIAL
                     raw_ref = combine_special_subspecs(raw_ref);
                 end
+
+                if raw_ref.averages > 1 && raw_ref.flags.averaged == 0
+                    [raw_ref,fs,phs]                 = op_alignAverages(raw_ref, 1, 'n');
+                    badAverages=find(abs(fs)>6);
+                    goodAverages=find(abs(fs)<6); 
+                    if ~isempty(badAverages)
+                        fs(badAverages) =[];
+                        phs(badAverages) =[];
+                        raw_ref.AveragesToKeep = goodAverages;
+                        raw_ref.fids=raw_ref.fids(:,goodAverages,:,:);
+                        raw_ref.specs=fftshift(ifft(raw_ref.fids,[],raw_ref.dims.t),raw_ref.dims.t);
+                        raw_ref.sz=size(raw_ref.fids);
+                        raw_ref.averages=length(goodAverages);
+                    end
+                    raw_ref                       = op_averaging(raw_ref);              % Average
+                    raw_ref.specReg{1}.fs              = fs; % save align parameters
+                    raw_ref.specReg{1}.phs             = phs; % save align parameters
+                else
+                    raw_ref.flags.averaged    = 1;
+                    raw_ref.dims.averages     = 0;
+                end
             
                 raw_ref = op_combine_water_subspecs(raw_ref);                
             end
@@ -149,8 +170,21 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
                 
                 if raw_w.averages > 1 && raw_w.flags.averaged == 0
-                    [raw_w,~,~]                 = op_alignAverages(raw_w, 1, 'n');
+                    [raw_w,fs,phs]                 = op_alignAverages(raw_w, 1, 'n');
+                    badAverages=find(abs(fs)>6);
+                    goodAverages=find(abs(fs)<6); 
+                    if ~isempty(badAverages)
+                        fs(badAverages) =[];
+                        phs(badAverages) =[];
+                        raw_w.AveragesToKeep = goodAverages;
+                        raw_w.fids=raw_w.fids(:,goodAverages,:,:);
+                        raw_w.specs=fftshift(ifft(raw_w.fids,[],raw_w.dims.t),raw_w.dims.t);
+                        raw_w.sz=size(raw_w.fids);
+                        raw_w.averages=length(goodAverages);
+                    end
                     raw_w                       = op_averaging(raw_w);              % Average
+                    raw_w.specReg{1}.fs              = fs; % save align parameters
+                    raw_w.specReg{1}.phs             = phs; % save align parameters
                 else
                     raw_w.flags.averaged    = 1;
                     raw_w.dims.averages     = 0;
@@ -565,9 +599,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
                     raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
                 else  % For HERMES 4 acqusitions
-                    raw=op_HadamardScans(raw,[1 -1 -1 1],'diff1');
+                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
                     raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
-                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff3');
+                    raw=op_HadamardScans(raw,[-1 1 1 -1],'diff3');
                 end
                 raw=op_HadamardScans(raw,[1 1 1 1],'sum');
                 raw_no_subspec_aling = raw;
@@ -592,7 +626,11 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                         if ~exist('target3', 'var')
                             [raw]  = osp_editSubSpecAlign(raw, seq, target1,target2,MRSCont.opts.UnstableWater);
                         else
-                            [raw]  = osp_editSubSpecAlign(raw, seq, target2,target3,MRSCont.opts.UnstableWater);
+                            if strcmp(target3,'EtOH')
+                                [raw]  = osp_editSubSpecAlign(raw, seq, target1,target3,MRSCont.opts.UnstableWater);
+                            else
+                               [raw]  = osp_editSubSpecAlign(raw, seq, target2,target3,MRSCont.opts.UnstableWater); 
+                            end
                         end
                     otherwise
                 end
@@ -601,12 +639,20 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
                     raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
                 else  % For HERMES 4 acqusitions
-                    raw=op_HadamardScans(raw,[1 -1 -1 1],'diff1');
+                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
                     raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
-                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff3');
+                    raw=op_HadamardScans(raw,[-1 1 1 -1],'diff3');
                 end
                 raw=op_HadamardScans(raw,[1 1 1 1],'sum');
                 raw = op_freqshift(raw, refShift_SubSpecAlign);
+                fields.Method   = 'Addition of sub-spectra';
+                if raw.flags.isHERCULES
+                    fields.Details  = ['HERCULES Hadmard combination (Oeltzschner et al. 2019)'];
+                else
+                    fields.Details  = ['HERMES Hadmard combination (Saleh et al. 2018)'];
+                end
+                raw = op_add_analysis_provenance(raw,fields);
+                
             end
             
 %%          %%% 7. REMOVE RESIDUAL WATER %%%

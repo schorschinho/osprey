@@ -50,7 +50,7 @@ if (Bo >= 2.8 && Bo < 3.1)
 else
     Bo = '7T';
 end
-    
+
 % Find the right basis set (provided as *.mat file in Osprey basis set
 % format)
 if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile) && ~isfolder(MRSCont.opts.fit.basisSetFile))
@@ -62,7 +62,7 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
     end
     if (ismcc || isdeployed)
         if isempty(MRSCont.opts.fit.basissetFolder)
-            info = 'Select the folder that contains all basis set files';           
+            info = 'Select the folder that contains all basis set files';
             ndata = 1;
             MRSCont.opts.fit.basissetFolder  = spm_select(ndata,'dir',info,{},pwd);
         end
@@ -88,13 +88,18 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         elseif MRSCont.flags.isHERMES
             editTarget1 = lower(MRSCont.opts.editTarget{1});
             editTarget2 = lower(MRSCont.opts.editTarget{2});
+            if length(MRSCont.opts.editTarget) == 3
+                editTarget3 = lower(MRSCont.opts.editTarget{3});
+            else
+                editTarget3 = '';
+            end
             switch MRSCont.vendor
                 case 'Philips'
-                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat'];
+                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
                 case 'GE'
-                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat'];
+                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
                 case 'Siemens'
-                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat'];
+                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
             end
         elseif MRSCont.flags.isHERCULES
             switch MRSCont.vendor
@@ -129,13 +134,18 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         elseif MRSCont.flags.isHERMES
             editTarget1 = lower(MRSCont.opts.editTarget{1});
             editTarget2 = lower(MRSCont.opts.editTarget{2});
+            if length(MRSCont.opts.editTarget) == 3
+                editTarget3 = lower(MRSCont.opts.editTarget{3});
+            else
+                editTarget3 = '';
+            end
             switch MRSCont.vendor
                 case 'Philips'
-                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat']);
+                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
                 case 'GE'
-                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat']);
+                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
                 case 'Siemens'
-                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat']);
+                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
             end
         elseif MRSCont.flags.isHERCULES
             switch MRSCont.vendor
@@ -177,32 +187,32 @@ if isfield(MRSCont.opts.fit, 'basisSetFile') && ~strcmpi(MRSCont.opts.fit.method
         else
             ext = 1;
         end
-        
+
     end
 end
 
 % The workflow will differ depending on whether we fit entirely within
 % Osprey, or whether we are wrapping the LCModel binaries.
 switch MRSCont.opts.fit.method
-    
+
     % ------ OPTION OSPREY -----
     case 'Osprey'
-        
+
         % Load the specified basis set or the user basis set file
         basisSet = load(MRSCont.opts.fit.basisSetFile);
         basisSet = basisSet.BASIS;
-        
+
         % Add basis spectra (if they were removed to reduce thhe file size)
         if ~isfield(basisSet,'specs')
             [basisSet]=osp_recalculate_basis_specs(basisSet);
         end
-        
+
         % Generate the list of basis functions that are supposed to be included in
         % the basis set
         if ext
             % Sort basis set file according to Osprey conventions
             basisSet = fit_sortBasisSet(basisSet);
-            
+
             % To do: Interface with interactive user input
             metabList = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
             % Collect MMfit flag from the options determined in the job file
@@ -218,7 +228,7 @@ switch MRSCont.opts.fit.method
             % Create the modified basis set
             basisSet = fit_selectMetabs(basisSet, metabList, fitMM);
         end
-        
+
         % Determine the scaling factor between data and basis set for each dataset
         for kk = 1:MRSCont.nDatasets(1)
             if ~MRSCont.flags.isMRSI  && ~MRSCont.flags.isPRIAM
@@ -232,27 +242,27 @@ switch MRSCont.opts.fit.method
                 MRSCont.fit.scale{kk} = max(max(max(real(MRSCont.processed.A{kk}.specs)))) / max(max(max(real(basisSet.specs))));
             end
         end
-        
-        
+
+
         % Save the modified basis set
         MRSCont.fit.basisSet = basisSet;
-        
-        
-        
+
+
+
         % ------ OPTION LCMODEL -----
     case 'LCModel'
-        
+
         % Write a sequence name into the fit struct as it is needed for some
         % downstream functions
         MRSCont.fit.basisSet.seq{1} = seq;
-        
+
         % For now, the user needs to EXPLICITLY specify a basis set. We
         % will weave in the automatic selection as we convert more and more
         % basis sets to LCModel format.
         % (GO 07/08/2021)
-        
+
         if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile))
-            
+
             % The only exception are LCModel sptype settings (like lipid-8)
             % which don't use external basis functions at all.
             % These modes, however, still require a dummy basis set to be
@@ -264,7 +274,7 @@ switch MRSCont.opts.fit.method
                 if ~isempty(MRSCont.opts.fit.controlFile)
                     % Load all control parameters
                     LCMparam = osp_readlcm_control(MRSCont.opts.fit.controlFile);
-                    
+
                     if isfield(LCMparam, 'sptype')
                         switch LCMparam.sptype
                             case {'''lipid-8''', '''liver-11''', '''breast-8''', '''only-cho-2'''}
@@ -276,14 +286,14 @@ switch MRSCont.opts.fit.method
                                 basisSetFile = LCMparam.filbas;
                         end
                     end
-                    
+
                 end
             else
                 error('For LCModel fitting, please explicitly specify a .BASIS file in the job file (opts.fit.basisSetFile = ''FILE'').');
             end
-            
+
         else
-            
+
             % If a basis set file is supplied, use it.
             % We need to determine whether the basis set is already
             % provided in .BASIS format, or whether it is supplied in
@@ -309,16 +319,41 @@ switch MRSCont.opts.fit.method
                 error('For LCModel fitting, please explicitly specify a .BASIS or .MAT file in the job file (opts.fit.basisSetFile = ''FILE'').');
             end
             basisSetFile = MRSCont.opts.fit.basisSetFile;
-            
-            
+
+            % Now we need to determine which metabolites that are in this
+            % just-specified basis set need to be excluded via 'chomit' in
+            % the control parameter. We only want those mets in the fit
+            % that the user has specified in the Osprey job file.
+            metabsToInclude = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
+            metabsInBasis   = fit_readLCMBasisSetMetabs(basisSetFile);
+            % Loop over metabolites in the basis set
+            chOmitList = {};
+            for qq = 1:length(metabsInBasis)
+                % Take current name
+                currentName = metabsInBasis{qq};
+                % Locate it in the list
+                idx         = find(ismember(fieldnames(metabsToInclude),currentName));
+                if ~isempty(idx)
+                    % If it's a match, check whether it should be included
+                    if metabsToInclude.(currentName) == 1
+                    else
+                        chOmitList{end+1} = ['''' currentName ''''];
+                    end
+                else
+                    chOmitList{end+1} = ['''' currentName ''''];
+                end
+
+            end
+
         end
-        
+
+
         % Read in the user-supplied control file (if there is one)
         if isfield(MRSCont.opts.fit,'controlFile')
             if ~isempty(MRSCont.opts.fit.controlFile)
                 % Load all control parameters
                 LCMparam = osp_readlcm_control(MRSCont.opts.fit.controlFile);
-                
+
                 % Make some changes to the control file that will apply to
                 % ALL control files
                 LCMparam = osp_editControlParameters(LCMparam, 'lprint', '6');
@@ -327,6 +362,7 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsv', '11');
                 LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
+                LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList);
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filps', '');
@@ -346,7 +382,7 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'irowen', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'icolst', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'icolen', '');
-                
+
                 % Add water-scaling-related flags only if water reference
                 % data has been provided
                 if MRSCont.flags.hasRef || MRSCont.flags.hasWater
@@ -356,24 +392,24 @@ switch MRSCont.opts.fit.method
                     LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
                     LCMparam = osp_editControlParameters(LCMparam, 'doecc', 'F');
                 end
-                
+
                 % Now loop over all datasets
                 for kk = 1:MRSCont.nDatasets
-                    
+
                     % Write control file
                     MRSCont = osp_writelcm_control(MRSCont, kk, 'A', LCMparam);
-                    
+
                 end
-                
+
             else
                 error('The field ''opts.fit.controlFile'' in the job file is specified, but empty.')
             end
-            
+
         else
-            
+
             % If the field does not exist, write default control parameters
             for kk = 1:MRSCont.nDatasets
-                
+
                 LCMparam = [];
                 LCMparam = osp_editControlParameters(LCMparam, 'srcraw', ['''' MRSCont.files{kk} '''']);
                 LCMparam = osp_editControlParameters(LCMparam, 'lprint', '6');
@@ -388,11 +424,11 @@ switch MRSCont.opts.fit.method
                 %LCMparam = osp_editControlParameters(LCMparam, 'wdline', '0');
                 LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
-                LCMparam = osp_editControlParameters(LCMparam, 'chomit', {'''Gly''','''Ser'''});
+                LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList);
                 LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''Cr+PCr''');
                 LCMparam = osp_editControlParameters(LCMparam, 'ppmst',  ['' sprintf('%4.2f', MRSCont.opts.fit.range(2)) '']);
                 LCMparam = osp_editControlParameters(LCMparam, 'ppmend', ['' sprintf('%4.2f', MRSCont.opts.fit.range(1)) '']);
-                
+
                 % Add water-scaling-related flags only if water reference
                 % data has been provided
                 if MRSCont.flags.hasRef || MRSCont.flags.hasWater
@@ -402,13 +438,13 @@ switch MRSCont.opts.fit.method
                     LCMparam = osp_editControlParameters(LCMparam, 'wconc', '55556');
                     LCMparam = osp_editControlParameters(LCMparam, 'doecc', 'F');
                 end
-                
+
                 % Write control file
                 MRSCont = osp_writelcm_control(MRSCont, kk, 'A', LCMparam);
-                
+
             end
         end
-        
+
 end
 
 end

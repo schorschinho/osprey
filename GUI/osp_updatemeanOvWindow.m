@@ -66,9 +66,11 @@ function osp_updatemeanOvWindow(gui)
             set(gui.Plot.meanOv.Children(2), 'XLim', ViewAxes.XLim)
             set(gui.Plot.meanOv.Children(2), 'XMinorTick', 'On')
             set(gui.Plot.meanOv.Children(2).Title, 'String', ViewAxes.Title.String)
+            set(gui.Plot.meanOv.Children(2), 'XTick', ViewAxes.XTick)
         else
             set(gui.Plot.meanOv.Children(2), 'XLim', ViewAxes.XLim)
             set(gui.Plot.meanOv.Children(2).Title, 'String', ViewAxes.Title.String)
+            set(gui.Plot.meanOv.Children(2), 'XTick', ViewAxes.XTick)
         end
         close(temp);
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class        

@@ -120,7 +120,7 @@ if isempty(fit) %Is data
         ppmRange = MRSCont.opts.fit.range; 
     else
         ind =1;
-        ppmRange = MRSCont.opts.fit.rangeWater;
+        ppmRange = [0 2*4.68];
     end
     data = MRSCont.overview.Osprey.(sort_data).(GroupString).(spec);
     if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
@@ -205,6 +205,8 @@ end
 %%% 4. DESIGN FINETUNING %%%
 % Adapt common style for all axes
 set(gca, 'XDir', 'reverse', 'XLim', [ppmRange(1), ppmRange(end)], 'XMinorTick', 'On');
+ticks = get(gca,'XTick');
+set(gca, 'XTick', unique(round(ticks)));
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
 % If no y caption, remove y axis

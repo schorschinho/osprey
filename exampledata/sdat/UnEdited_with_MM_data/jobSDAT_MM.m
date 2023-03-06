@@ -137,8 +137,8 @@ opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 
 % Save processed spectra in NIfTI-MRS format?
-opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
-                                                %             - 1 (yes)
+opts.saveNII                = 1;                % OPTIONS:    - 0 (no)
+                                                %             - 1 (yes, default)
 
 % Save PDF output for all Osprey modules and subjects?
 opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
@@ -186,6 +186,10 @@ opts.fit.MeanMM = 1;                            % OPTIONS:    - 0 (no)
 % Optional: In case the automatic basisset picker is not working you can manually
 % select the path to the basis set in the osprey/fit/basis, i.e.:
 % opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';
+
+% Optional: Deface the strucutral images in the Coreg/Seg figures for HIPAA
+% compliance 
+opts.img.deface     = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
