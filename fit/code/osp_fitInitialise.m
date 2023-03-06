@@ -88,13 +88,18 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         elseif MRSCont.flags.isHERMES
             editTarget1 = lower(MRSCont.opts.editTarget{1});
             editTarget2 = lower(MRSCont.opts.editTarget{2});
+            if length(MRSCont.opts.editTarget) == 3
+                editTarget3 = lower(MRSCont.opts.editTarget{3});
+            else
+                editTarget3 = '';
+            end
             switch MRSCont.vendor
                 case 'Philips'
-                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat'];
+                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
                 case 'GE'
-                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat'];
+                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
                 case 'Siemens'
-                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat'];
+                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
             end
         elseif MRSCont.flags.isHERCULES
             switch MRSCont.vendor
@@ -129,13 +134,18 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         elseif MRSCont.flags.isHERMES
             editTarget1 = lower(MRSCont.opts.editTarget{1});
             editTarget2 = lower(MRSCont.opts.editTarget{2});
+            if length(MRSCont.opts.editTarget) == 3
+                editTarget3 = lower(MRSCont.opts.editTarget{3});
+            else
+                editTarget3 = '';
+            end
             switch MRSCont.vendor
                 case 'Philips'
-                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat']);
+                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
                 case 'GE'
-                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat']);
+                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
                 case 'Siemens'
-                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 '/basis_siemens_hermes.mat']);
+                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
             end
         elseif MRSCont.flags.isHERCULES
             switch MRSCont.vendor
