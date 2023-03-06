@@ -106,6 +106,27 @@ for kk = 1:MRSCont.nDatasets(1)
             % Save back the basis set and fit parameters to MRSCont
             MRSCont.fit.resBasisSet.metab{1,kk,3}           = resBasisSetDiff2;
             MRSCont.fit.results.metab.fitParams{1,kk,3} = fitParamsDiff2;
+
+            %%% 2d. FIT DIFF3-SPECTRUM
+            if length(dataToFit.target) == 3
+                % Apply scaling factor to the data
+                dataToFit   = op_takesubspec(MRSCont.processed.metab{kk},'diff3');
+                basisSetDiff3 = MRSCont.fit.basisSet;
+                basisSetDiff3.fids = basisSetDiff3.fids(:,:,8);
+                basisSetDiff3.specs = basisSetDiff3.specs(:,:,8);
+                dataToFit   = op_ampScale(dataToFit, 1/MRSCont.fit.scale{kk});
+                dataToFit.refShift   = fitParamsSum.refShift;
+                dataToFit.refFWHM   = fitParamsSum.refFWHM;
+                fitOpts.Diff3 = 1;
+    
+                fitOpts.GAP = MRSCont.opts.fit.GAP.diff3;
+                % Call the fit function
+                [fitParamsDiff3, resBasisSetDiff3]  = fit_runFit(dataToFit, basisSetDiff3, fitModel, fitOpts);
+    
+                % Save back the basis set and fit parameters to MRSCont
+                MRSCont.fit.resBasisSet.metab{1,kk,4}           = resBasisSetDiff3;
+                MRSCont.fit.results.metab.fitParams{1,kk,4} = fitParamsDiff3;
+            end
         end
     end
 

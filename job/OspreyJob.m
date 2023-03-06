@@ -521,6 +521,7 @@ switch seqType
             MRSCont.opts.fit.GAP.sum = [];
             MRSCont.opts.fit.GAP.diff1 = [];
             MRSCont.opts.fit.GAP.diff2 = [];
+            MRSCont.opts.fit.GAP.diff3 = [];
         else if ~isfield(MRSCont.opts.fit.GAP, 'sum')
                 MRSCont.opts.fit.GAP.sum = [];
             end
@@ -529,6 +530,9 @@ switch seqType
             end
             if ~isfield(MRSCont.opts.fit.GAP, 'diff2')
                 MRSCont.opts.fit.GAP.diff2 = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff3')
+                MRSCont.opts.fit.GAP.diff3 = [];
             end
         end
         if ~isfield(MRSCont.opts.fit, 'MeanMM')
