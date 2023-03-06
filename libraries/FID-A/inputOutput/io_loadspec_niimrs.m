@@ -337,7 +337,7 @@ out.nucleus = hdr_ext.ResonantNucleus;
 % Calculate B0 from spectrometer frequency depending on nucleus
 % Gamma from Wikipedia article "Gyromagnetic ratio" (3 signif. digits)
 for rr = 1:length(out.nucleus)
-    switch strtrim(out.nucleus{rr})
+    switch out.nucleus{rr}
         case '1H'
             gamma = 42.577;
         case '2H'
