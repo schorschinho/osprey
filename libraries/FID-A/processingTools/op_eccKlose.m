@@ -48,7 +48,19 @@ if in.te == inw.te
     out.specs=fftshift(fft(out.fids,[],1),1);          
 end
 
+% Add NIfTI-MRS provenance
+% Generate fields for provenance
+fields.Method   = 'Eddy current correction';
+fields.Details  = ['ECC (Klose 1990), reference = raw_ref'];
+out = op_add_analysis_provenance(out,fields);
+
 outw=inw;
 outw.phase_ecc = inph;
 outw.fids=outw.fids.*exp(1i*-inph);
 outw.specs=fftshift(fft(outw.fids,[],1),1);
+
+% Add NIfTI-MRS provenance
+% Generate fields for provenance
+fields.Method   = 'Eddy current correction';
+fields.Details  = ['ECC (Klose 1990), reference = raw_ref'];
+outw = op_add_analysis_provenance(outw,fields);

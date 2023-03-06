@@ -68,6 +68,8 @@ for kk = 1:MRSCont.nDatasets(1)
             if strcmp(raw.seq,'SLASER_D')
                 raw = op_truncate(raw,2068,0);
             end
+            % Add NIfTI-MRS information
+            raw                           = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);
             MRSCont.raw_uncomb{ll,kk}      = raw;
             % Read in the raw reference data. If a reference exists, perform the
             % coil combination based on the reference, and perform an eddy current
@@ -76,6 +78,8 @@ for kk = 1:MRSCont.nDatasets(1)
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 raw_ref                     = io_loadspec_twix(MRSCont.files_ref{ref_ll,kk});
                 raw_ref                     = op_leftshift(raw_ref,raw_ref.pointsToLeftshift);
+                % Add NIfTI-MRS information
+                raw_ref                           = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp);
                 MRSCont.raw_ref_uncomb{ref_ll,kk}  = raw_ref;
             else
                 ref_ll = 1;
@@ -84,6 +88,8 @@ for kk = 1:MRSCont.nDatasets(1)
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w                       = io_loadspec_twix(MRSCont.files_w{w_ll,kk});
                 raw_w                       = op_leftshift(raw_w,raw_w.pointsToLeftshift);
+                % Add NIfTI-MRS information
+                raw_w                           = osp_add_nii_mrs_field(raw_w,MRSCont.ver.Osp);
                 MRSCont.raw_w_uncomb{w_ll,kk}    = raw_w;
             else
                 w_ll = 1;
@@ -92,12 +98,16 @@ for kk = 1:MRSCont.nDatasets(1)
                 temp_ll = MRSCont.opts.MultipleSpectra.mm(ll);
                 raw_mm                       = io_loadspec_twix(MRSCont.files_mm{temp_ll,kk});
                 raw_mm                       = op_leftshift(raw_mm,raw_mm.pointsToLeftshift);
+                % Add NIfTI-MRS information
+                raw_mm                           = osp_add_nii_mrs_field(raw_mm,MRSCont.ver.Osp);
                 MRSCont.raw_mm_uncomb{temp_ll,kk}    = raw_mm;
             end
             if MRSCont.flags.hasMMRef
                 temp_ll = MRSCont.opts.MultipleSpectra.mm_ref(ll);
                 raw_mm_ref                       = io_loadspec_twix(MRSCont.files_mm_ref{temp_ll,kk});
                 raw_mm_ref                       = op_leftshift(raw_mm_ref,raw_mm_ref.pointsToLeftshift);
+                % Add NIfTI-MRS information
+                raw_mm_ref                           = osp_add_nii_mrs_field(raw_mm_ref,MRSCont.ver.Osp);
                 MRSCont.raw_mm_ref_uncomb{temp_ll,kk}    = raw_mm_ref;
             end
 

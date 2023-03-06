@@ -138,8 +138,8 @@ opts.savejMRUI              = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
                                                 
 % Save processed spectra in NIfTI-MRS format?
-opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
-                                                %             - 1 (yes)
+opts.saveNII                = 1;                % OPTIONS:    - 0 (no)
+                                                %             - 1 (yes, default)
                                                 
 % Save PDF output for all Osprey modules and subjects?
 opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)

@@ -72,7 +72,8 @@ for kk = 1:MRSCont.nDatasets(1)
             % Read in the raw metabolite data.
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
             raw 	= io_loadspec_niimrs(MRSCont.files{metab_ll,kk});
-
+            % Add NIfTI-MRS information
+            raw                           = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);
             % If the sequence flags are not parsed form the nii header
             if sum([raw.flags.isUnEdited raw.flags.isMEGA raw.flags.isHERMES raw.flags.isHERCULES]) == 0
                 if MRSCont.flags.isUnEdited
@@ -111,7 +112,8 @@ for kk = 1:MRSCont.nDatasets(1)
                         raw_ref.flags.isHERCULES = 1;
                     end
                 end
-
+                % Add NIfTI-MRS information
+                raw_ref   = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp);
             end
 
             % Read in the short-TE water data.
@@ -133,7 +135,8 @@ for kk = 1:MRSCont.nDatasets(1)
                         raw_w.flags.isHERCULES = 1;
                     end
                 end
-
+                % Add NIfTI-MRS information
+                raw_w   = osp_add_nii_mrs_field(raw_w,MRSCont.ver.Osp);
             end
 
             
