@@ -93,7 +93,14 @@ for ss = 2 : in.subspecs
     out = op_mergesubspec(out,out_temp{ss});
     out.watersupp{ss} = out_temp{ss}.watersupp;
 end
-
+if exist('K_rr')
+    K = K_rr;
+else
+    K = Kinit;
+end
+fields.Method   = 'Nuisance peak removal';
+fields.Details  = ['HSVD removal of residual water (Barkhuijsen et al 1987) using ' num2str(K) ' components'];
+out = op_add_analysis_provenance(out,fields);
 
 
 

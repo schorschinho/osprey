@@ -353,6 +353,15 @@ end
 %re-calculate the sz variable
 sz=size(fids);
 
+% Add NIfTI-MRS provenance
+% Generate fields for provenance
+fields.Method   = 'Frequency and phase correction';
+fields.Details  = ['Robust Spectral Registration (Mikkelsen et al. 2020), dim = DIM_DYN'];
+in = op_add_analysis_provenance(in,fields);
+fields.Method   = 'Signal averaging';
+fields.Details  = ['Similarity metric weighted sum (Mikkelsen et al. 2020), dim = DIM_DYN'];
+in = op_add_analysis_provenance(in,fields);
+
 %FILLING IN DATA STRUCTURE
 out=in;
 out.fids=fids;

@@ -28,9 +28,22 @@ head_start_text = '### ASCCONV BEGIN';
 head_end_text   = '### ASCCONV END';
 tline = fgets(fid); % get first line
 
+
+
 % Keep looking until start of the parameter block is found.
 while (isempty(strfind(tline, head_start_text)))
     tline = fgets(fid);
+    if contains(tline,'HFS')
+        dcmHeader.PatientPosition = 'HFS';
+    end
+    if contains(tline,'syngo')
+        ind = strfind(tline,'syngo');
+        ind2 = strfind(tline,'LO');
+        border = find(ind2 > ind);
+        try
+            dcmHeader.SoftwareVersions = tline(ind : ind2(border(1))-2);
+        end
+    end
 end
 
 % Look for regular expression containing the 'equal' signs
@@ -181,6 +194,12 @@ DicomHeader.B0                   = dcmHeader.sProtConsistencyInfo.flNominalB0; %
 DicomHeader.dwellTime            = dcmHeader.sRXSPEC.alDwellTime0; % dwell time [ns]
 DicomHeader.tx_freq              = dcmHeader.sTXSPEC.asNucleusInfo0.lFrequency; % Transmitter frequency [Hz]
 
+if isfield(dcmHeader,'PatientPosition')
+    DicomHeader.PatientPosition = dcmHeader.PatientPosition;
+end
+if isfield(dcmHeader,'SoftwareVersions')
+    DicomHeader.SoftwareVersions = dcmHeader.SoftwareVersions;
+end
 % these may only be extractable from a few sequences and MEGA-PRESS
 % versions:
 % editing pulse parameters

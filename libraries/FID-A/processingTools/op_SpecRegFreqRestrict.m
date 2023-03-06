@@ -41,7 +41,7 @@ if nargin < 7
     end
 end
 
-if strcmp(seqType,'HERMES') || strcmp(seqType,'HERMES')
+if strcmp(seqType,'HERMES') || strcmp(seqType,'HERCULES')
     [in, ~] = osp_onOffClassifyHERMES(in);
     ppmMin = [0.5,0.5,1.85,1.85];
     ppmMax = [3.9,3.8,3.9,3.8];
@@ -298,6 +298,15 @@ end
 
 %re-calculate the sz variable
 sz=size(fids);
+
+% Add NIfTI-MRS provenance
+% Generate fields for provenance
+fields.Method   = 'Frequency and phase correction';
+fields.Details  = ['Spectral Registration to median (Near et al. 2015), dim = DIM_DYN, frequency range (' num2str(ppmMin) ',' num2str(ppmMax) ') ppm'];
+in = op_add_analysis_provenance(in,fields);
+fields.Method   = 'Signal averaging';
+fields.Details  = ['Similarity metric weighted sum (Mikkelsen et al. 2020), dim = DIM_DYN'];
+in = op_add_analysis_provenance(in,fields);
 
 %FILLING IN DATA STRUCTURE
 out=in;

@@ -643,7 +643,11 @@ if out.dims.subSpecs==0
 else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Add info for niiwrite
+out.PatientPosition = twix_obj.hdr.Config.PatientPosition;
+out.Manufacturer = 'Siemens';
+[~,filename,ext] = fileparts(filename);
+out.OriginalFile = [filename ext];
 % Sequence flags
 out.flags.isUnEdited = 0;
 out.flags.isMEGA = 0;

@@ -58,6 +58,16 @@ ppm=ppm+in.centerFreq;
 
 t=[0:in.dwelltime:(sz(1)-1)*in.dwelltime];
 
+ % Add NIfTI-MRS provenance
+% Generate fields for provenance
+fields.Method   = 'Zero-filling';
+if factor
+    fields.Details  = ['Zero-filling by a factor of ' num2str(zpFactor)];
+else
+    fields.Details  = ['Zero-filling to ' num2str(zpFactor) ' points'];
+end
+in = op_add_analysis_provenance(in,fields);
+
 
 %FILLING IN DATA STRUCTURE
 out=in;
