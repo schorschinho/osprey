@@ -131,6 +131,13 @@ else if maxDatasets > 1
     MRSCont.opts.MultipleSpectra.metab = [1:MRSCont.opts.MultipleSpectra.metab(2)];
     else
     MRSCont.opts.MultipleSpectra.metab = [1:MRSCont.nDatasets(1)];
+end
+    if ~MRSCont.flags.isSERIES
+        if length(MRSCont.opts.ECC.raw) == 1
+            MRSCont.opts.ECC.raw = ones(size(MRSCont.files)) * MRSCont.opts.ECC.raw;
+        else
+            MRSCont.opts.ECC.raw = repmat(MRSCont.opts.ECC.raw, [ MRSCont.nDatasets(2) 1]);
+        end  
     end
 end
 if MRSCont.flags.hasMM
@@ -150,7 +157,14 @@ if MRSCont.flags.hasMMRef
         MRSCont.opts.MultipleSpectra.mm_ref = [1:MRSCont.opts.MultipleSpectra.mm_ref(2)];
         else
         MRSCont.opts.MultipleSpectra.mm_ref = [1:MRSCont.nDatasets(1)];
-        end
+    end
+    if ~MRSCont.flags.isSERIES
+        if length(MRSCont.opts.ECC.mm) == 1 && ~isempty(MRSCont.files_mm)
+            MRSCont.opts.ECC.mm = ones(size(MRSCont.mm)) * MRSCont.opts.ECC.mm;
+        else
+            MRSCont.opts.ECC.mm = repmat(MRSCont.opts.ECC.mm, [ MRSCont.nDatasets(2) 1]);
+        end  
+    end
     end
 end
 if MRSCont.flags.hasRef

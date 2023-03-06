@@ -32,8 +32,13 @@ if ~MM
         QC_names = {'tCr','tCr',in.target,'tCr'};
     end
     if in.flags.isHERMES || in.flags.isHERCULES
-        SNRRange = {[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.8,3.2],[2.8,3.2],[2.9,3.1]};
-        QC_names = {'tCr','tCr','tCr','tCr',in.target{1},in.target{2},'tCr'};
+        if size(in.target,1) == 2
+            SNRRange = {[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.8,3.2],[2.8,3.2],[2.9,3.1]};
+            QC_names = {'tCr','tCr','tCr','tCr',in.target{1},in.target{2},'tCr'};
+        else
+            SNRRange = {[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.9,3.1],[2.8,3.2],[2.8,3.2],[0.9,1.5],[2.9,3.1]};
+            QC_names = {'tCr','tCr','tCr','tCr',in.target{1},in.target{2},in.target{3},'tCr'};
+        end
     end
 else
     if in.flags.isUnEdited

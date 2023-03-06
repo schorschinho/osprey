@@ -73,6 +73,13 @@ else
     %re-calculate Specs using fft
     specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
     
+
+    % Add NIfTI-MRS provenance
+    % Generate fields for provenance
+    fields.Method   = 'Apodization';
+    fields.Details  = ['Exponential line-broadening with lb = ' num2str(lb) ' Hz'];
+    in = op_add_analysis_provenance(in,fields);
+
     %FILLING IN DATA STRUCTURE
     out=in;
     out.fids=fids;

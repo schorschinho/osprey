@@ -563,7 +563,7 @@ end
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
 elseif isSiemens && (~isMinn && ~isConnectom)
-    if ~strcmp(version,'ve')
+    if ~strcmp(version,'ve') && ~strcmp(version,'XA30')
         leftshift = twix_obj.image.freeParam(1);
     else
        leftshift = twix_obj.image.iceParam(5,1);
@@ -643,7 +643,11 @@ if out.dims.subSpecs==0
 else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Add info for niiwrite
+out.PatientPosition = twix_obj.hdr.Config.PatientPosition;
+out.Manufacturer = 'Siemens';
+[~,filename,ext] = fileparts(filename);
+out.OriginalFile = [filename ext];
 % Sequence flags
 out.flags.isUnEdited = 0;
 out.flags.isMEGA = 0;

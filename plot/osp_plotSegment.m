@@ -41,7 +41,7 @@ end
 %%% 2. LOAD DATA TO PLOT %%%
 % Load T1 image, mask volume, T1 max value, and voxel center
 % Get the input file name
-[path_voxel,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
+[path_voxel,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{1,kk});
 [~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
 if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 1))
     % For batch analysis, get the last two sub-folders (e.g. site and

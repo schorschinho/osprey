@@ -80,7 +80,7 @@ if MRSCont.nDatasets(1) > 1
     SameName = strcmp(T1name,T1name2);
 end
 
-% Let's write the SPM12 propabilistic maps in a higher folder structure 
+% Let's write the SPM12 propabilistic maps in a higher folder structure
 SepOutputFolder =  split(MRSCont.outputFolder, filesep);
 SepOutputFolder(strcmp(SepOutputFolder,''))=[];
 ind = find(strcmpi(SepOutputFolder,'derivatives')); %Do we have a folder named derivatives?
@@ -129,7 +129,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 fprintf(msg);
                 error(msg);
         end
-        
+
         if SameName
             [PreFix] = osp_generate_SubjectAndSessionPrefix(niftiFile,kk);
             PreFix = [PreFix '_'];
@@ -291,11 +291,11 @@ for kk = 1:MRSCont.nDatasets(1)
             end
             if MRSCont.coreg.SameName
                 [PreFixMask] = osp_generate_SubjectAndSessionPrefix(MRSCont.files{kk},kk);
-                PreFixMask = [PreFix '_'];
+                PreFixMask = [PreFixMask '_'];
             else
                 PreFixMask = '';
             end
-            
+
             % <source_entities>[_space-<space>][_res-<label>][_label-<label>][_desc-<label>]_probseg.nii.gz
             % e.g.
             % sub-01_acq-press_space-individual_desc-dlpfc_label-GM_probseg.nii.gz
@@ -506,7 +506,7 @@ if DeformField
         Files(MRSCont.exclude)=[];
     end
     CalculateMaskOverlap(Files',[osp_RemovePreFix(MaskName) '_VoxelOverlap'],MaskDir);
-    
+
     for kk = 1:MRSCont.nDatasets(1)
         vol_mask = MRSCont.coreg.vol_mask{kk};
         [MaskDir, MaskName, MaskExt]  = fileparts(vol_mask.fname);

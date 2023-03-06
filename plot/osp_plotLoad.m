@@ -372,6 +372,7 @@ for ax = 1 : length(axesNames)
     if isfield(MRSCont,'plot') && (MRSCont.plot.load.match == 1)
         set(axesHandles.(axesNames{ax}), 'YLim', [ymin, ymax]);
     end
+    set(axesHandles.(axesNames{ax}), 'XTick', unique(round(axesHandles.(axesNames{ax}).XTick)));
     set(axesHandles.(axesNames{ax}), 'LineWidth', 1, 'TickDir', 'out');
     set(axesHandles.(axesNames{ax}), 'FontSize', 16);
     set(axesHandles.(axesNames{ax}), 'Units', 'normalized');

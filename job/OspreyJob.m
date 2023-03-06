@@ -210,7 +210,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Adding macromolecule and lipid basis functions to the fit (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.fitMM = 1;
     end
-
+     if isfield(jobStruct,'deface')
+        MRSCont.opts.img.deface = jobStruct.deface;
+     else
+        fprintf('Structrual images are not defaced (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.img.deface = 0;
+    end
 end
 
 %%% 3b. LOAD JSON FILE %%%
@@ -388,6 +393,11 @@ if strcmp(jobFileFormat,'json')
             opts.fit.basisSetFile = jobStruct.basisSet;
         end
     end
+    if isfield(jobStruct,'deface')
+        opts.img.deface = jobStruct.deface;
+    else
+        opts.img.deface = 0;
+    end
     debug = '11';
 end
 
@@ -516,6 +526,7 @@ switch seqType
             MRSCont.opts.fit.GAP.sum = [];
             MRSCont.opts.fit.GAP.diff1 = [];
             MRSCont.opts.fit.GAP.diff2 = [];
+            MRSCont.opts.fit.GAP.diff3 = [];
         else if ~isfield(MRSCont.opts.fit.GAP, 'sum')
                 MRSCont.opts.fit.GAP.sum = [];
             end
@@ -524,6 +535,9 @@ switch seqType
             end
             if ~isfield(MRSCont.opts.fit.GAP, 'diff2')
                 MRSCont.opts.fit.GAP.diff2 = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff3')
+                MRSCont.opts.fit.GAP.diff3 = [];
             end
         end
         if ~isfield(MRSCont.opts.fit, 'MeanMM')
@@ -543,7 +557,9 @@ switch seqType
         end
         if isfield(opts.fit, 'coMM3')
             MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
-            MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
+            if isfield(opts.fit, 'FWHMcoMM3')
+                MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
+            end
         else
             MRSCont.opts.fit.coMM3 = 'freeGauss';
             MRSCont.opts.fit.FWHMcoMM3 = 14;
@@ -645,6 +661,12 @@ else
     MRSCont.flags.hasStatfile = 0;
 end
 
+%Change deface option for images
+if isfield(opts, 'img')
+   if isfield(opts.img, 'deface')
+        MRSCont.opts.img.deface = opts.img.deface;
+   end
+end
 
 %%% 5. SAVE FILE/FOLDER NAMES INTO MRSCONT %%%
 % Make sure that the mandatory fields (metabolite data; output folder) are

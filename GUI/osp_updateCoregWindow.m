@@ -38,10 +38,11 @@ function osp_updateCoregWindow(gui)
                          '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) ';  dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
        set(gui.upperBox.coreg.Info.Children, 'String',sprintf(StatText))
+       set(gui.upperBox.coreg.Info, 'Title',['Actual file: ' MRSCont.files{1,gui.controls.Selected}]);
 %%% 3. VISUALIZATION PART OF THIS TAB %%%
         if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 2 %Did seg & has been visualized already
             temp = figure( 'Visible', 'off' );
-            if ~isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+            if ~MRSCont.flags.isPRIAM
                 temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
             else
                 temp = osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
@@ -53,7 +54,7 @@ function osp_updateCoregWindow(gui)
             close( temp );
             temp = figure( 'Visible', 'off' );
             if gui.controls.Selected <= length(MRSCont.seg.tissue.fGM)
-                if ~isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+                if  ~MRSCont.flags.isPRIAM
                     temp = osp_plotSegment(MRSCont, gui.controls.Selected);
                 else
                     temp = osp_plotSegment(MRSCont, gui.controls.Selected,gui.controls.act_x);
@@ -67,7 +68,7 @@ function osp_updateCoregWindow(gui)
             end
         else if MRSCont.flags.didSeg && length(gui.Results.coreg.Children) == 1 %Did seg but has not been visualized yet (Initial run of segement button)
             temp = figure( 'Visible', 'off' );
-            if ~isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+            if ~MRSCont.flags.isPRIAM
                 temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
             else
                 temp = osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
@@ -76,7 +77,7 @@ function osp_updateCoregWindow(gui)
             colormap(gui.Results.coreg.Children(1),'gray');
             close( temp );
             temp = figure( 'Visible', 'off' );
-            if ~isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+            if ~MRSCont.flags.isPRIAM
                 temp = osp_plotSegment(MRSCont, gui.controls.Selected);
             else
                 temp = osp_plotSegment(MRSCont, gui.controls.Selected,gui.controls.act_x);
@@ -86,7 +87,7 @@ function osp_updateCoregWindow(gui)
             close( temp );
             else if length(gui.Results.coreg.Children) == 1 %Only coreg has been performed
                     temp = figure( 'Visible', 'off' );
-                    if ~isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+                    if ~MRSCont.flags.isPRIAM
                         temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
                     else
                         temp = osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
@@ -98,7 +99,7 @@ function osp_updateCoregWindow(gui)
                     close( temp );
                 else % Neither coreg nor segment has been performed
                     temp = figure( 'Visible', 'off' );
-                    if ~isfield(MRSCont.flags,'isPRIAM')  && ~MRSCont.flags.isPRIAM
+                    if ~MRSCont.flags.isPRIAM
                         temp = osp_plotCoreg(MRSCont, gui.controls.Selected);
                     else
                         temp = osp_plotCoreg(MRSCont, gui.controls.Selected,gui.controls.act_x);
