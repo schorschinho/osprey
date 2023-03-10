@@ -227,7 +227,9 @@ if strcmp(jobFileFormat,'json')
     if strcmp('win',osp_platform('filesys'))
         str = strrep(str,'\','\\');
     end
-    str = replace(str, whitespacePattern + '"', '"');
+    pattern = '[ \t\n]*“'; % Match zero or more spaces, tabs, or newlines, followed by a double quote
+    replacement = '"'; % Replace the matched string with just a double quote
+    str = regexprep(str, pattern, replacement);
     jobStruct  = jsondecode(str);
 
     % Check whether the relevant fieldnames have been entered,
