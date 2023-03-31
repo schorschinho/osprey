@@ -117,12 +117,12 @@ opts.SubSpecAlignment.mets = 'L2Norm';          % OPTIONS:    - 'L2Norm' (defaul
 %supplying a single value or specified for each dataset individually by supplying
 % multiple entries (number has to match the number of datasets) e.g. to perform ECC
 % for the second dataset only:
-% opts.ECC.raw                = [0 1];
-% opts.ECC.mm                = [0 1];
+% opts.ECC.raw              = [0 1];
+% opts.ECC.mm               = [0 1];
 
 
 opts.ECC.raw                = 1;                % OPTIONS:    - '1' (default)
-opts.ECC.mm                = 1;                 %             - '0' (no)
+opts.ECC.mm                 = 1;                %             - '0' (no)
                                                 %             - [] array
 
 % Save LCModel-exportable files for each spectrum?
@@ -137,15 +137,21 @@ opts.saveVendor             = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 
 % Save processed spectra in NIfTI-MRS format?
-opts.saveNII                = 0;                % OPTIONS:    - 0 (no, default)
-                                                %             - 1 (yes)
+opts.saveNII                = 1;                % OPTIONS:    - 0 (no)
+                                                %             - 1 (yes, default)
 
 % Save PDF output for all Osprey modules and subjects?
-opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
+opts.savePDF                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 
+% Save mat file of the compiled fitting parameters?
+opts.exportParams.flag      = 0;                % Options:    - 0 (no, default)
+                                                %             - 1 (yes)
+opts.exportParams.path      = '';               % Replace with string for the path 
+                                                % to the save directory
+
 % Choose the fitting algorithm
-opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
+opts.fit.method             = 'Osprey';         % OPTIONS:    - 'Osprey' (default)
 
 % Select the metabolites to be included in the basis set as a cell array,
 % with entries separates by commas.
@@ -161,24 +167,24 @@ opts.fit.includeMetabs      = {'default'};      % OPTIONS:    - {'default'}
 
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
 % (only available for the Osprey fitting method)
-opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
-                                                %           - 'Separate' - will fit DIFF and OFF separately
+opts.fit.style              = 'Separate';       % OPTIONS:    - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
+                                                %             - 'Separate' - will fit DIFF and OFF separately
 
 % Determine fitting range (in ppm) for the metabolite and water spectra
-opts.fit.range              = [0.5 4];        % [ppm] Default: [0.2 4.2]
+opts.fit.range              = [0.5 4];          % [ppm] Default: [0.2 4.2]
 opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
-opts.fit.GAP.A                = [];
-opts.fit.GAP.diff1                = [];
+opts.fit.GAP.A              = [];
+opts.fit.GAP.diff1          = [];
 
 % Determine the baseline knot spacing (in ppm) for the metabolite spectra
-opts.fit.bLineKnotSpace     = 0.55;              % [ppm] Default: 0.4.
+opts.fit.bLineKnotSpace     = 0.55;             % [ppm] Default: 0.4.
 
 % Add macromolecule and lipid basis functions to the fit?
 opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 
 % How do you want to model the co-edited macromolecules at 3 ppm for GABA-edited MRS?
-opts.fit.coMM3              = 'freeGauss';         % OPTIONS:    - {'3to2MM'} (default)
+opts.fit.coMM3              = 'freeGauss';      % OPTIONS:    - {'3to2MM'} (default)
                                                 %             - {'3to2MMsoft'}
                                                 %             - {'1to1GABA'}
                                                 %             - {'1to1GABAsoft'}
@@ -186,11 +192,15 @@ opts.fit.coMM3              = 'freeGauss';         % OPTIONS:    - {'3to2MM'} (d
                                                 %             - {'fixedGauss'}
                                                 %             - {'none'}
 
-opts.fit.FWHMcoMM3              = 14;
+opts.fit.FWHMcoMM3          = 14;
 
 % Optional: In case the automatic basisset picker is not working you can manually
 % select the path to the basis set in the osprey/fit/basis, i.e.:
 % opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';
+
+% Optional: Deface the strucutral images in the Coreg/Seg figures for HIPAA
+% compliance 
+opts.img.deface     = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
