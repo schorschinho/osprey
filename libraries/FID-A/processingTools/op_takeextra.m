@@ -77,12 +77,22 @@ in.fids = squeeze(in.fids);
             out.averages = out.sz(2);
         end
     end
+    if (out.dims.averages == 0) && (out.dims.extras == 0)
+        out.dims.averages = 2;
+    end
     out.extras=1;
     if isfield(out, 'extra_names')
         out.extra_names = out.extra_names(index);
     end
     if isfield(out, 'names')
-        out.names = out.names(index,:);
+        try
+            out.names = out.names(index);
+        catch
+            out.names = out.names(1);
+        end
+    end
+    if isfield(out, 'exp_var')
+        out.exp_var = out.exp_var(index);
     end
     out.spectralwidth = out.spectralwidth(index);
     out.dwelltime = out.dwelltime(index);
@@ -90,7 +100,9 @@ in.fids = squeeze(in.fids);
     out.seq = out.seq{index};
     out.te = out.te(index);
     out.tr = out.tr(index);
-    out.pointsToLeftshift = out.pointsToLeftshift(index);
+    if isfield(out, 'pointsToLeftshift')
+        out.pointsToLeftshift = out.pointsToLeftshift(index);
+    end
     out.centerFreq = out.centerFreq(index);
     %FILLING IN THE FLAGS
     out.flags=in.flags;

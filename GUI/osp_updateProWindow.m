@@ -105,12 +105,15 @@ function osp_updateProWindow(gui)
         set( flipud(temp.Children(2).Children), 'Parent', gui.layout.proAlgn.Children ); % Update aligned and averaged plot
         set(  gui.layout.proAlgn.Children, 'XLim', temp.Children(2).XLim);
         set(  gui.layout.proAlgn.Children, 'YLim', temp.Children(2).YLim);
+        set(  gui.layout.proAlgn.Children, 'XTick', temp.Children(2).XTick);
         set( temp.Children(3).Children, 'Parent', gui.layout.proPost.Children ); % Update post alignment plot
         set(  gui.layout.proPost.Children, 'XLim', temp.Children(3).XLim);
         set(  gui.layout.proPost.Children, 'YLim', temp.Children(3).YLim);
+        set(  gui.layout.proPost.Children, 'XTick', temp.Children(3).XTick);
         set( temp.Children(4).Children, 'Parent', gui.layout.proPre.Children ); % Update pre alignment plot
         set(  gui.layout.proPre.Children, 'XLim', temp.Children(4).XLim);
         set(  gui.layout.proPre.Children, 'YLim', temp.Children(4).YLim);
+        set(  gui.layout.proPre.Children, 'XTick', temp.Children(4).XTick);
         close( temp );
 
         % If it is Multivoxel data we have to update the Voxel Position

@@ -682,7 +682,8 @@ if MRSCont.flags.hasWater
 
 end
 %% Fit images export
-% model_names = {'sum','diff1','diff2'};
+fitMethod   = MRSCont.opts.fit.method;
+
 if MRSCont.processed.metab{kk}.flags.isUnEdited
     spec_names = {'metab'};
     VoxelIndices = {[1,1,1]};
@@ -708,60 +709,115 @@ if MRSCont.flags.hasWater
 end
 for f = 1 : length(spec_names)
     which_spec=spec_names{f};
-    VoxelIndex = VoxelIndices{f};
-    dataToPlot = MRSCont.processed.(which_spec){kk};
-     if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
-        fitRangePPM = MRSCont.opts.fit.rangeWater;
-        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex,1};
-        fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk};
-     else
-        basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1,1,VoxelIndex(2)};
-        dataToPlot   = op_takesubspec(MRSCont.processed.(which_spec){kk},find(strcmp(MRSCont.processed.(which_spec){kk}.names,basisSet.names{1})));
-        fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk,VoxelIndex(2)};
-        fitRangePPM = MRSCont.opts.fit.range;
-     end
+    switch fitMethod
+        case 'Osprey'            
+            VoxelIndex = VoxelIndices{f};
+            dataToPlot = MRSCont.processed.(which_spec){kk};
+             if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+                fitRangePPM = MRSCont.opts.fit.rangeWater;
+                basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex,1};
+                fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk};
+             else
+                basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1,1,VoxelIndex(2)};
+                dataToPlot   = op_takesubspec(MRSCont.processed.(which_spec){kk},find(strcmp(MRSCont.processed.(which_spec){kk}.names,basisSet.names{1})));
+                fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk,VoxelIndex(2)};
+                fitRangePPM = MRSCont.opts.fit.range;
+             end
+            
+            
+            
+            inputData.dataToFit                 = dataToPlot;
+            inputData.basisSet                  = basisSet;
+            inputSettings.scale                 = MRSCont.fit.scale{kk};
+            inputSettings.fitRangePPM           = fitRangePPM;
+            inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
+            inputSettings.fitStyle              = MRSCont.opts.fit.style;
+            inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
+            inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
+            inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
+            inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
+            inputSettings.concatenated.Subspec  = basisSet.names{1};
+            if isfield(MRSCont.opts.fit,'GAP') && ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
+                inputSettings.GAP = MRSCont.opts.fit.GAP.(dataToPlot.names{1});
+            else
+                inputSettings.GAP = [];
+            end
+        case 'LCModel'           
+            if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+                
+                % Do nothing for now. We'll load the water spectrum in the next
+                % step.
+                fitRangePPM = [0 9];
     
-    
-    
-    inputData.dataToFit                 = dataToPlot;
-    inputData.basisSet                  = basisSet;
-    inputSettings.scale                 = MRSCont.fit.scale{kk};
-    inputSettings.fitRangePPM           = fitRangePPM;
-    inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-    inputSettings.fitStyle              = MRSCont.opts.fit.style;
-    inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
-    inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
-    inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
-    inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
-    inputSettings.concatenated.Subspec  = basisSet.names{1};
-    if isfield(MRSCont.opts.fit,'GAP') && ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
-        inputSettings.GAP = MRSCont.opts.fit.GAP.(dataToPlot.names{1});
-    else
-        inputSettings.GAP = [];
+            else
+                fitParams   = MRSCont.fit.results.metab.fitParams{1,kk};
+                fitRangePPM = MRSCont.opts.fit.range;
+            end
     end
-    if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
-        [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
-    else
-        [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
+    switch fitMethod
+        case 'Osprey'
+            if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+                [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
+            else
+                [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
+            end
+        case 'LCModel'
+            if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
+                % Just load the water spectrum (we don't have a fit)
+                waterSpec         = op_freqrange(MRSCont.processed.(which_spec){kk}, 0, 9);
+                ModelOutput.data  = real(waterSpec.specs);
+                ModelOutput.ppm   = waterSpec.ppm;
+                fit = real(waterSpec.specs);
+                residual = 0;
+            else
+                % Get the LCModel plots we previously extracted from .coord
+                % etc.
+                [ModelOutput] = fit_LCModelParamsToModel(fitParams);
+            end
     end
-    nBasisFct = basisSet.nMets;
-    if isfield(basisSet, 'nMM')
-        nBasisFct = nBasisFct + basisSet.nMM;
+    switch fitMethod
+        case 'Osprey'
+            nBasisFct = basisSet.nMets;
+            if isfield(basisSet, 'nMM')
+                nBasisFct = nBasisFct + basisSet.nMM;
+            end
+            colorData = MRSCont.colormap.Foreground;
+            colorFit  = MRSCont.colormap.Accent;
+            linewidthFit = 1.6;
+            linewidthResidual = 1;
+            colorBaseline = MRSCont.colormap.LightAccent;
+            fit         = ModelOutput.completeFit;
+            residual    = ModelOutput.residual;
+            if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
+                baseline    = ModelOutput.baseline;
+                indivPlots  = ModelOutput.indivMets;
+                basisSetNames = basisSet.name;
+            end
+        case 'LCModel'            
+            colorData = MRSCont.colormap.Foreground;
+            colorFit  = 'r';
+            linewidthFit = 1.2;
+            linewidthResidual = 0.5;
+            colorBaseline = MRSCont.colormap.Foreground;
+            % If water, don't get anything except the data
+            if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
+                % Number of metabolites and lipid/MM basis functions
+                nBasisFct = length(fitParams.name);
+                nComb   = sum(~cellfun(@isempty, strfind(fitParams.name, '_')));
+                nBasisFct =  nBasisFct - nComb; % We don't plot the combinations
+                fit         = ModelOutput.completeFit;
+                residual    = ModelOutput.residual;
+                baseline    = ModelOutput.baseline;
+                indivPlots  = ModelOutput.indivMets;
+                basisSetNames = fitParams.name;
+                indivPlots(:,contains(basisSetNames,'_')) = [];
+                basisSetNames(contains(basisSetNames,'_')) = [];
+            end
     end
-    colorData = MRSCont.colormap.Foreground;
-    colorFit  = MRSCont.colormap.Accent;
-    linewidthFit = 1.6;
-    linewidthResidual = 1;
-    colorBaseline = MRSCont.colormap.LightAccent;
     ppm         = ModelOutput.ppm;
     dataToPlot  = ModelOutput.data;
-    fit         = ModelOutput.completeFit;
-    residual    = ModelOutput.residual;
-    if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
-        baseline    = ModelOutput.baseline;
-        indivPlots  = ModelOutput.indivMets;
-        basisSetNames = basisSet.name;
-    end
+    
+    
     stagData = 0.1*(max(abs(min(dataToPlot)), abs(max(dataToPlot))));
     maxPlot = max(dataToPlot + abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData;
     out = figure('Visible','off');
@@ -809,12 +865,22 @@ for f = 1 : length(spec_names)
     set(gca, 'XColor', MRSCont.colormap.Foreground);
     set(gca, 'Color', MRSCont.colormap.Background);
     set(gcf, 'Color', MRSCont.colormap.Background);
-    title(['Model ' which_spec ' ' basisSet.names{1}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+    switch fitMethod
+        case 'Osprey'
+            title(['Model ' which_spec ' ' basisSet.names{1}], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+        case 'LCModel'
+            title(['LCModel ' which_spec], 'Interpreter', 'none', 'Color', MRSCont.colormap.Foreground);
+    end
     box off;
     hold off;
     set(out,'PaperUnits','centimeters');
     set(out,'PaperPosition',[0 0 20 15]);
-    saveas(out,fullfile(outputFigures,[sub_str '_' which_spec '_' basisSet.names{1} '_model']),'jpg');
+    switch fitMethod
+        case 'Osprey'
+            saveas(out,fullfile(outputFigures,[sub_str '_' which_spec '_' basisSet.names{1} '_model']),'jpg');
+        case 'LCModel'
+            saveas(out,fullfile(outputFigures,[sub_str '_' which_spec '_' 'A_model']),'jpg');
+    end
     close(out);
 end
 %% Coreg/Seg images export
@@ -846,6 +912,8 @@ if MRSCont.flags.didSeg
     close(temp);
 end
 %% Write report in HTML files
+%Write as relative path
+outputFigures   = fullfile('reportFigures',sub_str);
 %write an html report: 
 fid=fopen(fullfile(outputFolder,[sub_str,'-report.html']),'w+');
 fprintf(fid,'<!DOCTYPE html>');

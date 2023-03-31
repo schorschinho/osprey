@@ -33,8 +33,7 @@ function osp_onRightExp( ~, ~ ,gui)
 
     if gui.controls.act_Exp < gui.info.nExperiments
         gui.controls.act_Exp = gui.controls.act_Exp + 1;
-
-        setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
+        set(gui.controls.text_act_Exp,'String',num2str(gui.controls.act_Exp));
         switch selectedTab %Which tab?
             case 1 %Load tab?
                 osp_updateLoadWindow(gui);

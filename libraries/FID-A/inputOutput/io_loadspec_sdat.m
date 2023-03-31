@@ -207,6 +207,7 @@ if dims.extras > 0 % Is a series
    out.extra_names = extra_names;
    if dims.averages == 0
       out.averages=1;
+      out.flags.averaged = 1;
    end
    out.spectralwidth = ones(1,out.extras)*spectralwidth;
    out.dwelltime = ones(1,out.extras)*dwelltime;
@@ -220,6 +221,11 @@ if dims.extras > 0 % Is a series
    out.flags.isSeries = 1;
    out.flags.MultiVoxel=0;
 end
+% Add info for niiwrite
+out.PatientPosition = strrep([header.patient_position ' ' header.patient_orientation],'"','');
+out.Manufacturer = 'Philips';
+[~,filename,ext] = fileparts(filename);
+out.OriginalFile = [filename ext];
 % Sequence flags
 out.flags.isUnEdited = 0;
 out.flags.isMEGA = 0;

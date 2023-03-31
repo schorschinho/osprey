@@ -132,7 +132,15 @@ if strcmp(seqType, 'HERMES') || strcmp(seqType, 'HERCULES')
     outD.specs = specsD;
            
     % Create output
-    varargout{1} = op_mergesubspec(outA,outB,outC,outD);
+    merged = op_mergesubspec(outA,outB,outC,outD);
+
+    % Add NIfTI-MRS provenance
+    % Generate fields for provenance
+    fields.Method   = 'Aligment of subtraction sub-spectra';
+    fields.Details  = ['L1 norm optimization of HADAMARD spectra (Cleve et al. 2017), dim = DIM_EDIT, frequency range (' num2str(1.95) ',' num2str(4) ') ppm'];
+    merged = op_add_analysis_provenance(merged,fields);
+
+    varargout{1} = merged;
     
 elseif strcmp(seqType, 'MEGA')
     % For MEGA-edited data, the 'reporter signal' that is used to align the
@@ -154,11 +162,29 @@ elseif strcmp(seqType, 'MEGA')
     outB = inB;
     outB.fids = fidsB;
     outB.specs = specsB;
-    if isstruct(varargin{2})           
+    if isstruct(varargin{2}) 
+        % Add NIfTI-MRS provenance
+        % Generate fields for provenance
+        fields.Method   = 'Aligment of subtraction sub-spectra';
+        fields.Details  = ['L1 norm optimization of ON/OFF spectra (Cleve et al. 2017), dim = DIM_EDIT, frequency range (' num2str(1.95) ',' num2str(4) ') ppm'];
+        outA = op_add_analysis_provenance(outA,fields);
+
+        fields.Method   = 'Aligment of subtraction sub-spectra';
+        fields.Details  = ['L1 norm optimization of ON/OFF spectra (Cleve et al. 2017), dim = DIM_EDIT, frequency range (' num2str(1.95) ',' num2str(4) ') ppm'];
+        outB = op_add_analysis_provenance(outB,fields);
+
         varargout{1} = outA;
         varargout{2} = outB;
     else
-        varargout{1}=op_mergesubspec(outA,outB);
+        merged = op_mergesubspec(outA,outB);
+
+        % Add NIfTI-MRS provenance
+        % Generate fields for provenance
+        fields.Method   = 'Aligment of subtraction sub-spectra';
+        fields.Details  = ['L1 norm optimization of ON/OFF spectra (Cleve et al. 2017), dim = DIM_EDIT, frequency range (' num2str(1.95) ',' num2str(4) ') ppm'];
+        merged = op_add_analysis_provenance(merged,fields);
+    
+        varargout{1} = merged;
     end
     
 end

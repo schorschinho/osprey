@@ -36,6 +36,7 @@ end
 if MRSCont.flags.hasMM == 1
     basisSet_mm = load(MRSCont.opts.fit.basisSetFile);
     basisSet_mm = basisSet_mm.BASIS;
+    basisSet_mm = osp_recalculate_basis_specs(basisSet_mm);
     basisSet_mm = fit_sortBasisSet(basisSet_mm);
     metabList_mm = fit_createMetabListMM('unedited');
     basisSet_mm = fit_selectMetabs(basisSet_mm, metabList_mm, 1);
@@ -307,7 +308,11 @@ end
 fitParams.ppm           = x_ppm;
 fitParams.data          = spectra(:,1);
 fitParams.completeFit   = spectra(:,2);
-fitParams.baseline      = spectra(:,3);
+if size(spectra,2) == 3
+    fitParams.baseline      = spectra(:,3);
+else
+    fitParams.baseline      =zeros(size(spectra,1),1);
+end
 fitParams.residual      = fitParams.data - fitParams.completeFit;
 
 % The .coord files also contain the individual metabolite fits, BUT only if

@@ -81,6 +81,11 @@ else
     %re-calculate the sz variable
     sz=size(fids);
     
+    % Add NIfTI-MRS provenance
+    % Generate fields for provenance
+    fields.Method   = 'Signal averaging';
+    fields.Details  = ['Classic signal averaging, dim = DIM_DYN'];
+    in = op_add_analysis_provenance(in,fields);
     
     %FILLING IN DATA STRUCTURE
     out=in;

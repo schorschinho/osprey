@@ -79,7 +79,9 @@ ismodWIP=(~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'e
 isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
 isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA-PRESS sequence
          ~isempty(strfind(sequence,'md_svs_slaser_edit')); %Is Thomas Lange's MEGA-s-LASER sequence
-isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
+isMinn=~isempty(strfind(sequence,'eja_svs_')) ||... %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
+       ~isempty(strfind(sequence,'svs_slaser_dkd')) ||...   % ... or Dinesh Deelchand's 2016 sLASER sequence?
+       ~isempty(strfind(sequence,'svs_slaserVOI_dkd'));     % ... or Dinesh Deelchand's 2022 'plug and play' sLASER sequence?
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
@@ -129,8 +131,13 @@ end
 if isDondersMRSfMRI
     seq = 'SLASER_D';
 end
+
+% GO 10/2022:
+% If none of the above match, we've had sequences default to HERMES and a
+% bunch of people reported errors... I'll change this to 'PRESS' for now.
 if ~exist('seq')
-    seq = 'HERMES';
+    seq = 'PRESS';
+    %seq = 'HERMES';
 end
 
 %If this is the SPECIAL sequence, it probably contains both inversion-on
@@ -556,7 +563,7 @@ end
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
 elseif isSiemens && (~isMinn && ~isConnectom)
-    if ~strcmp(version,'ve')
+    if ~strcmp(version,'ve') && ~strcmp(version,'XA30')
         leftshift = twix_obj.image.freeParam(1);
     else
        leftshift = twix_obj.image.iceParam(5,1);
@@ -636,7 +643,11 @@ if out.dims.subSpecs==0
 else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Add info for niiwrite
+out.PatientPosition = twix_obj.hdr.Config.PatientPosition;
+out.Manufacturer = 'Siemens';
+[~,filename,ext] = fileparts(filename);
+out.OriginalFile = [filename ext];
 % Sequence flags
 out.flags.isUnEdited = 0;
 out.flags.isMEGA = 0;

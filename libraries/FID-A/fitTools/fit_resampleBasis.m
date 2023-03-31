@@ -45,7 +45,11 @@ specs_interp    = zeros(length(ppmRangeData), (basisSet.nMets + basisSet.nMM), s
 for ll=1:(basisSet.nMets + basisSet.nMM)
     % Loop over the number of sub-spectra (MEGA, HERMES, HERCULES)
     for rr = 1:size(basisSet.fids, 3)
-        specs_interp(:,ll,rr)      = interp1(ppmRangeBasis(ppmIsInDataRange), basisSet.specs(ppmIsInDataRange,ll,rr), ppmRangeData, 'pchip', 'extrap');
+        if size(ppmRangeData,1) > size(ppmRangeBasis,2) 
+            specs_interp(:,ll,rr) = interp1(ppmRangeBasis(ppmIsInDataRange), basisSet.specs(ppmIsInDataRange,ll,rr), ppmRangeData, 'pchip', 0); 
+        else 
+            specs_interp(:,ll,rr) = interp1(ppmRangeBasis(ppmIsInDataRange), basisSet.specs(ppmIsInDataRange,ll,rr), ppmRangeData, 'pchip', 'extrap'); 
+        end
         %convert back to time domain
         %if the length of Fids is odd, then you have to do a circshift of one to
         %make sure that you don't introduce a small frequency shift into the fids

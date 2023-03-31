@@ -99,7 +99,13 @@ knitr::include_graphics("img/04-process-mets.png")
 ```
 
 The top left panel shows the individual averages prior to frequency-and-phase alignment. The bottom left panel shows them after frequency-and-phase alignment.
-The top right panel shows a scatter plot of the maximum of the 3.02 ppm Cr/PCr signal over the course of the acquisition for both pre- and post-alignment. Finally, the bottom right panel shows the aligned, averaged and referenced spectrum after eddy-current correction and residual water removal. This spectrum will be passed on to the `Fit` module for modelling.
+The top right panel shows a scatter plot of the maximum of the 3.02 ppm Cr/PCr signal over the course of the acquisition for both pre- and post-alignment. Finally, the bottom right panel shows the aligned, averaged and referenced spectrum after eddy-current correction and residual water removal. This spectrum will be passed on to the `Fit` module for modeling.
+
+```{r ospreyProcess2, fig.cap='Different sub-spectra can be visualized by cycling through the "Spec" windows.', echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("img/04-process-mets-subspec.png")
+```
+
+Individual sub-spectra, and combinations thereof, can be visualized by cycling through the "spec" arrows at the top left of the screen.
 
 ```{block2, noteGoBackRaw, type='rmdnote'}
 You can go back to inspecting the raw data by clicking the `Raw` tab at the top of the window.
@@ -117,9 +123,9 @@ You can export a PDF of the four post-processing display panels (along with the 
 
 ## Fitting the spectra
 
-Click the (now available!) `Fit data` button to initiate the post-processing. **Osprey** will now model the processed metabolite and water spectra by running the `OspreyFit` module in the background. This process may take from a few seconds up to a minute or more per dataset, depending on the complexity of the model. You can monitor the progress through the wait bar.
+Click the (now available!) `Fit data` button to initiate the post-processing. **Osprey** will now model the processed metabolite and water spectra by running the `OspreyFit` module in the background. This process may take a few seconds, or up to a minute or more per dataset, depending on the complexity of the data and model. You can monitor the progress through the wait bar.
 
-Once the modelling is complete, the `Fit` tab becomes active:
+Once the modeling is complete, the `Fit` tab becomes active:
 
 ```{r ospreyFit, fig.cap='The Osprey GUI after OspreyFit.', echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("img/04-fit-mets.png")
@@ -161,6 +167,10 @@ You can see an overlay of the voxel mask on top of the anatomical image in three
 
 ```{block2, noteExportPDFCoreg, type='rmdnote'}
 You can export a PDF of the co-registration display by clicking on the `Save PDF` button in the top right corner of the window.
+```
+
+```{block2, noteNiiView, type='rmdnote'}
+The `Nii Viewer` button in the top left corner of the window opens the current paricipant's structural image in an external NIfTI viewer for closer inspection.
 ```
 
 ## Segmentation and tissue fraction calculation

@@ -15,6 +15,10 @@ function jobm = osp_create_job_file(app)
 
 outputFolder = app.OutputFolderEditField.Value;
 
+if ~exist(outputFolder)
+    mkdir(outputFolder)
+end
+
 if isempty(outputFolder)
     outputFolder = cd;
 end

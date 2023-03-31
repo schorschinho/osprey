@@ -27,9 +27,10 @@
 %   HISTORY:
 %       2020-02-11: First version of the code.
 
-function RF=io_writelcmBASIS(in,outfile,vendor,SEQ);
+function RF=io_writelcmBASIS(in,outfile,vendor,SEQ)
 
-metabList = fit_createMetabList({'default'});
+metabList = fit_createMetabList({'full'});
+
  % Add basis spectra (if they were removed to reduce thhe file size)
 if ~isfield(in,'specs')
     [in]=osp_recalculate_basis_specs(in);

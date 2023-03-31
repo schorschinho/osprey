@@ -41,7 +41,7 @@ end
 %%% 2. LOAD DATA TO PLOT %%%
 if ~(isfield(MRSCont.flags,'addImages') && (MRSCont.flags.addImages == 1))
     % Load T1 image, mask volume, T1 max value, and voxel center
-    [~,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{kk});
+    [~,filename_voxel,fileext_voxel]   = fileparts(MRSCont.files{1,kk});
     [~,filename_image,fileext_image]   = fileparts(MRSCont.coreg.vol_image{kk}.fname);
     [~,~,fileext_mask]   = fileparts(MRSCont.coreg.vol_mask{kk}.fname);
 

@@ -101,7 +101,7 @@ else
             base=op_median(in);
             base=[real(base.fids( in.t>=0 & in.t<tmax ,m));imag(base.fids( in.t>=0 & in.t<tmax ,m))];
             ind_min=0;
-        elseif med=='a' || med=='a'
+        elseif med=='a' || med=='A'
             %disp('Aligning all averages to the average of the averages.');
             base=op_averaging(in);
             base=[real(base.fids( in.t>=0 & in.t<tmax ,m));imag(base.fids( in.t>=0 & in.t<tmax ,m))];
@@ -145,6 +145,12 @@ else
     %re-calculate Specs using fft
     specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
     
+    % Add NIfTI-MRS provenance
+    % Generate fields for provenance
+    fields.Method   = 'Frequency and phase correction';
+    fields.Details  = ['Spectral Registration (Near et al. 2015), med = ' med ', dim = DIM_DYN'];
+    in = op_add_analysis_provenance(in,fields);
+
     
     %FILLING IN DATA STRUCTURE
     out=in;

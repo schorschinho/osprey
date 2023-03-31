@@ -30,7 +30,7 @@ function osp_updateSpecsOvWindow(gui)
         delete(gui.Plot.specsOv.Children(2).Children)
         
 %%% 2. VISUALIZATION PART OF THIS TAB %%%
-        Selection = gui.controls.pop_specsOvPlot.String(gui.process.Selected);
+        Selection = gui.controls.pop_specsOvPlot.String(gui.overview.Selected.Spec);
         if gui.controls.GM == 0
             for g = 1 :  gui.overview.Number.Groups %Loop over groups
                 temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z);
@@ -54,12 +54,15 @@ function osp_updateSpecsOvWindow(gui)
             case {'metab','mm'}        
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', ax.XTick)
             case {'ref','w','mm_ref'}
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0 2*4.68])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', ax.XTick)
             otherwise
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', ax.XTick)
         end
         h = findall(groot,'Type','figure');
         for ff = 1 : length(h)

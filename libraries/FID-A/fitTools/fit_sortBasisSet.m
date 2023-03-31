@@ -17,20 +17,30 @@
 
 function basisSetOut = fit_sortBasisSet(basisSetIn)
 
-% Save all available metabolite names in a cell
-all_mets = {'Ala','Asc','Asp','bHB','bHG','Cit','Cr','Cystat','CrCH2','EA','EtOH','fCho','GABA','GPC','GSH','Glc','Gln' ...
-    ,'Glu','Gly','H2O','mI','Lac','NAA','NAAG','PCh','PCr','PE','Phenyl' ...
-    ,'sI','Ser','Tau','Tyros','NAA_Ace','NAA_Asp'};
-
 % Duplicate the input basis set
 basisSetOut = basisSetIn;
 
+% Retrieve the list of valid metabolite names
+allMets = listValidBasisFunctionNames('mets');
+
+% Loop over all entries in the list. If there is a match with the list of
+% names in the input basis set, add the respective basis function to the
+% output basis set.
 actBasisFnct = 1;
-for kk = 1 : length(all_mets)
-    name = all_mets{kk};
-    idx          = find(strcmp(basisSetIn.name,name));
+for kk = 1 : length(allMets)
+    name = allMets{kk};
+    % If there is more than one synonym, search for all of them
+    idx          = find(ismember(basisSetIn.name,name));
     if ~isempty(idx)
-        basisSetOut.name{actBasisFnct} = basisSetIn.name{idx};
+        % If there is a match, name accordingly to the list of valid
+        % metabolite names
+        if iscell(name)
+            % If the metabolite has several synonyms, name it according
+            % to the first entry (which is the Osprey default).
+            basisSetOut.name{actBasisFnct}   = name{1};
+        else
+            basisSetOut.name{actBasisFnct}   = name;
+        end
         basisSetOut.fids(:,actBasisFnct,:)   = basisSetIn.fids(:,idx,:);
         basisSetOut.specs(:,actBasisFnct,:)  = basisSetIn.specs(:,idx,:);
         actBasisFnct = actBasisFnct + 1;
@@ -38,26 +48,40 @@ for kk = 1 : length(all_mets)
 end
 basisSetOut.nMets = actBasisFnct-1;
 
-all_MMs = {'MM09','MM12','MM14','MM17','MM20','MM22', 'MM27','MM30','MM32','Lip09','Lip13','Lip20','MM37','MM38','MM40','MM42','MMexp','MM_PRESS_PCC','MM_PRESS_CSO'};
-for kk = 1 : length(all_MMs)
-    name = all_MMs{kk};
-    idx          = find(strcmp(basisSetIn.name,name));
+% Do the same for MMs
+allMMs = listValidBasisFunctionNames('mm');
+for kk = 1 : length(allMMs)
+    name = allMMs{kk};
+    % If there is more than one synonym, search for all of them
+    idx          = find(ismember(basisSetIn.name,name));
     if ~isempty(idx)
-        basisSetOut.name{actBasisFnct} = basisSetIn.name{idx};
+        % If there is a match, name accordingly to the list of valid
+        % metabolite names
+        if iscell(name)
+            % If the metabolite has several synonyms, name it according
+            % to the first entry (which is the Osprey default).
+            basisSetOut.name{actBasisFnct}   = name{1};
+        else
+            basisSetOut.name{actBasisFnct}   = name;
+        end
         basisSetOut.fids(:,actBasisFnct,:)   = basisSetIn.fids(:,idx,:);
         basisSetOut.specs(:,actBasisFnct,:)  = basisSetIn.specs(:,idx,:);
         actBasisFnct = actBasisFnct + 1;
     end
 end
-
 basisSetOut.nMM = actBasisFnct - basisSetOut.nMets-1;
 
+% Since we duplicated the input basis set in the beginning and just kept
+% the valid metabolites that we could find in the basis set, we need to
+% remove any 'surplus' ones at the end.
 try
     basisSetOut.name(actBasisFnct:end) = [];
     basisSetOut.fids(:,actBasisFnct:end,:)   = [];
     basisSetOut.specs(:,actBasisFnct:end,:)  = [];
 catch
 end
+
+% Write new size of the basis set.
 basisSetOut.sz = size(basisSetOut.fids);
 
 end

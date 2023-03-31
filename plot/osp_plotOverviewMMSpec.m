@@ -180,6 +180,8 @@ end
 %%% 4. DESIGN FINETUNING %%%
 % Adapt common style for all axes
 set(gca, 'XDir', 'reverse', 'XLim', [ppmRange(1), ppmRange(end)], 'XMinorTick', 'On');
+ticks = get(gca,'XTick');
+set(gca, 'XTick', unique(round(ticks)));
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
 % If no y caption, remove y axis

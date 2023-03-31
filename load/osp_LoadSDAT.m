@@ -83,6 +83,8 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw         = io_loadspec_sdat(MRSCont.files{metab_ll,kk},4,MRSCont.flags.isSERIES);
                 raw.flags.isHERCULES = 1;
             end
+            % Add NIfTI-MRS information
+            raw                           = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);
             MRSCont.raw{metab_ll,kk}      = raw;
 
             % Read in the raw MM data. re_mm
@@ -102,6 +104,8 @@ for kk = 1:MRSCont.nDatasets(1)
                     raw_mm = io_loadspec_sdat(MRSCont.files_mm{temp_ll,kk},1,MRSCont.flags.isSERIES); %re_mm
                     raw_mm.flags.isHERCULES = 1;
                 end
+                % Add NIfTI-MRS information
+                raw_mm                      = osp_add_nii_mrs_field(raw_mm,MRSCont.ver.Osp);
                 MRSCont.raw_mm{temp_ll,kk}  = raw_mm;
             end %re_mm      
 
@@ -125,6 +129,8 @@ for kk = 1:MRSCont.nDatasets(1)
                     raw_ref = op_combine_water_subspecs(raw_ref,0);
                     raw_ref.flags.isHERCULES = 1;
                 end
+                % Add NIfTI-MRS information
+                raw_ref                     = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp);
                 MRSCont.raw_ref{ref_ll,kk}  = raw_ref;
             end
             if MRSCont.flags.hasWater
@@ -132,6 +138,8 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw_w   = io_loadspec_sdat(MRSCont.files_w{w_ll,kk},1,MRSCont.flags.isSERIES);
                 raw_w = op_combine_water_subspecs(raw_w,0);
                 raw_w.flags.isUnEdited = 1;
+                % Add NIfTI-MRS information
+                raw_w                     = osp_add_nii_mrs_field(raw_w,MRSCont.ver.Osp);
                 MRSCont.raw_w{w_ll,kk}    = raw_w;
             end
 
@@ -155,6 +163,8 @@ for kk = 1:MRSCont.nDatasets(1)
                     raw_mm_ref = op_combine_water_subspecs(raw_mm_ref,0);
                     raw_mm_ref.flags.isHERCULES = 1;
                 end
+                % Add NIfTI-MRS information
+                raw_mm_ref                      = osp_add_nii_mrs_field(raw_mm_ref,MRSCont.ver.Osp);
                 MRSCont.raw_mm_ref{temp_ll,kk}  = raw_mm_ref;
             end
         end
