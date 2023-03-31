@@ -43,7 +43,7 @@ num_voxels = numel(fitParams);
 num_datasets = numel(fitParams{1}.(label{1}).fitParams); % ==MRSCont.nDatasets(1)
 total = num_voxels * num_datasets;
 
-fields = fieldnames(fitParams{1}.(label{1}).fitParams{1,1})'; %'
+fields = fieldnames(fitParams{1}.(label{1}).fitParams{1,1})';
 % % % List fieldnames to ignore % % %
 fields(strcmp(fields, 'prelimParams')) = [];
 fields(strcmp(fields, 'LM_out')) = [];
