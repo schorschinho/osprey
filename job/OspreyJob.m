@@ -215,7 +215,6 @@ if strcmp(jobFileFormat,'csv')
      else
         fprintf('Structrual images are not defaced (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.img.deface = 0;
-    end
     if isfield(jobStruct,'exportParams')
         MRSCont.opts.exportParams.flag = 1;
         MRSCont.opts.exportParams.path = jobStruct(1).exportParams;
@@ -224,7 +223,7 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.exportParams.flag = 0;
         MRSCont.opts.exportParams.path = {};
-
+    end
 end
 
 %%% 3b. LOAD JSON FILE %%%
@@ -453,28 +452,6 @@ else if ~isfield(MRSCont.opts.SubSpecAlignment, 'mets')
     end
 end
 
-
-%%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
-% Parse the sequence type entry
-switch seqType
-    case 'unedited'
-        MRSCont.flags.isUnEdited    = 1;
-        MRSCont.opts.editTarget             = {'none'};
-        MRSCont.opts.fit.style = opts.fit.style; 
-        if strcmp(opts.fit.style, 'Concatenated')
-            fprintf('Fitting style was changed to Separate, because this is unedited data.\n');
-            MRSCont.opts.fit.style = 'Separate';
-        end 
-        if ~isfield(MRSCont.opts.fit, 'GAP')
-            MRSCont.opts.fit.GAP.A = [];
-            MRSCont.opts.fit.GAP.mm = [];
-            MRSCont.opts.fit.GAP.ref = [];
-            MRSCont.opts.fit.GAP.ref_mm = [];
-            MRSCont.opts.fit.GAP.w = [];
-        end
-        if ~isfield(MRSCont.opts.fit, 'MeanMM')
-            MRSCont.opts.fit.MeanMM = 0;
-        end
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
         if exist('editTarget','var')
@@ -574,7 +551,6 @@ switch seqType
             if isfield(opts.fit, 'FWHMcoMM3')
                 MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
             end
-            MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
         else
             MRSCont.opts.fit.coMM3 = 'freeGauss';
             MRSCont.opts.fit.FWHMcoMM3 = 14;
