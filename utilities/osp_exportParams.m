@@ -1,4 +1,4 @@
-function osp_exportParams(MRSCont,path)
+function osp_exportParams(MRSCont)
 % osp_exportParam is used to export the fitting parameters optimized during 
 % the Osprey fitting pipeline. The parameter fieldsnames are as follows:
 %     - header      [metadata]
@@ -43,7 +43,7 @@ num_voxels = numel(fitParams);
 num_datasets = numel(fitParams{1}.(label{1}).fitParams); % ==MRSCont.nDatasets(1)
 total = num_voxels * num_datasets;
 
-fields = fieldnames(fitParams{1}.(label{1}).fitParams{1,1})';
+fields = fieldnames(fitParams{1}.(label{1}).fitParams{1,1})'; %'
 % % % List fieldnames to ignore % % %
 fields(strcmp(fields, 'prelimParams')) = [];
 fields(strcmp(fields, 'LM_out')) = [];
@@ -57,13 +57,22 @@ end
 % Used to create continuity between SVS and MRSI
 MRSCont.processed = assertCell(MRSCont.processed);
 MRSCont.QM        = assertCell(MRSCont.QM);
-
+ref = strcmp(MRSCont.QM{1}.tables.Properties.VariableNames, "freqShift");
+MRSCont.QM{1}.tables.Properties.VariableNames(ref) = char("global_freqShift");
+qm_fields = MRSCont.QM{1}.tables.Properties.VariableNames; 
 
 
 % To add additional fitting parameters, the following two statements need to be 
 % copied and modified to indicate the new parameter. Then add another line to 
 % the end of the outer for-loop in the compiling section below.
 ignore = 0;
+% % QM variables, i.e. Cr_SNR, Cr_FWHM, etc.
+for i=1:length(qm_fields)
+    params{length(params)+1} = ones([total, ...
+                                     size(MRSCont.QM{1}.tables.(qm_fields{i})(1))]);
+    fields{length(fields)+1} = qm_fields{i};
+end
+
 % % Eddy currents
 if ismember('phase_ecc',fieldnames(MRSCont.processed{1}.(label{2}){1}))
     params{length(params)+1} = ones([total, ...
@@ -74,12 +83,6 @@ if ismember('phase_ecc',fieldnames(MRSCont.processed{1}.(label{2}){1}))
 else
     ecc = 0;
 end
-
-% % SNR
-params{length(params)+1} = ones([total, ...
-                                 size(MRSCont.QM{1}.SNR.(label{2})(1))]);
-fields{length(fields)+1} = 'SNR';
-ignore = ignore + 1;
 
 
 
@@ -95,16 +98,19 @@ for m=1:num_voxels
         cnt = cnt + 1;
         vxl = voxel{n};
         for i = 1:length(fields)-ignore
-            try
-                params.(fields{i})(cnt,:) = vxl.(fields{i});
-            catch 
-                params.(fields{i})(cnt,:,:) = vxl.(fields{i});
+            if ~strcmp(fields{i},qm_fields)
+                try
+                    params.(fields{i})(cnt,:) = vxl.(fields{i});
+                catch 
+                    params.(fields{i})(cnt,:,:) = vxl.(fields{i});
+                end
+            else
+                params.(fields{i})(cnt,:) = MRSCont.QM{1}.tables.(fields{i})(n,1);
             end
         end
         if ecc==1 
             params.ECC(cnt,:,:) = MRSCont.processed{m}.(label{2}){n}.phase_ecc;
         end
-        params.SNR(cnt,:) = MRSCont.QM{m}.SNR.(label{2})(n);
     end
 end
 
@@ -112,7 +118,8 @@ end
 % The table option does not work because the contents do not have the same dimensions.
 % writetable(array2table(params, 'VariableNames', names), 
 %            fullfile(path,'parameters.csv'),'Delimiter',',');
-save(fullfile(path,'parameters.mat'),'params')
+save(fullfile(MRSCont.opts.exportParams.path,
+              'fitting_parameters.mat'),'-struct','params')
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
