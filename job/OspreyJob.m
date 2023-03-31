@@ -452,6 +452,28 @@ else if ~isfield(MRSCont.opts.SubSpecAlignment, 'mets')
     end
 end
 
+
+%%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
+% Parse the sequence type entry
+switch seqType
+    case 'unedited'
+        MRSCont.flags.isUnEdited    = 1;
+        MRSCont.opts.editTarget             = {'none'};
+        MRSCont.opts.fit.style = opts.fit.style; 
+        if strcmp(opts.fit.style, 'Concatenated')
+            fprintf('Fitting style was changed to Separate, because this is unedited data.\n');
+            MRSCont.opts.fit.style = 'Separate';
+        end 
+        if ~isfield(MRSCont.opts.fit, 'GAP')
+            MRSCont.opts.fit.GAP.A = [];
+            MRSCont.opts.fit.GAP.mm = [];
+            MRSCont.opts.fit.GAP.ref = [];
+            MRSCont.opts.fit.GAP.ref_mm = [];
+            MRSCont.opts.fit.GAP.w = [];
+        end
+        if ~isfield(MRSCont.opts.fit, 'MeanMM')
+            MRSCont.opts.fit.MeanMM = 0;
+        end
     case 'MEGA'
         MRSCont.flags.isMEGA        = 1;
         if exist('editTarget','var')
