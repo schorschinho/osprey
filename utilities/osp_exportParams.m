@@ -58,7 +58,7 @@ end
 MRSCont.processed = assertCell(MRSCont.processed);
 MRSCont.QM        = assertCell(MRSCont.QM);
 ref = strcmp(MRSCont.QM{1}.tables.Properties.VariableNames, "freqShift");
-MRSCont.QM{1}.tables.Properties.VariableNames(ref) = char("global_freqShift");
+MRSCont.QM{1}.tables.Properties.VariableNames{ref} = char("global_freqShift");
 qm_fields = MRSCont.QM{1}.tables.Properties.VariableNames; 
 
 
