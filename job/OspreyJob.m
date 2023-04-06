@@ -454,7 +454,7 @@ else if ~isfield(MRSCont.opts.SubSpecAlignment, 'mets')
     end
 end
 
-if isfield(MRSCont.opts,'exportParams')
+if ~isfield(MRSCont.opts,'exportParams')
     fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
     MRSCont.opts.exportParams.flag = 0;
     MRSCont.opts.exportParams.path = {};
