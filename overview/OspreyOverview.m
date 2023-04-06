@@ -836,7 +836,7 @@ if MRSCont.flags.isGUI  && isfield(progressText,'String')
     pause(1);
 end
 
-if MRSCont.opt.exportParams.flag==1
+if MRSCont.opts.exportParams.flag==1
     osp_exportParams(MRSCont)
 end
 
