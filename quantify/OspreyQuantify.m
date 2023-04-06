@@ -881,7 +881,7 @@ switch Bo
         relax.Glx  = [(1340+1270)/2 (1190+1170)/2 (122+99+135+122)/4 (168+124)/2]; % Mean values from Glu + Glx
 
         % Check if metabolite name is in the look-up table
-        if isfield(relax, metName)
+        if (length(metName) == 1) && (isfield(relax, metName))
             T1_GM = relax.(metName)(1) * 1e-3;
             T1_WM = relax.(metName)(2) * 1e-3;
             T2_GM = relax.(metName)(3) * 1e-3;
