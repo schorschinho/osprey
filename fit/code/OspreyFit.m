@@ -133,16 +133,9 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
         FitNames = fieldnames(MRSCont.fit.resBasisSet);
         NoFit = length(fieldnames(MRSCont.fit.resBasisSet));
         for sf = 1 : NoFit
-            if iscell(MRSCont.fit.resBasisSet.(FitNames{sf}))
-                MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(:,MRSCont.info.metab.unique_ndatapoint_spectralwidth_ind,:);
-                for combs = 1 : length(MRSCont.info.metab.unique_ndatapoint_spectralwidth_ind)
-                    resBasisSetNew.(FitNames{sf}).([MRSCont.info.metab.unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf})(:,combs,:);
-                end
-            else
-                MRSCont.fit.resBasisSet.(FitNames{sf}).water = MRSCont.fit.resBasisSet.(FitNames{sf}).water(MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind);
-                for combs = 1 : length(MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind)
-                    resBasisSetNew.(FitNames{sf}).water.([MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf}).water{combs};
-                end
+            MRSCont.fit.resBasisSet.(FitNames{sf}) = MRSCont.fit.resBasisSet.(FitNames{sf})(:,MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind,:);
+            for combs = 1 : length(MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth_ind)
+                resBasisSetNew.(FitNames{sf}).([MRSCont.info.(FitNames{sf}).unique_ndatapoint_spectralwidth{combs}]) = MRSCont.fit.resBasisSet.(FitNames{sf})(:,combs,:);
             end
         end
         MRSCont.fit.resBasisSet = resBasisSetNew;
