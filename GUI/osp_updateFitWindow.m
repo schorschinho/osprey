@@ -78,7 +78,7 @@ function osp_updateFitWindow(gui)
                 waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 % Where are the metabolite names stored?
                 if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                    basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth))]){1};
+                    basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.(gui.fit.Style){gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.(gui.fit.Style){gui.controls.Selected}.spectralwidth))]){1};
                     basisSetNames = basisSet.name;
                 else if strcmp(gui.fit.Style, 'conc')
                         basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth))]){basis,1};
