@@ -127,8 +127,11 @@ save(fullfile(MRSCont.opts.exportParams.path,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [hdr, label] = get_header(MRSCont)
-    possible_keys = {{'metab','metab'},     % SVS
-                     {'off','A'}};          % MRSI - edited?
+    possible_keys = {{'metab','metab'},     % Osprey v2.0.0 and newer
+                     {'off','A'},           % Osprey v1.2.0 and older (legacy)
+                     {'diff1,'diff1'},
+                     {'diff2,'diff2'}
+                     {'sum,'sum'}};          
     fields = fieldnames(MRSCont.fit.resBasisSet)';
     for i=1:length(fields)
         for n=1:length(possible_keys)
