@@ -116,12 +116,12 @@ opts.SubSpecAlignment.mets = 'L2Norm';          % OPTIONS:    - 'L2Norm' (defaul
 %supplying a single value or specified for each dataset individually by supplying
 % multiple entries (number has to match the number of datasets) e.g. to perform ECC
 % for the second dataset only:
-% opts.ECC.raw                = [0 1];
-% opts.ECC.mm                = [0 1];
+% opts.ECC.raw              = [0 1];
+% opts.ECC.mm               = [0 1];
 
 
 opts.ECC.raw                = 0;                % OPTIONS:    - '1' (default)
-opts.ECC.mm                = 0;                 %             - '0' (no)
+opts.ECC.mm                 = 0;                %             - '0' (no)
                                                 %             - [] array
 
 
@@ -141,8 +141,14 @@ opts.saveNII                = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 
 % Save PDF output for all Osprey modules and subjects?
-opts.savePDF             = 0;                % OPTIONS:    - 0 (no, default)
+opts.savePDF                = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
+
+% Save mat file of the compiled fitting parameters?
+opts.exportParams.flag      = 0;                % Options:    - 0 (no, default)
+                                                %             - 1 (yes)
+opts.exportParams.path      = '';               % Replace with string for the path 
+                                                % to the save directory
 
 % Select the metabolites to be included in the basis set as a cell array,
 % with entries separates by commas.
@@ -156,16 +162,16 @@ opts.fit.includeMetabs      = {'default'};      % OPTIONS:    - {'default'}
                                                 %             - {custom}
 
 % Choose the fitting algorithm
-opts.fit.method             = 'Osprey';       % OPTIONS:    - 'Osprey' (default)
-                                                %           - 'LCModel'
+opts.fit.method             = 'Osprey';         % OPTIONS:    - 'Osprey' (default)
+                                                %             - 'LCModel'
 
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
 % (only available for the Osprey fitting method)
-opts.fit.style              = 'Separate';   % OPTIONS:  - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
-                                                %           - 'Separate' - will fit DIFF and OFF separately
+opts.fit.style              = 'Separate';       % OPTIONS:    - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
+                                                %             - 'Separate' - will fit DIFF and OFF separately
 
 % Determine fitting range (in ppm) for the metabolite and water spectra
-opts.fit.range              = [0.5 4];        % [ppm] Default: [0.5 4]
+opts.fit.range              = [0.5 4];          % [ppm] Default: [0.5 4]
 opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
 
 % Determine the baseline knot spacing (in ppm) for the metabolite spectra
@@ -177,10 +183,10 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 
 % Here we define some extra flags for datasets with metabolite-nulled dataset
 % Add a separate Gaussian lineshape parameter for the measured MM basis function
-opts.fit.GaussLBMM = 0;                          % OPTIONS:    - 0 (no, default)
+opts.fit.GaussLBMM          = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 % Re-run the linear-combiantion model with the cohort-averaged measured MM basis function
-opts.fit.MeanMM = 1;                            % OPTIONS:    - 0 (no)
+opts.fit.MeanMM             = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 
 % Optional: In case the automatic basisset picker is not working you can manually
@@ -189,7 +195,7 @@ opts.fit.MeanMM = 1;                            % OPTIONS:    - 0 (no)
 
 % Optional: Deface the strucutral images in the Coreg/Seg figures for HIPAA
 % compliance 
-opts.img.deface     = 0;
+opts.img.deface             = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

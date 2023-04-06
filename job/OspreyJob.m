@@ -215,6 +215,14 @@ if strcmp(jobFileFormat,'csv')
      else
         fprintf('Structrual images are not defaced (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.img.deface = 0;
+    if isfield(jobStruct,'exportParams')
+        MRSCont.opts.exportParams.flag = 1;
+        MRSCont.opts.exportParams.path = jobStruct(1).exportParams;
+        assert(isstring(jobStruct(1).exportParams), 'When exporting spectral fitting parameters, "exportParams" must be a string specifying the save directory')
+    else
+        fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.exportParams.flag = 0;
+        MRSCont.opts.exportParams.path = {};
     end
 end
 
@@ -401,6 +409,14 @@ if strcmp(jobFileFormat,'json')
         opts.img.deface = 0;
     end
     debug = '11';
+    if isfield(jobStruct,'exportParams')
+        MRSCont.opts.exportParams.flag = 1;
+        MRSCont.opts.exportParams.path = jobStruct.exportParams;
+        assert(isstring(jobStruct.exportParams), 'When exporting spectral fitting parameters, "exportParams" must be a string specifying the save directory')
+    else
+        fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.exportParams.flag = 0;
+        MRSCont.opts.exportParams.path = {};
 end
 
 if exist('opts','var')
@@ -409,7 +425,7 @@ if exist('opts','var')
         if ~strcmp(names{f},'fit') && ~strcmp(names{f},'ECC')
             MRSCont.opts.(names{f}) = opts.(names{f});
         else
-        	names_second = fields(opts.(names{f}));
+            names_second = fields(opts.(names{f}));
             for nf = 1 : length(names_second)
                 MRSCont.opts.(names{f}).(names_second{nf}) = opts.(names{f}).(names_second{nf}); 
             end
@@ -940,4 +956,3 @@ diary off
 close all;
 
 end
-
