@@ -210,11 +210,12 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Adding macromolecule and lipid basis functions to the fit (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.fitMM = 1;
     end
-     if isfield(jobStruct,'deface')
+    if isfield(jobStruct,'deface')
         MRSCont.opts.img.deface = jobStruct.deface;
-     else
+    else
         fprintf('Structrual images are not defaced (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.img.deface = 0;
+    end
     if isfield(jobStruct,'exportParams')
         MRSCont.opts.exportParams.flag = 1;
         MRSCont.opts.exportParams.path = jobStruct(1).exportParams;
@@ -417,6 +418,7 @@ if strcmp(jobFileFormat,'json')
         fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.exportParams.flag = 0;
         MRSCont.opts.exportParams.path = {};
+    end
 end
 
 if exist('opts','var')
