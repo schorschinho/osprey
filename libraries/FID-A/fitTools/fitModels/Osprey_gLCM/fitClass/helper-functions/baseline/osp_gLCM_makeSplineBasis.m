@@ -170,7 +170,7 @@ eitherSide = round((length(baselineRangeExtended) - length(dataToFit.ppm))/2);
 
 % We append with zeros and do a circshift so we can comfortably move the
 % spline array along
-appendWith = zeros(1000, size(splineBasisFunctionMatrix,2));
+appendWith = zeros(3000, size(splineBasisFunctionMatrix,2));
 splineBasisFunctionMatrix = cat(1, appendWith, splineBasisFunctionMatrix, appendWith);
 
 % find the required shift
@@ -179,7 +179,7 @@ neededShift = (mean(dataToFit.ppm) - mean(ppm))/dppm;
 splineBasisFunctionMatrix = circshift(splineBasisFunctionMatrix, floor(neededShift), 1);
 
 % crop
-splineInnerBasisFunctionMatrix = splineBasisFunctionMatrix(1000+eitherSide+1:1000+eitherSide+length(dataToFit.ppm),:);
+splineInnerBasisFunctionMatrix = splineBasisFunctionMatrix(3000+eitherSide+1:3000+eitherSide+length(dataToFit.ppm),:);
 
 % Return variables
 splineArray = splineInnerBasisFunctionMatrix;
