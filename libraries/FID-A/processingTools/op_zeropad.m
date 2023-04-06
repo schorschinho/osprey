@@ -33,11 +33,22 @@ if nargin < 3
     factor = 1;
 end
 
-if factor %zeropadding by a factor
-    %Add zeros using pad function from FileExchange;
-    fids=op_pad(in.fids,in.sz(1)*zpFactor,'zero');
-else %zeropadding up to a certain number 
-    fids=op_pad(in.fids,zpFactor,'zero');
+if in.dims.extras == 0
+    if factor %zeropadding by a factor
+        %Add zeros using pad function from FileExchange;
+        fids=op_pad(in.fids,in.sz(1)*zpFactor,'zero');
+    else %zeropadding up to a certain number 
+        fids=op_pad(in.fids,zpFactor,'zero');
+    end
+else
+    for ex = 1 : in.sz(in.dims.extras)
+        if factor %zeropadding by a factor
+            %Add zeros using pad function from FileExchange;
+            fids(:,ex)=op_pad(squeeze(in.fids(:,ex)),in.sz(1)*zpFactor,'zero');
+        else %zeropadding up to a certain number 
+            fids(:,ex)=op_pad(squeeze(in.fids(:,ex)),zpFactor,'zero');
+        end
+    end
 end
     
 
@@ -54,7 +65,7 @@ f=[(-in.spectralwidth/2)+(in.spectralwidth/(2*sz(1))):...
     (in.spectralwidth/2)-(in.spectralwidth/(2*sz(1)))];
 
 ppm=f/(in.Bo*42.577);
-ppm=ppm+in.centerFreq;
+ppm=ppm+in.centerFreq(1);
 
 t=[0:in.dwelltime:(sz(1)-1)*in.dwelltime];
 

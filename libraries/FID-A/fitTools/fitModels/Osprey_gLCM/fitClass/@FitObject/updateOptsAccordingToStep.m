@@ -1,5 +1,27 @@
 function updateOptsAccordingToStep(obj, options)
-    % Initialize an empty container
+%%  updateOptsAccordingToStep(obj, options)
+%   This is the method updates the parametrization options in the
+%   OspreyFitObj according to the model procedure step
+%
+%   USAGE:
+%       obj.updateOptsAccordingToStep(options)
+
+%   INPUTS:
+%       options            = struct with parametrization options   
+%       
+%   OUTPUTS:
+%       obj     = OspreyFitObj.
+%
+%   AUTHOR:
+%       Dr. Helge Zoellner (Johns Hopkins University, 2023-03-07)
+%       hzoelln2@jhmi.edu
+%
+%   CREDITS:
+%       This code is based on numerous functions from the FID-A toolbox by
+%       Dr. Jamie Near (McGill University)
+%       https://github.com/CIC-methods/FID-A
+%       Simpson et al., Magn Reson Med 77:23-33 (2017)
+%% Update parameters
     if ~isfield(options, 'optimDomain')
         options.optimDomain = 'FD'; % FD, TD, or FDTD
     else
@@ -84,6 +106,5 @@ function updateOptsAccordingToStep(obj, options)
         
     end
 
-    % Save the property struct
-    obj.Options{obj.step+1} = options;
+    obj.Options{obj.step+1} = options;                                      % Store options in OspreyFitObj
 end

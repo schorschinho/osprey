@@ -1,164 +1,252 @@
 function obj = createModel(obj)
-            
-    % This is the heart and soul of this class. This function takes
-    % the parametrizations defined in the options, and translates
-    % them into the appropriate loss and gradient functions.    
-    
-    obj.step            = obj.step + 1;
-    % If an inital fit should be performed on a single spectrum we need to
-    % restore pick this single spectrum
-    if isfield(obj.Options{obj.step}, 'InitialPick')
-        if obj.Options{obj.step}.InitialPick > 0
-            temp.BasisSets.fids  = obj.BasisSets.fids;
-            temp.Data.fids       = obj.Data.fids;
-            obj.BasisSets.fids   = squeeze(obj.BasisSets.fids(:,:,obj.Options{obj.step}.InitialPick));
-            obj.Data.fids        = obj.Data.fids(:,obj.Options{obj.step}.InitialPick);            
+%%  obj = createModel(obj)
+%   This is the heart and soul of this class. This method takes
+%   the parametrizations defined in the options, and translates
+%   them into the appropriate loss and gradient functions.   
+%
+%   USAGE:
+%       obj.createModel()
+%
+%   OUTPUTS:
+%       obj     = OspreyFitObj.
+%
+%   AUTHOR:
+%       Dr. Helge Zoellner (Johns Hopkins University, 2023-03-07)
+%       hzoelln2@jhmi.edu
+%
+%   CREDITS:
+%       This code is based on numerous functions from the FID-A toolbox by
+%       Dr. Jamie Near (McGill University)
+%       https://github.com/CIC-methods/FID-A
+%       Simpson et al., Magn Reson Med 77:23-33 (2017)
+%%  Get object details
+                
+    obj.step            = obj.step + 1;                      % Update fit step counter
+   
+    if isfield(obj.Options{obj.step}, 'InitialPick')         % If an inital fit should be performed on a single spectrum we need to restore pick this single spectrum
+        if obj.Options{obj.step}.InitialPick > 0             % Inital spectrum defined for 2D modeling
+            temp.BasisSets.fids  = obj.BasisSets.fids;       % Backup full basis set
+            temp.Data.fids       = obj.Data.fids;            % Backup full data
+            obj.BasisSets.fids   = squeeze(obj.BasisSets.fids(:,:,obj.Options{obj.step}.InitialPick)); % Extract basis set for inital fit
+            obj.Data.fids        = obj.Data.fids(:,obj.Options{obj.step}.InitialPick);  % Extract data for inital fit          
         end
     end
-    % Collect the basis functions
-    basisSet            = obj.BasisSets;
-    baselineBasis       = obj.BaselineBasis;
-    data                = obj.Data.fids;
-    ppm                 = obj.Data.ppm;
-    t                   = obj.Data.t;
-    Domain              = obj.Options{obj.step}.optimDomain;
-    fitRange            = obj.Options{obj.step}.optimFreqFitRange;
-    SignalPart          = obj.Options{obj.step}.optimSignalPart;
-    solver              = obj.Options{obj.step}.solver;
-    NormNoise           = obj.NormNoise;   
-    
-    
+    basisSet            = obj.BasisSets;                                    % Get basis set
+    baselineBasis       = obj.BaselineBasis;                                % Get baseline basis
+    data                = obj.Data.fids;                                    % Get time domain data
+    ppm                 = obj.Data.ppm;                                     % Get ppm axis
+    t                   = obj.Data.t;                                       % Get time vector
+    Domain              = obj.Options{obj.step}.optimDomain;                % Get optimization domain
+    fitRange            = obj.Options{obj.step}.optimFreqFitRange;          % Get model range
+    SignalPart          = obj.Options{obj.step}.optimSignalPart;            % Get optimization signal part
+    solver              = obj.Options{obj.step}.solver;                     % Get solver name
+    NormNoise           = obj.NormNoise;                                    % Get 1-point noise estimate    
+    basisSet.fids       = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:); % Only use basis functions that are included
 
-    
-    % Only use basis functions that are included
-    basisSet.fids   = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:);
-    
+%%  Update parameterizations according to model prcedure step
+
     % Create x0, lb, ub vectors by iteratively calling the
     % parameter-class-specific initialization
-%     pars = {'ph0', 'ph1', 'gaussLB', 'metAmpl', 'freqShift', 'lorentzLB', 'baseAmpl'};
-    pars = obj.Options{obj.step}.parameter;
-    parsInit = [];
-    parslb = [];
-    parsub = [];
-    parsfun = [];
-    for pp = 1:length(pars)
-        [parsInit, parslb, parsub, parsfun] = initializeParameters(obj, parsInit, parslb, parsub, parsfun, pars{pp});
-    end
+    pars = obj.Options{obj.step}.parameter;                 % Get parameter names
+    parsInit = [];                                          % Initialize parsInit struct
+    parslb = [];                                            % Initialize parslb struct
+    parsub = [];                                            % Initialize parsub struct
+    parsfun = [];                                           % parsfun parsInit struct
+    for pp = 1:length(pars)                                 % Loop over parameters
+        [parsInit, parslb, parsub, parsfun] = initializeParameters(obj, parsInit, parslb, parsub, parsfun, pars{pp}); % Generate parameter structs
+    end                                                     % End loop over parameters
 
-    % Set handles and create x0, lb, and ub vectors
-    eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])
-    [x0, indexStruct] = h.pars2x(parsInit);
-    [lb,~] = h.pars2x(parslb);
-    [ub,~] = h.pars2x(parsub);
+    eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])  % Set model function handle from ModelFunction field (e.g. GeneralizedPhhysicsModel)
+    [x0, indexStruct] = h.pars2x(parsInit);                 % Create x0 vector
+    [lb,~] = h.pars2x(parslb);                              % Create lb vector
+    [ub,~] = h.pars2x(parsub);                              % Create ub vector
     
     % Update the parametrization according to the 2D json file. This is
     % crucial to define the type (free, fixed, dynamic) and new bounds
-    for pp = 1:length(pars)
-        obj.Options{obj.step}.parametrizations.(pars{pp}).start = indexStruct.(pars{pp}).start;
-        obj.Options{obj.step}.parametrizations.(pars{pp}).end = indexStruct.(pars{pp}).end;
-        obj.Options{obj.step}.parametrizations.(pars{pp}).init = parsInit.(pars{pp});
-        obj.Options{obj.step}.parametrizations.(pars{pp}).lb = parslb.(pars{pp});
-        obj.Options{obj.step}.parametrizations.(pars{pp}).ub = parsub.(pars{pp});
-        obj.Options{obj.step}.parametrizations.(pars{pp}).type = parsfun.(pars{pp});
-    end
-    parametrizations = obj.Options{obj.step}.parametrizations;
+    for pp = 1:length(pars)                                 % Loop over parameters
+        if isfield(indexStruct,pars{pp})                    % Avoid any entries in the struct that are not parameters
+            obj.Options{obj.step}.parametrizations.(pars{pp}).start = indexStruct.(pars{pp}).start; % Update start index for x vector
+            obj.Options{obj.step}.parametrizations.(pars{pp}).end = indexStruct.(pars{pp}).end; % Update end index for x vector
+            obj.Options{obj.step}.parametrizations.(pars{pp}).init = parsInit.(pars{pp}); % Update init values
+            obj.Options{obj.step}.parametrizations.(pars{pp}).lb = parslb.(pars{pp});  % Update lb values
+            obj.Options{obj.step}.parametrizations.(pars{pp}).ub = parsub.(pars{pp}); % Update ub values
+            obj.Options{obj.step}.parametrizations.(pars{pp}).type = parsfun.(pars{pp}); % Update type strings
+        end
+    end                                                     % End loop over parameters
     
-    % Setup lossfunction outputs
-    switch solver
-        case {'lbfgsb', 'fminsearch'}
-            sse = 'sos';
-        case 'lsqnonlin'
-            sse = 'res';
+    if isempty(obj.BaselineBasis)                                           % baseline setting none
+        obj.Options{obj.step}.parametrizations.baseAmpl.start = 0;          % No baseline start index for x vector
+        obj.Options{obj.step}.parametrizations.baseAmpl.end = 0;            % No baseline end index for x vector
+        obj.Options{obj.step}.parametrizations.baseAmpl.type = 'none';      % Type none
+    end
+    parametrizations = obj.Options{obj.step}.parametrizations;              % Write parametrization in variable for solver
+    
+    
+    if sum(cellfun(@isstruct,obj.returnParametrization(1,'RegFun'))) > 0    % Apply regularizer?
+       Reg = 1;                                                             % Set regualrizer to yes
+    else
+        Reg = 0;                                                            % Set regualrizer to no
     end
 
-    % Prepare the function wrapper
-    fcn  = @(x) h.lossFunction(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Domain,sse,parametrizations);
+%% Setup inputs for optimizers 
    
-    switch solver
-        case 'lbfgsb'
-            grad = @(x) h.forwardGradient(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,parametrizations);
-             % Request very high accuracy:
-            opts            = struct('factr', 1e7, 'pgtol', 1e-2, 'm', 5);
-            opts.printEvery = 1;
-            % Run the algorithm:
-            % Feed initial guess from the input parameters
-            opts.x0 = x0;
-            tstart = tic;
-            [xk, ~, info] = lbfgsb({fcn,grad}, lb, ub, opts );
-            time = toc(tstart);
+    switch solver                                        % Switch to setup lossfunction outputs according to solver
+        case {'lbfgsb', 'fminsearch'}
+            sse = 'sos';                                 % Uses sum of squares
         case 'lsqnonlin'
-            jac = @(x) h.forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,parametrizations);
-            fun  = @(x) h.fminunc_wrapper(x, fcn, jac);
-            if obj.Options{obj.step}.NumericJacobian
+            sse = 'res';                                 % Uses residual vector
+    end
+
+    % Set lossfunction handle
+    fcn  = @(x) h.lossFunction(x, ...               % x vector with parameters to optimize
+                               data, ...            % time domain data matrix
+                               NormNoise, ...       % 1-point noise estimate
+                               basisSet, ...        % basis set struct
+                               baselineBasis, ...   % baseline basis set
+                               ppm, ...             % ppm axis
+                               t, ...               % time vector
+                               fitRange, ...        % model range
+                               SignalPart, ...      % optimization signal part
+                               Domain, ...          % optimization domain
+                               sse, ...             % lossfunction string
+                               Reg, ...             % regularizer flag
+                               parametrizations);   % parameter struct
+    
+    switch solver                                        % Switch to pick solver
+        case 'lbfgsb'
+            % Set gradient function handle
+            grad = @(x) h.forwardGradient(x, ...            % x vector with parameters to optimize
+                                          data, ...         % time domain data matrix
+                                          NormNoise, ...    % 1-point noise estimate
+                                          basisSet, ...     % basis set struct
+                                          baselineBasis, ...% baseline basis set
+                                          ppm, ...          % ppm axis
+                                          t, ...            % time vector
+                                          fitRange, ...     % model range
+                                          SignalPart, ...   % optimization signal part
+                                          Reg, ...          % regularizer flag
+                                          parametrizations);% parameter struct
+            
+            opts            = struct('factr', 1e7, 'pgtol', 1e-2, 'm', 5, 'printEvery', 0); % Set solver options
+            opts.x0 = x0';
+
+            tstart = tic;                                               % Start timer
+            [xk, ~, info] = lbfgsb({fcn,grad}, lb', ub', opts );        % Run solver
+            time = toc(tstart);                                         % End timer
+
+        case 'lsqnonlin'               % Levenberg-Marquardt solver
+            if obj.Options{obj.step}.NumericJacobian                    % Use numerically calculated jacobian (slow)
                 SpecifyObjectiveGradient = false;
             else
                 SpecifyObjectiveGradient = true;
             end
-            if obj.Options{obj.step}.CheckGradient
+            if obj.Options{obj.step}.CheckGradient                      % Perform gradient check (for debugging)
                 CheckGrad = true;
+                NormNoise = [];
             else
                 CheckGrad = false;
             end
-            opts = optimoptions('lsqnonlin','Display','iter','Algorithm','levenberg-marquardt','SpecifyObjectiveGradient',SpecifyObjectiveGradient,...
-                                'CheckGradients',CheckGrad,'FiniteDifferenceType','central','MaxIterations',1000,'Display','iter');
-            tstart = tic;            
-            [xk,info.resnorm,info.residual,info.exitflag,info.output,info.lambda,info.jacobian] = lsqnonlin(fun, x0, lb, ub, opts );
-            time = toc(tstart);    
-        case 'fminsearch'
-            opts = optimset('fminsearch');
-            opts.Display = 'iter';
-            % Run the algorithm:
-            % Feed initial guess from the input parameters
-            tstart = tic;
-            [xk, ~, info] = fminsearchbnd(fcn, x0, lb, ub, opts);
-            time = toc(tstart);
+            % Set jacobian handle
+            jac = @(x) h.forwardJacobian(x, ...             % x vector with parameters to optimize
+                                         data, ...          % time domain data matrix
+                                         NormNoise, ...     % 1-point noise estimate
+                                         basisSet, ...      % basis set struct
+                                         baselineBasis, ... % baseline basis set
+                                         ppm, ...           % ppm axis
+                                         t, ...             % time vector
+                                         fitRange, ...      % model range
+                                         SignalPart, ...    % optimization signal part
+                                         Reg, ...           % regularizer flag
+                                         parametrizations); % parameter struct
+            % Set fminunc wrappper handle
+            fun  = @(x) h.fminunc_wrapper(x, fcn, jac);
+             % Set solver options
+            opts = optimoptions('lsqnonlin', ...
+                                'Algorithm','levenberg-marquardt', ...      % Use LM
+                                'SpecifyObjectiveGradient',SpecifyObjectiveGradient,... % Use analytic jacobian
+                                'CheckGradients',CheckGrad, ...             % Check gradient
+                                'FiniteDifferenceType','central', ...       % for numerically calculated jacobian only
+                                'MaxIterations',1000, ...                   % Iterations
+                                'Display','none');                         % Display no iterations
+
+            % Set tolerance this is useful for the regularization
+            % optimization
+            if isfield(obj.Options{obj.step},'FunctionTolerance')
+                opts.FunctionTolerance = obj.Options{obj.step}.FunctionTolerance;
+            end
+            if isfield(obj.Options{obj.step},'StepTolerance')
+                opts.StepTolerance = obj.Options{obj.step}.StepTolerance;
+            end
+            if isfield(obj.Options{obj.step},'OptimalityTolerance')
+                opts.OptimalityTolerance = obj.Options{obj.step}.OptimalityTolerance;
+            end
+
+            tstart = tic;                                               % Start timer           
+            [xk,info.resnorm,info.residual,info.exitflag,info.output,info.lambda,info.jacobian] = lsqnonlin(fun, x0, lb, ub, opts ); % Run solver
+            time = toc(tstart);                                         % End timer 
+
+        case 'fminsearch'               % Simplex algorithm uses no jacobian
+            opts = optimset('fminsearch');                  % Set solver options
+
+            tstart = tic;                                               % Start timer
+            [xk, ~, info] = fminsearchbnd(fcn, x0, lb, ub, opts);       % Run solver
+            time = toc(tstart);                                         % End timer
+
     end
+
+%% Calculate CRLB
+    spec            = fftshift(fft(data, [], 1), 1);                % Get spectra
+    secDim          = size(data,2);                                 % Number of entries along indirect dimension     
+    parsOut         = h.x2pars(xk, secDim, parametrizations);       % Get final parametes
+
+    jac = h.forwardJacobian(xk, ...            % x vector with final parameter estimates
+                            data, ...          % time domain data matrix
+                            NormNoise, ...     % 1-point noise estimate
+                            basisSet, ...      % basis set struct
+                            baselineBasis, ... % baseline basis set
+                            ppm, ...           % ppm axis
+                            t, ...             % time vector
+                            fitRange, ...      % model range
+                            'C', ...           % get complex-valued jacobian
+                            Reg, ...           % regularizer flag
+                            parametrizations); % parameter struct
+
+    fisher = real(jac'*jac);                            % calculate the fisher matrix
     
+    invFisher = pinv(fisher);                           % invert fisher matrix
+    crlbs = sqrt(diag(invFisher));                      % get raw CRLBs values
+    CRLB = h.x2pars(crlbs, secDim, parametrizations);   % convert CRLBs to parameter struct
+    
+    relativeCRLB = CRLB.metAmpl(1,:)./parsOut.metAmpl(1,:) * 100; % Relative CRLBs for amplitudes
 
     
-    % Save modeling results
-    spec            = fftshift(fft(data, [], 1), 1);
-    nBasisFcts      = size(basisSet.fids, 2);
-    secDim          = size(data,2);      
-    parsOut         = h.x2pars(xk, secDim, parametrizations);
-    [fit, baseline, metabs] = h.forwardModel(xk, basisSet, baselineBasis, ppm, t, parametrizations);
-    obj.Model{obj.step}.fit.fit       = fit;
-    obj.Model{obj.step}.fit.baseline  = baseline;
-    obj.Model{obj.step}.fit.residual  = spec - fit;
-    obj.Model{obj.step}.fit.metabs    = metabs;
-    obj.Model{obj.step}.time          = time;
-    obj.Model{obj.step}.parsOut       = parsOut;
-    obj.Model{obj.step}.info          = info;
-    
-    % Calculate CRLB
-    [indMin, indMax] = h.ppmToIndex(ppm, fitRange);
-    jac = h.forwardJacobian(xk, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange, 'C',parametrizations);
-    SigmaSquared = (NormNoise * length(data(indMin:indMax)))^2;
-%     jac = -jac * SigmaSquared;
-    
-    % estimating the sigma based on the residual
-    
-    sigma   = std(real(obj.Model{obj.step}.fit.residual(indMin:indMax)));
-
-    %calculate the fisher matrix
-    fisher = (1./(sigma^2)) .* real(jac'*jac);
-    
-    %fisher = fisher + ones(size(fisher))*eps;
-    invFisher = pinv(fisher);
-    crlbs = sqrt(diag(invFisher));
-    CRLB = h.x2pars(crlbs, secDim, parametrizations);
-    
-   
-    %Relative CRLBs in percent
-    relativeCRLB = CRLB.metAmpl./parsOut.metAmpl * 100;
-
-    % Save table with basis function names and relative CRLB
-    % Only use basis functions that are included
-    obj.Model{obj.step}.rawCRLB = CRLB;
+    obj.Model{obj.step}.rawCRLB = CRLB;                 % Save raw CRLBs
     try
-        obj.Model{obj.step}.CRLB = array2table(relativeCRLB,'VariableNames',basisSet.names(:, logical(basisSet.includeInFit(obj.step,:))));
+        obj.Model{obj.step}.CRLB = array2table(relativeCRLB,'VariableNames',basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)))); % Save table with basis function names and relative CRLBs
     catch
-    end
+    end    
+         
+%% Store outputs and do some clean-up    
+
+    % Generate final model for plots
+    [fit, baseline, metabs] = h.forwardModel(xk, ...                        % x vector with final parameter estimates
+                                             basisSet, ...                  % basis set struct
+                                             baselineBasis, ...             % baseline basis set
+                                             ppm, ...                       % ppm axis
+                                             t, ...                         % time vector
+                                             Reg, ...                       % regularizer flag
+                                             parametrizations);             % parameter struct
+
+    % Save modeling results
+    obj.Model{obj.step}.fit.fit       = fit;                                % Store fit
+    obj.Model{obj.step}.fit.baseline  = baseline;                           % Store baseline
+    obj.Model{obj.step}.fit.residual  = spec - fit;                         % Store residual
+    obj.Model{obj.step}.fit.metabs    = metabs;                             % Store metabolite results
+    obj.Model{obj.step}.time          = time;                               % Store time vector
+    obj.Model{obj.step}.parsOut       = parsOut;                            % Store final parameters
+    obj.Model{obj.step}.info          = info;                               % Store info
+    
+    
 
     % If an inital fit was performed on a single spectrum we need to
     % restore the original dimensions
