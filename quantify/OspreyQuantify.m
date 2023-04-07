@@ -808,6 +808,9 @@ for mm = 1 : size(amplMets,1)
     for ss = 1 : size(amplMets,3)
         for AlphaMets = 1 : length(metabNames)
             idx  = find(strcmp(metsName.metab{mm,ss},metabNames{AlphaMets}));
+                if isempty(idx)
+                    idx  = find(strcmp(metsName.metab{mm,ss},'Glu_Gln'));
+                end
             [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.metab{mm,ss}{idx},Bo);
             % average across GM and WM
             T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
