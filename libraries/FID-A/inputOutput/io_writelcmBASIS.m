@@ -27,9 +27,15 @@
 %   HISTORY:
 %       2020-02-11: First version of the code.
 
-function RF=io_writelcmBASIS(in,outfile,vendor,SEQ);
+function RF=io_writelcmBASIS(in,outfile,vendor,SEQ)
 
-metabList = fit_createMetabList({'default'});
+metabList = fit_createMetabList({'full'});
+
+ % Add basis spectra (if they were removed to reduce thhe file size)
+if ~isfield(in,'specs')
+    [in]=osp_recalculate_basis_specs(in);
+end
+
 % Create the modified basis set without macro molecules 
 basisSet = fit_selectMetabs(in, metabList, 0);
 
@@ -93,4 +99,16 @@ function [RF] = shift_centerFreq(data_struct,idx)
     RF(:,1)=real(specs(:));
     RF(:,2)=imag(specs(:));
 
+end
+
+function [basisSet]=osp_recalculate_basis_specs(basisSet)
+    % This function recalculates the basis spectra and ppm-axis of the
+    % basis set
+
+    basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
+
+    % Calcualte ppm-axis
+    f = [(-basisSet.spectralwidth/2)+(basisSet.spectralwidth/(2*basisSet.sz(1))):basisSet.spectralwidth/(basisSet.sz(1)):(basisSet.spectralwidth/2)-(basisSet.spectralwidth/(2*basisSet.sz(1)))];
+    basisSet.ppm = f/(basisSet.Bo*42.577);
+    basisSet.ppm=basisSet.ppm + basisSet.centerFreq;
 end

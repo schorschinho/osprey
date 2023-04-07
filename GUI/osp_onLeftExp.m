@@ -33,7 +33,7 @@ function osp_onLeftExp( ~, ~ ,gui)
 
     if gui.controls.act_Exp > 1
         gui.controls.act_Exp = gui.controls.act_Exp - 1;
-
+        set(gui.controls.text_act_Exp,'String',num2str(gui.controls.act_Exp));
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
         switch selectedTab %Which tab?
             case 1 %Load tab?

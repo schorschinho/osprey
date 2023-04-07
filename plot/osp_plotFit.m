@@ -276,6 +276,8 @@ switch fitMethod
 
 end
 
+fitParams.lb = MRSCont.opts.cosmetics.LB;
+
 %%% 3. PREPARE LINES TO DISPLAY %%%
 % Extract data, ppm axes, fit, residual, baseline, and individual
 % metabolite contributions.
@@ -285,6 +287,7 @@ switch fitMethod
     % Depending on whether metabolite or water data are to be
     % displayed, create the plots via different models
     case 'Osprey'
+        
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
             % if water, use the water model
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
@@ -424,7 +427,7 @@ if isfield(MRSCont.plot,'fit') && MRSCont.plot.fit.match
 else
     % Determine a positive stagger to offset data, fit, residual, and
     % baseline from the individual metabolite contributions
-    stagData = 0.1*(max(abs(min(dataToPlot)), abs(max(dataToPlot))));
+    stagData = 0.1*(max(abs(min(dataToPlot)), abs(max(dataToPlot))))/MRSCont.opts.cosmetics.Zoom;
     maxPlot = max(dataToPlot + abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData;
 end
 % Add the data and plot
@@ -460,7 +463,7 @@ if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w'))
         % Staggered plots will be in all black and separated by the mean of the
         % maximum across all spectra
         %         stag = max(abs(mean(max(real(appliedBasisSet.specs)))), abs(mean(min(real(appliedBasisSet.specs))))) * MRSCont.fit.scale{kk};
-        stag = maxPlot *  2.5 / nBasisFct;
+        stag = maxPlot *  (3.5 - MRSCont.opts.cosmetics.Zoom) / nBasisFct;
         % Loop over all basis functions
 
         for rr = 1:nBasisFct
@@ -505,6 +508,8 @@ end
 set(gca, 'XDir', 'reverse', 'XLim', [fitRangePPM(1), fitRangePPM(end)], 'XMinorTick', 'On');
 set(gca, 'LineWidth', 1, 'TickDir', 'out');
 set(gca, 'FontSize', 16);
+ticks = get(gca,'XTick');
+set(gca, 'XTick', unique(round(ticks)));
 % If no y caption, remove y axis
 if isempty(ylab)
     if ~MRSCont.flags.isGUI

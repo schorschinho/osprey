@@ -134,6 +134,7 @@ classdef OspreyGUI < handle
             gui.controls.act_y = 1;
             gui.controls.act_z = 1;
             gui.controls.act_basis = 1;
+            gui.overview.Selected.Spec = 1;
         %Names for each selection
             gui.load.Names.Spec = {'metabolites'};
         %Inital number of datasets
@@ -155,7 +156,11 @@ classdef OspreyGUI < handle
                     if strcmp(sprintf('\n'),MRSCont.raw{1,gui.controls.Selected}.seq(end)) %Clean up Sequence Name if needed
                         gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq(1:end-1);
                     else
-                        gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq;
+                        if iscell(MRSCont.raw{1,gui.controls.Selected}.seq)
+                            gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq{1,1};
+                        else
+                            gui.load.Names.Seq = MRSCont.raw{1,gui.controls.Selected}.seq
+                        end
                     end
                 else
                     if MRSCont.flags.isUnEdited
@@ -200,10 +205,9 @@ classdef OspreyGUI < handle
                 end
             end
             
-            if gui.controls.nExperiments > 1
-                gui.info.nXvoxels = gui.controls.nExperiments;
-                gui.info.nExperiments = gui.controls.nExperiments;
-            end
+            gui.info.nXvoxels = gui.controls.nExperiments;
+            gui.info.nExperiments = gui.controls.nExperiments;
+
             if MRSCont.flags.didProcess %Get variables regarding the processing
                 gui.process.Number = length(fieldnames(MRSCont.processed));
                 gui.info.nYvoxels = MRSCont.processed.metab{1, 1}.subspecs;
@@ -272,7 +276,10 @@ classdef OspreyGUI < handle
             %Version check and updating log file
             MRSCont.flags.isGUI = 1;
             outputFolder = MRSCont.outputFolder;
-        
+            
+            %Add cosmetics
+            MRSCont.opts.cosmetics.LB = 0;
+            MRSCont.opts.cosmetics.Zoom = 2.75;
             %% Create the overall figure            
             gui.figure = figure('Name', 'Osprey', 'Tag', 'Osprey', 'NumberTitle', 'off', 'Visible', 'on','Menu', 'none',...
                                 'ToolBar', 'none', 'HandleVisibility', 'on', 'Renderer', 'painters', 'Color', gui.colormap.Background);
@@ -413,7 +420,10 @@ classdef OspreyGUI < handle
                 'ForegroundColor',gui.colormap.Foreground, 'HighlightColor',gui.colormap.Foreground, 'ShadowColor',gui.colormap.Foreground,'Tag','SubjectListPanel');
             gui.layout.fileList = MRSCont.files(1,:);
             if ~MRSCont.flags.moved
-                [~, ~] = osp_detDataType(MRSCont);
+                try
+                    [~, ~] = osp_detDataType(MRSCont);
+                catch
+                end
             end
             SepFileList = cell(1,MRSCont.nDatasets(1));
             gui.layout.RedFileList = cell(1,MRSCont.nDatasets(1));
@@ -537,10 +547,18 @@ classdef OspreyGUI < handle
             close(gui.controls.waitbar);
         %% Here we add callback listeners triggered on selection changes
             set(gui.layout.tabs,'SelectionChangedFcn',{@osp_SelectionChangedFcn,gui});
-            set(gui.layout.rawTab, 'SelectionChangedFcn',{@osp_RawTabChangeFcn,gui});
-            set(gui.layout.proTab,'SelectionChangedFcn',{@osp_ProTabChangeFcn,gui});
-            set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});
-            set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});
+            if MRSCont.flags.didLoad
+                set(gui.layout.rawTab, 'SelectionChangedFcn',{@osp_RawTabChangeFcn,gui});
+            end
+            if MRSCont.flags.didProcess
+                set(gui.layout.proTab,'SelectionChangedFcn',{@osp_ProTabChangeFcn,gui});
+            end
+            if MRSCont.flags.didFit
+                set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});
+            end
+            if MRSCont.flags.didQuantify
+                set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});
+            end
             set(gui.layout.ListBox,'Callback', {@osp_onListSelection,gui},'KeyPressFcn',{@osp_WindowKeyDown,gui}, 'KeyReleaseFcn', {@osp_WindowKeyUp,gui});
                        
         end

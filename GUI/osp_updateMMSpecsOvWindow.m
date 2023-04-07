@@ -39,11 +39,14 @@ function osp_updateMMSpecsOvWindow(gui)
             case {'A','B','C','D','diff1','diff2','sum'}        
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', temp.XTick)
             case {'ref','w','Fit:ref','Fit:w'}
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0 2*4.68])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', temp.XTick)
             otherwise
                 set(gui.Plot.specsOv.Children(2), 'XLim', [0.2 4.5])
                 set(gui.Plot.specsOv.Children(2).Title, 'String', ['Overview ' Selection])
+                set(gui.Plot.specsOv.Children(2), 'XTick', temp.XTick)
         end
 end

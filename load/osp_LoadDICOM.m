@@ -72,6 +72,8 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.isMEGA
                 raw.flags.isMEGA = 1;
             end
+            % Add NIfTI-MRS information
+            raw  = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);
             MRSCont.raw{ll,kk}      = raw;
 
             % Read in the raw reference data.
@@ -79,8 +81,9 @@ for kk = 1:MRSCont.nDatasets(1)
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 raw_ref = io_loadspec_dicom(MRSCont.files_ref{ref_ll,kk});
                 raw_ref = op_combine_water_subspecs(raw_ref,0);
+                % Add NIfTI-MRS information
+                raw_ref  = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp);
                 MRSCont.raw_ref{ref_ll,kk}  = raw_ref;
-                end
                 if MRSCont.flags.isUnEdited
                     MRSCont.raw_ref{ref_ll,kk}.flags.isUnEdited = 1;
                 end
@@ -92,6 +95,8 @@ for kk = 1:MRSCont.nDatasets(1)
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
                 raw_w   = io_loadspec_dicom(MRSCont.files_w{w_ll,kk});
                 raw_w = op_combine_water_subspecs(raw_w,0);
+                % Add NIfTI-MRS information
+                raw_w  = osp_add_nii_mrs_field(raw_w,MRSCont.ver.Osp);
                 MRSCont.raw_w{w_ll,kk}    = raw_w;
                 if MRSCont.flags.isUnEdited
                     MRSCont.raw_w{w_ll,kk}.flags.isUnEdited = 1;
@@ -103,6 +108,8 @@ for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.flags.hasMM
                 temp_ll = MRSCont.opts.MultipleSpectra.mm(ll);
                 raw_mm   = io_loadspec_dicom(MRSCont.files_mm{temp_ll,kk});
+                % Add NIfTI-MRS information
+                raw_mm  = osp_add_nii_mrs_field(raw_mm,MRSCont.ver.Osp);
                 MRSCont.raw_mm{temp_ll,kk}    = raw_mm;
                 if MRSCont.flags.isUnEdited
                     MRSCont.raw_mm{temp_ll,kk}.flags.isUnEdited = 1;

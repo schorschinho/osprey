@@ -41,12 +41,26 @@ inph=unwrap(angle(inw.fids));
 
 % Now apply the eddy current correction to both the water-suppressed and the
 % water-unsuppressed data:
- out=in;
+out=in;
+out.phase_ecc = inph;
 if in.te == inw.te   
     out.fids=out.fids.*exp(1i*-inph);
     out.specs=fftshift(fft(out.fids,[],1),1);          
 end
 
+% Add NIfTI-MRS provenance
+% Generate fields for provenance
+fields.Method   = 'Eddy current correction';
+fields.Details  = ['ECC (Klose 1990), reference = raw_ref'];
+out = op_add_analysis_provenance(out,fields);
+
 outw=inw;
+outw.phase_ecc = inph;
 outw.fids=outw.fids.*exp(1i*-inph);
 outw.specs=fftshift(fft(outw.fids,[],1),1);
+
+% Add NIfTI-MRS provenance
+% Generate fields for provenance
+fields.Method   = 'Eddy current correction';
+fields.Details  = ['ECC (Klose 1990), reference = raw_ref'];
+outw = op_add_analysis_provenance(outw,fields);

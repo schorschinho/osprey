@@ -201,7 +201,11 @@ out.geometry.size = [];
 out.geometry.size.dim1 = temp(1);
 out.geometry.size.dim2 = temp(2);
 out.geometry.size.dim3 = temp(3);
-out.software = ['Rev_number ' GEhdr.version];
+if isnumeric(GEhdr.version)
+    out.software = ['Rev_number ' num2str(GEhdr.version)];
+else
+    out.software = ['Rev_number ' GEhdr.version];
+end
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;
@@ -250,6 +254,12 @@ out_w.geometry.size = [];
 out_w.geometry.size.dim1 = temp(1);
 out_w.geometry.size.dim2 = temp(2);
 out_w.geometry.size.dim3 = temp(3);
+out_w.software = out.software;
+% Add info for niiwrite
+out_w.PatientPosition = '';
+out_w.Manufacturer = 'GE';
+[~,filenamest,ext] = fileparts(filename);
+out_w.OriginalFile = [filenamest ext];
 %FILLING IN THE FLAGS
 out_w.flags.writtentostruct=1;
 out_w.flags.gotparams=1;
@@ -268,6 +278,13 @@ if out_w.dims.subSpecs==0
 else
     out_w.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
+
+% Add info for niiwrite
+out.PatientPosition = '';
+out.Manufacturer = 'GE';
+[~,filename,ext] = fileparts(filename);
+out.OriginalFile = [filename ext];
+
 % Sequence flags
 out.flags.isUnEdited = 0;
 out.flags.isMEGA = 0;

@@ -29,6 +29,7 @@ function osp_onFit( ~, ~ ,gui)
     set(gui.figure,'HandleVisibility','off');
     set(gui.layout.tabs,'SelectionChangedFcn','');
     set(gui.layout.fitTab, 'SelectionChangedFcn','');
+    gui.layout.b_fit.Enable = 'off';
     gui.layout.tabs.Selection  = 3;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYFIT %%%
@@ -101,7 +102,6 @@ function osp_onFit( ~, ~ ,gui)
     set(gui.figure,'HandleVisibility','on');
 %%% 3. INITIALIZE OUTPUT WINDOW %%%    
     osp_iniFitWindow(gui);
-    gui.layout.b_fit.Enable = 'off';
     gui.layout.b_quant.Enable = 'on';
     set(gui.layout.tabs,'SelectionChangedFcn',{@osp_SelectionChangedFcn,gui});
     set(gui.layout.fitTab, 'SelectionChangedFcn',{@osp_FitTabChangeFcn,gui});

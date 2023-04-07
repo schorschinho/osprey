@@ -26,9 +26,9 @@ function osp_updateFitWindow(gui)
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         Selection = gui.fit.Names{gui.fit.Selected};
 
-        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(4),'String',gui.controls.act_z)
-        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
-        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(4).Children(1).Children.Children(4),'String',gui.controls.act_z)
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(4).Children(1).Children.Children(5),'String',gui.controls.act_y)
+        set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(4).Children(1).Children.Children(6),'String',gui.controls.act_x)
         switch MRSCont.opts.fit.method
             case 'LCModel'
                 gui.Results.FitTextCRLB = gui.Results.fit{gui.fit.Selected}.Children.Children(1);
@@ -78,7 +78,7 @@ function osp_updateFitWindow(gui)
                 waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 % Where are the metabolite names stored?
                 if strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')
-                    basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth))]){1};
+                    basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.(gui.fit.Style){gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.(gui.fit.Style){gui.controls.Selected}.spectralwidth))]){1};
                     basisSetNames = basisSet.name;
                 else if strcmp(gui.fit.Style, 'conc')
                         basisSet = MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth))]){basis,1};

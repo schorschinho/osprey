@@ -18,6 +18,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         OutputFolderButton              matlab.ui.control.Button
         OutputFolderEditField           matlab.ui.control.EditField
         SpecifyMRSandAnatomicalImagingFilesPanel  matlab.ui.container.Panel
+        T1DICOMCheck                    matlab.ui.control.CheckBox
         T1DataText                      matlab.ui.control.TextArea
         MetaboliteNulledText            matlab.ui.control.TextArea
         H2OReferenceText                matlab.ui.control.TextArea
@@ -51,7 +52,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         NAAGCheckBox                    matlab.ui.control.CheckBox
         TauCheckBox                     matlab.ui.control.CheckBox
         SerCheckBox                     matlab.ui.control.CheckBox
-        ScylloCheckBox                  matlab.ui.control.CheckBox
+        sICheckBox                      matlab.ui.control.CheckBox
         PhenylCheckBox                  matlab.ui.control.CheckBox
         PECheckBox                      matlab.ui.control.CheckBox
         PCrCheckBox                     matlab.ui.control.CheckBox
@@ -59,7 +60,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         GluCheckBox                     matlab.ui.control.CheckBox
         NAACheckBox                     matlab.ui.control.CheckBox
         LacCheckBox                     matlab.ui.control.CheckBox
-        InsCheckBox                     matlab.ui.control.CheckBox
+        mICheckBox                      matlab.ui.control.CheckBox
         H2OCheckBox                     matlab.ui.control.CheckBox
         GlyCheckBox                     matlab.ui.control.CheckBox
         GlnCheckBox                     matlab.ui.control.CheckBox
@@ -77,6 +78,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
         AscCheckBox                     matlab.ui.control.CheckBox
         AlaCheckBox                     matlab.ui.control.CheckBox
         SpecifyDataHandlingandModelingOptionsPanel  matlab.ui.container.Panel
+        basissetfolderButton            matlab.ui.control.Button
         SavePDFCheckBox                 matlab.ui.control.CheckBox
         unstablewaterCheckBox           matlab.ui.control.CheckBox
         ECCmmMRSCheckBox                matlab.ui.control.CheckBox
@@ -200,8 +202,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.GlyCheckBox.Enable = 'Off';
                     app.H2OCheckBox.Value = true;
                     app.H2OCheckBox.Enable = 'Off';
-                    app.InsCheckBox.Value = true;
-                    app.InsCheckBox.Enable = 'Off';
+                    app.mICheckBox.Value = true;
+                    app.mICheckBox.Enable = 'Off';
                     app.LacCheckBox.Value = true;
                     app.LacCheckBox.Enable = 'Off';
                     app.NAACheckBox.Value = true;
@@ -216,8 +218,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.PECheckBox.Enable = 'Off';
                     app.PhenylCheckBox.Value = false;
                     app.PhenylCheckBox.Enable = 'Off';
-                    app.ScylloCheckBox.Value = true;
-                    app.ScylloCheckBox.Enable = 'Off';
+                    app.sICheckBox.Value = true;
+                    app.sICheckBox.Enable = 'Off';
                     app.SerCheckBox.Value = false;
                     app.SerCheckBox.Enable = 'Off';
                     app.TauCheckBox.Value = true;
@@ -275,8 +277,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.GlyCheckBox.Enable = 'Off';
                     app.H2OCheckBox.Value = true;
                     app.H2OCheckBox.Enable = 'Off';
-                    app.InsCheckBox.Value = true;
-                    app.InsCheckBox.Enable = 'Off';
+                    app.mICheckBox.Value = true;
+                    app.mICheckBox.Enable = 'Off';
                     app.LacCheckBox.Value = true;
                     app.LacCheckBox.Enable = 'Off';
                     app.NAACheckBox.Value = true;
@@ -291,8 +293,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.PECheckBox.Enable = 'Off';
                     app.PhenylCheckBox.Value = true;
                     app.PhenylCheckBox.Enable = 'Off';
-                    app.ScylloCheckBox.Value = true;
-                    app.ScylloCheckBox.Enable = 'Off';
+                    app.sICheckBox.Value = true;
+                    app.sICheckBox.Enable = 'Off';
                     app.SerCheckBox.Value = true;
                     app.SerCheckBox.Enable = 'Off';
                     app.TauCheckBox.Value = true;
@@ -333,7 +335,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.GluCheckBox.Enable = 'Off';
                     app.GlyCheckBox.Enable = 'On';
                     app.H2OCheckBox.Enable = 'On';
-                    app.InsCheckBox.Enable = 'Off';
+                    app.mICheckBox.Enable = 'Off';
                     app.LacCheckBox.Enable = 'On';
                     app.NAACheckBox.Enable = 'Off';
                     app.NAAGCheckBox.Enable = 'On';
@@ -341,7 +343,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.PCrCheckBox.Enable = 'On';
                     app.PECheckBox.Enable = 'On';
                     app.PhenylCheckBox.Enable = 'On';
-                    app.ScylloCheckBox.Enable = 'On';
+                    app.sICheckBox.Enable = 'On';
                     app.SerCheckBox.Enable = 'On';
                     app.TauCheckBox.Enable = 'On';
                     app.TyrosCheckBox.Enable = 'On';
@@ -363,26 +365,27 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = app.NumberofdatasetsEditField.Value;
             
             mrsfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
-
-            [~,file_basename,file_exten]=fileparts(mrsfiles(1,:));
-            
             filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} mrsfiles(i,:)};
+            if ~isempty(mrsfiles)
+                [~,file_basename,file_exten]=fileparts(mrsfiles(1,:));
+                                
+                for i=1:ndata
+                    filelist = {filelist{:} mrsfiles(i,:)};
+                end
+                
+                app.MRSDataText.Value = filelist;
+                
+                if strcmp(file_exten,'.7')
+                    app.H2OReferenceButton.Enable = 'Off';
+                else
+                    app.H2OReferenceButton.Enable = 'On';
+                end
+                
+                app.H2OShortTEButton.Enable = 'On';
+                app.MetaboliteNulledButton.Enable = 'On';
+                app.T1DataniftiniiButton.Enable = 'On';
+                app.NumberofdatasetsEditField.Enable = 'Off';
             end
-            
-            app.MRSDataText.Value = filelist;
-            
-            if strcmp(file_exten,'.7')
-                app.H2OReferenceButton.Enable = 'Off';
-            else
-                app.H2OReferenceButton.Enable = 'On';
-            end
-            
-            app.H2OShortTEButton.Enable = 'On';
-            app.MetaboliteNulledButton.Enable = 'On';
-            app.T1DataniftiniiButton.Enable = 'On';
-            app.NumberofdatasetsEditField.Enable = 'Off';
         end
 
         % Button pushed function: H2OReferenceButton
@@ -392,13 +395,14 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = app.NumberofdatasetsEditField.Value;
             
             h2oreffiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
-            
             filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} h2oreffiles(i,:)};
+            if ~isempty(h2oreffiles)               
+                for i=1:ndata
+                    filelist = {filelist{:} h2oreffiles(i,:)};
+                end
+                
+                app.H2OReferenceText.Value = filelist;
             end
-            
-            app.H2OReferenceText.Value = filelist;
         end
 
         % Button pushed function: H2OShortTEButton
@@ -410,11 +414,13 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             h2ostefiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
             
             filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} h2ostefiles(i,:)};
+            if ~isempty(h2ostefiles)   
+                for i=1:ndata
+                    filelist = {filelist{:} h2ostefiles(i,:)};
+                end
+                
+                app.H2OShortTEText.Value = filelist;
             end
-            
-            app.H2OShortTEText.Value = filelist;
         end
 
         % Button pushed function: MetaboliteNulledButton
@@ -426,35 +432,46 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             metnulfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
             
             filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} metnulfiles(i,:)};
+            if ~isempty(metnulfiles)  
+                for i=1:ndata
+                    filelist = {filelist{:} metnulfiles(i,:)};
+                end
+                
+                app.MetaboliteNulledText.Value = filelist;
             end
-            
-            app.MetaboliteNulledText.Value = filelist;
         end
 
         % Button pushed function: T1DataniftiniiButton
         function T1DataniftiniiButtonPushed(app, event)
-            info = 'Please select the T1 Data file to read';
+            info = 'Please select the T1 Data file or DICOM folder to read';
             
             ndata = app.NumberofdatasetsEditField.Value;
-            
-            t1imfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
-            
-            filelist = {};
-            for i=1:ndata
-                filelist = {filelist{:} t1imfiles(i,:)};
+            isDICOM = app.T1DICOMCheck.Value;
+
+            if ~isDICOM
+                t1imfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
+            else
+                t1imfiles = spm_select(ndata,'dir',info,{},pwd,'.*','1');
             end
             
-            app.T1DataText.Value = filelist;
+            if ~isempty(t1imfiles)
+                filelist = {};
+                for i=1:ndata
+                    filelist = {filelist{:} t1imfiles(i,:)};
+                end
+                
+                app.T1DataText.Value = filelist;
+            end
         end
 
         % Button pushed function: OutputFolderButton
         function OutputFolderButtonPushed(app, event)
-            info = 'Please select the output folder';
-            pathname=uigetdir('*.*',info);
-            
-            app.OutputFolderEditField.Value = pathname;
+            info = 'Please select output folder';           
+            ndata = 1;
+            pathname  = spm_select(ndata,'dir',info,{},pwd);
+            if ~isempty(pathname)  
+                app.OutputFolderEditField.Value = pathname(1,:);
+            end
         end
 
         % Button pushed function: CANCELButton
@@ -490,19 +507,21 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = 1;
             
             csvfiles = spm_select(ndata,'any',info,{},pwd,'.csv','1');
-            
-            app.StatcsvEditField.Value = csvfiles(1,:);
+            if ~isempty(csvfiles) 
+                app.StatcsvEditField.Value = csvfiles(1,:);
+            end
         end
 
         % Button pushed function: basissetfileButton
         function basissetfileButtonPushed(app, event)
-            info = 'Select a .mat basis file to overwrite the automatic basis set selection';
+            info = 'Select a basis file (.mat for Osprey / .basis for LCModel) to overwrite the automatic basis set selection';
             
             ndata = 1;
             
-            basisfiles = spm_select(ndata,'any',info,{},pwd,'.mat','1');
-            
-            app.BasisSetEditField.Value = basisfiles(1,:);
+            basisfiles = spm_select(ndata,'any',info,{},pwd,{'.mat','.BASIS','.basis'},'1');
+            if ~isempty(basisfiles) 
+                app.BasisSetEditField.Value = basisfiles(1,:);
+            end
         
         end
 
@@ -523,6 +542,27 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.MM3coDropDown.Enable = 'Off';
                     app.MM3coDropDownLabel.Enable = 'Off';
 
+            end
+        end
+
+        % Button pushed function: basissetfolderButton
+        function basissetfolderButtonPushed(app, event)
+            info = 'Select the folder that contains all basis set files';           
+            ndata = 1;
+            basisfiles  = spm_select(ndata,'dir',info,{},pwd);
+            if ~isempty(basisfiles) 
+                app.BasisSetEditField.Value = basisfiles(1,:);
+            end
+        
+        end
+
+        % Value changed function: T1DICOMCheck
+        function T1DICOMCheckValueChanged(app, event)
+            value = app.T1DICOMCheck.Value;
+            if value
+                app.T1DataniftiniiButton.Text = 'T1 Data (DICOM)';
+            else
+                app.T1DataniftiniiButton.Text = 'T1 Data (nifti *.nii)';
             end
         end
     end
@@ -800,7 +840,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
 
             % Create unstablewaterCheckBox
             app.unstablewaterCheckBox = uicheckbox(app.SpecifyDataHandlingandModelingOptionsPanel);
-            app.unstablewaterCheckBox.Tooltip = {'Do eddy current correction on metabolite data?'};
+            app.unstablewaterCheckBox.Tooltip = {'Minimize the choline signal in the difference spectrum instead of water. This only works for L2Norm and GABA-edited MRS,'};
             app.unstablewaterCheckBox.Text = 'unstable water';
             app.unstablewaterCheckBox.FontColor = [0.0392 0.2706 0.4314];
             app.unstablewaterCheckBox.Position = [458 140 101 22];
@@ -811,6 +851,15 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.SavePDFCheckBox.Text = 'Save PDF';
             app.SavePDFCheckBox.FontColor = [0.0392 0.2706 0.4314];
             app.SavePDFCheckBox.Position = [552 95 75 22];
+
+            % Create basissetfolderButton
+            app.basissetfolderButton = uibutton(app.SpecifyDataHandlingandModelingOptionsPanel, 'push');
+            app.basissetfolderButton.ButtonPushedFcn = createCallbackFcn(app, @basissetfolderButtonPushed, true);
+            app.basissetfolderButton.FontWeight = 'bold';
+            app.basissetfolderButton.FontColor = [0.0392 0.2706 0.4314];
+            app.basissetfolderButton.Tooltip = {'Specify the folder that contains all the basis set files. This will envoke the automated basis set picker. This is not necessary when the basissets folder is in the Applications folder.'};
+            app.basissetfolderButton.Position = [313 10 119 22];
+            app.basissetfolderButton.Text = 'basis set folder';
 
             % Create SelectedMetabolitesPanel
             app.SelectedMetabolitesPanel = uipanel(app.InteractiveOspreyjobfilegeneratorUIFigure);
@@ -944,13 +993,13 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.H2OCheckBox.Position = [187 85 46 22];
             app.H2OCheckBox.Value = true;
 
-            % Create InsCheckBox
-            app.InsCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
-            app.InsCheckBox.Enable = 'off';
-            app.InsCheckBox.Text = 'Ins';
-            app.InsCheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.InsCheckBox.Position = [187 57 38 22];
-            app.InsCheckBox.Value = true;
+            % Create mICheckBox
+            app.mICheckBox = uicheckbox(app.SelectedMetabolitesPanel);
+            app.mICheckBox.Enable = 'off';
+            app.mICheckBox.Text = 'mI';
+            app.mICheckBox.FontColor = [0.0392 0.2706 0.4314];
+            app.mICheckBox.Position = [187 57 35 22];
+            app.mICheckBox.Value = true;
 
             % Create LacCheckBox
             app.LacCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
@@ -1007,13 +1056,13 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.PhenylCheckBox.FontColor = [0.0392 0.2706 0.4314];
             app.PhenylCheckBox.Position = [250 7 58 22];
 
-            % Create ScylloCheckBox
-            app.ScylloCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
-            app.ScylloCheckBox.Enable = 'off';
-            app.ScylloCheckBox.Text = 'Scyllo';
-            app.ScylloCheckBox.FontColor = [0.0392 0.2706 0.4314];
-            app.ScylloCheckBox.Position = [320 112 54 22];
-            app.ScylloCheckBox.Value = true;
+            % Create sICheckBox
+            app.sICheckBox = uicheckbox(app.SelectedMetabolitesPanel);
+            app.sICheckBox.Enable = 'off';
+            app.sICheckBox.Text = 'sI';
+            app.sICheckBox.FontColor = [0.0392 0.2706 0.4314];
+            app.sICheckBox.Position = [320 112 31 22];
+            app.sICheckBox.Value = true;
 
             % Create SerCheckBox
             app.SerCheckBox = uicheckbox(app.SelectedMetabolitesPanel);
@@ -1179,7 +1228,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create MRSDataButton
             app.MRSDataButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.MRSDataButton.ButtonPushedFcn = createCallbackFcn(app, @MRSDataButtonPushed, true);
-            app.MRSDataButton.BackgroundColor = [0.8 0.8 0.8];
+            app.MRSDataButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.MRSDataButton.FontWeight = 'bold';
             app.MRSDataButton.FontColor = [0.0392 0.2706 0.4314];
             app.MRSDataButton.Tooltip = {'Add metaoblite data.'};
@@ -1189,7 +1238,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create H2OReferenceButton
             app.H2OReferenceButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.H2OReferenceButton.ButtonPushedFcn = createCallbackFcn(app, @H2OReferenceButtonPushed, true);
-            app.H2OReferenceButton.BackgroundColor = [0.8 0.8 0.8];
+            app.H2OReferenceButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.H2OReferenceButton.FontWeight = 'bold';
             app.H2OReferenceButton.FontColor = [0.0392 0.2706 0.4314];
             app.H2OReferenceButton.Enable = 'off';
@@ -1200,7 +1249,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create H2OShortTEButton
             app.H2OShortTEButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.H2OShortTEButton.ButtonPushedFcn = createCallbackFcn(app, @H2OShortTEButtonPushed, true);
-            app.H2OShortTEButton.BackgroundColor = [0.8 0.8 0.8];
+            app.H2OShortTEButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.H2OShortTEButton.FontWeight = 'bold';
             app.H2OShortTEButton.FontColor = [0.0392 0.2706 0.4314];
             app.H2OShortTEButton.Enable = 'off';
@@ -1211,7 +1260,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create MetaboliteNulledButton
             app.MetaboliteNulledButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.MetaboliteNulledButton.ButtonPushedFcn = createCallbackFcn(app, @MetaboliteNulledButtonPushed, true);
-            app.MetaboliteNulledButton.BackgroundColor = [0.8 0.8 0.8];
+            app.MetaboliteNulledButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.MetaboliteNulledButton.FontWeight = 'bold';
             app.MetaboliteNulledButton.FontColor = [0.0392 0.2706 0.4314];
             app.MetaboliteNulledButton.Enable = 'off';
@@ -1222,7 +1271,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create T1DataniftiniiButton
             app.T1DataniftiniiButton = uibutton(app.SpecifyMRSandAnatomicalImagingFilesPanel, 'push');
             app.T1DataniftiniiButton.ButtonPushedFcn = createCallbackFcn(app, @T1DataniftiniiButtonPushed, true);
-            app.T1DataniftiniiButton.BackgroundColor = [0.8 0.8 0.8];
+            app.T1DataniftiniiButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.T1DataniftiniiButton.FontWeight = 'bold';
             app.T1DataniftiniiButton.FontColor = [0.0392 0.2706 0.4314];
             app.T1DataniftiniiButton.Enable = 'off';
@@ -1277,6 +1326,15 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.T1DataText.FontColor = [0.0392 0.2706 0.4314];
             app.T1DataText.Position = [143 5 154 25];
 
+            % Create T1DICOMCheck
+            app.T1DICOMCheck = uicheckbox(app.SpecifyMRSandAnatomicalImagingFilesPanel);
+            app.T1DICOMCheck.ValueChangedFcn = createCallbackFcn(app, @T1DICOMCheckValueChanged, true);
+            app.T1DICOMCheck.Tooltip = {'Check this box if you are using a DICOM T1 directory. This is only working for GE.'};
+            app.T1DICOMCheck.Text = 'DICOM T1 data (GE only)';
+            app.T1DICOMCheck.WordWrap = 'on';
+            app.T1DICOMCheck.FontColor = [0.0392 0.2706 0.4314];
+            app.T1DICOMCheck.Position = [325 6 157 22];
+
             % Create SpecifyOutputFolderPanel
             app.SpecifyOutputFolderPanel = uipanel(app.InteractiveOspreyjobfilegeneratorUIFigure);
             app.SpecifyOutputFolderPanel.Tooltip = {'Specify the output folder and the name of the jobfile.'};
@@ -1297,7 +1355,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create OutputFolderButton
             app.OutputFolderButton = uibutton(app.SpecifyOutputFolderPanel, 'push');
             app.OutputFolderButton.ButtonPushedFcn = createCallbackFcn(app, @OutputFolderButtonPushed, true);
-            app.OutputFolderButton.BackgroundColor = [0.8 0.8 0.8];
+            app.OutputFolderButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.OutputFolderButton.FontWeight = 'bold';
             app.OutputFolderButton.FontColor = [0.0392 0.2706 0.4314];
             app.OutputFolderButton.Tooltip = {'Specifiy the output folder.'};
@@ -1353,7 +1411,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create StatcsvFileButton
             app.StatcsvFileButton = uibutton(app.InteractiveOspreyjobfilegeneratorUIFigure, 'push');
             app.StatcsvFileButton.ButtonPushedFcn = createCallbackFcn(app, @StatcsvFileButtonPushed, true);
-            app.StatcsvFileButton.BackgroundColor = [0.8 0.8 0.8];
+            app.StatcsvFileButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.StatcsvFileButton.FontWeight = 'bold';
             app.StatcsvFileButton.FontColor = [0.0392 0.2706 0.4314];
             app.StatcsvFileButton.Tooltip = {'Specifiy the statistics csv file.'};
@@ -1369,11 +1427,11 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create basissetfileButton
             app.basissetfileButton = uibutton(app.InteractiveOspreyjobfilegeneratorUIFigure, 'push');
             app.basissetfileButton.ButtonPushedFcn = createCallbackFcn(app, @basissetfileButtonPushed, true);
-            app.basissetfileButton.BackgroundColor = [0.8 0.8 0.8];
+            app.basissetfileButton.BackgroundColor = [0.9608 0.9608 0.9608];
             app.basissetfileButton.FontWeight = 'bold';
             app.basissetfileButton.FontColor = [0.0392 0.2706 0.4314];
             app.basissetfileButton.Tooltip = {'Specify basis set file in .mat format'};
-            app.basissetfileButton.Position = [318 481 119 23];
+            app.basissetfileButton.Position = [318 464 119 23];
             app.basissetfileButton.Text = 'basis set file';
 
             % Create FWHMMM3coLabel

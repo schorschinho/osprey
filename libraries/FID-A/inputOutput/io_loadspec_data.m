@@ -131,6 +131,16 @@ if hasSPAR
     geometry.rot.ap = str2double(sparheader{sparidx+2});
     sparidx=find(ismember(sparheader, 'cc_angulation')==1);
     geometry.rot.cc = str2double(sparheader{sparidx+2});
+
+    % Read information for niiwrite
+    sparidx=find(ismember(sparheader, 'nucleus')==1);
+    header.nucleus = sparheader{sparidx+2};
+    sparidx=find(ismember(sparheader, 'equipment_sw_verions')==1);
+    header.equipment_sw_verions = sparheader{sparidx+2};
+    sparidx=find(ismember(sparheader, 'patient_position')==1);
+    header.patient_position = sparheader{sparidx+2};
+    sparidx=find(ismember(sparheader, 'patient_orientation')==1);
+    header.patient_orientation = sparheader{sparidx+2};
     fclose(sparname);
 end
 
@@ -449,6 +459,13 @@ out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
 if hasSPAR
     out.geometry = geometry;
+    if isfield(header,'nucleus')
+        out.nucleus = header.nucleus;
+    end
+    if isfield(header,'equipment_sw_verions')
+        out.software = ['R ' header.equipment_sw_verions];
+    end
+    out.PatientPosition = strrep([header.patient_position ' ' header.patient_orientation],'"','');
 end
 
 %FILLING IN THE FLAGS
@@ -469,6 +486,10 @@ if out.dims.subSpecs==0
 else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
+% Add info for niiwrite
+out.Manufacturer = 'Philips';
+[~,filename,ext] = fileparts(filename);
+out.OriginalFile = [filename ext];
 % Sequence flags
 out.flags.isUnEdited = 0;
 out.flags.isMEGA = 0;
@@ -502,6 +523,13 @@ if n_mixes == 2
     out_w.centerFreq = centerFreq;
     if hasSPAR
         out_w.geometry = geometry;
+        if isfield(header,'nucleus')
+            out_w.nucleus = header.nucleus;
+        end
+        if isfield(header,'equipment_sw_verions')
+            out_w.software = ['R ' header.equipment_sw_verions];
+        end
+        out_w.PatientPosition = strrep([header.patient_position ' ' header.patient_orientation],'"','');
     end
 
 
@@ -523,6 +551,10 @@ if n_mixes == 2
     else
         out_w.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
     end
+    % Add info for niiwrite
+    out_w.Manufacturer = 'Philips';
+    [~,filename,ext] = fileparts(filename);
+    out_w.OriginalFile = [filename ext];
     % Sequence flags
     out_w.flags.isUnEdited = 0;
     out_w.flags.isMEGA = 0;

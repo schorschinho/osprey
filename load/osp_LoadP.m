@@ -65,6 +65,9 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw_ref = op_combine_water_subspecs(raw_ref,0);
                 raw_ref.flags.isHERCULES = 1;
             end
+            % Add NIfTI-MRS information
+            raw                           = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);
+            raw_ref                       = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp);
             MRSCont.raw_uncomb{metab_ll,kk}      = raw;
             MRSCont.raw_ref_uncomb{metab_ll,kk}  = raw_ref;
         end

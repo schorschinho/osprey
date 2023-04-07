@@ -15,6 +15,10 @@ function jobm = osp_create_job_file(app)
 
 outputFolder = app.OutputFolderEditField.Value;
 
+if ~exist(outputFolder)
+    mkdir(outputFolder)
+end
+
 if isempty(outputFolder)
     outputFolder = cd;
 end
@@ -120,6 +124,9 @@ fprintf(fid,'\n\t%s',['"uplim_rangew": "' num2str(num2str(rangew{2})) '",']);
 fprintf(fid,'\n\t%s',['"bLineKnotSpace": "' num2str(app.BaselineknotspacingppmEditField.Value) '",']);
 fprintf(fid,'\n\t%s',['"fitMM": "' num2str(app.AddMMandLipbasisfunctionstofitCheckBox.Value) '",']);
 
+if ~isempty(app.BasisSetEditField.Value)
+    fprintf(fid,'\n\t%s',['"basisSet": "' app.BasisSetEditField.Value '",']);
+end
 
 if isempty(app.MRSDataText.Value{1})
     error('A MRS data file should be specified')

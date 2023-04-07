@@ -32,6 +32,12 @@ function RF=io_writeTarquinBASIS(MRSCont,filename,vendor,SEQ,which);
 %be similar to the dataset. Therefore, we create basis sets for all unique
 %spectral width values. Truncation and zerofilling will be performed by
 %Tarquin itself.
+
+% Add basis spectra (if they were removed to reduce thhe file size)
+if ~isfield(in,'specs')
+    [in]=osp_recalculate_basis_specs(in);
+end
+
 basis = 1;
 found = [];
 ind = find(MRSCont.info.(which).unique_ndatapoint == MRSCont.info.(which).max_ndatapoint);
@@ -131,4 +137,16 @@ function [RF] = shift_centerFreq(data_struct,idx)
     RF(:,1)=real(specs(:));
     RF(:,2)=imag(specs(:));
 
+end
+
+function [basisSet]=osp_recalculate_basis_specs(basisSet)
+    % This function recalculates the basis spectra and ppm-axis of the
+    % basis set
+
+    basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
+
+    % Calcualte ppm-axis
+    f = [(-basisSet.spectralwidth/2)+(basisSet.spectralwidth/(2*basisSet.sz(1))):basisSet.spectralwidth/(basisSet.sz(1)):(basisSet.spectralwidth/2)-(basisSet.spectralwidth/(2*basisSet.sz(1)))];
+    basisSet.ppm = f/(basisSet.Bo*42.577);
+    basisSet.ppm=basisSet.ppm + basisSet.centerFreq;
 end

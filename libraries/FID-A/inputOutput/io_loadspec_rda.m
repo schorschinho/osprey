@@ -224,7 +224,7 @@ elseif length(filesInFolder) == 1
     subspecs =1;
     rawSubspecs = 'na';
 else
-    if contains(seqtype,'edit')
+    if contains(seqtype,'edit') || contains(seqtype,'mpress')
         subspecs = 2;
         rawSubspecs = 2;
         % Distinguish whether MEGA data have been averaged on-scanner or
@@ -284,6 +284,7 @@ out.tr=TR;
 out.pointsToLeftshift=pointsToLeftShift;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
+out.software = rda.software_version;
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
@@ -307,6 +308,12 @@ if out.dims.subSpecs==0
 else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
+
+% Add info for niiwrite
+out.PatientPosition = rda.PatientPosition;
+out.Manufacturer = 'Siemens';
+[~,filename,ext] = fileparts(filesInFolder{1});
+out.OriginalFile = [filename ext];
 
 % Sequence flags
 out.flags.isUnEdited = 0;

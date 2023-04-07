@@ -43,7 +43,9 @@ SE_Y = SE_y_cond_x*(ones(size(X))*(1/N + (mean(x)^2)/SSX) + (X.^2 - 2*mean(x)*X)
 finv_path  = which('finv.m');
 if contains(finv_path,'fieldtrip')
     [finv_path,~,~]=fileparts(finv_path);
-    rmpath(finv_path);
+    if ~(ismcc || isdeployed)
+        rmpath(finv_path);
+    end
 end
 
 Yoff = (2*finv(1-alpha,2,N-2)*SE_Y).^0.5;

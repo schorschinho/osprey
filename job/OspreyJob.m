@@ -210,7 +210,21 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Adding macromolecule and lipid basis functions to the fit (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.fitMM = 1;
     end
-
+    if isfield(jobStruct,'deface')
+        MRSCont.opts.img.deface = jobStruct.deface;
+    else
+        fprintf('Structrual images are not defaced (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.img.deface = 0;
+    end
+    if isfield(jobStruct,'exportParams')
+        MRSCont.opts.exportParams.flag = 1;
+        MRSCont.opts.exportParams.path = jobStruct(1).exportParams;
+        assert(isstring(jobStruct(1).exportParams), 'When exporting spectral fitting parameters, "exportParams" must be a string specifying the save directory')
+    else
+        fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.exportParams.flag = 0;
+        MRSCont.opts.exportParams.path = {};
+    end
 end
 
 %%% 3b. LOAD JSON FILE %%%
@@ -219,6 +233,12 @@ if strcmp(jobFileFormat,'json')
     raw = fread(fid,inf); 
     str = char(raw'); 
     fclose(fid); 
+    if strcmp('win',osp_platform('filesys'))
+        str = strrep(str,'\','\\');
+    end
+    pattern = '[ \t\n]*“'; % Match zero or more spaces, tabs, or newlines, followed by a double quote
+    replacement = '"'; % Replace the matched string with just a double quote
+    str = regexprep(str, pattern, replacement);
     jobStruct  = jsondecode(str);
 
     % Check whether the relevant fieldnames have been entered,
@@ -245,7 +265,7 @@ if strcmp(jobFileFormat,'json')
         files_nii = jobStruct.files_nii';
     end
     if isfield(jobStruct, 'files_seg')
-        files_seg = {jobStruct.files_seg}';
+        files_seg = jobStruct.files_seg';
     end
     if isfield(jobStruct, 'files_sense')
         files_sense = jobStruct.sense';
@@ -343,7 +363,7 @@ if strcmp(jobFileFormat,'json')
         MRSCont.opts.savePDF = 0;
     end
     if isfield(jobStruct,'includeMetabs')
-        opts.fit.includeMetabs = {jobStruct.includeMetabs'};
+        opts.fit.includeMetabs = jobStruct.includeMetabs';
     else
         opts.fit.includeMetabs = {'default'};
     end
@@ -377,7 +397,28 @@ if strcmp(jobFileFormat,'json')
     else
         MRSCont.opts.fit.fitMM = 1;
     end
+    if isfield(jobStruct,'basisSet')
+        if isfolder(jobStruct.basisSet)
+            opts.fit.basissetFolder = jobStruct.basisSet;
+        else
+            opts.fit.basisSetFile = jobStruct.basisSet;
+        end
+    end
+    if isfield(jobStruct,'deface')
+        opts.img.deface = jobStruct.deface;
+    else
+        opts.img.deface = 0;
+    end
     debug = '11';
+    if isfield(jobStruct,'exportParams')
+        MRSCont.opts.exportParams.flag = 1;
+        MRSCont.opts.exportParams.path = jobStruct.exportParams;
+        assert(isstring(jobStruct.exportParams), 'When exporting spectral fitting parameters, "exportParams" must be a string specifying the save directory')
+    else
+        fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+        MRSCont.opts.exportParams.flag = 0;
+        MRSCont.opts.exportParams.path = {};
+    end
 end
 
 if exist('opts','var')
@@ -386,7 +427,7 @@ if exist('opts','var')
         if ~strcmp(names{f},'fit') && ~strcmp(names{f},'ECC')
             MRSCont.opts.(names{f}) = opts.(names{f});
         else
-        	names_second = fields(opts.(names{f}));
+            names_second = fields(opts.(names{f}));
             for nf = 1 : length(names_second)
                 MRSCont.opts.(names{f}).(names_second{nf}) = opts.(names{f}).(names_second{nf}); 
             end
@@ -398,6 +439,10 @@ if ~isfield(MRSCont.opts, 'UnstableWater')
     MRSCont.opts.UnstableWater = 0;
 end
 
+if ~isfield(MRSCont.opts, 'Order')
+    MRSCont.opts.Order = [];
+end
+
 if ~isfield(MRSCont.opts, 'SubSpecAlignment')
     MRSCont.opts.SubSpecAlignment.mets = 'L2Norm';
     MRSCont.opts.SubSpecAlignment.mm = 'none';
@@ -407,6 +452,12 @@ else if ~isfield(MRSCont.opts.SubSpecAlignment, 'mets')
     MRSCont.opts.SubSpecAlignment.mets = SubSpecAlignment;
     MRSCont.opts.SubSpecAlignment.mm = 'none'; 
     end
+end
+
+if ~isfield(MRSCont.opts,'exportParams')
+    fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
+    MRSCont.opts.exportParams.flag = 0;
+    MRSCont.opts.exportParams.path = {};
 end
 
 
@@ -496,6 +547,7 @@ switch seqType
             MRSCont.opts.fit.GAP.sum = [];
             MRSCont.opts.fit.GAP.diff1 = [];
             MRSCont.opts.fit.GAP.diff2 = [];
+            MRSCont.opts.fit.GAP.diff3 = [];
         else if ~isfield(MRSCont.opts.fit.GAP, 'sum')
                 MRSCont.opts.fit.GAP.sum = [];
             end
@@ -504,6 +556,9 @@ switch seqType
             end
             if ~isfield(MRSCont.opts.fit.GAP, 'diff2')
                 MRSCont.opts.fit.GAP.diff2 = [];
+            end
+            if ~isfield(MRSCont.opts.fit.GAP, 'diff3')
+                MRSCont.opts.fit.GAP.diff3 = [];
             end
         end
         if ~isfield(MRSCont.opts.fit, 'MeanMM')
@@ -523,7 +578,9 @@ switch seqType
         end
         if isfield(opts.fit, 'coMM3')
             MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
-            MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
+            if isfield(opts.fit, 'FWHMcoMM3')
+                MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
+            end
         else
             MRSCont.opts.fit.coMM3 = 'freeGauss';
             MRSCont.opts.fit.FWHMcoMM3 = 14;
@@ -565,7 +622,7 @@ if exist('dataScenario','var')
             MRSCont.opts.fit.bLineKnotSpace = 1.0;
             MRSCont.opts.fit.fitMM          = 0;
         case 'Series'
-            MRSCont.flags.isSeries = 1; 
+            MRSCont.flags.isSERIES = 1; 
             MRSCont.flags.isPhantom = 0;
         otherwise
             MRSCont.flags.isPhantom = 0;
@@ -625,6 +682,12 @@ else
     MRSCont.flags.hasStatfile = 0;
 end
 
+%Change deface option for images
+if isfield(opts, 'img')
+   if isfield(opts.img, 'deface')
+        MRSCont.opts.img.deface = opts.img.deface;
+   end
+end
 
 %%% 5. SAVE FILE/FOLDER NAMES INTO MRSCONT %%%
 % Make sure that the mandatory fields (metabolite data; output folder) are
@@ -713,7 +776,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 2.4.0';
+MRSCont.ver.Osp             = 'Osprey 2.5.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
@@ -901,4 +964,3 @@ diary off
 close all;
 
 end
-

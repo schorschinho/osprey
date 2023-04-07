@@ -25,8 +25,12 @@ function osp_updateQuantifyWindow(gui)
 %%% 1. INITIALIZE %%%
         MRSCont = getappdata(gui.figure,'MRSCont');  % Get MRSCont from hidden container in gui class
         gui.layout.EmptyQuantPlot = 0;
-        basisSet = MRSCont.fit.resBasisSet.metab.(['np_sw_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth))]){gui.controls.act_z,1,gui.controls.act_y};
-        subSpecName = basisSet.names{1};
+        try
+            basisSet = MRSCont.fit.resBasisSet.metab.(['np_sw_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.sz(1))) '_' num2str(round(MRSCont.processed.metab{gui.controls.Selected}.spectralwidth))]){gui.controls.act_z,1,gui.controls.act_y};
+            subSpecName = basisSet.names{1};
+        catch % For LCModel wrapper
+            subSpecName = MRSCont.quantify.names.SubSpectra{1};
+        end
         if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
             gui.upperBox.quant.Info = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(1);          
             set(gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(2).Children.Children.Children(4),'String',gui.controls.act_z)
@@ -74,17 +78,13 @@ function osp_updateQuantifyWindow(gui)
            for q = 1 : gui.quant.Number.Quants %Collect all results
                 QuantText(1,q+1) = gui.quant.Names.Quants(q);
                 if strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')
-                    idx_GABA  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y},'GABA'));
-                    if strcmp(MRSCont.opts.fit.coMM3, 'none')                            
-                         tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y}),1);
-                         tempQuantText(idx_GABA) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:))';
-                    else                              
-                         tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y}),1);
-                         tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:);
-                         tempQuantText(idx_GABA) = table2cell(tempQuants(1,1));
-                         idx_GABAp  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y},'GABAplus'));
-                         tempQuantText(idx_GABAp) = table2cell(tempQuants(1,2));
-                    end  
+                    AlphaMetNames = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:).Properties.VariableNames;
+                    tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y}),1);
+                    tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:);
+                    for AlM = 1 : length(AlphaMetNames)
+                        idx  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y},AlphaMetNames{AlM}));
+                        tempQuantText(idx) = table2cell(tempQuants(1,AlM));
+                    end                       
                     QuantText(2:end,q+1) = tempQuantText;
                 else
                     QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:))';

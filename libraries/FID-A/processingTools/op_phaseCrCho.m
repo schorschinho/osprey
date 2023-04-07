@@ -64,5 +64,10 @@ else
    
 end
 
+% Add NIfTI-MRS provenance
+% Generate fields for provenance
+fields.Method   = 'Phasing';
+fields.Details  = ['Phase spectrum using a two Lorentzian Cr/Cho fit'];
+in = op_add_analysis_provenance(in,fields);
 end
 

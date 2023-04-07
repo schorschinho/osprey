@@ -7,7 +7,7 @@ function [MRSCont] = RunOspreyJob(jobFilePath)
 %       MRSCont = RunOspreyJob(jobFilePath)
 %
 %   INPUTS:
-%       jobFilePath     = path to the Osprey jobfile (.m, .csv or .jason).
+%       jobFilePath     = path to the Osprey jobfile (.m, .csv or .json).
 %
 %   OUTPUTS:
 %       MRSCont     = Osprey MRS data container.

@@ -53,11 +53,13 @@ diary(fullfile(outputFolder, 'LogFile.txt'));
 [MRSCont, retMsg,reordered] = osp_detDataType(MRSCont);
 MRSCont.flags.reordered = reordered;
 % Parse ECC flag entry
-if length(MRSCont.opts.ECC.raw) == 1
-    MRSCont.opts.ECC.raw = ones(size(MRSCont.files)) * MRSCont.opts.ECC.raw;
-end
-if length(MRSCont.opts.ECC.mm) == 1 && ~isempty(MRSCont.files_mm)
-    MRSCont.opts.ECC.mm = ones(size(MRSCont.files_mm)) * MRSCont.opts.ECC.mm;
+if ~MRSCont.flags.isSERIES
+    if length(MRSCont.opts.ECC.raw) == 1
+        MRSCont.opts.ECC.raw = ones(size(MRSCont.files)) * MRSCont.opts.ECC.raw;
+    end
+    if length(MRSCont.opts.ECC.mm) == 1 && ~isempty(MRSCont.files_mm)
+        MRSCont.opts.ECC.mm = ones(size(MRSCont.files_mm)) * MRSCont.opts.ECC.mm;
+    end
 end
 
 
@@ -129,6 +131,13 @@ else if maxDatasets > 1
     MRSCont.opts.MultipleSpectra.metab = [1:MRSCont.opts.MultipleSpectra.metab(2)];
     else
     MRSCont.opts.MultipleSpectra.metab = [1:MRSCont.nDatasets(1)];
+end
+    if ~MRSCont.flags.isSERIES
+        if length(MRSCont.opts.ECC.raw) == 1
+            MRSCont.opts.ECC.raw = ones(size(MRSCont.files)) * MRSCont.opts.ECC.raw;
+        else
+            MRSCont.opts.ECC.raw = repmat(MRSCont.opts.ECC.raw, [ MRSCont.nDatasets(2) 1]);
+        end  
     end
 end
 if MRSCont.flags.hasMM
@@ -148,7 +157,14 @@ if MRSCont.flags.hasMMRef
         MRSCont.opts.MultipleSpectra.mm_ref = [1:MRSCont.opts.MultipleSpectra.mm_ref(2)];
         else
         MRSCont.opts.MultipleSpectra.mm_ref = [1:MRSCont.nDatasets(1)];
-        end
+    end
+    if ~MRSCont.flags.isSERIES
+        if length(MRSCont.opts.ECC.mm) == 1 && ~isempty(MRSCont.files_mm)
+            MRSCont.opts.ECC.mm = ones(size(MRSCont.mm)) * MRSCont.opts.ECC.mm;
+        else
+            MRSCont.opts.ECC.mm = repmat(MRSCont.opts.ECC.mm, [ MRSCont.nDatasets(2) 1]);
+        end  
+    end
     end
 end
 if MRSCont.flags.hasRef
@@ -277,7 +293,9 @@ if MRSCont.flags.isUnEdited
         % This does NOT apply to SPECIAL-localized data - here, the
         % different dimensions have an explicit meaning and need to be
         % preserved.
-        if ~MRSCont.flags.isSPECIAL
+        % This is also NOT the case for data acquired with the series
+        % function!
+        if ~MRSCont.flags.isSPECIAL && ~MRSCont.flags.isSERIES
             if raw.dims.extras ~= 0
                 % Generate empty struct
                 temp = struct;
@@ -302,6 +320,67 @@ if MRSCont.flags.isUnEdited
                 MRSCont.raw{kk} = raw;
             end
         end
+    end
+end
+
+%% Seperate scans for Series scans
+if MRSCont.flags.isSERIES
+    MRSCont.nDatasets(2) = MRSCont.raw{kk}.sz(MRSCont.raw{kk}.dims.extras);
+    tempRaw = MRSCont.raw;
+    if MRSCont.flags.hasMM
+        tempRawMM = MRSCont.raw_mm;
+    end
+    if MRSCont.flags.hasMMRef
+        tempRawMMref = MRSCont.raw_mm_ref;
+    end
+    if MRSCont.flags.hasRef
+        tempRawRef = MRSCont.raw_ref;
+    end
+    if MRSCont.flags.hasWater
+        tempRawW = MRSCont.raw_w;
+    end
+    for kk = 1:MRSCont.nDatasets(1)
+        for ll = 1 : MRSCont.nDatasets(2)
+            MRSCont.opts.MultipleSpectra.metab(ll) = ll;
+            extras = op_takeextra(tempRaw{kk}, ll);
+             MRSCont.raw{ll,kk} = extras;
+        end    
+        if MRSCont.flags.hasMM
+            for ll = 1 : MRSCont.nDatasets(2)
+                MRSCont.opts.MultipleSpectra.mm(ll) = ll;
+                extras = op_takeextra(tempRawMM{kk}, ll);
+                 MRSCont.raw_mm{ll,kk} = extras;
+            end
+        end
+        if MRSCont.flags.hasMMRef
+            for ll = 1 : MRSCont.nDatasets(2)
+                MRSCont.opts.MultipleSpectra.mm_ref(ll) = ll;
+                extras = op_takeextra(tempRawMMref{kk}, ll);
+                 MRSCont.raw_mm_ref{ll,kk} = extras;
+            end
+        end
+        if MRSCont.flags.hasRef
+            for ll = 1 : MRSCont.nDatasets(2)
+                MRSCont.opts.MultipleSpectra.ref(ll) = ll;
+                extras = op_takeextra(tempRawRef{kk}, ll);
+                 MRSCont.raw_ref{ll,kk} = extras;
+            end
+        end
+        if MRSCont.flags.hasWater
+            for ll = 1 : MRSCont.nDatasets(2)
+                MRSCont.opts.MultipleSpectra.w(ll) = ll;
+                extras = op_takeextra(tempRawW{kk}, ll);
+                 MRSCont.raw_w{ll,kk} = extras;
+            end
+        end
+    end 
+
+    % Parse ECC flag entry
+    if length(MRSCont.opts.ECC.raw) == 1
+        MRSCont.opts.ECC.raw = ones(size(MRSCont.raw)) * MRSCont.opts.ECC.raw;
+    end
+    if length(MRSCont.opts.ECC.mm) == 1 && ~isempty(MRSCont.files_mm)
+        MRSCont.opts.ECC.mm = ones(size(MRSCont.raw_mm)) * MRSCont.opts.ECC.mm;
     end
 end
 

@@ -29,36 +29,38 @@ function osp_updateLoadWindow(gui)
             set(gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(3).Children(1).Children.Children(5),'String',gui.controls.act_y)
             set(gui.layout.(gui.layout.rawTabhandles{gui.load.Selected}).Children(2).Children(3).Children(1).Children.Children(6),'String',gui.controls.act_x)
         end
+
         % Grid for Plot and Data control sliders
          gui.layout.EmptyPlot.data = 0;
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-        switch gui.load.Names.Spec{gui.load.Selected}
-            case 'metabolites'
-            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) '\naverages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-            case 'MM'
-                    StatText = ['MM Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.spectralwidth) ' Hz'...   %re_mm
-                         '\nraw subspecs: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...   %re_mm
-                         num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];   %re_mm
-            case 'reference'
-            StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth) ' Hz'...   %re_mm
-                         '\nraw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...   %re_mm
-                         num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];   %re_mm
-           case 'MM reference' 
-                    StatText = ['MM reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-            case 'water'
-                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.spectralwidth) ' Hz'...
-                         '\nraw subspecs: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.averages)...
-                         '; Sz: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
-                         num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
-        end
+            switch gui.load.Names.Spec{gui.load.Selected}
+                case 'metabolites'
+                StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te(gui.controls.act_x)) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr(gui.controls.act_x)) '\naverages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages(gui.controls.act_x))...
+                             '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
+                             num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
+                case 'MM'
+                        StatText = ['MM Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.te(gui.controls.act_x)) ' / ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.tr(gui.controls.act_x)) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.spectralwidth(gui.controls.act_x)) ' Hz'...   %re_mm
+                             '\nraw subspecs: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.averages)...
+                             '; Sz: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...   %re_mm
+                             num2str(MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_mm{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];   %re_mm
+                case 'reference'
+                StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te(gui.controls.act_x)) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr(gui.controls.act_x)) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth(gui.controls.act_x)) ' Hz'...   %re_mm
+                             '\nraw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
+                             '; Sz: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...   %re_mm
+                             num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];   %re_mm
+               case 'MM reference' 
+                        StatText = ['MM reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.te(gui.controls.act_x)) ' / ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.tr(gui.controls.act_x)) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.spectralwidth(gui.controls.act_x)) ' Hz'...
+                             '\nraw subspecs: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.averages)...
+                             '; Sz: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
+                             num2str(MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_mm_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
+                case 'water'
+                    StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.te(gui.controls.act_x)) ' / ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.tr(gui.controls.act_x)) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.spectralwidth(gui.controls.act_x)) ' Hz'...
+                             '\nraw subspecs: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.averages)...
+                             '; Sz: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
+                             num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
+            end
+
 
         if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
             set(gui.InfoText.data{gui.load.Selected}, 'String',sprintf(StatText))
@@ -76,7 +78,7 @@ function osp_updateLoadWindow(gui)
         Exp = gui.controls.act_Exp;
         switch gui.load.Names.Spec{gui.load.Selected}
             case 'metabolites'
-                if Exp > max(MRSCont.opts.MultipleSpectra.metab)
+                if (Exp > max(MRSCont.opts.MultipleSpectra.metab)) && ~MRSCont.flags.isSERIES
                     Exp = 1;
                     gui.controls.act_Exp = 1;
                 end
@@ -127,6 +129,9 @@ function osp_updateLoadWindow(gui)
                 set(  gui.layout.multiAload.Children, 'XLim', temp.Children(4).XLim);
                 set(  gui.layout.multiAload.Children, 'YLim', temp.Children(4).YLim);
                 set( temp.Children(4).Children, 'Parent', gui.layout.multiAload.Children ); % Update pre alignment plot
+            end
+            if MRSCont.flags.isSERIES
+                Exp = 1;
             end
             set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files{Exp,gui.controls.Selected}] );
             case 'MM'
@@ -182,6 +187,9 @@ function osp_updateLoadWindow(gui)
                 set(  gui.layout.multiAload.Children, 'YLim', temp.Children(4).YLim);
                 set( temp.Children(4).Children, 'Parent', gui.layout.multiAload.Children ); % Update pre alignment plot
             end
+            if MRSCont.flags.isSERIES
+                Exp = 1;
+            end
             set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files_mm{Exp,gui.controls.Selected}] );
             case 'reference'
                 if Exp > max(MRSCont.opts.MultipleSpectra.ref)
@@ -200,6 +208,9 @@ function osp_updateLoadWindow(gui)
                 set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children);
                 set(gui.Plot.data{gui.load.Selected}.Children.Title, 'String', ViewAxes.Title.String);
                 set(gui.Plot.data{gui.load.Selected}.Children, 'XLim',ViewAxes.XLim);
+                if MRSCont.flags.isSERIES
+                    Exp = 1;
+                end
                 if ~isempty(MRSCont.files_ref)
                     set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files_ref{Exp,gui.controls.Selected}] );
                 else
@@ -222,6 +233,9 @@ function osp_updateLoadWindow(gui)
                 set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children);
                 set(gui.Plot.data{gui.load.Selected}.Children.Title, 'String', ViewAxes.Title.String);
                 set(gui.Plot.data{gui.load.Selected}.Children, 'XLim',ViewAxes.XLim);
+                if MRSCont.flags.isSERIES
+                    Exp = 1;
+                end
                 set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files_mm_ref{Exp,gui.controls.Selected}] );
             case 'water'
                 if Exp > max(MRSCont.opts.MultipleSpectra.w)
@@ -239,7 +253,10 @@ function osp_updateLoadWindow(gui)
                 delete(gui.Plot.data{gui.load.Selected}.Children(1).Children)
                 set(ViewAxes.Children, 'Parent', gui.Plot.data{gui.load.Selected}.Children(1));
                 set(  gui.Plot.data{gui.load.Selected}.Children(1).Title, 'String',ViewAxes.Title.String)
-                set(  gui.Plot.data{gui.load.Selected}.Children(1), 'XLim',ViewAxes.XLim)   
+                set(  gui.Plot.data{gui.load.Selected}.Children(1), 'XLim',ViewAxes.XLim)  
+                if MRSCont.flags.isSERIES
+                    Exp = 1;
+                end
                 set(gui.upperBox.data.Info{gui.load.Selected},'Title', ['Actual file: ' MRSCont.files_w{Exp,gui.controls.Selected}] );
         end
 

@@ -20,10 +20,13 @@ function [data, header] = philipsLoad(filename)
 
 % Get the .spar filename
 sparname = [filename(1:(end-4)) 'spar'];
-
 % Populate the header information from the SPAR file
 % Look for regular expression separated by a colon
 fid_spar = fopen(sparname);
+if fid_spar == -1
+    sparname = [filename(1:(end-4)) 'SPAR']; %This seems to be a problem for some Linux based systems
+    fid_spar = fopen(sparname);
+end
 while ~feof(fid_spar)
     tline = fgets(fid_spar); % get first line
     [tokens,matches] = regexp(tline,'([\w\[\].]*)\s*:\s*([-\w\s.\"\\:\.]*)','tokens','match');

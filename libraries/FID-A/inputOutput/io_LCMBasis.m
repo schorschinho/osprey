@@ -34,7 +34,7 @@
 % OUTPUTS:
 % BASIS     = Simulated basis set in FID-A structure format. 
 
-function [BASIS] = io_LCMBasis(LCMBasisSet, addMMFlag, sequence, editTarget)
+function [BASIS] = io_LCMBasis(LCMBasisSet, addMMFlag, sequence, editTarget, conjugate)
 %Get Osprey folder
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
 allFolders      = strsplit(settingsFolder, filesep);
@@ -42,12 +42,15 @@ ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Ospr
 
 
 % Parse input arguments
-if nargin < 4
-    editTarget = 'none';
-    if nargin < 3
-        addMMFlag = 1;
-        if nargin < 2
-            sequence = 'unedited';
+if nargin < 5
+    conjugate = 1;
+    if nargin < 4
+        editTarget = 'none';
+        if nargin < 3
+            addMMFlag = 1;
+            if nargin < 2
+                sequence = 'unedited';
+            end
         end
     end
 end
@@ -57,7 +60,7 @@ end
 
 
 % Load LCMBasisSet
-[Read]=io_readlcmraw_basis(LCMBasisSet);
+[Read]=io_readlcmraw_basis(LCMBasisSet,conjugate);
 disp('We are going to rename your basis set accroding to the Osprey naming convention now.\n')
 Osp_names = ['Ala ','Asc ','Asp ', 'bHB ','bHG ', 'Cit ', 'Cr ', 'CrCH2 ', 'EtOH ', 'GABA \n',...
              'GPC ', 'GSH ', 'Glc ', 'Gln ', 'Glu ', 'Gly ', 'H2O ', 'mI ', 'Lac ', 'NAA ', 'NAAG \n', ...

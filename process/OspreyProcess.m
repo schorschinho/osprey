@@ -133,6 +133,27 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 if MRSCont.flags.isSPECIAL
                     raw_ref = combine_special_subspecs(raw_ref);
                 end
+
+                if raw_ref.averages > 1 && raw_ref.flags.averaged == 0
+                    [raw_ref,fs,phs]                 = op_alignAverages(raw_ref, 1, 'n');
+                    badAverages=find(abs(fs)>6);
+                    goodAverages=find(abs(fs)<6); 
+                    if ~isempty(badAverages)
+                        fs(badAverages) =[];
+                        phs(badAverages) =[];
+                        raw_ref.AveragesToKeep = goodAverages;
+                        raw_ref.fids=raw_ref.fids(:,goodAverages,:,:);
+                        raw_ref.specs=fftshift(ifft(raw_ref.fids,[],raw_ref.dims.t),raw_ref.dims.t);
+                        raw_ref.sz=size(raw_ref.fids);
+                        raw_ref.averages=length(goodAverages);
+                    end
+                    raw_ref                       = op_averaging(raw_ref);              % Average
+                    raw_ref.specReg{1}.fs              = fs; % save align parameters
+                    raw_ref.specReg{1}.phs             = phs; % save align parameters
+                else
+                    raw_ref.flags.averaged    = 1;
+                    raw_ref.dims.averages     = 0;
+                end
             
                 raw_ref = op_combine_water_subspecs(raw_ref);                
             end
@@ -149,8 +170,21 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
                 
                 if raw_w.averages > 1 && raw_w.flags.averaged == 0
-                    [raw_w,~,~]                 = op_alignAverages(raw_w, 1, 'n');
+                    [raw_w,fs,phs]                 = op_alignAverages(raw_w, 1, 'n');
+                    badAverages=find(abs(fs)>6);
+                    goodAverages=find(abs(fs)<6); 
+                    if ~isempty(badAverages)
+                        fs(badAverages) =[];
+                        phs(badAverages) =[];
+                        raw_w.AveragesToKeep = goodAverages;
+                        raw_w.fids=raw_w.fids(:,goodAverages,:,:);
+                        raw_w.specs=fftshift(ifft(raw_w.fids,[],raw_w.dims.t),raw_w.dims.t);
+                        raw_w.sz=size(raw_w.fids);
+                        raw_w.averages=length(goodAverages);
+                    end
                     raw_w                       = op_averaging(raw_w);              % Average
+                    raw_w.specReg{1}.fs              = fs; % save align parameters
+                    raw_w.specReg{1}.phs             = phs; % save align parameters
                 else
                     raw_w.flags.averaged    = 1;
                     raw_w.dims.averages     = 0;
@@ -260,28 +294,31 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
 
             else
-                raw.fids = squeeze(sum(raw.fids, raw.dims.averages));
-                raw.specs=fftshift(fft(raw.fids,[],raw.dims.t),raw.dims.t);
-                if raw.dims.t>raw.dims.averages
-                    raw.dims.t=raw.dims.t-1;
-                else
-                    raw.dims.t=raw.dims.t;
-                end
-                if raw.dims.coils>raw.dims.averages
-                    raw.dims.coils=raw.dims.coils-1;
-                else
-                    raw.dims.coils=raw.dims.coils;
-                end
-                raw.dims.averages=0;
-                if raw.dims.subSpecs>raw.dims.averages
-                    raw.dims.subSpecs=raw.dims.subSpecs-1;
-                else
-                    raw.dims.subSpecs=raw.dims.subSpecs;
-                end
-                if raw.dims.extras>raw.dims.averages
-                    raw.dims.extras=raw.dims.extras-1;
-                else
-                    raw.dims.extras=raw.dims.extras;
+                % If there is still an average dimension, squeeze
+                if raw.dims.averages > 0
+                    raw.fids = squeeze(sum(raw.fids, raw.dims.averages));
+                    raw.specs=fftshift(fft(raw.fids,[],raw.dims.t),raw.dims.t);
+                    if raw.dims.t>raw.dims.averages
+                        raw.dims.t=raw.dims.t-1;
+                    else
+                        raw.dims.t=raw.dims.t;
+                    end
+                    if raw.dims.coils>raw.dims.averages
+                        raw.dims.coils=raw.dims.coils-1;
+                    else
+                        raw.dims.coils=raw.dims.coils;
+                    end
+                    raw.dims.averages=0;
+                    if raw.dims.subSpecs>raw.dims.averages
+                        raw.dims.subSpecs=raw.dims.subSpecs-1;
+                    else
+                        raw.dims.subSpecs=raw.dims.subSpecs;
+                    end
+                    if raw.dims.extras>raw.dims.averages
+                        raw.dims.extras=raw.dims.extras-1;
+                    else
+                        raw.dims.extras=raw.dims.extras;
+                    end
                 end
                 raw.sz=size(raw.fids);
 
@@ -397,7 +434,12 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             end
             if raw.flags.isMEGA
                 target = MRSCont.opts.editTarget{1}; % GABA editing as default
-                [raw, switchOrder]  = osp_onOffClassifyMEGA(raw, target);
+                if isfield(MRSCont.opts, 'Order')
+                    Order = MRSCont.opts.Order;
+                else
+                    Order = [];
+                end
+                [raw, switchOrder]  = osp_onOffClassifyMEGA(raw, target,Order);
                 raw.names = {'A','B'};
                 raw.target = MRSCont.opts.editTarget';
 
@@ -432,7 +474,12 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 if length(MRSCont.opts.editTarget) > 2
                    target3 = MRSCont.opts.editTarget{3};
                 end
-                [raw, commuteOrder] = osp_onOffClassifyHERMES(raw,[target1 target2]);
+                if isfield(MRSCont.opts, 'Order')
+                    Order = MRSCont.opts.Order;
+                else
+                    Order = [];
+                end
+                [raw, commuteOrder] = osp_onOffClassifyHERMES(raw,[target1 target2],Order);
                 raw.commuteOrder = commuteOrder;
                 raw.names = {'A', 'B', 'C', 'D'};
                 raw.target = MRSCont.opts.editTarget';
@@ -547,9 +594,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
                     raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
                 else  % For HERMES 4 acqusitions
-                    raw=op_HadamardScans(raw,[1 -1 -1 1],'diff1');
+                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
                     raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
-                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff3');
+                    raw=op_HadamardScans(raw,[-1 1 1 -1],'diff3');
                 end
                 raw=op_HadamardScans(raw,[1 1 1 1],'sum');
                 raw_no_subspec_aling = raw;
@@ -574,7 +621,11 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                         if ~exist('target3', 'var')
                             [raw]  = osp_editSubSpecAlign(raw, seq, target1,target2,MRSCont.opts.UnstableWater);
                         else
-                            [raw]  = osp_editSubSpecAlign(raw, seq, target2,target3,MRSCont.opts.UnstableWater);
+                            if strcmp(target3,'EtOH')
+                                [raw]  = osp_editSubSpecAlign(raw, seq, target1,target3,MRSCont.opts.UnstableWater);
+                            else
+                               [raw]  = osp_editSubSpecAlign(raw, seq, target2,target3,MRSCont.opts.UnstableWater); 
+                            end
                         end
                     otherwise
                 end
@@ -583,12 +634,20 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                     raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
                     raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
                 else  % For HERMES 4 acqusitions
-                    raw=op_HadamardScans(raw,[1 -1 -1 1],'diff1');
+                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff1');
                     raw=op_HadamardScans(raw,[-1 -1 1 1],'diff2');
-                    raw=op_HadamardScans(raw,[-1 1 -1 1],'diff3');
+                    raw=op_HadamardScans(raw,[-1 1 1 -1],'diff3');
                 end
                 raw=op_HadamardScans(raw,[1 1 1 1],'sum');
                 raw = op_freqshift(raw, refShift_SubSpecAlign);
+                fields.Method   = 'Addition of sub-spectra';
+                if raw.flags.isHERCULES
+                    fields.Details  = ['HERCULES Hadmard combination (Oeltzschner et al. 2019)'];
+                else
+                    fields.Details  = ['HERMES Hadmard combination (Saleh et al. 2018)'];
+                end
+                raw = op_add_analysis_provenance(raw,fields);
+                
             end
             
 %%          %%% 7. REMOVE RESIDUAL WATER %%%
@@ -633,7 +692,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             end
 
             % Save back to MRSCont container
-            if (strcmp(MRSCont.vendor,'Siemens') && raw.flags.isUnEdited) || MRSCont.flags.isMRSI
+            if (strcmp(MRSCont.vendor,'Siemens') && raw.flags.isUnEdited && ~MRSCont.flags.isPhantom) || MRSCont.flags.isMRSI
                 % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
                 % with the negative phase of that fit
                 [raw,globalPhase]       = op_phaseCrCho(raw, 1);
@@ -725,9 +784,15 @@ if MRSCont.nDatasets(2) > 1
     for ss = 1 : NoSubSpec
         for kk = 1:MRSCont.nDatasets(1)
             if size(MRSCont.processed.(SubSpecNames{ss}),1) > 1
-                MRSCont.processed.(SubSpecNames{ss}){1,kk}.extra_names{1} = MRSCont.opts.extras.names{1};
+                if ~isfield(MRSCont.processed.(SubSpecNames{ss}){1,kk}, 'extra_names')
+                    MRSCont.processed.(SubSpecNames{ss}){1,kk}.extra_names{1}= MRSCont.opts.extras.names{1};
+                end
                 for ll = 2:MRSCont.nDatasets(2)
-                    MRSCont.processed.(SubSpecNames{ss}){1,kk}= op_mergeextra(MRSCont.processed.(SubSpecNames{ss}){1,kk},MRSCont.processed.(SubSpecNames{ss}){ll,kk},MRSCont.opts.extras.names{ll});
+                    if isfield(MRSCont.processed.(SubSpecNames{ss}){ll,kk}, 'extra_names')
+                        MRSCont.processed.(SubSpecNames{ss}){1,kk}= op_mergeextra(MRSCont.processed.(SubSpecNames{ss}){1,kk},MRSCont.processed.(SubSpecNames{ss}){ll,kk},MRSCont.processed.(SubSpecNames{ss}){ll,kk}.extra_names{1});
+                    else
+                        MRSCont.processed.(SubSpecNames{ss}){1,kk}= op_mergeextra(MRSCont.processed.(SubSpecNames{ss}){1,kk},MRSCont.processed.(SubSpecNames{ss}){ll,kk},MRSCont.opts.extras.names{ll});
+                    end
                 end
             end
         end
@@ -863,11 +928,11 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     % Loop over field names to populate descriptive fields of table for JSON export
     for JJ = 1:length(names)
         switch names{JJ}
-            case 'NAA_SNR'
+            case 'Cr_SNR'
                 MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'Cr_SNR'} = 'Signal to noise ratio of creatine';
                 MRSCont.QM.tables.Properties.VariableDescriptions{'Cr_SNR'} = ['The maximum amplitude of the creatine peak divided by twice the standard deviation of the noise calculated from subspectrum ' name];
                 MRSCont.QM.tables.Properties.VariableUnits{'Cr_SNR'} = 'arbitrary';
-            case 'NAA_FWHM'
+            case 'Cr_FWHM'
                 MRSCont.QM.tables.Properties.CustomProperties.VariableLongNames{'Cr_FWHM'} = 'Full width at half maximum of creatine';
                 MRSCont.QM.tables.Properties.VariableDescriptions{'Cr_FWHM'} = ['The width of the creatine peak at half the maximum amplitude calculated as the average of the FWHM of the data and the FWHM of a lorentzian fit calculated from subspectrum ' name];
                 MRSCont.QM.tables.Properties.VariableUnits{'Cr_FWHM'} = 'Hz';

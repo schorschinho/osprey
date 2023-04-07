@@ -42,11 +42,23 @@ warning('off','all');
 %output due to non BIDS conform data names
 SameName = 0;
 if MRSCont.nDatasets(1) > 1
-    specFile = MRSCont.files{1};
-    specFile2 = MRSCont.files{2};
+    specFile = MRSCont.files{1,1};
+    specFile2 = MRSCont.files{1,2};
     [~, SpecName, ~]  = fileparts(specFile);
     [~, SpecName2, ~]  = fileparts(specFile2);
-    SameName = strcmp(SpecName,SpecName2);
+    if ~isempty(SpecName) && ~isempty(SpecName2)
+        SameName = strcmp(SpecName,SpecName2);
+    else
+        [DirName, ~, ~]  = fileparts(specFile);
+        [DirName2, ~, ~]  = fileparts(specFile2);
+        SepFiles =  split(DirName, filesep);
+        SepFiles(strcmp(SepFiles,''))=[];
+        DirName = SepFiles{end};
+        SepFiles =  split(DirName2, filesep);
+        SepFiles(strcmp(SepFiles,''))=[];
+        DirName2 = SepFiles{end};
+        SameName = strcmp(DirName,DirName2);
+    end
 end
 MRSCont.coreg.SameName = SameName;
 
@@ -68,18 +80,29 @@ for kk = 1:MRSCont.nDatasets(1)
     if ~(MRSCont.flags.didCoreg == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'coreg') && (kk > length(MRSCont.coreg.vol_image))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)
         
         if SameName
-            [PreFix] = osp_generate_SubjectAndSessionPrefix(MRSCont.files{kk},kk);
+            [PreFix] = osp_generate_SubjectAndSessionPrefix(MRSCont.files{1,kk},kk);
+            PreFix = [PreFix '_'];
         else
             PreFix = '';
         end
 
         % Get the input file name
-        [~,filename,~]   = fileparts(MRSCont.files{kk});
+        if ~exist('DirName','var')
+            [~,filename,fileext]   = fileparts(MRSCont.files{1,kk});
+            if strcmp(fileext,'.gz')
+                [~,filename,~]   = fileparts(filename);
+            end
+        else
+            [dirname,~,~]   = fileparts(MRSCont.files{1,kk});
+            SepFiles =  split(dirname, filesep);
+            SepFiles(strcmp(SepFiles,''))=[];
+            filename = SepFiles{end};
+        end
         % Get the nii file name
         [~,~,T1ext]   = fileparts(MRSCont.files_nii{kk});
         
         %<source_entities>[_space-<space>][_res-<label>][_den-<label>][_label-<label>][_desc-<label>]_mask.nii.gz
-        saveName = [PreFix '_' filename '_space-scanner']; %CWDJ Check space.
+        saveName = [PreFix filename '_space-scanner']; %CWDJ Check space.
         
         % Generate file name for the voxel mask NIfTI file to be saved under
         maskFile            = fullfile(saveDestination, [saveName '_mask.nii']);
@@ -92,7 +115,7 @@ for kk = 1:MRSCont.nDatasets(1)
 
         if strcmp(MRSCont.datatype,'NIfTI-MRS')
             vol_image = spm_vol(MRSCont.files_nii{kk});
-            [vol_mask, T1_max, voxel_ctr] = coreg_nifti(MRSCont.raw{kk}, vol_image, maskFile);
+            [vol_mask, T1_max, voxel_ctr] = coreg_nifti(MRSCont.raw{1,kk}, vol_image, maskFile);
         else
             % Call voxel mask generator depending on file type
             switch MRSCont.vendor
@@ -102,11 +125,11 @@ for kk = 1:MRSCont.nDatasets(1)
                     vol_image = spm_vol(MRSCont.files_nii{kk});
                     switch MRSCont.datatype
                         case 'TWIX'
-                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
+                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{1,kk}, vol_image, maskFile);
                         case 'RDA'
-                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
+                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{1,kk}, vol_image, maskFile);
                         case 'DICOM'
-                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
+                            [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{1,kk}, vol_image, maskFile);
                         otherwise
                             msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                             fprintf(msg);
@@ -118,17 +141,17 @@ for kk = 1:MRSCont.nDatasets(1)
                     switch MRSCont.datatype
                         case 'SDAT'
                              if ~MRSCont.flags.isMRSI % SVS coregistration
-                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                                [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{1,kk}, vol_image, maskFile);
                              else
-                                  [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,2);
+                                  [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{1,kk}, vol_image, maskFile,2);
     %                                MRSCont.coreg.vol_mask_mrsi{kk} = vol_mask_mrsi;
                              end
                         case 'DATA'
                             if isfield(MRSCont.raw{kk}, 'geometry')
                                 if ~MRSCont.flags.isPRIAM % SVS coregistration
-                                    [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
+                                    [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{1,kk}, vol_image, maskFile);
                                 else 
-                                    [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
+                                    [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{1,kk}, vol_image, maskFile, MRSCont.SENSE{kk});
                                 end
                             else
                             msg = 'Philips DATA files do not contain voxel geometry information.';
@@ -150,12 +173,12 @@ for kk = 1:MRSCont.nDatasets(1)
                         % Load the *.nii file provided in the job file
                         vol_image = spm_vol(MRSCont.files_nii{kk});
                         
-                        [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{kk}, vol_image, maskFile);
+                        [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{1,kk}, vol_image, maskFile);
                     else
                         switch MRSCont.datatype
                             case 'P'
                                 % Load the DICOM folder provided in the job file                           
-                                [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{kk}, MRSCont.files_nii{kk}, maskFile);
+                                [vol_mask, T1_max, vol_image, voxel_ctr] = coreg_p(MRSCont.raw{1,kk}, MRSCont.files_nii{kk}, maskFile);
                             otherwise
                                 msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                                 fprintf(msg);
@@ -167,6 +190,17 @@ for kk = 1:MRSCont.nDatasets(1)
                     fprintf(msg);
                     error(msg);                
             end
+        end
+
+        if MRSCont.opts.img.deface
+            [anaon_vol_image] = spm_deface({vol_image.fname});
+            saveDestinationAnon = fullfile(MRSCont.outputFolder, 'DefacedNII'); %CWDJ - Address in future update
+            if ~exist(saveDestinationAnon,'dir')
+                mkdir(saveDestinationAnon);
+            end
+            [~,AnonName,AnonExt] = fileparts(anaon_vol_image{1});
+            [~] = movefile(anaon_vol_image{1}, fullfile(saveDestinationAnon,[AnonName AnonExt]));
+            vol_image = spm_vol(fullfile(saveDestinationAnon,[AnonName AnonExt]));
         end
 
         % Save back the image and voxel mask volumes to MRSCont

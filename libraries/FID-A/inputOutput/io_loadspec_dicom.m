@@ -289,7 +289,9 @@ out.tr=DicomHeader.TR;
 out.pointsToLeftshift=0;
 out.centerFreq = centerFreq;
 out.geometry = geometry;
-
+if isfield(DicomHeader, 'SoftwareVersions')
+    out.software = DicomHeader.SoftwareVersions;
+end
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;
@@ -307,6 +309,17 @@ if out.dims.subSpecs==0
 else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
+
+% Add info for niiwrite
+if isfield(DicomHeader,'PatientPosition')
+    out.PatientPosition = DicomHeader.PatientPosition;
+else
+    out.PatientPosition = '';
+end
+out.Manufacturer = 'Siemens';
+[~,filename,ext] = fileparts(filesInFolder{1});
+out.OriginalFile = [filename ext];
+
 % Sequence flags
 out.flags.isUnEdited = 0;
 out.flags.isMEGA = 0;

@@ -270,5 +270,6 @@ function osp_iniProcessWindow(gui)
             close(h(ff))
         end
     end
+    gui.info.nYvoxels = MRSCont.processed.metab{1, 1}.subspecs;
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end

@@ -1,4 +1,4 @@
-function [out,switchOrder] = osp_onOffClassifyMEGA(in, target)
+function [out,switchOrder] = osp_onOffClassifyMEGA(in, target,Order)
 %% [outA,switchOrder] = osp_onOffClassifyMEGA(in,target)
 %   This function decides which of the two provided MEGA sub-spectra in the
 %   are the edit-ON or the edit-OFF.
@@ -11,11 +11,12 @@ function [out,switchOrder] = osp_onOffClassifyMEGA(in, target)
 %   edit-ON spectrum to field B.
 %
 %   USAGE:
-%       [out] = osp_onOffClassifyMEGA(in target)
+%       [out] = osp_onOffClassifyMEGA(in, target, Order)
 %
 %   INPUTS:
 %       in     = FID-A structure containing MEGA spectrum.
 %       target  = String. Can be 'GABA' or 'GSH'.
+%       Order = manually overwrite order
 %
 %   OUTPUTS:
 %       out    = FID-A structure containing the ordered MEGA sub-spectrum.
@@ -38,45 +39,63 @@ function [out,switchOrder] = osp_onOffClassifyMEGA(in, target)
 %       2020-01-15: Modified by Helge Zoellner (absolute value
 %       implementation)
 
-
-switch target
-    case 'GABA'
-        % Determine which of the differences has an upright NAA peak
-        temp = op_freqrange(in, 1.7, 2.3);        
-    case 'GSH'
-        % Determine which of the differences has an upright water peak
-        temp = op_freqrange(in, 4, 5);
-    case 'Lac'
-        % Determine which of the differences has an upright water peak
-        temp = op_freqrange(in, 3.8, 4);
-    case 'PE398'
-        % Determine which of the differences has an upright water peak
-        temp = op_freqrange(in, 3.8, 4.1);       
-    case 'PE322'
-        % Determine which of the differences has an upright water peak
-        temp = op_freqrange(in, 3.0, 3.3);     
-    otherwise
-        disp('MEGA ON/OFF classifier does not recognize the input argument ''target''. We automatically assume no reordering. You can change that in osp_onOFFClassifyMEGA.m');
-         outA = inA;
-        outB = inB;
-        switchOrder = 0;
+if nargin < 2
+    target = 'GABA';
+    Order = [];
+end
+if nargin < 3
+    Order = [];
 end
 
-spec = abs(real(temp.specs));        
-max_diffAB = max(spec(:,1) - spec(:,2));
-max_diffBA = max(spec(:,2) - spec(:,1));
-out = in;
-
-if max_diffAB > max_diffBA
-
-    switchOrder = 0;
+if isempty(Order)
+    switch target
+        case 'GABA'
+            % Determine which of the differences has an upright NAA peak
+            temp = op_freqrange(in, 1.7, 2.3);        
+        case 'GSH'
+            % Determine which of the differences has an upright water peak
+            temp = op_freqrange(in, 4, 5);
+        case 'Lac'
+            % Determine which of the differences has an upright water peak
+            temp = op_freqrange(in, 3.8, 4);
+        case 'PE398'
+            % Determine which of the differences has an upright water peak
+            temp = op_freqrange(in, 3.8, 4.1);       
+        case 'PE322'
+            % Determine which of the differences has an upright water peak
+            temp = op_freqrange(in, 3.0, 3.3);     
+        otherwise
+            disp('MEGA ON/OFF classifier does not recognize the input argument ''target''. We automatically assume no reordering. You can change that in osp_onOFFClassifyMEGA.m');
+             outA = inA;
+            outB = inB;
+            switchOrder = 0;
+    end
+    
+    spec = abs(real(temp.specs));        
+    max_diffAB = max(spec(:,1) - spec(:,2));
+    max_diffBA = max(spec(:,2) - spec(:,1));
+    out = in;
+    
+    if max_diffAB > max_diffBA
+    
+        switchOrder = 0;
+    else
+        temp = in;
+        out.specs(:,1) = temp.specs(:,2);
+        out.specs(:,2) = temp.specs(:,1);
+        out.fids(:,1) = temp.fids(:,2);
+        out.fids(:,2) = temp.fids(:,1);
+        switchOrder = 1;
+    end
 else
-    temp = in;
-    out.specs(:,1) = temp.specs(:,2);
-    out.specs(:,2) = temp.specs(:,1);
-    out.fids(:,1) = temp.fids(:,2);
-    out.fids(:,2) = temp.fids(:,1);
-    switchOrder = 1;
+    switchOrder = Order;
+    if switchOrder
+        temp = in;
+        out.specs(:,1) = temp.specs(:,2);
+        out.specs(:,2) = temp.specs(:,1);
+        out.fids(:,1) = temp.fids(:,2);
+        out.fids(:,2) = temp.fids(:,1);
+    end
 end
 
 end

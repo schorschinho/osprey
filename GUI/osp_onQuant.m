@@ -29,6 +29,7 @@ function osp_onQuant( ~, ~ ,gui)
     set(gui.figure,'HandleVisibility','off');
     set(gui.layout.tabs,'SelectionChangedFcn','');
     set(gui.layout.quantifyTab, 'SelectionChangedFcn','');
+    gui.layout.b_quant.Enable = 'off';
     gui.layout.tabs.Selection  = 5;
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYQUANTIFY %%%    
@@ -75,7 +76,13 @@ function osp_onQuant( ~, ~ ,gui)
     set(gui.controls.pop_corrOvMetab,'callback',{@osp_pop_corrOvMetab_Call,gui});
     set(gui.controls.pop_corrOvCorr,'callback',{@osp_pop_corrOvCorr_Call,gui});
     set(gui.controls.pop_whichcorrOvCorr,'callback',{@osp_pop_whichcorrOvCorr_Call,gui});
-    gui.layout.b_quant.Enable = 'off';
+    set(gui.controls.b_save_distrOvTab,'Callback',{@osp_onPrint,gui});
+    set(gui.controls.b_save_corrOvTab,'Callback',{@osp_onPrint,gui});
+    set(gui.controls.check_distrOv,'callback',{@osp_check_distrOv_Call,gui});
+    set(gui.controls.check_meanOvPlot,'callback',{@osp_check_meanOvPlot_Call,gui});                
+    set(gui.controls.check_specsOvPlot,'callback',{@osp_check_specsOvPlot_Call,gui});
+    set(gui.controls.b_save_specOvTab,'Callback',{@osp_onPrint,gui});
+    set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
     set(gui.figure,'HandleVisibility','on');
     set(gui.layout.tabs,'SelectionChangedFcn',{@osp_SelectionChangedFcn,gui});
     set(gui.layout.quantifyTab, 'SelectionChangedFcn',{@osp_QuantTabChangeFcn,gui});

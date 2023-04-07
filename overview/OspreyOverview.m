@@ -594,7 +594,7 @@ else % No csv file supplied
     name = statFile.Properties.VariableNames;
 end
 if isfield(MRSCont, 'exclude') % If exclusions found in MRSCont, add to the table
-    exclude = zeros(MRSCont.nDatasets,1);
+    exclude = zeros(MRSCont.nDatasets(1),1);
     exclude(MRSCont.exclude) = 1;
     statFile.exclude = exclude;
 end
@@ -834,6 +834,10 @@ end
 if MRSCont.flags.isGUI  && isfield(progressText,'String')
     set(progressText,'String' ,sprintf('\n Elapsed time %f seconds',time));
     pause(1);
+end
+
+if MRSCont.opts.exportParams.flag==1
+    osp_exportParams(MRSCont)
 end
 
 end

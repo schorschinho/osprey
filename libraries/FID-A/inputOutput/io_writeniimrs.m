@@ -35,7 +35,7 @@
 % OUTPUTS:
 % nii         = Same as input. Not used. 
 
-function nii = io_writeniimrs(in, outfile, UserNames)
+function nii = io_writeniimrs(in, outfile, UserNames, OspreyVersion)
 %function nii = io_writeniimrs(in, outfile, UserNames)
 
 % Bring FID array into NIfTI-MRS shape
@@ -152,11 +152,22 @@ end
 %% Update NIfTI-MRS header
 newDim = nii.hdr.dim;
 newVoxOffset = nii.hdr.vox_offset;
-nii.hdr = in.nii_mrs.hdr;
+% Add nii_mrs field if needed
+if isfield(in,'nii_mrs')
+    nii.hdr = in.nii_mrs.hdr;
+else
+    in.nii_mrs.hdr_ext = osp_generate_nii_hdr_ext(in,OspreyVersion);
+    in.nii_mrs.hdr     = osp_generate_nii_hdr(in, nii.hdr,outfile);    
+    nii.hdr = in.nii_mrs.hdr;
+end
 nii.img = conj(fids);
 
 for JJ = 1:length(dimname)
     in.nii_mrs.hdr_ext.(sprintf('dim_%i',JJ+4)) = dimname{JJ};
+end
+
+if ~iscell(in.nii_mrs.hdr_ext.SpectrometerFrequency)
+    in.nii_mrs.hdr_ext.SpectrometerFrequency = {in.nii_mrs.hdr_ext.SpectrometerFrequency};
 end
 
 nii.ext.ecode = 44;
@@ -170,3 +181,4 @@ nii.ext.edata = myEdata;
 
 % Save
 nii_tool('save', nii, outfile);
+end

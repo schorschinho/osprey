@@ -69,7 +69,7 @@ if stagFlag
     % Loop over all basis functions
     hold on
     for kk = 1:nBasisFct
-        plot(basisSet.ppm, squeeze(basisSet.specs(:,kk,dim)) - kk*stag, 'k');
+        plot(basisSet.ppm, real(squeeze(basisSet.specs(:,kk,dim)) - kk*stag), 'k');
         % Instead of a MATLAB legend, annotate each line separately with the
         % name of the metabolite
         text(ppmmin, - kk*stag, basisSet.name{kk}, 'FontSize', 14);
@@ -86,7 +86,7 @@ else
     % Loop over all basis functions
     hold on
     for kk = 1:nBasisFct
-        plot(basisSet.ppm, squeeze(basisSet.specs(:,kk,dim)), 'Color', colours(kk,:));
+        plot(basisSet.ppm, real(squeeze(basisSet.specs(:,kk,dim))), 'Color', colours(kk,:));
     end
     legend(basisSet.name);
     hold off

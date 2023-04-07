@@ -143,7 +143,7 @@ function osp_iniLoadWindow(gui)
         for t = gui.controls.Number : -1 : 1 % Loop over subspectra & tabs
             % Parameter shown in the info panel on top
             gui.upperBox.data.box{t} = uix.HBox('Parent', gui.layout.(gui.layout.rawTabhandles{t}),'BackgroundColor',gui.colormap.Background, 'Spacing',5);
-            if  ((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)) && ~(MRSCont.nDatasets(2) > 1)
+            if  ((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)) && ~(MRSCont.nDatasets(2) > 1 || MRSCont.flags.isSERIES)
                 gui.upperBox.data.leftButtons{t} = uix.Panel('Parent', gui.upperBox.data.box{t}, ...
                                          'Padding', 5, 'Title', ['Navigate voxel'],...
                                          'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
@@ -206,14 +206,14 @@ function osp_iniLoadWindow(gui)
                 end
                 set( gui.controls.navigate_RawTab{t}, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
             end
-            if  MRSCont.nDatasets(2) > 1
+            if  (MRSCont.nDatasets(2) > 1 || MRSCont.flags.isSERIES)
                 gui.upperBox.data.leftButtons{t} = uix.Panel('Parent', gui.upperBox.data.box{t}, ...
                                          'Padding', 5, 'Title', ['Navigate extra'],...
                                          'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
                                          'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
                 gui.controls.Buttonbox{t} = uix.HBox('Parent',gui.upperBox.data.leftButtons{t}, 'BackgroundColor',gui.colormap.Background);
                 gui.controls.navigate_RawTab{t} = uix.Grid('Parent',gui.controls.Buttonbox{t},'BackgroundColor',gui.colormap.Background);
-                if MRSCont.nDatasets(2) > 1
+                if (MRSCont.nDatasets(2) > 1 || MRSCont.flags.isSERIES)
                     gui.controls.text_Exp = uicontrol(gui.controls.navigate_RawTab{t},'Style','text','String','Exp',...
                     'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
                     gui.controls.b_left_Exp = uicontrol(gui.controls.navigate_RawTab{t},'Style','PushButton', 'BackgroundColor',gui.colormap.Background,'String','<');
@@ -269,7 +269,7 @@ function osp_iniLoadWindow(gui)
                         gui.controls.b_right_z.Enable = 'off';
                     end
                 end
-                if MRSCont.nDatasets(2) > 1
+                if (MRSCont.nDatasets(2) > 1 || MRSCont.flags.isSERIES)
                     set( gui.controls.navigate_RawTab{t}, 'Widths', [-20 -30 -20 -30], 'Heights', [-33] );
                 else
                     set( gui.controls.navigate_RawTab{t}, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33] );
@@ -289,7 +289,7 @@ function osp_iniLoadWindow(gui)
             [img2] = imresize(img, 0.10);
             set(gui.controls.b_save_RawTab{t},'CData', img2, 'TooltipString', 'Create EPS figure from current file');
             set(gui.controls.b_save_RawTab{t},'Callback',{@osp_onPrint,gui});
-            if  ((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)) || MRSCont.nDatasets(2) > 1
+            if  ((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)) || MRSCont.nDatasets(2) > 1  || MRSCont.flags.isSERIES
                 set(gui.upperBox.data.box{t}, 'Width', [-0.12 -0.78 -0.1]);
             else
                 set(gui.upperBox.data.box{t}, 'Width', [-0.9 -0.1]);
@@ -308,17 +308,17 @@ function osp_iniLoadWindow(gui)
 
         % Get parameter from file to fill the info panel
         if gui.load.Selected == 1 %Is metabolite data?
-            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth) ' Hz'...
+            StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw{1,gui.controls.Selected}.te(1)) ' / ' num2str(MRSCont.raw{1,gui.controls.Selected}.tr(1)) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw{1,gui.controls.Selected}.spectralwidth(1)) ' Hz'...
                          '\nraw subspecs: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
         else if gui.load.Selected == 2 %Is water or ref data?
-        StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth) ' Hz'...
+        StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.te(1)) ' / ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.tr(1)) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.spectralwidth(1)) ' Hz'...
                          '\nraw subspecs: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_ref{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];
             else
-                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.te) ' / ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.tr) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.spectralwidth) ' Hz'...
+                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; B0: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.Bo) '; TE / TR: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.te(1)) ' / ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.tr(1)) ' ms ' '; spectral bandwidth: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.spectralwidth(1)) ' Hz'...
                          '\nraw subspecs: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawSubspecs) '; raw averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.rawAverages) '; averages: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.averages)...
                          '; Sz: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.sz) '; dimensions: ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2})) ' x ' num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})) ' mm = '...
                          num2str(MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{1}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{2}) * MRSCont.raw_w{1,gui.controls.Selected}.geometry.size.(gui.load.Names.Geom{3})/1000) ' ml'];

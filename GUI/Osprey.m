@@ -30,7 +30,7 @@ ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Ospr
 logoFcn = @()imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
 logoBanner = uiw.utility.loadIcon(logoFcn);
 % Here the intro banner is created
-gui.d = uiw.dialog.About('Name', 'Osprey','Version','2.4.0','Date', 'August 8, 2022',...
+gui.d = uiw.dialog.About('Name', 'Osprey','Version','2.5.0','Date', 'April 7, 2023',...
 'Timeout', 3,'CustomText', 'Osprey is provided by Johns Hopkins University.',...
 'ContactInfo', 'gabamrs@gmail.com','LogoCData', logoBanner);
 
@@ -74,7 +74,7 @@ gui.window = figure('Name', 'Osprey Startup Menu', 'NumberTitle', 'off', 'MenuBa
     set(gui.Buttons, 'ButtonSize', [300 60]);
     % Create Job
     gui.CreateJob = uicontrol('Parent', gui.Buttons,'Style','PushButton','String','Create Job','ForegroundColor', gui.colormap.Foreground,...
-                               'TooltipString', 'Create a OspreyJob .m-file');
+                               'TooltipString', 'Create a OspreyJob .json-file');
     set(gui.CreateJob,'Units','Normalized','Position',[0.1 0.9 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold');
     set(gui.CreateJob,'Callback',{@onCreateJob});
     % JobFile input button

@@ -62,11 +62,15 @@ To perform voxel co-registration and tissue segmentation, download **SPM12** [fr
 
   - Extract the downloaded archive so that the `spm12` folder is on the same directory level as the `osprey` folder:
   
-   ```{r spmFolder, fig.cap='Make sure that the SPM12 and Osprey folders are in the same directory.', echo=FALSE, message=FALSE, warning=FALSE}
+ ```{r spmFolder, fig.cap='Make sure that the SPM12 and Osprey folders are in the same directory.', echo=FALSE, message=FALSE, warning=FALSE}
     knitr::include_graphics("img/02-installing-osprey-spm-folder.png")
-   ``` 
+ ``` 
 
-  - Add the `spm12` folder to your MATLAB path, but **without** subfolders - during testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail.
+  - Add the `spm12` folder to your MATLAB path, but **without** subfolders.
+  
+```{block2, noteSPMsub, type='rmdwarning'}
+ - during testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail. Add the top-level directory to your path, but not subfolders.
+```
 
 If you want to use the **Osprey** Graphical User Interface (GUI), please download the following toolboxes from the MATLAB File Exchange:
 
@@ -76,8 +80,7 @@ If you want to use the **Osprey** Graphical User Interface (GUI), please downloa
   - [Widget Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/66235-widgets-toolbox)
     (Robin Jackey)
 
-    Download both toolboxes in the MATLAB toolbox format (.mltbx). You can
-    double-click to install. MATLAB will automatically add the toolboxes to its path.
+Download both toolboxes in the MATLAB toolbox format (.mltbx). You can double-click to install. MATLAB will automatically add the toolboxes to its path.
 
 ## How to organize your raw data
 
@@ -139,7 +142,7 @@ myProject/
 ...
 ```
 
-While adhering to the BIDS standard is a recommendation, it is by no means
+While adhering to the BIDS standard is strongly recommended, it is by no means
 binding for most file formats. You can, for example, keep Siemens TWIX files
 (`.dat`) all in the same folder, and **Osprey** will be able to handle them, if
 you define their paths in the job file accordingly.

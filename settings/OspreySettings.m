@@ -34,7 +34,7 @@ MRSCont.flags.reordered             = 0;
 MRSCont.opts.savePDF                = 0;
 MRSCont.opts.saveLCM                = 0;
 MRSCont.opts.savejMRUI              = 0;
-MRSCont.opts.saveNII                = 0;
+MRSCont.opts.saveNII                = 1;
 MRSCont.opts.saveVendor             = 0;
 MRSCont.opts.fit.includeMetabs      = {'default'};      % Options: 'default', 'full', custom set
 MRSCont.opts.fit.method             = 'Osprey';         % Options: 'Osprey' (default), 'LCModel'
@@ -47,7 +47,9 @@ MRSCont.opts.fit.coMM3              = 'none';           % Add co-edited MM3 peak
 MRSCont.opts.fit.FWHMcoMM3          = 14;               % FWHM [Hz] of the co-edited peak Default: 14 Hz.
 MRSCont.opts.ECC.raw                = 1;                % Do ECC for all metabolite spectra.
 MRSCont.opts.ECC.mm                 = 1;                 % Do ECC for all metabolite-nulled spectra.
-
+MRSCont.opts.cosmetics.LB           = 0;                % Do cosmetic LB
+MRSCont.opts.cosmetics.Zoom         = 2.75;             % Do cosmetic Zoom
+MRSCont.opts.img.deface             = 0;                % Deface data
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
@@ -92,5 +94,35 @@ MRSCont.flags.didSeg        = 0;
 MRSCont.flags.didFit        = 0;
 MRSCont.flags.didQuantify   = 0;
 MRSCont.flags.didOverview   = 0;
+
+if (ismcc || isdeployed)
+    if ismac
+        currentDir = ctfroot;
+        [currentDir,~,~] = fileparts(currentDir);
+         SepFileList =  split(currentDir, filesep);
+        index = find(strcmp(SepFileList,'application'));
+        if ~isempty(index)
+            MRSCont.opts.fit.basissetFolder = fullfile(SepFileList{1:index},'basissets');
+        else
+            MRSCont.opts.fit.basissetFolder = [];
+        end
+    end
+    if ispc
+        [~, result] = system('path');
+        currentDir = char(regexpi(result, 'Path=(.*?);', 'tokens', 'once'));
+        SepFileList =  split(currentDir, filesep);
+        MRSCont.opts.fit.basissetFolder =currentDir;
+        index = find(strcmp(SepFileList,'application'));
+        if ~isempty(index)
+            MRSCont.opts.fit.basissetFolder = fullfile(SepFileList{1:index},'basissets');
+        else
+            MRSCont.opts.fit.basissetFolder = [];
+        end
+    end
+    
+else
+    MRSCont.opts.fit.basissetFolder = [];
+end
+
 
 end

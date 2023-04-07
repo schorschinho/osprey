@@ -11,7 +11,6 @@ output:
         facebook: false
         github: yes
 documentclass: book
-bibliography: [book.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes
 colorlinks: yes
@@ -37,9 +36,9 @@ For any sort of questions, feedback, suggestions, or critique, please visit the 
 We also welcome your direct contributions to Osprey in the [Osprey GitHub repository](https://github.com/schorschinho/osprey).
 
 ## Developers {-}
-
 - [Georg Oeltzschner](mailto:goeltzs1@jhu.edu)
 - [Helge J. Zöllner](mailto:hzoelln2@jhu.edu)
+- [Christopher W. Davies-Jenkins](mailto:cdavies9@jhu.edu)
 - [Richard A. E. Edden](mailto:raee2@jhu.edu)
 
 Should you publish material that made use of Osprey, please cite the following publication:

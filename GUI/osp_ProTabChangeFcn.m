@@ -28,14 +28,22 @@ function osp_ProTabChangeFcn(src,~,gui)
     % User selected tab refreshs plot
     gui.process.Selected = src.Selection;
     
-    if MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.extras > 0
-        gui.info.nXvoxels = MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.extras);
+    if isfield(MRSCont,'processed')
+        if MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.extras > 0
+            gui.info.nXvoxels = MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.extras);
+        else
+            gui.info.nXvoxels = 1;
+        end   
     else
         gui.info.nXvoxels = 1;
-    end            
+    end
     gui.controls.act_x = 1;
-    if MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs > 0
-        gui.info.nYvoxels = MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs);
+    if isfield(MRSCont,'processed')
+        if MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs > 0
+            gui.info.nYvoxels = MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.sz(MRSCont.processed.(gui.process.Names{gui.process.Selected}){gui.controls.Selected}.dims.subSpecs);
+        else
+            gui.info.nYvoxels = MRSCont.nDatasets(2);
+        end
     else
         gui.info.nYvoxels = MRSCont.nDatasets(2);
     end

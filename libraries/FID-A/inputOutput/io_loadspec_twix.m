@@ -48,8 +48,11 @@ sqzDims=twix_obj.image.sqzDims;
 
 %Check if the twix file is from a VE version
 if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'E11')
-    disp('Changed software version to VE.');
     twix_obj.image.softwareVersion = 've';
+    version=twix_obj.image.softwareVersion;
+end
+if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA30')
+    twix_obj.image.softwareVersion = 'XA30';
     version=twix_obj.image.softwareVersion;
 end
 
@@ -74,12 +77,16 @@ isjnseq=~isempty(strfind(sequence,'jn_')); %Is this another one of Jamie Near's 
 isWIP529=~isempty(strfind(sequence,'edit_529'));%Is this WIP 529 (MEGA-PRESS)?
 ismodWIP=(~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'edit_859'))); %Modified WIP
 isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
-isTLFrei=~isempty(strfind(sequence,'md_svs_edit')); %Is Thomas Lange's MEGA-PRESS sequence
-isMinn=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
+isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA-PRESS sequence
+         ~isempty(strfind(sequence,'md_svs_slaser_edit')); %Is Thomas Lange's MEGA-s-LASER sequence
+isMinn=~isempty(strfind(sequence,'eja_svs_')) ||... %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
+       ~isempty(strfind(sequence,'svs_slaser_dkd')) ||...   % ... or Dinesh Deelchand's 2016 sLASER sequence?
+       ~isempty(strfind(sequence,'svs_slaserVOI_dkd'));     % ... or Dinesh Deelchand's 2022 'plug and play' sLASER sequence?
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
-isUniversal = ~isempty(strfind(sequence,'univ')); %Is JHU universal editing sequence
+isUniversal = ~isempty(strfind(sequence,'univ')) ||... %Is JHU universal editing sequence
+              ~isempty(strfind(sequence,'smm_svs_herc')); % Is Pavi's HERCULES sequence
 isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implemented at Donders Institute NL
 isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
@@ -89,10 +96,13 @@ if isSpecial || isjnSpecial
 elseif isUniversal
     if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 1
         seq = 'HERMES';
-    else if isempty(twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8})
-            seq = 'MEGAPRESS';
-        else
+    else if twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8} == 3
             seq = 'HERCULES';
+        else if isempty(twix_obj.hdr.MeasYaps.sWipMemBlock.alFree{8})
+                seq = 'MEGAPRESS';
+            else
+                seq = 'HERCULES';
+            end
         end
     end
 elseif isMinn
@@ -107,6 +117,8 @@ elseif isMinn
             seq = 'MEGAPRESS';
         end
     end
+elseif isTLFrei && ~isempty(strfind(sequence,'md_svs_slaser_edit'))
+    seq = 'MEGASLASER';
 elseif isjnMP || isWIP529 || isWIP859 || isTLFrei || ismodWIP
     seq = 'MEGAPRESS';
 elseif isSiemens
@@ -119,8 +131,13 @@ end
 if isDondersMRSfMRI
     seq = 'SLASER_D';
 end
+
+% GO 10/2022:
+% If none of the above match, we've had sequences default to HERMES and a
+% bunch of people reported errors... I'll change this to 'PRESS' for now.
 if ~exist('seq')
-    seq = 'HERMES';
+    seq = 'PRESS';
+    %seq = 'HERMES';
 end
 
 %If this is the SPECIAL sequence, it probably contains both inversion-on
@@ -133,8 +150,8 @@ end
 %25 Oct 2018: Due to a recent change, the VE version of Jamie Near's MEGA-PRESS
 %sequence also falls into this category.
 if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequence
-        ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
-        ((strcmp(version,'vd') || strcmp(version,'ve')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence
+        ((strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
+        ((strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence
     squeezedData=squeeze(dOut.data);
     if twix_obj.image.NCol>1 && twix_obj.image.NCha>1
         data(:,:,:,1)=squeezedData(:,:,[1:2:end-1]);
@@ -179,7 +196,7 @@ fids=double(squeeze(data));
 
 %noticed that in the Siemens PRESS and STEAM sequences, there is sometimes
 %an extra dimension containing unwanted reference scans or something.  Remove them here.
-if isSiemens && (strcmp(version,'vd') || strcmp(version,'ve')) && strcmp(sqzDims{end},'Phs')
+if isSiemens && (strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')) && strcmp(sqzDims{end},'Phs')
     sqzDims=sqzDims(1:end-1);
     sqzSize=sqzSize(1:end-1);
     if ndims(fids)==4
@@ -214,7 +231,7 @@ TE = twix_obj.hdr.MeasYaps.alTE{1};  %Franck Lamberton
 TR = twix_obj.hdr.MeasYaps.alTR{1};  %Franck Lamberton
 
 % Extract voxel dimensions
-if (strcmp(version,'vd') || strcmp(version,'vb'))
+if (strcmp(version,'vd') || strcmp(version,'vb') || strcmp(version,'XA30'))
     TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
     TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
     TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
@@ -291,7 +308,7 @@ else
 end
 
 %Now index the dimension of the averages
-if strcmp(version,'vd') || strcmp(version,'ve')
+if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')
     if isMinn || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
@@ -337,8 +354,14 @@ if ~isempty(dimsToIndex)
         else
             dims.subSpecs=find(strcmp(sqzDims,'Ida'));
         end
-    elseif isWIP529 || isMinn || ismodWIP
+    elseif isWIP529 || isMinn
         dims.subSpecs=find(strcmp(sqzDims,'Eco'));
+    elseif ismodWIP
+        if strcmp(version,'vd') || strcmp(version,'ve')
+            dims.subSpecs=find(strcmp(sqzDims,'Eco'));
+        else
+            dims.subSpecs=find(strcmp(sqzDims,'Ide'));
+        end
     elseif isWIP859
         dims.subSpecs=find(strcmp(sqzDims,'Ide'));
     else
@@ -540,7 +563,7 @@ end
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
 elseif isSiemens && (~isMinn && ~isConnectom)
-    if ~strcmp(version,'ve')
+    if ~strcmp(version,'ve') && ~strcmp(version,'XA30')
         leftshift = twix_obj.image.freeParam(1);
     else
        leftshift = twix_obj.image.iceParam(5,1);
@@ -551,6 +574,8 @@ elseif isMinn || isConnectom || isDondersMRSfMRI
     catch
         leftshift = twix_obj.image.freeParam(1);
     end
+elseif isTLFrei && strcmp(seq,'MEGASLASER')
+    leftshift = twix_obj.image.iceParam(5,1);
 else
     leftshift = twix_obj.image.freeParam(1);
 end
@@ -618,7 +643,11 @@ if out.dims.subSpecs==0
 else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
-
+% Add info for niiwrite
+out.PatientPosition = twix_obj.hdr.Config.PatientPosition;
+out.Manufacturer = 'Siemens';
+[~,filename,ext] = fileparts(filename);
+out.OriginalFile = [filename ext];
 % Sequence flags
 out.flags.isUnEdited = 0;
 out.flags.isMEGA = 0;
