@@ -118,7 +118,7 @@ end
 % The table option does not work because the contents do not have the same dimensions.
 % writetable(array2table(params, 'VariableNames', names), 
 %            fullfile(path,'parameters.csv'),'Delimiter',',');
-save(fullfile(MRSCont.opts.exportParams.path,
+save(fullfile(MRSCont.opts.exportParams.path,...
               'fitting_parameters.mat'),'-struct','params')
 
 
