@@ -291,6 +291,8 @@ out.centerFreq = centerFreq;
 out.geometry = geometry;
 if isfield(DicomHeader, 'SoftwareVersions')
     out.software = DicomHeader.SoftwareVersions;
+else
+    out.software = 'Siemens';
 end
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
