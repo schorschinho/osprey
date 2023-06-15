@@ -38,7 +38,7 @@ classdef FitObject < handle
                            'names', [], ...                                 % Initialize basis function names
                            'includeInFit', []);                             % Initialize index vector of basis functions to be included
         BaselineBasis = struct('specs', []);                                % Initialize basline basis
-        NormNoise = [];                                                     % Initialize 1-point noise estimate 
+        NoiseSD = [];                                                       % Initialize noise SD estimate
         Options = {struct};                                                 % Initialize options array
         Model = {struct};                                                   % Initialize model array
     end
@@ -59,7 +59,7 @@ classdef FitObject < handle
                 obj.Data.txfrq           = data.txfrq(1);                   % Set receiver frequency of first extra entry
                 obj.Data.t               = data.t;                          % Set time vector
                 obj.Data.nucleus         = data.nucleus;                    % Set nucleus string
-                obj.NormNoise            = osp_gLCM_getOnePointNoise(data); % Estimate 1-point noise for normalization
+                obj.NoiseSD              = osp_gLCM_getNoiseSD(data);       % Estimate noise standard deviation
                 nptsData        = size(data.fids, 1);                       % Get number of datapoints
                 obj.Data.ppm    = calculatePPMAxis(nptsData, data.spectralwidth(1), data.txfrq(1), data.nucleus);   % Create frequency axis in ppm
             

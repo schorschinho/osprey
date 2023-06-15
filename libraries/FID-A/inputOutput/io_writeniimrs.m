@@ -156,6 +156,12 @@ newVoxOffset = nii.hdr.vox_offset;
 if isfield(in,'nii_mrs')
     nii.hdr = in.nii_mrs.hdr;
 else
+    if ~isfield(in,'OriginalFile')
+        in.OriginalFile = outfile;
+    end
+    if ~isfield(in,'Manufacturer')
+        in.Manufacturer = 'Synthetic';
+    end
     in.nii_mrs.hdr_ext = osp_generate_nii_hdr_ext(in,OspreyVersion);
     in.nii_mrs.hdr     = osp_generate_nii_hdr(in, nii.hdr,outfile);    
     nii.hdr = in.nii_mrs.hdr;

@@ -199,6 +199,9 @@ function m44 = get_voxel_pos_for_nifti(in)
             m44(1:3, 4) = VoxOffs;
             m44(4, 4) = 1.0; 
             m44(1:2,:) = -m44(1:2,:);
+        case 'Synthetic'
+            m44_diag = [10000, 10000, 10000, 1];
+            m44 = diag(m44_diag);
     end
 end
 

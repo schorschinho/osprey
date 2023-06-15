@@ -45,7 +45,7 @@ zf = 0;
 for ss = 1 : length(ModelProcedure.Steps)
     if isfield(ModelProcedure.Steps{ss}.fit_opts,'optimSignalPart')
         if strcmp(ModelProcedure.Steps{ss}.fit_opts.optimSignalPart,'R')
-            zf = 1;
+            zf = 0;
         end
     end
 end
@@ -156,7 +156,7 @@ for kk = 1 : length(DataToModel)
             fprintf('Running model procedure step %i. \n', ss);
             % Apply zero-filling if needed
             if zf &&  ~DataToModel{kk}.flags.zeropadded
-                DataToModel{kk} = op_zeropad(DataToModel{kk},2);                    % Zero-fill data if needed (real part optimization)
+                 DataToModel{kk} = op_zeropad(DataToModel{kk},2);                    % Zero-fill data if needed (real part optimization)
             end
     
             % Create an instance of the class

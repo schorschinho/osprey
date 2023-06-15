@@ -40,7 +40,7 @@ function obj = createModel(obj)
     fitRange            = obj.Options{obj.step}.optimFreqFitRange;          % Get model range
     SignalPart          = obj.Options{obj.step}.optimSignalPart;            % Get optimization signal part
     solver              = obj.Options{obj.step}.solver;                     % Get solver name
-    NormNoise           = obj.NormNoise;                                    % Get 1-point noise estimate    
+    NoiseSD             = obj.NoiseSD;                                      % Get standard deviation of the noise 
     basisSet.fids       = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:); % Only use basis functions that are included
 
 %%  Update parameterizations according to model prcedure step
@@ -100,7 +100,7 @@ function obj = createModel(obj)
     % Set lossfunction handle
     fcn  = @(x) h.lossFunction(x, ...               % x vector with parameters to optimize
                                data, ...            % time domain data matrix
-                               NormNoise, ...       % 1-point noise estimate
+                               NoiseSD, ...         % standard deviation of the noise 
                                basisSet, ...        % basis set struct
                                baselineBasis, ...   % baseline basis set
                                ppm, ...             % ppm axis
@@ -117,7 +117,7 @@ function obj = createModel(obj)
             % Set gradient function handle
             grad = @(x) h.forwardGradient(x, ...            % x vector with parameters to optimize
                                           data, ...         % time domain data matrix
-                                          NormNoise, ...    % 1-point noise estimate
+                                          NoiseSD, ...      % standard deviation of the noise 
                                           basisSet, ...     % basis set struct
                                           baselineBasis, ...% baseline basis set
                                           ppm, ...          % ppm axis
@@ -142,14 +142,14 @@ function obj = createModel(obj)
             end
             if obj.Options{obj.step}.CheckGradient                      % Perform gradient check (for debugging)
                 CheckGrad = true;
-                NormNoise = [];
+                NoiseSD = [];
             else
                 CheckGrad = false;
             end
             % Set jacobian handle
             jac = @(x) h.forwardJacobian(x, ...             % x vector with parameters to optimize
                                          data, ...          % time domain data matrix
-                                         NormNoise, ...     % 1-point noise estimate
+                                         NoiseSD, ...       % standard deviation of the noise 
                                          basisSet, ...      % basis set struct
                                          baselineBasis, ... % baseline basis set
                                          ppm, ...           % ppm axis
@@ -201,13 +201,13 @@ function obj = createModel(obj)
 
     jac = h.forwardJacobian(xk, ...            % x vector with final parameter estimates
                             data, ...          % time domain data matrix
-                            NormNoise, ...     % 1-point noise estimate
+                            NoiseSD, ...       % standard deviation of the noise 
                             basisSet, ...      % basis set struct
                             baselineBasis, ... % baseline basis set
                             ppm, ...           % ppm axis
                             t, ...             % time vector
                             fitRange, ...      % model range
-                            'C', ...           % get complex-valued jacobian
+                            'R', ...           % get complex-valued jacobian
                             Reg, ...           % regularizer flag
                             parametrizations); % parameter struct
 
@@ -257,4 +257,30 @@ function obj = createModel(obj)
         end
     end
 
+
+%% Calculate AICs
+
+    % Generate sum-of-squares for final model
+    sse = 'res';                                 % Uses residual vector
+    res  =      h.lossFunction(xk, ...               % x vector with final parameters estimates
+                               data, ...            % time domain data matrix
+                               NoiseSD, ...         % standard deviation of the noise 
+                               basisSet, ...        % basis set struct
+                               baselineBasis, ...   % baseline basis set
+                               ppm, ...             % ppm axis
+                               t, ...               % time vector
+                               fitRange, ...        % model range
+                               SignalPart, ...      % optimization signal part
+                               Domain, ...          % optimization domain
+                               sse, ...             % lossfunction string
+                               Reg, ...             % regularizer flag
+                               parametrizations);   % parameter struct
+    sos = sum(res.^2); 
+    % Calculate different AICs
+    p       = length(xk);                                                       % Number of estimated parameter
+    n       = length(res);                                                      % Number of points in model
+    sigma   = sqrt(sos/n);                                                    % Sigma calculation for AIC
+    obj.Model{obj.step}.AIC     = - 2 * n * log(sigma) - 2*p;                   % AIC
+    obj.Model{obj.step}.AIC_c   = - 2 * n * log(sigma) - 2*(p+1)*(n/(n-p-2));   % AIC_c
+    obj.Model{obj.step}.BIC     = - 2 * n * log(sigma) - log(n)*p;              % BIC
 end
