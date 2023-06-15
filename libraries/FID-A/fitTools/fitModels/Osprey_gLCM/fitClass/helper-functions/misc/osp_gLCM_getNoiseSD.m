@@ -1,9 +1,10 @@
-function [Noise]=osp_gLCM_getOnePointNoise(in,noiseppmmin,noiseppmmax);
-% [Noise]=osp_gLCM_getOnePointNoise(in,noiseppmmin,noiseppmmax);
-% Find the noise in a spectrum normalized to the number of points.
+function [NoiseSD]=osp_gLCM_getNoiseSD(in,noiseppmmin,noiseppmmax);
+% [NoiseSD]=osp_gLCM_getNoiseSD(in,noiseppmmin,noiseppmmax);
+% Calcualte the standard deviation of the noise using the noise covariance
+% matrix
 %
 % USAGE:
-% [Noise]=osp_gLCM_getNoise(in,noiseppmmin,noiseppmmax);
+% [NoiseSD]=osp_gLCM_getNoiseSD(in,noiseppmmin,noiseppmmax);
 %
 %   INPUTS:
 %       in             = specs vector
@@ -13,7 +14,7 @@ function [Noise]=osp_gLCM_getOnePointNoise(in,noiseppmmin,noiseppmmax);
 %                       (Optional.  Default = 12 ppm);
 %
 %   OUTPUTS:
-%       Noise            = Estimated noise of the input spectrum.
+%       Noise            = Estimated standard deviation of noise.
 %
 %   AUTHOR:
 %       Dr. Helge Zoellner (Johns Hopkins University, 2023-03-07)
@@ -37,30 +38,24 @@ if max(in.ppm) < noiseppmmax                                                % No
     noiseppmmax = max(in.ppm)-0.1;                                          % Find maximum possible ppm minus 0.1 ppm to avoid edge effects
     noiseppmmin = noiseppmmax-3.5;                                          % Set new minimum value to max minus 3.5 to be similar to default length
 end
-%% Calculate 1-point noise estimates
+%% Calculate noise estimates
 ppmwindow=in.ppm(in.ppm>noiseppmmin & in.ppm<noiseppmmax)';                 % Exctract frequency range
-if ~in.dims.extras                                                          % 2D data
-    noisewindow=in.specs(in.ppm>noiseppmmin & in.ppm<noiseppmmax);          % Extract noise range
+noisewindow=in.specs(in.ppm>noiseppmmin & in.ppm<noiseppmmax,:);            % Extract noise range
 
+if ~in.dims.extras                                                          % 1D data
     P=polyfit(ppmwindow,noisewindow,2);                                     % Calculate second order polynom
     noise=noisewindow-polyval(P,ppmwindow);                                 % Detrend noise
-    
-    noisesd=std(real(noise));                                               % Calculate standard deviation
-
-    Noise = noisesd/sqrt(length(noisewindow));                              % Normalize by number of points to get 1-point noise
 else
-    Noise = zeros(1,in.sz(in.dims.extras));                                 % Setup noise vector 
-
-    for kk = 1 : in.sz(in.dims.extras)                                      % Loop over indirect dimension
-        noisewindow=in.specs(in.ppm>noiseppmmin & in.ppm<noiseppmmax,kk);   % Extract noise tange
-    
-        P=polyfit(ppmwindow,noisewindow,2);                                 % Calculate second order polynom
-        noise=noisewindow-polyval(P,ppmwindow);                             % Detrend noise
-        
-        noisesd=std(real(noise));                                           % Calculate standard deviation
-    
-        Noise(kk) = noisesd/sqrt(length(noisewindow));                      % Normalize by number of points to get 1-point noise
+    noise = zeros(length(noisewindow),in.sz(in.dims.extras));               % Setup noise vector 
+    for kk = 1 : in.sz(in.dims.extras)                                      % Loop over indirect dimension   
+        P=polyfit(ppmwindow,noisewindow(:,kk),2);                           % Calculate second order polynom
+        noise(:,kk)=noisewindow(:,kk)-polyval(P,ppmwindow);                 % Detrend noise
     end                                                                     % End loop over indirect dimension
 end
+noisecovariance = cov(real(noise));                                         % Calculate covariance matrix
+NoiseSD = sqrt(diag(noisecovariance));                                      % Calculate standard deviation
+
+end
+
 
 

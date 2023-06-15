@@ -227,7 +227,9 @@ if strcmp(jobFileFormat,'json')
     if strcmp('win',osp_platform('filesys'))
         str = strrep(str,'\','\\');
     end
-    str = replace(str, whitespacePattern + '"', '"');
+    pattern = '[ \t\n]*“'; % Match zero or more spaces, tabs, or newlines, followed by a double quote
+    replacement = '"'; % Replace the matched string with just a double quote
+    str = regexprep(str, pattern, replacement);
     jobStruct  = jsondecode(str);
 
     % Check whether the relevant fieldnames have been entered,
@@ -434,12 +436,7 @@ else if ~isfield(MRSCont.opts.SubSpecAlignment, 'mets')
     end
 end
 
-if ~isfield(MRSCont.opts.SubSpecAlignment, 'PreservePolarity')
-    MRSCont.opts.SubSpecAlignment.PreservePolarity = 0;
-end
-if ~isfield(MRSCont.opts, 'PhaseSpectra')
-    MRSCont.opts.PhaseSpectra = 0;
-end
+
 %%% 4. SAVE SETTINGS & STAT FILE INTO MRSCONT  %%%
 % Parse the sequence type entry
 switch seqType
@@ -731,16 +728,16 @@ for kk = 1:length(fieldNames)
 end
 
 % Check whether the number of entries is identical
-    isUnique = unique(numDataSets);
-    if length(isUnique) ~= 1
-        msg = fprintf('''%s'' has %i entries, but ', whichFieldNames{1}, numDataSets(1));
-        for ll = 2:length(whichFieldNames)
-            msg2 = fprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
-            msg = strcat(msg,msg2);
-        end
-    
-%         error('MyComponent:invalidJob', ['Invalid job file! ' msg '\b.']);
+isUnique = unique(numDataSets);
+if length(isUnique) ~= 1
+    msg = fprintf('''%s'' has %i entries, but ', whichFieldNames{1}, numDataSets(1));
+    for ll = 2:length(whichFieldNames)
+        msg2 = fprintf(' ''%s'' has %i entries, ', whichFieldNames{ll}, numDataSets(ll));
+        msg = strcat(msg,msg2);
     end
+
+    error('MyComponent:invalidJob', ['Invalid job file! ' msg '\b.']);
+end
 
 
 %%% 6. SET UP DEFAULT OSPREY COLORMAP AND GUI flag %%%

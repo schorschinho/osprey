@@ -32,17 +32,19 @@ function out = op_add_analysis_provenance(in,fields)
 %
 %   HISTORY:
 %       2023-03-06: First version of the code.
-
-    if isfield(in,'nii_mrs') % Has NIfTI information
-        out = in;
-        
+    out = in;
+    if isfield(in,'nii_mrs') % Has NIfTI information                
         % Get current NIFTI-MRS header extension
         hdr_ext = out.nii_mrs.hdr_ext;
     
         % Add shared fields
         fields.Time     = datestr(now,30);
         fields.Program  = 'Osprey';
-        fields.Version  = hdr_ext.ProcessingSoftwareVersion;
+        if isfield(hdr_ext,'ProcessingSoftwareVersion')
+            fields.Version  = hdr_ext.ProcessingSoftwareVersion;
+        else
+            fields.Version  = 'Osprey 2.4.0';
+        end
     
         fields = orderfields(fields,{'Time','Program','Version','Method', 'Details'});;
     

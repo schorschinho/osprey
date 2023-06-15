@@ -47,18 +47,18 @@ end
 
 %% Define lossfunction, forward gradient, forward jacobian, forward model, x2pars, pars2x, fminunc_wrapper
 
-function sse = lossFunction(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE,Reg, parametrizations)
+function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE,Reg, parametrizations)
 % This function generates the output for the solver accoring to the
 % lossfunction. This includes all settings described in the model procedure
 % json.
 %
 %   USAGE:
-%       sse = lossFunction(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE,Reg, parametrizations)
+%       sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE,Reg, parametrizations)
 %
 %   INPUTS:
 %       x                = x vector with parameters to optimize
 %       data             = ppm axis
-%       NormNoise        = 1-point noise estimate
+%       NoiseSD          = standard deviation of the noise
 %       basisSet         = basis set struct
 %       baselineBasis    = baseline basis set
 %       ppm              = ppm axis
@@ -121,12 +121,12 @@ function sse = lossFunction(x, data, NormNoise, basisSet, baselineBasis, ppm, t,
             regu     = abs(regu);                                           % Take magnitude regularizer
     end
     
-    if ~isempty(NormNoise)                                                  % Don't normalize residual if GradientCheck is performed               
-        SigmaSquared = (NormNoise * sqrt(size(data,1))).^2;                 % Normalization factor for residual
+    if ~isempty(NoiseSD)                                                  % Don't normalize residual if GradientCheck is performed               
+        SigmaSquared = NoiseSD.^2;                                        % Get sigma squared
         SigmaSquared = repmat(SigmaSquared, [size(data,1) 1]);              % Repeat according to dimensions
         residual = residual ./ SigmaSquared;                                % Normalize residual
-        SigmaSquared = (NormNoise * sqrt(size(data,1) + size(regu,1))).^2;  % Normalization factor for regularizer
         if size(regu,1) > 0                                                 % Has regularizer
+            SigmaSquared = NoiseSD.^2;                                    % Get sigma squared
             SigmaSquared = repmat(SigmaSquared, [size(regu,1) 1]);          % Repeat according to dimensions
             regu = regu ./ SigmaSquared;                                    % Normalize regularizer
         end
@@ -143,16 +143,16 @@ function sse = lossFunction(x, data, NormNoise, basisSet, baselineBasis, ppm, t,
     end    
 end
 
-function grad = forwardGradient(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange, SignalPart,Reg, parametrizations)
+function grad = forwardGradient(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart,Reg, parametrizations)
 % This function generates the gradient for the generalized physics model
 %
 %   USAGE:
-%       grad = forwardGradient(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
+%       grad = forwardGradient(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
 %
 %   INPUTS:
 %       x                = x vector with parameters to optimize
 %       data             = ppm axis
-%       NormNoise        = 1-point noise estimate
+%       NoiseSD          = standard deviation of the noise
 %       basisSet         = basis set struct
 %       baselineBasis    = baseline basis set
 %       ppm              = ppm axis
@@ -284,14 +284,13 @@ function grad = forwardGradient(x, data, NormNoise, basisSet, baselineBasis, ppm
    
     if secDim > 1                                                           % update each block in the jacobian according to the 2-D parametrization
         dataPoints = size(data(indMin:indMax,:),1);                         % Get number of datapoints
-        regularizerPoints = dYdph0 - dataPoints;                            % Get number of points in regularizer
-        [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for ph0 parameter
-        [dYdph1]        = updateJacobianBlock(dYdph1,'ph1', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for ph1 parameter
-        [dYdgaussLB]    = updateJacobianBlock(dYdgaussLB,'gaussLB', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for gaussLB parameter
-        [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for lorentzLB parameter
-        [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for freqShift parameter
-        [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for metAmpl parameter
-        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise);  % Update jacobian block for baseAmpl parameter       
+        [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph0 parameter
+        [dYdph1]        = updateJacobianBlock(dYdph1,'ph1', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph1 parameter
+        [dYdgaussLB]    = updateJacobianBlock(dYdgaussLB,'gaussLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for gaussLB parameter
+        [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for lorentzLB parameter
+        [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for freqShift parameter
+        [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for metAmpl parameter
+        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,NoiseSD);  % Update jacobian block for baseAmpl parameter       
     end
 
     if nBaselineComps ~= 0                                                  % Has baseline?
@@ -305,17 +304,11 @@ function grad = forwardGradient(x, data, NormNoise, basisSet, baselineBasis, ppm
     dataPoints = size(data(indMin:indMax,:),1);                             % Get number of datapoints
     residual      = cat(1,residual,-regu);                                  % Concatenate regularizer
         
-    if  ~isempty(NormNoise)                                                 % No normlaization for GradientCheck                                                      
-        Sigma = (NormNoise * sqrt(dataPoints));                             % Calculate normalization factor for data
-        residual(1:dataPoints,:) = residual(1:dataPoints,:) / Sigma;        % Normalize data part of residual
+    if  ~isempty(NoiseSD)                                                   % No normalization for GradientCheck                                                      
+        Sigma = NoiseSD;                                                    % Set sigma
+        residual(:,:) = residual(:,:) / Sigma;                              % Normalize residual
         if secDim == 1                                                      % 1D jacobian have not been normalized yet
-            jac(1:dataPoints,:) = jac(1:dataPoints,:) / Sigma;              % Normalize data part jacobian
-        end
-        regularizerPoints = size(residual,1) - dataPoints;                  % Get number of points in regularizer
-        Sigma = (NormNoise * sqrt(dataPoints + regularizerPoints));         % Calculate normalization factor for regularizer
-        residual(dataPoints+1:end,:) = residual(dataPoints+1:end,:) / Sigma;% Normalize regularizer part
-        if secDim == 1                                                      % 1D jacobian have not been normalized yet
-            jac(dataPoints+1:end,:) = jac(dataPoints+1:end,:) / Sigma;          % Normalize regularizer part
+            jac(:,:) = jac(:,:) / Sigma;                                    % Normalize data part jacobian
         end
     end
 
@@ -340,16 +333,16 @@ function grad = forwardGradient(x, data, NormNoise, basisSet, baselineBasis, ppm
     grad = grad';
 end
 
-function jac = forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
+function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
 % This function generates the jacobian for the generalized physics model
 %
 %   USAGE:
-%       jac = forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
+%       jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
 %
 %   INPUTS:
 %       x                = x vector with parameters to optimize
 %       data             = ppm axis
-%       NormNoise        = 1-point noise estimate
+%       NoiseSD          = standard deviation of the noise
 %       basisSet         = basis set struct
 %       baselineBasis    = baseline basis set
 %       ppm              = ppm axis
@@ -481,14 +474,13 @@ function jac = forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, ppm,
    
     if secDim > 1                                                           % update each block in the jacobian according to the 2-D parametrization
         dataPoints = size(data(indMin:indMax,:),1);                         % Get number of datapoints
-        regularizerPoints = dYdph0 - dataPoints;                            % Get number of points in regularizer
-        [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for ph0 parameter
-        [dYdph1]        = updateJacobianBlock(dYdph1,'ph1', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for ph1 parameter
-        [dYdgaussLB]    = updateJacobianBlock(dYdgaussLB,'gaussLB', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for gaussLB parameter
-        [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for lorentzLB parameter
-        [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for freqShift parameter
-        [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise); % Update jacobian block for metAmpl parameter
-        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise);  % Update jacobian block for baseAmpl parameter       
+        [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph0 parameter
+        [dYdph1]        = updateJacobianBlock(dYdph1,'ph1', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph1 parameter
+        [dYdgaussLB]    = updateJacobianBlock(dYdgaussLB,'gaussLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for gaussLB parameter
+        [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for lorentzLB parameter
+        [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for freqShift parameter
+        [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for metAmpl parameter
+        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,NoiseSD);  % Update jacobian block for baseAmpl parameter       
     end
 
     if nBaselineComps ~= 0                                                  % Has baseline?
@@ -514,19 +506,12 @@ function jac = forwardJacobian(x, data, NormNoise, basisSet, baselineBasis, ppm,
     end
     jac = (-1) * jac;                                                       % Needed to match numerical jacobian
 
-    if secDim == 1 && ~isempty(NormNoise)                                   % 1D jacobians have not been normalized yet
-        dataPoints = size(data(indMin:indMax,:),1);                         % Get number of datapoints
-        Sigma = (NormNoise * sqrt(dataPoints));                             % Calculate normalization factor for data
+    if secDim == 1 && ~isempty(NoiseSD)                                   % 1D jacobians have not been normalized yet
+        Sigma = NoiseSD;                                                  % Set sigma
         if ~strcmp(SignalPart,'C')
             Sigma = Sigma^2;                                                % Square if not for CRLB
         end
-        jac(1:dataPoints,:) = jac(1:dataPoints,:) / Sigma;                  % Normalize data part
-        regularizerPoints = size(jac,1) - dataPoints;                       % Get number of points in regularizer
-        Sigma = (NormNoise * sqrt(dataPoints + regularizerPoints));         % Calculate normalization factor for regularizer
-        if ~strcmp(SignalPart,'C')
-            Sigma = Sigma^2;                                                % Square if not for CRLB
-        end
-        jac(dataPoints+1:end,:) = jac(dataPoints+1:end,:) / Sigma;          % Normalize regularizer part
+        jac = jac ./ Sigma;                                                  % Normalize jacobian
     end
 end
 
@@ -811,11 +796,11 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
     end
 end
 
-function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise)
+function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,SignalPart,NoiseSD)
 % This function updates jacobians according to the parametrization
 %
 %   USAGE:
-%       dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,SignalPart,regularizerPoints,NormNoise)
+%       dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,SignalPart,NoiseSD)
 %
 %   INPUTS:
 %       dYdX             = jacobian 
@@ -823,8 +808,7 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
 %       parametrizations = paramterization options
 %       inputParams      = parameter values
 %       SignalPart       = optimization signal part
-%       regularizerPoints= number of points in the regularizer
-%       NormNoise        = 1-point noise estimate
+%       NoiseSD          = standard deviation of the noise
 %
 %   OUTPUTS:
 %       dYdX             = re-organized jacobian
@@ -845,22 +829,14 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
     nLines = size(dYdX,2);
     secDim = size(dYdX,3);
 
-    if ~isempty(NormNoise)
-        Sigma = (NormNoise * sqrt(nPoints));                                % Calculate normalization factor for data
+    if ~isempty(NoiseSD)
+        Sigma = NoiseSD;                                                  % Get sigma
         if ~strcmp(SignalPart,'C')
             Sigma = Sigma.^2;                                               % Square if not for CRLBs
         end
         Sigma = repmat(Sigma, [nPoints nLines 1]);                          % Repeat according to dimensions
         dYdX = squeeze(dYdX);                                               % Remove zero dimensions 
-        dYdX(1:nPoints,:) = dYdX(1:nPoints,:,:) ./ Sigma;                   % Normalize data part
-        if regularizerPoints > 0                                            % Has regularizer
-            Sigma = (NormNoise * sqrt(nPoints + regularizerPoints));        % Calculate normalization factor for regularizer
-            if ~strcmp(SignalPart,'C')
-                Sigma = Sigma.^2;                                           % Square if not for CRLBs
-            end
-            Sigma = repmat(Sigma, [regularizerPoints nLines 1]);            % Repeat according to dimensions
-            dYdX(nPoints+1:end,:) = nPoints(nPoints+1:end,:,:) ./ Sigma;    % Normalize regularizer part
-        end
+        dYdX(:,:) = dYdX(:,:,:) ./ Sigma;                                   % Normalize jacobian
     end
 
     % Free parametrizations need to add secDim copies to the jacobian and
