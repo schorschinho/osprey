@@ -357,7 +357,7 @@ if ~isempty(dimsToIndex)
     elseif isWIP529 || isMinn
         dims.subSpecs=find(strcmp(sqzDims,'Eco'));
     elseif ismodWIP
-        if strcmp(version,'vd') || strcmp(version,'ve')
+        if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'vb')
             dims.subSpecs=find(strcmp(sqzDims,'Eco'));
         else
             dims.subSpecs=find(strcmp(sqzDims,'Ide'));
