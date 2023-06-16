@@ -122,13 +122,13 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
     end
     
     if ~isempty(NoiseSD)                                                  % Don't normalize residual if GradientCheck is performed               
-        SigmaSquared = NoiseSD.^2;                                        % Get sigma squared
-        SigmaSquared = repmat(SigmaSquared, [size(data,1) 1]);              % Repeat according to dimensions
-        residual = residual ./ SigmaSquared;                                % Normalize residual
+        Sigma = NoiseSD;                                        % Get sigma squared
+        Sigma = repmat(Sigma, [size(data,1) 1]);              % Repeat according to dimensions
+        residual = residual ./ Sigma;                                % Normalize residual
         if size(regu,1) > 0                                                 % Has regularizer
-            SigmaSquared = NoiseSD.^2;                                    % Get sigma squared
-            SigmaSquared = repmat(SigmaSquared, [size(regu,1) 1]);          % Repeat according to dimensions
-            regu = regu ./ SigmaSquared;                                    % Normalize regularizer
+            Sigma = NoiseSD;                                    % Get sigma squared
+            Sigma = repmat(Sigma, [size(regu,1) 1]);          % Repeat according to dimensions
+            regu = regu ./ Sigma;                                    % Normalize regularizer
         end
     end
 
@@ -508,9 +508,6 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
 
     if secDim == 1 && ~isempty(NoiseSD)                                   % 1D jacobians have not been normalized yet
         Sigma = NoiseSD;                                                  % Set sigma
-        if ~strcmp(SignalPart,'C')
-            Sigma = Sigma^2;                                                % Square if not for CRLB
-        end
         jac = jac ./ Sigma;                                                  % Normalize jacobian
     end
 end
@@ -831,9 +828,6 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
 
     if ~isempty(NoiseSD)
         Sigma = NoiseSD;                                                  % Get sigma
-        if ~strcmp(SignalPart,'C')
-            Sigma = Sigma.^2;                                               % Square if not for CRLBs
-        end
         Sigma = repmat(Sigma, [nPoints nLines 1]);                          % Repeat according to dimensions
         dYdX = squeeze(dYdX);                                               % Remove zero dimensions 
         dYdX(:,:) = dYdX(:,:,:) ./ Sigma;                                   % Normalize jacobian

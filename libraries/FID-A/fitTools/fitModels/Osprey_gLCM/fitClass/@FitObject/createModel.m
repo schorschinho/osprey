@@ -142,7 +142,6 @@ function obj = createModel(obj)
             end
             if obj.Options{obj.step}.CheckGradient                      % Perform gradient check (for debugging)
                 CheckGrad = true;
-                NoiseSD = [];
             else
                 CheckGrad = false;
             end
