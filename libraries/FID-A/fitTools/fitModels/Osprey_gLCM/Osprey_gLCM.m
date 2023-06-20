@@ -98,7 +98,9 @@ end
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
 if ~iscell(DataToModel)                                                       % Just a single file
-    DataToModel{kk} = DataToModel;                                            % Default input is a cell array so we need to change it 
+    temporaryCell       = {};
+    temporaryCell{1}    = DataToModel;                                        % Default input is a cell array so we need to change it
+    DataToModel         = temporaryCell;
 end
 
 
