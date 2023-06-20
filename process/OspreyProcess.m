@@ -390,37 +390,38 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             % For water suppression methods like MOIST, the residual water may
             % actually have negative polarity, but end up positive in the data, so
             % that the spectrum needs to be flipped.
-            if ~MRSCont.opts.SubSpecAlignment.PreservePolarity
-                if ~isfield(MRSCont.opts.SubSpecAlignment, 'polResidCr')
-                    raw_Cr     = op_freqrange(raw,2.8,3.2);
-                    % Determine the polarity of the respective peak: if the absolute of the
-                    % maximum minus the absolute of the minimum is positive, the polarity
-                    % of the respective peak is positive; if the absolute of the maximum
-                    % minus the absolute of the minimum is negative, the polarity is negative.
-                    polResidCr = abs(max(real(raw_Cr.specs))) - abs(min(real(raw_Cr.specs)));
-                    polResidCr = squeeze(polResidCr);
-                    polResidCr(polResidCr<0) = -1;
-                    polResidCr(polResidCr>0) = 1;
-                else
-                    polResidCr = MRSCont.opts.SubSpecAlignment.polResidCr;
-                end
-                raw = op_ampScale(raw,polResidCr);
-                MRSCont.raw{metab_ll,kk} = op_ampScale(MRSCont.raw{metab_ll,kk},polResidCr);
-    
-                % Do the same for the metabolite-nulled data
-                if MRSCont.flags.hasMM
-                    raw_Cr39    = op_freqrange(raw_mm,3.7,4.1);
-                    polResidCr39  = abs(max(real(raw_Cr39.specs))) - abs(min(real(raw_Cr39.specs)));
-                    polResidCr39(polResidCr39<0) = -1;
-                    polResidCr39(polResidCr39>0) = 1;
-                    if polResidCr39(1) ~= polResidCr(1)
-                        raw_mm = op_ampScale(raw_mm,polResidCr);
+            if isfield(MRSCont.opts.SubSpecAlignment, 'PreservePolarity')
+                if ~MRSCont.opts.SubSpecAlignment.PreservePolarity
+                    if ~isfield(MRSCont.opts.SubSpecAlignment, 'polResidCr')
+                        raw_Cr     = op_freqrange(raw,2.8,3.2);
+                        % Determine the polarity of the respective peak: if the absolute of the
+                        % maximum minus the absolute of the minimum is positive, the polarity
+                        % of the respective peak is positive; if the absolute of the maximum
+                        % minus the absolute of the minimum is negative, the polarity is negative.
+                        polResidCr = abs(max(real(raw_Cr.specs))) - abs(min(real(raw_Cr.specs)));
+                        polResidCr = squeeze(polResidCr);
+                        polResidCr(polResidCr<0) = -1;
+                        polResidCr(polResidCr>0) = 1;
                     else
-                        raw_mm = op_ampScale(raw_mm,polResidCr39);
-                    end    
+                        polResidCr = MRSCont.opts.SubSpecAlignment.polResidCr;
+                    end
+                    raw = op_ampScale(raw,polResidCr);
+                    MRSCont.raw{metab_ll,kk} = op_ampScale(MRSCont.raw{metab_ll,kk},polResidCr);
+
+                    % Do the same for the metabolite-nulled data
+                    if MRSCont.flags.hasMM
+                        raw_Cr39    = op_freqrange(raw_mm,3.7,4.1);
+                        polResidCr39  = abs(max(real(raw_Cr39.specs))) - abs(min(real(raw_Cr39.specs)));
+                        polResidCr39(polResidCr39<0) = -1;
+                        polResidCr39(polResidCr39>0) = 1;
+                        if polResidCr39(1) ~= polResidCr(1)
+                            raw_mm = op_ampScale(raw_mm,polResidCr);
+                        else
+                            raw_mm = op_ampScale(raw_mm,polResidCr39);
+                        end
+                    end
                 end
             end
-            
             
 
 %%          %%% 6. DETERMINE ON/OFF STATUS FOR EDITED DATA & NAMES
@@ -530,7 +531,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
 
 %%          %%% 6b. BUILD SUM AND DIFF SPECTRA %%%
             % Perform sub-specta alignment and build combinations
-            if raw.flags.isUnEdited && MRSCont.opts.PhaseSpectra
+            if raw.flags.isUnEdited && isfield(MRSCont.opts, 'PhaseSpectra')
                 [raw,~]=op_phaseCrCho(raw, 1);
             end
             if raw.flags.isMEGA
