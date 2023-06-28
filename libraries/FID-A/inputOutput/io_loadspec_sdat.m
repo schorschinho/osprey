@@ -80,6 +80,8 @@ dims.t = 1;
 % according to the 'subspecs' input.
 % Initialize fids array:
 fids = squeeze(zeros(header.samples, header.rows/subspecs, subspecs));
+% Remove phase cycle
+fids = fids .* repmat(conj(fids(1,:))./abs(fids(1,:)),[size(fids,1) 1]);
 if subspecs == 2
     %Split the subspectra out of the "averages" dimension:
     fids(:,:,1) = data(:,[1:2:end]);
