@@ -993,6 +993,9 @@ if MRSCont.flags.hasRef
         fprintf(fid,'\n<p style="color:red;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
     end
 end
+names = fieldnames(MRSCont.raw{kk}.geometry.size);
+fprintf(fid,'\n<p><b>Voxel dimensions (%s/%s/%s)</b> \t%5.2f/%5.2f/%5.2f </p>',names{1},names{2},names{3},MRSCont.raw{kk}.geometry.size.(names{1}),MRSCont.raw{kk}.geometry.size.(names{2}),MRSCont.raw{kk}.geometry.size.(names{3}));
+
 fprintf(fid,'\n\t</div>'); 
 fprintf(fid,'\n\t<div class="column3">');
 if MRSCont.processed.metab{kk}.flags.isUnEdited
