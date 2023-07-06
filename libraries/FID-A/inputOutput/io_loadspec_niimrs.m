@@ -323,7 +323,7 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
 
     %Remove phase cycle for Philips data
     if isfield(hdr_ext, 'Manufacturer') && strcmp(hdr_ext.Manufacturer,'Philips')
-        fids = fids .* repmat(conj(fids(1,:,:))./abs(fids(1,:,:)),[size(fids,1) 1]);
+        fids = fids .* repmat(conj(fids(1,:,:,:))./abs(fids(1,:,:,:)),[size(fids,1) 1]);
     end
 
     %Compared to NIfTI MRS, FID-A needs the conjugate
