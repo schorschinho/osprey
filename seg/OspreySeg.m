@@ -30,7 +30,7 @@ function [MRSCont] = OspreySeg(MRSCont)
 %       2019-08-21: First version of the code.
 
 outputFolder = MRSCont.outputFolder;
-diary(fullfile(outputFolder, 'LogFile.txt'));
+% diary(fullfile(outputFolder, 'LogFile.txt'));
 
 warning('off','all');
 % Checking for version, toolbox, and previously run modules
@@ -346,6 +346,66 @@ for kk = 1:MRSCont.nDatasets(1)
                 CSF_voxmask_vol      = SEGvol(3).private.dat(:,:,:,3) .* vol_mask.private.dat(:,:,:);
             end
             vol_CSFMask         = spm_write_vol(vol_CSFMask, CSF_voxmask_vol);
+            
+            % Thalamus
+            if singleTissueSegFile
+                % Get Thalamus overlap
+                Thalamus_L              = AALvol.private.dat(:,:,:);
+                Thalamus_L(Thalamus_L~=18) = 0;
+                Thalamus_L              = Thalamus_L/18;
+                Thalamus_R              = AALvol.private.dat(:,:,:);
+                Thalamus_R(Thalamus_R~=19) = 0;
+                Thalamus_R              = Thalamus_R/19;
+
+                vol_ThaMask.fname     = fullfile(saveDestinationSegMaps, [saveName VoxelNum '_label-Tha' maskExt]);
+                vol_ThaMask.descrip   = ['Tha_masked_MRS_Voxel_Mask_' VoxelNum];
+                vol_ThaMask.dim       = vol_mask.dim;
+                vol_ThaMask.dt        = vol_mask.dt;
+                vol_ThaMask.mat       = vol_mask.mat;
+                Thalamus              = Thalamus_L + Thalamus_R;
+                Tha_voxmask_vol       = Thalamus .* vol_mask.private.dat(:,:,:);
+                vol_ThaMask           = spm_write_vol(vol_ThaMask, Tha_voxmask_vol);
+                MRSCont.seg.vol_Tha{kk} = vol_ThaMask;
+                THAsum                  = sum(sum(sum(Thalamus)));
+                ThaMaskSum              = sum(sum(sum(Tha_voxmask_vol)));
+                MaskSum                 = sum(sum(sum(vol_mask.private.dat(:,:,:))));
+
+                Cortex                = AALvol.private.dat(:,:,:);
+                Cortex(Cortex~=3)     = 0;
+                Cortex                = Cortex/3;
+                Cor_voxmask_vol       = Cortex .* vol_mask.private.dat(:,:,:);
+                Cortexsum             = sum(sum(sum(Cortex)));
+                CortexMaskSum         = sum(sum(sum(Cor_voxmask_vol)));
+
+                Thalamus_CoM          = centerOfMass(Thalamus);
+                Thalamus_CoM          = round(Thalamus_CoM);
+                CoM_vol               = zeros(vol_mask.dim);
+                CoM_vol(Thalamus_CoM(1),Thalamus_CoM(2),Thalamus_CoM(3)) = 1;
+                Thalamus_CoM_vol      = CoM_vol .* vol_mask.private.dat(:,:,:);
+                Thalamus_CoM_Sum      = sum(sum(sum(Thalamus_CoM_vol)));
+
+                Thalamus_L_CoM          = centerOfMass(Thalamus_L);
+                Thalamus_L_CoM          = round(Thalamus_L_CoM);
+                CoM_vol_L               = zeros(vol_mask.dim);
+                CoM_vol_L(Thalamus_L_CoM(1),Thalamus_L_CoM(2),Thalamus_L_CoM(3)) = 1;
+                Thalamus_L_CoM_vol      = CoM_vol_L .* vol_mask.private.dat(:,:,:);
+                Thalamus_L_CoM_Sum      = sum(sum(sum(Thalamus_L_CoM_vol)));
+
+                Thalamus_R_CoM          = centerOfMass(Thalamus_R);
+                Thalamus_R_CoM          = round(Thalamus_R_CoM);
+                CoM_vol_R               = zeros(vol_mask.dim);
+                CoM_vol_R(Thalamus_R_CoM(1),Thalamus_R_CoM(2),Thalamus_R_CoM(3)) = 1;
+                Thalamus_R_CoM_vol      = CoM_vol_R .* vol_mask.private.dat(:,:,:);
+                Thalamus_R_CoM_Sum      = sum(sum(sum(Thalamus_R_CoM_vol)));
+
+                
+                Thalamus_CoM_Summary =  vol_mask.private.dat(:,:,:) + CoM_vol + Thalamus;
+                Thalamus_CoM_Summary = rot90(Thalamus_CoM_Summary(:,:,Thalamus_CoM(3)));
+                Thalamus_L_CoM_Summary = vol_mask.private.dat(:,:,:) + CoM_vol_L + Thalamus_L;
+                Thalamus_L_CoM_Summary = rot90(Thalamus_L_CoM_Summary(:,:,Thalamus_L_CoM(3)));
+                Thalamus_R_CoM_Summary = vol_mask.private.dat(:,:,:) + CoM_vol_R + Thalamus_R;
+                Thalamus_R_CoM_Summary = rot90(Thalamus_R_CoM_Summary(:,:,Thalamus_R_CoM(3)));
+            end
 
             % Save volume structures in MRSCont
             if ~(isfield(MRSCont.flags,'isPRIAM') && (MRSCont.flags.isPRIAM == 1))
@@ -464,6 +524,14 @@ for kk = 1:MRSCont.nDatasets(1)
                 else
                     gzip(SEGvol(1).fname);
                     delete(SEGvol(1).fname);
+                    gzip(GMvol.fname);
+                    delete(GMvol.fname);
+                    gzip(WMvol.fname);
+                    delete(WMvol.fname);
+                    gzip(CSFvol.fname);
+                    delete(CSFvol.fname);
+                    gzip(AALvol.fname);
+                    delete(AALvol.fname);
                 end
 
             end
@@ -471,6 +539,24 @@ for kk = 1:MRSCont.nDatasets(1)
             if strcmp(T1extini,'.gz')
                 gzip(MRSCont.coreg.vol_image{kk}.fname)
                 delete(MRSCont.coreg.vol_image{kk}.fname);
+            end
+
+            % Thalamus
+            if singleTissueSegFile
+                gzip(vol_ThaMask.fname);
+                delete(vol_ThaMask.fname);
+                fThalamusInVoxel = ThaMaskSum / MaskSum;
+                fThalamusCovered = ThaMaskSum / THAsum;
+                fCortexCovered   = CortexMaskSum / Cortexsum;
+                MRSCont.seg.tissue.fThalamusInVoxel(kk,rr)  = fThalamusInVoxel;
+                MRSCont.seg.tissue.fThalamusCovered(kk,rr)  = fThalamusCovered;
+                MRSCont.seg.tissue.fCortexCovered(kk,rr)  = fCortexCovered;
+                MRSCont.seg.tissue.Thalamus_CoM_Sum(kk,rr)  = Thalamus_CoM_Sum;
+                MRSCont.seg.tissue.Thalamus_L_CoM_Sum(kk,rr)  = Thalamus_L_CoM_Sum;
+                MRSCont.seg.tissue.Thalamus_R_CoM_Sum(kk,rr)  = Thalamus_R_CoM_Sum;
+
+                MRSCont.seg.img.vol_Tha_CoM{kk} = horzcat(Thalamus_CoM_Summary,Thalamus_L_CoM_Summary,Thalamus_R_CoM_Summary);
+
             end
 
             % Normalize
@@ -523,10 +609,18 @@ time = toc(refSegTime);
 MRSCont.runtime.Seg = time;
 %% Create table and tsv file
 tissueTypes = {'fGM','fWM','fCSF'};
-
+if singleTissueSegFile && ~TissueSegFile4D
+    tissueTypes = {'fGM','fWM','fCSF','fTha','cTha','fCor','CoMTha','CoMThaL','CoMThaR'};
+end
 %Loop over voxels (for DualVoxel)
 for rr = 1 : Voxels
-    tissue = horzcat(MRSCont.seg.tissue.fGM(:,rr),MRSCont.seg.tissue.fWM(:,rr),MRSCont.seg.tissue.fCSF(:,rr));
+    if ~(singleTissueSegFile && ~TissueSegFile4D)
+        tissue = horzcat(MRSCont.seg.tissue.fGM(:,rr),MRSCont.seg.tissue.fWM(:,rr),MRSCont.seg.tissue.fCSF(:,rr));
+    else
+        tissue = horzcat(MRSCont.seg.tissue.fGM(:,rr),MRSCont.seg.tissue.fWM(:,rr),MRSCont.seg.tissue.fCSF(:,rr),...
+            MRSCont.seg.tissue.fThalamusInVoxel(:,rr),MRSCont.seg.tissue.fThalamusCovered(:,rr),MRSCont.seg.tissue.fCortexCovered(:,rr),...
+            MRSCont.seg.tissue.Thalamus_CoM_Sum(:,rr),MRSCont.seg.tissue.Thalamus_L_CoM_Sum(:,rr),MRSCont.seg.tissue.Thalamus_R_CoM_Sum(:,rr));
+    end
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = array2table(tissue,'VariableNames',tissueTypes);
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]) = addprop(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), {'VariableLongNames'}, {'variable'}); % add long name to table properties
 
@@ -542,6 +636,29 @@ for rr = 1 : Voxels
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fCSF'} = 'Voxel fraction of Cerebrospinal Fluid';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fCSF'} = 'Normalized fractional volume of Cerebrospinal Fluid: fCSF  = CSFsum / (GMsum + WMsum + CSFsum)';
     MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fCSF'} = 'arbitrary';
+    
+    if singleTissueSegFile && ~TissueSegFile4D
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'fTha'} = 'Voxel fraction of Thalamus-proper*';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'fTha'} = 'Normalized fractional volume of Thalamus-proper*: fTha  = ThaMaskSum / (MaskSum)';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'fTha'} = 'arbitrary';
+
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'cTha'} = 'Fraction of Thalamus-proper* covered';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'cTha'} = 'Normalized fractional volume of covered Thalamus-proper*: cTha  = ThaMaskSum / (ThaSum)';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'cTha'} = 'arbitrary';
+
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'CoMTha'} = 'Thalamus center of Mass in voxel:';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'CoMTha'} = 'Center of Mass of Thalamus in MRS voxel?';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'CoMTha'} = 'boolean';
+
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'CoMThaL'} = 'Left Thalamus center of Mass in voxel:';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'CoMThaL'} = 'Center of Mass of left Thalamus in MRS voxel?';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'CoMThaL'} = 'boolean';
+
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.CustomProperties.VariableLongNames{'CoMThaR'} = 'Right Thalamus center of Mass in voxel:';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableDescriptions{'CoMThaR'} = 'Center of Mass of right Thalamus in MRS voxel?';
+        MRSCont.seg.(['tables_Voxel_' num2str(rr)]).Properties.VariableUnits{'CoMThaR'} = 'boolean';
+
+    end
 
     % Write the table to a file with json sidecar
     osp_WriteBIDsTable(MRSCont.seg.(['tables_Voxel_' num2str(rr)]), [saveDestinationSegMaps  filesep 'TissueFractions_Voxel_' num2str(rr)])
@@ -679,6 +796,8 @@ AAL(aseg_dseg==172) = 14;% Vermis
 AAL(aseg_dseg==4 | aseg_dseg == 43) = 15;%Lateral Ventricles
 AAL(aseg_dseg==14) = 16;% 3rd Ventricle
 AAL(aseg_dseg==15) = 17;% 4th Ventricle
+AAL(aseg_dseg==10) = 18;% L Thalamus-Proper
+AAL(aseg_dseg==49) = 19;% R Thalamus-Proper
 
 end
 

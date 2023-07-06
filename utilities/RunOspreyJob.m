@@ -45,6 +45,8 @@ function [MRSCont] = RunOspreyJob(jobFilePath)
                 MRSCont = OspreySeg(MRSCont);
             case '11' %files_seg are defined and finished.
                 MRSCont = OspreySeg(MRSCont);
+            case '12' %files_seg are defined and finished.
+                MRSCont = OspreySeg(MRSCont);
             otherwise % (10) files_seg are defined, but not finished yet. (Do nothing)
         end
         
