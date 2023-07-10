@@ -362,6 +362,10 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsv', '11');
                 LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
+                % Augment list of metabolites to omit
+                if isfield(LCMparam, 'chomit')
+                    chOmitList = unique(horzcat(chOmitList, LCMparam.chomit));
+                end
                 LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList);
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
