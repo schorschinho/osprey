@@ -160,7 +160,10 @@ DicomHeader.vectorSize           = dcmHeader.sSpecPara.lVectorSize; % Data point
 % performed), the respective field does not show up in the dicom file. This
 % case needs to be intercepted. Setting to the minimum possible value.
 if ~isfield(dcmHeader.sSpecPara.sVoI, 'dInPlaneRot')
-        dcmHeader.sSpecPara.sVoI.dInPlaneRot = realmin('double');
+    dcmHeader.sSpecPara.sVoI.dInPlaneRot = realmin('double');
+end
+if ~isfield(dcmHeader.sSpecPara.sVoI, 'sPosition')
+    dcmHeader.sSpecPara.sVoI.sPosition.dCor = realmin('double');
 end
 VoI_Params = {'dCor','dSag','dTra'};
 for pp = 1:length(VoI_Params)
