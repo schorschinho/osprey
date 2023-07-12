@@ -365,15 +365,13 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = app.NumberofdatasetsEditField.Value;
             
             mrsfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
-            filelist = {};
+
             if ~isempty(mrsfiles)
                 [~,file_basename,file_exten]=fileparts(mrsfiles(1,:));
-                                
-                for i=1:ndata
-                    filelist = {filelist{:} mrsfiles(i,:)};
-                end
-                
-                app.MRSDataText.Value = filelist;
+
+                % ARC 2023-07 : cellstr trims trailing whitespace which may be added by spm_select
+                %             : earlier conversion (eg, wrapping spm_select) would break the isempty check
+                app.MRSDataText.Value = cellstr(mrsfiles(1:ndata,:))';
                 
                 if strcmp(file_exten,'.7')
                     app.H2OReferenceButton.Enable = 'Off';
@@ -395,13 +393,9 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             ndata = app.NumberofdatasetsEditField.Value;
             
             h2oreffiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
-            filelist = {};
+
             if ~isempty(h2oreffiles)               
-                for i=1:ndata
-                    filelist = {filelist{:} h2oreffiles(i,:)};
-                end
-                
-                app.H2OReferenceText.Value = filelist;
+                app.H2OReferenceText.Value = cellstr(h2oreffiles(1:ndata,:))';
             end
         end
 
@@ -413,13 +407,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             h2ostefiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
             
-            filelist = {};
             if ~isempty(h2ostefiles)   
-                for i=1:ndata
-                    filelist = {filelist{:} h2ostefiles(i,:)};
-                end
-                
-                app.H2OShortTEText.Value = filelist;
+                app.H2OShortTEText.Value = cellstr(h2ostefiles(1:ndata,:))';
             end
         end
 
@@ -431,13 +420,8 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             
             metnulfiles = spm_select(ndata,'any',info,{},pwd,'.*','1');
             
-            filelist = {};
             if ~isempty(metnulfiles)  
-                for i=1:ndata
-                    filelist = {filelist{:} metnulfiles(i,:)};
-                end
-                
-                app.MetaboliteNulledText.Value = filelist;
+                app.MetaboliteNulledText.Value = cellstr(metnulfiles(1:ndata,:))';
             end
         end
 
@@ -455,12 +439,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             end
             
             if ~isempty(t1imfiles)
-                filelist = {};
-                for i=1:ndata
-                    filelist = {filelist{:} t1imfiles(i,:)};
-                end
-                
-                app.T1DataText.Value = filelist;
+                app.T1DataText.Value = cellstr(t1imfiles(1:ndata,:))';
             end
         end
 
@@ -1331,7 +1310,9 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             app.T1DICOMCheck.ValueChangedFcn = createCallbackFcn(app, @T1DICOMCheckValueChanged, true);
             app.T1DICOMCheck.Tooltip = {'Check this box if you are using a DICOM T1 directory. This is only working for GE.'};
             app.T1DICOMCheck.Text = 'DICOM T1 data (GE only)';
-            app.T1DICOMCheck.WordWrap = 'on';
+            if isprop(app.T1DICOMCheck,'WordWrap') % ARC 2023-07 for compatibility with Matlab pre-R2020b
+                app.T1DICOMCheck.WordWrap = 'on';
+            end
             app.T1DICOMCheck.FontColor = [0.0392 0.2706 0.4314];
             app.T1DICOMCheck.Position = [325 6 157 22];
 
