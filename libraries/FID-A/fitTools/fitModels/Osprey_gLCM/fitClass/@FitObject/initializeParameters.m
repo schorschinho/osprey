@@ -1,23 +1,27 @@
-function [init, lb, ub, fun] = initializeParameters(obj, init, lb, ub, fun, parameter)
-%%  [init, lb, ub, fun] = initializeParameters(obj, init, lb, ub, fun, parameter)
+function [init, lb, ub, ex, sd, fun] = initializeParameters(obj, init, lb, ub, ex, sd, fun, parameter)
+%%  [init, lb, ub, ex, sd, fun] = initializeParameters(obj, init, lb, ub, ex, sd, fun, parameter)
 %   This method sets the parametrization of the OspreyFitObj according to
 %   the model procedure step as well as the indirect dimension link
 %
 %   USAGE:
-%       [init, lb, ub, fun] = initializeParameters(obj, init, lb, ub, fun, parameter)
+%       [init, lb, ub, sd, fun] = initializeParameters(obj, init, lb, ub, sd, fun, parameter)
 %
 %   INPUTS:
 %       init      = struct with initial parameters that is build for all parameters
 %       lb        = struct with lower bounds that is build for all parameters
 %       ub        = struct with upper bounds that is build for all parameters
+%       ex        = struct with expectation values that is build for all parameters
+%       sd        = struct with standard deviations that is build for all parameters
 %       fun       = struct with function type parameters that is build for all parameters
 %       parameter = parameter to initialize (e.g. p0, ph1, gaussLB...)
-%       
+%
 %   OUTPUTS:
 %       obj       = OspreyFitObj with updated parametrizations.
 %       init      = struct with initial parameters that is build for all parameters
 %       lb        = struct with lower bounds that is build for all parameters
 %       ub        = struct with upper bounds that is build for all parameters
+%       ex        = struct with expectation values that is build for all parameters
+%       sd        = struct with standard deviations that is build for all parameters
 %       fun       = struct with function type parameters that is build for all parameters
 %
 %   AUTHOR:
@@ -83,54 +87,60 @@ function [init, lb, ub, fun] = initializeParameters(obj, init, lb, ub, fun, para
         type = obj.Options{obj.step}.paraIndirect.parameters.(parameter).type;  % Overwrite inital assuption of free links
     end
 
-%% Update the structs with the init, lb, ub, fun entries
-% This is used to generate the init, lb, ub, fun struct according to the
+%% Update the structs with the init, lb, ub, ex, sd, fun entries
+% This is used to generate the init, lb, ub, ex, sd, fun struct according to the
 % number of parameters needed. This is based on the nParamsPerSpec and
 % nParamsPerIndir values. We basically have to repeat a single value
-% accorindg to those vlaeus. This gets more complicated when we are using
+% according to those values. This gets more complicated when we are using
 % fit ressults from a prior step. For example we can have lorentzianLB
 % initial values from a single spectrum fit that we now have to repeat
-% along the indriect dimension
-    if ~iscell(obj.Options{obj.step}.parametrizations.(parameter).init)  % This is numeric if defaults or not pulled from a prior step   
-if ~strcmp(type,'dynamic')      % For free or fixed cases we just have to repeat the parameter value according to nParamsPerSpec and nParamsPerIndir
-            structs = {'init','lb','ub'};  % Structs to write for ooutput 
-            for st = 1 : length(structs)    % Loop over structs
-                switch num2str([size(obj.Options{obj.step}.parametrizations.(parameter).(structs{st}),1) == nParamsPerIndir ...     % Check dimensions and repeat parameter accordingly
-                                size(obj.Options{obj.step}.parametrizations.(parameter).(structs{st}),2) == nParamsPerSpec])
-                    case '1  1' % Correct dimensions do nothing
-                        eval([ structs{st} '.' parameter ' = obj.Options{obj.step}.parametrizations.' parameter '.' structs{st} ';'])
-                    case '0  0' % Both dimensions are wrong repeat according to nParamsPerSpec and nParamsPerIndir
-                        eval([ structs{st} '.' parameter ' = squeeze(repmat(obj.Options{obj.step}.parametrizations.' parameter '.' structs{st} ', [nParamsPerIndir, nParamsPerSpec]));'])
-                    case '0  1' % Indirect dimensions not correct repeat nParamsPerIndir times
-                        eval([ structs{st} '.' parameter ' = squeeze(repmat(obj.Options{obj.step}.parametrizations.' parameter '.' structs{st} ', [nParamsPerIndir, 1]));'])
-                    case '1  0' % Params per spectrum dimensions not correct repeat nParamsPerSpec times
-                        eval([ structs{st} '.' parameter ' = squeeze(repmat(obj.Options{obj.step}.parametrizations.' parameter '.' structs{st} ', [1, nParamsPerSpec]));'])         
-                end
-            end
-        else % For dynamic parametrization lb and ub are already defined from the set_parameter function
-            if size(obj.Options{obj.step}.parametrizations.(parameter).init,2) == nParamsPerSpec    % Dimensions are correct
-                init.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).init;         % Add initials
-                lb.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).lb;             % Add upper bounds
-                ub.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).ub;             % Add lower bounds
-            else %  Both dimensions are wrong repeat according to nParamsPerSpec and nParamsPerIndir
-                init.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).init, [nParamsPerIndir, nParamsPerSpec])); % Add initials
-                lb.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).lb, [nParamsPerIndir, nParamsPerSpec])); % Add upper bounds
-                ub.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).ub, [nParamsPerIndir, nParamsPerSpec])); % Add lower bounds
+% along the indirect dimension
+if ~iscell(obj.Options{obj.step}.parametrizations.(parameter).init)  % This is numeric if defaults or not pulled from a prior step
+    if ~strcmp(type,'dynamic')      % For free or fixed cases we just have to repeat the parameter value according to nParamsPerSpec and nParamsPerIndir
+        structs = {'init','lb','ub','ex','sd'};  % Structs to write for output
+        for st = 1 : length(structs)    % Loop over structs
+            switch num2str([size(obj.Options{obj.step}.parametrizations.(parameter).(structs{st}),1) == nParamsPerIndir ...     % Check dimensions and repeat parameter accordingly
+                    size(obj.Options{obj.step}.parametrizations.(parameter).(structs{st}),2) == nParamsPerSpec])
+                case '1  1' % Correct dimensions do nothing
+                    eval([ structs{st} '.' parameter ' = obj.Options{obj.step}.parametrizations.' parameter '.' structs{st} ';'])
+                case '0  0' % Both dimensions are wrong repeat according to nParamsPerSpec and nParamsPerIndir
+                    eval([ structs{st} '.' parameter ' = squeeze(repmat(obj.Options{obj.step}.parametrizations.' parameter '.' structs{st} ', [nParamsPerIndir, nParamsPerSpec]));'])
+                case '0  1' % Indirect dimensions not correct repeat nParamsPerIndir times
+                    eval([ structs{st} '.' parameter ' = squeeze(repmat(obj.Options{obj.step}.parametrizations.' parameter '.' structs{st} ', [nParamsPerIndir, 1]));'])
+                case '1  0' % Params per spectrum dimensions not correct repeat nParamsPerSpec times
+                    eval([ structs{st} '.' parameter ' = squeeze(repmat(obj.Options{obj.step}.parametrizations.' parameter '.' structs{st} ', [1, nParamsPerSpec]));'])
             end
         end
-    else % When this is a cell array it contains the 'Step' reference (e.g. Step 2) to use results from a prior step
-        step_to_get_ini = split(obj.Options{obj.step}.parametrizations.(parameter).init{1},' ');        % Get entry from model procedure e.g. Step 1
-        step_to_get_ini = str2num(step_to_get_ini{2});                                                  % Get numeric value of step
-        init.(parameter) = squeeze(repmat(obj.Model{step_to_get_ini}.parsOut.(parameter), [nParamsPerIndir, nParamsPerSpec]));  % Update init value accordingly
-        lb.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).lb,   [nParamsPerIndir , nParamsPerSpec])); % Repeat lb value according to nParamsPerIndir nParamsPerSpec
-        ub.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).ub,   [nParamsPerIndir , nParamsPerSpec])); % Repeat ub value according to nParamsPerIndir nParamsPerSpec
+    else % For dynamic parametrization lb and ub are already defined from the set_parameter function
+        if size(obj.Options{obj.step}.parametrizations.(parameter).init,2) == nParamsPerSpec    % Dimensions are correct
+            init.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).init;         % Add initials
+            lb.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).lb;             % Add upper bounds
+            ub.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).ub;             % Add lower bounds
+            ex.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).ex;             % Add expectation values
+            sd.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).sd;             % Add standard deviations
+        else %  Both dimensions are wrong repeat according to nParamsPerSpec and nParamsPerIndir
+            init.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).init, [nParamsPerIndir, nParamsPerSpec])); % Add initials
+            lb.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).lb, [nParamsPerIndir, nParamsPerSpec])); % Add upper bounds
+            ub.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).ub, [nParamsPerIndir, nParamsPerSpec])); % Add lower bounds
+            ex.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).ex, [nParamsPerIndir, nParamsPerSpec])); % Add expectation values
+            sd.(parameter) = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).sd, [nParamsPerIndir, nParamsPerSpec])); % Add standard deviations
+        end
     end
-    if isfield(obj.Options{obj.step}.parametrizations.(parameter),'type')              % If 2D we will have a type entry for the relation 
-        fun.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).type;     % Add parametrization function type
-    else
-       obj.Options{obj.step}.parametrizations.(parameter).type = type;               % If 2D we will have a type entry for the relation
-       fun.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).type;      % Add parametrization function type
-    end
+else % When this is a cell array it contains the 'Step' reference (e.g. Step 2) to use results from a prior step
+    step_to_get_ini = split(obj.Options{obj.step}.parametrizations.(parameter).init{1},' ');        % Get entry from model procedure e.g. Step 1
+    step_to_get_ini = str2num(step_to_get_ini{2});                                                  % Get numeric value of step
+    init.(parameter) = squeeze(repmat(obj.Model{step_to_get_ini}.parsOut.(parameter), [nParamsPerIndir, nParamsPerSpec]));  % Update init value accordingly
+    lb.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).lb,   [nParamsPerIndir , nParamsPerSpec])); % Repeat lb value according to nParamsPerIndir nParamsPerSpec
+    ub.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).ub,   [nParamsPerIndir , nParamsPerSpec])); % Repeat ub value according to nParamsPerIndir nParamsPerSpec
+    ex.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).ex,   [nParamsPerIndir , nParamsPerSpec])); % Repeat ex value according to nParamsPerIndir nParamsPerSpec
+    sd.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).sd,   [nParamsPerIndir , nParamsPerSpec])); % Repeat sd value according to nParamsPerIndir nParamsPerSpec
+end
+if isfield(obj.Options{obj.step}.parametrizations.(parameter),'type')              % If 2D we will have a type entry for the relation
+    fun.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).type;     % Add parametrization function type
+else
+    obj.Options{obj.step}.parametrizations.(parameter).type = type;               % If 2D we will have a type entry for the relation
+    fun.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).type;      % Add parametrization function type
+end
 end
 % Description of default parameters are described below 
 function parametrizations = set_parameter(obj,parameter,predefined)
@@ -144,18 +154,22 @@ function parametrizations = set_parameter(obj,parameter,predefined)
         parametrizations.lb      = -pi;
         parametrizations.ub      = pi;
         parametrizations.init    = 0;
-        parametrizations.RegFun    = '';
-        
-        case 'ph1'
+        parametrizations.ex      = 0;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
+
+    case 'ph1'
         % Initialize phi1 as constant with value 0
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = -pi/30;
         parametrizations.ub      = pi/30;
         parametrizations.init    = 0;
-        parametrizations.RegFun    = '';
-        
-        case 'gaussLB'
+        parametrizations.ex      = 0;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
+
+    case 'gaussLB'
         % Initialize Gaussian LB as constant with value [0.04 *
         % hz/ppm]
         parametrizations.fun     = 'free';
@@ -163,45 +177,55 @@ function parametrizations = set_parameter(obj,parameter,predefined)
         parametrizations.lb      = 0;
         parametrizations.ub      = Inf;
         parametrizations.init    = 0.04 * obj.Data.txfrq*1e-6;
-        parametrizations.RegFun    = '';
-        
-        case 'lorentzLB'
+        parametrizations.ex      = 0.04 * obj.Data.txfrq*1e-6;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
+
+    case 'lorentzLB'
         % Initialize Lorentzian LB as constant with value
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = 0;
         parametrizations.ub      = Inf;
         parametrizations.init    = 0;
-        parametrizations.RegFun    = '';
-        
-        case 'freqShift'
+        parametrizations.ex      = 0;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
+
+    case 'freqShift'
         % Initialize frequency shifts as constant with value 0 Hz
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = -5;
         parametrizations.ub      = 5;
         parametrizations.init    = 0;
-        parametrizations.RegFun    = '';
-        
-        case 'metAmpl'
+        parametrizations.ex      = 0;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
+
+    case 'metAmpl'
         % Initialize metabolite amplitudes as free with value 0
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = 0;
         parametrizations.ub      = Inf;
         parametrizations.init    = 0;
-        parametrizations.RegFun    = '';
-        
-        case 'baseAmpl'
+        parametrizations.ex      = 0;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
+
+    case 'baseAmpl'
         % Initialize baseline amplitudes as free with value 0
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = -Inf;
         parametrizations.ub      = Inf;
         parametrizations.init    = 0;
-        parametrizations.RegFun    = '';
-        
-        case 'x'
+        parametrizations.ex      = 0;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
+
+    case 'x'
         % Initialize x (the external dependency vector) as natural numbers
         parametrizations.modulator = [1:1:size(obj.Data.fids,2)];
         parametrizations.name   = 'independentVariable';
@@ -214,7 +238,9 @@ function parametrizations = set_parameter(obj,parameter,predefined)
         parametrizations.lb      = -Inf;
         parametrizations.ub      = Inf;
         parametrizations.init    = 0;
-        parametrizations.RegFun    = '';
+        parametrizations.ex      = 0;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
 
     end
 

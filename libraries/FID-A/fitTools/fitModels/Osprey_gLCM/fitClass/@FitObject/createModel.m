@@ -51,16 +51,20 @@ function obj = createModel(obj)
     parsInit = [];                                          % Initialize parsInit struct
     parslb = [];                                            % Initialize parslb struct
     parsub = [];                                            % Initialize parsub struct
+    parsex = [];                                            % Initialize parsex struct
+    parssd = [];                                            % Initialize parssd struct
     parsfun = [];                                           % parsfun parsInit struct
     for pp = 1:length(pars)                                 % Loop over parameters
-        [parsInit, parslb, parsub, parsfun] = initializeParameters(obj, parsInit, parslb, parsub, parsfun, pars{pp}); % Generate parameter structs
+        [parsInit, parslb, parsub, parsex, parssd, parsfun] = initializeParameters(obj, parsInit, parslb, parsub, parsex, parssd, parsfun, pars{pp}); % Generate parameter structs
     end                                                     % End loop over parameters
 
     eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])  % Set model function handle from ModelFunction field (e.g. GeneralizedPhhysicsModel)
     [x0, indexStruct] = h.pars2x(parsInit);                 % Create x0 vector
     [lb,~] = h.pars2x(parslb);                              % Create lb vector
     [ub,~] = h.pars2x(parsub);                              % Create ub vector
-    
+    [ex,~] = h.pars2x(parsex);                              % Create ex vector
+    [sd,~] = h.pars2x(parssd);                              % Create sd vector
+
     % Update the parametrization according to the 2D json file. This is
     % crucial to define the type (free, fixed, dynamic) and new bounds
     for pp = 1:length(pars)                                 % Loop over parameters
@@ -70,6 +74,8 @@ function obj = createModel(obj)
             obj.Options{obj.step}.parametrizations.(pars{pp}).init = parsInit.(pars{pp}); % Update init values
             obj.Options{obj.step}.parametrizations.(pars{pp}).lb = parslb.(pars{pp});  % Update lb values
             obj.Options{obj.step}.parametrizations.(pars{pp}).ub = parsub.(pars{pp}); % Update ub values
+            obj.Options{obj.step}.parametrizations.(pars{pp}).ex = parsex.(pars{pp}); % Update ex values
+            obj.Options{obj.step}.parametrizations.(pars{pp}).sd = parssd.(pars{pp}); % Update sd values
             obj.Options{obj.step}.parametrizations.(pars{pp}).type = parsfun.(pars{pp}); % Update type strings
         end
     end                                                     % End loop over parameters
