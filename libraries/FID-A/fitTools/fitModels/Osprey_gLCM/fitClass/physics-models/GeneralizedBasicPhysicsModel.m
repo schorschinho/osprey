@@ -36,24 +36,24 @@
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Handle set up for optimizer
 function fh = GeneralizedBasicPhysicsModel
-    fh.lossFunction = @lossFunction;
-    fh.forwardGradient = @forwardGradient;
-    fh.forwardJacobian = @forwardJacobian;
-    fh.forwardModel = @forwardModel;
-    fh.x2pars = @x2pars;
-    fh.pars2x = @pars2x;
-    fh.fminunc_wrapper = @fminunc_wrapper;
+    fh.lossFunction     = @lossFunction;
+    fh.forwardGradient  = @forwardGradient;
+    fh.forwardJacobian  = @forwardJacobian;
+    fh.forwardModel     = @forwardModel;
+    fh.x2pars           = @x2pars;
+    fh.pars2x           = @pars2x;
+    fh.fminunc_wrapper  = @fminunc_wrapper;
 end
 
 %% Define lossfunction, forward gradient, forward jacobian, forward model, x2pars, pars2x, fminunc_wrapper
 
-function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE,Reg, parametrizations)
-% This function generates the output for the solver accoring to the
-% lossfunction. This includes all settings described in the model procedure
+function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE, Reg, parametrizations)
+% This function generates the output for the solver according to the
+% loss function. This includes all settings described in the model procedure
 % json.
 %
 %   USAGE:
-%       sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE,Reg, parametrizations)
+%       sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE, Reg, parametrizations)
 %
 %   INPUTS:
 %       x                = x vector with parameters to optimize
@@ -102,7 +102,7 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
     end    
     if strcmp(Domain,'TD')                                                  % time domain optimization         
         prediction  = ifft(ifftshift(prediction,1), [], 1);                 % Convert prediction to time domain
-        prediction  = ifft(ifftshift(regu,1), [], 1);                       % Convert regularizer to time domain
+        regu        = ifft(ifftshift(regu,1), [], 1);                       % Convert regularizer to time domain
     end
     residual     = data - prediction;                                       % Calculate residual
 
@@ -121,14 +121,14 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
             regu     = abs(regu);                                           % Take magnitude regularizer
     end
     
-    if ~isempty(NoiseSD)                                                  % Don't normalize residual if GradientCheck is performed               
-        Sigma = NoiseSD;                                        % Get sigma squared
-        Sigma = repmat(Sigma, [size(data,1) 1]);              % Repeat according to dimensions
-        residual = residual ./ Sigma;                                % Normalize residual
+    if ~isempty(NoiseSD)                                                    % Don't normalize residual if GradientCheck is performed
+        Sigma = NoiseSD;                                                    % Get sigma squared
+        Sigma = repmat(Sigma, [size(data,1) 1]);                            % Repeat according to dimensions
+        residual = residual ./ Sigma;                                       % Normalize residual
         if size(regu,1) > 0                                                 % Has regularizer
-            Sigma = NoiseSD;                                    % Get sigma squared
-            Sigma = repmat(Sigma, [size(regu,1) 1]);          % Repeat according to dimensions
-            regu = regu ./ Sigma;                                    % Normalize regularizer
+            Sigma = NoiseSD;                                                % Get sigma squared
+            Sigma = repmat(Sigma, [size(regu,1) 1]);                        % Repeat according to dimensions
+            regu = regu ./ Sigma;                                           % Normalize regularizer
         end
     end
 
@@ -507,9 +507,9 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     end
     jac = (-1) * jac;                                                       % Needed to match numerical jacobian
 
-    if secDim == 1 && ~isempty(NoiseSD)                                   % 1D jacobians have not been normalized yet
-        Sigma = NoiseSD;                                                  % Set sigma
-        jac = jac ./ Sigma;                                                  % Normalize jacobian
+    if secDim == 1 && ~isempty(NoiseSD)                                     % 1D jacobians have not been normalized yet
+        Sigma = NoiseSD;                                                    % Set sigma
+        jac = jac ./ Sigma;                                                 % Normalize jacobian
     end
 
     if secDim == 1                                                          % Add penalty term for parameters deviating from expectation values
@@ -534,7 +534,7 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
 % This function generates forward model and regularizer for the generalized physics model
 %
 %   USAGE:
-%       [Y, baseline, metabs,regu] = forwardModel(x, basisSet, baselineBasis, ppm, t, Reg, parametrizations)
+%       [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, baselineBasis, ppm, t, Reg, parametrizations)
 %
 %   INPUTS:
 %       x                = x vector with parameters to optimize
@@ -565,6 +565,10 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
 %% Calculate forward model and regularizer
 
     % Initialize output
+    Y               = [];                                                   % Initialize model
+    baseline        = [];                                                   % Initialize baseline
+    metabs          = [];                                                   % Initialize basis function
+    regu            = [];                                                   % Initialize regularizer
     penaltyTerm     = [];                                                   % Initialize penalty term
 
     fidsBasis = basisSet.fids;                                              % Get basis function
@@ -576,13 +580,13 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
     % Loop over indirect dimension
     for sD = 1 : secDim % Loop over indirect dimension
         fids        = squeeze(fidsBasis(:,:,sD));                           % Get time domain data
-        gaussLB = squeeze(inputParams.gaussLB(sD,:));                       % Get gaussLB parameter
-        lorentzLB = squeeze(inputParams.lorentzLB(sD,:));                   % Get lorentzLB parameter
-        freqShift = squeeze(inputParams.freqShift(sD,:));                   % Get freqShift parameter
-        metAmpl = squeeze(inputParams.metAmpl(sD,:))';                      % Get metAmpl parameter
-        baseAmpl = squeeze(inputParams.baseAmpl(sD,:))';                    % Get baseAmpl parameter
-        ph0 = squeeze(inputParams.ph0(sD));                                 % Get ph0 parameter
-        ph1 = squeeze(inputParams.ph1(sD));                                 % Get ph1 parameter
+        gaussLB     = squeeze(inputParams.gaussLB(sD,:));                   % Get gaussLB parameter
+        lorentzLB   = squeeze(inputParams.lorentzLB(sD,:));                 % Get lorentzLB parameter
+        freqShift   = squeeze(inputParams.freqShift(sD,:));                 % Get freqShift parameter
+        metAmpl     = squeeze(inputParams.metAmpl(sD,:))';                  % Get metAmpl parameter
+        baseAmpl    = squeeze(inputParams.baseAmpl(sD,:))';                 % Get baseAmpl parameter
+        ph0         = squeeze(inputParams.ph0(sD));                         % Get ph0 parameter
+        ph1         = squeeze(inputParams.ph1(sD));                         % Get ph1 parameter
         
         timeDomainMultiplier = zeros(size(fids));                           % Setup time domain multiplier
         for ll = 1:nBasisFcts                                               % Loop over basis functions
@@ -608,13 +612,13 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
 
     if Reg                                                                  % Add parameter regularization
         for sD = 1 : secDim                                                 % Loop over indirect dimension
-            gaussLB = squeeze(inputParams.gaussLB(sD,:));                   % Get gaussLB parameter
-            lorentzLB = squeeze(inputParams.lorentzLB(sD,:));               % Get lorentzLB parameter
-            freqShift = squeeze(inputParams.freqShift(sD,:));               % Get freqShift parameter
-            metAmpl = squeeze(inputParams.metAmpl(sD,:));                   % Get metAmpl parameter
-            baseAmpl = squeeze(inputParams.baseAmpl(sD,:));                 % Get baseAmpl parameter
-            ph0 = squeeze(inputParams.ph0(sD));                             % Get ph0 parameter
-            ph1 = squeeze(inputParams.ph1(sD));                             % Get ph1 parameter
+            gaussLB     = squeeze(inputParams.gaussLB(sD,:));               % Get gaussLB parameter
+            lorentzLB   = squeeze(inputParams.lorentzLB(sD,:));             % Get lorentzLB parameter
+            freqShift   = squeeze(inputParams.freqShift(sD,:));             % Get freqShift parameter
+            metAmpl     = squeeze(inputParams.metAmpl(sD,:));               % Get metAmpl parameter
+            baseAmpl    = squeeze(inputParams.baseAmpl(sD,:));              % Get baseAmpl parameter
+            ph0         = squeeze(inputParams.ph0(sD));                     % Get ph0 parameter
+            ph1         = squeeze(inputParams.ph1(sD));                     % Get ph1 parameter
             [ph0Reg]        = addParameterRegularization([],'ph0', parametrizations,ph0,0); % Calculate regularizer for ph0 parameter
             [ph1Reg]        = addParameterRegularization([],'ph1', parametrizations,ph1,0); % Calculate regularizer for ph1 parameter
             [gaussLBReg]    = addParameterRegularization([],'gaussLB', parametrizations,gaussLB,0); % Calculate regularizer for gaussLB parameter

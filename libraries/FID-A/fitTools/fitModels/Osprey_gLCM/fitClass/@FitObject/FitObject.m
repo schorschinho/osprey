@@ -43,7 +43,7 @@ classdef FitObject < handle
         Model = {struct};                                                   % Initialize model array
     end
 
-%% Define OspreyFitObj nethods  
+%% Define OspreyFitObj methods  
     methods      
         function obj = FitObject(data, basis, options)
             % class constructor

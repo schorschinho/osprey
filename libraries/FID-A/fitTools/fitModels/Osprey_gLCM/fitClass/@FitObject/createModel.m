@@ -23,12 +23,12 @@ function obj = createModel(obj)
                 
     obj.step            = obj.step + 1;                      % Update fit step counter
    
-    if isfield(obj.Options{obj.step}, 'InitialPick')         % If an inital fit should be performed on a single spectrum we need to restore pick this single spectrum
-        if obj.Options{obj.step}.InitialPick > 0             % Inital spectrum defined for 2D modeling
+    if isfield(obj.Options{obj.step}, 'InitialPick')         % If an initial fit should be performed on a single spectrum we need to restore pick this single spectrum
+        if obj.Options{obj.step}.InitialPick > 0             % Initial spectrum defined for 2D modeling
             temp.BasisSets.fids  = obj.BasisSets.fids;       % Backup full basis set
             temp.Data.fids       = obj.Data.fids;            % Backup full data
-            obj.BasisSets.fids   = squeeze(obj.BasisSets.fids(:,:,obj.Options{obj.step}.InitialPick)); % Extract basis set for inital fit
-            obj.Data.fids        = obj.Data.fids(:,obj.Options{obj.step}.InitialPick);  % Extract data for inital fit          
+            obj.BasisSets.fids   = squeeze(obj.BasisSets.fids(:,:,obj.Options{obj.step}.InitialPick)); % Extract basis set for initial fit
+            obj.Data.fids        = obj.Data.fids(:,obj.Options{obj.step}.InitialPick);  % Extract data for initial fit          
         end
     end
     basisSet            = obj.BasisSets;                                    % Get basis set
@@ -58,7 +58,7 @@ function obj = createModel(obj)
         [parsInit, parslb, parsub, parsex, parssd, parsfun] = initializeParameters(obj, parsInit, parslb, parsub, parsex, parssd, parsfun, pars{pp}); % Generate parameter structs
     end                                                     % End loop over parameters
 
-    eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])  % Set model function handle from ModelFunction field (e.g. GeneralizedPhhysicsModel)
+    eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])  % Set model function handle from ModelFunction field (e.g. GeneralizedPhysicsModel)
     [x0, indexStruct] = h.pars2x(parsInit);                 % Create x0 vector
     [lb,~] = h.pars2x(parslb);                              % Create lb vector
     [ub,~] = h.pars2x(parsub);                              % Create ub vector
@@ -89,14 +89,14 @@ function obj = createModel(obj)
     
     
     if sum(cellfun(@isstruct,obj.returnParametrization(1,'RegFun'))) > 0    % Apply regularizer?
-       Reg = 1;                                                             % Set regualrizer to yes
+        Reg = 1;                                                            % Set regularizer to yes
     else
-        Reg = 0;                                                            % Set regualrizer to no
+        Reg = 0;                                                            % Set regularizer to no
     end
 
 %% Setup inputs for optimizers 
    
-    switch solver                                        % Switch to setup lossfunction outputs according to solver
+    switch solver                                        % Switch to setup loss function outputs according to solver
         case {'lbfgsb', 'fminsearch'}
             sse = 'sos';                                 % Uses sum of squares
         case 'lsqnonlin'
@@ -284,7 +284,7 @@ function obj = createModel(obj)
     % Calculate different AICs
     p       = length(xk);                                                       % Number of estimated parameter
     n       = length(res);                                                      % Number of points in model
-    sigma   = sqrt(sos/n);                                                    % Sigma calculation for AIC
+    sigma   = sqrt(sos/n);                                                      % Sigma calculation for AIC
     obj.Model{obj.step}.AIC     = - 2 * n * log(sigma) - 2*p;                   % AIC
     obj.Model{obj.step}.AIC_c   = - 2 * n * log(sigma) - 2*(p+1)*(n/(n-p-2));   % AIC_c
     obj.Model{obj.step}.BIC     = - 2 * n * log(sigma) - log(n)*p;              % BIC

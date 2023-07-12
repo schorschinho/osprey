@@ -35,57 +35,57 @@ function [init, lb, ub, ex, sd, fun] = initializeParameters(obj, init, lb, ub, e
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Write parametrizations in obj
 
-    nBasisFcts = sum(obj.BasisSets.includeInFit(obj.step,:));               % Number of basis functions
-    nBaselineComps = size(obj.BaselineBasis, 2);                            % Number of baseline parameters
-    if ~isfield(obj.Options{obj.step},'parametrizations')                   % No parametrizations field use defaults
-        obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter);  % Write parameter defaults in object
-    else if ~isfield(obj.Options{obj.step}.parametrizations,parameter)      % No parametrization for the parameter
-            obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter); % Write parameter defaults in object
-        else
-            obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.parametrizations.(parameter)); % Write parameter according to model procedure step
-        end
-    end
+nBasisFcts = sum(obj.BasisSets.includeInFit(obj.step,:));               % Number of basis functions
+nBaselineComps = size(obj.BaselineBasis, 2);                            % Number of baseline parameters
+if ~isfield(obj.Options{obj.step},'parametrizations')                   % No parametrizations field use defaults
+    obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter);  % Write parameter defaults in object
+else if ~isfield(obj.Options{obj.step}.parametrizations,parameter)      % No parametrization for the parameter
+        obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter); % Write parameter defaults in object
+else
+    obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.parametrizations.(parameter)); % Write parameter according to model procedure step
+end
+end
 %% Define the number of parameters per spectrum and per indirect dimension for the parameter
-    switch parameter                            % Switch with parameter names
-        case {'ph0', 'ph1', 'gaussLB'}
-            % one parameter per spectrum
-            nParamsPerSpec = 1;
-        case {'metAmpl', 'freqShift', 'lorentzLB'}
-            % one parameter per metabolite per spectrum
-            nParamsPerSpec = nBasisFcts;
-        case {'baseAmpl'}
-            % one parameter per spline function per spectrum
-            nParamsPerSpec = nBaselineComps;
-    end
-    nParamsPerIndir = size(obj.Data.fids,2);   % Assume that the parameters have to repeated along the indirect dimension to start with
-    type = 'free';                             % Assume that the indirect dimension parametrization is free to strat with
+switch parameter                            % Switch with parameter names
+    case {'ph0', 'ph1', 'gaussLB'}
+        % one parameter per spectrum
+        nParamsPerSpec = 1;
+    case {'metAmpl', 'freqShift', 'lorentzLB'}
+        % one parameter per metabolite per spectrum
+        nParamsPerSpec = nBasisFcts;
+    case {'baseAmpl'}
+        % one parameter per spline function per spectrum
+        nParamsPerSpec = nBaselineComps;
+end
+nParamsPerIndir = size(obj.Data.fids,2);   % Assume that the parameters have to repeated along the indirect dimension to start with
+type = 'free';                             % Assume that the indirect dimension parametrization is free to strat with
 
 %% Update the parameterization according to the indirect dimension json file
 
-    if isfield(obj.Options{obj.step}, 'paraIndirect')   % json file for 2D model supplied
-        if isfield(obj.Options{obj.step}.paraIndirect.parameters,parameter) % No parametrizations for parameter field use defaults
-            if ~isfield(obj.Options{obj.step}.paraIndirect.parameters.(parameter),'parametrizations')  % No parametrizations for parameter field use defaults
-                if ~isfield(obj.Options{obj.step}.paraIndirect.parameters,parameter)                   % No parametrizations for parameter field use defaults
-                    obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter); % Write parameter defaults in object
-                else
-                    obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.paraIndirect.parameters.(parameter)); % Write parameter according to 2D model procedure step
-                end
+if isfield(obj.Options{obj.step}, 'paraIndirect')   % json file for 2D model supplied
+    if isfield(obj.Options{obj.step}.paraIndirect.parameters,parameter) % No parametrizations for parameter field use defaults
+        if ~isfield(obj.Options{obj.step}.paraIndirect.parameters.(parameter),'parametrizations')  % No parametrizations for parameter field use defaults
+            if ~isfield(obj.Options{obj.step}.paraIndirect.parameters,parameter)                   % No parametrizations for parameter field use defaults
+                obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter); % Write parameter defaults in object
             else
-                obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.paraIndirect.parameters.(parameter).parametrizations); % Write parameter according to 2D model procedure step
+                obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.paraIndirect.parameters.(parameter)); % Write parameter according to 2D model procedure step
             end
-            switch obj.Options{obj.step}.paraIndirect.parameters.(parameter).type   % Switch with parametrization function
-                case 'fixed'
-                    nParamsPerIndir = 1;                                            % Parameters are linked across indirect dim
-                case 'free'
-                    nParamsPerIndir = size(obj.Data.fids,2);                        % Parameters are free across indirect dim
-                case 'dynamic'
-                    nParamsPerIndir = 1;
-                    obj.Options{obj.step}.parametrizations.(parameter).modulator = obj.Options{obj.step}.paraIndirect.parameters.(parameter).modulator;             %Add modulator for parameterization e.g. time
-                    obj.Options{obj.step}.parametrizations.(parameter).parameterNames = obj.Options{obj.step}.paraIndirect.parameters.(parameter).parameterNames;   %Add new parameter names 
-            end
+        else
+            obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.paraIndirect.parameters.(parameter).parametrizations); % Write parameter according to 2D model procedure step
         end
-        type = obj.Options{obj.step}.paraIndirect.parameters.(parameter).type;  % Overwrite inital assuption of free links
+        switch obj.Options{obj.step}.paraIndirect.parameters.(parameter).type   % Switch with parametrization function
+            case 'fixed'
+                nParamsPerIndir = 1;                                            % Parameters are linked across indirect dim
+            case 'free'
+                nParamsPerIndir = size(obj.Data.fids,2);                        % Parameters are free across indirect dim
+            case 'dynamic'
+                nParamsPerIndir = 1;
+                obj.Options{obj.step}.parametrizations.(parameter).modulator = obj.Options{obj.step}.paraIndirect.parameters.(parameter).modulator;             %Add modulator for parameterization e.g. time
+                obj.Options{obj.step}.parametrizations.(parameter).parameterNames = obj.Options{obj.step}.paraIndirect.parameters.(parameter).parameterNames;   %Add new parameter names
+        end
     end
+    type = obj.Options{obj.step}.paraIndirect.parameters.(parameter).type;  % Overwrite inital assuption of free links
+end
 
 %% Update the structs with the init, lb, ub, ex, sd, fun entries
 % This is used to generate the init, lb, ub, ex, sd, fun struct according to the
@@ -142,12 +142,13 @@ else
     fun.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).type;      % Add parametrization function type
 end
 end
-% Description of default parameters are described below 
+
+% Description of default parameters are described below
 function parametrizations = set_parameter(obj,parameter,predefined)
 % This functions defines the parametrizations according to default values
 % or predefined valeus parsed in the predefined variable
-    switch parameter                                            % Parameter switch with default parameters 
-        case 'ph0'
+switch parameter                                            % Parameter switch with default parameters
+    case 'ph0'
         % Initialize phi0 as constant with value 0
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
@@ -231,7 +232,7 @@ function parametrizations = set_parameter(obj,parameter,predefined)
         parametrizations.name   = 'independentVariable';
         parametrizations.RegFun    = '';
 
-        otherwise
+    otherwise
         % Initialize as free parameter
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
@@ -242,65 +243,65 @@ function parametrizations = set_parameter(obj,parameter,predefined)
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
 
-    end
+end
 
-    default_parametrization = parametrizations;                             % Store default parameterization as backup
+default_parametrization = parametrizations;                             % Store default parameterization as backup
 
-    % Update the parametrization according to the predefiend variable if it
-    % is defined
-    if nargin == 3
-        pars = fields(predefined);                                          % Fields in predefined struct e.g. ub, lb, init...
-        for ff = 1 : length(pars)                                           % Loop over fields in predefined struct
-            if ~isstr(predefined.(pars{ff})) && ~iscell(predefined.(pars{ff}))  % Is a numeric value so we can just take it
-                parametrizations.(pars{ff}) = predefined.(pars{ff});            % Add numeric value to parametrization
-            else if ~iscell(predefined.(pars{ff}))                          % Is not a cell but a string this is need for Inf and -Inf parsing from json
-                        if ~isempty(str2num(predefined.(pars{ff})))         % Is Inf or -Inf string
-                            parametrizations.(pars{ff}) = str2num(predefined.(pars{ff})); % Inf or -Inf to value 
-                        else
-                            parametrizations.(pars{ff}) = predefined.(pars{ff}); % Is a numeric value
+% Update the parametrization according to the predefiend variable if it
+% is defined
+if nargin == 3
+    pars = fields(predefined);                                          % Fields in predefined struct e.g. ub, lb, init...
+    for ff = 1 : length(pars)                                           % Loop over fields in predefined struct
+        if ~isstr(predefined.(pars{ff})) && ~iscell(predefined.(pars{ff}))  % Is a numeric value so we can just take it
+            parametrizations.(pars{ff}) = predefined.(pars{ff});            % Add numeric value to parametrization
+        else if ~iscell(predefined.(pars{ff}))                          % Is not a cell but a string this is need for Inf and -Inf parsing from json
+                if ~isempty(str2num(predefined.(pars{ff})))         % Is Inf or -Inf string
+                    parametrizations.(pars{ff}) = str2num(predefined.(pars{ff})); % Inf or -Inf to value
+                else
+                    parametrizations.(pars{ff}) = predefined.(pars{ff}); % Is a numeric value
+                end
+        else                                                        % If this is a cell it could be a 'Step' or 'Regularizer'
+            for pp = 1 : length(predefined.(pars{ff}))          % Loop over entries in the predefined struct this is needed if we add different values per basis function
+                if ischar(predefined.(pars{ff}){pp})            % If string it is either a Step reference or a Regularizer reference
+                    if ~strcmp(predefined.(pars{ff}){pp}(1:2),'St')
+                        parametrizations.(pars{ff})(pp,1) = str2num(predefined.(pars{ff}){pp});
+                    else
+                        step_to_get_ini = split(predefined.(pars{ff}){pp},' ');         % Get entry from model procedure e.g. Step 1
+                        step_to_get_ini = str2num(step_to_get_ini{2});                  % Get numeric value of step
+                        if ~strcmp(pars{ff}(1:2),'Re')                                  % Is Step
+                            parametrizations.(pars{ff}) = squeeze(obj.Model{step_to_get_ini}.parsOut.(parameter));  % Update numerical value accordingly
+                        else                                                            % Is Regularizer
+                            parametrizations.(pars{ff}) = obj.Model{step_to_get_ini}.Regularization.OptimalRegPar; % Get regularization parameter
                         end
-            else                                                        % If this is a cell it could be a 'Step' or 'Regularizer' 
-                    for pp = 1 : length(predefined.(pars{ff}))          % Loop over entries in the predefined struct this is needed if we add different values per basis function
-                        if ischar(predefined.(pars{ff}){pp})            % If string it is either a Step reference or a Regularizer reference
-                            if ~strcmp(predefined.(pars{ff}){pp}(1:2),'St')
-                                parametrizations.(pars{ff})(pp,1) = str2num(predefined.(pars{ff}){pp});
-                            else
-                                step_to_get_ini = split(predefined.(pars{ff}){pp},' ');         % Get entry from model procedure e.g. Step 1
-                                step_to_get_ini = str2num(step_to_get_ini{2});                  % Get numeric value of step
-                                if ~strcmp(pars{ff}(1:2),'Re')                                  % Is Step
-                                    parametrizations.(pars{ff}) = squeeze(obj.Model{step_to_get_ini}.parsOut.(parameter));  % Update numerical value accordingly
-                                else                                                            % Is Regularizer
-                                    parametrizations.(pars{ff}) = obj.Model{step_to_get_ini}.Regularization.OptimalRegPar; % Get regularization parameter
-                                end
-                            end
-                        else
-                            if size(parametrizations.(pars{ff}),2) == 1                         % If single entry we will just add it
-                                parametrizations.(pars{ff})(pp,1) = predefined.(pars{ff}){pp};  % Update numerical value accordingly 
-                            else                                                                % One value per basis function
-                                parametrizations.(pars{ff})(pp,:) = repmat(predefined.(pars{ff}){pp},[1, size(parametrizations.(pars{ff}),2)]); % Repeat according to numbers of basis functions
-                            end
-                        end
+                    end
+                else
+                    if size(parametrizations.(pars{ff}),2) == 1                         % If single entry we will just add it
+                        parametrizations.(pars{ff})(pp,1) = predefined.(pars{ff}){pp};  % Update numerical value accordingly
+                    else                                                                % One value per basis function
+                        parametrizations.(pars{ff})(pp,:) = repmat(predefined.(pars{ff}){pp},[1, size(parametrizations.(pars{ff}),2)]); % Repeat according to numbers of basis functions
                     end
                 end
             end
-        end                                                                 % End loop over fields in predefined struct
-    end
+        end
+        end
+    end                                                                 % End loop over fields in predefined struct
+end
 
-    % This is needed if the number of parameters (basis functions or
-    % baseline parameters) changes between fit steps
-    if obj.step > 1                                                         % Only needed for steps > 1
-        if strcmp(parameter, 'lorentzLB') || strcmp(parameter, 'freqShift') % Only do this for non amplitude parameters
-            if sum(obj.BasisSets.includeInFit(obj.step,:)) ~= sum(obj.BasisSets.includeInFit(obj.step-1,:))     % Did the number of parameters change
-                if sum(obj.BasisSets.includeInFit(obj.step,:)) > sum(obj.BasisSets.includeInFit(obj.step-1,:))  % More parameters then before
-                    for ff = 1 : length(pars)
-                        if strcmp(pars{ff},'ub') || strcmp(pars{ff},'lb') || strcmp(pars{ff},'init')            % Only apply to init, ub, lb
-                            parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
-                                                             default_parametrization.(pars{ff}) * ...
-                                                             ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))- sum(obj.BasisSets.includeInFit(obj.step-1,:))));
-                        end
+% This is needed if the number of parameters (basis functions or
+% baseline parameters) changes between fit steps
+if obj.step > 1                                                         % Only needed for steps > 1
+    if strcmp(parameter, 'lorentzLB') || strcmp(parameter, 'freqShift') % Only do this for non amplitude parameters
+        if sum(obj.BasisSets.includeInFit(obj.step,:)) ~= sum(obj.BasisSets.includeInFit(obj.step-1,:))     % Did the number of parameters change
+            if sum(obj.BasisSets.includeInFit(obj.step,:)) > sum(obj.BasisSets.includeInFit(obj.step-1,:))  % More parameters then before
+                for ff = 1 : length(pars)
+                    if strcmp(pars{ff},'ub') || strcmp(pars{ff},'lb') || strcmp(pars{ff},'init')            % Only apply to init, ub, lb
+                        parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
+                            default_parametrization.(pars{ff}) * ...
+                            ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))- sum(obj.BasisSets.includeInFit(obj.step-1,:))));
                     end
-                end    
+                end
             end
         end
     end
+end
 end
