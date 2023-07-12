@@ -14,7 +14,7 @@ for i = 1 : files
     if ~strcmp (d1(i,1).name, '.')
                 if ~strcmp (d1(i,1).name, '..')
                     if ~strcmp (d1(i,1).name(1), '.')
-                        if strcmp(d1(i,1).name(end-4), 't')
+                        if strcmp(d1(i,1).name(end-4), 't') || strcmp(d1(i,1).name(end-4), 's')
                             if ~exist('metab')
                                 data = osp_import_Tarquin_data_fit_baseline(fullfile(PathName,d1(i,1).name));
                                 temp_sz(1,j)= length(data(:,1));
@@ -32,10 +32,11 @@ for i = 1 : files
     if ~strcmp (d1(i,1).name, '.')
                 if ~strcmp (d1(i,1).name, '..')
                     if ~strcmp (d1(i,1).name(1), '.')
-                        if strcmp(d1(i,1).name(end-4), 't')
+                        if strcmp(d1(i,1).name(end-4), 't')  || strcmp(d1(i,1).name(end-4), 's')
                             if ~exist('metab')
                                 data = osp_import_Tarquin_fit_ouput(fullfile(PathName,d1(i,1).name));
                                 dataNames = cellstr(osp_import_Tarquin_metabolite_names(fullfile(PathName,d1(i,1).name)));
+                                dataNames = strrep(dataNames, '-', '');
                                 data = table2array(data(:,1:length(dataNames)));
                                  waterAmp = osp_importfile_waterAmpl_Tarquin(strrep(fullfile(PathName,d1(i,1).name),'_fit.txt','.csv'));
                                  phase = osp_importfile_ph0ph1_Tarquin(strrep(fullfile(PathName,d1(i,1).name),'_fit.txt','.csv'));
