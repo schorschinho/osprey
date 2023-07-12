@@ -94,6 +94,19 @@ else
     basisSet.nExtra = 0;                                                    % Normally has no extra dimension
 end
 
+%% 2.a Generate MM/Lip basis functions
+
+% First, we'll remove any MM or lipid basis functions that may be in the
+% input basis set (to avoid duplication)
+basisSet = scrubMMLipFromBasis(basisSet);
+
+% Read out MM/Lip configuration file and create matching 
+MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{1}.basisset.mmdef{1}));
+[basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
+
+% Join basis sets together
+basisSet = joinBasisSets(basisSet, basisSim);
+
 %% 3. Prepare data according to model json and model data
 % Prepare data for each fit step, again, including the indirect dimensions
 % for MSM
@@ -122,27 +135,27 @@ for kk = 1 : length(DataToModel)
     for ss = 1 : length(ModelProcedure.Steps)
         % Setup options from model procedure json file
         opts.ModelFunction      = ModelProcedure.Steps{ss}.ModelFunction;               % get model function
-        opts.baseline             = ModelProcedure.Steps{ss}.fit_opts.baseline;         % setup baseline options
+        opts.baseline           = ModelProcedure.Steps{ss}.fit_opts.baseline;           % setup baseline options
         opts.optimDomain        = ModelProcedure.Steps{ss}.fit_opts.optimDomain;        % do the least-squares optimization in the frequency domain
         opts.optimSignalPart    = ModelProcedure.Steps{ss}.fit_opts.optimSignalPart;    % do the least-squares optimization over the real part of the spectrum
         opts.optimFreqFitRange  = ModelProcedure.Steps{ss}.fit_opts.ppm;                % set the frequency-domain fit range to the fit range specified in the Osprey container
-        opts.solver  = ModelProcedure.Steps{ss}.fit_opts.solver;                        % set the solver specified in the Osprey container
-        opts.NumericJacobian = NumericJacobian;                                         % Use numerical jacobian instead of the analytical jacobian
-        opts.CheckGradient = CheckGradient;                                             % Do a gradient check in the lsqnonlin solver
+        opts.solver             = ModelProcedure.Steps{ss}.fit_opts.solver;             % set the solver specified in the Osprey container
+        opts.NumericJacobian    = NumericJacobian;                                      % Use numerical jacobian instead of the analytical jacobian
+        opts.CheckGradient      = CheckGradient;                                        % Do a gradient check in the lsqnonlin solver
 
         if isfield(ModelProcedure.Steps{ss}.fit_opts,'InitialPick')
-            opts.InitialPick  = ModelProcedure.Steps{ss}.fit_opts.InitialPick;          % Do inital fit on specific spectrum
+            opts.InitialPick  = ModelProcedure.Steps{ss}.fit_opts.InitialPick;          % Do initial fit on specific spectrum
         end
         if isfield(ModelProcedure.Steps{ss},'parameter')
-            opts.parameter  = ModelProcedure.Steps{ss}.parameter;                       % specify parmetrizations constructor
+            opts.parameter  = ModelProcedure.Steps{ss}.parameter;                       % specify parametrizations constructor
         end
         if isfield(ModelProcedure.Steps{ss},'parametrizations')
-            opts.parametrizations  = ModelProcedure.Steps{ss}.parametrizations;         % specify parmetrizations constructor
+            opts.parametrizations  = ModelProcedure.Steps{ss}.parametrizations;         % specify parametrizations constructor
             parameter = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl'};
             opts.parametrizations  = orderfields(opts.parametrizations,parameter(ismember(parameter, fieldnames(opts.parametrizations)))); % order struct names according to standard
         end
         if ModelProcedure.Steps{ss}.extra.flag == 1 && isfield(ModelProcedure.Steps{ss}.extra,'DynamicModelJson')
-            opts.paraIndirect  = jsonToStruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson); % specify parmetrizations constructor for indirect dimension
+            opts.paraIndirect  = jsonToStruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson); % specify parametrizations constructor for indirect dimension
         end
         if strcmp(ModelProcedure.Steps{ss}.module,'OptimReg')                           % Change tolerance values (good for regularization)
             opts.FunctionTolerance = 1e-3;
@@ -230,4 +243,16 @@ if ~isfile(out_str) && ~isempty(out_str)                                % Interc
     error('basis file %s does not exist.', out_str);
 end
 
+end
+
+
+function fwhm = measureFWHM(ppm, fid)
+% Measures FWHM of singlet signal 
+spec = fftshift(fft(fid));
+[maxAmp, maxIdx] = max(real(spec));
+halfMax = maxAmp/2;
+specShifted = abs(real(spec)-halfMax);
+[~,hmIdx] = min(specShifted);
+
+fwhm = 2*abs(ppm(maxIdx) - ppm(hmIdx));
 end
