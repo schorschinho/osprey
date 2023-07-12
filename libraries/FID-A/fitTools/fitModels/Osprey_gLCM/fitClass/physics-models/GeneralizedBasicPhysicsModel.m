@@ -85,7 +85,7 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Calculate lossfunction
     % Run forward model to get prediction and regularizer output
-    [prediction, ~, ~, regu]  = forwardModel(x, ...                         % x vector with parameters to optimize
+    [prediction, ~, ~, regu, penaltyTerm]  = forwardModel(x, ...                         % x vector with parameters to optimize
                                              basisSet, ...                  % basis set struct
                                              baselineBasis, ...             % baseline basis set
                                              ppm, ...                       % ppm axis
@@ -133,6 +133,7 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
     end
 
     residual  = cat(1,residual,-regu);                                      % Add regularizer term
+    residual  = cat(1,residual,penaltyTerm);                                % Add penalty term
     residual = reshape(residual,[],1);                                      % Reshape the multidimenisonal case
 
     switch SSE                                                              % Switch for return to solver
@@ -510,9 +511,26 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
         Sigma = NoiseSD;                                                  % Set sigma
         jac = jac ./ Sigma;                                                  % Normalize jacobian
     end
+
+    if secDim == 1                                                          % Add penalty term for parameters deviating from expectation values
+      
+        params = fields(parametrizations);                                  % Loop over all model parameters
+        tempTerm = [];                                                      % Initialize empty vector to collect the entries for the Jacobian
+        for pp = 1:length(params)                                       
+            [~,penaltyJac] = calcPenalty(inputParams, parametrizations, params{pp}, sD);
+            tempTerm = cat(2,tempTerm,penaltyJac);
+        end
+        
+        dYdpen = diag(tempTerm);                                            % Copy to diagonal matrix (derivatives only affect each parameter itself, others are zero!)
+        
+        jac = cat(1, jac, dYdpen);                                          % Append to Jacobian
+
+    end
+
 end
 
-function [Y, baseline, metabs,regu] = forwardModel(x, basisSet, baselineBasis, ppm, t, Reg, parametrizations)
+
+function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, baselineBasis, ppm, t, Reg, parametrizations)
 % This function generates forward model and regularizer for the generalized physics model
 %
 %   USAGE:
@@ -532,6 +550,7 @@ function [Y, baseline, metabs,regu] = forwardModel(x, basisSet, baselineBasis, p
 %       baseline         = baseline prediction of forward model  
 %       metabs           = basis function prediction of forward model
 %       regu             = regularizer prediction of the forward model
+%       penaltyTerm      = penalty term prediction of the forward model
 %
 %
 %   AUTHOR:
@@ -546,10 +565,7 @@ function [Y, baseline, metabs,regu] = forwardModel(x, basisSet, baselineBasis, p
 %% Calculate forward model and regularizer
 
     % Initialize output
-    Y = [];                                                                 % Initialize model
-    baseline = [];                                                          % Initialize baseline
-    metabs = [];                                                            % Initialize basis function
-    regu = [];                                                              % Initialize regularizer
+    penaltyTerm     = [];                                                   % Initialize penalty term
 
     fidsBasis = basisSet.fids;                                              % Get basis function
     nBasisFcts = sum(basisSet.includeInFit(end,:));                         % Get number basis functions
@@ -609,6 +625,22 @@ function [Y, baseline, metabs,regu] = forwardModel(x, basisSet, baselineBasis, p
             regu = cat(2,regu,[ph0Reg , ph1Reg, gaussLBReg, lorentzLBReg, freqShiftReg, metAmplReg, baseAmplReg]); % Concatenate regularizer
         end
     end                                                                     % End loop over indirect dimension
+
+    if secDim == 1
+
+        penaltyTerm = zeros(length(x), 1);                                  % Add penalty term for parameters deviating from expectation values
+
+        params = fields(parametrizations);                                  % Loop over all model parameters
+        tempTerm = [];                                                      % Initialize empty vector to collect the penalties for each parameter
+        for pp = 1:length(params)
+            penalty = calcPenalty(inputParams, parametrizations, params{pp}, sD);
+            tempTerm = cat(2,tempTerm,penalty);
+        end
+        
+        penaltyTerm(:,1) = tempTerm;                                        % Save as one concatenated vector of penalties to be appended to the residual
+
+    end
+
 end
 
 function paramStruct = x2pars(x, secDim, parametrizations)      
@@ -894,4 +926,24 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
             dYdX = permute(dYdX,[1 3 4 2]);
             dYdX = reshape(dYdX,[],secDim*nLines);
     end
+end
+
+function [penalty, penaltyJac] = calcPenalty(inputParams, parametrizations, param, sD)
+% Calculates the penalty term for deviations from expectation values
+% relative to standard deviations
+actualValue         = squeeze(inputParams.(param)(sD,:));
+expectationValue    = parametrizations.(param).ex;
+standardDeviation   = parametrizations.(param).sd;
+
+% In the LCModel objective functions, the terms are in the shape of
+% (difference-to-expectation-value)^2/(standard-deviation)^2. We are
+% here formulating the vector of penalties that is appended to the
+% residual, i.e., squared afterwards. We therefore give the penalty vector
+% in the shape of (difference-to-expectation)/(standard-deviation).
+diffVec     = actualValue-expectationValue;
+sdVec       = standardDeviation;
+penalty     = diffVec./sdVec;            
+
+% Jacobian
+penaltyJac  = 1./sdVec;                % Because the penalty is a linear sum of its parts
 end
