@@ -2,6 +2,9 @@
   "basisset": {
     "file": [
       "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''35'',''basis_philips_press35.mat''))"
+    ],
+    "mmdef": [
+      "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"  
     ]
   },
   "Steps": [{
@@ -60,7 +63,7 @@
         "include": [
           "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
-          "Lip09","Lip13","Lip20"
+          "Lip09","Lip13a","Lip13b","Lip20"
         ]
       },
       "fit_opts": {
@@ -160,7 +163,7 @@
         "include": [
           "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
-          "Lip09","Lip13","Lip20"
+          "Lip09","Lip13a","Lip13b","Lip20"
         ]
       },
       "fit_opts": {

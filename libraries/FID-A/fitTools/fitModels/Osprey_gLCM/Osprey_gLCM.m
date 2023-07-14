@@ -100,12 +100,14 @@ end
 % input basis set (to avoid duplication)
 basisSet = scrubMMLipFromBasis(basisSet);
 
-% Read out MM/Lip configuration file and create matching 
-MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{1}.basisset.mmdef{1}));
-[basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
+if isfield(ModelProcedure.basisset, 'mmdef')
+    % Read out MM/Lip configuration file and create matching
+    MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.basisset.mmdef{1}));
+    [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
 
-% Join basis sets together
-basisSet = joinBasisSets(basisSet, basisSim);
+    % Join basis sets together
+    basisSet = joinBasisSets(basisSet, basisSim);
+end
 
 %% 3. Prepare data according to model json and model data
 % Prepare data for each fit step, again, including the indirect dimensions
