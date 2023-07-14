@@ -43,7 +43,7 @@ function obj = createModel(obj)
     NoiseSD             = obj.NoiseSD;                                      % Get standard deviation of the noise 
     basisSet.fids       = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:); % Only use basis functions that are included
 
-%%  Update parameterizations according to model prcedure step
+%%  Update parameterizations according to model procedure step
 
     % Create x0, lb, ub vectors by iteratively calling the
     % parameter-class-specific initialization
@@ -258,7 +258,7 @@ function obj = createModel(obj)
     if isfield(obj.Options{obj.step}, 'InitialPick')
         if obj.Options{obj.step}.InitialPick > 0
             obj.BasisSets.fids  = temp.BasisSets.fids;
-            obj.Data.fids       = temp.Data.fids;       
+            obj.Data.fids       = temp.Data.fids;
         end
     end
 
