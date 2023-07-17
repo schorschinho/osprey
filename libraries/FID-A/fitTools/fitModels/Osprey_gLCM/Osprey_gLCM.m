@@ -103,7 +103,6 @@ if isfield(ModelProcedure.Steps{1}.basisset, 'mmdef')                       %Ove
     % Read out MM/Lip configuration file and create matching
     MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{1}.basisset.mmdef{1}));
     [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
-
     % Join basis sets together
     basisSet = joinBasisSets(basisSet, basisSim);
 end
