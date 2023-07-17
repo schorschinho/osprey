@@ -5,15 +5,15 @@
 %   There are additional functions that are not included as handles. They
 %   are requried to construct the jacobian for 2D modeling and perform
 %   parameter regularization:
-%   
+%
 %   lossFunction    - calculates loss function for optimizer
 %   forwardGradient - calculates the forward gradient for optimizer
 %   forwardJacobian - calculates the forward jacobian for optimizer
 %   forwardModel    - converts parameter struct into model prediction
 %   x2pars          - converts x vector to parameter struct
-%   pars2x          - converts parameter struct to x vector 
+%   pars2x          - converts parameter struct to x vector
 %   fminunc_wrapper - wrapper for MATLAB's fminunc
-% 
+%
 %   It integreates into the OspreyFitObj environment and allows for easy
 %   changes of solvers. You can also use this function as a template for
 %   your own Physics model. For full functionalty you need to define the
@@ -21,7 +21,7 @@
 %   includes the following 7 functions:
 %   updateJacobianBlock - updates 2D jacobian blocks (only needed for 2D)
 %   addParameterRegularization - adds regularization (only used for reg)
-%   
+%
 %   USAGE:
 %       Specify this in the module.ModelFunction
 %
@@ -92,15 +92,15 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
                                              t, ...                         % time vector
                                              Reg, ...                       % regularizer flag
                                              parametrizations);             % parameter struct
-    
-    
-    if strcmp(Domain,'FD')                                                  % frequency domain optimization  
+
+
+    if strcmp(Domain,'FD')                                                  % frequency domain optimization
         [indMin, indMax] = ppmToIndex(ppm, fitRange);                       % Get fit range ppm indices
         data        = fftshift(fft(data, [], 1),1);                         % Convert data frequency domain data
         data        = data(indMin:indMax,:);                                % Cut out fit range from data
         prediction  = prediction(indMin:indMax,:);                          % Cut out fit range from prediction
-    end    
-    if strcmp(Domain,'TD')                                                  % time domain optimization         
+    end
+    if strcmp(Domain,'TD')                                                  % time domain optimization
         prediction  = ifft(ifftshift(prediction,1), [], 1);                 % Convert prediction to time domain
         regu        = ifft(ifftshift(regu,1), [], 1);                       % Convert regularizer to time domain
     end
@@ -120,10 +120,10 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
             residual = abs(residual);                                       % Take magnitude residual
             regu     = abs(regu);                                           % Take magnitude regularizer
     end
-    
+
     if ~isempty(NoiseSD)                                                    % Don't normalize residual if GradientCheck is performed
         Sigma = NoiseSD;                                                    % Get sigma squared
-        Sigma = repmat(Sigma, [size(data,1) 1]);                            % Repeat according to dimensions
+        Sigma = repmat(Sigma, [size(data,1) 1]);              % Repeat according to dimensions
         residual = residual ./ Sigma;                                       % Normalize residual
         if size(regu,1) > 0                                                 % Has regularizer
             Sigma = NoiseSD;                                                % Get sigma squared
@@ -141,7 +141,7 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
             sse = residual;                                                 % Return residual
         case 'sos'
             sse = sum(residual.^2);                                         % Return sum of squares
-    end    
+    end
 end
 
 function grad = forwardGradient(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart,Reg, parametrizations)
@@ -176,22 +176,7 @@ function grad = forwardGradient(x, data, NoiseSD, basisSet, baselineBasis, ppm, 
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
-%% Calculate forward gradient  
-    % Partial derivatives to allow loop across
-    dYdph0          = [];                                                   % Initialize partial derivative wrt ph0
-    dYdph1          = [];                                                   % Initialize partial derivative wrt ph1
-    dYdgaussLB      = [];                                                   % Initialize partial derivative wrt gaussLB
-    dYdlorentzLB    = [];                                                   % Initialize partial derivative wrt lorentzLB
-    dYdfreqShift    = [];                                                   % Initialize partial derivative wrt freqShift
-    dYdmetAmpl      = [];                                                   % Initialize partial derivative wrt metAmpl
-    dYdbaseAmpl     = [];                                                   % Initialize partial derivative wrt baseAmpl
-
-    fidsBasis = basisSet.fids;                                              % Get basis function
-    nBasisFcts = size(fidsBasis,2);                                         % Get number basis functions
-    nBaselineComps = size(baselineBasis, 2);                                % Get number baseline basis function                           
-    secDim = size(data,2);                                                  % Get number spectra along indirect dimension
-
-    inputParams = x2pars(x, secDim, parametrizations);                      % Convert x vector to parameter struct
+%% Calculate forward gradient
 
     [indMin, indMax] = ppmToIndex(ppm, fitRange);                           % Get fit range ppm indices
 
@@ -204,137 +189,50 @@ function grad = forwardGradient(x, data, NoiseSD, basisSet, baselineBasis, ppm, 
                                           Reg, ...                          % regularizer flag
                                           parametrizations);                % parameter struct
 
-
-    
-
-    % Construct the Jacobian matrix of partial derivatives. This is done in
-    % a block-wise fashion for 2-D data.    
-    for sD = 1 : secDim                                                     % Loop over indirect dimension
-        
-        fids        = squeeze(fidsBasis(:,:,sD));                           % Get time domain data
-        gaussLB = squeeze(inputParams.gaussLB(sD,:));                       % Get gaussLB parameter
-        lorentzLB = squeeze(inputParams.lorentzLB(sD,:));                   % Get lorentzLB parameter
-        freqShift = squeeze(inputParams.freqShift(sD,:));                   % Get freqShift parameter
-        metAmpl = squeeze(inputParams.metAmpl(sD,:))';                      % Get metAmpl parameter
-        baseAmpl = squeeze(inputParams.baseAmpl(sD,:))';                    % Get baseAmpl parameter
-        ph0 = squeeze(inputParams.ph0(sD));                                 % Get ph0 parameter
-        ph1 = squeeze(inputParams.ph1(sD));                                 % Get ph1 parameter
-        
-        timeDomainMultiplier = zeros(size(fids));                           % Setup time domain multiplier
-        for ll = 1:nBasisFcts                                               % Loop over basis functions
-            timeDomainMultiplier(:,ll) = exp(-(1i*freqShift(ll) + lorentzLB(ll) + gaussLB.^2.*t).*t)';  % Apply freqshifts, lorentzianLB, and gaussLB  
-        end                                                                 % End loop over basis functions
-        
-        T_ph = exp(-1j .* (ph0 + ph1.*ppm)');                               % Create phase evolution
-        T_ph_basis = repmat(T_ph, [1, nBasisFcts]);                         % Repeat phase vector for all basis functions
-        T_ph_baseline = repmat(T_ph, [1, nBaselineComps]);                  % Repeat phase vector for all baseline basis functions
-        T_t = repmat(t', [1, nBasisFcts]);                                  % Create t multiplier
-        T_tt = repmat(t'.*t', [1, nBasisFcts]);                             % Create t*t multiplier
-        
-        Fmet = timeDomainMultiplier .* fids;                                % Apply time domain multiplier                
-        Fmett = fftshift(fft(-T_t .* Fmet, [], 1),1);                       % Apply t multiplier
-        Fmett2gauss = fftshift(fft(-2 .* gaussLB .* T_tt .* Fmet, [], 1),1);% Apply t*t multiplier and gaussLB for partial derivaitve wrt gaussLB
-        
-        % Calculate and concatenate partial derivatives
-        dYdmetAmpl      = cat(3,dYdmetAmpl,T_ph_basis .* fftshift(fft(Fmet, [], 1),1)); % Partial derivative wrt metAmpl
-        dYdfreqShift    = cat(3,dYdfreqShift,T_ph_basis .* (-1j) .* Fmett .* metAmpl'); % Partial derivative wrt freqShift
-        dYdlorentzLB    = cat(3,dYdlorentzLB,T_ph_basis  .* Fmett .* metAmpl');         % Partial derivative wrt lorentzLB
-        dYdgaussLB      = cat(3,dYdgaussLB,T_ph .* Fmett2gauss * metAmpl);              % Partial derivative wrt gaussLB
-        dYdph0          = cat(3,dYdph0,(-1j) .* prediction(:,sD));                      % Partial derivative wrt ph0
-        dYdph1          = cat(3,dYdph1,(-1j) .* ppm' .* prediction(:,sD));              % Partial derivative wrt ph1
-        if nBaselineComps ~= 0                                                          % Has baseline?
-            dYdbaseAmpl           = cat(3,dYdbaseAmpl,T_ph_baseline .* baselineBasis);  % Partial derivative wrt baseAmpl
-        else
-            dYdbaseAmpl = cat(3,dYdbaseAmpl,[]);                                        % Empty partial derivative when no baseline is defined
-        end
-                           
-    end                                                                     % End loop over indirect dimension
-    
-    % Reduce to fit range
-    dYdph0          = dYdph0(indMin:indMax,:,:);                            % Cut out fit range
-    dYdph1          = dYdph1(indMin:indMax,:,:);                            % Cut out fit range
-    dYdgaussLB      = dYdgaussLB(indMin:indMax,:,:);                        % Cut out fit range
-    dYdlorentzLB    = dYdlorentzLB(indMin:indMax,:,:,:);                    % Cut out fit range
-    dYdfreqShift    = dYdfreqShift(indMin:indMax,:,:,:);                    % Cut out fit range
-    dYdmetAmpl      = dYdmetAmpl(indMin:indMax,:,:,:);                      % Cut out fit range
-    if nBaselineComps ~= 0                                                  % Has baseline?
-        dYdbaseAmpl           = dYdbaseAmpl(indMin:indMax,:,:,:);           % Cut out fit range
-    end
-    
-    
-    if Reg                                                                  % Add parameter regularization
-        for sD = 1 : secDim                                                 % Loop over indirect dimension 
-            ph0 = squeeze(inputParams.ph0(sD));                             % Get ph0 parameter
-            ph1 = squeeze(inputParams.ph1(sD));                             % Get ph1 parameter
-            gaussLB = squeeze(inputParams.gaussLB(sD,:));                   % Get gaussLB parameter
-            lorentzLB = squeeze(inputParams.lorentzLB(sD,:));               % Get lorentzLB parameter
-            freqShift = squeeze(inputParams.freqShift(sD,:));               % Get freqShift parameter
-            metAmpl = squeeze(inputParams.metAmpl(sD,:))';                  % Get metAmpl parameter
-            baseAmpl = squeeze(inputParams.baseAmpl(sD,:))';                % Get baseAmpl parameter
-            [dYdph0]        = addParameterRegularization(dYdph0,'ph0', parametrizations,ph0,1); % Add regularizer to ph0 parameter
-            [dYdph1]        = addParameterRegularization(dYdph1,'ph1', parametrizations,ph1,1); % Add regularizer to ph1 parameter
-            [dYdgaussLB]    = addParameterRegularization(dYdgaussLB,'gaussLB', parametrizations,gaussLB,1); % Add regularizer to gaussLB parameter
-            [dYdlorentzLB]  = addParameterRegularization(dYdlorentzLB,'lorentzLB', parametrizations,lorentzLB,1); % Add regularizer to lorentzLB parameter
-            [dYdfreqShift]  = addParameterRegularization(dYdfreqShift,'freqShift', parametrizations,freqShift,1); % Add regularizer to freqShift parameter
-            [dYdmetAmpl]    = addParameterRegularization(dYdmetAmpl,'metAmpl', parametrizations,metAmpl,1); % Add regularizer to metAmpl parameter
-            [dYdbaseAmpl]   = addParameterRegularization(dYdbaseAmpl,'baseAmpl', parametrizations,baseAmpl,1); % Add regularizer to baseAmpl parameter 
-        end
-    end                                                                     % End loop over indirect dimension
-
-
-   
-    if secDim > 1                                                           % update each block in the jacobian according to the 2-D parametrization
-        dataPoints = size(data(indMin:indMax,:),1);                         % Get number of datapoints
-        [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph0 parameter
-        [dYdph1]        = updateJacobianBlock(dYdph1,'ph1', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph1 parameter
-        [dYdgaussLB]    = updateJacobianBlock(dYdgaussLB,'gaussLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for gaussLB parameter
-        [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for lorentzLB parameter
-        [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for freqShift parameter
-        [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for metAmpl parameter
-        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,NoiseSD);  % Update jacobian block for baseAmpl parameter       
-    end
-
-    if nBaselineComps ~= 0                                                  % Has baseline?
-        jac = cat(2, dYdph0, dYdph1, dYdgaussLB, dYdlorentzLB, dYdfreqShift, dYdmetAmpl, dYdbaseAmpl); % Create final jacobian
-    else
-        jac = cat(2, dYdph0, dYdph1, dYdgaussLB, dYdlorentzLB, dYdfreqShift, dYdmetAmpl);   % Create final jacobian
-    end
-           
     residual     = data - prediction;                                       % Calculate residual
-    residual = residual(indMin:indMax,:);                                   % Cut frequency range from residual
-    dataPoints = size(data(indMin:indMax,:),1);                             % Get number of datapoints
-    residual      = cat(1,residual,-regu);                                  % Concatenate regularizer
-        
-    if  ~isempty(NoiseSD)                                                   % No normalization for GradientCheck                                                      
-        Sigma = NoiseSD;                                                    % Set sigma
-        residual(:,:) = residual(:,:) / Sigma;                              % Normalize residual
-        if secDim == 1                                                      % 1D jacobian have not been normalized yet
-            jac(:,:) = jac(:,:) / Sigma;                                    % Normalize data part jacobian
+
+    if ~isempty(NoiseSD)                                                    % Don't normalize residual if GradientCheck is performed
+        Sigma = NoiseSD;                                                    % Get sigma squared
+        Sigma = repmat(Sigma, [size(data,1) 1]);              % Repeat according to dimensions
+        residual = residual ./ Sigma;                                       % Normalize residual
+        if size(regu,1) > 0                                                 % Has regularizer
+            Sigma = NoiseSD;                                                % Get sigma squared
+            Sigma = repmat(Sigma, [size(regu,1) 1]);                        % Repeat according to dimensions
+            regu = regu ./ Sigma;                                           % Normalize regularizer
         end
     end
 
-    switch SignalPart
-        case 'R'
-            residual    = real(residual);                               % Take real part of residual
-            jac         = real(jac);                                        % Take real part of jacobian
-        case 'I'
-            grad        = imag(grad);                                       % Take imaginary of residual
-            jac         = imag(jac);                                        % Take imaginary of jacobian
-        case {'RI', 'IR'} 
-            grad        = cat(1, real(grad), imag(grad));                   % Concatenate real and imaginary part
-            jac         = cat(1, real(jac), imag(jac));                     % Concatenate real and imaginary part
-        case 'A'
-            grad        = abs(grad);                                        % Take magnitude of residual
-            jac         = abs(jac);                                         % Take magnitude of jacobian
-        case 'C'
-                                                                            % just return the complex
+    residual      = residual(indMin:indMax,:);                              % Cut frequency range from residual
+    residual      = cat(1,residual,-regu);                                  % Concatenate regularizer
+
+    % Generate jacobian
+    jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations);
+    if strcmp(SignalPart,'R')
+        jac         = real(jac);                                  % Take real part jacobian
+        residual    = real(residual);
     end
-    
+    if strcmp(SignalPart,'I')
+        jac         = imag(jac);                                  % Take imaginary part jacobian
+        residual         = imag(residual);
+    end
+    if strcmp(SignalPart,'RI')
+        jac = cat(1, real(jac), imag(jac));                  % Concatenate real and imaginary part
+        residual = cat(1, real(residual), imag(residual));
+    end
+    if strcmp(SignalPart,'A')
+        jac         = abs(jac);                                   % Take magnitude of residual
+        residual         = abs(residual);
+    end
+    if strcmp(SignalPart,'C')                                               % just return the complex for CRLBs
+
+    end
+
     grad = sum((residual).*(-conj(jac)) + (-jac .* conj(residual)));    % Calculate gradient
+
     grad = grad';
 end
 
-function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
+function jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
 % This function generates the jacobian for the generalized physics model
 %
 %   USAGE:
@@ -342,7 +240,6 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
 %
 %   INPUTS:
 %       x                = x vector with parameters to optimize
-%       data             = ppm axis
 %       NoiseSD          = standard deviation of the noise
 %       basisSet         = basis set struct
 %       baselineBasis    = baseline basis set
@@ -366,7 +263,7 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
 %       Dr. Jamie Near (McGill University)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
-%% Calculate forward jacobian matrix       
+%% Calculate forward jacobian matrix
     % Partial derivatives to allow loop across
     dYdph0          = [];                                                   % Initialize partial derivative wrt ph0
     dYdph1          = [];                                                   % Initialize partial derivative wrt ph1
@@ -378,8 +275,8 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
 
     fidsBasis = basisSet.fids;                                              % Get basis function
     nBasisFcts = size(fidsBasis,2);                                         % Get number basis functions
-    nBaselineComps = size(baselineBasis, 2);                                % Get number baseline basis function                           
-    secDim = size(data,2);                                                  % Get number spectra along indirect dimension
+    nBaselineComps = size(baselineBasis, 2);                                % Get number baseline basis function
+    secDim = size(fidsBasis,3);                                             % Get number spectra along indirect dimension
 
     inputParams = x2pars(x, secDim, parametrizations);                      % Convert x vector to parameter struct
 
@@ -395,12 +292,12 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
                              parametrizations);                             % parameter struct
 
 
-    
+
 
     % Construct the Jacobian matrix of partial derivatives. This is done in
-    % a block-wise fashion for 2-D data.    
+    % a block-wise fashion for 2-D data.
     for sD = 1 : secDim                                                     % Loop over indirect dimension
-        
+
         fids        = squeeze(fidsBasis(:,:,sD));                           % Get time domain data
         gaussLB = squeeze(inputParams.gaussLB(sD,:));                       % Get gaussLB parameter
         lorentzLB = squeeze(inputParams.lorentzLB(sD,:));                   % Get lorentzLB parameter
@@ -409,22 +306,22 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
         baseAmpl = squeeze(inputParams.baseAmpl(sD,:))';                    % Get baseAmpl parameter
         ph0 = squeeze(inputParams.ph0(sD));                                 % Get ph0 parameter
         ph1 = squeeze(inputParams.ph1(sD));                                 % Get ph1 parameter
-        
+
         timeDomainMultiplier = zeros(size(fids));                           % Setup time domain multiplier
         for ll = 1:nBasisFcts                                               % Loop over basis functions
-            timeDomainMultiplier(:,ll) = exp(-(1i*freqShift(ll) + lorentzLB(ll) + gaussLB.^2.*t).*t)';  % Apply freqshifts, lorentzianLB, and gaussLB  
+            timeDomainMultiplier(:,ll) = exp(-(1i*freqShift(ll) + lorentzLB(ll) + gaussLB.^2.*t).*t)';  % Apply freqshifts, lorentzianLB, and gaussLB
         end                                                                 % End loop over basis functions
-        
+
         T_ph = exp(-1j .* (ph0 + ph1.*ppm)');                               % Create phase evolution
         T_ph_basis = repmat(T_ph, [1, nBasisFcts]);                         % Repeat phase vector for all basis functions
         T_ph_baseline = repmat(T_ph, [1, nBaselineComps]);                  % Repeat phase vector for all baseline basis functions
         T_t = repmat(t', [1, nBasisFcts]);                                  % Create t multiplier
         T_tt = repmat(t'.*t', [1, nBasisFcts]);                             % Create t*t multiplier
-        
-        Fmet = timeDomainMultiplier .* fids;                                % Apply time domain multiplier                
+
+        Fmet = timeDomainMultiplier .* fids;                                % Apply time domain multiplier
         Fmett = fftshift(fft(-T_t .* Fmet, [], 1),1);                       % Apply t multiplier
         Fmett2gauss = fftshift(fft(-2 .* gaussLB .* T_tt .* Fmet, [], 1),1);% Apply t*t multiplier and gaussLB for partial derivaitve wrt gaussLB
-        
+
         % Calculate and concatenate partial derivatives
         dYdmetAmpl      = cat(3,dYdmetAmpl,T_ph_basis .* fftshift(fft(Fmet, [], 1),1)); % Partial derivative wrt metAmpl
         dYdfreqShift    = cat(3,dYdfreqShift,T_ph_basis .* (-1j) .* Fmett .* metAmpl'); % Partial derivative wrt freqShift
@@ -437,9 +334,9 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
         else
             dYdbaseAmpl = cat(3,dYdbaseAmpl,[]);                                        % Empty partial derivative when no baseline is defined
         end
-                           
+
     end                                                                     % End loop over indirect dimension
-    
+
     % Reduce to fit range
     dYdph0          = dYdph0(indMin:indMax,:,:);                            % Cut out fit range
     dYdph1          = dYdph1(indMin:indMax,:,:);                            % Cut out fit range
@@ -450,8 +347,8 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     if nBaselineComps ~= 0                                                  % Has baseline?
         dYdbaseAmpl           = dYdbaseAmpl(indMin:indMax,:,:,:);           % Cut out fit range
     end
-    
-    
+
+
     if Reg                                                                  % Add parameter regularization
         for sD = 1 : secDim                                                 % Loop over indirect dimension 
             ph0             = squeeze(inputParams.ph0(sD));                 % Get ph0 parameter
@@ -467,21 +364,20 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
             [dYdlorentzLB]  = addParameterRegularization(dYdlorentzLB,'lorentzLB', parametrizations,lorentzLB,1); % Add regularizer to lorentzLB parameter
             [dYdfreqShift]  = addParameterRegularization(dYdfreqShift,'freqShift', parametrizations,freqShift,1); % Add regularizer to freqShift parameter
             [dYdmetAmpl]    = addParameterRegularization(dYdmetAmpl,'metAmpl', parametrizations,metAmpl,1); % Add regularizer to metAmpl parameter
-            [dYdbaseAmpl]   = addParameterRegularization(dYdbaseAmpl,'baseAmpl', parametrizations,baseAmpl,1); % Add regularizer to baseAmpl parameter 
+            [dYdbaseAmpl]   = addParameterRegularization(dYdbaseAmpl,'baseAmpl', parametrizations,baseAmpl,1); % Add regularizer to baseAmpl parameter
         end
     end                                                                     % End loop over indirect dimension
 
 
-   
+
     if secDim > 1                                                           % update each block in the jacobian according to the 2-D parametrization
-        dataPoints = size(data(indMin:indMax,:),1);                         % Get number of datapoints
         [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph0 parameter
         [dYdph1]        = updateJacobianBlock(dYdph1,'ph1', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph1 parameter
         [dYdgaussLB]    = updateJacobianBlock(dYdgaussLB,'gaussLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for gaussLB parameter
         [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for lorentzLB parameter
         [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for freqShift parameter
         [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for metAmpl parameter
-        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,NoiseSD);  % Update jacobian block for baseAmpl parameter       
+        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,NoiseSD);  % Update jacobian block for baseAmpl parameter
     end
 
     if nBaselineComps ~= 0                                                  % Has baseline?
@@ -490,20 +386,20 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
         jac = cat(2, dYdph0, dYdph1, dYdgaussLB, dYdlorentzLB, dYdfreqShift, dYdmetAmpl);   % Create final jacobian
     end
 
-    if strcmp(SignalPart,'R') 
+    if strcmp(SignalPart,'R')
         jac         = real(jac);                                            % Take real part jacobian
     end
-    if strcmp(SignalPart,'I') 
+    if strcmp(SignalPart,'I')
         jac         = imag(jac);                                            % Take imaginary part jacobian
     end
-    if strcmp(SignalPart,'RI') 
+    if strcmp(SignalPart,'RI')
         jac = cat(1, real(jac), imag(jac));                                 % Concatenate real and imaginary part
     end
-    if strcmp(SignalPart,'A') 
+    if strcmp(SignalPart,'A')
         jac         = abs(jac);                                             % Take magnitude of jacobian
     end
     if strcmp(SignalPart,'C')                                               % just return the complex for CRLBs
-       
+
     end
     jac = (-1) * jac;                                                       % Needed to match numerical jacobian
 
@@ -513,16 +409,16 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     end
 
     if secDim == 1                                                          % Add penalty term for parameters deviating from expectation values
-      
+
         params = fields(parametrizations);                                  % Loop over all model parameters
         tempTerm = [];                                                      % Initialize empty vector to collect the entries for the Jacobian
-        for pp = 1:length(params)                                       
+        for pp = 1:length(params)
             [~,penaltyJac] = calcPenalty(inputParams, parametrizations, params{pp}, sD);
             tempTerm = cat(2,tempTerm,penaltyJac);
         end
-        
+
         dYdpen = diag(tempTerm);                                            % Copy to diagonal matrix (derivatives only affect each parameter itself, others are zero!)
-        
+
         jac = cat(1, jac, dYdpen);                                          % Append to Jacobian
 
     end
@@ -547,7 +443,7 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
 %
 %   OUTPUTS:
 %       Y                = full prediction of forward model
-%       baseline         = baseline prediction of forward model  
+%       baseline         = baseline prediction of forward model
 %       metabs           = basis function prediction of forward model
 %       regu             = regularizer prediction of the forward model
 %       penaltyTerm      = penalty term prediction of the forward model
@@ -574,7 +470,7 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
     fidsBasis = basisSet.fids;                                              % Get basis function
     nBasisFcts = sum(basisSet.includeInFit(end,:));                         % Get number basis functions
     secDim = size(fidsBasis,3);                                             % Get number spectra along indirect dimension
-    
+
     inputParams = x2pars(x, secDim, parametrizations);                      % Convert x vector to parameter struct
 
     % Loop over indirect dimension
@@ -587,15 +483,15 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
         baseAmpl    = squeeze(inputParams.baseAmpl(sD,:))';                 % Get baseAmpl parameter
         ph0         = squeeze(inputParams.ph0(sD));                         % Get ph0 parameter
         ph1         = squeeze(inputParams.ph1(sD));                         % Get ph1 parameter
-        
+
         timeDomainMultiplier = zeros(size(fids));                           % Setup time domain multiplier
         for ll = 1:nBasisFcts                                               % Loop over basis functions
-            timeDomainMultiplier(:,ll) = exp(-(1i*freqShift(ll) + lorentzLB(ll) + gaussLB.^2.*t).*t)';  % Apply freqshifts, lorentzianLB, and gaussLB  
+            timeDomainMultiplier(:,ll) = exp(-(1i*freqShift(ll) + lorentzLB(ll) + gaussLB.^2.*t).*t)';  % Apply freqshifts, lorentzianLB, and gaussLB
         end                                                                 % End loop over basis functions
-        
+
         Fl = timeDomainMultiplier .* fids;                                  % Apply time domain multiplier to basis functions
-        specs = fftshift(fft(Fl, [], 1),1);                                 % Convert to frequency domain             
-        mets = specs * metAmpl;                                             % Multiply with basis function amplitude estimates                                                                                        
+        specs = fftshift(fft(Fl, [], 1),1);                                 % Convert to frequency domain
+        mets = specs * metAmpl;                                             % Multiply with basis function amplitude estimates
         bl = baselineBasis * baseAmpl;                                      % Multiply with baseline basis function amplitude estimates
 
         T_ph = exp(-1j .* (ph0 + ph1.*ppm)');                               % Create phase evolution
@@ -640,18 +536,18 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
             penalty = calcPenalty(inputParams, parametrizations, params{pp}, sD);
             tempTerm = cat(2,tempTerm,penalty);
         end
-        
+
         penaltyTerm(:,1) = tempTerm;                                        % Save as one concatenated vector of penalties to be appended to the residual
 
     end
 
 end
 
-function paramStruct = x2pars(x, secDim, parametrizations)      
+function paramStruct = x2pars(x, secDim, parametrizations)
 % This function converts a 1-D x vector into a parameter struct
 %
 %   USAGE:
-%       paramStruct = x2pars(x, secDim, parametrizations)   
+%       paramStruct = x2pars(x, secDim, parametrizations)
 %
 %   INPUTS:
 %       x                = x vector with parameters to optimize
@@ -672,8 +568,8 @@ function paramStruct = x2pars(x, secDim, parametrizations)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Converts a 1-D x vector
-    pars = fields(parametrizations);                                        % Get parameter names       
-    for ff = 1 : length(pars)                                               % Loop over parameters                
+    pars = fields(parametrizations);                                        % Get parameter names
+    for ff = 1 : length(pars)                                               % Loop over parameters
         if parametrizations.(pars{ff}).start                                % Start with a parameter struct of 1-D vectors according to the indices
             paramStruct.(pars{ff}) = x(parametrizations.(pars{ff}).start:parametrizations.(pars{ff}).end);  % Get parameters from x vector
         else
@@ -716,7 +612,7 @@ function paramStruct = x2pars(x, secDim, parametrizations)
                     paramStruct.(pars{ff}) = zeros(secDim,1);
                 end
         end
-    end                                                                     % End loop over parameters          
+    end                                                                     % End loop over parameters
 end
 
 function [x,indexStruct] = pars2x(paramStruct)
@@ -750,7 +646,7 @@ function [x,indexStruct] = pars2x(paramStruct)
     x = [];                                                                 % Initialize 1-D x vector
     for ff = 1 : length(pars)                                               % Loop over parameters
         if ismember(pars{ff},{'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl'}) % Skip new parameters from dynamic parameterization bc they should not turn up in the x vector
-            if ~isempty(paramStruct.(pars{ff}))                             % baseAmpl is empty when no baseline included          
+            if ~isempty(paramStruct.(pars{ff}))                             % baseAmpl is empty when no baseline included
                 if isempty(x)                                               % Setup index struct start value
                     indexStruct.(pars{ff}).start = 1;                       % Set index struct start value to 1
                 else
@@ -760,7 +656,7 @@ function [x,indexStruct] = pars2x(paramStruct)
                 indexStruct.(pars{ff}).end = length(x);                     % Set index struct end value to length
             end
         end
-    end                                                                     % End loop over parameters   
+    end                                                                     % End loop over parameters
 end
 
 function [f,g,h] = fminunc_wrapper(x,F,GJ,H)
@@ -777,7 +673,7 @@ function [f,g,h] = fminunc_wrapper(x,F,GJ,H)
     end
 end
 
-%% Functions needed for 2D modeling and regularization 
+%% Functions needed for 2D modeling and regularization
 function parameterMatrix = addParameterRegularization(parameterMatrix,parameterName, parametrizations,inputParams,jacobian)
 % This function adds regularization terms to a parameter matrix
 %
@@ -805,7 +701,7 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Add regularizer to parameter matrix
-    if ~strcmp(parametrizations.(parameterName).RegFun,'')                  % Don't apply regularization to the parameter       
+    if ~strcmp(parametrizations.(parameterName).RegFun,'')                  % Don't apply regularization to the parameter
         if jacobian
            RegMatrix = parametrizations.(parameterName).RegFun.fun(parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1);
            RegMatrix = sqrt(parametrizations.(parameterName).RegPar)*RegMatrix;
@@ -815,15 +711,15 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
            RegMatrix = sqrt(parametrizations.(parameterName).RegPar)*RegMatrix*inputParams;
            parameterMatrix =  RegMatrix;
         end
-       
+
     end
     if jacobian                                                             % Parameter matrix is jacobian
         pars = fields(parametrizations);                                    % Get parameter names
         numberOfParameters = [];                                            % Initialize number of parameters
-        for ff = 1 : length(pars)                                           % Loop over parameters       
-            numberOfParameters(end+1) = parametrizations.(pars{ff}).end-parametrizations.(pars{ff}).start + 1; % Calculate number of parameters       
-        end                                                                 % End loop over parameters       
-        if (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1) <= max(numberOfParameters) && strcmp(parametrizations.(parameterName).RegFun,'')  % Add zeros if jacobian is too short 
+        for ff = 1 : length(pars)                                           % Loop over parameters
+            numberOfParameters(end+1) = parametrizations.(pars{ff}).end-parametrizations.(pars{ff}).start + 1; % Calculate number of parameters
+        end                                                                 % End loop over parameters
+        if (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1) <= max(numberOfParameters) && strcmp(parametrizations.(parameterName).RegFun,'')  % Add zeros if jacobian is too short
             parameterMatrix = cat(1,parameterMatrix,zeros(max(numberOfParameters),parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1));    %Add correct number of zeros to the end
         end
     end
@@ -836,7 +732,7 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
 %       dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,SignalPart,NoiseSD)
 %
 %   INPUTS:
-%       dYdX             = jacobian 
+%       dYdX             = jacobian
 %       parameterName    = name of parameter
 %       parametrizations = paramterization options
 %       inputParams      = parameter values
@@ -865,20 +761,20 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
     if ~isempty(NoiseSD)
         Sigma = NoiseSD;                                                    % Get sigma
         Sigma = repmat(Sigma, [nPoints nLines 1]);                          % Repeat according to dimensions
-        dYdX = squeeze(dYdX);                                               % Remove zero dimensions 
+        dYdX = squeeze(dYdX);                                               % Remove zero dimensions
         dYdX(:,:) = dYdX(:,:,:) ./ Sigma;                                   % Normalize jacobian
     end
 
     % Free parametrizations need to add secDim copies to the jacobian and
     % set partial derivatives to zero for e.g. df1/dph02 .
     if strcmp(parametrizations.(parameterName).type,'free')
-        dYdX = squeeze(dYdX);                                               % Remove length 1 dims (e.g. for ph0, ph1, gaussLB)
-        dYdX = repmat(dYdX,[1 1 1 secDim]);                                 % Create secDim copies 
-        dYdX = squeeze(dYdX);                                               % Remove length 1 dims (needed for 3D dYdX case)
-        factor = repmat(eye(secDim),[1 1 nPoints nLines]);                  % To delete partial derivatives not on diagonal
-        factor = permute(factor,[3 4 1 2]);                                 % Reorder to match dYdX dimensions
-        factor = squeeze(factor);                                           % Remove length 1 dims
-        dYdX = dYdX .* factor;                                              % Delete partial derivatives not on diagonal
+        dYdX = squeeze(dYdX);                                               %Remove length 1 dims (e.g. for ph0, ph1, gaussLB)
+        dYdX = repmat(dYdX,[1 1 1 secDim]);                                 %Create secDim copies
+        dYdX = squeeze(dYdX);                                               %Remove length 1 dims (needed for 3D dYdX case)
+        factor = repmat(eye(secDim),[1 1 nPoints nLines]);                  %To delete partial derivatives not on diagonal
+        factor = permute(factor,[3 4 1 2]);                                 %Reorder to match dYdX dimensions
+        factor = squeeze(factor);                                           %Remove length 1 dims
+        dYdX = dYdX .* factor;                                              %Delete partial derivatives not on diagonal
     end
     % Fixed parametrization needs to concatenate along secDim resulting in
     % a single line in the jacobian
@@ -890,14 +786,14 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
     if strcmp(parametrizations.(parameterName).type,'dynamic')
         parameterEstimate = [];
         % Loop over new parameters and get estimates
-        for rp = 1 : length(parametrizations.(parameterName).parameterNames)    
+        for rp = 1 : length(parametrizations.(parameterName).parameterNames)
             parameterEstimate = cat(1,parameterEstimate,inputParams.([parameterName 'Reparametrization']).(parametrizations.(parameterName).parameterNames{rp}));
         end
-        % Calculate the jacobian according to the external function, parameter estimates, and modulator 
+        % Calculate the jacobian according to the external function, parameter estimates, and modulator
         factor = parametrizations.metAmpl.fun.jac(parameterEstimate,parametrizations.(parameterName).modulator);
-        factor = repmat(factor, [1 1 1 nPoints]);                           % Repeat nPoints times
-        factor = permute(factor,[4 2 1 3]);                                 % Dims have to be nPoints secDim nLines nPars  
-        dYdXOrginal = dYdX;                                                 % Backup original derivatives
+        factor = repmat(factor, [1 1 1 nPoints]);                          % Repeat nPoints times
+        factor = permute(factor,[4 2 1 3]);                                % Dims have to be nPoints secDim nLines nPars
+        dYdXOrginal = dYdX;                                                % Backup original derivatives
         % Multiply the original derivatives with the derivatives from the
         % reparametrization
         dYdX = [];
@@ -910,13 +806,13 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
             dYdX = permute(dYdX,[1 3 2]);
             secDim = size(dYdX,3);
         else
-            secDim = size(dYdX,4);                                          
+            secDim = size(dYdX,4);
         end
-        
+
     end
     % Finally we have to concatenate along the indirect dimension
     switch ndims(dYdX)
-        case 2   % For fixed parametrizations of ph0, ph1, gaussLB                                   
+        case 2   % For fixed parametrizations of ph0, ph1, gaussLB
             dYdX = reshape(dYdX,[],1);
         case 3   % E.g. linked metAmpls or single basis function case
             if strcmp(parametrizations.(parameterName).type,'fixed')
@@ -926,7 +822,7 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
                 nLines = secDim;
             end
             dYdX = reshape(dYdX,[],nLines);
-        case  4 % E.g. free metAmpls 
+        case  4 % E.g. free metAmpls
             dYdX = permute(dYdX,[1 3 4 2]);
             dYdX = reshape(dYdX,[],secDim*nLines);
     end
@@ -946,7 +842,7 @@ standardDeviation   = parametrizations.(param).sd;
 % in the shape of (difference-to-expectation)/(standard-deviation).
 diffVec     = actualValue-expectationValue;
 sdVec       = standardDeviation;
-penalty     = diffVec./sdVec;            
+penalty     = diffVec./sdVec;
 
 % Jacobian
 penaltyJac  = 1./sdVec;                % Because the penalty is a linear sum of its parts
