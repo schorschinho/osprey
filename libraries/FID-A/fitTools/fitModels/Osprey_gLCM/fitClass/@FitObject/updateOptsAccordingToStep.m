@@ -105,6 +105,25 @@ function updateOptsAccordingToStep(obj, options)
         options.parametrizations.x.name   = 'independentVariable';
         
     end
+    
+    % Update baseline model 
+    switch options.baseline.type                      % Switch for baseline type
+        case 'spline'                                                   
+            %%% CREATE BASELINE SPLINE BASIS %%%
+            % Combine real and imaginary part to form a complex spline array.
+            % Use the new, corrected function from here on                  
+            dkntmn      = options.baseline.dkntmn;            % Get spline basis knot spacing
+            [splineArray] = osp_gLCM_makeSplineBasis(obj.Data, options.optimFreqFitRange, dkntmn);   % Create spline baseline basis array     
+            obj.BaselineBasis = splineArray;                                    % Store baseline array in object
+        case 'poly'
+            %%% CREATE BASELINE POLYNOMIAL BASIS %%%
+            order      = options.baseline.order;              % Get order of the polynomial baseline
+            [splineArray] = osp_gLCM_makePolyBasis(obj.Data, options.optimFreqFitRange, order);      % Create polynomial baseline basis array       
+            obj.BaselineBasis = splineArray;                                    % Store baseline array in object
+        case 'none'
+            %%% NO BASELINE %%%
+            obj.BaselineBasis = [];                                             % Store empty baseline array in object
+    end
 
     obj.Options{obj.step+1} = options;                                      % Store options in OspreyFitObj
 end

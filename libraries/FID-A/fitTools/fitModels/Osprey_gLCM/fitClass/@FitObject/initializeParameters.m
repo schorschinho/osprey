@@ -152,8 +152,8 @@ switch parameter                                            % Parameter switch w
         % Initialize phi0 as constant with value 0
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
-        parametrizations.lb      = -pi;
-        parametrizations.ub      = pi;
+        parametrizations.lb      = -pi/4;
+        parametrizations.ub      = pi/4;
         parametrizations.init    = 0;
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
@@ -163,8 +163,8 @@ switch parameter                                            % Parameter switch w
         % Initialize phi1 as constant with value 0
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
-        parametrizations.lb      = -pi/30;
-        parametrizations.ub      = pi/30;
+        parametrizations.lb      = -pi/270;
+        parametrizations.ub      = pi/270;
         parametrizations.init    = 0;
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
@@ -176,7 +176,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = 0;
-        parametrizations.ub      = Inf;
+        parametrizations.ub      = 70;
         parametrizations.init    = 0.04 * obj.Data.txfrq*1e-6;
         parametrizations.ex      = 0.04 * obj.Data.txfrq*1e-6;
         parametrizations.sd      = Inf;
@@ -187,8 +187,8 @@ switch parameter                                            % Parameter switch w
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = 0;
-        parametrizations.ub      = Inf;
-        parametrizations.init    = 0;
+        parametrizations.ub      = 7;
+        parametrizations.init    = 1;
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
@@ -197,8 +197,8 @@ switch parameter                                            % Parameter switch w
         % Initialize frequency shifts as constant with value 0 Hz
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
-        parametrizations.lb      = -5;
-        parametrizations.ub      = 5;
+        parametrizations.lb      = -4;
+        parametrizations.ub      = 4;
         parametrizations.init    = 0;
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
@@ -283,21 +283,28 @@ if nargin == 3
                 end
             end
         end
-        end
-    end                                                                 % End loop over fields in predefined struct
-end
+    end
+       % pars = fields(parametrizations);
+    end % End loop over fields in predefined struct
 
-% This is needed if the number of parameters (basis functions or
-% baseline parameters) changes between fit steps
-if obj.step > 1                                                         % Only needed for steps > 1
-    if strcmp(parameter, 'lorentzLB') || strcmp(parameter, 'freqShift') % Only do this for non amplitude parameters
-        if sum(obj.BasisSets.includeInFit(obj.step,:)) ~= sum(obj.BasisSets.includeInFit(obj.step-1,:))     % Did the number of parameters change
-            if sum(obj.BasisSets.includeInFit(obj.step,:)) > sum(obj.BasisSets.includeInFit(obj.step-1,:))  % More parameters then before
-                for ff = 1 : length(pars)
-                    if strcmp(pars{ff},'ub') || strcmp(pars{ff},'lb') || strcmp(pars{ff},'init')            % Only apply to init, ub, lb
-                        parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
-                            default_parametrization.(pars{ff}) * ...
-                            ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))- sum(obj.BasisSets.includeInFit(obj.step-1,:))));
+    % This is needed if the number of parameters (basis functions or
+    % baseline parameters) changes between fit steps
+    if obj.step > 1                                                         % Only needed for steps > 1
+        if strcmp(parameter, 'lorentzLB') || strcmp(parameter, 'freqShift') % Only do this for non amplitude parameters
+            if sum(obj.BasisSets.includeInFit(obj.step,:)) ~= sum(obj.BasisSets.includeInFit(obj.step-1,:))     % Did the number of parameters change
+                if sum(obj.BasisSets.includeInFit(obj.step,:)) > sum(obj.BasisSets.includeInFit(obj.step-1,:))  % More parameters then before
+                    for ff = 1 : length(pars)
+                        if strcmp(pars{ff},'ub') || strcmp(pars{ff},'lb') || strcmp(pars{ff},'init')            % Only apply to init, ub, lb
+                            try                                                                                 % This needs furhter checking!
+                            parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
+                                                             parametrizations.(pars{ff}) * ...
+                                                             ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))-1));
+                            catch
+                              parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
+                                                             default_parametrization.(pars{ff}) * ...
+                                                             ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))- sum(obj.BasisSets.includeInFit(obj.step-1,:))));
+                            end
+                        end
                     end
                 end
             end

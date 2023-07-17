@@ -133,7 +133,7 @@ function obj = createModel(obj)
                                           Reg, ...          % regularizer flag
                                           parametrizations);% parameter struct
             
-            opts            = struct('factr', 1e7, 'pgtol', 1e-2, 'm', 5, 'printEvery', 0); % Set solver options
+            opts            = struct('factr', 1e7, 'pgtol', 1e-5, 'm', 5, 'printEvery', 0); % Set solver options
             opts.x0 = x0';
 
             tstart = tic;                                               % Start timer
@@ -153,7 +153,6 @@ function obj = createModel(obj)
             end
             % Set jacobian handle
             jac = @(x) h.forwardJacobian(x, ...             % x vector with parameters to optimize
-                                         data, ...          % time domain data matrix
                                          NoiseSD, ...       % standard deviation of the noise 
                                          basisSet, ...      % basis set struct
                                          baselineBasis, ... % baseline basis set
@@ -199,13 +198,33 @@ function obj = createModel(obj)
 
     end
 
-%% Calculate CRLB
+%% Store outputs
+
     spec            = fftshift(fft(data, [], 1), 1);                % Get spectra
     secDim          = size(data,2);                                 % Number of entries along indirect dimension     
     parsOut         = h.x2pars(xk, secDim, parametrizations);       % Get final parametes
 
+    % Generate final model for plots
+    [fit, baseline, metabs] = h.forwardModel(xk, ...                        % x vector with final parameter estimates
+                                             basisSet, ...                  % basis set struct
+                                             baselineBasis, ...             % baseline basis set
+                                             ppm, ...                       % ppm axis
+                                             t, ...                         % time vector
+                                             Reg, ...                       % regularizer flag
+                                             parametrizations);             % parameter struct
+
+    % Save modeling results
+    obj.Model{obj.step}.fit.fit       = fit;                                % Store fit
+    obj.Model{obj.step}.fit.baseline  = baseline;                           % Store baseline
+    obj.Model{obj.step}.fit.residual  = spec - fit;                         % Store residual
+    obj.Model{obj.step}.fit.metabs    = metabs;                             % Store metabolite results
+    obj.Model{obj.step}.time          = time;                               % Store time vector
+    obj.Model{obj.step}.parsOut       = parsOut;                            % Store final parameters
+    obj.Model{obj.step}.info          = info;                               % Store info
+
+%% Calculate CRLB
+
     jac = h.forwardJacobian(xk, ...            % x vector with final parameter estimates
-                            data, ...          % time domain data matrix
                             NoiseSD, ...       % standard deviation of the noise 
                             basisSet, ...      % basis set struct
                             baselineBasis, ... % baseline basis set
@@ -230,29 +249,17 @@ function obj = createModel(obj)
         obj.Model{obj.step}.CRLB = array2table(relativeCRLB,'VariableNames',basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)))); % Save table with basis function names and relative CRLBs
     catch
     end    
-         
-%% Store outputs and do some clean-up    
-
-    % Generate final model for plots
-    [fit, baseline, metabs] = h.forwardModel(xk, ...                        % x vector with final parameter estimates
-                                             basisSet, ...                  % basis set struct
-                                             baselineBasis, ...             % baseline basis set
-                                             ppm, ...                       % ppm axis
-                                             t, ...                         % time vector
-                                             Reg, ...                       % regularizer flag
-                                             parametrizations);             % parameter struct
-
-    % Save modeling results
-    obj.Model{obj.step}.fit.fit       = fit;                                % Store fit
-    obj.Model{obj.step}.fit.baseline  = baseline;                           % Store baseline
-    obj.Model{obj.step}.fit.residual  = spec - fit;                         % Store residual
-    obj.Model{obj.step}.fit.metabs    = metabs;                             % Store metabolite results
-    obj.Model{obj.step}.time          = time;                               % Store time vector
-    obj.Model{obj.step}.parsOut       = parsOut;                            % Store final parameters
-    obj.Model{obj.step}.info          = info;                               % Store info
     
-    
-
+    % Calculate CRLBs for metabolite combinations
+    metaboliteNames = basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)));
+    switch solver                                        % Switch to pick solver
+        case 'lbfgsb'
+            [obj] = calculateCombinedCRLB(obj,invFisher, xk', metaboliteNames, parametrizations);
+        otherwise
+            [obj] = calculateCombinedCRLB(obj,invFisher, xk, metaboliteNames, parametrizations);
+    end
+%% Do some clean-up    
+   
     % If an inital fit was performed on a single spectrum we need to
     % restore the original dimensions
     if isfield(obj.Options{obj.step}, 'InitialPick')

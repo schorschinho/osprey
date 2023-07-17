@@ -95,17 +95,18 @@ else
 end
 
 %% 2.a Generate MM/Lip basis functions
-
-% First, we'll remove any MM or lipid basis functions that may be in the
-% input basis set (to avoid duplication)
-basisSet = scrubMMLipFromBasis(basisSet);
-
-% Read out MM/Lip configuration file and create matching 
-MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{1}.basisset.mmdef{1}));
-[basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
-
-% Join basis sets together
-basisSet = joinBasisSets(basisSet, basisSim);
+if isfield(ModelProcedure.Steps{1}.basisset, 'mmdef')                       %Overwrite if defined
+    % First, we'll remove any MM or lipid basis functions that may be in the
+    % input basis set (to avoid duplication)
+    basisSet = scrubMMLipFromBasis(basisSet);
+    
+    % Read out MM/Lip configuration file and create matching 
+    MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{1}.basisset.mmdef{1}));
+    [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
+    
+    % Join basis sets together
+    basisSet = joinBasisSets(basisSet, basisSim);
+end
 
 %% 3. Prepare data according to model json and model data
 % Prepare data for each fit step, again, including the indirect dimensions
@@ -133,6 +134,7 @@ for kk = 1 : length(DataToModel)
         end
     end
     for ss = 1 : length(ModelProcedure.Steps)
+        opts = [];                                                                      % we have to clean older steps out
         % Setup options from model procedure json file
         opts.ModelFunction      = ModelProcedure.Steps{ss}.ModelFunction;               % get model function
         opts.baseline           = ModelProcedure.Steps{ss}.fit_opts.baseline;           % setup baseline options
@@ -154,6 +156,9 @@ for kk = 1 : length(DataToModel)
             parameter = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl'};
             opts.parametrizations  = orderfields(opts.parametrizations,parameter(ismember(parameter, fieldnames(opts.parametrizations)))); % order struct names according to standard
         end
+        if isfield(DataToModel{kk},'FWHM') && ss == 1
+            opts.parametrizations.gaussLB.init = DataToModel{kk}.FWHM;
+        end
         if ModelProcedure.Steps{ss}.extra.flag == 1 && isfield(ModelProcedure.Steps{ss}.extra,'DynamicModelJson')
             opts.paraIndirect  = jsonToStruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson); % specify parametrizations constructor for indirect dimension
         end
@@ -162,9 +167,9 @@ for kk = 1 : length(DataToModel)
             opts.StepTolerance = 1e-3;
             opts.OptimalityTolerance = 1e-3;
         else
-            opts.FunctionTolerance = 1e-6;
-            opts.StepTolerance = 1e-6;
-            opts.OptimalityTolerance = 1e-6;
+            opts.FunctionTolerance = 1e-10;
+            opts.StepTolerance = 1e-10;
+            opts.OptimalityTolerance = 1e-10;
         end
 
 
@@ -200,7 +205,6 @@ for kk = 1 : length(DataToModel)
             if ss == 1
                 ModelParameter{kk,1}.optimizeRegularization(opts);
             else
-                ModelParameter{kk,1}.updateBaselineAccordingToStep;
                 ModelParameter{kk,1}.updateOptsAccordingToStep(opts);
                 ModelParameter{kk,1}.optimizeRegularization(opts);
             end
