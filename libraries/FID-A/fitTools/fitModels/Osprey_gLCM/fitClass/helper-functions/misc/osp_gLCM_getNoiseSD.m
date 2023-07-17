@@ -53,7 +53,7 @@ else
     end                                                                     % End loop over indirect dimension
 end
 noisecovariance = cov(real(noise));                                         % Calculate covariance matrix
-NoiseSD = sqrt(diag(noisecovariance));                                      % Calculate standard deviation
+NoiseSD = sqrt(diag(noisecovariance))';                                      % Calculate standard deviation
 
 end
 

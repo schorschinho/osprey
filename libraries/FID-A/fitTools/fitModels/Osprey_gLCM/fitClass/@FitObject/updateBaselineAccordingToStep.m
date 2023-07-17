@@ -1,4 +1,4 @@
-function obj = updateBaselineAccordingToStep(obj)
+function obj = updateBaselineAccordingToStep(obj, options)
 %%  updateBaselineAccordingToStep(obj)
 %   This is the method updates the baseline basis according to the model
 %   procedure step. This is used if for example the number of splines
@@ -7,7 +7,9 @@ function obj = updateBaselineAccordingToStep(obj)
 %   USAGE:
 %       obj.optimizeRegularization()
 %
-%       
+%   INPUTS:
+%       options            = struct with parametrization options   
+%
 %   OUTPUTS:
 %       obj     = OspreyFitObj.
 %
@@ -23,11 +25,11 @@ function obj = updateBaselineAccordingToStep(obj)
 %%  Get object details
     
     data        = obj.Data;                                                 % Get data entry
-    fitRange    = obj.Options{1,obj.step+1}.optimFreqFitRange;              % Get fit range
-
+    fitRange    = obj.Options{1,obj.step+1}.optimFreqFitRange;          % Get fit range
+    step        = obj.step + 1;
 %%  Update baseline basis
-    if (obj.Options{1,obj.step}.optimFreqFitRange(1) ~=  obj.Options{1,obj.step+1}.optimFreqFitRange(1)) || ... % Did the fit range change?
-       (obj.Options{1,obj.step}.optimFreqFitRange(2) ~=  obj.Options{1,obj.step+1}.optimFreqFitRange(2))    
+    if (obj.Options{1,step}.optimFreqFitRange(1) ~=  obj.Options{1,step}.optimFreqFitRange(1)) || ... % Did the fit range change?
+       (obj.Options{1,step}.optimFreqFitRange(2) ~=  obj.Options{1,step}.optimFreqFitRange(2))    
         % Update baseline model 
         switch obj.Options{1,obj.step+1}.baseline.type                      % Switch for baseline type
             case 'spline'                                                   
