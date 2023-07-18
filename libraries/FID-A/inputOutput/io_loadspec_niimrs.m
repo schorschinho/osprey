@@ -275,6 +275,21 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
         end
     end
 
+    if length(sqzDims) > length(size(fids)) % The case for 1 average with multiple subspectra
+        if dims.averages < dims.subSpecs
+            dims.subSpecs = 0;
+        end
+        sqzDims = {};
+        dimsFieldNames = fieldnames(dims);
+        for rr = 1:length(dimsFieldNames)
+            if dims.(dimsFieldNames{rr}) ~= 0
+                % Subtract 3 (x, y, z) from the dimension indices
+                sqzDims{end+1} = dimsFieldNames{rr};
+            end
+        end
+        subspecs    = 0;
+    end
+
     if length(sqzDims)==5
         fids=permute(fids,[dims.t dims.coils dims.averages dims.subSpecs dims.extras]);
         dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=4;dims.extras=5;
@@ -322,7 +337,7 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
     sz=size(fids);
 
     %Remove phase cycle for Philips data
-    if isfield(hdr_ext, 'Manufacturer') && strcmp(hdr_ext.Manufacturer,'Philips')
+    if isfield(hdr_ext, 'Manufacturer') && (strcmp(hdr_ext.Manufacturer,'Philips') || strcmp(hdr_ext.Manufacturer,'GE')) 
         fids = fids .* repmat(conj(fids(1,:,:,:))./abs(fids(1,:,:,:)),[size(fids,1) 1]);
     end
 
