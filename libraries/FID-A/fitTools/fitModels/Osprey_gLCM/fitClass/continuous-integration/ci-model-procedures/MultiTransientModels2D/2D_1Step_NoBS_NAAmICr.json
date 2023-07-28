@@ -1,0 +1,57 @@
+{
+  "basisset": {
+    "file": [
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''30'',''basis_philips_press30.mat''))"
+    ],
+    "opts":{
+      "repeat": 16
+    }
+  },
+  "Steps": {
+    "module": "Model",
+    "ModelFunction": "GeneralizedBasicPhysicsModel",
+    "extra": {
+      "flag": 1,
+      "DynamicModelJson": "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''continuous-integration'',''ci-model-procedures'',''MultiTransientModels2D'',''2D_reduce_dims_NAAmICr.json''))"
+    },
+    "basisset": {
+      "spec": 1,
+      "include": [
+        "Cr","mI","NAA"
+      ]
+    },
+    "fit_opts": {
+      "optimFreqFitRange": [
+        0.5,
+        4
+      ],
+      "gap": [],
+      "optimDomain": "FD",
+      "optimSignalPart": "R",
+      "baseline": {
+        "type": "none"
+      },
+      "solver": "lsqnonlin"
+    },
+    "parameter": [
+      "ph0",
+      "ph1",
+      "gaussLB",
+      "lorentzLB",
+      "freqShift",
+      "metAmpl",
+      "baseAmpl"
+    ],
+    "parametrizations": {
+      "gaussLB": {
+        "init": 9.70
+      },
+      "lorentzLB": {
+        "init": 3.40
+      },
+      "metAmpl": {
+        "init": [3.13,7.06,8.70]
+      }
+    }
+  }
+}
