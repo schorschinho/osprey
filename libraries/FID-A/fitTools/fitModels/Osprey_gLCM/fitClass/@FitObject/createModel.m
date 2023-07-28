@@ -88,7 +88,7 @@ function obj = createModel(obj)
     parametrizations = obj.Options{obj.step}.parametrizations;              % Write parametrization in variable for solver
     
     
-    if sum(cellfun(@isstruct,obj.returnParametrization(1,'RegFun'))) > 0    % Apply regularizer?
+    if sum(cellfun(@isstruct,obj.returnParametrization(obj.step,'RegFun'))) > 0    % Apply regularizer?
         Reg = 1;                                                            % Set regularizer to yes
     else
         Reg = 0;                                                            % Set regularizer to no

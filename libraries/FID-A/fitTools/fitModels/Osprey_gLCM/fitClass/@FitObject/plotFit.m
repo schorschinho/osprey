@@ -85,7 +85,6 @@ function plotFit(obj,step,secDim, plotRange)
             xlabel('chemical shift (ppm)');
         end
     else                                                                                % 1D fit or a user provided indirect dimension 
-        secDim = 1;                                                                     % Set second dimension index
         hold;                                                                           % Hold plot becuase we want to see all results
         shift = max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...        % Calculate shift for residual and individual basis functions
             min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:)))));    

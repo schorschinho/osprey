@@ -1,12 +1,13 @@
-function plotBasisSet(obj, step, plotRange)
-%%  plotBasisSet(obj, step, plotRange)
+function plotBasisSet(obj, step, subSpec, plotRange)
+%%  plotBasisSet(obj, step, plotRange, subSpec)
 %   This method generates a plot of the basis set 
 %
 %   USAGE:
 %       obj.plotBaselineBasis(step, plotRange)
 %
 %   INPUTS:
-%       step            = step to plot    
+%       step            = step to plot   
+%       subSpec         = subspectrum to plot
 %       plotRange       = set plot range default is optimFreqFitRange
 %
 %   OUTPUTS:
@@ -22,18 +23,20 @@ function plotBasisSet(obj, step, plotRange)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %%  Diverge to default options if required 
-
-    if nargin < 3
-        plotRange = obj.Options{step}.optimFreqFitRange;                    % Set plot range
-        if nargin < 2
-            step = obj.step;                                                % Set to last step
+    if nargin < 4
+        plotRange = obj.Options{step}.optimFreqFitRange;                    % Set plot range  
+        if nargin < 3
+            subSpec = 1;                                                            % Set subspec
+            if nargin < 2
+                step = obj.step;                                                % Set to last step
+            end
         end
     end
   
 %%  Get fit data from object 
     if ~isempty(obj.BasisSets.fids)                                         % basis set has been removed to reduce file size
         fdBasisSpecs = real(fftshift(fft(obj.BasisSets.fids,[],1),1));      % fft time-domain basis set
-        stag = median(max(abs(real(fdBasisSpecs))));                        % calculate stagger 
+        stag = median(max(abs(real(fdBasisSpecs(:,:,subSpec)))));                        % calculate stagger 
     end
     ppm = obj.Data.ppm;                                                     % Get ppm vector
     xText = round((max(plotRange) - min(plotRange))*0.1 + min(plotRange));  % calculate text position
@@ -49,7 +52,7 @@ function plotBasisSet(obj, step, plotRange)
             else
                 colorLine = 'r';                                            % Basis function is not included in fit
             end
-            plot(ppm, fdBasisSpecs(:,rr) - stag*(rr-1), colorLine);         % Plot basis function
+            plot(ppm, squeeze(fdBasisSpecs(:,rr,subSpec)) - stag*(rr-1), colorLine);         % Plot basis function
             text(xText, -stag*(rr-1)+0.5*stag, obj.BasisSets.names{rr}, ... % Add basis function name
                 'Color', colorLine, 'Clipping', 'on');                
         end                                                                 % End loop over basis functions

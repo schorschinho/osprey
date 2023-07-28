@@ -31,9 +31,9 @@ function [value] = returnParametrization(obj,step,field)
     end
     
 %%  Get parametrization values
-    pars = fields(obj(step).Options{1}.parametrizations);                   % Parameter names              
+    pars = fields(obj.Options{step}.parametrizations);                   % Parameter names              
     value ={};                                                              % Initialize value cell arry
     for ff = 1 : length(pars)                                               % Loop over parameters
-        value{end+1} = obj(step).Options{1}.parametrizations.(pars{ff}).(field);    % Get value 
+        value{end+1} = obj.Options{step}.parametrizations.(pars{ff}).(field);    % Get value 
     end                                                                     % End loop over parametes
 end

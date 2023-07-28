@@ -50,4 +50,27 @@ function jsonStruct = jsonToStruct(jsonfile)
     % Return struct
     jsonStruct  = jsondecode(str);
 
+    % We want all parameters as row vectors so we have to change this in
+    % the model json
+    if isfield(jsonStruct, 'Steps') && isfield(jsonStruct.Steps, 'parametrizations')
+        params = fieldnames(jsonStruct.Steps.parametrizations);
+        if ~isempty(params)
+            for pp = 1 : length(params)
+                jsonStruct.Steps.parametrizations.(params{pp}) = structfun(@transpose,jsonStruct.Steps.parametrizations.(params{pp}),'UniformOutput',false);
+            end
+        end
+    end
+
+    % We have to do the same for the indirect parametrization file
+    if isfield(jsonStruct, 'parameters')
+        params = fieldnames(jsonStruct.parameters);
+        if ~isempty(params)
+            for pp = 1 : length(params)
+                jsonStruct.parameters.(params{pp}) = structfun(@transpose,jsonStruct.parameters.(params{pp}),'UniformOutput',false);
+                if isfield(jsonStruct.parameters.(params{pp}), 'type')
+                    jsonStruct.parameters.(params{pp}).type = transpose(jsonStruct.parameters.(params{pp}).type);
+                end
+            end
+        end
+    end
 end

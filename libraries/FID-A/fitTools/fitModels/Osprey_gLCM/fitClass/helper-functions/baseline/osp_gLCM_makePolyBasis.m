@@ -57,7 +57,7 @@ function PolyArray = osp_gLCM_makePolyBasis(dataToFit, fitRangePPM, order, plotF
     
     % We append with zeros and do a circshift so we can comfortably move the
     % spline array along
-    appendWith = zeros(1000, size(PolyBasisFunctionMatrix,2));
+    appendWith = zeros(5000, size(PolyBasisFunctionMatrix,2));
     PolyBasisFunctionMatrix = cat(1, appendWith, PolyBasisFunctionMatrix, appendWith);
     
     % find the required shift
@@ -66,7 +66,7 @@ function PolyArray = osp_gLCM_makePolyBasis(dataToFit, fitRangePPM, order, plotF
     PolyBasisFunctionMatrix = circshift(PolyBasisFunctionMatrix, floor(neededShift), 1);
     
     % crop
-    splineInnerBasisFunctionMatrix = PolyBasisFunctionMatrix(1000+eitherSide+1:1000+eitherSide+length(dataToFit.ppm),:);
+    splineInnerBasisFunctionMatrix = PolyBasisFunctionMatrix(5000+eitherSide+1:5000+eitherSide+length(dataToFit.ppm),:);
     
     % Return variables
     PolyArray = splineInnerBasisFunctionMatrix;
