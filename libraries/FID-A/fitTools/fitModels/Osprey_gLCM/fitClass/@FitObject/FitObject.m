@@ -114,6 +114,22 @@ classdef FitObject < handle
                     options.optimSignalPart = 'R'; % R, I, or RI
                 end                
                 
+                if ~isfield(options, 'baseline')
+                    options.baseline.type = 'spline'; % spline, poly, or none
+                end
+
+                if ismember(options.baseline.type, {'spline'})
+                    if ~isfield(options.baseline, 'dkntmn')
+                        options.baseline.dkntmn = 0.4;
+                    end
+                end
+
+                if ismember(options.baseline.type, {'poly'})
+                    if ~isfield(options.baseline, 'order')
+                        options.baseline.order = 4;
+                    end
+                end
+
                 obj.Options{1} = options;                                   % Save the property struct
                 fitRange    = obj.Options{1}.optimFreqFitRange;              % Get fit range
 

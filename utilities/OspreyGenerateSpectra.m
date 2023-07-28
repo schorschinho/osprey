@@ -1,69 +1,75 @@
 
-function [MRSCont] = OspreyGenerateSpectra(nDatasets,outputFolder,saveSpec,parameter, alter,changedComb,zeroed,shareLorentzLB,SigRange,overwrite,add2HG)
-if nargin < 11 
-    add2HG=0;
-    if nargin < 10
-        overwrite.ph0 = [];
-        overwrite.ph1 = [];
-        overwrite.gaussLB = [];
-        overwrite.lorentzLB = [];
-        overwrite.freqShift = [];
-        overwrite.metAmpl = [];
-        overwrite.baseAmpl = [];
-        overwrite.lineShape = [];
-        overwrite.noiseAmpl = [];
-        if nargin < 9
-            SigRange = [1.9, 2.1];
-            if nargin < 8
-                    shareLorentzLB = 0;
-                    if nargin < 7
-                        zeroed.ph0 = 0;
-                        zeroed.ph1 = 0;
-                        zeroed.gaussLB = 0;
-                        zeroed.lorentzLB = zeros(27,1);
-                        zeroed.freqShift = zeros(27,1);
-                        zeroed.metAmpl = zeros(35,1);
-                        zeroed.baseAmpl = 0;
-                        zeroed.lineShape = 0;
-                        if nargin < 6
-                            changedComb = 1;
-                            if nargin <5
-                                alter.Group1.ph0 = 0;
-                                alter.Group1.ph1 = 0;
-                                alter.Group1.gaussLB = 0;
-                                alter.Group1.lorentzLB = zeros(27,1);
-                                alter.Group1.freqShift = zeros(27,1);
-                                alter.Group1.metAmpl = zeros(35,1);
-                                alter.Group1.baseAmpl = zeros(14,1);
-                                alter.Group1.lineShape = zeros(1,29);
-                                alter.Group1.SNR = 0;        
-                                alter.Group1.ph0_SD = 0;
-                                alter.Group1.ph1_SD = 0;
-                                alter.Group1.gaussLB_SD = 0;
-                                alter.Group1.lorentzLB_SD = zeros(27,1);
-                                alter.Group1.freqShift_SD = zeros(27,1);
-                                alter.Group1.metAmpl_SD = zeros(35,1);
-                                alter.Group1.baseAmpl_SD = zeros(14,1);
-                                alter.Group1.lineShape_SD = zeros(1,29);
-                                alter.Group1.SNR_SD = 0;
-                                if nargin < 4
-                                    prior_knowledge_folder = fileparts(which(fullfile('utilities','simulation-prior-knowledge','MRS_BigPRESS_Philips.mat')));
-                                    load(fullfile(prior_knowledge_folder,'MRS_BigPRESS_Philips_Struct.mat'));
-                                    if nargin <3
-                                        saveSpec = 1;
-                                        if nargin<2
-                                             [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
-                                            allFolders      = strsplit(settingsFolder, filesep);
-                                            outputFolder       = [strjoin(allFolders(1:end-1), filesep) 'simulated' filesep]; % parent folder (= Osprey folder)
-                                            if nargin<1
-                                                nDatasets=1;
+function [MRSCont] = OspreyGenerateSpectra(nDatasets,outputFolder,saveSpec,parameter, alter,changedComb,zeroed,shareLorentzLB,SigRange,overwrite,add2HG,addExpMM,gaussianBaseline)
+if nargin<13
+    gaussianBaseline = 0;
+    if nargin<12
+        addExpMM=0;
+        if nargin < 11 
+            add2HG=0;
+            if nargin < 10
+                overwrite.ph0 = [];
+                overwrite.ph1 = [];
+                overwrite.gaussLB = [];
+                overwrite.lorentzLB = [];
+                overwrite.freqShift = [];
+                overwrite.metAmpl = [];
+                overwrite.baseAmpl = [];
+                overwrite.lineShape = [];
+                overwrite.noiseAmpl = [];
+                if nargin < 9
+                    SigRange = [1.9, 2.1];
+                    if nargin < 8
+                            shareLorentzLB = 0;
+                            if nargin < 7
+                                zeroed.ph0 = 0;
+                                zeroed.ph1 = 0;
+                                zeroed.gaussLB = 0;
+                                zeroed.lorentzLB = zeros(27,1);
+                                zeroed.freqShift = zeros(27,1);
+                                zeroed.metAmpl = zeros(35,1);
+                                zeroed.baseAmpl = 0;
+                                zeroed.lineShape = 0;
+                                if nargin < 6
+                                    changedComb = 1;
+                                    if nargin <5
+                                        alter.Group1.ph0 = 0;
+                                        alter.Group1.ph1 = 0;
+                                        alter.Group1.gaussLB = 0;
+                                        alter.Group1.lorentzLB = zeros(27,1);
+                                        alter.Group1.freqShift = zeros(27,1);
+                                        alter.Group1.metAmpl = zeros(35,1);
+                                        alter.Group1.baseAmpl = zeros(14,1);
+                                        alter.Group1.lineShape = zeros(1,29);
+                                        alter.Group1.SNR = 0;        
+                                        alter.Group1.ph0_SD = 0;
+                                        alter.Group1.ph1_SD = 0;
+                                        alter.Group1.gaussLB_SD = 0;
+                                        alter.Group1.lorentzLB_SD = zeros(27,1);
+                                        alter.Group1.freqShift_SD = zeros(27,1);
+                                        alter.Group1.metAmpl_SD = zeros(35,1);
+                                        alter.Group1.baseAmpl_SD = zeros(14,1);
+                                        alter.Group1.lineShape_SD = zeros(1,29);
+                                        alter.Group1.SNR_SD = 0;
+                                        if nargin < 4
+                                            prior_knowledge_folder = fileparts(which(fullfile('utilities','simulation-prior-knowledge','MRS_BigPRESS_Philips.mat')));
+                                            load(fullfile(prior_knowledge_folder,'MRS_BigPRESS_Philips_Struct.mat'));
+                                            if nargin <3
+                                                saveSpec = 1;
+                                                if nargin<2
+                                                     [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
+                                                    allFolders      = strsplit(settingsFolder, filesep);
+                                                    outputFolder       = [strjoin(allFolders(1:end-1), filesep) 'simulated' filesep]; % parent folder (= Osprey folder)
+                                                    if nargin<1
+                                                        nDatasets=1;
+                                                    end
+                                                end
                                             end
                                         end
                                     end
                                 end
                             end
-                        end
                     end
+                end
             end
         end
     end
@@ -98,15 +104,24 @@ for bb = 1 : length(parameter.basisSet)
     load(parameter.basisSet{bb});
     BASIS = recalculateBasisSpecs(BASIS);
     BASIS = fit_sortBasisSet(BASIS);
-    metabList = fit_createMetabList(parameter.metabolite_names(1:27)); 
+    idx_H2O  = find(strcmp(parameter.metabolite_names,'H2O'));
+    parameter.metabolite_names(idx_H2O) = [];
+    if ~addExpMM
+        metabList = fit_createMetabList(parameter.metabolite_names(1:26)); 
+    else
+        metabList = fit_createMetabList(parameter.metabolite_names(1:19));
+        metabList.MM09 = 0;
+        metabList.MM_PRESS_PCC = 1;
+    end
     if add2HG
         metabList.bHG = 1;
     end
     % Create the modified basis set
     BASIS = fit_selectMetabs(BASIS, metabList, 1);
     [resBASIS{bb}] = fit_resampleBasis(dataToFit, BASIS);
+   
 end
-
+basisFunctions = size(resBASIS{1}.fids,2);
 %% Update nii header
 if ~parameter.indirDim.flag
     nii_mrs.hdr.dim = [6, 1, 1, 1, 2048,1,1,1];
@@ -192,6 +207,35 @@ end
 
 %% Set up MRS Container
 MRSCont.nDatasets = nDatasets;
+if isempty(alter)
+    alter.Group1.ph0 = 0;
+    alter.Group1.ph1 = 0;
+    alter.Group1.gaussLB = 0;
+    alter.Group1.lorentzLB = zeros(basisFunctions,1);
+    alter.Group1.freqShift = zeros(basisFunctions,1);
+    alter.Group1.metAmpl = zeros(basisFunctions+8,1);
+    alter.Group1.baseAmpl = zeros(14,1);
+    alter.Group1.lineShape = zeros(1,29);
+    alter.Group1.SNR = 0;        
+    alter.Group1.ph0_SD = 0;
+    alter.Group1.ph1_SD = 0;
+    alter.Group1.gaussLB_SD = 0;
+    alter.Group1.lorentzLB_SD = zeros(basisFunctions,1);
+    alter.Group1.freqShift_SD = zeros(basisFunctions,1);
+    alter.Group1.metAmpl_SD = zeros(basisFunctions+8,1);
+    alter.Group1.baseAmpl_SD = zeros(14,1);
+    alter.Group1.lineShape_SD = zeros(1,29);
+    alter.Group1.SNR_SD = 0;
+    alter.Group1.rel.ph0_SD = 0;
+    alter.Group1.rel.ph1_SD = 0;
+    alter.Group1.rel.gaussLB_SD = 0;
+    alter.Group1.rel.lorentzLB_SD = zeros(basisFunctions,1);
+    alter.Group1.rel.freqShift_SD = zeros(basisFunctions,1);
+    alter.Group1.rel.metAmpl_SD = zeros(basisFunctions+8,1);
+    alter.Group1.rel.baseAmpl_SD = zeros(14,1);
+    alter.Group1.rel.lineShape_SD = zeros(1,29);
+    alter.Group1.rel.SNR_SD = 0;
+end
 if ~isempty(alter)
     GroupNames = fieldnames(alter);
     NoGroups = length(fieldnames(alter));
@@ -211,6 +255,50 @@ params = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl','li
 
 for p = 1 : length(params)
     par.(params{p}) = [];
+end
+
+if basisFunctions ~= 26
+    for p = 1 : length(params)
+        switch params{p}
+            case 'lorentzLB'
+                parameter.(params{p}).mean = parameter.(params{p}).mean(1:basisFunctions+1);
+                parameter.(params{p}).SD = parameter.(params{p}).SD(1:basisFunctions+1);
+                %Remove water
+                parameter.(params{p}).mean(10) =[];
+                parameter.(params{p}).SD(10) =[];
+            case 'freqShift'
+                parameter.(params{p}).mean = parameter.(params{p}).mean(1:basisFunctions+1);
+                parameter.(params{p}).SD = parameter.(params{p}).SD(1:basisFunctions+1);
+                %Remove water
+                parameter.(params{p}).mean(10) =[];
+                parameter.(params{p}).SD(10) =[];
+            case 'metAmpl'
+                parameter.(params{p}).mean = [parameter.(params{p}).mean(1:basisFunctions+1); parameter.(params{p}).mean(28:end)];
+                parameter.(params{p}).SD = [parameter.(params{p}).SD(1:basisFunctions+1); parameter.(params{p}).SD(28:end)];
+                %Remove water
+                parameter.(params{p}).mean(10) =[];
+                parameter.(params{p}).SD(10) =[];
+        end
+        
+    end
+else
+    for p = 1 : length(params)
+        switch params{p}
+            case 'lorentzLB'
+                %Remove water
+                parameter.(params{p}).mean(10) =[];
+                parameter.(params{p}).SD(10) =[];
+            case 'freqShift'
+                %Remove water
+                parameter.(params{p}).mean(10) =[];
+                parameter.(params{p}).SD(10) =[];
+            case 'metAmpl'
+                %Remove water
+                parameter.(params{p}).mean(10) =[];
+                parameter.(params{p}).SD(10) =[];
+        end
+        
+    end
 end
 
 for gg = 1 : NoGroups
@@ -257,35 +345,58 @@ end
 % Let's replace the anti-correlated amplitudes to create more realisitc
 % results.
 if changedComb
-    par.ampl(:,13) = (par.metAmpl(:,28) + par.metAmpl(:,29))/2; %NAA+NAAG
-    par.metAmpl(:,14) = (par.metAmpl(:,28) - par.metAmpl(:,29))/2; %NAA+NAAG
-    par.metAmpl(:,3) = (par.metAmpl(:,30) + par.metAmpl(:,31))/2; %Cr+PCr
-    par.metAmpl(:,16) = (par.metAmpl(:,30) - par.metAmpl(:,31))/2; %Cr+PCr
-    par.metAmpl(:,15) = (par.metAmpl(:,32) + par.metAmpl(:,33))/2; %PCh+GPC
-    par.metAmpl(:,6) = (par.metAmpl(:,32) - par.metAmpl(:,33))/2; %PCh+GPC
-    par.metAmpl(:,9) = (par.metAmpl(:,34) + par.metAmpl(:,35))/2; %Glu+Gln
-    par.metAmpl(:,8) = (par.metAmpl(:,34) - par.metAmpl(:,35))/2; %Glu+Gln
+    par.ampl(:,12) = (par.metAmpl(:,27) + par.metAmpl(:,28))/2; %NAA+NAAG
+    par.metAmpl(:,13) = (par.metAmpl(:,27) - par.metAmpl(:,28))/2; %NAA+NAAG
+    par.metAmpl(:,3) = (par.metAmpl(:,29) + par.metAmpl(:,30))/2; %Cr+PCr
+    par.metAmpl(:,15) = (par.metAmpl(:,29) - par.metAmpl(:,30))/2; %Cr+PCr
+    par.metAmpl(:,14) = (par.metAmpl(:,31) + par.metAmpl(:,32))/2; %PCh+GPC
+    par.metAmpl(:,6) = (par.metAmpl(:,31) - par.metAmpl(:,32))/2; %PCh+GPC
+    par.metAmpl(:,9) = (par.metAmpl(:,33) + par.metAmpl(:,34))/2; %Glu+Gln
+    par.metAmpl(:,8) = (par.metAmpl(:,33) - par.metAmpl(:,34))/2; %Glu+Gln
 else
     for kk = 1 : MRSCont.nDatasets * NoGroups
-        if (par.metAmpl(kk,28) - par.metAmpl(kk,14)) > 0
-            par.metAmpl(kk,13) = par.metAmpl(kk,28) - par.metAmpl(kk,14); %NAA+NAAG
+        if basisFunctions == 26
+            if (par.metAmpl(kk,27) - par.metAmpl(kk,13)) > 0
+                par.metAmpl(kk,12) = par.metAmpl(kk,27) - par.metAmpl(kk,13); %NAA+NAAG
+            else
+                par.metAmpl(kk,13) = par.metAmpl(kk,27) - par.metAmpl(kk,12); %NAA+NAAG
+            end
+            if (par.metAmpl(kk,29) - par.metAmpl(kk,15)) > 0
+                par.metAmpl(kk,3) = par.metAmpl(kk,29) -  par.metAmpl(kk,15); %Cr+PCr
+            else
+                par.metAmpl(kk,15) = par.metAmpl(kk,29) -  par.metAmpl(kk,3); %Cr+PCr
+            end
+            if (par.metAmpl(kk,31) - par.metAmpl(kk,6)) > 0
+                par.metAmpl(kk,14) = par.metAmpl(kk,31) - par.metAmpl(kk,6); %PCh+GPC
+            else
+                par.metAmpl(kk,6) = par.metAmpl(kk,31) - par.metAmpl(kk,14); %PCh+GPC
+            end
+            if (par.metAmpl(kk,33) - par.metAmpl(kk,8)) > 0
+                par.metAmpl(kk,9) = par.metAmpl(kk,33) - par.metAmpl(kk,8); %Glu+Gln
+            else
+                par.metAmpl(kk,8) = par.metAmpl(kk,33) - par.metAmpl(kk,9); %Glu+Gln
+            end
         else
-            par.metAmpl(kk,14) = par.metAmpl(kk,28) - par.metAmpl(kk,13); %NAA+NAAG
-        end
-        if (par.metAmpl(kk,30) - par.metAmpl(kk,16)) > 0
-            par.metAmpl(kk,3) = par.metAmpl(kk,30) -  par.metAmpl(kk,16); %Cr+PCr
-        else
-            par.metAmpl(kk,16) = par.metAmpl(kk,30) -  par.metAmpl(kk,3); %Cr+PCr
-        end
-        if (par.metAmpl(kk,32) - par.metAmpl(kk,6)) > 0
-            par.metAmpl(kk,15) = par.metAmpl(kk,32) - par.metAmpl(kk,6); %PCh+GPC
-        else
-            par.metAmpl(kk,6) = par.metAmpl(kk,32) - par.metAmpl(kk,15); %PCh+GPC
-        end
-        if (par.metAmpl(kk,34) - par.metAmpl(kk,8)) > 0
-            par.metAmpl(kk,9) = par.metAmpl(kk,34) - par.metAmpl(kk,8); %Glu+Gln
-        else
-            par.metAmpl(kk,8) = par.metAmpl(kk,34) - par.metAmpl(kk,9); %Glu+Gln
+            if (par.metAmpl(kk,20) - par.metAmpl(kk,13)) > 0
+                par.metAmpl(kk,12) = par.metAmpl(kk,20) - par.metAmpl(kk,13); %NAA+NAAG
+            else
+                par.metAmpl(kk,13) = par.metAmpl(kk,20) - par.metAmpl(kk,12); %NAA+NAAG
+            end
+            if (par.metAmpl(kk,22) - par.metAmpl(kk,15)) > 0
+                par.metAmpl(kk,3) = par.metAmpl(kk,22) -  par.metAmpl(kk,15); %Cr+PCr
+            else
+                par.metAmpl(kk,15) = par.metAmpl(kk,22) -  par.metAmpl(kk,3); %Cr+PCr
+            end
+            if (par.metAmpl(kk,24) - par.metAmpl(kk,6)) > 0
+                par.metAmpl(kk,14) = par.metAmpl(kk,14) - par.metAmpl(kk,6); %PCh+GPC
+            else
+                par.metAmpl(kk,6) = par.metAmpl(kk,24) - par.metAmpl(kk,14); %PCh+GPC
+            end
+            if (par.metAmpl(kk,26) - par.metAmpl(kk,8)) > 0
+                par.metAmpl(kk,9) = par.metAmpl(kk,26) - par.metAmpl(kk,8); %Glu+Gln
+            else
+                par.metAmpl(kk,8) = par.metAmpl(kk,26) - par.metAmpl(kk,9); %Glu+Gln
+            end
         end
     end
 end
@@ -305,21 +416,21 @@ if zeroed.gaussLB
     par.gaussLB =  zeros(MRSCont.nDatasets,1);
 end
 if sum(zeroed.lorentzLB) > 0
-    for m = 1 : 27
+    for m = 1 : basisFunctions
         if zeroed.lorentzLB(m)
             par.lorentzLB(:,m) = zeros(MRSCont.nDatasets,1);
         end
     end
 end
 if sum(zeroed.freqShift) > 0
-    for m = 1 : 27
+    for m = 1 : basisFunctions
         if zeroed.freqShift(m)
             par.freqShift(:,m) = zeros(MRSCont.nDatasets,1);
         end
     end
 end
 if sum(zeroed.metAmpl) > 0
-    for m = 1 : 35
+    for m = 1 : basisFunctions+8
         if zeroed.metAmpl(m)
             par.metAmpl(:,m) = zeros(MRSCont.nDatasets,1);
         end
@@ -335,8 +446,8 @@ end
 
 %% Overwrite parameters
 if length(parameter.metabolite_names) > 1
-    nBasis = 27;
-    nCombs = 35;
+    nBasis = basisFunctions;
+    nCombs = basisFunctions+8;
 else
     nBasis = 1;
     nCombs = 1;
@@ -416,10 +527,12 @@ if isfield(par,'baseAmpl')
                 for bb = 1 : length(parameter.basisSet)
                     TEs(bb) = resBASIS{bb}.te;
                 end
-                expectation = ones(MRSCont.nDatasets,length(par.baseAmpl)) .* normrnd(22,1.5,MRSCont.nDatasets,1);
+                expectation = ones(MRSCont.nDatasets,length(par.baseAmpl)) .* normrnd(parameter.indirDim.expectation.meanBS,parameter.indirDim.expectation.SDBS,MRSCont.nDatasets,1);
                 baseAmpl_factors = exp(-permute(repmat(repmat(TEs,[length(par.baseAmpl) 1]),[1 1 MRSCont.nDatasets]),[3 1 2]) ./ repmat(expectation, [1 1 length(parameter.basisSet)]));
                 baseAmpl_factors_norm = baseAmpl_factors ./ baseAmpl_factors(:,:,1);
                 par.indirDim.expectationBase = expectation;
+            case 'averages'
+                baseAmpl_factors_norm = ones([size(par.baseAmpl) parameter.indirDim.length]);
         end
     else
         baseAmpl_factors_norm = ones(size(par.baseAmpl));
@@ -488,6 +601,7 @@ for kk = 1 : MRSCont.nDatasets
         % Run the time-domain operations on the metabolite basis functions
         % (frequency shift, Lorentzian dampening, Gaussian dampening, zero phase shift)
         ppm_ax = basisSet.ppm;
+        area = sum(real(basisSet.specs(:,3)));
         t = basisSet.t;
         for ii=1:nBasisFcts
             basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB*gaussLB.*t.*t)' .* exp(1i.*ph1.*ppm_ax);    
@@ -511,12 +625,23 @@ for kk = 1 : MRSCont.nDatasets
     
         % Apply phasing to the spline basis functions
         if isfield(par,'baseAmpl')  && sum(par.baseAmpl(kk,:)) > 0
+            if ~gaussianBaseline
             [splineArrayToAdd] = fit_makeSplineBasis(dataToFit, [0.5 4], 0.4, 0);
             Bsp = [splineArrayToAdd(:,:,1) + 1i*splineArrayToAdd(:,:,2)];
             B = zeros(2048,12);
             B(ppm_ax>0.5 & ppm_ax < 4,:) = Bsp;
             B = B  * exp(1i*ph0);
             B = B .* exp(1i*ph1*ppm_ax);
+            else
+             ppms_peak = linspace(0.5,4,12);
+             for bsk = 1 : 12    
+                 peak     = op_gaussianPeak(basisSet.n,basisSet.spectralwidth,basisSet.Bo,4.7,0.35*basisSet.Bo*42.577,ppms_peak(bsk),3*area/16.5);
+                 peak     = op_dccorr(peak,'p');
+                 B(:,bsk) = peak.specs;
+             end
+             B = B  * exp(1i*ph0);
+             B = B .* exp(1i*ph1*ppm_ax);
+            end
         end
     
     
@@ -538,18 +663,24 @@ for kk = 1 : MRSCont.nDatasets
 
         % Calculate the final baseline ans sum up everything
         if isfield(par,'baseAmpl')  && sum(par.baseAmpl(kk,:)) > 0
-            baseline    = B * beta_j(2:end-1)';
+            if size(B,3) == size(beta_j,3)
+                baseline    = B * beta_j(2:end-1)';
+            else                
+                baseline = repmat(B , [1 1 parameter.indirDim.length]) .* repmat(beta_j(1,2:end-1,:), [2048 1 1]);
+                baseline = squeeze(sum(baseline,2));
+            end
         else
             baseline = 0;
         end
         if size(A,3) == size(ampl,3)
-            spectrum = A * ampl' + baseline;
+            spectrum = A * ampl';
         else
-           spectrum = repmat(A , [1 1 parameter.indirDim.length]) .* repmat(ampl, [2048 1 1]) + baseline;
+           spectrum = repmat(A , [1 1 parameter.indirDim.length]) .* repmat(ampl, [2048 1 1]);
         end
         if ndims(spectrum) == 3
             spectrum = squeeze(sum(spectrum,2));
         end
+        spectrum = spectrum + baseline;
        
        
 
@@ -626,7 +757,9 @@ for kk = 1 : MRSCont.nDatasets
                     MRSCont.processed.metab{kk}.flags.averaged=0;
             end
             peak_spec = op_freqrange(MRSCont.processed.metab{kk},SigRange(1),SigRange(2));
-            peak_spec = op_averaging(peak_spec);
+            if strcmp(parameter.indirDim.function,'averages')
+                peak_spec = op_averaging(peak_spec);
+            end
             peak_max = max(real(peak_spec.specs(:,1)));
             noise_ampl = peak_max/par.SNR(kk);
             noise_amplitude = noise_ampl * 1/sqrt(2048) * sqrt(MRSCont.processed.metab{kk}.sz(2)); % Remove scaling from ifft in MATLAB

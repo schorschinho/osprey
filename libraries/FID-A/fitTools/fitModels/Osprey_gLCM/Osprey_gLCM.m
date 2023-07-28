@@ -1,8 +1,9 @@
-function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, average, NumericJacobian, CheckGradient, BasisSetStruct)
+function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, average, noZF, NumericJacobian, CheckGradient, BasisSetStruct)
 %% Global function for new Osprey LCM
 % Inputs:   DataToModel     - FID-A/Osprey struct with data or cell of structs
 %           JsonModelFile   - Master model file for all steps
 %           average         - average data prior to modeling (NIfTI-MRS only)
+%           noZF            - avoid zero-filling
 %           NumericJacobian - use numerical jacobian flag
 %           CheckGradient   - Do a gradient check in the lsqnonlin solver
 %           BasisSetStruct  - Include predefined basisset struct
@@ -14,8 +15,9 @@ arguments
     % Argument validation introduced in relatively recent MATLAB versions
     % (2019f?)
     DataToModel {isStructOrCell}
-    JsonModelFile string
+    JsonModelFile {isCharOrStruct}
     average double {mustBeNumeric} = 0;             % optional
+    noZF double {mustBeNumeric} = 0;                % optional
     NumericJacobian double {mustBeNumeric} = 0;     % optional
     CheckGradient double {mustBeNumeric} = 0;       % optional
     BasisSetStruct struct = [];                     % optional
@@ -32,23 +34,33 @@ end
 
 % Read the json file and generate a ModelProcedure struct from it which will guide the
 % rest of the analysis. Catch missing parameters here?
-ModelProcedure = jsonToStruct(JsonModelFile);
-if isstruct(ModelProcedure.Steps)
-    ModelProcedureCell = cell(size(ModelProcedure.Steps));
-    for ss = 1 : size(ModelProcedure.Steps,1)
-        ModelProcedureCell{ss} = ModelProcedure.Steps(ss,:);
+if ~isstruct(JsonModelFile)                                                   %Parsed as json file
+    ModelProcedure = jsonToStruct(JsonModelFile);
+    if isstruct(ModelProcedure.Steps)
+        ModelProcedureCell = cell(size(ModelProcedure.Steps));
+        for ss = 1 : size(ModelProcedure.Steps,1)
+            ModelProcedureCell{ss} = ModelProcedure.Steps(ss,:);
+        end
+        ModelProcedure.Steps = ModelProcedureCell;
     end
-    ModelProcedure.Steps = ModelProcedureCell;
+else
+    ModelProcedure  = JsonModelFile;
 end
 
 % Check if the R part is used for optimization and a factor 2 zerofilling
 zf = 0;
 for ss = 1 : length(ModelProcedure.Steps)
+    if ~isfield(ModelProcedure.Steps{ss},'fit_opts')
+        ModelProcedure.Steps{ss}.fit_opts.optimSignalPart = 'R';
+    end
     if isfield(ModelProcedure.Steps{ss}.fit_opts,'optimSignalPart')
         if strcmp(ModelProcedure.Steps{ss}.fit_opts.optimSignalPart,'R')
-            zf = 0;
+            zf = 1;
         end
     end
+end
+if noZF                                                                     % Overwrite zero-fill
+    zf = 0;
 end
 
 %% 2. Prepare basisset matrix (and export as NII)
@@ -61,6 +73,17 @@ if isempty(BasisSetStruct)                                                  % Us
         basisSet = basisSet.BASIS;
         basisSet = recalculateBasisSpecs(basisSet);                         % Add ppm axis and frequency domain data
         basisSet = fit_sortBasisSet(basisSet);                              % Sort according to Osprey standard
+        if isfield(ModelProcedure.basisset,'opts')                          % Apply options to basis, e.g. pick subspectra
+            if isfield(ModelProcedure.basisset.opts,'index')               % Index for subspectra
+                basisSet.fids = basisSet.fids(:,:,ModelProcedure.basisset.opts.index);  % Pick fids according to index
+                basisSet.specs = basisSet.specs(:,:,ModelProcedure.basisset.opts.index); % Pick specs according to index
+                basisSet.sz = size(basisSet.fids);                              % Recalculate size entry
+                try
+                    basisSet.nExtra = basisSet.sz(3);                               % Update extra dimension
+                catch
+                end
+            end
+        end
     else
         for bb = 1 : length(ModelProcedure.basisset.file)
             if bb == 1
@@ -95,13 +118,15 @@ else
 end
 
 %% 2.a Generate MM/Lip basis functions
-if isfield(ModelProcedure.Steps{1}.basisset, 'mmdef')                       %Overwrite if defined
+if isfield(ModelProcedure.basisset, 'mmdef') && ~isempty(ModelProcedure.basisset.mmdef)                    %Overwrite if defined
+    ModelProcedure.basisset.mmdef{1} = 'which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))';
+
     % First, we'll remove any MM or lipid basis functions that may be in the
     % input basis set (to avoid duplication)
     basisSet = scrubMMLipFromBasis(basisSet);
-
+    
     % Read out MM/Lip configuration file and create matching
-    MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{1}.basisset.mmdef{1}));
+    MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.basisset.mmdef{1}));
     [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
     % Join basis sets together
     basisSet = joinBasisSets(basisSet, basisSim);
@@ -134,32 +159,53 @@ for kk = 1 : length(DataToModel)
     end
     for ss = 1 : length(ModelProcedure.Steps)
         opts = [];                                                                      % we have to clean older steps out
+        if isfield(ModelProcedure.Steps{ss},'fit_opts')
+            opts  = ModelProcedure.Steps{ss}.fit_opts;
+        end
         % Setup options from model procedure json file
-        opts.ModelFunction      = ModelProcedure.Steps{ss}.ModelFunction;               % get model function
-        opts.baseline           = ModelProcedure.Steps{ss}.fit_opts.baseline;           % setup baseline options
-        opts.optimDomain        = ModelProcedure.Steps{ss}.fit_opts.optimDomain;        % do the least-squares optimization in the frequency domain
-        opts.optimSignalPart    = ModelProcedure.Steps{ss}.fit_opts.optimSignalPart;    % do the least-squares optimization over the real part of the spectrum
-        opts.optimFreqFitRange  = ModelProcedure.Steps{ss}.fit_opts.ppm;                % set the frequency-domain fit range to the fit range specified in the Osprey container
-        opts.solver             = ModelProcedure.Steps{ss}.fit_opts.solver;             % set the solver specified in the Osprey container
-        opts.NumericJacobian    = NumericJacobian;                                      % Use numerical jacobian instead of the analytical jacobian
-        opts.CheckGradient      = CheckGradient;                                        % Do a gradient check in the lsqnonlin solver
-
-        if isfield(ModelProcedure.Steps{ss}.fit_opts,'InitialPick')
-            opts.InitialPick  = ModelProcedure.Steps{ss}.fit_opts.InitialPick;          % Do initial fit on specific spectrum
+        if isfield(ModelProcedure.Steps{ss},'ModelFunction')
+            opts.ModelFunction      = ModelProcedure.Steps{ss}.ModelFunction;           % get model function
+        else
+            opts.ModelFunction      = 'GeneralizedBasicPhysicsModel';                   % set default model function
         end
         if isfield(ModelProcedure.Steps{ss},'parameter')
             opts.parameter  = ModelProcedure.Steps{ss}.parameter;                       % specify parametrizations constructor
+        else
+            opts.parameter  = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl'}; % set default parametrizations constructor
         end
+
+        if ~isfield(opts,'solver')
+            opts.solver             = 'lsqnonlin';                                  % set default solver
+        end       
         if isfield(ModelProcedure.Steps{ss},'parametrizations')
             opts.parametrizations  = ModelProcedure.Steps{ss}.parametrizations;         % specify parametrizations constructor
             parameter = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl'};
             opts.parametrizations  = orderfields(opts.parametrizations,parameter(ismember(parameter, fieldnames(opts.parametrizations)))); % order struct names according to standard
         end
-        if isfield(DataToModel{kk},'FWHM') && ss == 1
+        if ~isfield(ModelProcedure.Steps{ss},'basisset')                       % which basis functions to include
+            ModelProcedure.Steps{ss}.basisset.spec = 1;
+            ModelProcedure.Steps{ss}.basisset.include = {'Asc','Asp','Cr','CrCH2','GABA','GPC','GSH','Gln','Glu','mI','Lac','NAA',...
+                                                        'NAAG','PCh','PCr','PE','sI','Tau','Lip13a','Lip13b','Lip13c','Lip13d', 'Lip09','MM09','Lip20','MM12','MM14','MM17','MM20'};
+        else
+            if ~isfield(ModelProcedure.Steps{ss}.basisset, 'include')
+            ModelProcedure.Steps{ss}.basisset.include = {'Asc','Asp','Cr','CrCH2','GABA','GPC','GSH','Gln','Glu','mI','Lac','NAA',...
+                                                         'NAAG','PCh','PCr','PE','sI','Tau','Lip13a','Lip13b','Lip13c','Lip13d', 'Lip09','MM09','Lip20','MM12','MM14','MM17','MM20'};
+            end
+            if ~isfield(ModelProcedure.Steps{ss}.basisset, 'spec')
+                ModelProcedure.Steps{ss}.basisset.spec = 1;
+            end
+        end
+        if isfield(DataToModel{kk},'FWHM') && ss == 1                                   % get inital FWHM estimate 
             opts.parametrizations.gaussLB.init = DataToModel{kk}.FWHM;
         end
-        if ModelProcedure.Steps{ss}.extra.flag == 1 && isfield(ModelProcedure.Steps{ss}.extra,'DynamicModelJson')
-            opts.paraIndirect  = jsonToStruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson); % specify parametrizations constructor for indirect dimension
+        if isfield(ModelProcedure.Steps{ss}, 'extra')                                   % Is 2D model
+            if ModelProcedure.Steps{ss}.extra.flag == 1 && isfield(ModelProcedure.Steps{ss}.extra,'DynamicModelJson')
+                if ~isstruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson)                                               %Parsed as json file
+                    opts.paraIndirect  = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{ss}.extra.DynamicModelJson)); % specify parametrizations constructor for indirect dimension
+                else
+                    opts.paraIndirect = ModelProcedure.Steps{ss}.extra.DynamicModelJson;
+                end
+            end
         end
         if strcmp(ModelProcedure.Steps{ss}.module,'OptimReg')                           % Change tolerance values (good for regularization)
             opts.FunctionTolerance = 1e-3;
@@ -170,7 +216,8 @@ for kk = 1 : length(DataToModel)
             opts.StepTolerance = 1e-10;
             opts.OptimalityTolerance = 1e-10;
         end
-
+        opts.NumericJacobian    = NumericJacobian;                                      % Use numerical jacobian instead of the analytical jacobian
+        opts.CheckGradient      = CheckGradient;                                        % Do a gradient check in the lsqnonlin solver
 
         clc
         fprintf('Running model procedure step %i. \n', ss);
@@ -230,24 +277,9 @@ function isStructOrCell(f)
 assert(iscell(f) || isstruct(f));
 end
 
-function out_str = ConvertRelativePath(in_str)
-if strcmp(in_str(1:5),'which')                                          % Full path is not given we have to eval
-    strdef = append('out_str = ', in_str, ';');
-    pattern = "''"; % Match find double quotes
-    replacement = "'"; % Replace the matched string with just a quote
-    strdef = regexprep(strdef, pattern, replacement);
-    eval(strdef);
-else
-    out_str = in_str;
+function isCharOrStruct(f)
+assert(ischar(f) || isstruct(f));
 end
-
-
-if ~isfile(out_str) && ~isempty(out_str)                                % Intercept if file doesn't exist
-    error('basis file %s does not exist.', out_str);
-end
-
-end
-
 
 function fwhm = measureFWHM(ppm, fid)
 % Measures FWHM of singlet signal

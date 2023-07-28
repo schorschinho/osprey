@@ -123,7 +123,7 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
 
     if ~isempty(NoiseSD)                                                    % Don't normalize residual if GradientCheck is performed
         Sigma = NoiseSD;                                                    % Get sigma squared
-        Sigma = repmat(Sigma, [size(data,1) 1]);              % Repeat according to dimensions
+        Sigma = repmat(Sigma, [size(residual,1) 1]);              % Repeat according to dimensions
         residual = residual ./ Sigma;                                       % Normalize residual
         if size(regu,1) > 0                                                 % Has regularizer
             Sigma = NoiseSD;                                                % Get sigma squared
@@ -364,7 +364,9 @@ function jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitR
             [dYdlorentzLB]  = addParameterRegularization(dYdlorentzLB,'lorentzLB', parametrizations,lorentzLB,1); % Add regularizer to lorentzLB parameter
             [dYdfreqShift]  = addParameterRegularization(dYdfreqShift,'freqShift', parametrizations,freqShift,1); % Add regularizer to freqShift parameter
             [dYdmetAmpl]    = addParameterRegularization(dYdmetAmpl,'metAmpl', parametrizations,metAmpl,1); % Add regularizer to metAmpl parameter
-            [dYdbaseAmpl]   = addParameterRegularization(dYdbaseAmpl,'baseAmpl', parametrizations,baseAmpl,1); % Add regularizer to baseAmpl parameter
+            if nBaselineComps ~= 0
+                [dYdbaseAmpl]   = addParameterRegularization(dYdbaseAmpl,'baseAmpl', parametrizations,baseAmpl,1); % Add regularizer to baseAmpl parameter
+            end
         end
     end                                                                     % End loop over indirect dimension
 
@@ -377,7 +379,9 @@ function jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitR
         [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for lorentzLB parameter
         [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for freqShift parameter
         [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for metAmpl parameter
-        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,NoiseSD);  % Update jacobian block for baseAmpl parameter
+        if nBaselineComps ~= 0
+            [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,NoiseSD);  % Update jacobian block for baseAmpl parameter
+        end
     end
 
     if nBaselineComps ~= 0                                                  % Has baseline?
@@ -414,7 +418,13 @@ function jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitR
         tempTerm = [];                                                      % Initialize empty vector to collect the entries for the Jacobian
         for pp = 1:length(params)
             [~,penaltyJac] = calcPenalty(inputParams, parametrizations, params{pp}, sD);
-            tempTerm = cat(2,tempTerm,penaltyJac);
+            if ~strcmp(params{pp},'baseAmpl')                               % The baseline parameter might be empty
+                tempTerm = cat(2,tempTerm,penaltyJac);                      % Add penalty term
+            else
+                if nBaselineComps ~= 0                                      % Add penalty term if baseline is f
+                    tempTerm = cat(2,tempTerm,penaltyJac);
+                end
+            end
         end
 
         dYdpen = diag(tempTerm);                                            % Copy to diagonal matrix (derivatives only affect each parameter itself, others are zero!)
@@ -534,7 +544,14 @@ function [Y, baseline, metabs, regu, penaltyTerm] = forwardModel(x, basisSet, ba
         tempTerm = [];                                                      % Initialize empty vector to collect the penalties for each parameter
         for pp = 1:length(params)
             penalty = calcPenalty(inputParams, parametrizations, params{pp}, sD);
-            tempTerm = cat(2,tempTerm,penalty);
+            if ~strcmp(params{pp},'baseAmpl')                               % The baseline parameter might be empty
+                tempTerm = cat(2,tempTerm,penalty);                         % Add penalty term
+            else
+                if ~isempty(bl)                                             % Add penalty term if baseline is f
+                    tempTerm = cat(2,tempTerm,penalty);
+                end
+            end
+
         end
 
         penaltyTerm(:,1) = tempTerm;                                        % Save as one concatenated vector of penalties to be appended to the residual
@@ -760,9 +777,11 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
 
     if ~isempty(NoiseSD)
         Sigma = NoiseSD;                                                    % Get sigma
-        Sigma = repmat(Sigma, [nPoints nLines 1]);                          % Repeat according to dimensions
+        Sigma = repmat(Sigma', [1 nPoints nLines]);                         % Repeat according to dimensions
+        Sigma = permute(Sigma,[2 3 1]);                                     % Dims have to be nPoints nLines secDim
+        Sigma = squeeze(Sigma);                                             % Remove zero dimensions
         dYdX = squeeze(dYdX);                                               % Remove zero dimensions
-        dYdX(:,:) = dYdX(:,:,:) ./ Sigma;                                   % Normalize jacobian
+        dYdX(:,:,:) = dYdX(:,:,:) ./ Sigma;                                   % Normalize jacobian
     end
 
     % Free parametrizations need to add secDim copies to the jacobian and
@@ -818,8 +837,10 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
             if strcmp(parametrizations.(parameterName).type,'fixed')
                 dYdX = permute(dYdX,[1 3 2]);
             end
-            if strcmp(parameterName,'baseAmpl') || strcmp(parameterName,'metAmpl') || strcmp(parameterName,'freqShift') || strcmp(parameterName,'lorentzLB')
+            if ~(strcmp(parameterName,'baseAmpl') || strcmp(parameterName,'metAmpl') || strcmp(parameterName,'freqShift') || strcmp(parameterName,'lorentzLB'))
                 nLines = secDim;
+            else
+                % dYdX = permute(dYdX,[1 3 2]);              
             end
             dYdX = reshape(dYdX,[],nLines);
         case  4 % E.g. free metAmpls

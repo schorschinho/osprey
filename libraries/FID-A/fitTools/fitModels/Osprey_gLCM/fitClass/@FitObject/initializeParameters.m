@@ -197,11 +197,11 @@ switch parameter                                            % Parameter switch w
         % Initialize frequency shifts as constant with value 0 Hz
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
-        parametrizations.lb      = -4;
-        parametrizations.ub      = 4;
+        parametrizations.lb      = -10;
+        parametrizations.ub      = 10;
         parametrizations.init    = 0;
         parametrizations.ex      = 0;
-        parametrizations.sd      = Inf;
+        parametrizations.sd      = 3;
         parametrizations.RegFun  = '';
 
     case 'metAmpl'
