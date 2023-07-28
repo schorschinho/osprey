@@ -99,8 +99,8 @@ if isfield(ModelProcedure.Steps{1}.basisset, 'mmdef')                       %Ove
     % First, we'll remove any MM or lipid basis functions that may be in the
     % input basis set (to avoid duplication)
     basisSet = scrubMMLipFromBasis(basisSet);
-    
-    % Read out MM/Lip configuration file and create matching 
+
+    % Read out MM/Lip configuration file and create matching
     MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{1}.basisset.mmdef{1}));
     [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
     % Join basis sets together
@@ -250,7 +250,7 @@ end
 
 
 function fwhm = measureFWHM(ppm, fid)
-% Measures FWHM of singlet signal 
+% Measures FWHM of singlet signal
 spec = fftshift(fft(fid));
 [maxAmp, maxIdx] = max(real(spec));
 halfMax = maxAmp/2;

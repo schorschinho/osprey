@@ -350,14 +350,14 @@ function jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitR
 
 
     if Reg                                                                  % Add parameter regularization
-        for sD = 1 : secDim                                                 % Loop over indirect dimension 
-            ph0             = squeeze(inputParams.ph0(sD));                 % Get ph0 parameter
-            ph1             = squeeze(inputParams.ph1(sD));                 % Get ph1 parameter
-            gaussLB         = squeeze(inputParams.gaussLB(sD,:));           % Get gaussLB parameter
-            lorentzLB       = squeeze(inputParams.lorentzLB(sD,:));         % Get lorentzLB parameter
-            freqShift       = squeeze(inputParams.freqShift(sD,:));         % Get freqShift parameter
-            metAmpl         = squeeze(inputParams.metAmpl(sD,:))';          % Get metAmpl parameter
-            baseAmpl        = squeeze(inputParams.baseAmpl(sD,:))';         % Get baseAmpl parameter
+        for sD = 1 : secDim                                                 % Loop over indirect dimension
+            ph0 = squeeze(inputParams.ph0(sD));                             % Get ph0 parameter
+            ph1 = squeeze(inputParams.ph1(sD));                             % Get ph1 parameter
+            gaussLB = squeeze(inputParams.gaussLB(sD,:));                   % Get gaussLB parameter
+            lorentzLB = squeeze(inputParams.lorentzLB(sD,:));               % Get lorentzLB parameter
+            freqShift = squeeze(inputParams.freqShift(sD,:));               % Get freqShift parameter
+            metAmpl = squeeze(inputParams.metAmpl(sD,:))';                  % Get metAmpl parameter
+            baseAmpl = squeeze(inputParams.baseAmpl(sD,:))';                % Get baseAmpl parameter
             [dYdph0]        = addParameterRegularization(dYdph0,'ph0', parametrizations,ph0,1); % Add regularizer to ph0 parameter
             [dYdph1]        = addParameterRegularization(dYdph1,'ph1', parametrizations,ph1,1); % Add regularizer to ph1 parameter
             [dYdgaussLB]    = addParameterRegularization(dYdgaussLB,'gaussLB', parametrizations,gaussLB,1); % Add regularizer to gaussLB parameter
@@ -801,8 +801,8 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
         for rp = 1 : length(parametrizations.(parameterName).parameterNames)
             dYdX = cat(4,dYdX,dYdXOrginal .* factor(:,:,:,rp));
         end
-        dYdX = squeeze(dYdX);                                               % Remove length 1 dims
-        if ndims(dYdX) ==3                                                  % Dims have to be nPoints secDim nLines*nPars 
+        dYdX = squeeze(dYdX);                                               %Remove length 1 dims
+        if ndims(dYdX) ==3                                                  % Dims have to be nPoints secDim nLines*nPars
             dYdX = permute(dYdX,[1 3 2]);
             secDim = size(dYdX,3);
         else

@@ -1,0 +1,49 @@
+{
+  "basisset": {
+    "file": [
+        "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''30'',''basis_philips_press30.mat''))"
+    ],
+    "mmdef": [
+      "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
+    ]
+  },
+  "Steps": [
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "sI"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          0.5,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "none"
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "gaussLB": {
+          "init": 5.70
+        },
+        "lorentzLB": {
+          "init": 2.42
+        }
+      }
+    }
+  ]
+}

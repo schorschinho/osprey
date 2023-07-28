@@ -1,0 +1,27 @@
+{
+  "parameters": {
+  "ph0": {
+      "type": "fixed"
+    },
+  "ph1": {
+      "type": "fixed"
+    },
+  "gaussLB": {
+      "type": "fixed",
+      "init": 5.70
+    },
+  "baseAmpl": {
+      "type": "fixed"
+    },
+  "metAmpl": {
+      "type": "fixed"
+    },
+  "freqShift": {
+      "type": "fixed"
+    },
+  "lorentzLB": {
+      "type": "fixed",
+      "init": 2.42
+    }
+  }
+}
