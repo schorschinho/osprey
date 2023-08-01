@@ -41,6 +41,7 @@ classdef FitObject < handle
         NoiseSD = [];                                                       % Initialize noise SD estimate
         Options = {struct};                                                 % Initialize options array
         Model = {struct};                                                   % Initialize model array
+        scale = [];                                                         % Initialize scale parameter
     end
 
 %% Define OspreyFitObj methods  
