@@ -1,9 +1,10 @@
-function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, average, noZF, NumericJacobian, CheckGradient, BasisSetStruct)
+function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, average, noZF, scaleData, NumericJacobian, CheckGradient, BasisSetStruct)
 %% Global function for new Osprey LCM
 % Inputs:   DataToModel     - FID-A/Osprey struct with data or cell of structs
 %           JsonModelFile   - Master model file for all steps
 %           average         - average data prior to modeling (NIfTI-MRS only)
 %           noZF            - avoid zero-filling
+%           scaleData       - Do data to basis scaling or apply scale factor
 %           NumericJacobian - use numerical jacobian flag
 %           CheckGradient   - Do a gradient check in the lsqnonlin solver
 %           BasisSetStruct  - Include predefined basisset struct
@@ -18,6 +19,7 @@ arguments
     JsonModelFile {isCharOrStruct}
     average double {mustBeNumeric} = 0;             % optional
     noZF double {mustBeNumeric} = 0;                % optional
+    scaleData double {mustBeNumeric} = 0;           % optional
     NumericJacobian double {mustBeNumeric} = 0;     % optional
     CheckGradient double {mustBeNumeric} = 0;       % optional
     BasisSetStruct struct = [];                     % optional
@@ -117,6 +119,18 @@ else
     basisSet.nExtra = 0;                                                    % Normally has no extra dimension
 end
 
+if length(scaleData) > 1                                                    % The user has supplied a scaling factor for the data               
+    DoDataScaling = 2;                                                      % Aplly scale to data
+else if scaleData ~= 0                                                      % Do we want to perform data scaling?
+        DoDataScaling = 1;                                                  % Apply scale to data
+        if scaleData ~= 1
+            DoDataScaling = 2;
+        end
+    else
+        DoDataScaling = 0;                                                  % No data scaling
+    end
+end
+
 %% 2.a Generate MM/Lip basis functions
 if isfield(ModelProcedure.basisset, 'mmdef') && ~isempty(ModelProcedure.basisset.mmdef)                    %Overwrite if defined
     ModelProcedure.basisset.mmdef{1} = 'which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))';
@@ -157,6 +171,15 @@ for kk = 1 : length(DataToModel)
             DataToModel{kk} 	= temp;
         end
     end
+
+    if DoDataScaling == 2
+        DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                     % apply scale to data 
+    else if DoDataScaling == 1
+         scaleData(kk) = max(real(DataToModel{kk}.specs)) / max(max(max(real(basisSet.specs))));
+         DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                    % apply scale to data
+    end
+    end
+
     for ss = 1 : length(ModelProcedure.Steps)
         opts = [];                                                                      % we have to clean older steps out
         if isfield(ModelProcedure.Steps{ss},'fit_opts')
@@ -255,6 +278,9 @@ for kk = 1 : length(DataToModel)
                 ModelParameter{kk,1}.optimizeRegularization(opts);
             end
         end
+    end
+    if DoDataScaling >= 1                                                   % We did data scaling - so let's store the scale
+        ModelParameter{kk,1}.scale = scaleData(kk);
     end
     DataToModel{kk} 	= [];                                               % Memory efficiency
 end
