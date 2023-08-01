@@ -833,17 +833,21 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
     switch ndims(dYdX)
         case 2   % For fixed parametrizations of ph0, ph1, gaussLB
             dYdX = reshape(dYdX,[],1);
-        case 3   % E.g. linked metAmpls or single basis function case
+        case 3   % E.g. Fixed metAmpls or single basis function case
             if strcmp(parametrizations.(parameterName).type,'fixed')
                 dYdX = permute(dYdX,[1 3 2]);
             end
-            if ~(strcmp(parameterName,'baseAmpl') || strcmp(parameterName,'metAmpl') || strcmp(parameterName,'freqShift') || strcmp(parameterName,'lorentzLB'))
-                nLines = secDim;
-            else
-                % dYdX = permute(dYdX,[1 3 2]);              
+            if strcmp(parametrizations.(parameterName).type,'free')
+                if ~(strcmp(parameterName,'baseAmpl') || strcmp(parameterName,'metAmpl') || strcmp(parameterName,'freqShift') || strcmp(parameterName,'lorentzLB'))
+                    nLines = secDim;
+                else
+                    if nLines == 1          % This is needed for single basis cases
+                        nLines = secDim;
+                    end
+                end
             end
             dYdX = reshape(dYdX,[],nLines);
-        case  4 % E.g. free metAmpls
+        case  4 % E.g. free parametrization of per metabolite parameters
             dYdX = permute(dYdX,[1 3 4 2]);
             dYdX = reshape(dYdX,[],secDim*nLines);
     end
