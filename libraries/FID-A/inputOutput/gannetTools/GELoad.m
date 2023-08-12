@@ -35,6 +35,7 @@ else
     end
 end
 
+
 % RTN 2018
 % Added flexible P-file revision support
 % Values are read from rdb_hdr and image sub-headers
@@ -65,19 +66,19 @@ end
 % float user22      pulse width (-1 default)
 
 switch num2str(rdbm_rev_num)
-    
+
     case '14.3'
-        
+
         % int
         rdb_hdr_off_image   = 377;
         rdb_hdr_off_data    = 368;
         rdb_hdr_ps_mps_freq = 107;
-        
+
         % float
         rdb_hdr_user0  = 55;
         rdb_hdr_user4  = 59;
         rdb_hdr_user19 = 74;
-        
+
         % short
         rdb_hdr_nechoes       = 36;
         rdb_hdr_navs          = 37;
@@ -87,33 +88,29 @@ switch num2str(rdbm_rev_num)
         rdb_hdr_da_yres       = 53;
         rdb_hdr_dab_start_rcv = 101;
         rdb_hdr_dab_stop_rcv  = 102;
-        
+
         % int
         image_te = 181;
         image_tr = 179;
-        
+
         % float
         image_user8  = 38;
-        image_user11 = 41;
         image_user19 = 49;
         image_user20 = 50;
         image_user22 = 52;
-        tlhc         = 121;
-        trhc         = 124;
-        brhc         = 127;
-        
+
     case '16'
-        
+
         % int
         rdb_hdr_off_image   = 377;
         rdb_hdr_off_data    = 368;
         rdb_hdr_ps_mps_freq = 107;
-        
+
         % float
         rdb_hdr_user0  = 55;
         rdb_hdr_user4  = 59;
         rdb_hdr_user19 = 74;
-        
+
         % short
         rdb_hdr_nechoes       = 36;
         rdb_hdr_navs          = 37;
@@ -123,33 +120,29 @@ switch num2str(rdbm_rev_num)
         rdb_hdr_da_yres       = 53;
         rdb_hdr_dab_start_rcv = 101;
         rdb_hdr_dab_stop_rcv  = 102;
-        
+
         % int
         image_te = 193;
         image_tr = 191;
-        
+
         % float
         image_user8  = 50;
-        image_user11 = 53;
         image_user19 = 61;
         image_user20 = 62;
         image_user22 = 64;
-        tlhc         = 133;
-        trhc         = 136;
-        brhc         = 139;
-        
+
     case {'20.006','20.007','24'}
-        
+
         % int
         rdb_hdr_off_image   = 377;
         rdb_hdr_off_data    = 368;
         rdb_hdr_ps_mps_freq = 107;
-        
+
         % float
         rdb_hdr_user0  = 55;
         rdb_hdr_user4  = 59;
         rdb_hdr_user19 = 74;
-        
+
         % short
         rdb_hdr_nechoes       = 36;
         rdb_hdr_navs          = 37;
@@ -159,33 +152,29 @@ switch num2str(rdbm_rev_num)
         rdb_hdr_da_yres       = 53;
         rdb_hdr_dab_start_rcv = 101;
         rdb_hdr_dab_stop_rcv  = 102;
-        
+
         % int
         image_te = 267;
         image_tr = 265;
-        
+
         % float
         image_user8  = 98;
-        image_user11 = 101;
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
-        tlhc         = 181;
-        trhc         = 184;
-        brhc         = 187;
-        
-    case {'26.002','27','27.001','28.002','28.003'}
-        
+
+    case {'26.002','27','27.001','28.002','28.003','30'}
+
         % int
         rdb_hdr_off_image   = 11;
         rdb_hdr_off_data    = 2;
         rdb_hdr_ps_mps_freq = 123;
-        
+
         % float
         rdb_hdr_user0  = 71;
         rdb_hdr_user4  = 75;
         rdb_hdr_user19 = 90;
-        
+
         % short
         rdb_hdr_nechoes       = 74;
         rdb_hdr_navs          = 75;
@@ -195,23 +184,18 @@ switch num2str(rdbm_rev_num)
         rdb_hdr_da_yres       = 91;
         rdb_hdr_dab_start_rcv = 133;
         rdb_hdr_dab_stop_rcv  = 134;
-        
+
         % int
         image_te = 267;
         image_tr = 265;
-        
+
         % float
         image_user8  = 98;
-        image_user11 = 101;
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
-        tlhc         = 181;
-        trhc         = 184;
-        brhc         = 187;
-        
-end
 
+end
 
 % Read rdb header as short, int and float
 fseek(fid, 0, 'bof');
@@ -220,16 +204,6 @@ fseek(fid, 0, 'bof');
 f_hdr_value = fread(fid, rdb_hdr_user19, 'real*4');
 fseek(fid, 0, 'bof');
 i_hdr_value = fread(fid, max(rdb_hdr_off_image, rdb_hdr_ps_mps_freq), 'integer*4');
-fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
-o_hdr_value = fread(fid, brhc+2, 'real*4');
-
-% Save geometry information to header
-hdr.geometry.size       = o_hdr_value(image_user8:image_user8+2)';
-hdr.geometry.pos        = o_hdr_value(image_user11:image_user11+2)';
-
-hdr.geometry.rot.tlhc   = o_hdr_value(tlhc:tlhc+2)';
-hdr.geometry.rot.trhc   = o_hdr_value(trhc:trhc+2)';
-hdr.geometry.rot.brhc   = o_hdr_value(brhc:brhc+2)';
 
 if rdbm_rev_num > 11.0
     pfile_header_size = i_hdr_value(rdb_hdr_off_data);
@@ -259,7 +233,6 @@ fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
 t_hdr_value = fread(fid, image_te, 'integer*4');
 hdr.TE = t_hdr_value(image_te)/1e3;
 hdr.TR = t_hdr_value(image_tr)/1e3;
-hdr.version = rdbm_rev_num;
 
 % Spectro prescan pfiles
 if npoints == 1 && nrows == 1
@@ -289,22 +262,11 @@ fclose(fid);
 %              NEX=2/noadd=0, NEX=2/noadd=1, NEX=8/noadd=0, NEX=8/noadd=1
 % MM (171120): RTN edits to accomodate HERMES aquisitions; better looping
 %              over phase cycles
-
-if (nechoes == 1) 
+if nechoes == 1
     
     ShapeData = reshape(raw_data, [2 npoints totalframes nreceivers]);
-    
-    if (dataframes + refframes) ~= nframes
-        mult = 1;
-        dataframes = dataframes * nex;
-        refframes = nframes - dataframes;
-    else
-        mult = 1/nex;
-    end
-    
-    
-    WaterData = ShapeData(:,:,2:refframes+1,:) * mult;
-    FullData = ShapeData(:,:,refframes+2:end,:) * mult;
+    WaterData = ShapeData(:,:,2:refframes+1,:);
+    FullData = ShapeData(:,:,refframes+2:end,:);
     
     totalframes = totalframes - (refframes+1);
     waterframes = refframes;
@@ -356,9 +318,6 @@ else
 end
 
 FullData = FullData .* repmat([1; 1i], [1 npoints totalframes nreceivers]);
-FullData = conj(squeeze(sum(FullData,1)));
+FullData = squeeze(sum(FullData,1));
 WaterData = WaterData .* repmat([1; 1i], [1 npoints waterframes nreceivers]);
-WaterData = conj(squeeze(sum(WaterData,1)));
-
-
-
+WaterData = squeeze(sum(WaterData,1));
