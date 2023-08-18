@@ -54,7 +54,7 @@ specRange = real(spec(freqLim));
 Baseline = (specRange(1) + specRange(end))/2;
 Width = 0.05;
 Area = (max(specRange) - min(specRange)) * Width * 4;
-x0 = [Area Width maxFreq 0 Baseline 0 1];
+x0 = [Area Width maxFreq 0 0 Baseline 1];
 
 % Set up the least-squares and non-linear solvers
 lsqopts = optimset('lsqcurvefit');
