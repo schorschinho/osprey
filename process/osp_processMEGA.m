@@ -425,58 +425,6 @@ for kk = 1:MRSCont.nDatasets
         % whether this is phantom data
         
         
-%         ZF = raw_A.sz(1); % zerofill points
-%         EP = raw_A.dwelltime;  % echo position 0~1
-% 
-%         %SW, Datapoints, Zerofill, Lipid_Left, Lipid_Right, damp, damp_range, spe_number, echopos
-%         lip1 = generator_lipid(raw.spectralwidth(1),512, ZF, 375, 460, 10, 10, ZF, EP); % generation of lipid basic matrix
-%         % SW, Datapoints, Zerofill, wat_frq_range, damp, damp_range, Watnum, echoposition
-%         wat1 = generator_water(raw.spectralwidth(1), 512, ZF, 40, 10, 5, 20, EP); % generation of water basic matrix
-%         lip2 = generator_lipid(raw_A.spectralwidth(1),512, ZF, 240, 460, 10, 30, ZF, EP); % generation of lipid basic matrix
-%         
-% 
-%         specs = watersup_sim(flipud(raw_A.specs(:)), real(wat1), 3);
-%         raw_A.specs(:) = flipud(specs);                       
-%         raw_A.fids = ifft(fftshift(raw_A.specs,1),[],1);
-%         
-% %         specs = watersup_sim(flipud(raw_A.specs(:)), real(lip1), 3);
-% %         raw_A.specs(:) = flipud(specs);                       
-% %         raw_A.fids = ifft(fftshift(raw_A.specs,1),[],1);
-%         
-%         specs = watersup_sim(flipud(raw_B.specs(:)), real(wat1), 3);
-%         raw_B.specs(:) = flipud(specs);                       
-%         raw_B.fids = ifft(fftshift(raw_B.specs,1),[],1);
-%         
-% %         specs = watersup_sim(flipud(raw_B.specs(:)), real(lip1), 3);
-% %         raw_B.specs(:) = flipud(specs);                       
-% %         raw_B.fids = ifft(fftshift(raw_B.specs,1),[],1);
-%         
-%         specs = watersup_sim(flipud(Sum.specs(:)), real(wat1), 3);
-%         Sum.specs(:) = flipud(specs);                       
-%         Sum.fids = ifft(fftshift(Sum.specs,1),[],1);
-%         
-% %         specs = watersup_sim(flipud(Sum.specs(:)), real(lip1), 3);
-% %         Sum.specs(:) = flipud(specs);                       
-% %         Sum.fids = ifft(fftshift(Sum.specs,1),[],1);
-%         
-%         specs = watersup_sim(flipud(diff1.specs(:)), real(wat1), 3);
-%         diff1.specs(:) = flipud(specs);                       
-%         diff1.fids = ifft(fftshift(diff1.specs,1),[],1);
-%         
-% %         specs = watersup_sim(flipud(diff1.specs(:)), real(lip2), 3);
-% %         diff1.specs(:) = flipud(specs);                       
-% %         diff1.fids = ifft(fftshift(diff1.specs,1),[],1);
-%         
-%         raw_A     = op_fddccorr(raw_A,100); % Correct back to baseline
-%         raw_B     = op_fddccorr(raw_B,100); % Correct back to baseline
-%         Sum     = op_fddccorr(Sum,100); % Correct back to baseline
-%         diff1     = op_fddccorr(diff1,100); % Correct back to baseline
-%         
-%         raw_A.watersupp.amp = 0;
-%         raw_B.watersupp.amp = 0;
-%         Sum.watersupp.amp = 0;
-%         diff1.watersupp.amp = 0;
-        
         
         if MRSCont.flags.isPhantom
             waterRemovalFreqRange = [4.5 5];
@@ -508,7 +456,36 @@ for kk = 1:MRSCont.nDatasets
             [diff1]             = op_freqshift(diff1,-refShift_final);            % Apply same shift to diff1
             [Sum]               = op_freqshift(Sum,-refShift_final);              % Apply same shift to sum
         else
-            refShift_final = 0;
+            raw_A = op_zeropad(raw_A,4);
+            raw_B = op_zeropad(raw_B,4);
+            diff1 = op_zeropad(diff1,4);
+            Sum = op_zeropad(Sum,4);
+            temp = raw_A;
+            noise = std(real(temp.specs(temp.ppm <= 0 & temp.ppm >= -2)));
+            lipid = max(real(temp.specs(temp.ppm <= 1.9 & temp.ppm >= 0)));
+            ratio = lipid/noise;
+            if ratio > 10
+                temp = op_Wavlet_Filter(temp, -2, 1.85, 2, 10, 0);
+            end
+            temp = op_Wavlet_Filter(temp, -2, 4.2, 2, 10000, 0);
+            [refShift_final, ~] = fit_OspreyReferencing(temp);
+
+            temp = raw_A;
+            [temp]             = op_freqshift(temp,-refShift_final);            % Reference spectra by cross-correlation
+            [~, refFWHM] = osp_CrChoReferencing(temp);
+
+            raw_A.refFWHM = refFWHM;
+            raw_B.refFWHM = refFWHM;
+            diff1.refFWHM = refFWHM;
+            Sum.refFWHM = refFWHM;
+            raw_A.refShift = 0;
+            raw_B.refShift = 0;
+            diff1.refShift = 0;
+            Sum.refShift = 0;
+            [raw_A]             = op_freqshift(raw_A,-refShift_final);            % Reference spectra by cross-correlation
+            [raw_B]             = op_freqshift(raw_B,-refShift_final);            % Reference spectra by cross-correlation
+            [diff1]             = op_freqshift(diff1,-refShift_final);            % Reference spectra by cross-correlation
+            [Sum]               = op_freqshift(Sum,-refShift_final);            % Reference spectra by cross-correlation
         end
         if MRSCont.flags.hasMM
             [diff1_mm,~]          = op_autophase(diff1_mm,0.5,1.1);

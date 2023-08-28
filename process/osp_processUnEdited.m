@@ -187,32 +187,32 @@ for kk = 1:MRSCont.nDatasets
             raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
         end
 
-        ZF = raw.sz(1); % zerofill points
-        EP = 0.25;  % echo position 0~1
-
-        %SW, Datapoints, Zerofill, Lipid_Left, Lipid_Right, damp, damp_range, spe_number, echopos
-        lip1 = generator_lipid(raw.spectralwidth(1),512, ZF, 345, 512, 10, 10, ZF, EP); % generation of lipid basic matrix
-        % SW, Datapoints, Zerofill, wat_frq_range, damp, damp_range, Watnum, echoposition
-%         wat1 = generator_water(raw.spectralwidth(1), 512, ZF, 70, 10, 30, 1000, 0.25); % generation of water basic matrix     
-      
-%         specs = watersup_sim(flipud(raw.specs(:)), real(wat1), 3);
-%         raw.specs(:) = flipud(specs);                       
-%         raw.fids = ifft(fftshift(raw.specs,1),[],1);
-        
-        specs = watersup_sim(flipud(raw.specs(:)), real(lip1), 3);
-        raw.specs(:) = flipud(specs);                       
-        raw.fids = ifft(fftshift(raw.specs,1),[],1);
-        
-          raw     = op_fddccorr(raw,100); % Correct back to baseline
-
-%         raw.watersupp.amp = 0;
 
         
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
         %%% DATA
 %         refShift = 0;
-        [refShift, ~] = osp_CrChoReferencing(raw);
+        if MRSCont.flags.isMRSI
+            raw = op_zeropad(raw,4);
+            temp = raw;
+            noise = std(real(temp.specs(temp.ppm <= 0 & temp.ppm >= -2)));
+            lipid = max(real(temp.specs(temp.ppm <= 1.9 & temp.ppm >= 0)));
+            ratio = lipid/noise;
+            if ratio > 10
+                temp = op_Wavlet_Filter(temp, -2, 1.85, 2, 10, 0);
+            end
+            temp = op_Wavlet_Filter(temp, -2, 4.2, 2, 10000, 0);
+            [refShift, ~] = fit_OspreyReferencing(temp);
+            temp = raw;
+            [temp]             = op_freqshift(temp,-refShift);            % Reference spectra by cross-correlation 
+            [~, refFWHM] = osp_CrChoReferencing(temp);
+            raw.refFWHM = refFWHM;
+            raw.refShift = 0;           
+        else
+            [refShift, ~] = osp_CrChoReferencing(raw);
+        end
+        
         [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation     
         
         if MRSCont.flags.hasMM %re_mm

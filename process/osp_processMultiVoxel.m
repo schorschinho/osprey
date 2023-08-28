@@ -244,4 +244,14 @@ elseif MRSCont.flags.isMRSI == 1
     end % xVox
 end %isMRSI  
 [~] = printLog('MRSIdone',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+
+% Let's do some L2 lipid filtering here
+% for kk = 1 :MRSCont.nDatasets
+%     if MRSCont.flags.isUnEdited
+% 
+%         lip1 = generator_lipid(outMRSCont.processed.A{kk}.spectralwidth,outMRSCont.processed.A{kk}.sz(1), outMRSCont.processed.A{kk}.sz(1), sum(outMRSCont.processed.A{kk}.ppm< 0) + 1, sum(outMRSCont.processed.A{kk}.ppm< 1.9) + 1, 10, 5, outMRSCont.processed.A{kk}.sz(1), 0);
+%         outMRSCont.processed.A{kk}.specs = watersup_sim((outMRSCont.processed.A{kk}.specs), real(lip1), 3);
+%         outMRSCont.processed.A{kk}.fids = ifft(fftshift(outMRSCont.processed.A{kk}.specs,1),[],1);
+%     end
+% end
 end

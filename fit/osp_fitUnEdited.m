@@ -47,9 +47,7 @@ for kk = 1:MRSCont.nDatasets
         % If MRSI data load priors
         if MRSCont.flags.isMRSI
             if isfield(MRSCont.fit, 'results')
-                fitParamsOff   = MRSCont.fit.results.off.fitParams{kk};
-%                 dataToFit.refShift   = fitParamsOff.refShift;
-%                 dataToFit.refFWHM   = fitParamsOff.refFWHM;
+                fitParamsOff   = MRSCont.fit.MRSIpriors.A;
                 fitOpts.MRSIpriors = fitParamsOff;
             end
         end

@@ -98,12 +98,13 @@ switch MRSCont.vendor
         switch MRSCont.datatype
             case 'fid'
                 [MRSCont] = osp_LoadBrukerFid(MRSCont);
-            otherwise
-                msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-                fprintf(msg);
-                error(msg);
         end
-                
+    case ''
+        % We left the vendor field empty for NIfTI-MRS data
+        switch MRSCont.datatype
+            case 'NIfTI-MRS'
+                [MRSCont] = osp_LoadNII(MRSCont);
+        end
     otherwise
         msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
         fprintf(msg);
@@ -112,7 +113,7 @@ end
 
 % Perform coil combination (SENSE-based reconstruction if PRIAM flag set)
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-    if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1
+    if sum(strcmp(MRSCont.datatype, {'DATA', 'RAW', 'P'})) == 1 || ~MRSCont.flags.coilsCombined
         [MRSCont] = osp_combineCoils(MRSCont);
     else
         if ~strcmp(MRSCont.datatype, 'TWIX')
@@ -145,6 +146,66 @@ if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
 
+% Write raw nii mrsi results after recon
+if MRSCont.flags.isMRSI
+    outputFolderNii = fullfile(outputFolder,'nii-export','raw');
+    if ~exist(outputFolderNii,'dir')
+        mkdir(outputFolderNii);
+    end
+    if MRSCont.flags.hasWater
+        outputFolderNii = fullfile(outputFolder,'nii-export','raw_w');
+        if ~exist(outputFolderNii,'dir')
+            mkdir(outputFolderNii);
+        end
+    end
+    
+    for kk = 1 : MRSCont.nDatasets  
+        reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
+        shift = floor(MRSCont.raw{kk}.nZvoxels/2);
+        for ll = 1 : MRSCont.raw{kk}.nZvoxels
+            ToExport = MRSCont.raw{kk};
+            if MRSCont.flags.isUnEdited
+                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                ToExport.nii_mrs.hdr.dim(5) = 1;
+            end
+            if MRSCont.flags.isMEGA
+                ToExport.nii_mrs.hdr.dim(6) = 1;
+                ToExport.fids = squeeze(ToExport.fids(:,:,:,:,ll));
+                ToExport.specs = squeeze(ToExport.specs(:,:,:,:,ll));
+            end
+            ToExport.nZvoxels = 1;
+            ToExport.sz = size(ToExport.fids);
+            ToExport.dims.Zvoxels = 0;
+            
+            VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+            ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+            shift = shift - 1;
+            if MRSCont.flags.isUnEdited
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw',['raw_slice_' num2str(reorder(ll)) '.nii.gz']));
+            end
+            if MRSCont.flags.isMEGA
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw',['raw_slice_' num2str(reorder(ll)) '.nii.gz']),{'DIM_EDIT'});
+            end
+        end
+        if MRSCont.flags.hasWater
+            shift = floor(MRSCont.raw_w{kk}.nZvoxels/2);
+            for ll = 1 : MRSCont.raw_w{kk}.nZvoxels
+                ToExport = MRSCont.raw_w{kk};
+                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                ToExport.nii_mrs.hdr.dim(5) = 1;
+                ToExport.nZvoxels = 1;
+                ToExport.sz = size(ToExport.fids);
+                ToExport.dims.Zvoxels = 0;
+                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                shift = shift - 1;
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw_w',['raw_w_slice_' num2str(reorder(ll)) '.nii.gz']));
+            end
+        end
+    end
+end
 
 % Optional: Create all pdf figures
 if MRSCont.opts.savePDF

@@ -126,6 +126,82 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     writetable(MRSCont.QM.tables,[outputFolder '/QM_processed_spectra.csv']);
 end
 
+% Write processed nii mrsi results
+if MRSCont.flags.isMRSI
+    outputFolderNii = fullfile(outputFolder,'nii-export','processed_raw');
+    if ~exist(outputFolderNii,'dir')
+        mkdir(outputFolderNii);
+    end
+    if MRSCont.flags.hasWater
+        outputFolderNii = fullfile(outputFolder,'nii-export','processed_raw_w');
+        if ~exist(outputFolderNii,'dir')
+            mkdir(outputFolderNii);
+        end
+    end
+    for kk = 1 : MRSCont.nDatasets   
+        reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
+        shift = floor(MRSCont.processed.A{kk}.nZvoxels/2);
+        for ll = 1 : MRSCont.processed.A{kk}.nZvoxels
+            if MRSCont.flags.isUnEdited
+                ToExport = MRSCont.processed.A{kk};
+                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                ToExport.nZvoxels = 1;
+                ToExport.sz = size(ToExport.fids);
+                ToExport.dims.Zvoxels = 0;
+
+                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                shift = shift - 1;
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '.nii.gz']));
+            end
+            if MRSCont.flags.isMEGA
+                % Export off spectrum
+                ToExport = MRSCont.processed.A{kk};
+                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                ToExport.nZvoxels = 1;
+                ToExport.sz = size(ToExport.fids);
+                ToExport.dims.Zvoxels = 0;
+
+                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '_A.nii.gz']));
+
+                % Export diff spectrum
+                ToExport = MRSCont.processed.diff1{kk};
+                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                ToExport.nZvoxels = 1;
+                ToExport.sz = size(ToExport.fids);
+                ToExport.dims.Zvoxels = 0;
+
+                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                shift = shift - 1;
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '_diff1.nii.gz']));
+            end
+        end
+        if MRSCont.flags.hasWater
+            shift = floor(MRSCont.processed.w{kk}.nZvoxels/2);
+            for ll = 1 : MRSCont.processed.w{kk}.nZvoxels
+                ToExport = MRSCont.processed.w{kk};
+                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                ToExport.nZvoxels = 1;
+                ToExport.sz = size(ToExport.fids);
+                ToExport.dims.Zvoxels = 0;
+
+                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                
+                shift = shift - 1;
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_w',['processed_raw_w_slice_' num2str(reorder(ll)) '.nii.gz']));
+            end
+        end
+    end
+end
+
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
     osp_plotAllPDF(MRSCont, 'OspreyProcess')
@@ -146,6 +222,11 @@ end
 % RDA if Siemens
 if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_saveVendor(MRSCont);
+end
+
+% Optional: write edited files to NIfTI-MRS format
+if MRSCont.opts.saveNII && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+    [MRSCont] = osp_saveNII(MRSCont);
 end
 
 % Save the output structure to the output folder

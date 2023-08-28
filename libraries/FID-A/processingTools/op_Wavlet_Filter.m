@@ -1,24 +1,39 @@
-function out = op_Wavlet_Water_Removal(in)
+function out = op_Wavlet_Filter(in, ppmmin, ppmmax, d, lambda, showPlots)
 % Based on: Cobas, J.C., Bernstein, M.A., Martín-Pastor, M., Tahoces, P.G.,
 % 2006. A new general-purpose fully automatic baseline-correction procedure
 % for 1D and 2D NMR data. J. Magn. Reson. 183, 145-51.
 
+if nargin<6
+    showPlots = 0;
+    if nargin<5
+        lambda=0.2;
+        if nargin<4
+            d=2;
+            if nargin<3
+                ppmmax=5.5;
+                if nargin<2
+                    ppmmin=4.25;
+                end
+            end
+        end
+    end
+end
+
 out = in;
 
-showPlots =0;
 
-[z.real, z.imag] = BaselineModeling(in);
+[z.real, z.imag] = BaselineModeling(in, ppmmin, ppmmax, d, lambda);
 
 if showPlots == 1
     
     freq = in.ppm;
     
     H = figure;
-    d.w = 0.5;
-    d.h = 0.65;
-    d.l = (1-d.w)/2;
-    d.b = (1-d.h)/2;
-    set(H,'Color', 'w', 'Units', 'Normalized', 'OuterPosition', [d.l d.b d.w d.h]);
+    dp.w = 0.5;
+    dp.h = 0.65;
+    dp.l = (1-dp.w)/2;
+    dp.b = (1-dp.h)/2;
+    set(H,'Color', 'w', 'Units', 'Normalized', 'OuterPosition', [dp.l dp.b dp.w dp.h]);
     
     subplot(2,2,1); cla;
     plot(freq, real(in.specs), 'k');
@@ -50,15 +65,15 @@ end
 out.specs = complex(real(in.specs) - z.real, imag(in.specs) - z.imag);
 out.fids = ifft(fftshift(complex(real(in.specs) - z.real, imag(in.specs) - z.imag),in.dims.t),[],in.dims.t);
 
-out.watersupp.fids_water = complex(z.real, z.imag);
-out.watersupp.specs_water = ifft(fftshift(complex(z.real,z.imag),in.dims.t),[],in.dims.t);
-out.watersupp.amp = max(real(out.watersupp.specs_water));
+% out.watersupp.fids_water = complex(z.real, z.imag);
+% out.watersupp.specs_water = ifft(fftshift(complex(z.real,z.imag),in.dims.t),[],in.dims.t);
+% out.watersupp.amp = max(real(out.watersupp.specs_water));
 
 
 end
 
 
-function [z_real, z_imag] = BaselineModeling(in)
+function [z_real, z_imag] = BaselineModeling(in, ppmmin, ppmmax, d, lambda)
 % Based on:
 % Golotvin & Williams, 2000. Improved baseline recognition
 %   and modeling of FT NMR spectra. J. Magn. Reson. 146, 122-125
@@ -97,16 +112,16 @@ end
 
 % Include lipids in baseline estimate and water, as appropriate
 
-waterLim = freq <= 8.5 & freq >= 4.25;
-baseline(waterLim) = Wy(waterLim);
+Lim = freq <= ppmmax & freq >= ppmmin;
+baseline(Lim) = Wy(Lim);
 
 z_real = real(spec);
 z_real(baseline == 0) = 0;
 
-water = whittaker(z_real(waterLim), 2, 0.2);
+signal = whittaker(z_real(Lim), d, lambda);
 z_real = whittaker(z_real, 2, 1e3);
 
-z_real(waterLim) = water;
+z_real(Lim) = signal;
 
 z_imag = -imag(hilbert(z_real));
 
