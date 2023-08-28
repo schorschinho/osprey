@@ -436,16 +436,16 @@ fitParamsFinal.lorentzLB    = lorentzLB;
 fitParamsFinal.freqShift    = x(4);
 fitParamsFinal.beta_j       = ampl(nMets+1:end);
 
-% % Plot (comment out if not debugging)
-% figure(99)
-% plot(data); hold;
-% plot(AB*ampl);
-% plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
-% for rr = 1:nMets
-%     plot(ampl(rr)*A(:,rr));
-% end
-% title('Preliminary Analysis with reduced basis set');
-% hold;
+% Plot (comment out if not debugging)
+figure(99)
+plot(data); hold;
+plot(AB*ampl);
+plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
+for rr = 1:nMets
+    plot(ampl(rr)*A(:,rr));
+end
+title('Preliminary Analysis with reduced basis set');
+hold;
 
 
 end 

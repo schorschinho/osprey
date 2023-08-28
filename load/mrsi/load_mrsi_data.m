@@ -112,7 +112,7 @@ for kk = 1:MRSCont.nDatasets
 
     if MRSCont.flags.hasWater
          [~] = printLog('OspreyLoadWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
-        [k_fft2_wat_ref, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft,coilcombos, coilcombos_b4_2dfft] = process_wat_ref(MRSCont.files_w{kk}, k_zfill, 'water reference',coilcombo);
+        [~, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft,coilcombos, ~] = process_wat_ref(MRSCont.files_w{kk}, k_zfill, 'water reference',coilcombo);
         save(fullfile(outputFolder,'water_k_sort.mat'),'k_sort_b4_2dfft');
     end
 
@@ -237,6 +237,17 @@ for kk = 1:MRSCont.nDatasets
         Larmor = str2double(sparheader{sparidx+2})/1e6;
         sparidx=find(ismember(sparheader, 'sample_frequency')==1); % readout bandwidth
         sw = str2double(sparheader{sparidx+2});
+
+        sparidx=find(ismember(sparheader, 'patient_position')==1); % patient_position
+        patient_position = sparheader{sparidx+2};
+        sparidx=find(ismember(sparheader, 'patient_orientation')==1); % patient_orientation
+        patient_orientation = sparheader{sparidx+2};
+
+        sparidx=find(ismember(sparheader, 'equipment_sw_verions')==1); % equipment_sw_verions
+        equipment_sw_verions = sparheader{sparidx+2};
+
+        
+
     
         % Read voxel geometry information.
         % THIS IS IN THE ORDER LR-AP-FH
@@ -676,7 +687,7 @@ else
     
     k_fft2 = squeeze(sum(k_fft2_phased,4));
 end
- %%       
+ %%    Prepare export   
 
         spec = fftshift(fft(k_fft2,n_points,4));               
         spec(isnan(spec)) = 0 + 1i*0;
@@ -1030,6 +1041,73 @@ end
 %         end
 %     end
 
+    % FLIP AP
+    if (strcmp(seq_type, 'MEGA multislice')|| strcmp(seq_type, 'SE multislice'))
+        fids = out.fids;
+        specs = out.specs;
+        for sl = 1 : out.nZvoxels
+            out.fids(:,:,:,sl)=flip(fids(:,:,:,sl),3);
+            out.specs(:,:,:,sl)=flip(specs(:,:,:,sl),3);
+        end
+    end
+
+    if hasSPAR
+        out.PatientPosition = strrep([patient_position ' ' patient_orientation],'"','');
+    else
+        out.PatientPosition = 'unknown unknown';   
+    end
+    out.Manufacturer = 'Philips';
+    [~,filename,ext] = fileparts(filename);
+    out.OriginalFile = [filename ext];
+    out.software = equipment_sw_verions;
+
+    % Add some debugging code to confirm position
+    outputFolderNii = fullfile(MRSCont.outputFolder,'nii-export','raw');
+    if ~exist(outputFolderNii,'dir')
+        mkdir(outputFolderNii);
+    end
+
+    
+    ToExport = out;
+    ToExport = osp_add_nii_mrs_field(ToExport,MRSCont.ver.Osp); % Setup header
+    if length(ToExport.sz) == 4 %CONV
+        ToExport.fids = squeeze(ToExport.fids(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(4))));
+        ToExport.specs = squeeze(ToExport.specs(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(4))));
+        ToExport.nXvoxels = 1;
+    ToExport.nYvoxels = 1;
+    ToExport.nZvoxels = 1;
+    ToExport.sz = size(ToExport.fids);
+    ToExport.dims.Xvoxels = 0;
+    ToExport.dims.Yvoxels = 0;
+    ToExport.dims.Zvoxels = 0;
+        nii = io_writeniimrs(ToExport, fullfile(MRSCont.outputFolder,'nii-export','raw',['raw_vol.nii.gz']));
+    else
+        ToExport.fids = squeeze(ToExport.fids(:,1,round(ToExport.sz(3)),round(ToExport.sz(4)),round(ToExport.sz(5))));
+        ToExport.specs = squeeze(ToExport.specs(:,1,round(ToExport.sz(3)),round(ToExport.sz(4)),round(ToExport.sz(5))));
+        ToExport.nXvoxels = 1;
+    ToExport.nYvoxels = 1;
+    ToExport.nZvoxels = 1;
+    ToExport.sz = size(ToExport.fids);
+    ToExport.dims.Xvoxels = 0;
+    ToExport.dims.Yvoxels = 0;
+    ToExport.dims.Zvoxels = 0;
+    nii = io_writeniimrs(ToExport, fullfile(MRSCont.outputFolder,'nii-export','raw',['raw_vol.nii.gz']),{'DIM_EDIT'});
+    end
+    
+        
+    RF=io_writesdatspar(ToExport,fullfile(MRSCont.outputFolder,'nii-export','raw','raw'));
+
+
+    % Add NIfTI-MRS information
+    out.geometry.size.lr = out.geometry.size.lr/out.nXvoxels;
+    out.geometry.size.ap = out.geometry.size.ap/out.nYvoxels;
+    out.geometry.size.cc = out.geometry.size.cc - ((3-1)*out.geometry.slice_distance);
+    out = osp_add_nii_mrs_field(out,MRSCont.ver.Osp); % Setup header
+
+
+    VoxelShift = [-out.nXvoxels/2 + 0.5 , -out.nYvoxels/2 + 0.5, 0]; % Still have to confirm that this is generalizable 
+    out = osp_shift_nii_volume(out,VoxelShift); % Update slice
+    
 
     MRSCont.raw{kk} = out;
     if ~strcmp(MRSCont.opts.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
@@ -1106,6 +1184,37 @@ end
 %                 out_w.specs(:,:,:,sl)=flip(specs(:,:,:,sl),2);
 %             end
 %         end
+
+        % FLIP AP
+        if (strcmp(seq_type, 'MEGA multislice')|| strcmp(seq_type, 'SE multislice'))
+            fids = out_w.fids;
+            specs = out_w.specs;
+            for sl = 1 : out_w.nZvoxels
+                out_w.fids(:,:,:,sl)=flip(fids(:,:,:,sl),3);
+                oout_wut.specs(:,:,:,sl)=flip(specs(:,:,:,sl),3);
+            end
+        end
+        if hasSPAR
+            out_w.PatientPosition = strrep([patient_position ' ' patient_orientation],'"','');
+        else
+            out_w.PatientPosition = 'unknown unknown';   
+        end
+        out_w.Manufacturer = 'Philips';
+        [~,filename,ext] = fileparts(MRSCont.files_w{kk});
+        out_w.OriginalFile = [filename ext];
+        out_w.software = equipment_sw_verions;
+
+        
+
+        % Add NIfTI-MRS information
+        out_w.geometry.size.lr = out_w.geometry.size.lr/out.nXvoxels;
+        out_w.geometry.size.ap = out_w.geometry.size.ap/out_w.nYvoxels;
+        out_w.geometry.size.cc = out_w.geometry.size.cc - ((3-1)*out_w.geometry.slice_distance);
+        out_w = osp_add_nii_mrs_field(out_w,MRSCont.ver.Osp); % Setup header
+
+        VoxelShift = [-out_w.nXvoxels/2 + 0.5 , -out_w.nYvoxels/2 + 0.5, 0]; % Still have to confirm that this is generalizable 
+        out_w = osp_shift_nii_volume(out_w,VoxelShift); % Update slice
+
         MRSCont.raw_w{kk} = out_w;
     end        
 end

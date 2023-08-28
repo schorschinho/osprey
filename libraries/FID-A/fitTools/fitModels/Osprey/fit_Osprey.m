@@ -106,7 +106,7 @@ if ~isfield(fitOpts, 'MRSIpriors')
         drawnow
     end
     [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);
-else
+else if ~isempty(fitOpts.MRSIpriors.ph0)
     fprintf('\nTake priors from center voxel...');
     if ~isempty(progressText) 
         String = get(progressText,'String');
@@ -119,7 +119,15 @@ else
     fitParamsStep1.ph0 = fitOpts.MRSIpriors.ph0;
     fitParamsStep1.ph1 = fitOpts.MRSIpriors.ph1;
     fitParamsStep1.gaussLB = fitOpts.MRSIpriors.gaussLB;
-    
+else
+     fprintf('\nRunning preliminary analysis with reduced basis set...');
+    if ~isempty(progressText) 
+        String = get(progressText,'String');
+        set(progressText,'String' ,sprintf([String(1,:)  '\nRunning preliminary analysis with reduced basis set...\n']));
+        drawnow
+    end
+    [fitParamsStep1] = fit_Osprey_PrelimReduced(dataToFitRef, resBasisSet, fitRangePPM);   
+end  
 end
 
 

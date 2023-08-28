@@ -161,6 +161,25 @@ elseif MRSCont.flags.isMRSI == 1
         end
     end
 
+    % A.ph0(1) = fitMRSCont.fit.results.off.fitParams{kk}.ph0;
+    % A.ph1(1)= fitMRSCont.fit.results.off.fitParams{kk}.ph1;
+    % A.gaussLB(1) = fitMRSCont.fit.results.off.fitParams{kk}.gaussLB;
+    % MRSCont.fit.MRSIpriors.A.ph0 = [];
+    % MRSCont.fit.MRSIpriors.A.ph1 = [];
+    % MRSCont.fit.MRSIpriors.A.gaussLB = [];
+    % MRSCont.fit.MRSIpriors.A.prelimParams =fitMRSCont.fit.results.off.fitParams{kk}.prelimParams;
+    % 
+    % if MRSCont.flags.isMEGA
+    %     diff1.ph0(1) = fitMRSCont.fit.results.diff1.fitParams{kk}.ph0;
+    %     diff1.ph1(1)= fitMRSCont.fit.results.diff1.fitParams{kk}.ph1;
+    %     diff1.gaussLB(1) = fitMRSCont.fit.results.diff1.fitParams{kk}.gaussLB;
+    %     MRSCont.fit.MRSIpriors.diff1.ph0 = [];
+    %     MRSCont.fit.MRSIpriors.diff1.ph1 = [];
+    %     MRSCont.fit.MRSIpriors.diff1.gaussLB = [];
+    %     MRSCont.fit.MRSIpriors.diff1.prelimParams =fitMRSCont.fit.results.diff1.fitParams{kk}.prelimParams;
+    % end
+
+
     A.ph0(1) = fitMRSCont.fit.results.off.fitParams{kk}.ph0;
     A.ph1(1)= fitMRSCont.fit.results.off.fitParams{kk}.ph1;
     A.gaussLB(1) = fitMRSCont.fit.results.off.fitParams{kk}.gaussLB;
@@ -231,6 +250,9 @@ elseif MRSCont.flags.isMRSI == 1
                         MRSCont.fit.MRSIpriors.A.ph0 = median(A.ph0);
                         MRSCont.fit.MRSIpriors.A.ph1=median(A.ph1);
                         MRSCont.fit.MRSIpriors.A.gaussLB = median(A.gaussLB);
+                        % MRSCont.fit.MRSIpriors.A.ph0 = [];
+                        % MRSCont.fit.MRSIpriors.A.ph1=[];
+                        % MRSCont.fit.MRSIpriors.A.gaussLB = [];
                         if MRSCont.flags.isMEGA
                             diff1.ph0(end+1) = fitMRSCont.fit.results.diff1.fitParams{kk}.ph0;
                             diff1.ph1(end+1)= fitMRSCont.fit.results.diff1.fitParams{kk}.ph1;
@@ -238,6 +260,9 @@ elseif MRSCont.flags.isMRSI == 1
                             MRSCont.fit.MRSIpriors.diff1.ph0 = median(diff1.ph0);
                             MRSCont.fit.MRSIpriors.diff1.ph1=median(diff1.ph1);
                             MRSCont.fit.MRSIpriors.diff1.gaussLB = median(diff1.gaussLB);
+                            % MRSCont.fit.MRSIpriors.diff1.ph0 = [];
+                            % MRSCont.fit.MRSIpriors.diff1.ph1=[];
+                            % MRSCont.fit.MRSIpriors.diff1.gaussLB = [];
                         end
                         fields = {'resBasisSet','results'};
                         for f = 1 : length(fields)

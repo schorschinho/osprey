@@ -168,7 +168,7 @@ ub_ph1              = +20; % First order phase shift [deg/ppm]
 lb_gaussLB          = 0; 
 ub_gaussLB          = sqrt(5000); % Gaussian dampening [Hz]
 lb_lorentzLB_mets   = zeros(nMets, 1); 
-ub_lorentzLB_mets   = 10.0 * ones(nMets, 1); % Lorentzian dampening [Hz] - Metabolites
+ub_lorentzLB_mets   = 7.0 * ones(nMets, 1); % Lorentzian dampening [Hz] - Metabolites
 lb_lorentzLB_MM     = zeros(nMM, 1); 
 ub_lorentzLB_MM     =  100 * ones(nMM, 1); % Lorentzian dampening [Hz] - MM/Lipids
 lb_freqShift_mets   = -4.0 * ones(nMets,1); 
@@ -188,7 +188,7 @@ ub = [ub_ph0; ub_ph1; ub_gaussLB; ub_lorentzLB_mets; ub_lorentzLB_MM; ub_freqShi
 % Set up and run the non-linear solver.
 opts.Display    = 'off';
 opts.TolFun     = 1e-6;
-opts.TolX       = 1e-6;
+opts.TolX       = 1e-7;
 opts.MaxIter    = 75;
 % opts.Jacobian   = 'on';
 opts.Broyden_updates=5;  
@@ -755,16 +755,16 @@ fitParamsFinal.freqShift    = x(nBasisFcts+4:2*nBasisFcts+3);
 fitParamsFinal.lineShape    = x(3*nBasisFcts+4+size(splineArray,2):end);
 fitParamsFinal.beta_j       = ampl(size(A,2)+1:end);
 
-% % Plot (comment out if not debugging)
-% figure(99)
-% plot(data); hold;
-% plot(AB*ampl);
-% plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
-% for rr = 1:(nMets+nMM)
-%     plot(ampl(rr)*A(:,rr));
-% end
-% title('Preliminary Analysis with full basis set (unregularized)');
-% hold;
+% Plot (comment out if not debugging)
+figure(99)
+plot(data); hold;
+plot(AB*ampl);
+plot(B*ampl(size(A,2)+1:end)); plot(data - (AB*ampl) + 1.1*max(data));
+for rr = 1:(nMets+nMM)
+    plot(ampl(rr)*A(:,rr));
+end
+title('Preliminary Analysis with full basis set (unregularized)');
+hold;
 
 
 end 

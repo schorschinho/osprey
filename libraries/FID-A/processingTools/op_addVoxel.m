@@ -142,7 +142,7 @@ if ~out.flags.averaged
 end
 
 %Adding processed specific fields
-fields = {'specReg','target','watersupp'};
+fields = {'specReg','target','watersupp','refFWHM','refShift'};
 for f = 1 : length(fields)
     if isfield(out,fields{f})
         if iscell(out.(fields{f}))

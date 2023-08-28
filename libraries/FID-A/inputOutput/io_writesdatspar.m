@@ -79,7 +79,7 @@ fprintf(fid,'!------------------------------------------------------------------
 fprintf(fid,'\n');
 fprintf(fid,'examination_name : \n');
 fprintf(fid,'\n');
-fprintf(fid,'scan_id : \n');
+fprintf(fid,'scan_id : export \n');
 fprintf(fid,'\n');
 fprintf(fid,'scan_date : \n');
 fprintf(fid,'\n');

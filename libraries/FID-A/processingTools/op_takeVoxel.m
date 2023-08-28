@@ -116,6 +116,21 @@ end
 %re-calculate the sz variable
 sz=size(fids);
 
+%Get refFWHM and refShift
+fields = {'refFWHM','refShift'};
+for f = 1 : length(fields)
+    if isfield(in,fields{f})
+        % 2D MRSI data
+        if length(index)==2
+            in.(fields{f}) = in.(fields{f}){index(1),index(2)};
+        end    
+        % 3D MRSI data
+        if length(index)==3
+            in.(fields{f}) = in.(fields{f}){index(1),index(2),index(3)};
+        end
+    end
+end
+
 
 %FILLING IN DATA STRUCTURE
 out=in;

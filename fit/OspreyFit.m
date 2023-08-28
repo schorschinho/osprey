@@ -192,6 +192,89 @@ if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
 
+% Write processed nii mrsi results
+if MRSCont.flags.isMRSI
+    for ll = 1 : MRSCont.processed.A{1}.nZvoxels
+    outputFolderNii = fullfile(outputFolder,'nii-export','fit_raw',['slice_' num2str(ll)]);
+    if ~exist(outputFolderNii,'dir')
+        mkdir(outputFolderNii);
+        mkdir(fullfile(outputFolderNii,'concs','amplitudes'));
+        mkdir(fullfile(outputFolderNii,'concs','tCr'));
+        if MRSCont.flags.hasWater
+            mkdir(fullfile(outputFolderNii,'concs','rawWaterScaled'));
+            mkdir(fullfile(outputFolderNii,'concs','CSFWaterScaled'));
+            mkdir(fullfile(outputFolderNii,'concs','TissCorrWaterScaled'));
+        end
+        mkdir(fullfile(outputFolderNii,'fit'));
+        mkdir(fullfile(outputFolderNii,'qc'));
+        mkdir(fullfile(outputFolderNii,'uncertainties'));
+
+    end
+end
+if MRSCont.flags.hasWater
+    for ll = 1 : MRSCont.processed.w{1}.nZvoxels
+        outputFolderNii = fullfile(outputFolder,'nii-export','fit_raw_w',['slice_' num2str(ll)]);
+        if ~exist(outputFolderNii,'dir')
+            mkdir(outputFolderNii);
+            mkdir(fullfile(outputFolderNii,'concs','amplitudes'));
+            mkdir(fullfile(outputFolderNii,'fit'));
+            mkdir(fullfile(outputFolderNii,'qc'));
+            mkdir(fullfile(outputFolderNii,'uncertainties'));
+        end
+    end
+end
+for kk = 1 : MRSCont.nDatasets  
+        reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
+        shift = floor(MRSCont.processed.A{kk}.nZvoxels/2);
+        model = osp_OspreyFitToNII(MRSCont.processed.A{kk}, MRSCont.fit.results,MRSCont.fit.resBasisSet.off{kk},MRSCont.fit.scale{1},MRSCont.opts.fit,1,'off',MRSCont.mask{kk});
+        for ll = 1 : MRSCont.processed.A{kk}.nZvoxels
+            names = {'data','fit','residual','baseline'};
+            for mm = 1: 4
+                ToExport = model;
+                ToExport.fids = squeeze(ToExport.fids(:,1,1,mm,:,:,ll));
+                ToExport.specs = squeeze(ToExport.specs(:,1,1,mm,:,:,ll));
+                ToExport.nZvoxels = 1;
+                ToExport.sz = size(ToExport.fids);
+                ToExport.dims.averages = 0;
+                ToExport.dims.subSpecs = 0;
+                ToExport.dims.extras = 0;
+                ToExport.dims.Xvoxels = 2;
+                ToExport.dims.Yvoxels = 3;
+                ToExport.dims.Zvoxels = 0;
+                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice               
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','fit_raw',['slice_' num2str(reorder(ll))],'fit',[names{mm} '.nii.gz']));
+            end
+            shift = shift - 1;
+        end
+        if MRSCont.flags.hasWater
+            shift = floor(MRSCont.processed.A{kk}.nZvoxels/2);
+            model = osp_OspreyFitToNII(MRSCont.processed.w{kk}, MRSCont.fit.results,MRSCont.fit.resBasisSet.w.water{1},MRSCont.fit.scale{1},MRSCont.opts.fit,1,'w',MRSCont.mask{kk});
+            for ll = 1 : MRSCont.processed.A{kk}.nZvoxels
+                names = {'data','fit','residual'};
+                for mm = 1: 3
+                    ToExport = model;
+                    ToExport.fids = squeeze(ToExport.fids(:,1,1,mm,:,:,ll));
+                    ToExport.specs = squeeze(ToExport.specs(:,1,1,mm,:,:,ll));
+                    ToExport.nZvoxels = 1;
+                    ToExport.sz = size(ToExport.fids);
+                    ToExport.dims.averages = 0;
+                    ToExport.dims.subSpecs = 0;
+                    ToExport.dims.extras = 0;
+                    ToExport.dims.Xvoxels = 2;
+                    ToExport.dims.Yvoxels = 3;
+                    ToExport.dims.Zvoxels = 0;
+                    VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                    ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice               
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','fit_raw_w',['slice_' num2str(reorder(ll))],'fit',[names{mm} '.nii.gz']));
+                end
+                shift = shift - 1;
+            end
+        end
+    end
+end
+
+
 % Optional:  Create all pdf figures
 if MRSCont.opts.savePDF
     osp_plotAllPDF(MRSCont, 'OspreyFit')
