@@ -169,7 +169,7 @@ opts.fit.method             = 'LCModel';        % OPTIONS:    - 'Osprey' (defaul
 
 % Determine fitting range (in ppm) for the metabolite spectra
 opts.fit.range              = [0.5 4];          % [ppm] Default: [0.5 4]
-
+opts.fit.GAP.A              = [];               % optional GAP parameter
 
 %%% ----- OSPREY FITTING OPTIONS -----
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
