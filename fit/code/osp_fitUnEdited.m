@@ -78,7 +78,7 @@ for kk = 1:MRSCont.nDatasets(1)
             MRSCont.fit.results.metab.fitParams{1,kk,1}   = fitParams;
 
              % Write NIfTI-MRS results
-            MRSCont.fit.nii_mrs.metab{kk} = osp_OspreyFitToNII(MRSCont.processed.metab{kk}, fitParams,resBasisSet,MRSCont.fit.scale{kk},fitOpts);
+            % MRSCont.fit.nii_mrs.metab{kk} = osp_OspreyFitToNII(MRSCont.processed.metab{kk}, fitParams,resBasisSet,MRSCont.fit.scale{kk},fitOpts);
 
 
             %Modeling MM spectra after the main spectrum re_mm
