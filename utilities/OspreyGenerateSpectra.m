@@ -16,6 +16,7 @@ if nargin<13
                 overwrite.baseAmpl = [];
                 overwrite.lineShape = [];
                 overwrite.noiseAmpl = [];
+                overwrite.datapoints = [];
                 if nargin < 9
                     SigRange = [1.9, 2.1];
                     if nargin < 8
@@ -85,7 +86,11 @@ MRSCont.flags.hasMMRef = 0;
 %% Update dummy data
 % Determine the ppm ranges of both the data and the basis functions.
 dwelltime = 1/dataToFit.spectralwidth; % dwelltime [s]
-npoints = 2048;
+if ~isfield(overwrite, 'datapoints') || isempty(overwrite.datapoints)
+    npoints = 2048;
+else
+   npoints =  overwrite.datapoints;
+end
 dataToFit.sz(1) = npoints;
 % Calculate t and ppm arrays using the calculated parameters:
 f = [(-dataToFit.spectralwidth/2)+(dataToFit.spectralwidth/(2*npoints)):dataToFit.spectralwidth/(npoints):(dataToFit.spectralwidth/2)-(dataToFit.spectralwidth/(2*npoints))];
@@ -100,21 +105,27 @@ dataToFit.t = (0:dataToFit.dwelltime:(dataToFit.sz(1)-1)*dataToFit.dwelltime);
 dataToFit.fids = zeros(dataToFit.sz);
 dataToFit.specs = zeros(dataToFit.sz);
 %% Resample basis set
+isWater = 0;
 for bb = 1 : length(parameter.basisSet)
     load(parameter.basisSet{bb});
     BASIS = recalculateBasisSpecs(BASIS);
     BASIS = fit_sortBasisSet(BASIS);
-    idx_H2O  = find(strcmp(parameter.metabolite_names,'H2O'));
-    parameter.metabolite_names(idx_H2O) = [];
-    if ~addExpMM
-        metabList = fit_createMetabList(parameter.metabolite_names(1:26)); 
+    if ~strcmp(parameter.metabolite_names{1},'H2O')
+        idx_H2O  = find(strcmp(parameter.metabolite_names,'H2O'));
+        parameter.metabolite_names(idx_H2O) = [];
+        if ~addExpMM
+            metabList = fit_createMetabList(parameter.metabolite_names(1:26)); 
+        else
+            metabList = fit_createMetabList(parameter.metabolite_names(1:19));
+            metabList.MM09 = 0;
+            metabList.MM_PRESS_PCC = 1;
+        end
+        if add2HG
+            metabList.bHG = 1;
+        end
     else
-        metabList = fit_createMetabList(parameter.metabolite_names(1:19));
-        metabList.MM09 = 0;
-        metabList.MM_PRESS_PCC = 1;
-    end
-    if add2HG
-        metabList.bHG = 1;
+        metabList = fit_createMetabList(parameter.metabolite_names(1)); 
+        isWater = 1;
     end
     % Create the modified basis set
     BASIS = fit_selectMetabs(BASIS, metabList, 1);
@@ -124,7 +135,7 @@ end
 basisFunctions = size(resBASIS{1}.fids,2);
 %% Update nii header
 if ~parameter.indirDim.flag
-    nii_mrs.hdr.dim = [6, 1, 1, 1, 2048,1,1,1];
+    nii_mrs.hdr.dim = [6, 1, 1, 1, npoints,1,1,1];
     nii_mrs.hdr.pixdim(5) = dataToFit.dwelltime;
     nii_mrs.hdr_ext.SpectrometerFrequency = dataToFit.Bo*42.577; %Set Bo
     nii_mrs.hdr_ext.dim_5  ='DIM_DYN'; %Set DIM_DYN
@@ -150,7 +161,7 @@ if ~parameter.indirDim.flag
 else
     switch parameter.indirDim.function
         case 'T2'
-            nii_mrs.hdr.dim = [6, 1, 1, 1, 2048,parameter.indirDim.length,1,1];
+            nii_mrs.hdr.dim = [6, 1, 1, 1, npoints,parameter.indirDim.length,1,1];
             nii_mrs.hdr.pixdim(5) = dataToFit.dwelltime;
             nii_mrs.hdr_ext.SpectrometerFrequency = dataToFit.Bo*42.577; %Set Bo
             nii_mrs.hdr_ext.dim_5  ='DIM_INDIRECT_0'; %Set DIM_INDIRECT_0
@@ -178,7 +189,7 @@ else
                 nii_mrs.hdr_ext.dim_5_header.EchoTime(bb,1) = resBASIS{bb}.te/1000; 
             end
         case 'averages'
-            nii_mrs.hdr.dim = [6, 1, 1, 1, 2048,parameter.indirDim.length,1,1];
+            nii_mrs.hdr.dim = [6, 1, 1, 1, npoints,parameter.indirDim.length,1,1];
             nii_mrs.hdr.pixdim(5) = dataToFit.dwelltime;
             nii_mrs.hdr_ext.SpectrometerFrequency = dataToFit.Bo*42.577; %Set Bo
             nii_mrs.hdr_ext.dim_5  ='DIM_DYN'; %Set DIM_DYN
@@ -201,6 +212,41 @@ else
             nii_mrs.hdr_ext.PulseSequenceFile.Description = 'Simulated';
             nii_mrs.hdr_ext.IceProgramFile.Value = 'Simulated';
             nii_mrs.hdr_ext.IceProgramFile.Description = 'Simulated';  
+        case 'MRSI'
+            nii_mrs.hdr.dim = [6, 512, 14, 18, 1,1,1,1];
+            nii_mrs.hdr.pixdim = [1, 12.1429, 12.1429, 14,dataToFit.dwelltime,1,1,1];
+            m44 = [12.1429,0,0,0;0,12.1429,0,0;0,0,14,0];
+            % Fill s-form
+            nii_mrs.hdr.srow_x = [12.1429,0,0,0];
+            nii_mrs.hdr.srow_y = [0,12.1429,0,0];
+            nii_mrs.hdr.srow_z = [0,0,14,0];        
+            % Calculate q-form
+            [nii_mrs.hdr.quatern_b, nii_mrs.hdr.quatern_c, nii_mrs.hdr.quatern_d,...
+            nii_mrs.hdr.qoffset_x, nii_mrs.hdr.qoffset_y, nii_mrs.hdr.qoffset_z,...
+            nii_mrs.hdr.pixdim(2), nii_mrs.hdr.pixdim(3), nii_mrs.hdr.pixdim(4),...
+            nii_mrs.hdr.pixdim(1)] = nifti_mat44_to_quatern(m44);
+            nii_mrs.hdr_ext.SpectrometerFrequency = dataToFit.Bo*42.577; %Set Bo
+            nii_mrs.hdr_ext.EchoTime = resBASIS{1}.te/1000; 
+            nii_mrs.hdr_ext.RepetitionTime = 1.7352;
+            nii_mrs.hdr_ext = rmfield(nii_mrs.hdr_ext, 'dim_5');
+            nii_mrs.hdr_ext = rmfield(nii_mrs.hdr_ext, 'dim_6');
+            nii_mrs.hdr_ext.Manufacturer = 'Philips';
+            nii_mrs.hdr_ext.ManufacturersModelName = 'Simulated';
+            nii_mrs.hdr_ext.DeviceSerialNumber = 'XXXXX';
+            nii_mrs.hdr_ext.SoftwareVersions = 'XXXXX';
+            nii_mrs.hdr_ext.InstitutionName = 'XXXXX';
+            nii_mrs.hdr_ext.InstitutionAddress = 'XXXXX';
+            nii_mrs.hdr_ext.RxCoil = 'Simulated';
+            nii_mrs.hdr_ext.SequenceName = 'Simulated Philips MRSI';
+            nii_mrs.hdr_ext.ProtocolName = 'Simulation for MSM';
+            nii_mrs.hdr_ext.PatientName = 'Simulated';
+            nii_mrs.hdr_ext.PatientDoB = 'XXXXX';
+            nii_mrs.hdr_ext.ConversionMethod = 'Osprey';
+            nii_mrs.hdr_ext.PulseSequenceFile.Value = 'Simulated';
+            nii_mrs.hdr_ext.PulseSequenceFile.Description = 'Simulated';
+            nii_mrs.hdr_ext.IceProgramFile.Value = 'Simulated';
+            nii_mrs.hdr_ext.IceProgramFile.Description = 'Simulated'; 
+
     end
 end
     
@@ -244,60 +290,68 @@ else
 end
 % dataToFit = op_freqrange(dataToFit,0.5,4);
 for kk = 1 : MRSCont.nDatasets *NoGroups
-    MRSCont.files{kk} = sprintf([outputFolder filesep 'simulated-raw' filesep 'sim-' '%03d' filesep 'ses-001' filesep 'sim-' '%03d' '_ses-001_PRESS_' '%1d' 'T_' '%d' '_TE'],kk,kk,round(dataToFit.Bo),round(dataToFit.te) );
+    MRSCont.files{kk} = sprintf([outputFolder filesep 'simulated-raw' filesep 'sim-' '%03d' filesep 'ses-001' filesep 'sim-' '%03d' '_ses-001_MRS_' '%1d' 'T_' '%d' '_TE'],kk,kk,round(resBASIS{1}.Bo),round(resBASIS{1}.te) );
 end
 MRSCont.flags.simulated = 1;
 MRSCont.flags.isSERIES = 0;
 MRSCont.flags.isSPECIAL = 0;
 MRSCont.opts.MultipleSpectra.metab = [1];
 %% Generate Distributions for all parameters accoring to each value from Big PRESS
-params = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl','lineShape','SNR'};
+if ~isWater
+    params = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl','lineShape','SNR'};
+else
+    params = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','SNR'};
+end
 
 for p = 1 : length(params)
     par.(params{p}) = [];
 end
 
-if basisFunctions ~= 26
-    for p = 1 : length(params)
-        switch params{p}
-            case 'lorentzLB'
-                parameter.(params{p}).mean = parameter.(params{p}).mean(1:basisFunctions+1);
-                parameter.(params{p}).SD = parameter.(params{p}).SD(1:basisFunctions+1);
-                %Remove water
-                parameter.(params{p}).mean(10) =[];
-                parameter.(params{p}).SD(10) =[];
-            case 'freqShift'
-                parameter.(params{p}).mean = parameter.(params{p}).mean(1:basisFunctions+1);
-                parameter.(params{p}).SD = parameter.(params{p}).SD(1:basisFunctions+1);
-                %Remove water
-                parameter.(params{p}).mean(10) =[];
-                parameter.(params{p}).SD(10) =[];
-            case 'metAmpl'
-                parameter.(params{p}).mean = [parameter.(params{p}).mean(1:basisFunctions+1); parameter.(params{p}).mean(28:end)];
-                parameter.(params{p}).SD = [parameter.(params{p}).SD(1:basisFunctions+1); parameter.(params{p}).SD(28:end)];
-                %Remove water
-                parameter.(params{p}).mean(10) =[];
-                parameter.(params{p}).SD(10) =[];
+if basisFunctions ~= 26 && basisFunctions ~= 27
+    if basisFunctions ~= 1
+        for p = 1 : length(params)
+            switch params{p}
+                case 'lorentzLB'
+                    parameter.(params{p}).mean = parameter.(params{p}).mean(1:basisFunctions+1);
+                    parameter.(params{p}).SD = parameter.(params{p}).SD(1:basisFunctions+1);
+                    %Remove water
+                    parameter.(params{p}).mean(10) =[];
+                    parameter.(params{p}).SD(10) =[];
+                case 'freqShift'
+                    parameter.(params{p}).mean = parameter.(params{p}).mean(1:basisFunctions+1);
+                    parameter.(params{p}).SD = parameter.(params{p}).SD(1:basisFunctions+1);
+                    %Remove water
+                    parameter.(params{p}).mean(10) =[];
+                    parameter.(params{p}).SD(10) =[];
+                case 'metAmpl'
+                    parameter.(params{p}).mean = [parameter.(params{p}).mean(1:basisFunctions+1); parameter.(params{p}).mean(28:end)];
+                    parameter.(params{p}).SD = [parameter.(params{p}).SD(1:basisFunctions+1); parameter.(params{p}).SD(28:end)];
+                    %Remove water
+                    parameter.(params{p}).mean(10) =[];
+                    parameter.(params{p}).SD(10) =[];
+            end
+            
         end
-        
     end
 else
-    for p = 1 : length(params)
-        switch params{p}
-            case 'lorentzLB'
-                %Remove water
-                parameter.(params{p}).mean(10) =[];
-                parameter.(params{p}).SD(10) =[];
-            case 'freqShift'
-                %Remove water
-                parameter.(params{p}).mean(10) =[];
-                parameter.(params{p}).SD(10) =[];
-            case 'metAmpl'
-                %Remove water
-                parameter.(params{p}).mean(10) =[];
-                parameter.(params{p}).SD(10) =[];
+    if ~add2HG
+        for p = 1 : length(params)
+            switch params{p}
+                case 'lorentzLB'
+                    %Remove water
+                    parameter.(params{p}).mean(10) =[];
+                    parameter.(params{p}).SD(10) =[];
+                case 'freqShift'
+                    %Remove water
+                    parameter.(params{p}).mean(10) =[];
+                    parameter.(params{p}).SD(10) =[];
+                case 'metAmpl'
+                    %Remove water
+                    parameter.(params{p}).mean(10) =[];
+                    parameter.(params{p}).SD(10) =[];
+            end
+            
         end
-        
     end
 end
 
@@ -311,7 +365,7 @@ for gg = 1 : NoGroups
         
         eval([ 'rel =' 'alter.' (GroupNames{gg}) '.rel.' params{p} '_SD;' ]);
 
-        if rel
+        if sum(rel) >= 1
             eval([ 'SD = ( abs(means) .* alter.' (GroupNames{gg}) '.' params{p} '_SD/100);' ]);
         else
             eval([ 'SD =parameter.' params{p} '.SD +( alter.' (GroupNames{gg}) '.' params{p} '_SD ./100.*parameter.' params{p} '.SD);' ]);
@@ -345,7 +399,7 @@ end
 % Let's replace the anti-correlated amplitudes to create more realisitc
 % results.
 if changedComb
-    par.ampl(:,12) = (par.metAmpl(:,27) + par.metAmpl(:,28))/2; %NAA+NAAG
+    par.metAmpl(:,12) = (par.metAmpl(:,27) + par.metAmpl(:,28))/2; %NAA+NAAG
     par.metAmpl(:,13) = (par.metAmpl(:,27) - par.metAmpl(:,28))/2; %NAA+NAAG
     par.metAmpl(:,3) = (par.metAmpl(:,29) + par.metAmpl(:,30))/2; %Cr+PCr
     par.metAmpl(:,15) = (par.metAmpl(:,29) - par.metAmpl(:,30))/2; %Cr+PCr
@@ -353,49 +407,52 @@ if changedComb
     par.metAmpl(:,6) = (par.metAmpl(:,31) - par.metAmpl(:,32))/2; %PCh+GPC
     par.metAmpl(:,9) = (par.metAmpl(:,33) + par.metAmpl(:,34))/2; %Glu+Gln
     par.metAmpl(:,8) = (par.metAmpl(:,33) - par.metAmpl(:,34))/2; %Glu+Gln
+    par.metAmpl = abs(par.metAmpl);
 else
     for kk = 1 : MRSCont.nDatasets * NoGroups
-        if basisFunctions == 26
-            if (par.metAmpl(kk,27) - par.metAmpl(kk,13)) > 0
-                par.metAmpl(kk,12) = par.metAmpl(kk,27) - par.metAmpl(kk,13); %NAA+NAAG
+        if ~isWater
+            if basisFunctions == 26
+                if (par.metAmpl(kk,27) - par.metAmpl(kk,13)) > 0
+                    par.metAmpl(kk,12) = par.metAmpl(kk,27) - par.metAmpl(kk,13); %NAA+NAAG
+                else
+                    par.metAmpl(kk,13) = par.metAmpl(kk,27) - par.metAmpl(kk,12); %NAA+NAAG
+                end
+                if (par.metAmpl(kk,29) - par.metAmpl(kk,15)) > 0
+                    par.metAmpl(kk,3) = par.metAmpl(kk,29) -  par.metAmpl(kk,15); %Cr+PCr
+                else
+                    par.metAmpl(kk,15) = par.metAmpl(kk,29) -  par.metAmpl(kk,3); %Cr+PCr
+                end
+                if (par.metAmpl(kk,31) - par.metAmpl(kk,6)) > 0
+                    par.metAmpl(kk,14) = par.metAmpl(kk,31) - par.metAmpl(kk,6); %PCh+GPC
+                else
+                    par.metAmpl(kk,6) = par.metAmpl(kk,31) - par.metAmpl(kk,14); %PCh+GPC
+                end
+                if (par.metAmpl(kk,33) - par.metAmpl(kk,8)) > 0
+                    par.metAmpl(kk,9) = par.metAmpl(kk,33) - par.metAmpl(kk,8); %Glu+Gln
+                else
+                    par.metAmpl(kk,8) = par.metAmpl(kk,33) - par.metAmpl(kk,9); %Glu+Gln
+                end
             else
-                par.metAmpl(kk,13) = par.metAmpl(kk,27) - par.metAmpl(kk,12); %NAA+NAAG
-            end
-            if (par.metAmpl(kk,29) - par.metAmpl(kk,15)) > 0
-                par.metAmpl(kk,3) = par.metAmpl(kk,29) -  par.metAmpl(kk,15); %Cr+PCr
-            else
-                par.metAmpl(kk,15) = par.metAmpl(kk,29) -  par.metAmpl(kk,3); %Cr+PCr
-            end
-            if (par.metAmpl(kk,31) - par.metAmpl(kk,6)) > 0
-                par.metAmpl(kk,14) = par.metAmpl(kk,31) - par.metAmpl(kk,6); %PCh+GPC
-            else
-                par.metAmpl(kk,6) = par.metAmpl(kk,31) - par.metAmpl(kk,14); %PCh+GPC
-            end
-            if (par.metAmpl(kk,33) - par.metAmpl(kk,8)) > 0
-                par.metAmpl(kk,9) = par.metAmpl(kk,33) - par.metAmpl(kk,8); %Glu+Gln
-            else
-                par.metAmpl(kk,8) = par.metAmpl(kk,33) - par.metAmpl(kk,9); %Glu+Gln
-            end
-        else
-            if (par.metAmpl(kk,20) - par.metAmpl(kk,13)) > 0
-                par.metAmpl(kk,12) = par.metAmpl(kk,20) - par.metAmpl(kk,13); %NAA+NAAG
-            else
-                par.metAmpl(kk,13) = par.metAmpl(kk,20) - par.metAmpl(kk,12); %NAA+NAAG
-            end
-            if (par.metAmpl(kk,22) - par.metAmpl(kk,15)) > 0
-                par.metAmpl(kk,3) = par.metAmpl(kk,22) -  par.metAmpl(kk,15); %Cr+PCr
-            else
-                par.metAmpl(kk,15) = par.metAmpl(kk,22) -  par.metAmpl(kk,3); %Cr+PCr
-            end
-            if (par.metAmpl(kk,24) - par.metAmpl(kk,6)) > 0
-                par.metAmpl(kk,14) = par.metAmpl(kk,14) - par.metAmpl(kk,6); %PCh+GPC
-            else
-                par.metAmpl(kk,6) = par.metAmpl(kk,24) - par.metAmpl(kk,14); %PCh+GPC
-            end
-            if (par.metAmpl(kk,26) - par.metAmpl(kk,8)) > 0
-                par.metAmpl(kk,9) = par.metAmpl(kk,26) - par.metAmpl(kk,8); %Glu+Gln
-            else
-                par.metAmpl(kk,8) = par.metAmpl(kk,26) - par.metAmpl(kk,9); %Glu+Gln
+                if (par.metAmpl(kk,20) - par.metAmpl(kk,13)) > 0
+                    par.metAmpl(kk,12) = par.metAmpl(kk,20) - par.metAmpl(kk,13); %NAA+NAAG
+                else
+                    par.metAmpl(kk,13) = par.metAmpl(kk,20) - par.metAmpl(kk,12); %NAA+NAAG
+                end
+                if (par.metAmpl(kk,22) - par.metAmpl(kk,15)) > 0
+                    par.metAmpl(kk,3) = par.metAmpl(kk,22) -  par.metAmpl(kk,15); %Cr+PCr
+                else
+                    par.metAmpl(kk,15) = par.metAmpl(kk,22) -  par.metAmpl(kk,3); %Cr+PCr
+                end
+                if (par.metAmpl(kk,24) - par.metAmpl(kk,6)) > 0
+                    par.metAmpl(kk,14) = par.metAmpl(kk,14) - par.metAmpl(kk,6); %PCh+GPC
+                else
+                    par.metAmpl(kk,6) = par.metAmpl(kk,24) - par.metAmpl(kk,14); %PCh+GPC
+                end
+                if (par.metAmpl(kk,26) - par.metAmpl(kk,8)) > 0
+                    par.metAmpl(kk,9) = par.metAmpl(kk,26) - par.metAmpl(kk,8); %Glu+Gln
+                else
+                    par.metAmpl(kk,8) = par.metAmpl(kk,26) - par.metAmpl(kk,9); %Glu+Gln
+                end
             end
         end
     end
@@ -416,30 +473,30 @@ if zeroed.gaussLB
     par.gaussLB =  zeros(MRSCont.nDatasets,1);
 end
 if sum(zeroed.lorentzLB) > 0
-    for m = 1 : basisFunctions
+    for m = 1 : size(par.lorentzLB,2)
         if zeroed.lorentzLB(m)
             par.lorentzLB(:,m) = zeros(MRSCont.nDatasets,1);
         end
     end
 end
 if sum(zeroed.freqShift) > 0
-    for m = 1 : basisFunctions
+    for m = 1 : size(par.freqShift,2)
         if zeroed.freqShift(m)
             par.freqShift(:,m) = zeros(MRSCont.nDatasets,1);
         end
     end
 end
 if sum(zeroed.metAmpl) > 0
-    for m = 1 : basisFunctions+8
+    for m = 1 : size(par.metAmpl,2)
         if zeroed.metAmpl(m)
             par.metAmpl(:,m) = zeros(MRSCont.nDatasets,1);
         end
     end
 end
-if zeroed.baseAmpl
+if isfield(zeroed,'baseAmpl') && zeroed.baseAmpl
     par.baseAmpl =  zeros(MRSCont.nDatasets,size(par.baseAmpl(1,:),2));
 end
-if zeroed.lineShape
+if  isfield(zeroed,'lineShape') && zeroed.lineShape
     par.lineShape =  zeros(MRSCont.nDatasets,size(par.lineShape(1,:),2));
 end
 
@@ -484,7 +541,7 @@ else
 end
 
 %% Add 2-HG
-if add2HG
+if add2HG == 1
     par.lorentzLB(:,end+1) = par.lorentzLB(:,end);
     par.freqShift(:,end+1) = par.freqShift(:,end);
     par.metAmpl(:,end+1) = (par.metAmpl(:,3) + par.metAmpl(:,16)) * 0.5;
@@ -495,10 +552,28 @@ if add2HG
     par.lorentzLB(:,4:end) = bkpPar.lorentzLB(:,3:end-1);
     par.freqShift(:,4:end) = bkpPar.freqShift(:,3:end-1);
     par.metAmpl(:,4:end) = bkpPar.metAmpl(:,3:end-1);
+
+
+    for p = 1 : length(params)
+        switch params{p}
+            case 'lorentzLB'
+                %Remove water
+                par.(params{p})(:,10) =[];
+            case 'freqShift'
+                %Remove water
+                par.(params{p})(:,10) =[];
+            case 'metAmpl'
+                %Remove water
+                par.(params{p})(:,10) =[];
+        end
+        
+    end
+
 end
 
 %% Apply indirect dimensions
 % parameter.indirDim.parameter = 'metAmpl';
+isMRSI = 0;
 if parameter.indirDim.flag
     switch parameter.indirDim.function
         case 'T2'
@@ -514,7 +589,12 @@ if parameter.indirDim.flag
             par.indirDim.expectation = expectation;
         case 'averages'
             ampl_factors_norm = ones([size(par.metAmpl) parameter.indirDim.length]);
-
+        case 'MRSI'
+            ampl_factors_norm = permute(repmat(parameter.MRSI.BIAS,[1 1 MRSCont.nDatasets + 1]),[3,1,2]);
+            lw_factors_norm = permute(repmat(parameter.MRSI.LW_BIAS,[1 1 MRSCont.nDatasets + 1]),[3,1,2]);
+            par.gaussLB =   par.gaussLB .* lw_factors_norm;
+            resBASIS{1}.fids = repmat(resBASIS{1}.fids,[1 1 size(parameter.MRSI.LW_BIAS,1) size(parameter.MRSI.LW_BIAS,2)]);
+            isMRSI = 1;
     end
 else
     ampl_factors_norm = ones(size(par.metAmpl));
@@ -533,13 +613,17 @@ if isfield(par,'baseAmpl')
                 par.indirDim.expectationBase = expectation;
             case 'averages'
                 baseAmpl_factors_norm = ones([size(par.baseAmpl) parameter.indirDim.length]);
+            case 'MRSI'
+                baseAmpl_factors_norm = permute(repmat(parameter.MRSI.BIAS,[1 1 MRSCont.nDatasets + 1]),[3,1,2]);
         end
     else
         baseAmpl_factors_norm = ones(size(par.baseAmpl));
     end
 end
 
-
+if add2HG
+    ampl_factors_norm(:,10,:) = [];
+end
 %Save the results
 MRSCont.in_silico.par_full = par;
 MRSCont.in_silico.par_full.metabolite_names = parameter.metabolite_names(1:nBasis);
@@ -563,16 +647,28 @@ for kk = 1 : MRSCont.nDatasets
         % lineShape   = fitParams.lineShape;
         ph0         = par.ph0(kk); % zero-order phase
         ph1         = par.ph1(kk); % first-order phase 
-        gaussLB     = par.gaussLB(kk); % Gaussian damping [Hz]
-        lorentzLB   = par.lorentzLB(kk,:); % Lorentzian damping [Hz] for each basis function
+        gaussLB     = par.gaussLB(kk,:,:,:); % Gaussian damping [Hz]
+        if ~isMRSI
+            lorentzLB   = par.lorentzLB(kk,:,:,:); % Lorentzian damping [Hz] for each basis function
+        else
+            lorentzLB   = par.lorentzLB(:,:,:); % Lorentzian damping [Hz] for each basis function
+        end
         freqShift   = par.freqShift(kk,:); % Frequency shift [Hz] for each basis function
-        ampl        = par.metAmpl(kk,:); % Amplitudes for metabolite/MM/lipid basis functions
+        if ~isMRSI
+            ampl        = par.metAmpl(kk,:); % Amplitudes for metabolite/MM/lipid basis functions
+        else
+            ampl        = par.metAmpl;
+        end
         if isfield(par,'baseAmpl') && sum(par.baseAmpl(kk,:)) > 0
             beta_j      = par.baseAmpl(kk,:); % Amplitudes for baseline spline basis functions
             if length(parameter.basisSet) > 1
                 beta_j = beta_j .* squeeze(baseAmpl_factors_norm(kk,:,bb));
             else
-                beta_j = beta_j .* baseAmpl_factors_norm(kk,:,:);
+                 if ~isMRSI
+                    beta_j = beta_j .* baseAmpl_factors_norm(kk,:,:);
+                 else
+                     beta_j = squeeze(repmat(beta_j,[1 1 size(parameter.MRSI.LW_BIAS,1) size(parameter.MRSI.LW_BIAS,2)])) .* repmat(baseAmpl_factors_norm(1,:,:), [14 1 1]);
+                 end
             end
         end
         refShift    = 0; % Reference shift applied to the data during first step of fitting
@@ -583,12 +679,24 @@ for kk = 1 : MRSCont.nDatasets
             if length(parameter.basisSet) > 1
                 ampl = ampl .* squeeze(ampl_factors_norm(kk,:,bb));
             else
-                ampl = ampl .* ampl_factors_norm(kk,:,:);
+                if ~isMRSI
+                    ampl = ampl .* ampl_factors_norm(kk,:,:);
+                else
+                    if size(ampl,1)==1
+                        ampl = ampl .* ampl_factors_norm(kk,:,:);
+                    else
+                        ampl = ampl .* repmat(squeeze(ampl_factors_norm(kk,:,:)),[1 1 26]);
+                    end
+                end
             end
         else
             ampl = ampl .* ampl_factors_norm(kk,:);
         end
-        
+                
+        if isMRSI
+            MRSCont.in_silico.par_full.metAmpl = ampl;
+        end
+
         % Normalize
         if isfield(par,'lineShape')
             if sum(par.lineShape(kk,:)) > 0 
@@ -601,11 +709,27 @@ for kk = 1 : MRSCont.nDatasets
         % Run the time-domain operations on the metabolite basis functions
         % (frequency shift, Lorentzian dampening, Gaussian dampening, zero phase shift)
         ppm_ax = basisSet.ppm;
-        area = sum(real(basisSet.specs(:,3)));
+        
         t = basisSet.t;
-        for ii=1:nBasisFcts
-            basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB*gaussLB.*t.*t)' .* exp(1i.*ph1.*ppm_ax);    
-            basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+        if ~isMRSI
+            for ii=1:nBasisFcts
+                basisSet.fids(:,ii) = basisSet.fids(:,ii) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii).*t)' .* exp(-gaussLB.*gaussLB.*t.*t)' .* exp(1i.*ph1.*ppm_ax);    
+                basisSet.fids(:,ii) = basisSet.fids(:,ii) * exp(1i*ph0);
+            end
+        else
+           for ii=1:nBasisFcts
+               for xx = 1 : size(parameter.MRSI.LW_BIAS,1)
+                   for yy = 1 : size(parameter.MRSI.LW_BIAS,2)
+                       if nBasisFcts == 1
+                            basisSet.fids(:,ii,xx,yy) = basisSet.fids(:,ii,xx,yy) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(ii,xx,yy).*t)' .* exp(-gaussLB(kk,xx,yy).*gaussLB(kk,xx,yy).*t.*t)' .* exp(1i.*ph1.*ppm_ax);    
+                       else
+                           basisSet.fids(:,ii,xx,yy) = basisSet.fids(:,ii,xx,yy) .* exp(-1i*freqShift(ii).*t)' .* exp(-lorentzLB(xx,yy,ii).*t)' .* exp(-gaussLB(kk,xx,yy).*gaussLB(kk,xx,yy).*t.*t)' .* exp(1i.*ph1.*ppm_ax);    
+                       end
+                        basisSet.fids(:,ii,xx,yy) = basisSet.fids(:,ii,xx,yy) * exp(1i*ph0);
+                   end
+               end
+
+            end 
         end
         basisSet.specs = fftshift(fft(basisSet.fids,[],1),1);
     
@@ -633,6 +757,7 @@ for kk = 1 : MRSCont.nDatasets
             B = B  * exp(1i*ph0);
             B = B .* exp(1i*ph1*ppm_ax);
             else
+             area = sum(real(basisSet.specs(:,3)));
              ppms_peak = linspace(0.5,4,12);
              for bsk = 1 : 12    
                  peak     = op_gaussianPeak(basisSet.n,basisSet.spectralwidth,basisSet.Bo,4.7,0.35*basisSet.Bo*42.577,ppms_peak(bsk),3*area/16.5);
@@ -665,9 +790,14 @@ for kk = 1 : MRSCont.nDatasets
         if isfield(par,'baseAmpl')  && sum(par.baseAmpl(kk,:)) > 0
             if size(B,3) == size(beta_j,3)
                 baseline    = B * beta_j(2:end-1)';
-            else                
-                baseline = repmat(B , [1 1 parameter.indirDim.length]) .* repmat(beta_j(1,2:end-1,:), [2048 1 1]);
-                baseline = squeeze(sum(baseline,2));
+            else     
+                if ~isMRSI
+                    baseline = repmat(B , [1 1 parameter.indirDim.length]) .* repmat(beta_j(1,2:end-1,:), [npoints 1 1]);
+                    baseline = squeeze(sum(baseline,2));
+                else
+                    baseline = repmat(B , [1 1 size(parameter.MRSI.LW_BIAS,1) size(parameter.MRSI.LW_BIAS,2)]) .* permute(repmat(squeeze(beta_j(2:end-1,:,:)), [1 1 1 npoints]),[4 1 2 3]);
+                    baseline = squeeze(sum(baseline,2));
+                end
             end
         else
             baseline = 0;
@@ -675,9 +805,17 @@ for kk = 1 : MRSCont.nDatasets
         if size(A,3) == size(ampl,3)
             spectrum = A * ampl';
         else
-           spectrum = repmat(A , [1 1 parameter.indirDim.length]) .* repmat(ampl, [2048 1 1]);
+           if ~isMRSI 
+                spectrum = repmat(A , [1 1 parameter.indirDim.length]) .* repmat(ampl, [2048 1 1]);
+           else
+               if nBasisFcts == 1
+                    spectrum = A .* permute(repmat(ampl,[1 1 1 npoints]),[4,1,2,3]);
+               else
+                   spectrum = A .* permute(repmat(ampl,[1 1 1 npoints]),[4,3,1,2]);
+               end
+           end
         end
-        if ndims(spectrum) == 3
+        if ndims(spectrum) == 3 || ndims(spectrum) == 4
             spectrum = squeeze(sum(spectrum,2));
         end
         spectrum = spectrum + baseline;
@@ -747,6 +885,28 @@ for kk = 1 : MRSCont.nDatasets
                 MRSCont.processed.metab{kk}.watersupp = repmat(MRSCont.processed.metab{kk}.watersupp,[1 length(parameter.basisSet)])';
                 MRSCont.processed.metab{kk}.averages = parameter.indirDim.length;
                 MRSCont.processed.metab{kk}.rawAverages = parameter.indirDim.length;
+            case 'MRSI'
+                seq = MRSCont.processed.metab{kk}.seq;
+                MRSCont.processed.metab{kk} = rmfield(MRSCont.processed.metab{kk},'seq');
+                MRSCont.processed.metab{kk}.seq = repmat({seq},[1 length(parameter.basisSet)]);       
+                MRSCont.processed.metab{kk}.spectralwidth = repmat(MRSCont.processed.metab{kk}.spectralwidth,[1 length(parameter.basisSet)]);
+                MRSCont.processed.metab{kk}.dwelltime = repmat(MRSCont.processed.metab{kk}.dwelltime,[1 length(parameter.basisSet)]);
+                MRSCont.processed.metab{kk}.txfrq = repmat(MRSCont.processed.metab{kk}.txfrq,[1 length(parameter.basisSet)]);
+                MRSCont.processed.metab{kk}.te = resBASIS{bb}.te;
+                MRSCont.processed.metab{kk}.tr = repmat(MRSCont.processed.metab{kk}.tr,[1 length(parameter.basisSet)]);
+                MRSCont.processed.metab{kk}.centerFreq = repmat(MRSCont.processed.metab{kk}.centerFreq,[1 length(parameter.basisSet)]);
+                MRSCont.processed.metab{kk}.pointsToLeftshift = repmat(MRSCont.processed.metab{kk}.pointsToLeftshift,[1 length(parameter.basisSet)]);
+                MRSCont.processed.metab{kk}.specReg = repmat(MRSCont.processed.metab{kk}.specReg,[1 length(parameter.basisSet)]);
+                MRSCont.processed.metab{kk}.names = repmat(MRSCont.processed.metab{kk}.names,[1 length(parameter.basisSet)])';
+                MRSCont.processed.metab{kk}.watersupp = repmat(MRSCont.processed.metab{kk}.watersupp,[1 length(parameter.basisSet)])';
+                MRSCont.processed.metab{kk}.averages = 1;
+                MRSCont.processed.metab{kk}.rawAverages = 1;
+                MRSCont.processed.metab{kk}.rawAverages = 1;
+                MRSCont.processed.metab{kk}.nXvoxels = size(parameter.MRSI.LW_BIAS,1);
+                MRSCont.processed.metab{kk}.nYvoxels = size(parameter.MRSI.LW_BIAS,2);
+                MRSCont.processed.metab{kk}.dims.Xvoxels = 3;
+                MRSCont.processed.metab{kk}.dims.Yvoxels = 2;
+                MRSCont.processed.metab{kk}.dims.Zvoxels = 0;
         end
     end
 
@@ -762,7 +922,8 @@ for kk = 1 : MRSCont.nDatasets
             end
             peak_max = max(real(peak_spec.specs(:,1)));
             noise_ampl = peak_max/par.SNR(kk);
-            noise_amplitude = noise_ampl * 1/sqrt(2048) * sqrt(MRSCont.processed.metab{kk}.sz(2)); % Remove scaling from ifft in MATLAB
+            noise_amplitude = noise_ampl * 1/sqrt(MRSCont.processed.metab{kk}.sz(1)) * sqrt(MRSCont.processed.metab{kk}.sz(2)); % Remove scaling from ifft in MATLAB
+            
             [MRSCont.processed.metab{kk},noise_vector]=op_addNoise(MRSCont.processed.metab{kk},noise_amplitude);
             
 
@@ -787,6 +948,9 @@ for kk = 1 : MRSCont.nDatasets
     MRSCont.processed.metab{kk}.flags.isMEGA = 0;
     MRSCont.processed.metab{kk}.flags.isHERMES = 0;
     MRSCont.processed.metab{kk}.flags.isHERCULES = 0;
+    if isMRSI
+        MRSCont.flags.isMRSI = 1;
+    end
     MRSCont.raw{kk} = MRSCont.processed.metab{kk};
            
 end
@@ -819,103 +983,104 @@ mm_ll = 1;
 ref_ll = 1;
 w_ll = 1;
 ref_mm_ll=1;
-for kk = 1 : MRSCont.nDatasets(1)
-    clc
-    fprintf('QM spectrum %i of %i. \n', kk,MRSCont.nDatasets(1));
-    for bb = 1 : MRSCont.nDatasets(2)
-        if length(parameter.metabolite_names) > 1 && ~strcmp(parameter.indirDim.function,'averages')
-            raw = MRSCont.processed.metab{metab_ll,kk};
-            if raw.dims.extras > 1
-                raw=op_takeextra(raw,bb);
-            end
-            try
-                [raw,SNR] = op_get_Multispectra_SNR(raw);
-                
-            catch
-
-            end
-            try
-                FWHM = op_get_Multispectra_LW(raw);
-            catch
-                FWHM{1} = nan;
-            end
-            MRSCont.processed.metab{metab_ll,kk}.QC_names = raw.QC_names;
-            if exist('raw_no_subspec_aling','var')
-                MRSCont.processed_no_align.metab{metab_ll,kk}     = raw_no_subspec_aling;
-            end
-            for ss = 1 : length(SubSpec)
-                MRSCont.QM.SNR.metab(bb,kk,ss)    = SNR{ss};
-                MRSCont.QM.FWHM.metab(bb,kk,ss)   = FWHM(ss); % in Hz
-                MRSCont.QM.freqShift.metab(bb,kk,ss)  = refShift;
-                MRSCont.QM.res_water_amp.metab(bb,kk,ss) = 0;
-                if strcmp(SubSpec{ss},'diff1') ||strcmp(SubSpec{ss},'diff2') || strcmp(SubSpec{ss},'diff3') ||strcmp(SubSpec{ss},'sum')
-                    if raw.flags.isMEGA
-                        MRSCont.QM.drift.pre.(SubSpec{ss}){bb,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'], 1, [])';
-                        MRSCont.QM.drift.post.(SubSpec{ss}){bb,kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'], 1, [])';
-                    else
-                        MRSCont.QM.drift.pre.(SubSpec{ss}){bb,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'; MRSCont.QM.drift.pre.C{kk}'; MRSCont.QM.drift.pre.D{kk}'], 1, [])';
-                        MRSCont.QM.drift.post.(SubSpec{ss}){bb,kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'; MRSCont.QM.drift.post.C{kk}'; MRSCont.QM.drift.post.D{kk}'], 1, [])';
-                    end
-                end
-                MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(bb,kk) = 0;
-                MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(bb,kk) =0;
-            end
-        else
-            for ss = 1 : length(SubSpec)
+if ~isMRSI 
+    for kk = 1 : MRSCont.nDatasets(1)
+        clc
+        fprintf('QM spectrum %i of %i. \n', kk,MRSCont.nDatasets(1));
+        for bb = 1 : MRSCont.nDatasets(2)
+            if length(parameter.metabolite_names) > 1 && ~strcmp(parameter.indirDim.function,'averages')
                 raw = MRSCont.processed.metab{metab_ll,kk};
-                
-                if strcmp(parameter.indirDim.function,'averages')
-                   raw.dims.extras=0;
-                   raw.dims.averages=2;
-                   raw.flags.averaged=0;
-                   raw = op_averaging(raw); 
-                                      
-                end
                 if raw.dims.extras > 1
                     raw=op_takeextra(raw,bb);
                 end
-                MRSCont.QM.SNR.metab(bb,kk,ss)    = op_getSNR(raw,SigRange(1),SigRange(2));
-                MRSCont.QM.FWHM.metab(bb,kk,ss)   = op_getLW(raw,SigRange(1),SigRange(2));
-                MRSCont.QM.freqShift.metab(bb,kk,ss)  = refShift;
-                MRSCont.QM.res_water_amp.metab(bb,kk,ss) = 0;
-                MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(bb,kk) = 0;
-                MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(bb,kk) =0;
+                try
+                    [raw,SNR] = op_get_Multispectra_SNR(raw);
+                    
+                catch
+    
+                end
+                try
+                    FWHM = op_get_Multispectra_LW(raw);
+                catch
+                    FWHM{1} = nan;
+                end
+                MRSCont.processed.metab{metab_ll,kk}.QC_names = raw.QC_names;
+                if exist('raw_no_subspec_aling','var')
+                    MRSCont.processed_no_align.metab{metab_ll,kk}     = raw_no_subspec_aling;
+                end
+                for ss = 1 : length(SubSpec)
+                    MRSCont.QM.SNR.metab(bb,kk,ss)    = SNR{ss};
+                    MRSCont.QM.FWHM.metab(bb,kk,ss)   = FWHM(ss); % in Hz
+                    MRSCont.QM.freqShift.metab(bb,kk,ss)  = refShift;
+                    MRSCont.QM.res_water_amp.metab(bb,kk,ss) = 0;
+                    if strcmp(SubSpec{ss},'diff1') ||strcmp(SubSpec{ss},'diff2') || strcmp(SubSpec{ss},'diff3') ||strcmp(SubSpec{ss},'sum')
+                        if raw.flags.isMEGA
+                            MRSCont.QM.drift.pre.(SubSpec{ss}){bb,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'], 1, [])';
+                            MRSCont.QM.drift.post.(SubSpec{ss}){bb,kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'], 1, [])';
+                        else
+                            MRSCont.QM.drift.pre.(SubSpec{ss}){bb,kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'; MRSCont.QM.drift.pre.C{kk}'; MRSCont.QM.drift.pre.D{kk}'], 1, [])';
+                            MRSCont.QM.drift.post.(SubSpec{ss}){bb,kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'; MRSCont.QM.drift.post.C{kk}'; MRSCont.QM.drift.post.D{kk}'], 1, [])';
+                        end
+                    end
+                    MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(bb,kk) = 0;
+                    MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(bb,kk) =0;
+                end
+            else
+                for ss = 1 : length(SubSpec)
+                    raw = MRSCont.processed.metab{metab_ll,kk};
+                    
+                    if strcmp(parameter.indirDim.function,'averages')
+                       raw.dims.extras=0;
+                       raw.dims.averages=2;
+                       raw.flags.averaged=0;
+                       raw = op_averaging(raw); 
+                                          
+                    end
+                    if raw.dims.extras > 1
+                        raw=op_takeextra(raw,bb);
+                    end
+                    MRSCont.QM.SNR.metab(bb,kk,ss)    = op_getSNR(raw,SigRange(1),SigRange(2));
+                    MRSCont.QM.FWHM.metab(bb,kk,ss)   = op_getLW(raw,SigRange(1),SigRange(2));
+                    MRSCont.QM.freqShift.metab(bb,kk,ss)  = refShift;
+                    MRSCont.QM.res_water_amp.metab(bb,kk,ss) = 0;
+                    MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(bb,kk) = 0;
+                    MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(bb,kk) =0;
+                end
+                MRSCont.processed.metab{metab_ll,kk}.QC_names = {'water'};
+                if exist('raw_no_subspec_aling','var')
+                    MRSCont.processed_no_align.metab{metab_ll,kk}     = raw_no_subspec_aling;
+                end
             end
-            MRSCont.processed.metab{metab_ll,kk}.QC_names = {'water'};
-            if exist('raw_no_subspec_aling','var')
-                MRSCont.processed_no_align.metab{metab_ll,kk}     = raw_no_subspec_aling;
+            MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(metab_ll,kk) = 0;
+            MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(metab_ll,kk) =0;
+        end
+        if MRSCont.flags.hasMM
+            SubSpec = raw_mm.names;
+            [raw_mm,SNR] = op_get_Multispectra_SNR(raw_mm,1);
+            FWHM = op_get_Multispectra_LW(raw_mm);
+            MRSCont.processed.mm{ll,kk}     = raw_mm;
+            for ss = 1 : length(SubSpec)
+                MRSCont.QM.SNR.mm(mm_ll,kk,ss)    = SNR{ss};
+                MRSCont.QM.FWHM.mm(mm_ll,kk,ss)   = FWHM(ss);
             end
         end
-        MRSCont.QM.drift.pre.AvgDeltaCr.(SubSpec{ss})(metab_ll,kk) = 0;
-        MRSCont.QM.drift.post.AvgDeltaCr.(SubSpec{ss})(metab_ll,kk) =0;
-    end
-    if MRSCont.flags.hasMM
-        SubSpec = raw_mm.names;
-        [raw_mm,SNR] = op_get_Multispectra_SNR(raw_mm,1);
-        FWHM = op_get_Multispectra_LW(raw_mm);
-        MRSCont.processed.mm{ll,kk}     = raw_mm;
-        for ss = 1 : length(SubSpec)
-            MRSCont.QM.SNR.mm(mm_ll,kk,ss)    = SNR{ss};
-            MRSCont.QM.FWHM.mm(mm_ll,kk,ss)   = FWHM(ss);
+        if MRSCont.flags.hasRef
+            MRSCont.QM.SNR.ref(ref_ll,kk)    = op_getSNR(MRSCont.processed.ref{kk});
+            MRSCont.QM.FWHM.ref(ref_ll,kk)   = op_getLW(MRSCont.processed.ref{kk},4.2,5.2);
+            MRSCont.processed.ref{kk}.QC_names = {'water'};
         end
-    end
-    if MRSCont.flags.hasRef
-        MRSCont.QM.SNR.ref(ref_ll,kk)    = op_getSNR(MRSCont.processed.ref{kk});
-        MRSCont.QM.FWHM.ref(ref_ll,kk)   = op_getLW(MRSCont.processed.ref{kk},4.2,5.2);
-        MRSCont.processed.ref{kk}.QC_names = {'water'};
-    end
-    if MRSCont.flags.hasWater
-        MRSCont.QM.SNR.w(w_ll,kk)    = op_getSNR(MRSCont.processed.w{kk});
-        MRSCont.QM.FWHM.w(w_ll,kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2);
-        MRSCont.processed.w{kk}.QC_names = {'water'};
-    end
-    if MRSCont.flags.hasMMRef
-        MRSCont.QM.SNR.mm_ref(mm_ref_ll,kk)    = op_getSNR(MRSCont.processed.mm_ref{kk});
-        MRSCont.QM.FWHM.mm_ref(mm_ref_ll,kk)   = op_getLW(MRSCont.processed.mm_ref{kk},4.2,5.2);
-        MRSCont.processed.mm_ref{kk}.QC_names = {'water'};
+        if MRSCont.flags.hasWater
+            MRSCont.QM.SNR.w(w_ll,kk)    = op_getSNR(MRSCont.processed.w{kk});
+            MRSCont.QM.FWHM.w(w_ll,kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2);
+            MRSCont.processed.w{kk}.QC_names = {'water'};
+        end
+        if MRSCont.flags.hasMMRef
+            MRSCont.QM.SNR.mm_ref(mm_ref_ll,kk)    = op_getSNR(MRSCont.processed.mm_ref{kk});
+            MRSCont.QM.FWHM.mm_ref(mm_ref_ll,kk)   = op_getLW(MRSCont.processed.mm_ref{kk},4.2,5.2);
+            MRSCont.processed.mm_ref{kk}.QC_names = {'water'};
+        end
     end
 end
-
 
 % Gather some more information from the processed data;
 SubSpecNames = fieldnames(MRSCont.processed);
