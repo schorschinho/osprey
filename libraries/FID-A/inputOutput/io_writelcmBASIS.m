@@ -27,7 +27,7 @@
 %   HISTORY:
 %       2020-02-11: First version of the code.
 
-function RF=io_writelcmBASIS(in,outfile,vendor,SEQ)
+function RF=io_writelcmBASIS(in,outfile,vendor,SEQ,subspec)
 
 metabList = fit_createMetabList({'full'});
 
@@ -65,7 +65,7 @@ fprintf(fid,'\n NDATAB = %i', NDATAB);
 fprintf(fid,'\n $END\n');
 for i = 1 : basisSet.nMets
     if ~strcmp(basisSet.name{i}, 'CrCH2') && ~strcmp(basisSet.name{i}, 'H2O')
-        RF = shift_centerFreq(basisSet,i);
+        RF = shift_centerFreq(basisSet,i,subspec);
         fprintf(fid,' $NMUSED');
         fprintf(fid,'\n XTRASH = %2.2f',XTRASH);
         fprintf(fid,'\n $END');
@@ -84,12 +84,13 @@ end
 fclose(fid);
 end
 
-function [RF] = shift_centerFreq(data_struct,idx)
+function [RF] = shift_centerFreq(data_struct,idx,subspec)
 
     t=repmat(data_struct.t',[1 data_struct.sz(2:end,1)]);
     hzpppm = data_struct.Bo*42.577;
+    % f = (-0.03)*hzpppm;
     f = (4.68-data_struct.centerFreq)*hzpppm;
-    fids = data_struct.fids(:,idx);
+    fids = data_struct.fids(:,idx,subspec);
     fids=fids.*exp(-1i*t*f*2*pi);
     %Take the complex conjugate becuase the sense of rotation in LCModel seems to
     %be opposite to that used in FID-A.

@@ -326,7 +326,7 @@ switch MRSCont.opts.fit.method
             else
                 error('For LCModel fitting, please explicitly specify a .BASIS or .MAT file in the job file (opts.fit.basisSetFile = ''FILE'').');
             end
-            basisSetFile{1} = MRSCont.opts.fit.basisSetFile;
+            basisSetFile{1} = MRSCont.opts.fit.basisSetFile{1};
             
             % Now we need to determine which metabolites that are in this
             % just-specified basis set need to be excluded via 'chomit' in
@@ -387,7 +387,7 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'filps', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filcsv', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filcoo', '');
-                LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' basisSetFile '''']);
+                LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' basisSetFile{1} '''']);
                 LCMparam = osp_editControlParameters(LCMparam, 'savdir', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsi_sav_1', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'lcsi_sav_2', '');
