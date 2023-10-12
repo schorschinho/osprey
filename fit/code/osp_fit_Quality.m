@@ -54,7 +54,9 @@ end
 
 if MRSCont.flags.hasWater
     OrderNames = horzcat(OrderNames, 'w');
-    OrderNamesFit = horzcat(OrderNamesFit, 'w');
+    if ~strcmp(MRSCont.opts.fit.method,'LCModel')
+        OrderNamesFit = horzcat(OrderNamesFit, 'w');
+    end
 end
 
 S = orderfields(MRSCont.fit.results,OrderNamesFit);
