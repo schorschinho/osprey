@@ -805,7 +805,7 @@ function osp_onPrint( ~, ~ ,gui)
             set(input_figure, 'Heights', [-0.1 -0.9]);
             switch ovSelection
                 case 1 %SpecOverview
-                    Selection = gui.controls.pop_specsOvPlot.String(gui.process.Selected);
+                    Selection = gui.controls.pop_specsOvPlot.String(gui.overview.Selected.Spec);
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview','Individual');
                     if gui.controls.GM == 0
                         outputFile  = [Selection{1} '.pdf'];
@@ -833,7 +833,7 @@ function osp_onPrint( ~, ~ ,gui)
                     end
                     close(fig_hold);
                 case 2 %MeanOverview
-                    Selection = gui.controls.pop_meanOvPlot.String(gui.process.Selected);
+                    Selection = gui.controls.pop_meanOvPlot.String(gui.overview.Selected.Spec);
                     outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Mean');
                     if gui.controls.GM == 0
                         outputFile  = [Selection{1} '.pdf'];
