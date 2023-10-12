@@ -71,7 +71,7 @@ for kk = 1:MRSCont.nDatasets(1)
 
             % Read in the raw metabolite data.
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
-            raw 	= io_loadspec_niimrs(MRSCont.files{metab_ll,kk});
+            raw 	= io_loadspec_niimrs(MRSCont.files{metab_ll,kk},MRSCont.opts.load.undoPhaseCycle);
             % Add NIfTI-MRS information
             raw                           = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);
             % If the sequence flags are not parsed form the nii header
@@ -96,7 +96,7 @@ for kk = 1:MRSCont.nDatasets(1)
             % Read in the raw water reference data.
             if MRSCont.flags.hasRef
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
-                raw_ref     = io_loadspec_niimrs(MRSCont.files_ref{ref_ll,kk});
+                raw_ref     = io_loadspec_niimrs(MRSCont.files_ref{ref_ll,kk},MRSCont.opts.load.undoPhaseCycle);
                 % If the sequence flags are not parsed form the nii header
                 if sum([raw_ref.flags.isUnEdited raw_ref.flags.isMEGA raw_ref.flags.isHERMES raw_ref.flags.isHERCULES]) == 0
                     if MRSCont.flags.isUnEdited
@@ -119,7 +119,7 @@ for kk = 1:MRSCont.nDatasets(1)
             % Read in the short-TE water data.
             if MRSCont.flags.hasWater
                 w_ll = MRSCont.opts.MultipleSpectra.w(ll);
-                raw_w       = io_loadspec_niimrs(MRSCont.files_w{w_ll,kk});
+                raw_w       = io_loadspec_niimrs(MRSCont.files_w{w_ll,kk},MRSCont.opts.load.undoPhaseCycle);
                 % If the sequence flags are not parsed form the nii header
                 if sum([raw_w.flags.isUnEdited raw_w.flags.isMEGA raw_w.flags.isHERMES raw_w.flags.isHERCULES]) == 0
                     if MRSCont.flags.isUnEdited

@@ -50,6 +50,7 @@ MRSCont.opts.ECC.mm                 = 1;                 % Do ECC for all metabo
 MRSCont.opts.cosmetics.LB           = 0;                % Do cosmetic LB
 MRSCont.opts.cosmetics.Zoom         = 2.75;             % Do cosmetic Zoom
 MRSCont.opts.img.deface             = 0;                % Deface data
+MRSCont.opts.load.undoPhaseCycle    = 1;                % Undo phase cycle for nifti MRS
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));

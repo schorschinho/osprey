@@ -405,9 +405,14 @@ if strcmp(jobFileFormat,'json')
         end
     end
     if isfield(jobStruct,'deface')
-        opts.img.deface = jobStruct.deface;
+        opts.img.deface = str2num(jobStruct.deface);
     else
         opts.img.deface = 0;
+    end
+    if isfield(jobStruct,'undoPhaseCycle')
+        opts.load.undoPhaseCycle = str2num(jobStruct.undoPhaseCycle);
+    else
+        opts.load.undoPhaseCycle = 1;
     end
     debug = '11';
     if isfield(jobStruct,'exportParams')
