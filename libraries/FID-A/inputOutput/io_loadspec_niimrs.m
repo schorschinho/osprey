@@ -34,7 +34,11 @@
 % OUTPUTS:
 % out        = Input dataset in FID-A structure format.
 
-function out = io_loadspec_niimrs(filename)
+function out = io_loadspec_niimrs(filename,undoPhaseCycle)
+
+if nargin < 2
+    undoPhaseCycle = 0;
+end
 
 % Read in the data using the dicm2nii toolbox
 % (https://github.com/xiangruili/dicm2nii)
@@ -337,7 +341,7 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
     sz=size(fids);
 
     %Remove phase cycle for Philips data
-    if isfield(hdr_ext, 'Manufacturer') && (strcmp(hdr_ext.Manufacturer,'Philips') || strcmp(hdr_ext.Manufacturer,'GE')) 
+    if isfield(hdr_ext, 'Manufacturer') && (strcmp(hdr_ext.Manufacturer,'Philips') || strcmp(hdr_ext.Manufacturer,'GE')) && undoPhaseCycle
         fids = fids .* repmat(conj(fids(1,:,:,:))./abs(fids(1,:,:,:)),[size(fids,1) 1]);
     end
 
