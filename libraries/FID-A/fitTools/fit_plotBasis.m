@@ -60,6 +60,20 @@ if isfield(basisSet, 'nMM')
     nBasisFct = nBasisFct + basisSet.nMM;
 end
 
+%Calculate t and ppm arrays using the calculated parameters:
+sz = basisSet.sz;
+spectralwidth = basisSet.spectralwidth;
+Bo = basisSet.Bo;
+f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
+ppm=f/(Bo*42.577);
+
+% Siemens data assumes the center frequency to be 4.7 ppm:
+centerFreq = 4.7;
+ppm=ppm + centerFreq;
+basisSet.specs = fftshift(fft(basisSet.fids, [], 1));
+
+basisSet.ppm = ppm;
+
 % Plot the basis functions
 if stagFlag
     % Staggered plots will be in all black and separated by the mean of the
