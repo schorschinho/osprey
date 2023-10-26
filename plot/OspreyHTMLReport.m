@@ -911,7 +911,7 @@ if MRSCont.flags.didSeg
     close(out);
     close(temp);
 
-    if isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
+    if isfield(MRSCont.seg,'img') && isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
         out = figure('Visible','off');
         imagesc(MRSCont.seg.img.vol_Tha_CoM{kk});
         axis equal;
