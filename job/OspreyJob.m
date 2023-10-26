@@ -722,7 +722,7 @@ if exist('files_w','var')
 else
     MRSCont.files_w = {};
 end
-if exist('files_nii','var')
+if exist('files_nii','var') && ~isempty(files_nii)
     MRSCont.files_nii = cellfun(@strtrim,files_nii,'UniformOutput',false);
 else
     MRSCont.files_nii = {};
