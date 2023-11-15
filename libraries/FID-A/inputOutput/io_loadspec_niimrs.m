@@ -510,7 +510,7 @@ end
                 out.extra_names{ex} = ['TR_' num2str(ex)];
                 out.exp_var(ex) = out.tr(ex);
             else
-                out.tr(ex) = out.te(1);
+                out.tr(ex) = out.tr(1);
             end
 
             if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'InversionTime')
