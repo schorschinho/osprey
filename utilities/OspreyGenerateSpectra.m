@@ -621,9 +621,7 @@ if isfield(par,'baseAmpl')
     end
 end
 
-if add2HG
-    ampl_factors_norm(:,10,:) = [];
-end
+
 %Save the results
 MRSCont.in_silico.par_full = par;
 MRSCont.in_silico.par_full.metabolite_names = parameter.metabolite_names(1:nBasis);
