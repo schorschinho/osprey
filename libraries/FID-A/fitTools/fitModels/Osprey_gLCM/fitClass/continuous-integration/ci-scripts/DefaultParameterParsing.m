@@ -11,7 +11,7 @@ classdef DefaultParameterParsing < matlab.unittest.TestCase
         function test_1D_default_parameter_parsing(testCase,parameter)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/ParameterParsing/1Step_invivo_default.json');
            
             % Load model json
@@ -37,6 +37,7 @@ classdef DefaultParameterParsing < matlab.unittest.TestCase
             defaults.ph0.ex      = 0;
             defaults.ph0.sd      = Inf;
             defaults.ph0.RegFun  = '';
+            defaults.ph0.gr      = [];
 
             % Initialize phi1 as constant with value 0
             defaults.ph1.fun     = 'free';
@@ -47,6 +48,7 @@ classdef DefaultParameterParsing < matlab.unittest.TestCase
             defaults.ph1.ex      = 0;
             defaults.ph1.sd      = Inf;
             defaults.ph1.RegFun  = '';
+            defaults.ph1.gr      = [];
     
             % Initialize Gaussian LB as constant with value [0.04 *
             % hz/ppm]
@@ -58,16 +60,18 @@ classdef DefaultParameterParsing < matlab.unittest.TestCase
             defaults.gaussLB.ex      = 0.04 * test{1}.Data.txfrq*1e-6;
             defaults.gaussLB.sd      = Inf;
             defaults.gaussLB.RegFun  = '';
+            defaults.gaussLB.gr      = [];
     
             % Initialize Lorentzian LB as constant with value
             defaults.lorentzLB.fun     = 'free';
             defaults.lorentzLB.gradfun = 'free';
-            defaults.lorentzLB.lb      = zeros(1, sum(test{1}.BasisSets.includeInFit));
+            defaults.lorentzLB.lb      = 0.5*ones(1, sum(test{1}.BasisSets.includeInFit));
             defaults.lorentzLB.ub      = 7*ones(1, sum(test{1}.BasisSets.includeInFit));
-            defaults.lorentzLB.init    = ones(1, sum(test{1}.BasisSets.includeInFit));
-            defaults.lorentzLB.ex      = zeros(1, sum(test{1}.BasisSets.includeInFit));
-            defaults.lorentzLB.sd      = Inf*ones(1, sum(test{1}.BasisSets.includeInFit));
+            defaults.lorentzLB.init    = 2.75*ones(1, sum(test{1}.BasisSets.includeInFit));
+            defaults.lorentzLB.ex      = 2.75*ones(1, sum(test{1}.BasisSets.includeInFit));
+            defaults.lorentzLB.sd      = 2.75*ones(1, sum(test{1}.BasisSets.includeInFit));
             defaults.lorentzLB.RegFun  = '';
+            defaults.lorentzLB.gr      = [];
     
             % Initialize frequency shifts as constant with value 0 Hz
             defaults.freqShift.fun     = 'free';
@@ -78,6 +82,7 @@ classdef DefaultParameterParsing < matlab.unittest.TestCase
             defaults.freqShift.ex      = zeros(1, sum(test{1}.BasisSets.includeInFit));
             defaults.freqShift.sd      = 3*ones(1, sum(test{1}.BasisSets.includeInFit));
             defaults.freqShift.RegFun  = '';
+            defaults.freqShift.gr      = [];
     
             % Initialize metabolite amplitudes as free with value 0
             defaults.metAmpl.fun     = 'free';
@@ -88,6 +93,7 @@ classdef DefaultParameterParsing < matlab.unittest.TestCase
             defaults.metAmpl.ex      = zeros(1, sum(test{1}.BasisSets.includeInFit));
             defaults.metAmpl.sd      = Inf*ones(1, sum(test{1}.BasisSets.includeInFit));
             defaults.metAmpl.RegFun  = '';
+            defaults.metAmpl.gr      = [];
     
             % Initialize baseline amplitudes as free with value 0
             defaults.baseAmpl.fun     = 'free';
@@ -98,6 +104,7 @@ classdef DefaultParameterParsing < matlab.unittest.TestCase
             defaults.baseAmpl.ex      = zeros(1, size(test{1}.BaselineBasis,2));
             defaults.baseAmpl.sd      = Inf*ones(1, size(test{1}.BaselineBasis,2));
             defaults.baseAmpl.RegFun  = '';
+            defaults.baseAmpl.gr      = [];
 
             field_names = fieldnames(defaults.ph0);
             for ff = 1 : length(field_names)

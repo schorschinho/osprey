@@ -45,6 +45,8 @@ function obj = createModel(obj)
 
 %%  Update parameterizations according to model procedure step
 
+    
+
     % Create x0, lb, ub vectors by iteratively calling the
     % parameter-class-specific initialization
     pars = obj.Options{obj.step}.parameter;                 % Get parameter names
@@ -54,9 +56,29 @@ function obj = createModel(obj)
     parsex = [];                                            % Initialize parsex struct
     parssd = [];                                            % Initialize parssd struct
     parsfun = [];                                           % parsfun parsInit struct
+    parsgr = [];                                            % 
     for pp = 1:length(pars)                                 % Loop over parameters
-        [parsInit, parslb, parsub, parsex, parssd, parsfun] = initializeParameters(obj, parsInit, parslb, parsub, parsex, parssd, parsfun, pars{pp}); % Generate parameter structs
+        [parsInit, parslb, parsub, parsex, parssd, parsfun, parsgr] = initializeParameters(obj, parsInit, parslb, parsub, parsex, parssd, parsfun, parsgr, pars{pp}); % Generate parameter structs
     end                                                     % End loop over parameters
+
+    % Get indices for parameter mapping according to groups
+    pars = fields(parsgr);                                        % Get parameter names
+    for ff = 1 : length(pars)                                     % Loop over parameters
+        if ~isempty(parsgr.(pars{ff}))                            % Grouping exists
+            groups = fields(parsgr.(pars{ff}));                   % Get group names
+            basisNames = basisSet.names(logical(basisSet.includeInFit));
+            idx = 1:sum(basisSet.includeInFit);
+            for gg = 1 : length(groups)            
+                [metsToInclude, ~, ~] = intersect(basisNames, parsgr.(pars{ff}).(groups{gg}), 'stable');    % Get vector of logical indices
+                firstIndex = find(strcmp(metsToInclude{1}, basisNames));    % Get index of basis function to include
+                for rr = 2:length(metsToInclude)
+                    idxToInclude = find(strcmp(metsToInclude{rr}, basisNames));    % Get index of basis function to include
+                    idx(idxToInclude) = firstIndex;
+                end 
+                parsgr.(pars{ff}).idx = idx;
+            end
+        end
+    end
 
     eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])  % Set model function handle from ModelFunction field (e.g. GeneralizedPhysicsModel)
     [x0, indexStruct] = h.pars2x(parsInit);                 % Create x0 vector
