@@ -175,9 +175,14 @@ for kk = 1 : length(DataToModel)
     if DoDataScaling == 2
         DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                     % apply scale to data 
     else if DoDataScaling == 1
-         scaleData(kk) = max(real(DataToModel{kk}.specs)) / max(max(max(real(basisSet.specs))));
+         scaleData(kk) = max(real(DataToModel{kk}.specs(DataToModel{kk}.ppm > -2 & DataToModel{kk}.ppm < 10 ,:))) / max(max(max(real(basisSet.specs(basisSet.ppm > -2 & basisSet.ppm < 10 ,:)))));
          DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                    % apply scale to data
     end
+    end
+
+    % Apply zero-filling if needed
+    if zf &&  ~DataToModel{kk}.flags.zeropadded
+        DataToModel{kk} = op_zeropad(DataToModel{kk},2);                    % Zero-fill data if needed (real part optimization)
     end
 
     for ss = 1 : length(ModelProcedure.Steps)
@@ -244,10 +249,6 @@ for kk = 1 : length(DataToModel)
 
         clc
         fprintf('Running model procedure step %i. \n', ss);
-        % Apply zero-filling if needed
-        if zf &&  ~DataToModel{kk}.flags.zeropadded
-            DataToModel{kk} = op_zeropad(DataToModel{kk},2);                    % Zero-fill data if needed (real part optimization)
-        end
 
         % Create an instance of the class
         if ss == 1

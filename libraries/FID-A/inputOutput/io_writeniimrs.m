@@ -51,22 +51,25 @@ if ~exist('UserNames','var')
 end
 
 %% Manage essential dimensions
-if ~isfield(dims, 'x') || dims.x==0
+if ~isfield(dims, 'Xvoxels') || dims.Xvoxels==0
     dims.x = 0;
     dim_1  = 1;
 else
+    dims.x = dims.Xvoxels;
     dim_1 = in.sz(dims.x);
 end
-if ~isfield(dims, 'y') || dims.y==0
+if ~isfield(dims, 'Yvoxels') || dims.Yvoxels==0
     dims.y = 0;
     dim_2  = 1;
 else
+    dims.y = dims.Yvoxels;
     dim_2 = in.sz(dims.y);
 end
-if ~isfield(dims, 'z')|| dims.z==0
+if ~isfield(dims, 'Zvoxels')|| dims.Zvoxels==0
     dims.z = 0;
     dim_3  = 1;
 else
+    dims.z = dims.Zvoxels;
     dim_3 = in.sz(dims.z);
 end
 
