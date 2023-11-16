@@ -1,5 +1,5 @@
-function [init, lb, ub, ex, sd, fun] = initializeParameters(obj, init, lb, ub, ex, sd, fun, parameter)
-%%  [init, lb, ub, ex, sd, fun] = initializeParameters(obj, init, lb, ub, ex, sd, fun, parameter)
+function [init, lb, ub, ex, sd, fun, gr] = initializeParameters(obj, init, lb, ub, ex, sd, fun, gr, parameter)
+%%  [init, lb, ub, ex, sd, fun, gr] = initializeParameters(obj, init, lb, ub, ex, sd, fun, parameter)
 %   This method sets the parametrization of the OspreyFitObj according to
 %   the model procedure step as well as the indirect dimension link
 %
@@ -13,6 +13,7 @@ function [init, lb, ub, ex, sd, fun] = initializeParameters(obj, init, lb, ub, e
 %       ex        = struct with expectation values that is build for all parameters
 %       sd        = struct with standard deviations that is build for all parameters
 %       fun       = struct with function type parameters that is build for all parameters
+%       gr        = struct with parameter grouping
 %       parameter = parameter to initialize (e.g. p0, ph1, gaussLB...)
 %
 %   OUTPUTS:
@@ -22,6 +23,7 @@ function [init, lb, ub, ex, sd, fun] = initializeParameters(obj, init, lb, ub, e
 %       ub        = struct with upper bounds that is build for all parameters
 %       ex        = struct with expectation values that is build for all parameters
 %       sd        = struct with standard deviations that is build for all parameters
+%       gr        = struct with parameter grouping
 %       fun       = struct with function type parameters that is build for all parameters
 %
 %   AUTHOR:
@@ -97,7 +99,7 @@ end
 % along the indirect dimension
 if ~iscell(obj.Options{obj.step}.parametrizations.(parameter).init)  % This is numeric if defaults or not pulled from a prior step
     if ~strcmp(type,'dynamic')      % For free or fixed cases we just have to repeat the parameter value according to nParamsPerSpec and nParamsPerIndir
-        structs = {'init','lb','ub','ex','sd'};  % Structs to write for output
+        structs = {'init','lb','ub','ex','sd','gr'};  % Structs to write for output
         for st = 1 : length(structs)    % Loop over structs
             switch num2str([size(obj.Options{obj.step}.parametrizations.(parameter).(structs{st}),1) == nParamsPerIndir ...     % Check dimensions and repeat parameter accordingly
                     size(obj.Options{obj.step}.parametrizations.(parameter).(structs{st}),2) == nParamsPerSpec])
@@ -134,7 +136,9 @@ else % When this is a cell array it contains the 'Step' reference (e.g. Step 2) 
     ub.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).ub,   [nParamsPerIndir , nParamsPerSpec])); % Repeat ub value according to nParamsPerIndir nParamsPerSpec
     ex.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).ex,   [nParamsPerIndir , nParamsPerSpec])); % Repeat ex value according to nParamsPerIndir nParamsPerSpec
     sd.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).sd,   [nParamsPerIndir , nParamsPerSpec])); % Repeat sd value according to nParamsPerIndir nParamsPerSpec
+    
 end
+gr.(parameter)   = obj.Options{obj.step}.parametrizations.(parameter).gr; % Add grouping
 if isfield(obj.Options{obj.step}.parametrizations.(parameter),'type')              % If 2D we will have a type entry for the relation
     fun.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).type;     % Add parametrization function type
 else
@@ -158,6 +162,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
 
     case 'ph1'
         % Initialize phi1 as constant with value 0
@@ -169,6 +174,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
 
     case 'gaussLB'
         % Initialize Gaussian LB as constant with value [0.04 *
@@ -181,17 +187,19 @@ switch parameter                                            % Parameter switch w
         parametrizations.ex      = 0.04 * obj.Data.txfrq*1e-6;
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
 
     case 'lorentzLB'
         % Initialize Lorentzian LB as constant with value
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
-        parametrizations.lb      = 0;
+        parametrizations.lb      = 0.5;
         parametrizations.ub      = 7;
-        parametrizations.init    = 1;
-        parametrizations.ex      = 0;
-        parametrizations.sd      = Inf;
+        parametrizations.init    = 2.75;
+        parametrizations.ex      = 2.75;
+        parametrizations.sd      = 2.75;
         parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
 
     case 'freqShift'
         % Initialize frequency shifts as constant with value 0 Hz
@@ -203,6 +211,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.ex      = 0;
         parametrizations.sd      = 3;
         parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
 
     case 'metAmpl'
         % Initialize metabolite amplitudes as free with value 0
@@ -214,6 +223,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
 
     case 'baseAmpl'
         % Initialize baseline amplitudes as free with value 0
@@ -225,6 +235,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
 
     case 'x'
         % Initialize x (the external dependency vector) as natural numbers
@@ -242,6 +253,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.ex      = 0;
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
 
 end
 

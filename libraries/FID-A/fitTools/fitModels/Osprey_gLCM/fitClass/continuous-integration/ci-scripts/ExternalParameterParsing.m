@@ -13,7 +13,7 @@ classdef ExternalParameterParsing < matlab.unittest.TestCase
         function test_1D_external_parameter_parsing(testCase,parameter)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which(['libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/ParameterParsing/1Step_invivo_external_' parameter '.json']);
            
             
@@ -115,7 +115,7 @@ classdef ExternalParameterParsing < matlab.unittest.TestCase
         function test_1D_external_parameter_per_basis_parsing(testCase,parameter_per_basis, fields)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which(['libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/ParameterParsing/1Step_invivo_external_' parameter_per_basis '.json']);
            
             parameter_name = strrep(parameter_per_basis,'_indiv','');

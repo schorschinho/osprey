@@ -289,7 +289,7 @@ function test1DHealthyExpMMTE30(~)
     overwrite.lineShape = [];
     overwrite.noiseAmpl = 2.2788e-04;
     zero.metAmpl = zeros(34,1);
-
+    overwrite.datapoints = 2048;
     outputFolder = strrep(which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-scripts/RunContinuousIntegration.m'),'ci-scripts/RunContinuousIntegration.m', 'data/1D/ExpMM');
 
     [MRSCont] = OspreyGenerateSpectra(dataSets,outputFolder,1,parameter,alter,changedComb,zero,shareLorentzLB,SignalSNR,overwrite,0,1);
@@ -466,6 +466,136 @@ function test2DHealthyTE30_SeparateTransients(~)
 
     [MRSCont] = OspreyGenerateSpectra(dataSets,outputFolder,1,parameter,alter,changedComb,zero,shareLorentzLB,SignalSNR,overwrite,0,0,0);
 end
+
+function test2DNoBaselineNoMMHealthyTESeries_Ins(~)
+
+    % Load parameter struct
+    prior_knowledge_folder = fileparts(which(fullfile('utilities','simulation-prior-knowledge','MRS_BigPRESS_Philips_Struct.mat')));
+    load(fullfile(prior_knowledge_folder,'MRS_BigPRESS_Philips_Struct.mat'));
+    % Add basis set
+    parameter.basisSet = {which('/fit/basissets/3T/philips/unedited/slaser/30/basis_philips_slaser30.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/50/basis_philips_slaser50.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/70/basis_philips_slaser70.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/90/basis_philips_slaser90.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/110/basis_philips_slaser110.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/130/basis_philips_slaser130.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/150/basis_philips_slaser150.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/170/basis_philips_slaser170.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/190/basis_philips_slaser190.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/210/basis_philips_slaser210.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/230/basis_philips_slaser230.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/250/basis_philips_slaser250.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/270/basis_philips_slaser270.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/290/basis_philips_slaser290.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/310/basis_philips_slaser310.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/330/basis_philips_slaser330.mat')};
+    parameter.indirDim.flag = 1;
+    parameter.indirDim.function = 'T2';
+    parameter.indirDim.parameter = 'metAmpl';
+    parameter.indirDim.length = 16;
+    
+    parameter.indirDim.expectation.mean = [105;90;144;105;75;222;82;99;122;229;99;263;90;221;144;86;107;102;26.45;35.45;16.4;16.9;14.25;26.45;25.9;14.25;];
+    parameter.indirDim.expectation.SD = [0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;];
+    parameter.indirDim.expectation.meanBS = [22];
+    parameter.indirDim.expectation.SDBS = [0];
+    
+    alter =[];
+    zero.ph0 = 1;
+    zero.ph1 = 1;
+    zero.gaussLB = 0;
+    zero.lorentzLB = zeros(26,1);
+    zero.freqShift = ones(26,1);
+    zero.baseAmpl = 1;
+    zero.lineShape = 1;
+    
+    
+    dataSets = 1;
+    changedComb = 0;
+    shareLorentzLB = 1;
+    SignalSNR = [2.9,3.1];
+    
+    overwrite.ph0 = [];
+    overwrite.ph1 = [];
+    overwrite.gaussLB = 5.70 * ones(dataSets,1); 
+    overwrite.lorentzLB = 2.42 * ones(dataSets,26);
+    overwrite.freqShift = [];
+    overwrite.metAmpl = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15, 0, ...
+                         0, 0, 0, 0, 0, 0, 0, 0];
+    overwrite.baseAmpl = [];
+    overwrite.lineShape = [];
+    overwrite.noiseAmpl = 2.2788e-04;
+    zero.metAmpl = zeros(34,1);
+    
+     outputFolder = strrep(which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-scripts/RunContinuousIntegration.m'),'ci-scripts/RunContinuousIntegration.m', 'data/2D/TE-SeriesNoBsNoMMIns');
+    [MRSCont] = OspreyGenerateSpectra(dataSets,outputFolder,1,parameter,alter,changedComb,zero,shareLorentzLB,SignalSNR,overwrite);
+   
+end
+
+
+function test2DNoBaselineNoMMHealthyTESeries_NAA_Cr_Ins(~)
+
+    % Load parameter struct
+    prior_knowledge_folder = fileparts(which(fullfile('utilities','simulation-prior-knowledge','MRS_BigPRESS_Philips_Struct.mat')));
+    load(fullfile(prior_knowledge_folder,'MRS_BigPRESS_Philips_Struct.mat'));
+    % Add basis set
+    parameter.basisSet = {which('/fit/basissets/3T/philips/unedited/slaser/30/basis_philips_slaser30.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/50/basis_philips_slaser50.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/70/basis_philips_slaser70.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/90/basis_philips_slaser90.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/110/basis_philips_slaser110.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/130/basis_philips_slaser130.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/150/basis_philips_slaser150.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/170/basis_philips_slaser170.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/190/basis_philips_slaser190.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/210/basis_philips_slaser210.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/230/basis_philips_slaser230.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/250/basis_philips_slaser250.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/270/basis_philips_slaser270.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/290/basis_philips_slaser290.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/310/basis_philips_slaser310.mat'),...
+                          which('/fit/basissets/3T/philips/unedited/slaser/330/basis_philips_slaser330.mat')};
+    parameter.indirDim.flag = 1;
+    parameter.indirDim.function = 'T2';
+    parameter.indirDim.parameter = 'metAmpl';
+    parameter.indirDim.length = 16;
+    
+    parameter.indirDim.expectation.mean = [105;90;144;105;75;222;82;99;122;229;99;263;90;221;144;86;107;102;26.45;35.45;16.4;16.9;14.25;26.45;25.9;14.25;];
+    parameter.indirDim.expectation.SD = [0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;];
+    parameter.indirDim.expectation.meanBS = [22];
+    parameter.indirDim.expectation.SDBS = [0];
+    
+    alter =[];
+    zero.ph0 = 1;
+    zero.ph1 = 1;
+    zero.gaussLB = 0;
+    zero.lorentzLB = zeros(26,1);
+    zero.freqShift = ones(26,1);
+    zero.baseAmpl = 1;
+    zero.lineShape = 1;
+    
+    
+    dataSets = 1;
+    changedComb = 0;
+    shareLorentzLB = 1;
+    SignalSNR = [2.9,3.1];
+    
+    overwrite.ph0 = [];
+    overwrite.ph1 = [];
+    overwrite.gaussLB = 9.70 * ones(dataSets,1); 
+    overwrite.lorentzLB = 3.40 * ones(dataSets,26);
+    overwrite.freqShift = [];
+    overwrite.metAmpl = [0, 0, 3.13, 0, 0, 0, 0, 0, 0, 7.06, 0, 8.70, 0, 0, 0, 0, 0, 0, ...
+                         0, 0, 0, 0, 0, 0, 0, 0];
+    overwrite.baseAmpl = [];
+    overwrite.lineShape = [];
+    overwrite.noiseAmpl = 2.2788e-04;
+    zero.metAmpl = zeros(34,1);
+    
+     outputFolder = strrep(which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-scripts/RunContinuousIntegration.m'),'ci-scripts/RunContinuousIntegration.m', 'data/2D/TE-SeriesNoBsNoMMNAACrIns');
+    [MRSCont] = OspreyGenerateSpectra(dataSets,outputFolder,1,parameter,alter,changedComb,zero,shareLorentzLB,SignalSNR,overwrite);
+   
+end
+
 
 %Test Healthy 2D TE series no baseline and no MMs
 function test2DNoBaselineNoMMHealthyTESeries(~)

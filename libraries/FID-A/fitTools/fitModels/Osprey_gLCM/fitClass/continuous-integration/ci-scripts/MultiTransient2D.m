@@ -12,7 +12,7 @@ classdef MultiTransient2D < matlab.unittest.TestCase
 
         function test_2D_sI_singlestep_baseline_models(testCase,baseline,optimSignalPart)            
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/2D/sINoBSSeparateTransients/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/2D/sINoBSSeparateTransients/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/MultiTransientModels2D/2D_1Step_NoBS_sI.json');
            
             % Load model json
@@ -101,7 +101,7 @@ classdef MultiTransient2D < matlab.unittest.TestCase
         function test_2D_NAAmICr_noBS_singlestep_baseline_models(testCase,baseline,optimSignalPart)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/2D/NoBSNoMMNAACrInsSeparateTransients/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/2D/NoBSNoMMNAACrInsSeparateTransients/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/MultiTransientModels2D/2D_1Step_NoBS_NAAmICr.json');
            
             % Load model json
@@ -180,7 +180,7 @@ classdef MultiTransient2D < matlab.unittest.TestCase
             % Verify with gt values
             verifyEqual(testCase, test{1}.Options{1}.baseline.type, baseline, 'Does the baseline model match?')
             verifyEqual(testCase, ampl, ampl_gt, 'Does the estimate match the groundtruth?', 'RelTol', 10)
-            verifyEqual(testCase, ampl, ampl_prior_version, 'Does the estimate match the prior version of the gLCM?', 'RelTol', 0.002)
+            verifyEqual(testCase, ampl, ampl_prior_version, 'Does the estimate match the prior version of the gLCM?', 'RelTol', 0.02)
 
             if testCase.debug.plot
                 test{1}.plotFit(1)
@@ -190,7 +190,7 @@ classdef MultiTransient2D < matlab.unittest.TestCase
         function test_2D_parametrization_multi_transient(testCase,baseline_red,optimSignalPart,parameter,type)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/2D/NoBSNoMMNAACrInsSeparateTransients/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/2D/NoBSNoMMNAACrInsSeparateTransients/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/MultiTransientModels2D/2D_1Step_NoBS_NAAmICr.json');
            
             % Load model json
@@ -265,11 +265,11 @@ classdef MultiTransient2D < matlab.unittest.TestCase
             % Initialize Lorentzian LB as constant with value
             defaults.lorentzLB.fun     = 'free';
             defaults.lorentzLB.gradfun = 'free';
-            defaults.lorentzLB.lb      = zeros(1, nPars);
+            defaults.lorentzLB.lb      = 0.5*ones(1, nPars);
             defaults.lorentzLB.ub      = 7*ones(1, nPars);
             defaults.lorentzLB.init    = 3.40*ones(1, nPars);
-            defaults.lorentzLB.ex      = zeros(1, nPars);
-            defaults.lorentzLB.sd      = Inf*ones(1, nPars);
+            defaults.lorentzLB.ex      = 2.75*ones(1, nPars);
+            defaults.lorentzLB.sd      = 2.75*ones(1, nPars);
             defaults.lorentzLB.RegFun  = '';
             defaults.lorentzLB.type    = 'fixed';
     

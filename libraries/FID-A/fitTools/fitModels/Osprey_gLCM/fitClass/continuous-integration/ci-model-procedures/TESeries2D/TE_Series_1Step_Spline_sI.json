@@ -1,0 +1,67 @@
+{
+  "basisset": {
+    "file": [
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''30'',''basis_philips_press30.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''50'',''basis_philips_press50.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''70'',''basis_philips_press70.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''90'',''basis_philips_press90.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''110'',''basis_philips_press110.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''130'',''basis_philips_press130.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''150'',''basis_philips_press150.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''170'',''basis_philips_press170.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''190'',''basis_philips_press190.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''210'',''basis_philips_press210.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''230'',''basis_philips_press230.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''250'',''basis_philips_press250.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''270'',''basis_philips_press270.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''290'',''basis_philips_press290.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''310'',''basis_philips_press310.mat''))",
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''330'',''basis_philips_press330.mat''))"
+    ]
+  },
+  "Steps": {
+    "module": "Model",
+    "ModelFunction": "GeneralizedBasicPhysicsModel",
+    "extra": {
+      "flag": 1,
+      "DynamicModelJson": "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''continuous-integration'',''ci-model-procedures'',''TESeries2D'',''ExpDecay_sI.json''))"
+    },
+    "basisset": {
+      "spec": 1,
+      "include": [
+        "sI"]
+    },
+    "fit_opts": {
+      "optimFreqFitRange": [
+        0.5,
+        4
+      ],
+      "gap": [],
+      "optimDomain": "FD",
+      "optimSignalPart": "R",
+      "baseline": {
+        "type": "spline",
+        "dkntmn": 0.5
+      },
+      "solver": "lsqnonlin"
+    },
+    "parameter": [
+      "ph0",
+      "ph1",
+      "gaussLB",
+      "lorentzLB",
+      "freqShift",
+      "metAmpl",
+      "baseAmpl"
+    ],
+    ,
+    "parametrizations": {
+      "gaussLB": {
+        "init": 5.70
+      },
+      "lorentzLB": {
+        "init": 2.42
+      }
+    }
+  }
+}

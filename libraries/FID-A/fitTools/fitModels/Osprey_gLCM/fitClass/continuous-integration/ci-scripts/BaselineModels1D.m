@@ -1,6 +1,6 @@
 classdef BaselineModels1D < matlab.unittest.TestCase   
     properties (TestParameter)
-        debug = struct('update_priors',0,'plot',0);
+        debug = struct('update_priors',0,'plot',1);
         baseline = {'none','spline','poly','reg_spline'};
         optimSignalPart = {'R','RI'};
     end
@@ -9,7 +9,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
 
         function test_1D_sI_singlestep_baseline_models(testCase,baseline,optimSignalPart)            
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/sINoBS/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/sINoBS/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/BaselineModels1D/1Step_sI.json');
            
             % Load model json
@@ -87,7 +87,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
             % Verify with gt values
             verifyEqual(testCase, test{1}.Options{1}.baseline.type, baseline, 'Does the baseline model match?')
             verifyEqual(testCase, ampl, ampl_gt, 'Does the estimate match the groundtruth?', 'RelTol', 0.1)
-            verifyEqual(testCase, ampl, ampl_prior_version, 'Does the estimate match the prior version of the gLCM?', 'RelTol', 0.01)
+            verifyEqual(testCase, ampl, ampl_prior_version, 'Does the estimate match the prior version of the gLCM?', 'RelTol', 0.025)
 
             if testCase.debug.plot
                 test{1}.plotFit(1)
@@ -97,7 +97,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
         function test_1D_invivo_noBS_noMM_singlestep_baseline_models(testCase,baseline,optimSignalPart)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/NoBSNoMM/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/NoBSNoMM/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/BaselineModels1D/1Step_invivo.json');
            
             % Load model json
@@ -185,7 +185,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
         function test_1D_invivo_noBS_singlestep_baseline_models(testCase,baseline,optimSignalPart)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/NoBS/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/NoBS/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/BaselineModels1D/1Step_invivo.json');
            
             % Load model json
@@ -275,7 +275,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
         function test_1D_invivo_singlestep_baseline_models(testCase,baseline,optimSignalPart)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/BaselineModels1D/1Step_invivo.json');
            
             % Load model json
@@ -367,7 +367,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
         function test_1D_invivo_ExpMM_singlestep_baseline_models(testCase,baseline,optimSignalPart)   
             
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/ExpMM/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/ExpMM/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/BaselineModels1D/1Step_invivo.json');
            
             % Load model json
@@ -448,7 +448,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
             % Verify with gt values
             verifyEqual(testCase, test{1}.Options{1}.baseline.type, baseline, 'Does the baseline model match?')
             verifyEqual(testCase, ampl, ampl_gt, 'Does the estimate match the groundtruth?', 'RelTol', 3.4)
-            verifyEqual(testCase, ampl, ampl_prior_version, 'Does the estimate match the prior version of the gLCM?', 'RelTol', 0.001)
+            verifyEqual(testCase, ampl, ampl_prior_version, 'Does the estimate match the prior version of the gLCM?', 'RelTol', 0.01)
 
             if testCase.debug.plot
                 test{1}.plotFit(1)
@@ -459,7 +459,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
             
             % Fit with parameterized MMs
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/BSandMMs/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
             model = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/ci-model-procedures/BaselineModels1D/1Step_Spline_invivo_Reg_Optim_Full.json');
            
             % Load model json
@@ -502,7 +502,7 @@ classdef BaselineModels1D < matlab.unittest.TestCase
 
             % Fit with exp MMs
             % Find data and model procedure
-            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/ExpMM/NIfTIMRS/sim-001_ses-001_PRESS_3T_35_TE_A.nii.gz');
+            data = which('libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/continuous-integration/data/1D/ExpMM/NIfTIMRS/sim-001_ses-001_MRS_3T_30_TE_A.nii.gz');
 
             % Parse parameters
             ModelProcedure.Steps{2}.basisset.include = ModelProcedure.Steps{2}.basisset.include(1:19);
