@@ -1,10 +1,10 @@
 {
   "basisset": {
     "file": [
-        "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''30'',''basis_philips_press30.mat''))"
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''35'',''basis_philips_press35.mat''))"
     ],
     "mmdef": [
-      "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
+      "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"  
     ]
   },
   "Steps": [
@@ -18,11 +18,12 @@
         "spec": 1,
         "include": [
           "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
-          "NAAG","PCh","PCr","PE","sI","Tau", "MM09","MM12","MM14","MM17","MM20","Lip09","Lip13","Lip20"
+          "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
+          "Lip09","Lip13a","Lip13b","Lip20"
         ]
       },
       "fit_opts": {
-        "optimFreqFitRange": [
+        "ppm": [
           0.5,
           4
         ],
@@ -30,7 +31,8 @@
         "optimDomain": "FD",
         "optimSignalPart": "R",
         "baseline": {
-          "type": "none"
+          "type": "spline",
+          "dkntmn": 0.0667
         },
         "solver": "lsqnonlin"
       },
@@ -38,18 +40,12 @@
         "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
       ],
       "parametrizations": {
-        "gaussLB": {
-          "init": 9.70
+          "lorentzLB": {
+          "gr":{"g1":["MM09","MM12","MM14","MM17","MM20","Lip09","Lip13a","Lip13b","Lip20"]}
         },
-        "lorentzLB": {
-          "init": 3.40,
-          "gr":{"g1":["MM09","MM12","MM14","MM17","MM20","Lip09","Lip13","Lip20"],
-                   "g2":["GSH","Gln","Glu"]}
-        },
-        "freqShift": {
-          "init": 0,
-          "ub": 0,
-          "lb": 0
+        "baseAmpl": {
+          "RegFun": "SecondDerivative",
+          "RegPar": 500
         }
       }
     }
