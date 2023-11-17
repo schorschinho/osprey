@@ -349,6 +349,10 @@ function jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitR
     end
 
 
+    [dYdlorentzLB]  = updateAccordingToGrouping(dYdlorentzLB,'lorentzLB', parametrizations); % Update jacobian block for lorentzLB parameter
+    [dYdfreqShift]  = updateAccordingToGrouping(dYdfreqShift,'freqShift', parametrizations); % Update jacobian block for freqShift parameter
+    [dYdmetAmpl]    = updateAccordingToGrouping(dYdmetAmpl,'metAmpl', parametrizations); % Update jacobian block for metAmpl parameter
+
     if Reg                                                                  % Add parameter regularization
         for sD = 1 : secDim                                                 % Loop over indirect dimension
             ph0 = squeeze(inputParams.ph0(sD));                             % Get ph0 parameter
@@ -370,6 +374,7 @@ function jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitR
         end
     end                                                                     % End loop over indirect dimension
 
+    
 
 
     if secDim > 1                                                           % update each block in the jacobian according to the 2-D parametrization
@@ -613,12 +618,21 @@ function paramStruct = x2pars(x, secDim, parametrizations)
             case {'metAmpl', 'freqShift', 'lorentzLB','baseAmpl'}            % Parameters that appear once per basis function
                 if strcmp(parametrizations.(pars{ff}).type,'free')
                     paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),secDim,[]);
+                    if ~isempty(parametrizations.(pars{ff}).gr)  
+                        paramStruct.(pars{ff}) = paramStruct.(pars{ff})(parametrizations.(pars{ff}).gr.idx); 
+                    end
                 end
                 if strcmp(parametrizations.(pars{ff}).type,'fixed')
+                    if ~isempty(parametrizations.(pars{ff}).gr)  
+                        paramStruct.(pars{ff}) = paramStruct.(pars{ff})(parametrizations.(pars{ff}).gr.idx); 
+                    end
                     paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),1,[]);
                     paramStruct.(pars{ff}) = repmat(paramStruct.(pars{ff}),[secDim,1]);
                 end
                 if strcmp(parametrizations.(pars{ff}).type,'dynamic')
+                    if ~isempty(parametrizations.(pars{ff}).gr)  
+                        paramStruct.(pars{ff}) = paramStruct.(pars{ff})(parametrizations.(pars{ff}).gr.idx); 
+                    end
                     paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
                     for rp = 1 : length(parametrizations.(pars{ff}).parameterNames)
                         paramStruct.([pars{ff} 'Reparametrization']).(parametrizations.(pars{ff}).parameterNames{rp}) = paramStruct.(pars{ff})(rp,:);
@@ -742,6 +756,44 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
     end
 end
 
+function dYdX = updateAccordingToGrouping(dYdX,parameterName, parametrizations)
+% This function updates jacobians according to different parameter
+% groupings
+%
+%   USAGE:
+%       dYdX = updateAccordingToGrouping(dYdX,parameterName, parametrizations,inputParams,SignalPart,NoiseSD)
+%
+%   INPUTS:
+%       dYdX             = jacobian
+%       parameterName    = name of parameter
+%       parametrizations = paramterization options
+%
+%   OUTPUTS:
+%       dYdX             = re-organized jacobian
+%
+%
+%   AUTHOR:
+%       Dr. Helge Zoellner (Johns Hopkins University, 2023-03-07)
+%       hzoelln2@jhmi.edu
+%
+%   CREDITS:
+%       This code is based on numerous functions from the FID-A toolbox by
+%       Dr. Jamie Near (McGill University)
+%       https://github.com/CIC-methods/FID-A
+%       Simpson et al., Magn Reson Med 77:23-33 (2017)
+%% Update jacobian lines
+if ~isempty(parametrizations.(parameterName).gr)                                                % Has grouping turned on
+    dYdXtemp = zeros(size(dYdX,1),max(parametrizations.(parameterName).gr.idx),size(dYdX,3));
+    for ll = 1 : length(parametrizations.(parameterName).gr.idx)
+        dYdXtemp(:,parametrizations.(parameterName).gr.idx(ll),:) = dYdXtemp(:,parametrizations.(parameterName).gr.idx(ll),:) + dYdX(:,ll,:);
+    end
+    dYdX = dYdXtemp;
+end
+
+end
+
+
+
 function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,SignalPart,NoiseSD)
 % This function updates jacobians according to the parametrization
 %
@@ -857,6 +909,11 @@ function [penalty, penaltyJac] = calcPenalty(inputParams, parametrizations, para
 % Calculates the penalty term for deviations from expectation values
 % relative to standard deviations
 actualValue         = squeeze(inputParams.(param)(sD,:));
+if ~isempty(parametrizations.(param).gr)
+    idx = parametrizations.(param).gr.idx;
+    actualValue =  actualValue(idx);
+    actualValue =  actualValue(1:max(idx));
+end
 expectationValue    = parametrizations.(param).ex;
 standardDeviation   = parametrizations.(param).sd;
 

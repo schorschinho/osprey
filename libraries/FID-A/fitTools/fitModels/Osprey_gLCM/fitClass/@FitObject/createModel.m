@@ -65,9 +65,13 @@ function obj = createModel(obj)
     pars = fields(parsgr);                                        % Get parameter names
     for ff = 1 : length(pars)                                     % Loop over parameters
         if ~isempty(parsgr.(pars{ff}))                            % Grouping exists
+            if isfield(parsgr.(pars{ff}),'idx')                         % Remove old index during optimization
+               parsgr.(pars{ff}) = rmfield(parsgr.(pars{ff}),'idx'); 
+            end
             groups = fields(parsgr.(pars{ff}));                   % Get group names
-            basisNames = basisSet.names(logical(basisSet.includeInFit));
-            idx = 1:sum(basisSet.includeInFit);
+            
+            basisNames = basisSet.names(logical(basisSet.includeInFit(obj.step,:)));
+            idx = 1:sum(basisSet.includeInFit(obj.step,:));
             for gg = 1 : length(groups)            
                 [metsToInclude, ~, ~] = intersect(basisNames, parsgr.(pars{ff}).(groups{gg}), 'stable');    % Get vector of logical indices
                 firstIndex = find(strcmp(metsToInclude{1}, basisNames));    % Get index of basis function to include
@@ -77,6 +81,19 @@ function obj = createModel(obj)
                 end 
                 parsgr.(pars{ff}).idx = idx;
             end
+            % Update paramters accoring to grouping
+            parsInit.(pars{ff}) =  parsInit.(pars{ff})(idx);
+            parslb.(pars{ff}) =  parslb.(pars{ff})(idx);
+            parsub.(pars{ff}) =  parsub.(pars{ff})(idx);
+            parsex.(pars{ff}) =  parsex.(pars{ff})(idx);
+            parssd.(pars{ff}) =  parssd.(pars{ff})(idx);
+            % Remove parameters that are not needed anymore
+            parsInit.(pars{ff}) =  parsInit.(pars{ff})(1:max(idx));
+            parslb.(pars{ff}) =  parslb.(pars{ff})(1:max(idx));
+            parsub.(pars{ff}) =  parsub.(pars{ff})(1:max(idx));
+            parsex.(pars{ff}) =  parsex.(pars{ff})(1:max(idx));
+            parssd.(pars{ff}) =  parssd.(pars{ff})(1:max(idx));
+
         end
     end
 
@@ -99,6 +116,7 @@ function obj = createModel(obj)
             obj.Options{obj.step}.parametrizations.(pars{pp}).ex = parsex.(pars{pp}); % Update ex values
             obj.Options{obj.step}.parametrizations.(pars{pp}).sd = parssd.(pars{pp}); % Update sd values
             obj.Options{obj.step}.parametrizations.(pars{pp}).type = parsfun.(pars{pp}); % Update type strings
+            obj.Options{obj.step}.parametrizations.(pars{pp}).gr = parsgr.(pars{pp}); % Update grouping information
         end
     end                                                     % End loop over parameters
     
@@ -108,7 +126,6 @@ function obj = createModel(obj)
         obj.Options{obj.step}.parametrizations.baseAmpl.type = 'none';      % Type none
     end
     parametrizations = obj.Options{obj.step}.parametrizations;              % Write parametrization in variable for solver
-    
     
     if sum(cellfun(@isstruct,obj.returnParametrization(obj.step,'RegFun'))) > 0    % Apply regularizer?
         Reg = 1;                                                            % Set regularizer to yes
