@@ -25,6 +25,21 @@ arguments
     BasisSetStruct struct = [];                     % optional
 end
 
+% If input is just a single struct, move it into a cell array
+if ~iscell(DataToModel)                                                       % Just a single file
+    temporaryCell       = {};
+    temporaryCell{1}    = DataToModel;                                        % Default input is a cell array so we need to change it
+    DataToModel         = temporaryCell;
+else
+    % If input is a cell, check whether it is a NII file name that can be
+    % directly parsed
+    if isstring(DataToModel{1})
+        if contains(DataToModel{1},'.nii')                                    % We do only accept .nii files for direct parsing
+            DataToModel{1}             = io_loadspec_niimrs(DataToModel{1});  % Load data
+        end
+    end
+end
+
 %% What happens here:
 %   1. Decode model json file
 %   2. Prepare basisset matrix (and export as NII)
@@ -141,7 +156,7 @@ if isfield(ModelProcedure.basisset, 'mmdef') && ~isempty(ModelProcedure.basisset
     
     % Read out MM/Lip configuration file and create matching
     MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.basisset.mmdef{1}));
-    [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel);
+    [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel{1});
     % Join basis sets together
     basisSet = joinBasisSets(basisSet, basisSim);
 end
@@ -151,11 +166,6 @@ end
 % for MSM
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
-if ~iscell(DataToModel)                                                       % Just a single file
-    temporaryCell       = {};
-    temporaryCell{1}    = DataToModel;                                        % Default input is a cell array so we need to change it
-    DataToModel         = temporaryCell;
-end
 
 % Cell array of data which we will loop over
 for kk = 1 : length(DataToModel)
