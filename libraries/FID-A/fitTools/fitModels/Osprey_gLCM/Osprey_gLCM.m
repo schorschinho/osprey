@@ -271,6 +271,31 @@ for kk = 1 : length(DataToModel)
         ModelParameter{kk,1}.excludeBasisFunctionFromFit('all');
         ModelParameter{kk,1}.includeBasisFunctionInFit(ModelProcedure.Steps{ss}.basisset.include);
 
+        % Set the first set of expectation and standard deviation values
+        % for the non-linear parameters
+        if ~isfield(ModelProcedure.Steps{ss}, 'parametrizations')
+            if isfield(ModelProcedure.basisset, 'mmdef') && ~isempty(ModelProcedure.basisset.mmdef)
+                % Add the initialization of EX/SD values (for frequency shift and
+                % Lorentzian LB) here:
+                [EXT2, SDT2, SDSH] = fit_setExSDValues(DataToModel{1}, basisSet, MMLipConfig, 0);
+            else
+                % Only initialize EX/SD values (for frequency shift and
+                % Lorentzian LB) for the metabolites:
+                [EXT2, SDT2, SDSH] = fit_setExSDValues(DataToModel{1}, basisSet);
+            end
+            % Store EXT2, SDT2, SDSH to an options/parametrization structure
+            EXT2 = EXT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit));
+            parametrization.lorentzLB.ex    = EXT2;
+            parametrization.lorentzLB.init  = EXT2;
+            SDT2 = SDT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit));
+            parametrization.lorentzLB.sd = SDT2;
+            SDSH = SDSH(logical(ModelParameter{kk,1}.BasisSets.includeInFit));
+            parametrization.freqShift.sd = SDSH;
+
+            % Update the FitObject
+            ModelParameter{kk,1}.updateParametrization(parametrization);
+        end
+
         % Is this modeling or optimization of the regularization parameter
         if ~strcmp(ModelProcedure.Steps{ss}.module,'OptimReg')
             fprintf('Running model of dataset #%i of %i \n', kk, length(DataToModel));

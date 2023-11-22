@@ -4,13 +4,6 @@ function [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel)
 % struct (provided by MM/lipid definition JSON), matching the metabolite
 % basis functions provided in 'basisSet'
 
-% Convert data if needed
-if ~isstruct(DataToModel)                                                  % It is not a FID-A struct?
-    if contains(DataToModel{1},'.nii')                                    % We do only accept .nii files for direct parsing
-        DataToModel                = io_loadspec_niimrs(DataToModel{1});  % Load data
-    end
-end
-
 % Duplicate basis struct
 basisSim        = basisSet;
 basisSim.fids   = [];
