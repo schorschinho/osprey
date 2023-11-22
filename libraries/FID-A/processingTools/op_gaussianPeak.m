@@ -38,6 +38,13 @@ ppm=ppm-(4.68-centerFreq);
 fids=amp * exp(-(t.^2)/(2*(decay^2))) .* exp(-1j*f0*t);
 fids=fids';
 
+% First point is half the amplitude
+fids(1,:) = 0.5 * fids(1,:);
+specs=fftshift(fft(fids,[],1),1);
+% Actual amplitude
+ampActual = sum(real(specs(:,1)));
+fids = fids ./ ampActual;
+
 specs=fftshift(fft(fids,[],1),1);
 
 out.t=t;
