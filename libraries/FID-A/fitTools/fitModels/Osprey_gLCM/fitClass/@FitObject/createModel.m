@@ -31,7 +31,11 @@ function obj = createModel(obj)
             obj.Data.fids        = obj.Data.fids(:,obj.Options{obj.step}.InitialPick);  % Extract data for initial fit          
         end
     end
+    % Basis set treatment
     basisSet            = obj.BasisSets;                                    % Get basis set
+    % Subset the basis set to only include the basis functions included
+    basisSet.fids       = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:); % Get FIDs
+    basisSet.names      = basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)));  % Get names
     baselineBasis       = obj.BaselineBasis;                                % Get baseline basis
     data                = obj.Data.fids;                                    % Get time domain data
     ppm                 = obj.Data.ppm;                                     % Get ppm axis
@@ -41,8 +45,7 @@ function obj = createModel(obj)
     SignalPart          = obj.Options{obj.step}.optimSignalPart;            % Get optimization signal part
     solver              = obj.Options{obj.step}.solver;                     % Get solver name
     NoiseSD             = obj.NoiseSD;                                      % Get standard deviation of the noise 
-    basisSet.fids       = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:); % Only use basis functions that are included
-
+    
 %%  Update parameterizations according to model procedure step
 
     
@@ -285,12 +288,12 @@ function obj = createModel(obj)
     
     obj.Model{obj.step}.rawCRLB = CRLB;                 % Save raw CRLBs
     try
-        obj.Model{obj.step}.CRLB = array2table(relativeCRLB,'VariableNames',basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)))); % Save table with basis function names and relative CRLBs
+        obj.Model{obj.step}.CRLB = array2table(relativeCRLB,'VariableNames',basisSet.names); % Save table with basis function names and relative CRLBs
     catch
     end    
     
     % Calculate CRLBs for metabolite combinations
-    metaboliteNames = basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)));
+    metaboliteNames = basisSet.names;
     switch solver                                        % Switch to pick solver
         case 'lbfgsb'
             [obj] = calculateCombinedCRLB(obj,invFisher, xk', metaboliteNames, parametrizations);
