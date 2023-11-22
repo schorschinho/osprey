@@ -37,7 +37,7 @@ classdef FitObject < handle
         BasisSets = struct('fids', [], ...                                  % Initialize time domain basis functions
                            'names', [], ...                                 % Initialize basis function names
                            'includeInFit', []);                             % Initialize index vector of basis functions to be included
-        BaselineBasis = struct('specs', []);                                % Initialize basline basis
+        BaselineBasis = struct('specs', []);                                % Initialize baseline basis
         NoiseSD = [];                                                       % Initialize noise SD estimate
         Options = {struct};                                                 % Initialize options array
         Model = {struct};                                                   % Initialize model array

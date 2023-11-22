@@ -135,7 +135,7 @@ else
 end
 
 if length(scaleData) > 1                                                    % The user has supplied a scaling factor for the data               
-    DoDataScaling = 2;                                                      % Aplly scale to data
+    DoDataScaling = 2;                                                      % Apply scale to data
 else if scaleData ~= 0                                                      % Do we want to perform data scaling?
         DoDataScaling = 1;                                                  % Apply scale to data
         if scaleData ~= 1
