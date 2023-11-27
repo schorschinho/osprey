@@ -52,6 +52,11 @@ if nargin<8
     end
 end
 
+% Recalcualte spectra if they are not yet included
+if ~isfield(basisSet,'specs')
+    [basisSet]=osp_recalculate_basis_specs(basisSet)
+end
+
 % Generate a new figure and keep the handle memorized
 out = figure;
 % Prepare a couple of useful variables
@@ -78,7 +83,7 @@ basisSet.ppm = ppm;
 if stagFlag
     % Staggered plots will be in all black and separated by the mean of the
     % maximum across all spectra
-    stag = mean(max(real(basisSet.specs(:,:,dim))));
+    stag = mean(max(real(basisSet.specs(basisSet.ppm > ppmmin & basisSet.ppm < ppmmax,:,dim))));
     
     % Loop over all basis functions
     hold on
