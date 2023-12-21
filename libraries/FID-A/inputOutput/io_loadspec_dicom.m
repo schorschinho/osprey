@@ -16,6 +16,11 @@
 
 function out=io_loadspec_dicom(folder);
 
+% If path to a .dcm is provided, then extract the folder location:
+if ~isfolder(folder) && isfile(folder)
+    folder =fileparts(folder);
+end
+
 % Create list of complete filenames (incl. path) in the folder
 dirFolder = dir(folder);
 filesInFolder = dirFolder(~[dirFolder.isdir]);
