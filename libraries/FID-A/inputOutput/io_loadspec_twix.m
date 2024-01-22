@@ -19,8 +19,10 @@
 %
 % OUTPUTS:
 % out        = Input dataset in FID-A structure format.
+% out_w      = Input water reference data (only available for some
+%               sequences.  This will be empty for others).
 
-function out=io_loadspec_twix(filename);
+function [out,out_w]=io_loadspec_twix(filename);
 
 
 %read in the data using the new mapVBVD.  This code has been adapted to
@@ -79,9 +81,10 @@ ismodWIP=(~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'e
 isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
 isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA-PRESS sequence
          ~isempty(strfind(sequence,'md_svs_slaser_edit')); %Is Thomas Lange's MEGA-s-LASER sequence
-isMinn=~isempty(strfind(sequence,'eja_svs_')) ||... %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
-       ~isempty(strfind(sequence,'svs_slaser_dkd')) ||...   % ... or Dinesh Deelchand's 2016 sLASER sequence?
-       ~isempty(strfind(sequence,'svs_slaserVOI_dkd'));     % ... or Dinesh Deelchand's 2022 'plug and play' sLASER sequence?
+isMinn_eja=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
+isMinn_dkd=~isempty(strfind(sequence,'svs_slaser_dkd')) ||...   % ... or Dinesh Deelchand's 2016 sLASER sequence?
+       ~isempty(strfind(sequence,'svs_slaserVOI_dkd'))||...% ... or Dinesh Deelchand's 2022 'plug and play' sLASER sequence?
+       ~isempty(strfind(sequence,'svs_slaserVOI_dkd2'));%Is this Dinesh Deelchand's (CMRR, U Minnesota) sequence?     
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
@@ -105,7 +108,7 @@ elseif isUniversal
             end
         end
     end
-elseif isMinn
+elseif isMinn_eja || isMinn_dkd
     if ~isempty(strfind(sequence,'mslaser'))
         seq = 'MEGASLASER';
     else
@@ -114,7 +117,7 @@ elseif isMinn
         elseif ~isempty(strfind(sequence,'steam'))
             seq = 'STEAM';
         else
-            seq = 'MEGAPRESS';
+            seq = 'PRESS';
         end
     end
 elseif isTLFrei && ~isempty(strfind(sequence,'md_svs_slaser_edit'))
@@ -225,10 +228,43 @@ end
 Ncoils=twix_obj.hdr.Meas.iMaxNoOfRxChannels;
 
 %Find the TE:
-TE = twix_obj.hdr.MeasYaps.alTE{1};  %Franck Lamberton
+if ~isMinn_dkd
+    TE = twix_obj.hdr.MeasYaps.alTE{1};  %Franck Lamberton
+else
+    TE = twix_obj.hdr.MeasYaps.alTE{1} + twix_obj.hdr.MeasYaps.alTE{2} + twix_obj.hdr.MeasYaps.alTE{3};
+end
 
 %Find the TR:
 TR = twix_obj.hdr.MeasYaps.alTR{1};  %Franck Lamberton
+
+wRefs=false;  %Flag to identify if there are automatic water reference scans acquired.  There are none by default.
+
+%Noticed that in Dinesh Deelchand's CMRR sLASER seuqence
+%(svs_slaserVOI_dkd2) contains some reference scans, which are acquired at
+%the very end.  We will save these and store them as a separate water 
+%reference structure (out_w).  
+if isMinn_dkd
+    %If nRefs is non-zero, then there are automatic water reference scans.
+    %These will be saved as "outw".
+    nRefs=twix_obj.hdr.MeasYaps.sSpecPara.lAutoRefScanNo;
+    if nRefs==1
+        nRefs=0;%Becuase Nrefs seems to have a default value of 1 even if there are no reference scans. 
+    end
+    if nRefs>0
+        wRefs=true;
+    end
+   
+    if ndims(fids)==4
+        fids_w=fids(:,:,:,end-(nRefs-1):end);
+        fids=fids(:,:,:,end-(nRefs+Naverages-1):end-nRefs);
+    elseif ndims(fids)==3
+        fids_w=fids(:,:,end-(nRefs-1):end);
+        fids=fids(:,:,end-(nRefs+Naverages-1):end-nRefs);
+    elseif ndims(fids)==2
+        fids_w=fids(:,end-(nRefs-1):end);
+        fids=fids(:,end-(nRefs+Naverages-1):end-nRefs);
+    end
+end
 
 % Extract voxel dimensions
 if (strcmp(version,'vd') || strcmp(version,'vb') || strcmp(version,'XA30'))
@@ -309,7 +345,7 @@ end
 
 %Now index the dimension of the averages
 if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')
-    if isMinn || isConnectom
+    if isMinn_eja || isMinn_dkd || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
         dims.averages=find(strcmp(sqzDims,'Ave'));
@@ -354,7 +390,7 @@ if ~isempty(dimsToIndex)
         else
             dims.subSpecs=find(strcmp(sqzDims,'Ida'));
         end
-    elseif isWIP529 || isMinn
+    elseif isWIP529 || isMinn_eja || isMinn_dkd
         dims.subSpecs=find(strcmp(sqzDims,'Eco'));
     elseif ismodWIP
         if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'vb')
@@ -403,45 +439,81 @@ end
 if length(sqzDims)==5
     fids=permute(fids,[dims.t dims.coils dims.averages dims.subSpecs dims.extras]);
     dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=4;dims.extras=5;
+    if wRefs
+        fids_w=permute(fids_w,[dims.t dims.coils dims.averages dims.subSpecs dims.extras]);
+    end
 elseif length(sqzDims)==4
     if dims.extras==0
         fids=permute(fids,[dims.t dims.coils dims.averages dims.subSpecs]);
         dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=4;dims.extras=0;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.coils dims.averages dims.subSpecs]);
+        end
     elseif dims.subSpecs==0
         fids=permute(fids,[dims.t dims.coils dims.averages dims.extras]);
         dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=0;dims.extras=4;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.coils dims.averages dims.extras]);
+        end
     elseif dims.averages==0
         fids=permute(fids,[dims.t dims.coils dims.subSpecs dims.extras]);
         dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=3;dims.extras=4;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.coils dims.subSpecs dims.extras]);
+        end
     elseif dims.coils==0
         fids=permute(fids,[dims.t dims.averages dims.subSpecs dims.extras]);
         dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=3;dims.extras=4;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.averages dims.subSpecs dims.extras]);
+        end
     end
 elseif length(sqzDims)==3
     if dims.extras==0 && dims.subSpecs==0
         fids=permute(fids,[dims.t dims.coils dims.averages]);
         dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=0;dims.extras=0;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.coils dims.averages]);
+        end
     elseif dims.extras==0 && dims.averages==0
         fids=permute(fids,[dims.t dims.coils dims.subSpecs]);
         dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=3;dims.extras=0;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.coils dims.subSpecs]);
+        end
     elseif dims.extras==0 && dims.coils==0
         fids=permute(fids,[dims.t dims.averages dims.subSpecs]);
         dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=3;dims.extras=0;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.averages dims.subSpecs]);
+        end
     end
 elseif length(sqzDims)==2
     if dims.extras==0 && dims.subSpecs==0 && dims.averages==0
         fids=permute(fids,[dims.t dims.coils]);
         dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=0;dims.extras=0;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.coils]);
+        end
     elseif dims.extras==0 && dims.subSpecs==0 && dims.coils==0
         fids=permute(fids,[dims.t dims.averages]);
         dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=0;dims.extras=0;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.averages]);
+        end
     elseif dims.extras==0 && dims.averages==0 && dims.coils==0
         fids=permute(fids,[dims.t dims.subSpecs]);
         dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=2;dims.extras=0;
+        if wRefs
+            fids_w=permute(fids_w,[dims.t dims.subSpecs]);
+        end
     end
 elseif length(sqzDims)==1
     fids=permute(fids,[dims.t]);
     dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0;
+    if wRefs
+        fids_w=permute(fids_w,[dims.t]);
+    end
 end
 
 %Now reorder the fids for the Universal MEGA implementation
@@ -482,10 +554,15 @@ end
 
 %Now get the size of the data array:
 sz=size(fids);
+if wRefs
+    sz_w=size(fids_w);
+end
 
 %Now take fft of time domain to get fid:
 specs=fftshift(fft(fids,[],dims.t),dims.t);
-
+if wRefs
+    specs_w=fftshift(ifft(fids_w,[],dims.t),dims.t);
+end
 
 %Now get relevant scan parameters:*****************************
 
@@ -524,17 +601,33 @@ if dims.subSpecs ~=0
     if dims.averages~=0
         averages=sz(dims.averages)*sz(dims.subSpecs);
         rawAverages=averages;
+        if wRefs
+            averages_w=sz_w(dims.averages)*sz_w(dims.subSpecs);
+            rawAverages_w=averages_w;
+        end
     else
         averages=sz(dims.subSpecs);
         rawAverages=1;
+        if wRefs
+            averages_w=sz_w(dims.subSpecs);
+            rawAverages_w=1;
+        end
     end
 else
     if dims.averages~=0
         averages=sz(dims.averages);
         rawAverages=averages;
+        if wRefs
+            averages_w=sz_w(dims.averages);
+            rawAverages_w=averages_w;
+        end
     else
         averages=1;
         rawAverages=1;
+        if wRefs
+            averages_w=1;
+            rawAverages_w=1;
+        end
     end
 end
 
@@ -568,7 +661,7 @@ elseif isSiemens && (~isMinn && ~isConnectom)
     else
        leftshift = twix_obj.image.iceParam(5,1);
     end
-elseif isMinn || isConnectom || isDondersMRSfMRI
+elseif isMinn_eja || isMinn_dkd || isConnectom || isDondersMRSfMRI
     try
         leftshift = twix_obj.image.iceParam(5,1);
     catch
@@ -666,6 +759,87 @@ if strcmp(seq,'HERMES')
 end
 if strcmp(seq,'HERCULES')
     out.flags.isHERCULES = 1;
+end
+
+if wRefs
+    %FILLING IN DATA STRUCTURE
+    out_w.fids=fids_w;
+    out_w.specs=specs_w;
+    out_w.sz=sz_w;
+    out_w.ppm=ppm;
+    out_w.t=t;
+    out_w.spectralwidth=spectralwidth;
+    out_w.dwelltime=dwelltime;
+    out_w.txfrq=txfrq;
+    out_w.date=date;
+    out_w.dims=dims;
+    out_w.Bo=Bo;
+    out_w.averages=averages_w;
+    out_w.rawAverages=rawAverages_w;
+    out_w.subspecs=subspecs;
+    out_w.rawSubspecs=rawSubspecs;
+    out_w.seq=seq;
+    out_w.te=TE/1000;
+    out_w.tr=TR/1000;
+    out_w.pointsToLeftshift=leftshift;
+    out_w.centerFreq = centerFreq;
+    out_w.geometry = geometry;
+    if isfield(twix_obj.hdr.Config,'Nucleus')
+        out_w.nucleus = twix_obj.hdr.Config.Nucleus  ;
+    end
+    if isfield(twix_obj.hdr.Dicom,'SoftwareVersions')
+        out_w.software = [version ' ' twix_obj.hdr.Dicom.SoftwareVersions];
+    else
+        out_w.software = version;
+    end
+
+
+    %FILLING IN THE FLAGS
+    out_w.flags.writtentostruct=1;
+    out_w.flags.gotparams=1;
+    out_w.flags.leftshifted=0;
+    out_w.flags.filtered=0;
+    out_w.flags.zeropadded=0;
+    out_w.flags.freqcorrected=0;
+    out_w.flags.phasecorrected=0;
+    out_w.flags.averaged=0;
+    out_w.flags.addedrcvrs=0;
+    out_w.flags.subtracted=0;
+    out_w.flags.writtentotext=0;
+    out_w.flags.downsampled=0;
+    if out_w.dims.subSpecs==0
+        out_w.flags.isFourSteps=0;
+    else
+        out_w.flags.isFourSteps=(out_w.sz(out_wop_pl.dims.subSpecs)==4);
+    end
+    % Add info for niiwrite
+    out_w.PatientPosition = twix_obj.hdr.Config.PatientPosition;
+    out_w.Manufacturer = 'Siemens';
+    [~,filename,ext] = fileparts(filename);
+    out_w.OriginalFile = [filename ext];
+    % Sequence flags
+    out_w.flags.isUnEdited = 0;
+    out_w.flags.isMEGA = 0;
+    out_w.flags.isHERMES = 0;
+    out_w.flags.isHERCULES = 0;
+    out_w.flags.isPRIAM = 0;
+    out_w.flags.isMRSI = 0;
+    if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+        out_w.flags.isUnEdited = 1;
+    end
+    if contains(seq,'MEGA')
+        out_w.flags.isMEGA = 1;
+    end
+    if strcmp(seq,'HERMES')
+        out_w.flags.isHERMES = 1;
+    end
+    if strcmp(seq,'HERCULES')
+        out_w.flags.isHERCULES = 1;
+    end
+else
+    %No water reference data found.  Returning empty struct for out_w:
+    disp('No water reference data found.  Returning empty field');
+    out_w=[];
 end
 
 %DONE
