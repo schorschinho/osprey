@@ -292,6 +292,9 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
             end
         end
         subspecs    = 0;
+        if rawSubspecs > 0
+            subspecs    = rawSubspecs;
+        end
     end
 
     if length(sqzDims)==5
