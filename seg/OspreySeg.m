@@ -591,7 +591,7 @@ if DeformField
     if isfield(MRSCont, 'exclude')
         Files(MRSCont.exclude)=[];
     end
-    CalculateMaskOverlap(Files',[osp_RemovePreFix(MaskName) '_VoxelOverlap'],MaskDir);
+    CalculateMaskOverlap(Files',[osp_RemovePreFix(MaskNameSPM152) '_VoxelOverlap'],MaskDir);
     
     for kk = 1:MRSCont.nDatasets(1)
         vol_mask = MRSCont.coreg.vol_mask{kk};
@@ -600,9 +600,9 @@ if DeformField
         gzip(fullfile(MaskDir,[MaskNameSPM152, MaskExt]));
         delete(fullfile(MaskDir,[MaskNameSPM152, MaskExt]));
     end
-    gzip(fullfile(MaskDir,[osp_RemovePreFix(MaskName) '_VoxelOverlap.nii']));
-    delete(fullfile(MaskDir,[osp_RemovePreFix(MaskName) '_VoxelOverlap.nii']));
-    MRSCont.seg.overlapfile = fullfile(MaskDir,[osp_RemovePreFix(MaskName) '_VoxelOverlap.nii']);
+    gzip(fullfile(MaskDir,[osp_RemovePreFix(MaskNameSPM152) '_VoxelOverlap.nii']));
+    delete(fullfile(MaskDir,[osp_RemovePreFix(MaskNameSPM152) '_VoxelOverlap.nii']));
+    MRSCont.seg.overlapfile = fullfile(MaskDir,[osp_RemovePreFix(MaskNameSPM152) '_VoxelOverlap.nii']);
 end
 time = toc(refSegTime);
 [~] = printLog('done',time,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
