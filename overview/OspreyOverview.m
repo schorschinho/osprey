@@ -697,6 +697,9 @@ for rr = 1 : Voxels
         names = fields(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]));
         for g = 1 : length(names) % loop over groups
             tempSubSpec = zeros(length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})),MRSCont.info.(dataPlotNames{ss}).max_ndatapoint,MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.subspecs);
+            if isempty(tempSubSpec)
+                tempSubSpec = zeros(length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})),MRSCont.info.(dataPlotNames{ss}).max_ndatapoint,MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.rawSubspecs);
+            end
             for kk = 1 : length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})) % Loop over datasets to generate a matrix
                 try
                     tempSubSpec(kk,:,:) = MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1,kk}.specs;
