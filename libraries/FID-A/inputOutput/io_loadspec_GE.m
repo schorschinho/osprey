@@ -22,12 +22,13 @@
 %
 % OUTPUTS:
 % out        = output water suppressed dataset in FID-A structure format.
-% out_w      = output water reference dataset in FID-A structure format. 
+% out_ref    = output eddy current water reference  dataset in FID-A structure format.
+% out_w      = output quantification water reference dataset in FID-A structure format. 
 
-function [out,out_w]=io_loadspec_GE(filename,subspecs)
+function [out,out_ref,out_w]=io_loadspec_GE(filename,subspecs)
 
 %read in the data using the GELoad.m (adapted from GERead.m)
-[GEout,GEout_w,GEhdr]=GELoad(filename);
+[GEout,GEout_ref,GEhdr]=GELoad(filename);
 
 %As far as I can tell, the data that comes out of the GELoad
 %function is normally a N x Navgs x Ncoils matrix.  The Navgs dimension
@@ -49,14 +50,21 @@ else if  subspecs==2 %MEGA
 end
 
 fids=squeeze(data);
-fids_w=squeeze(GEout_w);
+fids_ref=squeeze(GEout_ref);
 
 %swap the averages and the coils dimensions:
 fids=permute(fids,[1,3,2,4]);
-fids_w=permute(fids_w,[1,3,2]);
+fids_ref=permute(fids_ref,[1,3,2]);
+
+twoRefs=false;  %Flag to identify if there are automatic water reference scans acquired.  There are none by default.
+
+if GEhdr.cv24 >= 16384 && subspecs == 1
+    twoRefs = true;
+else
+end
 
 sz=size(fids);
-sz_w=size(fids_w);
+sz_w=size(fids_ref);
 
 %Find the magnetic field strength:
 Bo=GEhdr.Larmor/42.577;
@@ -72,14 +80,14 @@ else
 end
 dims.extras=0;
 
-dims_w.t=1;
-dims_w.coils=2;
-dims_w.averages=3;
-dims_w.subSpecs=0;
-dims_w.extras=0;
+dims_ref.t=1;
+dims_ref.coils=2;
+dims_ref.averages=3;
+dims_ref.subSpecs=0;
+dims_ref.extras=0;
 
 specs=fftshift(fft(fids,[],dims.t),dims.t);
-specs_w=fftshift(fft(fids_w,[],dims_w.t),dims_w.t);
+specs_w=fftshift(fft(fids_ref,[],dims_ref.t),dims_ref.t);
 
 
 %Now get relevant scan parameters:*****************************
@@ -118,17 +126,17 @@ else
 end
 
 %FOR WATER UNSUPPRESSED DATA:
-if dims_w.subSpecs~=0
-    if dims_w.averages~=0
-        averages_w=sz_w(dims_w.averages)*sz_w(dims_w.subSpecs);
+if dims_ref.subSpecs~=0
+    if dims_ref.averages~=0
+        averages_w=sz_w(dims_ref.averages)*sz_w(dims_ref.subSpecs);
         rawAverages_w=averages_w;
     else
-        averages_w=sz_w(dims_w.subSpecs);
+        averages_w=sz_w(dims_ref.subSpecs);
         rawAverages_w=1;
     end
 else
-    if dims_w.averages~=0
-        averages_w=sz_w(dims_w.averages);
+    if dims_ref.averages~=0
+        averages_w=sz_w(dims_ref.averages);
         rawAverages_w=averages_w;
     else
         averages_w=1;
@@ -151,8 +159,8 @@ else
 end
 
 %FOR WATER UNSUPPRESSED DATA:
-if dims_w.subSpecs~=0
-    subspecs_w=sz_w(dims_w.subSpecs);
+if dims_ref.subSpecs~=0
+    subspecs_w=sz_w(dims_ref.subSpecs);
     rawSubspecs_w=subspecs_w;
 else
     subspecs_w=1;
@@ -228,55 +236,55 @@ end
 
 %FOR WATER UNSUPPRESSED DATA
 %FILLING IN DATA STRUCTURE
-out_w.fids=fids_w;
-out_w.specs=specs_w;
-out_w.sz=sz_w;
-out_w.ppm=ppm;  
-out_w.t=t;    
-out_w.spectralwidth=spectralwidth;
-out_w.dwelltime=dwelltime;
-out_w.txfrq=txfrq;
-out_w.date=date;
-out_w.dims=dims_w;
-out_w.Bo=Bo;
-out_w.averages=averages_w;
-out_w.rawAverages=rawAverages_w;
-out_w.subspecs=subspecs_w;
-out_w.rawSubspecs=rawSubspecs_w;
-out_w.seq='';
-out_w.te=GEhdr.TE;
-out_w.tr=GEhdr.TR;
-out_w.pointsToLeftshift=0;
-out_w.centerFreq = centerFreq;
-out_w.geometry = GEhdr.geometry;
-temp = out_w.geometry.size;
-out_w.geometry.size = [];
-out_w.geometry.size.dim1 = temp(1);
-out_w.geometry.size.dim2 = temp(2);
-out_w.geometry.size.dim3 = temp(3);
-out_w.software = out.software;
+out_ref.fids=fids_ref;
+out_ref.specs=specs_w;
+out_ref.sz=sz_w;
+out_ref.ppm=ppm;  
+out_ref.t=t;    
+out_ref.spectralwidth=spectralwidth;
+out_ref.dwelltime=dwelltime;
+out_ref.txfrq=txfrq;
+out_ref.date=date;
+out_ref.dims=dims_ref;
+out_ref.Bo=Bo;
+out_ref.averages=averages_w;
+out_ref.rawAverages=rawAverages_w;
+out_ref.subspecs=subspecs_w;
+out_ref.rawSubspecs=rawSubspecs_w;
+out_ref.seq='';
+out_ref.te=GEhdr.TE;
+out_ref.tr=GEhdr.TR;
+out_ref.pointsToLeftshift=0;
+out_ref.centerFreq = centerFreq;
+out_ref.geometry = GEhdr.geometry;
+temp = out_ref.geometry.size;
+out_ref.geometry.size = [];
+out_ref.geometry.size.dim1 = temp(1);
+out_ref.geometry.size.dim2 = temp(2);
+out_ref.geometry.size.dim3 = temp(3);
+out_ref.software = out.software;
 % Add info for niiwrite
-out_w.PatientPosition = '';
-out_w.Manufacturer = 'GE';
+out_ref.PatientPosition = '';
+out_ref.Manufacturer = 'GE';
 [~,filenamest,ext] = fileparts(filename);
-out_w.OriginalFile = [filenamest ext];
+out_ref.OriginalFile = [filenamest ext];
 %FILLING IN THE FLAGS
-out_w.flags.writtentostruct=1;
-out_w.flags.gotparams=1;
-out_w.flags.leftshifted=0;
-out_w.flags.filtered=0;
-out_w.flags.zeropadded=0;
-out_w.flags.freqcorrected=0;
-out_w.flags.phasecorrected=0;
-out_w.flags.averaged=0;
-out_w.flags.addedrcvrs=0;
-out_w.flags.subtracted=0;
-out_w.flags.writtentotext=0;
-out_w.flags.downsampled=0;
-if out_w.dims.subSpecs==0
-    out_w.flags.isFourSteps=0;
+out_ref.flags.writtentostruct=1;
+out_ref.flags.gotparams=1;
+out_ref.flags.leftshifted=0;
+out_ref.flags.filtered=0;
+out_ref.flags.zeropadded=0;
+out_ref.flags.freqcorrected=0;
+out_ref.flags.phasecorrected=0;
+out_ref.flags.averaged=0;
+out_ref.flags.addedrcvrs=0;
+out_ref.flags.subtracted=0;
+out_ref.flags.writtentotext=0;
+out_ref.flags.downsampled=0;
+if out_ref.dims.subSpecs==0
+    out_ref.flags.isFourSteps=0;
 else
-    out_w.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
+    out_ref.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
 
 % Add info for niiwrite
@@ -292,6 +300,25 @@ out.flags.isHERMES = 0;
 out.flags.isHERCULES = 0;
 out.flags.isPRIAM = 0;
 out.flags.isMRSI = 0;
+
+% Separate ecc and quant reference for CMRR sequence
+if twoRefs                  
+    out_w = out_ref;
+
+    out_w.fids = out_w.fids(:,:,[3,4,7,8]);
+    out_w.specs = out_w.specs(:,:,[3,4,7,8]);
+    out_w.sz = size(out_w.fids);
+    out_w.averages = out_w.averages/2;
+    out_w.rawAverages = out_w.rawAverages/2;
+
+    out_ref.fids = out_ref.fids(:,:,[1,2,5,6]);
+    out_ref.specs = out_ref.specs(:,:,[1,2,5,6]);
+    out_ref.sz = size(out_ref.fids);
+    out_ref.averages = out_ref.averages/2;
+    out_ref.rawAverages = out_ref.rawAverages/2;
+else
+    out_w = [];
+end
 
 
 %DONE
