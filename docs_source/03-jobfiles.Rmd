@@ -493,7 +493,7 @@ The `opts.saveVendor` switch has been introduced to sidestep these problems with
 
 All exported third-party format files are stored in sub-directories of the output folder specified further down in the job file.
 
-### Matbolites included in the basis-set
+### Metabolites included in the basis-set
 
 `opts.fit.includeMetabs` can be used to specify a custom set of metabolites to be included in the fitting. By default, all of the metabolites listed below are included, but a subset may be specified as a cell array of strings:
 `opts.fit.includeMetabs = {Cr, CrCH2, GABA, PCr,...}`
