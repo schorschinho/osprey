@@ -55,5 +55,8 @@ function out = op_add_analysis_provenance(in,fields)
 
         % Add updated field back into struct
         out.nii_mrs.hdr_ext = hdr_ext;
+
+    else
+        out = in;
     end
 end
