@@ -391,15 +391,19 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             % actually have negative polarity, but end up positive in the data, so
             % that the spectrum needs to be flipped.
             if ~isfield(MRSCont.opts.SubSpecAlignment, 'polResidCr')
-                raw_Cr     = op_freqrange(raw,2.8,3.2);
-                % Determine the polarity of the respective peak: if the absolute of the
-                % maximum minus the absolute of the minimum is positive, the polarity
-                % of the respective peak is positive; if the absolute of the maximum
-                % minus the absolute of the minimum is negative, the polarity is negative.
-                polResidCr = abs(max(real(raw_Cr.specs))) - abs(min(real(raw_Cr.specs)));
-                polResidCr = squeeze(polResidCr);
-                polResidCr(polResidCr<0) = -1;
-                polResidCr(polResidCr>0) = 1;
+                if isfield(MRSCont.opts.SubSpecAlignment, 'PreservePolarity') && ~MRSCont.opts.SubSpecAlignment.PreservePolarity
+                    raw_Cr     = op_freqrange(raw,2.8,3.2);
+                    % Determine the polarity of the respective peak: if the absolute of the
+                    % maximum minus the absolute of the minimum is positive, the polarity
+                    % of the respective peak is positive; if the absolute of the maximum
+                    % minus the absolute of the minimum is negative, the polarity is negative.
+                    polResidCr = abs(max(real(raw_Cr.specs))) - abs(min(real(raw_Cr.specs)));
+                    polResidCr = squeeze(polResidCr);
+                    polResidCr(polResidCr<0) = -1;
+                    polResidCr(polResidCr>0) = 1;
+                else
+                    polResidCr = 1;
+                end
             else
                 polResidCr = MRSCont.opts.SubSpecAlignment.polResidCr;
             end
@@ -602,9 +606,9 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 raw_no_subspec_aling = raw;
 
                 % Correct the frequency axis so that Cr appears at 3.027 ppm
-                [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
+                [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 3.9]);% determine frequency shift
                 if abs(refShift_SubSpecAlign) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
-                    [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
+                    [refShift_SubSpecAlign, ~] = osp_XReferencing(raw,2.01,1,[1.85 3.9]);% determine frequency shift
                 end
 
                 % Apply initial referencing shift
