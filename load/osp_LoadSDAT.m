@@ -117,7 +117,11 @@ for kk = 1:MRSCont.nDatasets(1)
                     raw_ref = op_combine_water_subspecs(raw_ref,0);
                     raw_ref.flags.isUnEdited = 1;
                 elseif MRSCont.flags.isMEGA
-                    raw_ref = io_loadspec_sdat(MRSCont.files_ref{ref_ll,kk},2,MRSCont.flags.isSERIES);
+                    try % GO 03042024: this works for the JHU patch only but throws an error for product MEGA
+                        raw_ref = io_loadspec_sdat(MRSCont.files_ref{ref_ll,kk},2,MRSCont.flags.isSERIES);
+                    catch % GO 03042024: this works for product MEGA
+                        raw_ref = io_loadspec_sdat(MRSCont.files_ref{ref_ll,kk},1,MRSCont.flags.isSERIES);
+                    end
                     raw_ref = op_combine_water_subspecs(raw_ref,0);
                     raw_ref.flags.isMEGA = 1;
                 elseif MRSCont.flags.isHERMES
