@@ -279,9 +279,12 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
         end
     end
 
-    if length(sqzDims) > length(size(fids)) % The case for 1 average with multiple subspectra
-        if dims.averages < dims.subSpecs
+    if length(sqzDims) > length(size(fids)) 
+        if dims.averages < dims.subSpecs % The case for 1 average with multiple subspectra
             dims.subSpecs = 0;
+        end
+        if dims.averages < dims.extras % The case for 1 average with multiple subspectra
+            dims.extras = 0;
         end
         sqzDims = {};
         dimsFieldNames = fieldnames(dims);
@@ -292,9 +295,6 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
             end
         end
         subspecs    = 0;
-        if rawSubspecs > 0
-            subspecs    = rawSubspecs;
-        end
     end
 
     if length(sqzDims)==5
@@ -344,8 +344,16 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
     sz=size(fids);
 
     %Remove phase cycle for Philips data
-    if isfield(hdr_ext, 'Manufacturer') && (strcmp(hdr_ext.Manufacturer,'Philips') || strcmp(hdr_ext.Manufacturer,'GE')) && undoPhaseCycle
+    if isfield(hdr_ext, 'ProtocolName') && contains(hdr_ext.ProtocolName,'HBCD')
+        undoPhaseCycle = 1;
+    end
+    if isfield(hdr_ext, 'Manufacturer') && strcmp(hdr_ext.Manufacturer,'Philips')  && undoPhaseCycle
         fids = fids .* repmat(conj(fids(1,:,:,:))./abs(fids(1,:,:,:)),[size(fids,1) 1]);
+    end
+    if isfield(hdr_ext, 'Manufacturer') && strcmp(hdr_ext.Manufacturer,'GE') && undoPhaseCycle 
+        if hdr_ext.WaterSuppressed && hdr_ext.EchoTime == 0.080
+            fids(:,:,2:2:end,:) = -fids(:,:,2:2:end,:);
+        end
     end
 
     %Compared to NIfTI MRS, FID-A needs the conjugate

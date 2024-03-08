@@ -143,8 +143,14 @@ for kk = 1:MRSCont.nDatasets
     % Check if short-TE water scans exist, if so, write LCM .RAW file
     if MRSCont.flags.hasWater
         % Get TE and the input file name
-        te_w                = MRSCont.processed.w{kk}.te;
-        [path_w,filename_w,~]   = fileparts(MRSCont.files_w{kk});
+        if strcmpi(MRSCont.vendor, 'GE') || strcmp(MRSCont.datatype,'DATA')
+            te_w                = MRSCont.processed.w{kk}.te;
+            [path_w,filename_w,~]   = fileparts(MRSCont.files{kk});
+        else
+            te_w                = MRSCont.processed.w{kk}.te;
+            [path_w,filename_w,~]   = fileparts(MRSCont.files_w{kk});
+        end
+        
         
         % For batch analysis, get the last two sub-folders (e.g. site and
         % subject) to augment the filename, avoiding duplicate output filenames

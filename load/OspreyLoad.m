@@ -226,6 +226,22 @@ switch MRSCont.vendor
         switch MRSCont.datatype
             case 'P'
                 [MRSCont] = osp_LoadP(MRSCont);
+                if MRSCont.flags.hasWater
+                    MRSCont.opts.MultipleSpectra.w = fliplr(size(MRSCont.files_w));
+                    if length(MRSCont.opts.MultipleSpectra.w) > 1
+                        tempDatasets(end+1) = MRSCont.opts.MultipleSpectra.w(2);
+                    else
+                        MRSCont.opts.MultipleSpectra.w(2) = 1;
+                    end
+                    if MRSCont.opts.MultipleSpectra.w(2) < maxDatasets
+                        MRSCont.opts.MultipleSpectra.w = ones(1,maxDatasets);
+                    else if maxDatasets > 1
+                        MRSCont.opts.MultipleSpectra.w = [1:MRSCont.opts.MultipleSpectra.w(2)];
+                        else
+                        MRSCont.opts.MultipleSpectra.w = [1:MRSCont.nDatasets(1)];
+                        end
+                    end
+                end
             otherwise
                 msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                 fprintf(msg);

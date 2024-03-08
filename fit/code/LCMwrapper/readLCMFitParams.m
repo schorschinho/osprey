@@ -24,7 +24,7 @@ switch which
 end
 
 % Read the fit results from the .table files
-tab                 = mrs_readLcmodelTABLE([MRSCont.opts.fit.lcmodel.outputfileA{kk} '.table']);
+tab                 = mrs_readLcmodelTABLE([MRSCont.opts.fit.lcmodel.(lcmOutputFile){kk} '.table']);
 fitParams.name      = tab.name;
 fitParams.CRLB      = tab.SDpct;
 fitParams.relConc   = tab.relative_conc;
@@ -60,8 +60,8 @@ end
 fitParams.residual      = fitParams.data - fitParams.completeFit;
 
 % Add Nan values for nicer plots
-if ~isempty(MRSCont.opts.fit.GAP.A)
-    idx = find(x_ppm < MRSCont.opts.fit.GAP.A(1));
+if ~isempty(MRSCont.opts.fit.GAP.(which))
+    idx = find(x_ppm < MRSCont.opts.fit.GAP.(which)(1));
     idx_1 = idx(1);
     idx_2 = idx_1-1;
     fitParams.data(idx_1) = NaN;
@@ -88,7 +88,7 @@ for rr = 1:length(fitParams.name)
     if idxMatch
         fitParams.indivMets(:,rr) = spectra_metabolites(:,idxMatch) - fitParams.baseline;
     else
-        if ~isempty(MRSCont.opts.fit.GAP.A)
+        if ~isempty(MRSCont.opts.fit.GAP.(which))
             fitParams.indivMets(idx_1,rr) = NaN;
             fitParams.indivMets(idx_2,rr) = NaN;
         end
