@@ -58,7 +58,9 @@ end
 
 if MRSCont.flags.hasWater
     OrderNames = horzcat(OrderNames, 'w');
-    OrderNamesFit = horzcat(OrderNamesFit, 'w');
+    if ~strcmp(MRSCont.opts.fit.method,'LCModel')
+        OrderNamesFit = horzcat(OrderNamesFit, 'w');
+    end
 end
 S = orderfields(MRSCont.processed,OrderNames);
 dataPlotNames = fieldnames(S)';
@@ -90,6 +92,9 @@ if MRSCont.flags.didFit
         end
     else
         FitSpecNamesStruct.(FitSpecNames{1}){1} = 'A';
+        if MRSCont.flags.isMEGA
+            FitSpecNamesStruct.(FitSpecNames{1}){2} = 'diff1';
+        end
     end
     MRSCont.overview.FitSpecNamesStruct = FitSpecNamesStruct;
 end
@@ -490,6 +495,16 @@ if MRSCont.flags.didFit
                                         end
                                         MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.ppm = ppmRangeData';
                                         MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.res = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.data-MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit;
+                                        if ~isempty(MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf}))
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.data(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.baseline(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                            names = fields(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf});
+                                             for f = 6 : length(names)
+                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.(names{f})(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                             end
+                                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.res(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                        end
                             end
                         end
                     end

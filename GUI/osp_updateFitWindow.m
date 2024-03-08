@@ -70,7 +70,7 @@ function osp_updateFitWindow(gui)
                 % No info panel string for the water fit range
                 waterFitRangeString = '';
                 % Where are the metabolite names stored?
-                basisSetNames = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.name;
+                basisSetNames = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.name;
                 % Smaller fonts for the results
                 resultsFontSize = 9;
             case 'Osprey'
@@ -99,10 +99,10 @@ function osp_updateFitWindow(gui)
              switch MRSCont.opts.fit.method
                 case 'LCModel'
                     if strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.h2oarea .* MRSCont.fit.scale{1,gui.controls.Selected};
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.h2oarea .* MRSCont.fit.scale{1,gui.controls.Selected};
                     else
-                        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
-                        CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.CRLB;
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
+                        CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.CRLB;
                     end
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
@@ -125,19 +125,19 @@ function osp_updateFitWindow(gui)
             switch MRSCont.opts.fit.method
                 case 'LCModel'
                     if strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                        RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.h2oarea .* MRSCont.fit.scale{gui.controls.Selected};
+                        RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected,subspectrum}.h2oarea .* MRSCont.fit.scale{gui.controls.Selected};
                     else
-                        RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-                        CRLB    = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.CRLB;
+                        RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+                        CRLB    = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected,subspectrum}.CRLB;
                     end
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
             end
-            ph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.ph0;
-            ph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.ph1;
+            ph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ph0;
+            ph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ph1;
             if ~strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') && ~strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                refShift = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.refShift;
-                refFWHM = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.refFWHM;
+                refShift = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.refShift;
+                refFWHM = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.refFWHM;
                 switch MRSCont.opts.fit.method
                 case 'Osprey'
                     iniph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected}.prelimParams.ph0;
@@ -151,10 +151,10 @@ function osp_updateFitWindow(gui)
             switch MRSCont.opts.fit.method
                 case 'LCModel'
                     if strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.h2oarea .* MRSCont.fit.scale{gui.controls.Selected};
+                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected,subspectrum}.h2oarea .* MRSCont.fit.scale{gui.controls.Selected};
                     else
-                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-                        CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.CRLB;
+                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+                        CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected,subspectrum}.CRLB;
                     end
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{gui.controls.Selected};

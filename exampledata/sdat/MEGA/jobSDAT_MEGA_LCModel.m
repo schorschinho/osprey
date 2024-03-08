@@ -111,7 +111,7 @@ opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (defa
 opts.SubSpecAlignment.mets = 'L2Norm';          % OPTIONS:    - 'L2Norm' (default)
                                                 %             - 'L1Norm'
                                                 %             - 'none'
-opts.UnstableWater = 0;
+
 %Perform eddy-current correction on the metabolite data (raw) or metabolite
 %-nulled data (mm). This can either be done similar for all data sets by
 %supplying a single value or specified for each dataset individually by supplying
@@ -129,7 +129,7 @@ opts.ECC.mm                 = 1;                %             - '0' (no)
 opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 % Save jMRUI-exportable files for each spectrum?
-opts.savejMRUI              = 1;                % OPTIONS:    - 0 (no, default)
+opts.savejMRUI              = 0;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
@@ -151,7 +151,7 @@ opts.exportParams.path      = '';               % Replace with string for the pa
                                                 % to the save directory
 
 % Choose the fitting algorithm
-opts.fit.method             = 'Osprey';         % OPTIONS:    - 'Osprey' (default)
+opts.fit.method             = 'LCModel';         % OPTIONS:    - 'Osprey' (default)
 
 % Select the metabolites to be included in the basis set as a cell array,
 % with entries separates by commas.
@@ -174,10 +174,11 @@ opts.fit.style              = 'Separate';       % OPTIONS:    - 'Concatenated' (
 opts.fit.range              = [0.5 4];          % [ppm] Default: [0.2 4.2]
 opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
 opts.fit.GAP.A              = [];
-opts.fit.GAP.diff1          = [];
+opts.fit.GAP.diff1          = [1.2 1.95];       % [ppm] Default: [1.2 1.95]
 
 % Determine the baseline knot spacing (in ppm) for the metabolite spectra
-opts.fit.bLineKnotSpace     = 0.55;             % [ppm] Default: 0.4.
+opts.fit.bLineKnotSpace     = Inf;             % [ppm] Default: Inf.
+                                               % Inf sets option to nobaseline in LCModel,i.e., nobase = T     
 
 % Add macromolecule and lipid basis functions to the fit?
 opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
@@ -188,7 +189,6 @@ opts.fit.coMM3              = '3to2MM';      % OPTIONS:    - {'3to2MM'} (default
                                                 %             - {'3to2MMsoft'}
                                                 %             - {'1to1GABA'}
                                                 %             - {'1to1GABAsoft'}
-                                                %             - {'freeGauss'}
                                                 %             - {'fixedGauss'}
                                                 %             - {'none'}
 
@@ -345,4 +345,4 @@ file_stat = fullfile(data_folder, 'stat.csv');
 
 % Specify output folder (you can always use the direct path)
 % (MANDATORY)
-outputFolder = fullfile(data_folder, 'derivatives');
+outputFolder = fullfile(data_folder, 'derivativesLCM');

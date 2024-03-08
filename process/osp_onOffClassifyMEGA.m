@@ -46,7 +46,7 @@ end
 if nargin < 3
     Order = [];
 end
-
+out = in;
 if isempty(Order)
     switch target
         case 'GABA'
@@ -74,7 +74,7 @@ if isempty(Order)
     spec = abs(real(temp.specs));        
     max_diffAB = max(spec(:,1) - spec(:,2));
     max_diffBA = max(spec(:,2) - spec(:,1));
-    out = in;
+    
     
     if max_diffAB > max_diffBA
     

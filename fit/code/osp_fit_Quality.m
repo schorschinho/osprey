@@ -78,6 +78,9 @@ if ~strcmp(MRSCont.opts.fit.method,'LCModel')
     end
 else
     FitSpecNamesStruct.(FitSpecNames{1}){1} = 'A';
+    if MRSCont.flags.isMEGA
+        FitSpecNamesStruct.(FitSpecNames{1}){2} = 'diff1';
+    end
 end
 
 
@@ -140,8 +143,13 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                         end
                     case 'LCModel'
                         dataToPlot  = MRSCont.processed.(FitSpecNames{ss}){kk};
-                        fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
-    
+                        if sf ==1
+                            dataToPlot   = op_takesubspec(dataToPlot,'A');
+                        else
+                            dataToPlot   = op_takesubspec(dataToPlot,'diff1');
+                        end
+                        fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{1,kk,sf};
+                        
                         % Get the LCModel plots we previously extracted from .coord
                         % etc.
                         [ModelOutput] = fit_LCModelParamsToModel(fitParams);

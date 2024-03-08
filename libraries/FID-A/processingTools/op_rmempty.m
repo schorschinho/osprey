@@ -24,6 +24,10 @@ if ~in.flags.averaged
     idx_nonzeroFID = find(std(in.fids,0,1)>1e-40);
     nonzero_fids = in.fids(:,idx_nonzeroFID);
     
+    %reshape if still not coil combined
+    if length(in.sz) > 2
+        nonzero_fids = reshape(nonzero_fids,in.sz);
+    end
     %re-calculate Specs using fft
     nonzero_specs=fftshift(fft(nonzero_fids,[],in.dims.t),in.dims.t);
     
