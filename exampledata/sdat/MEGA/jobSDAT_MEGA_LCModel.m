@@ -194,9 +194,18 @@ opts.fit.coMM3              = '3to2MM';      % OPTIONS:    - {'3to2MM'} (default
 
 opts.fit.FWHMcoMM3          = 14;
 
-% Optional: In case the automatic basisset picker is not working you can manually
-% select the path to the basis set in the osprey/fit/basis, i.e.:
-% opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';
+%%% ----- LCMODEL FITTING OPTIONS -----
+% Specify LCModel-format basis set (.BASIS)
+% If no basis set file is provided Osprey will generate the .BASIS file
+% from Osprey's database
+% opts.fit.basisSetFile       = {which('3T_megapress_Philips_68ms_noMM_A.BASIS'),
+%                                which('3T_megapress_Philips_68ms_noMM_diff1.BASIS')};
+
+
+% Specify LCModel-type control file (.CONTROL)
+% This is optional: If you leave this field blank, Osprey will create a
+% minimum control file for you.
+% opts.fit.controlFile        = '';
 
 % Optional: Deface the strucutral images in the Coreg/Seg figures for HIPAA
 % compliance 

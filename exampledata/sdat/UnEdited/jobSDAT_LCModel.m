@@ -191,7 +191,7 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 % Specify LCModel-format basis set (.BASIS)
 % If no basis set file is provided Osprey will generate the .BASIS file
 % from Osprey's database
-opts.fit.basisSetFile       = which('3T_PRESS_Philips_35ms_noMM.BASIS');
+% opts.fit.basisSetFile       = {which('3T_press_Philips_35ms_noMM.BASIS')};
 
 
 % Specify LCModel-type control file (.CONTROL)
