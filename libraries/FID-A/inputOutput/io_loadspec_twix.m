@@ -116,6 +116,8 @@ elseif isMinn_eja || isMinn_dkd
             seq = 'SLASER';
         elseif ~isempty(strfind(sequence,'steam'))
             seq = 'STEAM';
+        elseif ~isempty(strfind(sequence,'mpress'))
+            seq = 'MEGAPRESS';
         else
             seq = 'PRESS';
         end
