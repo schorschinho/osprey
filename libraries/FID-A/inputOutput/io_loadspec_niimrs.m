@@ -496,6 +496,7 @@ end
 
 % Store additional information from the nii header
     if out.dims.extras
+        dim_number = out.dims.extras;
         if ischar(out.seq)
             temp_seq = out.seq;
             out = rmfield(out,'seq');
@@ -508,26 +509,28 @@ end
             out.centerFreq(ex) = out.centerFreq(1);
             out.txfrq(ex) = out.txfrq(1);
 
-            if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'EchoTime')
-                out.te(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).EchoTime(ex) * 1e3; % convert to [ms]
-                out.extra_names{ex} = ['TE_' num2str(ex)];
-                out.exp_var(ex) = out.te(ex);
-            else
-                out.te(ex) = out.te(1);
-            end
+            % ARC202403 The following may be overwritten from the (optional) dim_{N}_header values, if present
+            out.te(ex) = out.te(1);
+            out.tr(ex) = out.tr(1);
 
-            if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'RepetitionTime')
-                out.tr(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).RepetitionTime(ex) * 1e3; % convert to [ms]
-                out.extra_names{ex} = ['TR_' num2str(ex)];
-                out.exp_var(ex) = out.tr(ex);
-            else
-                out.tr(ex) = out.tr(1);
-            end
+            if isfield(hdr_ext, ['dim_' num2str(dim_number) '_header'])
+                if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'EchoTime')
+                    out.te(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).EchoTime(ex) * 1e3; % convert to [ms]
+                    out.extra_names{ex} = ['TE_' num2str(ex)];
+                    out.exp_var(ex) = out.te(ex);
+                end
 
-            if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'InversionTime')
-                out.ti(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).InversionTime(ex) * 1e3; % convert to [ms]
-                out.extra_names{ex} = ['TI_' num2str(ex)];
-                out.exp_var(ex) = out.ti(ex);
+                if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'RepetitionTime')
+                    out.tr(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).RepetitionTime(ex) * 1e3; % convert to [ms]
+                    out.extra_names{ex} = ['TR_' num2str(ex)];
+                    out.exp_var(ex) = out.tr(ex);
+                end
+
+                if isfield(hdr_ext.(['dim_' num2str(dim_number) '_header']), 'InversionTime')
+                    out.ti(ex) = hdr_ext.(['dim_' num2str(dim_number) '_header']).InversionTime(ex) * 1e3; % convert to [ms]
+                    out.extra_names{ex} = ['TI_' num2str(ex)];
+                    out.exp_var(ex) = out.ti(ex);
+                end
             end
         end
         out.extras = out.sz(out.dims.extras);
