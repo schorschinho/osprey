@@ -44,7 +44,7 @@ function out = op_add_analysis_provenance(in,fields)
         fields.Program  = 'Osprey';
         fields.Version  = hdr_ext.ProcessingSoftwareVersion;
     
-        fields = orderfields(fields,{'Time','Program','Version','Method', 'Details'});;
+        fields = orderfields(fields,{'Time','Program','Version','Method', 'Details'});
     
         % Add to Processing Applied entries
         if ~isfield(hdr_ext,'ProcessingApplied')

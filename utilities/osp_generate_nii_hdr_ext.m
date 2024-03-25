@@ -40,15 +40,16 @@ function nii_hdr_ext = osp_generate_nii_hdr_ext(in,OspreyVersion)
     catch
         nii_hdr_ext.ResonantNucleus = {'1H'};
     end
-    nii_hdr_ext.EchoTime = in.te/1e3;
-    nii_hdr_ext.RepetitionTime = in.tr/1e3;
-    nii_hdr_ext.TxOffset = 0;
-    nii_hdr_ext.Manufacturer = in.Manufacturer;
-    nii_hdr_ext.SoftwareVersions = in.software;
-    nii_hdr_ext.ProtocolName = in.seq;
-    nii_hdr_ext.PatientPosition =  in.PatientPosition;
-    nii_hdr_ext.ConversionMethod = OspreyVersion;
-    nii_hdr_ext.ConversionTime = datestr(now,30);
-    nii_hdr_ext.kSpace =logical(zeros(3,1));
-    nii_hdr_ext.OriginalFile = {in.OriginalFile};
+    nii_hdr_ext.EchoTime            = double(in.te/1e3);
+    nii_hdr_ext.RepetitionTime      = double(in.tr/1e3);
+    nii_hdr_ext.TxOffset            = double(0);
+    nii_hdr_ext.Manufacturer        = in.Manufacturer;
+    nii_hdr_ext.SoftwareVersions    = in.software;
+    nii_hdr_ext.ProtocolName        = in.seq;
+    nii_hdr_ext.PatientPosition     = in.PatientPosition;
+    nii_hdr_ext.ConversionMethod    = OspreyVersion;
+    nii_hdr_ext.ConversionTime      = datestr(now,30);
+    nii_hdr_ext.kSpace              = logical(zeros(3,1));
+    nii_hdr_ext.OriginalFile        = {in.OriginalFile};
+    
 end
