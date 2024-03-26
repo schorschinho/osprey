@@ -657,7 +657,7 @@ end
 
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
-elseif isSiemens && (~isMinn && ~isConnectom)
+elseif isSiemens && (~(isMinn_eja || isMinn_dkd) && ~isConnectom)
     if ~strcmp(version,'ve') && ~strcmp(version,'XA30')
         leftshift = twix_obj.image.freeParam(1);
     else
