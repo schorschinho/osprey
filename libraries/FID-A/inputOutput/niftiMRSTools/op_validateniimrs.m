@@ -8,6 +8,8 @@
 % Validates a FID-A struct similar to the 'nifti_mrs/validator' class by
 % William T. Clarke (https://github.com/wtclarke/nifti_mrs_tools/blob/master/src/nifti_mrs/validator.py)
 %
+% Requires a valid 'definitions.json' file from https://github.com/wtclarke/mrs_nifti_standard
+%
 % See the NIfTI-MRS specification under
 % https://docs.google.com/document/d/1tC4ugzGUPLoqHRGrWvOcGCuCh_Dogx_uu0cxKub0EsM/edit
 %
@@ -120,7 +122,36 @@ end
 dimension_sizes     = size(nii.img);
 data_dimensions     = length(dimension_sizes);
 hdr_ext_fields      = fieldnames(hdr_ext);
-[nifti_mrs_version, dimension_tags, required, standard_defined] = nifti_mrs_definitions;
+
+% Load JSON definitions
+if exist('definitions2.json', 'file')
+    % Load the proper NIfTI-MRS definition file
+    fid         = fopen('definitions.json');
+    rawtxt      = fread(fid,inf);
+    fclose(fid);
+    jsonString  = char(rawtxt');
+    jsonStruct  = jsondecode(jsonString);
+    % Extract the necessary keys and values
+    nifti_mrs_version   = jsonStruct.nifti_mrs_version;
+    required            = jsonStruct.required;
+    standard_defined    = jsonStruct.standard_defined;
+    dimension_tags      = jsonStruct.dimension_tags;
+
+    % Convert dimension tags to key/value map (consistent with the original
+    % (pre-JSON) definition in the nifti_mrs_definitions sub-function
+    % below:
+    dimension_tags      = containers.Map(fieldnames(dimension_tags), struct2cell(dimension_tags));
+
+    % Now we need to map JSON data types to MATLAB data types
+    standard_defined    = remapJSONDataTypes(standard_defined);
+    % Need to add 'struct' for 'ProcessingApplied' as the MATLAB JSON
+    % reader loads an array of JSON object as a struct, not a cell (as we
+    % stored it)
+    standard_defined.ProcessingApplied;
+else
+    % Fall back on the (potentially non-compliant) version in this function
+    [nifti_mrs_version, dimension_tags, required, standard_defined] = nifti_mrs_definitions;
+end
 
 % Check that N-dimensional data has all dim_(up-to-n) tags 
 for ddx = 5:8
@@ -179,6 +210,7 @@ for kk = 1:length(hdr_ext_fields)
     if ~isempty(idx)
         % If the header extension field is a standard defined one, check if
         % the data types are compliant 
+        fprintf('Checking %s ... \n', hdr_ext_fields{kk});
         if ~check_type(hdr_ext.(hdr_ext_fields{kk}), standard_defined.(standard_fields{idx}).type)
             error('%s must be a %s, but is a %s.\n', hdr_ext_fields{kk}, standard_defined.(standard_fields{idx}).type, class(hdr_ext.(hdr_ext_fields{kk})));
         end
@@ -386,11 +418,11 @@ else
     for kk = 1:length(json_type)
         if isa(value, json_type{kk})
             trueOrFalse = true;
-            break;
-        else
-            error('%s is not a %s, but is a %s. \n', value, json_type{kk}, class(value));
+            return;
         end
     end
+    % If this is reached, 'value' did not match any of the 'json_type{kk}'
+    error('%s is not a %s, but is a %s. \n', value, json_type{kk}, class(value));
 end
 
 end
@@ -419,3 +451,38 @@ if ~isa(x, 'struct') && isvector(x)
 end
 
 end
+
+function standard_defined    = remapJSONDataTypes(standard_defined)
+% Changes strings describing JSON datatype to matching strings describing
+% MATLAB datatypes
+
+standard_fields = fieldnames(standard_defined);
+% Loop through all fields
+for rr = 1:length(standard_fields)
+    
+    % How many types are allowed?
+    standard_defined.(standard_fields{rr}).type = standard_defined.(standard_fields{rr}).type'; % for some weird reason, need to transpose here (??)
+    nTypes = length(standard_defined.(standard_fields{rr}).type);
+    
+    for nn = 1:nTypes
+        nthType = standard_defined.(standard_fields{rr}).type{nn};
+
+        switch nthType
+            case 'number'
+                standard_defined.(standard_fields{rr}).type{nn} = 'double';
+            case 'string'
+                standard_defined.(standard_fields{rr}).type{nn} = 'char';
+            case 'array'
+                standard_defined.(standard_fields{rr}).type{nn} = 'cell';
+            case 'bool'
+                standard_defined.(standard_fields{rr}).type{nn} = 'logical';
+            case 'object'
+                standard_defined.(standard_fields{rr}).type{nn} = 'struct';
+        end
+
+    end
+
+end
+
+end
+
