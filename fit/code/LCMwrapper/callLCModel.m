@@ -1,4 +1,4 @@
-function callLCModel(MRSCont, controlFile,pathLCModelBinary)
+function callLCModel(controlFile, pathLCModelBinary)
 % Wrapper function for LCModel binary
 
 callLCMCommand = ['"' pathLCModelBinary '" < "' controlFile '"'];

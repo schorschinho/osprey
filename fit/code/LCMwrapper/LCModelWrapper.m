@@ -61,14 +61,12 @@ function [MRSCont] = LCModelWrapper(MRSCont,kk,progressText)
         end
     end
 
-    callLCModel(MRSCont, MRSCont.opts.fit.lcmodel.controlfileA{kk},[pathLCModelBinary filesep bin]);
-
-    % Save the parameters and information about the basis set
-
-    MRSCont.fit.results.metab.fitParams{1,kk,1} = readLCMFitParams(MRSCont, 'A', kk);
-
-    if MRSCont.flags.isMEGA
-        callLCModel(MRSCont, MRSCont.opts.fit.lcmodel.controlfileDiff1{kk},[pathLCModelBinary filesep bin]);
+    % Call LCModel and read in the LCModel output files
+    if MRSCont.flags.isUnEdited
+        callLCModel(MRSCont.opts.fit.lcmodel.controlfileA{kk}, [pathLCModelBinary filesep bin]);
+        MRSCont.fit.results.metab.fitParams{1,kk,1} = readLCMFitParams(MRSCont, 'A', kk);
+    elseif MRSCont.flags.isMEGA
+        callLCModel(MRSCont.opts.fit.lcmodel.controlfileDiff1{kk}, [pathLCModelBinary filesep bin]);
         MRSCont.fit.results.metab.fitParams{1,kk,2} = readLCMFitParams(MRSCont, 'diff1', kk);
     end
 end
