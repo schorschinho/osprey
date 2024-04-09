@@ -256,14 +256,19 @@ end
             gui.controls.pop_quantOvPlot = uicontrol('Parent',gui.controls.quantOvPlot,'style','popupmenu',...
                                                     'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', gui.font, ...
                                                     'String',gui.quant.popMenuNames, 'Value', 1);
-
+            n_exclude = 0;
+            if isfield(MRSCont,'exclude')
+                if~isempty(MRSCont.exclude)
+                    n_exclude = length(MRSCont.exclude); 
+                end
+            end
     % Quantification table is created based on uicontrol
             if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
                 gui.Results.quantOv = uix.Panel('Parent', gui.Plot.quantOv, 'Padding', 5, ...
                                                 'Title', ['Results: ' (gui.quant.Names.Model{gui.quant.Selected.Model}) '-' (gui.quant.Names.Quants{gui.quant.Selected.Quant})],...
                                                 'FontName', gui.font,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
                                                 'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
-                QuantTextOv = cell(MRSCont.nDatasets(1)+1,length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){1,1}));
+                QuantTextOv = cell(MRSCont.nDatasets(1)+1-n_exclude,length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){1,1}));
                 QuantTextOv(1,:) = MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){1,1};
                 QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{gui.quant.Selected.Quant}).Voxel_1{1,1}(:,:));
                 temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantTextOv,...
@@ -490,13 +495,20 @@ end
            set(gui.upperBox.corrOv.box, 'Width', [-0.16 -0.74 -0.1])   
 
 
+
+           all_subs_ind = 1:MRSCont.nDatasets(1);
+           if isfield(MRSCont,'exclude')
+                if~isempty(MRSCont.exclude)
+                    all_subs_ind(MRSCont.exclude)=[]; 
+                end
+            end
         %%%%%%%%%%%%%%%%%%VISUALIZATION PART OF THIS TAB%%%%%%%%%%%%%%%%%%%%%%%%
         %osp_plotQuantifyTable is used to create a correlation plot
                 temp = figure( 'Visible', 'off' );
                 if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
-                    [temp] = osp_plotScatter(MRSCont, MRSCont.overview.FitSpecNamesStruct.(FitNames{1}){1,1}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){1,1}{gui.overview.Selected.Metab},MRSCont.QM.SNR.metab(1,:,1)',gui.overview.Names.QM{gui.overview.Selected.Corr});
+                    [temp] = osp_plotScatter(MRSCont, MRSCont.overview.FitSpecNamesStruct.(FitNames{1}){1,1}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){1,1}{gui.overview.Selected.Metab},MRSCont.QM.SNR.metab(1,all_subs_ind,1)',gui.overview.Names.QM{gui.overview.Selected.Corr});
                 elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
-                    [temp] = osp_plotScatter(MRSCont, MRSCont.overview.FitSpecNamesStruct.(FitNames{1}){1,1}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.overview.Selected.Metab},MRSCont.QM{1,gui.controls.act_x}.SNR.A(1,:,1)',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
+                    [temp] = osp_plotScatter(MRSCont, MRSCont.overview.FitSpecNamesStruct.(FitNames{1}){1,1}, gui.quant.Names.Quants{gui.quant.Selected.Quant},MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.overview.Selected.Metab},MRSCont.QM{1,gui.controls.act_x}.SNR.A(1,all_subs_ind,1)',gui.overview.Names.QM{gui.overview.Selected.Corr},1);
                 end
                 ViewAxes = gca();
                 drawnow
