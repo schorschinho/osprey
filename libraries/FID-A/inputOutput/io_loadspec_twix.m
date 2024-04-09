@@ -839,8 +839,8 @@ if wRefs
         out_w.flags.isHERCULES = 1;
     end
 else
-    %No water reference data found.  Returning empty struct for out_w:
-    disp('No water reference data found.  Returning empty field');
+    %No integrated water reference data found.  Returning empty struct for out_w:
+    disp('No integrated water reference data found.  Returning empty field');
     out_w=[];
 end
 
