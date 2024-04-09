@@ -44,13 +44,19 @@ function osp_updatecorrOvWindow(gui)
             else
                 metab = MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind}{gui.overview.Selected.Metab};
            end 
+           all_subs_ind = 1:MRSCont.nDatasets(1);
+           if isfield(MRSCont,'exclude')
+                if~isempty(MRSCont.exclude)
+                    all_subs_ind(MRSCont.exclude)=[]; 
+                end
+            end
            if  (isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
                 if gui.overview.Selected.CorrChoice == 1
                     switch gui.overview.Selected.Corr
                         case 1
-                        temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.QM.SNR.metab(1,:,ind)',gui.overview.Names.QM{gui.overview.Selected.Corr},1,gui.controls.act_z);
+                        temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.QM.SNR.metab(1,all_subs_ind,ind)',gui.overview.Names.QM{gui.overview.Selected.Corr},1,gui.controls.act_z);
                         case 2
-                        temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.QM.FWHM.metab(1,:,ind)',gui.overview.Names.QM{gui.overview.Selected.Corr},1,gui.controls.act_z);
+                        temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.QM.FWHM.metab(1,all_subs_ind,ind)',gui.overview.Names.QM{gui.overview.Selected.Corr},1,gui.controls.act_z);
                     end                                
                 else if gui.overview.Selected.CorrChoice == 2
                     temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.quantify.names.(split_Selection{1}){1,ind}{gui.overview.Selected.Corr},MRSCont.quantify.names.(split_Selection{1}){1,ind}{gui.overview.Selected.Corr},1,gui.controls.act_z);
@@ -62,9 +68,9 @@ function osp_updatecorrOvWindow(gui)
                if gui.overview.Selected.CorrChoice == 1
                     switch gui.overview.Selected.Corr
                         case 1
-                        temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.QM.SNR.metab(1,:,ind)',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x,gui.controls.act_z);
+                        temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.QM.SNR.metab(1,all_subs_ind,ind)',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x,gui.controls.act_z);
                         case 2
-                        temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.QM.FWHM.metab(1,:,ind)',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x,gui.controls.act_z);
+                        temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.QM.FWHM.metab(1,all_subs_ind,ind)',gui.overview.Names.QM{gui.overview.Selected.Corr},gui.controls.act_x,gui.controls.act_z);
                     end                                
                 else if gui.overview.Selected.CorrChoice == 2
                     temp = osp_plotScatter(MRSCont,split_Selection{2},split_Selection{3},metab,MRSCont.quantify.names.(split_Selection{1}){1,ind}{gui.overview.Selected.Corr},MRSCont.quantify.names.(split_Selection{1}){1,ind}{gui.overview.Selected.Corr},gui.controls.act_x,gui.controls.act_z);

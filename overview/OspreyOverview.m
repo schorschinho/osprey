@@ -638,7 +638,7 @@ osp_WriteBIDsTable(statFile,[MRSCont.outputFolder  filesep  'subject_names_and_e
 %in the listbox of the GUI
 if isfield(MRSCont, 'exclude')
     if~isempty(MRSCont.exclude)
-        MRSCont.overview.groups(MRSCont.exclude) = 0;
+        MRSCont.overview.groups(MRSCont.exclude) = [];
         max_g = max(MRSCont.overview.groups);
         for kk = 1 : max(MRSCont.overview.groups)
             remove = 0;
