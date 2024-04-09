@@ -598,7 +598,7 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 ```
 
-### Co-edited macrommolecules
+### Co-edited macromolecules
 
 `opts.fit.coMM3` specifies the approach to modeling the co-edited macromolecule resonance at 3ppm for GABA-edited MRS experiments. By default a 14 Hz Gaussian peak is used as basis function. the options are as follows:
   1. `3to2MM`          - uses a fixed 3 to 2 amplitude ratio between the 0.93-ppm-MM peak and the co-edited 3.0-ppm-MM peak by generating a single composite basis function
