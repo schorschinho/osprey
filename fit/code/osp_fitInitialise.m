@@ -53,7 +53,7 @@ end
     
 % Find the right basis set (provided as *.mat file in Osprey basis set
 % format)
-if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile) && ~isfolder(MRSCont.opts.fit.basisSetFile{1}))
+if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile) && ~isfolder(MRSCont.opts.fit.basisSetFile))
 
     % Intercept non-integer echo times and replace the decimal point with
     % an underscore to avoid file extension problems
