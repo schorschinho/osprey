@@ -700,6 +700,15 @@ function createSegJob(T1file)
 % Created with SPM12 batch manager (standard options)
 spmhome = fileparts(which('spm'));
 tpm = cellstr(spm_select('ExtFPList',fullfile(spmhome,'tpm'),'TPM.nii'));
+% SPM can not handle hidden files
+[~,names,~] = cellfun(@fileparts, tpm, 'UniformOutput', false); %#ok<*STRCLFH>
+hidden = logical(ones(1,length(tpm)));
+for jj = 1:length(tpm) 
+    if ~strcmp(names{jj}(1),'.')
+        hidden(jj) = 0;
+    end
+end
+tpm = tpm(~hidden);%delete hidden files 
 
 matlabbatch{1}.spm.spatial.preproc.channel.vols = {[T1file ',1']};
 matlabbatch{1}.spm.spatial.preproc.channel.biasreg = 0.001;
