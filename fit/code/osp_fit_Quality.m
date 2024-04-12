@@ -155,16 +155,15 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                         [ModelOutput] = fit_LCModelParamsToModel(fitParams);
     
                     end
-                    
-                    %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
-                    noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
-                    ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';
-    
-                    P=polyfit(ppmwindow2,noisewindow,2);
-                    noise=noisewindow-polyval(P,ppmwindow2); 
-    
-                    MRSCont.QM.relAmpl.([FitSpecNames{ss} '_' FitSpecNamesStruct.(FitSpecNames{ss}){1,sf}])(bf,kk) = sum(ModelOutput.residual.^2)/(std(real(noise))^2 * length(ModelOutput.residual));
-                        
+                    if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') % metabolite only 
+                        %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
+                        noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
+                        ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';
+        
+                        P=polyfit(ppmwindow2,noisewindow,2);
+                        noise=noisewindow-polyval(P,ppmwindow2);
+                        MRSCont.QM.relAmpl.([FitSpecNames{ss} '_' FitSpecNamesStruct.(FitSpecNames{ss}){1,sf}])(bf,kk) = sum(ModelOutput.residual.^2)/(std(real(noise))^2 * length(ModelOutput.residual));
+                    end
                 end
             end
     end
