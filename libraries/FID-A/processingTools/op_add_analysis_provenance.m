@@ -42,7 +42,11 @@ function out = op_add_analysis_provenance(in,fields)
         % Add shared fields
         fields.Time     = datestr(now,30);
         fields.Program  = 'Osprey';
-        fields.Version  = hdr_ext.ProcessingSoftwareVersion.Value;
+        try
+            fields.Version  = hdr_ext.ProcessingSoftwareVersion.Value;
+        catch
+            fields.Version  = hdr_ext.ProcessingSoftwareVersion;
+        end
     
         fields = orderfields(fields,{'Time','Program','Version','Method', 'Details'});
         field_names = {'Time','Program','Version','Method', 'Details'};

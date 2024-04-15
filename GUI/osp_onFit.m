@@ -31,6 +31,30 @@ function osp_onFit( ~, ~ ,gui)
     set(gui.layout.fitTab, 'SelectionChangedFcn','');
     gui.layout.b_fit.Enable = 'off';
     gui.layout.tabs.Selection  = 3;
+    if gui.process.ManualManipulation
+        % Optional: write edited files to LCModel .RAW files
+        if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            [MRSCont] = osp_saveLCM(MRSCont);
+        end
+        
+        % Optional: write edited files to jMRUI .txt files
+        if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            [MRSCont] = osp_saveJMRUI(MRSCont);
+        end
+        
+        % Optional: write edited files to vendor specific format files readable to
+        % LCModel and jMRUI
+        % SPAR/SDAT if Philips
+        % RDA if Siemens
+        if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            [MRSCont] = osp_saveVendor(MRSCont);
+        end
+        
+        % Optional: write edited files to NIfTI-MRS format
+        if MRSCont.opts.saveNII && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            [MRSCont] = osp_saveNII(MRSCont);
+        end
+    end
     [gui,MRSCont] = osp_processingWindow(gui,MRSCont);
 %%% 2. CALL OSPREYFIT %%%
     MRSCont = OspreyFit(MRSCont);

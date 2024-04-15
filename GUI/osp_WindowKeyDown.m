@@ -30,6 +30,7 @@ function osp_WindowKeyDown(~,EventData,gui)
     % 31 downarrow
 % Get MRSCont from hidden class container
     MRSCont = getappdata(gui.figure,'MRSCont');  
+    gui.controls.PhasePress = 0;
     MRSCont.flags.exclude = 1;
     if strcmp(EventData.Key, 'uparrow') % scrolling up
         OldValue = get( gui.layout.ListBox,'value');
@@ -128,6 +129,205 @@ function osp_WindowKeyDown(~,EventData,gui)
                 close(gui.controls.waitbar);                
             end
         end
+    end
+    if strcmp(EventData.Key, 'f') % 180 degree flip
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 1;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+        gui.process.ManualManipulation = 1;
+    end
+    if strcmp(EventData.Key, 'd') % positive phase
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 1;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+        gui.process.ManualManipulation = 1;
+    end
+    if strcmp(EventData.Key, 'a') % negative phase
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 1;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+        gui.process.ManualManipulation = 1;
+    end
+    if strcmp(EventData.Key, 'e') % positive phase1
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 1;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+        gui.process.ManualManipulation = 1;
+    end
+    if strcmp(EventData.Key, 'q') % negative phase1
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 1;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+        gui.process.ManualManipulation = 1;
+    end
+    if strcmp(EventData.Key, 'w') % positive freq
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 1;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+        gui.process.ManualManipulation = 1;
+    end
+    if strcmp(EventData.Key, 's') % negative freq
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 1;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+        gui.process.ManualManipulation = 1;
+    end
+    if strcmp(EventData.Key, 'r') % reset axis
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 1;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+    end
+    if strcmp(EventData.Key, 'z') % zoom out
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 1;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+    end
+    if strcmp(EventData.Key, 'x') % zoom in
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 1;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 0;
+    end
+    if strcmp(EventData.Key, 'c') % move up
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 1;
+        gui.controls.MoveDown = 0;
+    end
+    if strcmp(EventData.Key, 'v') % move down
+        gui.controls.KeyPress = 1;
+        gui.controls.PhasePress = 1;
+        gui.controls.posPhase0Shift = 0;
+        gui.controls.negPhase0Shift = 0;
+        gui.controls.posPhase1Shift = 0;
+        gui.controls.negPhase1Shift = 0;
+        gui.controls.flipPhase = 0;
+        gui.controls.posFreqShift = 0;
+        gui.controls.negFreqShift = 0;
+        gui.controls.resetAxis = 0;
+        gui.controls.zoomOut = 0;
+        gui.controls.zoomIn = 0;
+        gui.controls.MoveUp = 0;
+        gui.controls.MoveDown = 1;
     end
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
 end
