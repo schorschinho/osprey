@@ -34,8 +34,6 @@ function [MRSCont] = osp_saveJMRUI(MRSCont)
 %   HISTORY:
 %       2019-07-23: First version of the code.
 
-% Close any remaining open figures
-close all;
 
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'jMRUIFiles');

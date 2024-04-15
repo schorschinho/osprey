@@ -43,4 +43,32 @@ function osp_onSave( ~, ~,gui)
     setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class
     set(gui.figure,'HandleVisibility','on');
     toc(refProcessTime);
+
+    if gui.process.ManualManipulation
+        fprintf('Rewriting MRS data after manual manipulation...\n');
+        % Optional: write edited files to LCModel .RAW files
+        if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            [MRSCont] = osp_saveLCM(MRSCont);
+        end
+        
+        % Optional: write edited files to jMRUI .txt files
+        if MRSCont.opts.savejMRUI && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            [MRSCont] = osp_saveJMRUI(MRSCont);
+        end
+        
+        % Optional: write edited files to vendor specific format files readable to
+        % LCModel and jMRUI
+        % SPAR/SDAT if Philips
+        % RDA if Siemens
+        if MRSCont.opts.saveVendor && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            [MRSCont] = osp_saveVendor(MRSCont);
+        end
+        
+        % Optional: write edited files to NIfTI-MRS format
+        if MRSCont.opts.saveNII && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+            [MRSCont] = osp_saveNII(MRSCont);
+        end
+        fprintf('... done.\n');
+    end
+
 end % onExit

@@ -31,10 +31,6 @@ function [MRSCont] = osp_saveLCM(MRSCont)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 
-
-% Close any remaining open figures
-close all;
-
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'LCModelFiles');
 if ~exist(fullfile(saveDestination,'metabs'),'dir')

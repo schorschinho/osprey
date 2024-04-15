@@ -39,9 +39,6 @@ function [MRSCont] = osp_saveVendor(MRSCont)
 %   HISTORY:
 %       2019-08-06: First version of the code.
 
-% Close any remaining open figures
-close all;
-
 % Set up saving location
 switch MRSCont.vendor
     case 'Philips'
