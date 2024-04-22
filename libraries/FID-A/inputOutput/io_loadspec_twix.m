@@ -57,6 +57,10 @@ if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA30')
     twix_obj.image.softwareVersion = 'XA30';
     version=twix_obj.image.softwareVersion;
 end
+if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA61')
+    twix_obj.image.softwareVersion = 'XA61';
+    version=twix_obj.image.softwareVersion;
+end
 
 %find out what sequence, the data were acquired with.  If this is a
 %multi-raid file, then the header may contain multiple instances of
@@ -77,8 +81,10 @@ ishdSPECIAL=~isempty(strfind(sequence,'md_dvox_special')); %Is this Masoumeh Deh
 isjnMP=~isempty(strfind(sequence,'jn_MEGA_GABA')); %Is this Jamie Near's MEGA-PRESS sequence?
 isjnseq=~isempty(strfind(sequence,'jn_')); %Is this another one of Jamie Near's sequences?
 isWIP529=~isempty(strfind(sequence,'edit_529'));%Is this WIP 529 (MEGA-PRESS)?
-ismodWIP=(~isempty(strfind(sequence,'\svs_edit')) && isempty(strfind(sequence,'edit_859'))); %Modified WIP
-isWIP859=~isempty(strfind(sequence,'edit_859'));%Is this WIP 859 (MEGA-PRESS)?
+ismodWIP=((~isempty(strfind(sequence,'\svs_edit'))||...
+        ~isempty(strfind(sequence,'\wip_svs_edit'))) && isempty(strfind(sequence,'edit_859'))); %Modified WIP
+isWIP859=~isempty(strfind(sequence,'edit_859'))||...;%Is this WIP 859 (MEGA-PRESS)?
+        ~isempty(strfind(sequence,'WIP_859'));%Is this WIP 859 (MEGA-PRESS)? Other naming
 isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA-PRESS sequence
          ~isempty(strfind(sequence,'md_svs_slaser_edit')); %Is Thomas Lange's MEGA-s-LASER sequence
 isMinn_eja=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
@@ -269,7 +275,7 @@ if isMinn_dkd
 end
 
 % Extract voxel dimensions
-if (strcmp(version,'vd') || strcmp(version,'vb') || strcmp(version,'XA30'))
+if (strcmp(version,'vd') || strcmp(version,'vb') || strcmp(version,'XA30') || strcmp(version,'XA61'))
     TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
     TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
     TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
@@ -346,7 +352,7 @@ else
 end
 
 %Now index the dimension of the averages
-if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')
+if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30') || strcmp(version,'XA61') 
     if isMinn_eja || isMinn_dkd || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
