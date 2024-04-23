@@ -130,6 +130,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.FittingStyleDropDown.Enable = 'Off';
                     app.FittingStyleDropDownLabel.Enable = 'Off';
                     app.FWHMMM3coEditField.Enable = 'Off';
+                    app.FWHMMM3coLabel.Enable = 'Off';
                     app.MM3coDropDown.Enable = 'Off';
                     app.MM3coDropDownLabel.Enable = 'Off';
                 case 'MEGA'
@@ -139,8 +140,11 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.FittingStyleDropDown.Enable = 'Off';
                     app.FittingStyleDropDownLabel.Enable = 'Off';
                     app.FWHMMM3coEditField.Enable = 'On';
+                    app.FWHMMM3coLabel.Enable = 'On';
                     app.MM3coDropDown.Enable = 'On';
-                    app.MM3coDropDownLabel.Enable = 'On';
+                    app.MM3coDropDown.Items = {'3to2MM', '3to2MMsoft', '1to1GABA', '1to1GABAsoft', 'freeGauss', 'fixedGauss', 'none'};
+                    app.MM3coDropDown.Tooltip = {'Select a model for the co-edited MMs in GABA-edited difference spetra.'};
+                    app.MM3coDropDown.Value = '3to2MM';
                 case 'HERMES'
                     app.EditingTargetsDropDown.Items = {'GABA, GSH'};
                     app.EditingTargetsDropDown.Value = 'GABA, GSH';
@@ -148,8 +152,12 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.FittingStyleDropDown.Enable = 'Off';
                     app.FittingStyleDropDownLabel.Enable = 'Off';
                     app.FWHMMM3coEditField.Enable = 'On';
+                    app.FWHMMM3coLabel.Enable = 'On';
                     app.MM3coDropDown.Enable = 'On';
                     app.MM3coDropDownLabel.Enable = 'On';
+                    app.MM3coDropDown.Items = {'3to2MM', '3to2MMsoft', '1to1GABA', '1to1GABAsoft', 'freeGauss', 'fixedGauss', 'none'};
+                    app.MM3coDropDown.Tooltip = {'Select a model for the co-edited MMs in GABA-edited difference spetra.'};
+                    app.MM3coDropDown.Value = '3to2MM';
                 case 'HERCULES'
                     app.EditingTargetsDropDown.Items = {'GABA, GSH'};
                     app.EditingTargetsDropDown.Value = 'GABA, GSH';
@@ -157,8 +165,12 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                     app.FittingStyleDropDown.Enable = 'Off';
                     app.FittingStyleDropDownLabel.Enable = 'Off';
                     app.FWHMMM3coEditField.Enable = 'On';
+                    app.FWHMMM3coLabel.Enable = 'On';
                     app.MM3coDropDown.Enable = 'On';
                     app.MM3coDropDownLabel.Enable = 'On';
+                    app.MM3coDropDown.Items = {'3to2MM', '3to2MMsoft', '1to1GABA', '1to1GABAsoft', 'freeGauss', 'fixedGauss', 'none'};
+                    app.MM3coDropDown.Tooltip = {'Select a model for the co-edited MMs in GABA-edited difference spetra.'};
+                    app.MM3coDropDown.Value = '3to2MM';
             end
         end
 
@@ -509,17 +521,29 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             value = app.EditingTargetsDropDown.Value;
             switch value
                 case 'GABA'
+                    app.FWHMMM3coLabel.Enable = 'On';
                     app.FWHMMM3coEditField.Enable = 'On';
                     app.MM3coDropDown.Enable = 'On';
                     app.MM3coDropDownLabel.Enable = 'On';
+                    app.MM3coDropDown.Items = {'3to2MM', '3to2MMsoft', '1to1GABA', '1to1GABAsoft', 'freeGauss', 'fixedGauss', 'none'};
+                    app.MM3coDropDown.Tooltip = {'Select a model for the co-edited MMs in GABA-edited difference spetra.'};
+                    app.MM3coDropDown.Value = '3to2MM';
                 case 'GABA, GSH'
+                    app.FWHMMM3coLabel.Enable = 'On';
                     app.FWHMMM3coEditField.Enable = 'On';
                     app.MM3coDropDown.Enable = 'On';
                     app.MM3coDropDownLabel.Enable = 'On';
+                    app.MM3coDropDown.Items = {'3to2MM', '3to2MMsoft', '1to1GABA', '1to1GABAsoft', 'freeGauss', 'fixedGauss', 'none'};
+                    app.MM3coDropDown.Tooltip = {'Select a model for the co-edited MMs in GABA-edited difference spetra.'};
+                    app.MM3coDropDown.Value = '3to2MM';
                 otherwise
+                    app.FWHMMM3coLabel.Enable = 'Off';
                     app.FWHMMM3coEditField.Enable = 'Off';
                     app.MM3coDropDown.Enable = 'Off';
                     app.MM3coDropDownLabel.Enable = 'Off';
+                    app.MM3coDropDown.Items = {'none'};
+                    app.MM3coDropDown.Tooltip = {'Models for the co-edited MMs only available for GABA-edited difference spetra.'};
+                    app.MM3coDropDown.Value = 'none';
 
             end
         end
@@ -542,6 +566,20 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
                 app.T1DataniftiniiButton.Text = 'T1 Data (DICOM)';
             else
                 app.T1DataniftiniiButton.Text = 'T1 Data (nifti *.nii)';
+            end
+        end
+
+        % Value changed function: MM3coDropDown
+        function MM3coDropDownValueChanged(app, event)
+            value = app.MM3coDropDown.Value;
+            switch value
+                case 'none'
+                    app.FWHMMM3coLabel.Enable = 'Off';
+                    app.FWHMMM3coEditField.Enable = 'Off';
+                otherwise
+                    app.FWHMMM3coLabel.Enable = 'On';
+                    app.FWHMMM3coEditField.Enable = 'On';
+
             end
         end
     end
@@ -627,6 +665,7 @@ classdef CreateOspreyJob_app < matlab.apps.AppBase
             % Create MM3coDropDown
             app.MM3coDropDown = uidropdown(app.SpecifySequenceInformationPanel);
             app.MM3coDropDown.Items = {'3to2MM', '3to2MMsoft', '1to1GABA', '1to1GABAsoft', 'freeGauss', 'fixedGauss', 'none'};
+            app.MM3coDropDown.ValueChangedFcn = createCallbackFcn(app, @MM3coDropDownValueChanged, true);
             app.MM3coDropDown.Enable = 'off';
             app.MM3coDropDown.Tooltip = {'Select a model for the co-edited MMs in GABA-edited difference spetra.'};
             app.MM3coDropDown.FontColor = [0.0392 0.2706 0.4314];

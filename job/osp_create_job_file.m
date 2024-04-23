@@ -46,7 +46,7 @@ end
 
 fprintf(fid,'\n\t%s',['"dataScenario": "' app.DataScenarioDropDown.Value '",']);
 fprintf(fid,'\n\t%s',['"MM3coModel": "' app.MM3coDropDown.Value '",']);
-fprintf(fid,'\n\t%s',['"FWHMMM3co": "' app.FWHMMM3coEditField.Value '",']);
+fprintf(fid,'\n\t%s',['"FWHMMM3co": "' num2str(app.FWHMMM3coEditField.Value) '",']);
 fprintf(fid,'\n\t%s',['"SpecReg": "' app.SpectralRegistrationDropDown.Value '",']);
 fprintf(fid,'\n\t%s',['"SubSpecAlignment": "' app.SubspectraAligmentDropDown.Value '",']);
 fprintf(fid,'\n\t%s',['"UnstableWater": "' num2str(app.unstablewaterCheckBox.Value) '",']);
