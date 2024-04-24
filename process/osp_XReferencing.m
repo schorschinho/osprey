@@ -48,11 +48,11 @@ LimL = lim(1);
 LimR = lim(2);
 
 if sum(frequencies<LimL) > 0
-    LimL = min(freq);
+    LimL = min(frequencies);
 end
 
 if sum(frequencies>LimR) > 0
-    LimR = max(freq);
+    LimR = max(frequencies);
 end
 
 dataToFit=op_freqrange(dataToFit,LimL,LimR);
