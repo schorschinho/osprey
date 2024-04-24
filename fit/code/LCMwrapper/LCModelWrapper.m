@@ -61,6 +61,19 @@ function [MRSCont] = LCModelWrapper(MRSCont,kk,progressText)
         end
     end
 
+    % check that the binary can in fact be executed
+    [~,attribs] = fileattrib(fullfile(pathLCModelBinary, bin));
+
+    if (~isnan(attribs.UserExecute) && ~attribs.UserExecute)
+        disp('LCModel binary is not executable; attempting to correct')
+        try
+            fileattrib(fullfile(pathLCModelBinary, bin),'+x','u')
+            % this might fail on certain platforms, certain filesystems, or with unexpected ownership
+        catch
+            disp('...sadly, that did not work.')
+        end
+    end
+
     % Call LCModel and read in the LCModel output files
     if MRSCont.flags.isUnEdited
         callLCModel(MRSCont.opts.fit.lcmodel.controlfileA{kk}, [pathLCModelBinary filesep bin]);
