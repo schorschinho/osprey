@@ -337,8 +337,10 @@ switch MRSCont.opts.fit.method
                     MRSCont.opts.fit.basisSetFile{2} = [path filesep Bo '_' seq '_' MRSCont.vendor '_' te 'ms_noMM_diff1.BASIS'];
                 end
             elseif strcmpi(exten, '.basis')
-                % If it has the .basis extension, we don't have to change
-                % anything.
+                % If it has the .basis extension, no conversion is necessary
+                if (~isa(MRSCont.opts.fit.basisSetFile,'cell'))
+                    MRSCont.opts.fit.basisSetFile={MRSCont.opts.fit.basisSetFile}
+                end 
             else
                 error('For LCModel fitting, please explicitly specify a .BASIS or .MAT file in the job file (opts.fit.basisSetFile = ''FILE'').');
             end
