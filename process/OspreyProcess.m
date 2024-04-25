@@ -676,9 +676,13 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
 
 %%          %%% 8. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS AND PHASE SIEMENS
             %%% DATA
-            [refShift, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
-            if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
-                [refShift, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
+            if MRSCont.flags.isPhantom
+                [refShift, ~, ~] = osp_PhantomReferencing(raw);
+            else
+                [refShift, ~] = osp_XReferencing(raw,[3.03 3.22],[1 1],[1.85 4.2]);% determine frequency shift
+                if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
+                    [refShift, ~] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
+                end
             end
             [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation
             if exist('raw_no_subspec_aling','var')
