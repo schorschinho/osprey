@@ -57,6 +57,10 @@ if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA30')
     twix_obj.image.softwareVersion = 'XA30';
     version=twix_obj.image.softwareVersion;
 end
+if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA50') % scnh
+    twix_obj.image.softwareVersion = 'XA50';             % scnh
+    version=twix_obj.image.softwareVersion;              % scnh
+end                                                      % scnh
 if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA61')
     twix_obj.image.softwareVersion = 'XA61';
     version=twix_obj.image.softwareVersion;
@@ -275,7 +279,7 @@ if isMinn_dkd
 end
 
 % Extract voxel dimensions
-if (strcmp(version,'vd') || strcmp(version,'vb') || strcmp(version,'XA30') || strcmp(version,'XA61'))
+if (strcmp(version,'vd') || strcmp(version,'vb') || strcmp(version,'XA30') || strcmp(version,'XA50') || strcmp(version,'XA61'))
     TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
     TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
     TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
@@ -352,7 +356,7 @@ else
 end
 
 %Now index the dimension of the averages
-if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30') || strcmp(version,'XA61') 
+if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30') || strcmp(version,'XA50') || strcmp(version,'XA61') 
     if isMinn_eja || isMinn_dkd || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
