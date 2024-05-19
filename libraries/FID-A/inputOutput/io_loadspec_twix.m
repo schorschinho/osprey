@@ -53,16 +53,9 @@ if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'E11')
     twix_obj.image.softwareVersion = 've';
     version=twix_obj.image.softwareVersion;
 end
-if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA30')
-    twix_obj.image.softwareVersion = 'XA30';
-    version=twix_obj.image.softwareVersion;
-end
-if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA50') % scnh
-    twix_obj.image.softwareVersion = 'XA50';             % scnh
-    version=twix_obj.image.softwareVersion;              % scnh
-end                                                      % scnh
-if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA61')
-    twix_obj.image.softwareVersion = 'XA61';
+if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA')
+    index = strfind(twix_obj.hdr.Dicom.SoftwareVersions,'XA');
+    twix_obj.image.softwareVersion = twix_obj.hdr.Dicom.SoftwareVersions(index:index+3);
     version=twix_obj.image.softwareVersion;
 end
 
@@ -165,8 +158,8 @@ end
 %25 Oct 2018: Due to a recent change, the VE version of Jamie Near's MEGA-PRESS
 %sequence also falls into this category.
 if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequence
-        ((strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
-        ((strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence
+        ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
+        ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence
     squeezedData=squeeze(dOut.data);
     if twix_obj.image.NCol>1 && twix_obj.image.NCha>1
         data(:,:,:,1)=squeezedData(:,:,[1:2:end-1]);
@@ -211,7 +204,7 @@ fids=double(squeeze(data));
 
 %noticed that in the Siemens PRESS and STEAM sequences, there is sometimes
 %an extra dimension containing unwanted reference scans or something.  Remove them here.
-if isSiemens && (strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30')) && strcmp(sqzDims{end},'Phs')
+if isSiemens && (strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && strcmp(sqzDims{end},'Phs')
     sqzDims=sqzDims(1:end-1);
     sqzSize=sqzSize(1:end-1);
     if ndims(fids)==4
@@ -279,7 +272,7 @@ if isMinn_dkd
 end
 
 % Extract voxel dimensions
-if (strcmp(version,'vd') || strcmp(version,'vb') || strcmp(version,'XA30') || strcmp(version,'XA50') || strcmp(version,'XA61')) % scnh
+if (strcmp(version,'vd') || strcmp(version,'vb') || contains(version,'XA'))
     TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
     TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
     TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
@@ -356,7 +349,7 @@ else
 end
 
 %Now index the dimension of the averages
-if strcmp(version,'vd') || strcmp(version,'ve') || strcmp(version,'XA30') || strcmp(version,'XA50') || strcmp(version,'XA61') % scnh
+if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')
     if isMinn_eja || isMinn_dkd || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
@@ -668,7 +661,7 @@ end
 if isWIP529 || isWIP859
     leftshift = twix_obj.image.cutOff(1,1);
 elseif isSiemens && (~(isMinn_eja || isMinn_dkd) && ~isConnectom)
-    if ~strcmp(version,'ve') && ~strcmp(version,'XA30')
+    if ~strcmp(version,'ve') && ~contains(version,'XA')
         leftshift = twix_obj.image.freeParam(1);
     else
        leftshift = twix_obj.image.iceParam(5,1);
