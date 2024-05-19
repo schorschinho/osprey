@@ -74,7 +74,7 @@ if (std(nearest(2:4))<0.02)
     [refShift, refFWHM] = osp_XReferencing(dataToFit,[3.03 3.22],[1 1],[1.85 4.2]);
     if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
         refSinglets=[2.01];
-        [refShift, refFWHM] = osp_XReferencing(raw,2.01,1,[1.85 4.2]);% determine frequency shift
+        [refShift, refFWHM] = osp_XReferencing(dataToFit,2.01,1,[1.85 4.2]);% determine frequency shift
     end
 elseif (best_ix==1 && best_shift<0.08) || (nearest(1)<0.03)
     % found a close match for a 0ppm reference, use it
