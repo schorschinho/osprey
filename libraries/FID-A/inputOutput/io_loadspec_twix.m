@@ -50,13 +50,11 @@ sqzDims=twix_obj.image.sqzDims;
 
 %Check if the twix file is from a VE version
 if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'E11')
-    twix_obj.image.softwareVersion = 've';
-    version=twix_obj.image.softwareVersion;
+    version='ve';
 end
 if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA')
     index = strfind(twix_obj.hdr.Dicom.SoftwareVersions,'XA');
-    twix_obj.image.softwareVersion = twix_obj.hdr.Dicom.SoftwareVersions(index:index+3);
-    version=twix_obj.image.softwareVersion;
+    version=twix_obj.hdr.Dicom.SoftwareVersions(index:index+3);
 end
 
 %find out what sequence, the data were acquired with.  If this is a
