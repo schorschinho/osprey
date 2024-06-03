@@ -1,7 +1,7 @@
 {
     "nifti_mrs_version": {
         "major": 0,
-        "minor": 8},
+        "minor": 9},
 
     "dimension_tags": {
         "DIM_COIL": "For storage of data from each individual receiver coil element.",
@@ -15,7 +15,8 @@
         "DIM_USER_0": "User defined dimension.",
         "DIM_USER_1": "User defined dimension.",
         "DIM_USER_2": "User defined dimension.",
-        "DIM_ISIS": "Dimension for storing image-selected in vivo spectroscopy (ISIS) acquisitions."},
+        "DIM_ISIS": "Dimension for storing image-selected in vivo spectroscopy (ISIS) acquisitions.",
+        "DIM_METCYCLE": "For storing metabolite cycled data."},
 
     "required": {
         "SpectrometerFrequency": {
