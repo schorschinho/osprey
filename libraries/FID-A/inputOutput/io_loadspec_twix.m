@@ -351,7 +351,13 @@ if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')
     if isMinn_eja || isMinn_dkd || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
-        dims.averages=find(strcmp(sqzDims,'Ave'));
+        % GO 6/2024: Encountered a VD13 Siemens product sequence that had
+        % transients in Set, not in Ave... 
+        if strcmp(sqzDims,'Ave')
+            dims.averages=find(strcmp(sqzDims,'Ave'));
+        else
+            dims.averages=find(strcmp(sqzDims,'Set'));
+        end
     end
 else
     dims.averages=find(strcmp(sqzDims,'Set'));
