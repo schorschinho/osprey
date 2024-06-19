@@ -15,6 +15,11 @@ function updateParametrization(obj, parametrization)
 %       Dr. Georg Oeltzschner (Johns Hopkins University, 2023-10-18)
 %       goeltzs1@jhmi.edu
 
-obj.Options{obj.step+1}.parametrizations = parametrization;
-
+pars = fields(parametrization);                                             % Get parameter names to update
+for ff = 1 : length(pars) 
+    vals = fields(parametrization.(pars{ff}));
+    for vv = 1 : length(vals)
+        obj.Options{obj.step+1}.parametrizations.(pars{ff}).(vals{vv}) = parametrization.(pars{ff}).(vals{vv});
+    end
+end
 end

@@ -11,7 +11,9 @@
       "init": 5.70
     },
   "baseAmpl": {
-      "type": "fixed"
+      "type": "fixed",
+      "RegFun": "SecondDerivative",
+          "RegPar": 15
     },
   "metAmpl": {
       "type": "fixed"
