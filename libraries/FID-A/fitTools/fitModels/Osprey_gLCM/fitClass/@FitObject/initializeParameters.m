@@ -1,10 +1,10 @@
-function [init, lb, ub, ex, sd, fun, gr] = initializeParameters(obj, init, lb, ub, ex, sd, fun, gr, parameter)
-%%  [init, lb, ub, ex, sd, fun, gr] = initializeParameters(obj, init, lb, ub, ex, sd, fun, parameter)
+function [init, lb, ub, ex, sd, fun, gr, sc] = initializeParameters(obj, init, lb, ub, ex, sd, fun, gr, sc, parameter)
+%%  [init, lb, ub, ex, sd, fun, gr, sc] = initializeParameters(obj, init, lb, ub, ex, sd, fun, parameter)
 %   This method sets the parametrization of the OspreyFitObj according to
 %   the model procedure step as well as the indirect dimension link
 %
 %   USAGE:
-%       [init, lb, ub, sd, fun] = initializeParameters(obj, init, lb, ub, sd, fun, parameter)
+%       [init, lb, ub, ex, sd, fun, gr, sc] = initializeParameters(obj, init, lb, ub, ex, sd, fun, gr, sc, parameter)
 %
 %   INPUTS:
 %       init      = struct with initial parameters that is build for all parameters
@@ -14,6 +14,7 @@ function [init, lb, ub, ex, sd, fun, gr] = initializeParameters(obj, init, lb, u
 %       sd        = struct with standard deviations that is build for all parameters
 %       fun       = struct with function type parameters that is build for all parameters
 %       gr        = struct with parameter grouping
+%       sc        = sctruct with soft constraints
 %       parameter = parameter to initialize (e.g. p0, ph1, gaussLB...)
 %
 %   OUTPUTS:
@@ -24,6 +25,7 @@ function [init, lb, ub, ex, sd, fun, gr] = initializeParameters(obj, init, lb, u
 %       ex        = struct with expectation values that is build for all parameters
 %       sd        = struct with standard deviations that is build for all parameters
 %       gr        = struct with parameter grouping
+%       sc        = sctruct with soft constraints
 %       fun       = struct with function type parameters that is build for all parameters
 %
 %   AUTHOR:
@@ -36,7 +38,7 @@ function [init, lb, ub, ex, sd, fun, gr] = initializeParameters(obj, init, lb, u
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Write parametrizations in obj
-
+usedDefaults=1;
 nBasisFcts = sum(obj.BasisSets.includeInFit(obj.step,:));               % Number of basis functions
 nBaselineComps = size(obj.BaselineBasis, 2);                            % Number of baseline parameters
 if ~isfield(obj.Options{obj.step},'parametrizations')                   % No parametrizations field use defaults
@@ -45,6 +47,7 @@ else if ~isfield(obj.Options{obj.step}.parametrizations,parameter)      % No par
         obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter); % Write parameter defaults in object
 else
     obj.Options{obj.step}.parametrizations.(parameter) = set_parameter(obj,parameter,obj.Options{obj.step}.parametrizations.(parameter)); % Write parameter according to model procedure step
+    usedDefaults = 0;
 end
 end
 %% Define the number of parameters per spectrum and per indirect dimension for the parameter
@@ -99,7 +102,7 @@ end
 % along the indirect dimension
 if ~iscell(obj.Options{obj.step}.parametrizations.(parameter).init)  % This is numeric if defaults or not pulled from a prior step
     if ~strcmp(type,'dynamic')      % For free or fixed cases we just have to repeat the parameter value according to nParamsPerSpec and nParamsPerIndir
-        structs = {'init','lb','ub','ex','sd','gr'};  % Structs to write for output
+        structs = {'init','lb','ub','ex','sd','gr','sc'};  % Structs to write for output
         for st = 1 : length(structs)    % Loop over structs
             switch num2str([size(obj.Options{obj.step}.parametrizations.(parameter).(structs{st}),1) == nParamsPerIndir ...     % Check dimensions and repeat parameter accordingly
                     size(obj.Options{obj.step}.parametrizations.(parameter).(structs{st}),2) == nParamsPerSpec])
@@ -138,13 +141,15 @@ else % When this is a cell array it contains the 'Step' reference (e.g. Step 2) 
     sd.(parameter)   = squeeze(repmat(obj.Options{obj.step}.parametrizations.(parameter).sd,   [nParamsPerIndir , nParamsPerSpec])); % Repeat sd value according to nParamsPerIndir nParamsPerSpec
     
 end
-gr.(parameter)   = obj.Options{obj.step}.parametrizations.(parameter).gr; % Add grouping
+gr.(parameter)   = obj.Options{obj.step}.parametrizations.(parameter).gr;          % Add grouping
+sc.(parameter)   = obj.Options{obj.step}.parametrizations.(parameter).sc;          % Add soft constraints
 if isfield(obj.Options{obj.step}.parametrizations.(parameter),'type')              % If 2D we will have a type entry for the relation
     fun.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).type;     % Add parametrization function type
 else
     obj.Options{obj.step}.parametrizations.(parameter).type = type;               % If 2D we will have a type entry for the relation
     fun.(parameter) = obj.Options{obj.step}.parametrizations.(parameter).type;      % Add parametrization function type
 end
+
 end
 
 % Description of default parameters are described below
@@ -163,6 +168,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
         parametrizations.gr      = [];
+        parametrizations.sc      = [];
 
     case 'ph1'
         % Initialize phi1 as constant with value 0
@@ -175,6 +181,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
         parametrizations.gr      = [];
+        parametrizations.sc      = [];
 
     case 'gaussLB'
         % Initialize Gaussian LB as constant with value [0.04 *
@@ -188,18 +195,20 @@ switch parameter                                            % Parameter switch w
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
         parametrizations.gr      = [];
+        parametrizations.sc      = [];
 
     case 'lorentzLB'
         % Initialize Lorentzian LB as constant with value
         parametrizations.fun     = 'free';
         parametrizations.gradfun = 'free';
         parametrizations.lb      = 0.5;
-        parametrizations.ub      = 7;
+        parametrizations.ub      = 50;
         parametrizations.init    = 2.75;
         parametrizations.ex      = 2.75;
         parametrizations.sd      = 2.75;
         parametrizations.RegFun  = '';
         parametrizations.gr      = [];
+        parametrizations.sc      = [];
 
     case 'freqShift'
         % Initialize frequency shifts as constant with value 0 Hz
@@ -209,9 +218,10 @@ switch parameter                                            % Parameter switch w
         parametrizations.ub      = 10;
         parametrizations.init    = 0;
         parametrizations.ex      = 0;
-        parametrizations.sd      = 3;
+        parametrizations.sd      = 0.004 * obj.Data.txfrq*1e-6;
         parametrizations.RegFun  = '';
         parametrizations.gr      = [];
+        parametrizations.sc      = [];
 
     case 'metAmpl'
         % Initialize metabolite amplitudes as free with value 0
@@ -224,6 +234,8 @@ switch parameter                                            % Parameter switch w
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
         parametrizations.gr      = [];
+        parametrizations.sc      = [];
+        
 
     case 'baseAmpl'
         % Initialize baseline amplitudes as free with value 0
@@ -236,6 +248,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
         parametrizations.gr      = [];
+        parametrizations.sc      = [];
 
     case 'x'
         % Initialize x (the external dependency vector) as natural numbers
@@ -254,6 +267,7 @@ switch parameter                                            % Parameter switch w
         parametrizations.sd      = Inf;
         parametrizations.RegFun  = '';
         parametrizations.gr      = [];
+        parametrizations.sc      = [];
 
 end
 
@@ -307,14 +321,16 @@ if nargin == 3
                 if sum(obj.BasisSets.includeInFit(obj.step,:)) > sum(obj.BasisSets.includeInFit(obj.step-1,:))  % More parameters then before
                     for ff = 1 : length(pars)
                         if strcmp(pars{ff},'ub') || strcmp(pars{ff},'lb') || strcmp(pars{ff},'init')            % Only apply to init, ub, lb
-                            try                                                                                 % This needs furhter checking!
-                            parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
-                                                             parametrizations.(pars{ff}) * ...
-                                                             ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))-1));
-                            catch
-                              parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
-                                                             default_parametrization.(pars{ff}) * ...
-                                                             ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))- sum(obj.BasisSets.includeInFit(obj.step-1,:))));
+                            if length(parametrizations.(pars{ff})) ~= sum(obj.BasisSets.includeInFit(obj.step,:))
+                                try                                                                                 % This needs furhter checking!
+                                parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
+                                                                 parametrizations.(pars{ff}) * ...
+                                                                 ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))-1));
+                                catch
+                                  parametrizations.(pars{ff}) = cat(2,parametrizations.(pars{ff}),...
+                                                                 default_parametrization.(pars{ff}) * ...
+                                                                 ones(1,sum(obj.BasisSets.includeInFit(obj.step,:))- sum(obj.BasisSets.includeInFit(obj.step-1,:))));
+                                end
                             end
                         end
                     end

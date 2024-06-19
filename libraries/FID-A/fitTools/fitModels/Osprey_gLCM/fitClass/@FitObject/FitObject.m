@@ -38,7 +38,8 @@ classdef FitObject < handle
                            'names', [], ...                                 % Initialize basis function names
                            'includeInFit', []);                             % Initialize index vector of basis functions to be included
         BaselineBasis = struct('specs', []);                                % Initialize baseline basis
-        NoiseSD = [];                                                       % Initialize noise SD estimate
+        NoiseSD = struct('FD',[],...                                        % Initialize noise SD estimate in frequency domain
+                         'TD',[]);                                          % Initialize noise SD estimate in time domain                                         
         Options = {struct};                                                 % Initialize options array
         Model = {struct};                                                   % Initialize model array
         scale = [];                                                         % Initialize scale parameter
@@ -60,7 +61,7 @@ classdef FitObject < handle
                 obj.Data.txfrq           = data.txfrq(1);                   % Set receiver frequency of first extra entry
                 obj.Data.t               = data.t;                          % Set time vector
                 obj.Data.nucleus         = data.nucleus;                    % Set nucleus string
-                obj.NoiseSD              = osp_gLCM_getNoiseSD(data);       % Estimate noise standard deviation
+                [obj.NoiseSD.FD,obj.NoiseSD.TD] = osp_gLCM_getNoiseSD(data);   % Estimate noise standard deviation frequency/time domain
                 nptsData        = size(data.fids, 1);                       % Get number of datapoints
                 obj.Data.ppm    = calculatePPMAxis(nptsData, data.spectralwidth(1), data.txfrq(1), data.nucleus);   % Create frequency axis in ppm
             
@@ -99,18 +100,34 @@ classdef FitObject < handle
                     end
                 end
                 
-                if ismember(options.optimDomain, {'FD', 'FDTD'})
+                if ismember(options.optimDomain, {'FD'})
                     if ~isfield(options, 'optimFreqFitRange')
                         options.optimFreqFitRange = [0.5 4.0];
                     end
+                    if ~isfield(options, 'optimTimeFitRange')
+                        options.optimTimeFitRange = [];
+                    end
                 end
                 
-                if ismember(options.optimDomain, {'TD', 'FDTD'})
+                if ismember(options.optimDomain, {'TD'})
+                    if ~isfield(options, 'optimFreqFitRange')
+                        options.optimFreqFitRange = [];
+                    end
+                    if ~isfield(options, 'optimTimeFitRange')
+                        options.optimTimeFitRange = [0 1];
+                    end
+                    
+                end
+
+               if ismember(options.optimDomain, {'FDTD'})
+                    if ~isfield(options, 'optimFreqFitRange')
+                        options.optimFreqFitRange = [0.5 4.0];
+                    end
                     if ~isfield(options, 'optimTimeFitRange')
                         options.optimTimeFitRange = [0 1];
                     end
                 end
-                
+
                 if ~isfield(options, 'optimSignalPart')
                     options.optimSignalPart = 'R'; % R, I, or RI
                 end                
@@ -132,7 +149,7 @@ classdef FitObject < handle
                 end
 
                 obj.Options{1} = options;                                   % Save the property struct
-                fitRange    = obj.Options{1}.optimFreqFitRange;              % Get fit range
+                fitRangeFD    = obj.Options{1}.optimFreqFitRange;              % Get fit range
 
                 % Setup baseline model 
                 switch obj.Options{1}.baseline.type                         % Switch for baseline type
@@ -141,12 +158,12 @@ classdef FitObject < handle
                         % Combine real and imaginary part to form a complex spline array.
                         % Use the new, corrected function from here on                      
                         dkntmn      = obj.Options{1}.baseline.dkntmn;       % Get spline basis knot spacing
-                        [splineArray] = osp_gLCM_makeSplineBasis(data, fitRange, dkntmn);   % Create spline baseline basis array
+                        [splineArray] = osp_gLCM_makeSplineBasis(data, fitRangeFD, dkntmn);   % Create spline baseline basis array
                         obj.BaselineBasis = splineArray;                    % Store baseline array in object
                     case 'poly'
                         %%% CREATE BASELINE POLYNOMIAL BASIS %%%
                         order      = obj.Options{1}.baseline.order;         % Get order of the polynomial baseline
-                        [splineArray] = osp_gLCM_makePolyBasis(data, fitRange, order);  % Create polynomial baseline basis array    
+                        [splineArray] = osp_gLCM_makePolyBasis(data, fitRangeFD, order);  % Create polynomial baseline basis array    
                         obj.BaselineBasis = splineArray;                    % Store baseline array in object
                     case 'none'
                         %%% NO BASELINE %%%

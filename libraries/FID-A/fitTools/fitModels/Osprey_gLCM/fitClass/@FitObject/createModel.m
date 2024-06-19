@@ -41,7 +41,12 @@ function obj = createModel(obj)
     ppm                 = obj.Data.ppm;                                     % Get ppm axis
     t                   = obj.Data.t;                                       % Get time vector
     Domain              = obj.Options{obj.step}.optimDomain;                % Get optimization domain
-    fitRange            = obj.Options{obj.step}.optimFreqFitRange;          % Get model range
+    if ~isempty(obj.Options{obj.step}.optimFreqFitRange)   
+        fitRange.FD     = obj.Options{obj.step}.optimFreqFitRange;          % Get model range
+    end
+    if isfield(obj.Options{obj.step}, 'optimTimeFitRange') && ~isempty(obj.Options{obj.step}.optimTimeFitRange) 
+        fitRange.TD     = obj.Options{obj.step}.optimTimeFitRange;          % Get model range
+    end
     SignalPart          = obj.Options{obj.step}.optimSignalPart;            % Get optimization signal part
     solver              = obj.Options{obj.step}.solver;                     % Get solver name
     NoiseSD             = obj.NoiseSD;                                      % Get standard deviation of the noise 
@@ -58,11 +63,44 @@ function obj = createModel(obj)
     parsub = [];                                            % Initialize parsub struct
     parsex = [];                                            % Initialize parsex struct
     parssd = [];                                            % Initialize parssd struct
-    parsfun = [];                                           % parsfun parsInit struct
-    parsgr = [];                                            % 
+    parsfun = [];                                           % Initialize parsfun struct
+    parsgr = [];                                            % Initialize parsgr struct
+    parssc = [];                                            % Initialize parssc struct
     for pp = 1:length(pars)                                 % Loop over parameters
-        [parsInit, parslb, parsub, parsex, parssd, parsfun, parsgr] = initializeParameters(obj, parsInit, parslb, parsub, parsex, parssd, parsfun, parsgr, pars{pp}); % Generate parameter structs
+        [parsInit, parslb, parsub, parsex, parssd, parsfun, parsgr, parssc] = initializeParameters(obj, parsInit, parslb, parsub, parsex, parssd, parsfun, parsgr, parssc, pars{pp}); % Generate parameter structs
     end                                                     % End loop over parameters
+
+    % Get indices for parameter soft constraints
+    pars = fields(parssc);                                        % Get parameter names
+    for ff = 1 : length(pars)                                     % Loop over parameters
+        if ~isempty(parssc.(pars{ff}))                            % Grouping exists
+            if isfield(parssc.(pars{ff}),'fix_idx')                         % Remove old index during optimization
+               parssc.(pars{ff}) = rmfield(parssc.(pars{ff}),'fix_idx');
+               parssc.(pars{ff}) = rmfield(parssc.(pars{ff}),'adj_idx'); 
+            end
+            basisNames = basisSet.names;
+            
+            for rr = 1 : length(parssc.(pars{ff}).fix)
+                [metsToIncludeFixTemp, ~, ~] = intersect(basisNames, parssc.(pars{ff}).fix{rr}, 'stable');
+                [metsToIncludeAdjTemp, ~, ~] = intersect(basisNames, parssc.(pars{ff}).adj{rr}, 'stable');
+                
+                for mm = 1 : length(metsToIncludeFixTemp)
+                    idxToIncludeFix(rr,mm) = find(strcmp(metsToIncludeFixTemp{mm}, basisNames));    % Get index of basis function to include
+                end
+                for mm = 1 : length(metsToIncludeAdjTemp)
+                    idxToIncludeAdj(rr,mm) = find(strcmp(metsToIncludeAdjTemp{mm}, basisNames));    % Get index of basis function to include
+                end
+            end
+            parssc.(pars{ff}).fix_idx = idxToIncludeFix;
+            parssc.(pars{ff}).adj_idx = idxToIncludeAdj;
+            if ~iscell(parssc.(pars{ff}).fix_factor)
+                for mm = 1:length(parssc.(pars{ff}).fix_factor)
+                    temp(mm) = {parssc.(pars{ff}).fix_factor(mm)};                    
+                end
+                parssc.(pars{ff}).fix_factor = temp;
+            end
+        end
+    end
 
     % Get indices for parameter mapping according to groups
     pars = fields(parsgr);                                        % Get parameter names
@@ -73,7 +111,7 @@ function obj = createModel(obj)
             end
             groups = fields(parsgr.(pars{ff}));                   % Get group names
             
-            basisNames = basisSet.names(logical(basisSet.includeInFit(obj.step,:)));
+            basisNames = basisSet.names;
             idx = 1:sum(basisSet.includeInFit(obj.step,:));
             for gg = 1 : length(groups)            
                 [metsToInclude, ~, ~] = intersect(basisNames, parsgr.(pars{ff}).(groups{gg}), 'stable');    % Get vector of logical indices
@@ -120,6 +158,7 @@ function obj = createModel(obj)
             obj.Options{obj.step}.parametrizations.(pars{pp}).sd = parssd.(pars{pp}); % Update sd values
             obj.Options{obj.step}.parametrizations.(pars{pp}).type = parsfun.(pars{pp}); % Update type strings
             obj.Options{obj.step}.parametrizations.(pars{pp}).gr = parsgr.(pars{pp}); % Update grouping information
+            obj.Options{obj.step}.parametrizations.(pars{pp}).sc = parssc.(pars{pp}); % Update grouping information
         end
     end                                                     % End loop over parameters
     
@@ -128,6 +167,7 @@ function obj = createModel(obj)
         obj.Options{obj.step}.parametrizations.baseAmpl.end = 0;            % No baseline end index for x vector
         obj.Options{obj.step}.parametrizations.baseAmpl.type = 'none';      % Type none
     end
+    
     parametrizations = obj.Options{obj.step}.parametrizations;              % Write parametrization in variable for solver
     
     if sum(cellfun(@isstruct,obj.returnParametrization(obj.step,'RegFun'))) > 0    % Apply regularizer?
@@ -195,6 +235,7 @@ function obj = createModel(obj)
             end
             % Set jacobian handle
             jac = @(x) h.forwardJacobian(x, ...             % x vector with parameters to optimize
+                                         data, ...          % time domain data matrix
                                          NoiseSD, ...       % standard deviation of the noise 
                                          basisSet, ...      % basis set struct
                                          baselineBasis, ... % baseline basis set
@@ -202,6 +243,7 @@ function obj = createModel(obj)
                                          t, ...             % time vector
                                          fitRange, ...      % model range
                                          SignalPart, ...    % optimization signal part
+                                         Domain,...         % optimization domain
                                          Reg, ...           % regularizer flag
                                          parametrizations); % parameter struct
             % Set fminunc wrappper handle
@@ -213,7 +255,12 @@ function obj = createModel(obj)
                                 'CheckGradients',CheckGrad, ...             % Check gradient
                                 'FiniteDifferenceType','central', ...       % for numerically calculated jacobian only
                                 'MaxIterations',1000, ...                   % Iterations
-                                'Display','none');                         % Display no iterations
+                                'Display','none');                       % Display no iterations
+
+            % Add this if you want to plot per iteration
+            % 'OutputFcn',@optimplotresidual,...);                          
+           
+
 
             % Set tolerance this is useful for the regularization
             % optimization
@@ -267,6 +314,7 @@ function obj = createModel(obj)
 %% Calculate CRLB
 
     jac = h.forwardJacobian(xk, ...            % x vector with final parameter estimates
+                            data, ...          % time domain data matrix
                             NoiseSD, ...       % standard deviation of the noise 
                             basisSet, ...      % basis set struct
                             baselineBasis, ... % baseline basis set
@@ -274,6 +322,7 @@ function obj = createModel(obj)
                             t, ...             % time vector
                             fitRange, ...      % model range
                             'R', ...           % get complex-valued jacobian
+                            Domain,...         % optimization domain
                             Reg, ...           % regularizer flag
                             parametrizations); % parameter struct
 

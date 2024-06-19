@@ -80,7 +80,7 @@ classdef DefaultParameterParsing < matlab.unittest.TestCase
             defaults.freqShift.ub      = 10*ones(1, sum(test{1}.BasisSets.includeInFit));
             defaults.freqShift.init    = zeros(1, sum(test{1}.BasisSets.includeInFit));
             defaults.freqShift.ex      = zeros(1, sum(test{1}.BasisSets.includeInFit));
-            defaults.freqShift.sd      = 3*ones(1, sum(test{1}.BasisSets.includeInFit));
+            defaults.freqShift.sd      = 0.04 * test{1}.Data.txfrq*1e-6 *ones(1, sum(test{1}.BasisSets.includeInFit));
             defaults.freqShift.RegFun  = '';
             defaults.freqShift.gr      = [];
     

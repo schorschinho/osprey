@@ -390,24 +390,24 @@ end
 MRSCont.flags.didQuantify           = 1;
 diary off
 % Save the metabolite tables as TSV with JSON sidecars
-% exportQuant(MRSCont,saveDestination);
+exportQuant(MRSCont,saveDestination);
 %   Remove amplitudes table
 MRSCont.quantify.tables.metab = rmfield(MRSCont.quantify.tables.metab,{'amplMets'});
 % Save the output structure to the output folder
 % Determine output folder
 outputFolder    = MRSCont.outputFolder;
 outputFile      = MRSCont.outputFile;
-% if ~exist(outputFolder,'dir')
-%     mkdir(outputFolder);
-% end
-% 
-% if MRSCont.flags.isGUI
-%     MRSCont.flags.isGUI = 0;
-%     save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
-%     MRSCont.flags.isGUI = 1;
-% else
-%     save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
-% end
+if ~exist(outputFolder,'dir')
+    mkdir(outputFolder);
+end
+
+if MRSCont.flags.isGUI
+    MRSCont.flags.isGUI = 0;
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+    MRSCont.flags.isGUI = 1;
+else
+    save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+end
 
 end
 

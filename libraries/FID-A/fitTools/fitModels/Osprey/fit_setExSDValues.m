@@ -84,8 +84,12 @@ for rr = 1:nMets
     % NAA and NAAG get less 'wiggle room' to improve their separation
     if strcmp(basisNames{rr}, 'NAA') || strcmp(basisNames{rr}, 'NAAG')
         SDSH(rr) = 0.002*hzpppm;
+    else if strcmp(basisNames{rr}, 'GPC') || strcmp(basisNames{rr}, 'PCh') || ...
+            strcmp(basisNames{rr}, 'Cho') || strcmp(basisNames{rr}, 'fCho')
+            SDSH(rr) = 0.006*hzpppm;
     else
-        SDSH(rr) = defSDSH;
+            SDSH(rr) = defSDSH;
+        end
     end
 end
 

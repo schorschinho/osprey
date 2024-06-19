@@ -66,25 +66,37 @@ function jsonStruct = jsonToStruct(jsonfile)
                             if isfield(jsonStruct.Steps{ss}.parametrizations.(params{pp}), 'RegFun')
                                 jsonStruct.Steps{ss}.parametrizations.(params{pp}).RegFun = transpose(jsonStruct.Steps{ss}.parametrizations.(params{pp}).RegFun);
                             end
+                            if isfield(jsonStruct.Steps{ss}.parametrizations.(params{pp}), 'sd')
+                                if ischar(jsonStruct.Steps{ss}.parametrizations.(params{pp}).sd) && strcmp(convertCharsToStrings(jsonStruct.Steps{ss}.parametrizations.(params{pp}).sd),'Inf')
+                                    jsonStruct.Steps{ss}.parametrizations.(params{pp}).sd = Inf;
+                                end
+                            end
                         end
                     end
                 end
             end
         else
-            if isfield(jsonStruct.Steps, 'parametrizations')
-                    params = fieldnames(jsonStruct.Steps.parametrizations);
-                    if ~isempty(params)
-                        for pp = 1 : length(params)
-                            jsonStruct.Steps.parametrizations.(params{pp}) = structfun(@transpose,jsonStruct.Steps.parametrizations.(params{pp}),'UniformOutput',false);
-                            if isfield(jsonStruct.Steps.parametrizations.(params{pp}), 'type')
-                                jsonStruct.Steps.parametrizations.(params{pp}).type = transpose(jsonStruct.Steps.parametrizations.(params{pp}).type);
-                            end
-                            if isfield(jsonStruct.Steps.parametrizations.(params{pp}), 'RegFun')
-                                jsonStruct.Steps.parametrizations.(params{pp}).RegFun = transpose(jsonStruct.Steps.parametrizations.(params{pp}).RegFun);
+            for ss = 1 : length(jsonStruct.Steps)
+                if isfield(jsonStruct.Steps(ss), 'parametrizations')
+                        params = fieldnames(jsonStruct.Steps(ss).parametrizations);
+                        if ~isempty(params)
+                            for pp = 1 : length(params)
+                                jsonStruct.Steps(ss).parametrizations.(params{pp}) = structfun(@transpose,jsonStruct.Steps(ss).parametrizations.(params{pp}),'UniformOutput',false);
+                                if isfield(jsonStruct.Steps(ss).parametrizations.(params{pp}), 'type')
+                                    jsonStruct.Steps(ss).parametrizations.(params{pp}).type = transpose(jsonStruct.Steps(ss).parametrizations.(params{pp}).type);
+                                end
+                                if isfield(jsonStruct.Steps(ss).parametrizations.(params{pp}), 'RegFun')
+                                    jsonStruct.Steps(ss).parametrizations.(params{pp}).RegFun = transpose(jsonStruct.Steps(ss).parametrizations.(params{pp}).RegFun);
+                                end
+                                if isfield(jsonStruct.Steps(ss).parametrizations.(params{pp}), 'sd')
+                                    if ischar(jsonStruct.Steps(ss).parametrizations.(params{pp}).sd) && strcmp(convertCharsToStrings(jsonStruct.Steps(ss).parametrizations.(params{pp}).sd),'Inf')
+                                        jsonStruct.Steps(ss).parametrizations.(params{pp}).sd = Inf;
+                                    end
+                                end
                             end
                         end
-                    end
                 end
+            end
         end
     end
 
