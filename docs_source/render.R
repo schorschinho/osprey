@@ -1,8 +1,0 @@
-bookdown::render_book("index.Rmd", "bookdown::gitbook", clean = TRUE, preview = TRUE)
-bookdown::render_book("00-FAQ.Rmd", "bookdown::gitbook", clean = TRUE, preview = TRUE)
-bookdown::render_book("01-gettingstarted.Rmd", "bookdown::gitbook", clean = TRUE, preview = TRUE)
-bookdown::render_book("02-workflow.Rmd", "bookdown::gitbook", clean = TRUE, preview = TRUE)
-bookdown::render_book("03-jobfiles.Rmd", "bookdown::gitbook", clean = TRUE, preview = TRUE)
-bookdown::render_book("04-tutorial.Rmd", "bookdown::gitbook", clean = TRUE, preview = TRUE)
-bookdown::render_book("05-tutorial_cmd.Rmd", "bookdown::gitbook", clean = TRUE, preview = TRUE)
-bookdown::render_book("06-helpers.Rmd", "bookdown::gitbook", clean = TRUE, preview = TRUE)
