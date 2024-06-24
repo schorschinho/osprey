@@ -522,7 +522,7 @@ else
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
             end
-            if isfield(applyDataToScale,'specReg')
+            if isfield(procDataToPlot,'specReg')
                 for jj = 1:size(applyDataToScale.fids,2)
                     applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
@@ -791,7 +791,7 @@ else
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
             end
-            if isfield(applyDataToPlot,'specReg')
+            if isfield(procDataToPlot,'specReg')
                 for jj = 1:size(applyDataToPlot.fids,2)
                     applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
