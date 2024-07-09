@@ -176,7 +176,7 @@ function [out] = io_loadspec_rda(pathname)
     
     % Write them
     %Modified HR%
-    if contains(rda.software_version,'XA30','IgnoreCase',true) && ~any(structfun(@(x) x == true,flag))
+    if contains(rda.software_version,{'XA30','XA60'},'IgnoreCase',true) && ~any(structfun(@(x) x == true,flag))
         geometry.size.VoI_RoFOV     = rda.SlabThickness(3);     % Voxel size in readout direction [mm]
         geometry.size.VoI_PeFOV     = rda.SlabThickness(2);     % Voxel size in phase encoding direction [mm]
         geometry.size.VoIThickness  = rda.SlabThickness(1);     % Voxel size in slice selection direction [mm]
@@ -227,9 +227,9 @@ function [out] = io_loadspec_rda(pathname)
         % swapped signs because VoI_InPlaneRot rotates counterclockwise
         % around Norm
         if dot(cross(Phase,PhaseRot),Norm) <= 0
-            geometry.rot.VoI_InPlaneRot = acos(dot(Phase,PhaseRot));
+            geometry.rot.VoI_InPlaneRot = abs(acos(dot(Phase,PhaseRot)));
         else
-            geometry.rot.VoI_InPlaneRot = -acos(dot(Phase,PhaseRot));
+            geometry.rot.VoI_InPlaneRot = -abs(acos(dot(Phase,PhaseRot)));
         end
         %End of calculating InPlaneRot
     else
