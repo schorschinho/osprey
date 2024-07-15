@@ -26,11 +26,15 @@
 % OUTPUTS:
 % out        = Input dataset in FID-A structure format.
 
-function out = io_loadspec_sdat(filename,subspecs,series)
+function out = io_loadspec_sdat(filename,subspecs,series,undoPhaseCycle)
 
-if nargin<3
-    series = 0;
+if nargin<4
+    undoPhaseCycle = 1;
+    if nargin<3
+        series = 0;
+    end
 end
+
 % Read in the data and header information
 [data, header] = philipsLoad(filename);
 
@@ -80,8 +84,10 @@ dims.t = 1;
 % according to the 'subspecs' input.
 % Initialize fids array:
 fids = squeeze(zeros(header.samples, header.rows/subspecs, subspecs));
-% Remove phase cycle
-fids = fids .* repmat(conj(fids(1,:,:,:))./abs(fids(1,:,:,:)),[size(fids,1) 1]);
+if undoPhaseCycle
+    % Remove phase cycle
+    fids = fids .* repmat(conj(fids(1,:,:,:))./abs(fids(1,:,:,:)),[size(fids,1) 1]);
+end
 if subspecs == 2
     %Split the subspectra out of the "averages" dimension:
     fids(:,:,1) = data(:,[1:2:end]);
