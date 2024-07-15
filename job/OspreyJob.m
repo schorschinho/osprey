@@ -405,9 +405,14 @@ if strcmp(jobFileFormat,'json')
         end
     end
     if isfield(jobStruct,'deface')
-        opts.img.deface = jobStruct.deface;
+        opts.img.deface = str2num(jobStruct.deface);
     else
         opts.img.deface = 0;
+    end
+    if isfield(jobStruct,'undoPhaseCycle')
+        opts.load.undoPhaseCycle = str2num(jobStruct.undoPhaseCycle);
+    else
+        opts.load.undoPhaseCycle = 1;
     end
     debug = '11';
     if isfield(jobStruct,'exportParams')
@@ -693,42 +698,42 @@ end
 % Make sure that the mandatory fields (metabolite data; output folder) are
 % included in the job file.
 if exist('files','var')
-    MRSCont.files = files;
+    MRSCont.files = cellfun(@strtrim,files,'UniformOutput',false);
 else
     error('Invalid job file! A job file needs to contain at least metabolite data in the field ''files''.');
 end
 if exist('files_mm','var')   %re_mm Adding functionality for MM
-    MRSCont.files_mm = files_mm;   %re_mm
+    MRSCont.files_mm = cellfun(@strtrim,files_mm,'UniformOutput',false);   %re_mm
 else
     MRSCont.files_mm = {};
 end   %re_mm
 if exist('files_mm_ref','var')
-    MRSCont.files_mm_ref = files_mm_ref;
+    MRSCont.files_mm_ref = cellfun(@strtrim,files_mm_ref,'UniformOutput',false);
 else
     MRSCont.files_mm_ref = {};
 end
 if exist('files_ref','var')
-    MRSCont.files_ref = files_ref;
+    MRSCont.files_ref = cellfun(@strtrim,files_ref,'UniformOutput',false);
 else
     MRSCont.files_ref = {};
 end
 if exist('files_w','var')
-    MRSCont.files_w = files_w;
+    MRSCont.files_w = cellfun(@strtrim,files_w,'UniformOutput',false);
 else
     MRSCont.files_w = {};
 end
-if exist('files_nii','var')
-    MRSCont.files_nii = files_nii;
+if exist('files_nii','var') && ~isempty(files_nii)
+    MRSCont.files_nii = cellfun(@strtrim,files_nii,'UniformOutput',false);
 else
     MRSCont.files_nii = {};
 end
 if exist('files_seg','var')
-    MRSCont.files_seg = files_seg;
+    MRSCont.files_seg = cellfun(@strtrim,files_seg,'UniformOutput',false);
 else
     MRSCont.files_seg = {};
 end
 if exist('files_sense','var')
-    MRSCont.files_sense = files_sense;
+    MRSCont.files_sense = cellfun(@strtrim,files_sense,'UniformOutput',false);
 else
     MRSCont.files_sense = {};
 end
@@ -776,7 +781,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 2.5.0';
+MRSCont.ver.Osp             = 'Osprey 2.6.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

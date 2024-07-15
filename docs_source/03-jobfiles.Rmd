@@ -493,7 +493,7 @@ The `opts.saveVendor` switch has been introduced to sidestep these problems with
 
 All exported third-party format files are stored in sub-directories of the output folder specified further down in the job file.
 
-### Matbolites included in the basis-set
+### Metabolites included in the basis-set
 
 `opts.fit.includeMetabs` can be used to specify a custom set of metabolites to be included in the fitting. By default, all of the metabolites listed below are included, but a subset may be specified as a cell array of strings:
 `opts.fit.includeMetabs = {Cr, CrCH2, GABA, PCr,...}`
@@ -598,7 +598,7 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 ```
 
-### Co-edited macrommolecules
+### Co-edited macromolecules
 
 `opts.fit.coMM3` specifies the approach to modeling the co-edited macromolecule resonance at 3ppm for GABA-edited MRS experiments. By default a 14 Hz Gaussian peak is used as basis function. the options are as follows:
   1. `3to2MM`          - uses a fixed 3 to 2 amplitude ratio between the 0.93-ppm-MM peak and the co-edited 3.0-ppm-MM peak by generating a single composite basis function

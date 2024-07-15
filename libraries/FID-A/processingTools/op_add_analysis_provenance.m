@@ -42,18 +42,34 @@ function out = op_add_analysis_provenance(in,fields)
         % Add shared fields
         fields.Time     = datestr(now,30);
         fields.Program  = 'Osprey';
-        fields.Version  = hdr_ext.ProcessingSoftwareVersion;
+        try
+            fields.Version  = hdr_ext.ProcessingSoftwareVersion.Value;
+        catch
+            fields.Version  = hdr_ext.ProcessingSoftwareVersion;
+        end
     
-        fields = orderfields(fields,{'Time','Program','Version','Method', 'Details'});;
-    
+        fields = orderfields(fields,{'Time','Program','Version','Method', 'Details'});
+        field_names = {'Time','Program','Version','Method', 'Details'};
+
+        
         % Add to Processing Applied entries
         if ~isfield(hdr_ext,'ProcessingApplied')
-            hdr_ext.ProcessingApplied(1) = fields;
+            hdr_ext.ProcessingApplied{1} = fields;
         else
-            hdr_ext.ProcessingApplied(end+1,1) = fields;
+            if iscell(hdr_ext.ProcessingApplied)
+                hdr_ext.ProcessingApplied{end+1,1} = fields;
+            else
+                max_step = length(hdr_ext.ProcessingApplied);
+                for f = 1 : length(field_names)
+                    hdr_ext.ProcessingApplied(max_step).(field_names{f}) = fields.(field_names{f});
+                end
+            end
         end
 
         % Add updated field back into struct
         out.nii_mrs.hdr_ext = hdr_ext;
+
+    else
+        out = in;
     end
 end

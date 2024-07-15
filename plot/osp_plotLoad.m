@@ -70,7 +70,7 @@ if nargin<11
                         [~,filen,ext] = fileparts(MRSCont.files_mm{ExpIndex,kk});% re_mm
                         figTitle = sprintf(['Load MM data plot: ' filen ext '\n']);% re_mm
                 case 'ref'
-                    if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA'))
+                    if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA') || isempty(MRSCont.files_ref))
                         [~,filen,ext] = fileparts(MRSCont.files_ref{ExpIndex,kk});
                         figTitle = sprintf(['Load water reference data plot: ' filen ext '\n']);
                     else
@@ -86,8 +86,13 @@ if nargin<11
                         figTitle = sprintf(['Load interleaved water reference data plot: ' filen ext '\n']);
                     end
                 case 'w'
-                    [~,filen,ext] = fileparts(MRSCont.files_w{ExpIndex,kk});
-                    figTitle = sprintf(['Load water data plot: ' filen ext '\n']);
+                    if ~(strcmp(MRSCont.datatype,'P') || strcmp(MRSCont.datatype,'DATA') || isempty(MRSCont.files_w))
+                        [~,filen,ext] = fileparts(MRSCont.files_w{ExpIndex,kk});
+                        figTitle = sprintf(['Load water data plot: ' filen ext '\n']);
+                    else
+                        [~,filen,ext] = fileparts(MRSCont.files{ExpIndex,kk});
+                        figTitle = sprintf(['Load interleaved water data plot: ' filen ext '\n']);
+                    end
                 otherwise
                     error('Input for variable ''which'' not recognized. Needs to be ''mets'' (metabolite data), ''ref'' (reference data), or ''w'' (short-TE water data).');
             end

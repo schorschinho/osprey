@@ -1,6 +1,6 @@
 %% Compile Osprey
-function CompileOspreyStandalone(OutputDir,SPM12Dir,WidgetsDir,GUILayoutDir)
-%% CompileOspreyStandalone(OutputDir,SPM12Dir,WidgetsDir,GUILayoutDir)
+function CompileOspreyStandalone(OutputDir,SPM12Dir,CreateHBCD, CreateCMD, CreateGUI, PackageInstaller, WidgetsDir,GUILayoutDir)
+%% CompileOspreyStandalone(OutputDir,SPM12Dir,CreateHBCD, CreateCMD, CreateGUI, PackageInstaller, WidgetsDir,GUILayoutDir)
 %   This function compiles Osprey including a command window version, a
 %   HBCD specific version with reduced basis sets, and a GUI version. The
 %   compilation includes SPM12 for coregistration and segmentation. The GUI
@@ -22,6 +22,10 @@ function CompileOspreyStandalone(OutputDir,SPM12Dir,WidgetsDir,GUILayoutDir)
 %   INPUTS:
 %       OutputDir    = output directory.
 %       SPM12Dir     = path to SPM12.
+%       CreateHBCD   = Compile HBCD version
+%       CreateCMD    = Compile CMD version
+%       CreateGUI    = Compile GUI version   
+%       PackageInstaller = Package installer for runtime download
 %       WidgetsDir   = path to the Widgets Toolbox. Use the old version as
 %       the newest version is not working with the compiler
 %       GUILayoutDir = path to the GUI Layout Toolbox.
@@ -44,24 +48,56 @@ function CompileOspreyStandalone(OutputDir,SPM12Dir,WidgetsDir,GUILayoutDir)
 
 
 %% 0. Setup folder strucutre
+if nargin < 8
+    GUILayoutDir = [];
+    if nargin < 7
+        WidgetsDir = [];
+        if nargin < 6
+            PackageInstaller = 1;
+            if nargin < 5
+                CreateGUI = 1;
+                if nargin < 4
+                    CreateCMD = 0;
+                    if nargin < 3
+                        CreateHBCD = 0;
+                        if nargin < 2
+                            error('ERROR: You need to indicate the output directory and SPM 12 path!!');
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+
 if ~exist(OutputDir)
     mkdir(OutputDir); 
 end
-OutputDirCmd = fullfile(OutputDir,'CommandLine');
-OutputDirHBCD = fullfile(OutputDir,'HBCD');
-OutputDirGUI = fullfile(OutputDir,'GUI');
-if exist(OutputDirCmd,'Dir')
-    rmdir(OutputDirCmd,'s');
+
+if CreateHBCD
+    OutputDirHBCD = fullfile(OutputDir,'HBCD');
+    if exist(OutputDirHBCD,'Dir')
+        rmdir(OutputDirHBCD,'s');
+    end
+    mkdir(OutputDirHBCD);
 end
-if exist(OutputDirHBCD,'Dir')
-    rmdir(OutputDirHBCD,'s');
+
+if CreateCMD
+    OutputDirCmd = fullfile(OutputDir,'CommandLine');
+    if exist(OutputDirCmd,'Dir')
+        rmdir(OutputDirCmd,'s');
+    end
+    mkdir(OutputDirCmd);
 end
-if exist(OutputDirGUI,'Dir')
-    rmdir(OutputDirGUI,'s');
+
+if CreateGUI
+    OutputDirGUI = fullfile(OutputDir,'GUI');
+    if exist(OutputDirGUI,'Dir')
+        rmdir(OutputDirGUI,'s');
+    end
+    mkdir(OutputDirGUI);
 end
-mkdir(OutputDirCmd);
-mkdir(OutputDirHBCD);
-mkdir(OutputDirGUI);
 
 [SettingsDir,~,~] = fileparts(which('OspreySettings.m'));
 AllDirs      = strsplit(SettingsDir, filesep);
@@ -139,20 +175,26 @@ for i=1:numel(d)
 end
 
 % Copy the License files 
-copyfile(fullfile(OspreyDir,'LICENSE.md'),fullfile(OutputDirCmd,'OSPREY_LICENSE.md'));
-copyfile(fullfile(OspreyDir,'LICENSE.md'),fullfile(OutputDirHBCD,'OSPREY_LICENSE.md'));
-copyfile(fullfile(OspreyDir,'LICENSE.md'),fullfile(OutputDirGUI,'OSPREY_LICENSE.md'));
+if CreateCMD
+    copyfile(fullfile(OspreyDir,'LICENSE.md'),fullfile(OutputDirCmd,'OSPREY_LICENSE.md'));
+    copyfile(fullfile(SPM12Dir,'LICENCE.txt'),fullfile(OutputDirCmd,'SPM12_LICENCE.txt'));
+    copyfile(fullfile(SPM12Dir,'Contents.txt'),fullfile(OutputDirCmd,'SPM12_Contents.txt'));
+end
 
-copyfile(fullfile(SPM12Dir,'LICENCE.txt'),fullfile(OutputDirCmd,'SPM12_LICENCE.txt'));
-copyfile(fullfile(SPM12Dir,'LICENCE.txt'),fullfile(OutputDirHBCD,'SPM12_LICENCE.txt'));
-copyfile(fullfile(SPM12Dir,'LICENCE.txt'),fullfile(OutputDirGUI,'SPM12_LICENCE.txt'));
+if CreateHBCD
+    copyfile(fullfile(OspreyDir,'LICENSE.md'),fullfile(OutputDirHBCD,'OSPREY_LICENSE.md'));
+    copyfile(fullfile(SPM12Dir,'LICENCE.txt'),fullfile(OutputDirHBCD,'SPM12_LICENCE.txt'));
+    copyfile(fullfile(SPM12Dir,'Contents.txt'),fullfile(OutputDirHBCD,'SPM12_Contents.txt'));
+end
 
-copyfile(fullfile(SPM12Dir,'Contents.txt'),fullfile(OutputDirCmd,'SPM12_Contents.txt'));
-copyfile(fullfile(SPM12Dir,'Contents.txt'),fullfile(OutputDirHBCD,'SPM12_Contents.txt'));
-copyfile(fullfile(SPM12Dir,'Contents.txt'),fullfile(OutputDirGUI,'SPM12_Contents.txt'));
-
+if CreateGUI
+    copyfile(fullfile(OspreyDir,'LICENSE.md'),fullfile(OutputDirGUI,'OSPREY_LICENSE.md'));
+    copyfile(fullfile(SPM12Dir,'LICENCE.txt'),fullfile(OutputDirGUI,'SPM12_LICENCE.txt'));
+    copyfile(fullfile(SPM12Dir,'Contents.txt'),fullfile(OutputDirGUI,'SPM12_Contents.txt'));
+end
 %% 2. HBCD export
-% Compile a HBCD specific version of Osprey (Reduced number of basis sets)
+% Compile a HBCD specific version of Osprey (Copy basis set folder into application folder)
+if CreateHBCD
 
 appFile = fullfile(OspreyDir, 'utilities','RunOspreyJob.m');
 
@@ -160,17 +202,11 @@ opts = compiler.build.StandaloneApplicationOptions(appFile,...
     'OutputDir',OutputDirHBCD,...
     'ExecutableIcon',fullfile(OspreyDir, 'graphics','osprey.gif'),...
     'ExecutableSplashScreen',fullfile(OspreyDir, 'graphics','osprey.gif'),...
-    'ExecutableVersion','2.5.0',...
+    'ExecutableVersion','2.6.0',...
     'ExecutableName','OspreyHBCD',...
     'AdditionalFiles',{ fullfile(SPM12Dir),...
                        fullfile(OspreyDir,'coreg'),...
                        fullfile(OspreyDir,'fit','code'),...
-                       fullfile(OspreyDir,'fit','basissets','3T','philips','hercules-press','basis_philips_hercules-press.mat'),... Include the basis sets manually 
-                       fullfile(OspreyDir,'fit','basissets','3T','siemens','hercules-press','basis_siemens_hercules-press.mat'),...
-                       fullfile(OspreyDir,'fit','basissets','3T','ge','hercules-press','basis_ge_hercules-press.mat'),...
-                       fullfile(OspreyDir,'fit','basissets','3T','philips','unedited','press','35','basis_philips_press35.mat'),...
-                       fullfile(OspreyDir,'fit','basissets','3T','siemens','unedited','press','35','basis_siemens_press35.mat'),...
-                       fullfile(OspreyDir,'fit','basissets','3T','ge','unedited','press','35','basis_ge_press35.mat'),...
                        fullfile(OspreyDir,'graphics'),...
                        fullfile(OspreyDir,'job'),...
                        fullfile(OspreyDir,'libraries'),...
@@ -194,24 +230,24 @@ opts = compiler.build.StandaloneApplicationOptions(appFile,...
     'TreatInputsAsNumeric','Off',...
     'Verbose','On');
 
-% buildResults = compiler.build.standaloneApplication(opts);
 
+    buildResults = compiler.build.standaloneApplication(opts);
+end
 
 %% 3. Command Line export
 % Compile a command line version of Osprey
-
+if CreateCMD
 appFile = fullfile(OspreyDir, 'utilities','RunOspreyJob.m');
 
 opts = compiler.build.StandaloneApplicationOptions(appFile,...
     'OutputDir',OutputDirCmd,...
     'ExecutableIcon',fullfile(OspreyDir, 'graphics','osprey.gif'),...
     'ExecutableSplashScreen',fullfile(OspreyDir, 'graphics','osprey.gif'),...
-    'ExecutableVersion','2.5.0',...
+    'ExecutableVersion','2.6.0',...
     'ExecutableName','OspreyCMD',...
     'AdditionalFiles',{ fullfile(SPM12Dir),...
                        fullfile(OspreyDir,'coreg'),...
                        fullfile(OspreyDir,'fit','code'),...
-                       fullfile(OspreyDir,'fit','basissets'),...
                        fullfile(OspreyDir,'graphics'),...
                        fullfile(OspreyDir,'job'),...
                        fullfile(OspreyDir,'libraries'),...
@@ -235,24 +271,28 @@ opts = compiler.build.StandaloneApplicationOptions(appFile,...
     'TreatInputsAsNumeric','Off',...
     'Verbose','On');
 
-    % buildResults = compiler.build.standaloneApplication (opts);
-    % 
-    % compiler.package.installer(buildResults,'OutputDir',fullfile(OspreyDir,'OspreyCMD_installer'), 'InstallerName', 'OspreyCMD_install', 'RuntimeDelivery', 'installer',...
-    %     'AuthorCompany','The Johns Hopkins University', 'Description', 'Installer for Osprey CMD version',...
-    %     'InstallationNotes', 'Thank you for downloading Osprey. This installer will allow you to run the Osprey CMD as a standalone application',...
-    %     'Version', '2.5.0', 'ApplicationName','OspreyCMD')
+
+    buildResults = compiler.build.standaloneApplication (opts);
+end
+
+if PackageInstaller
+    compiler.package.installer(buildResults,'OutputDir',fullfile(OspreyDir,'OspreyCMD_installer'), 'InstallerName', 'OspreyCMD_install', 'RuntimeDelivery', 'installer',...
+        'AuthorCompany','The Johns Hopkins University', 'Description', 'Installer for Osprey CMD version',...
+        'InstallationNotes', 'Thank you for downloading Osprey. This installer will allow you to run the Osprey CMD as a standalone application. Please copy the "basissets" folder into the "application" folder after the installation.',...
+        'Version', '2.6.0', 'ApplicationName','OspreyCMD')
+end
 
 %% 4. GUI export
 % Compile GUI Osprey which is only working if you supplied the path to the
 % widgets and GUI Layout Toolboxes
+if CreateGUI
 
-if nargin == 4
     appFile = fullfile(OspreyDir, 'GUI','Osprey.m');
     opts = compiler.build.StandaloneApplicationOptions(appFile,...
         'OutputDir',OutputDirGUI,...
         'ExecutableIcon',fullfile(OspreyDir, 'graphics','osprey.gif'),...
         'ExecutableSplashScreen',fullfile(OspreyDir, 'graphics','osprey.gif'),...
-        'ExecutableVersion','2.5.0',...
+        'ExecutableVersion','2.6.0',...
         'ExecutableName','Osprey',...
         'AdditionalFiles',{fullfile(WidgetsDir),...
                            fullfile(GUILayoutDir),...
@@ -282,13 +322,20 @@ if nargin == 4
         'AutoDetectDataFiles','On',...
         'TreatInputsAsNumeric','Off',...
         'Verbose','On');
-    
-    buildResults = compiler.build.standaloneApplication(opts);
 
-    compiler.package.installer(buildResults,'OutputDir',fullfile(OutputDirGUI,'OspreyGUI_installer'), 'InstallerName', 'OspreyGUI_install', 'RuntimeDelivery', 'installer',...
+if isempty(GUILayoutDir) || isempty(WidgetsDir)
+    error('ERROR: You need to indicate the oGUILayout and Widgets Toolbox directory to compile the GUI!!');
+end
+
+
+    buildResults = compiler.build.standaloneApplication(opts);
+end
+
+if PackageInstaller
+    compiler.package.installer(buildResults,'OutputDir',fullfile(OutputDirGUI,'OspreyGUI_installer'), 'InstallerName', 'OspreyGUI_install', 'RuntimeDelivery', 'web',...
         'AuthorCompany','The Johns Hopkins University', 'Description', 'Installer for Osprey GUI version',...
         'InstallationNotes', 'Thank you for downloading Osprey. This installer will allow you to run the Osprey GUI as a standalone application. Please copy the "basissets" folder into the "application" folder after the installation',...
-        'Version', '2.5.0', 'ApplicationName','OspreyGUI')
+        'Version', '2.6.0', 'ApplicationName','OspreyGUI')
 end
 
 end

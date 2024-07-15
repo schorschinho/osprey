@@ -25,5 +25,10 @@ function osp_WindowKeyUp(~,~,gui)
 %       2020-01-16: First version of the code.
 %%% 1. GET HANDLES %%%
     gui.controls.KeyPress = 0;
-    osp_updateListBox(gui);
+    if gui.controls.PhasePress == 0
+        osp_updateListBox(gui);
+    else
+        gui.controls.PhasePress = 0;
+        osp_phaseProWindow(gui)
+    end
 end

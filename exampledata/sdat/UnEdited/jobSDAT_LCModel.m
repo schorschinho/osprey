@@ -169,7 +169,7 @@ opts.fit.method             = 'LCModel';        % OPTIONS:    - 'Osprey' (defaul
 
 % Determine fitting range (in ppm) for the metabolite spectra
 opts.fit.range              = [0.5 4];          % [ppm] Default: [0.5 4]
-
+opts.fit.GAP.A              = [];               % optional GAP parameter
 
 %%% ----- OSPREY FITTING OPTIONS -----
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
@@ -191,7 +191,7 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 % Specify LCModel-format basis set (.BASIS)
 % If no basis set file is provided Osprey will generate the .BASIS file
 % from Osprey's database
-opts.fit.basisSetFile       = which('3T_PRESS_Philips_35ms_noMM.BASIS');
+% opts.fit.basisSetFile       = {which('3T_press_Philips_35ms_noMM.BASIS')};
 
 
 % Specify LCModel-type control file (.CONTROL)

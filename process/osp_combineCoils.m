@@ -90,6 +90,7 @@ if nargin<5
                     else
                         cweights_w          = op_getcoilcombos(MRSCont.raw_w_uncomb{w_ll,kk}, 1, 'h');
                     end
+                    cweights_w.ref      = 'raw_w';
                     raw_w_comb          = op_addrcvrs(MRSCont.raw_w_uncomb{w_ll,kk},1,'h',cweights_w);
                     raw_w_comb.flags.isUnEdited = 1;
                     MRSCont.raw_w{w_ll,kk}   = raw_w_comb;
@@ -224,6 +225,7 @@ else
             cweights.ref        = 'raw';
             raw_comb            = op_addrcvrs(MRSCont.raw_uncomb{metab_ll,kk},1,'h',cweights);
             cweights            = op_getcoilcombos(MRSCont.raw_ref_uncomb{ref_ll,kk},1,'h');
+            cweights.ref        = 'raw_ref';
             raw_ref_comb        = op_addrcvrs(MRSCont.raw_ref_uncomb{ref_ll,kk},1,'h',cweights);
             if MRSCont.flags.isUnEdited
                 raw_comb.flags.isUnEdited = 1;

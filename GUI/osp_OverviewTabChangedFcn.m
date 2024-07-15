@@ -27,15 +27,23 @@ function osp_OverviewTabChangedFcn(src,~,gui)
     NewValue= src.Selection;
     switch NewValue
        case 1
+            splt_string =  strsplit(gui.controls.pop_meanOvPlot.String{gui.overview.Selected.Spec});
+            if length(splt_string) > 1
+                if length(splt_string) == 2
+                    gui.overview.Selected.Spec = find(contains(gui.controls.pop_specsOvPlot.String,splt_string{1}) & contains(gui.controls.pop_specsOvPlot.String,splt_string{2}));
+                else
+                    gui.overview.Selected.Spec = find(contains(gui.controls.pop_specsOvPlot.String,splt_string{1}) & contains(gui.controls.pop_specsOvPlot.String,splt_string{2})& contains(gui.controls.pop_specsOvPlot.String,splt_string{3}));
+                end
+            end
             osp_updateSpecsOvWindow(gui);
             set(gui.controls.pop_specsOvPlot, 'value',gui.overview.Selected.Spec)
        case 2
             splt_string =  strsplit(gui.controls.pop_specsOvPlot.String{gui.overview.Selected.Spec});
             if length(splt_string) > 1
-                if strcmp(splt_string{2},'ref') || strcmp(splt_string{2},'w')
-                    gui.process.Selected = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{2}));
+                if length(splt_string) == 2
+                    gui.overview.Selected.Spec = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{1}) & contains(gui.controls.pop_meanOvPlot.String,splt_string{2}));
                 else
-                    gui.process.Selected = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{1}));
+                    gui.overview.Selected.Spec = find(contains(gui.controls.pop_meanOvPlot.String,splt_string{1}) & contains(gui.controls.pop_meanOvPlot.String,splt_string{2})& contains(gui.controls.pop_meanOvPlot.String,splt_string{3}));
                 end
             end
             osp_updatemeanOvWindow(gui);

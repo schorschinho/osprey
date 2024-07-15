@@ -31,10 +31,6 @@ function [MRSCont] = osp_saveLCM(MRSCont)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 
-
-% Close any remaining open figures
-close all;
-
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'LCModelFiles');
 if ~exist(fullfile(saveDestination,'metabs'),'dir')
@@ -57,7 +53,7 @@ for kk = 1:MRSCont.nDatasets
     
     % For batch analysis, get the last two sub-folders (e.g. site and
     % subject) to augment the filename, avoiding duplicate output filenames
-    path_split          = regexp(path,filesep,'split');
+    path_split          = splitPath(path);
     if length(path_split) > 2
         name = [path_split{end-1} '_' path_split{end} '_' filename];
     end
@@ -127,7 +123,7 @@ for kk = 1:MRSCont.nDatasets
         
         % For batch analysis, get the last two sub-folders (e.g. site and
         % subject) to augment the filename, avoiding duplicate output filenames
-        path_ref_split          = regexp(path_ref,filesep,'split');
+        path_ref_split          = splitPath(path_ref);
         if length(path_ref_split) > 2
             name_ref = [path_ref_split{end-1} '_' path_ref_split{end} '_' filename_ref];
         end
@@ -143,12 +139,18 @@ for kk = 1:MRSCont.nDatasets
     % Check if short-TE water scans exist, if so, write LCM .RAW file
     if MRSCont.flags.hasWater
         % Get TE and the input file name
-        te_w                = MRSCont.processed.w{kk}.te;
-        [path_w,filename_w,~]   = fileparts(MRSCont.files_w{kk});
+        if strcmpi(MRSCont.vendor, 'GE') || strcmp(MRSCont.datatype,'DATA')
+            te_w                = MRSCont.processed.w{kk}.te;
+            [path_w,filename_w,~]   = fileparts(MRSCont.files{kk});
+        else
+            te_w                = MRSCont.processed.w{kk}.te;
+            [path_w,filename_w,~]   = fileparts(MRSCont.files_w{kk});
+        end
+        
         
         % For batch analysis, get the last two sub-folders (e.g. site and
         % subject) to augment the filename, avoiding duplicate output filenames
-        path_w_split          = regexp(path_w,filesep,'split');
+        path_w_split          = splitPath(path_w);
         if length(path_w_split) > 2
             name_w = [path_w_split{end-1} '_' path_w_split{end} '_' filename_w];
         end
@@ -164,5 +166,34 @@ end
 
 % Set exit flags
 MRSCont.flags.didLCMWrite           = 1;
+
+end
+
+function path_split = splitPath(pathIn)
+% This function correctly splits a path even if that path was created on a
+% different system (e.g., I'm trying to open an MRSCont that was generated
+% on Mac on a Windows machine - in that case, the path will not get split
+% at all because the filesep placeholder on the Windows machine does not
+% catch the (different) file separators in the Mac-generated path
+
+% Is the current filesep placeholder in the path at all?
+isFileSepInPath = contains(pathIn, filesep);
+
+if isFileSepInPath
+    % the filesep placeholder is in the path, proceed as usual
+    path_split          = regexp(pathIn, filesep, 'split');
+else
+    % the filesep placeholder is NOT in the path - choose the respective
+    % other
+    if strcmp(filesep, '/')
+        filesepNew = '\';
+    elseif strcmp(filesep, '\')
+        filesepNew = '/';
+    else
+        error('Unknown filesep');
+    end
+    % Split path with the updated filesep
+    path_split          = regexp(pathIn, filesepNew, 'split');
+end
 
 end

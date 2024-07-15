@@ -60,5 +60,6 @@ function out = osp_add_nii_mrs_field(in,OspreyVersion)
     % Add Processing software to header extension
     ver = split(OspreyVersion,' ');
     ver = ver{2};
-    out.nii_mrs.hdr_ext.ProcessingSoftwareVersion     = ver;
+    out.nii_mrs.hdr_ext.ProcessingSoftwareVersion.Value           = ver;
+    out.nii_mrs.hdr_ext.ProcessingSoftwareVersion.Description     = 'The Osprey version used to process the data stored in this file.';
 end

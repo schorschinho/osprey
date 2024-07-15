@@ -910,6 +910,18 @@ if MRSCont.flags.didSeg
     saveas(out,fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_mask']),'jpg');
     close(out);
     close(temp);
+
+    if isfield(MRSCont.seg,'img') && isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
+        out = figure('Visible','off');
+        imagesc(MRSCont.seg.img.vol_Tha_CoM{kk});
+        axis equal;
+        axis tight;
+        axis off;
+        set(out,'PaperUnits','centimeters');
+        set(out,'PaperPosition',[0 0 18 6]);
+        saveas(out,fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_CoM']),'jpg');
+        close(out);
+    end
 end
 %% Write report in HTML files
 %Write as relative path
@@ -981,6 +993,9 @@ if MRSCont.flags.hasRef
         fprintf(fid,'\n<p style="color:red;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
     end
 end
+names = fieldnames(MRSCont.raw{kk}.geometry.size);
+fprintf(fid,'\n<p><b>Voxel dimensions (%s/%s/%s)</b> \t%5.2f/%5.2f/%5.2f </p>',names{1},names{2},names{3},MRSCont.raw{kk}.geometry.size.(names{1}),MRSCont.raw{kk}.geometry.size.(names{2}),MRSCont.raw{kk}.geometry.size.(names{3}));
+
 fprintf(fid,'\n\t</div>'); 
 fprintf(fid,'\n\t<div class="column3">');
 if MRSCont.processed.metab{kk}.flags.isUnEdited
@@ -994,6 +1009,51 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
     fprintf(fid,'\n<p><b>Model Residual diff1 [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,7)));
     fprintf(fid,'\n<p><b>Model Residual diff2 [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,8)));
     fprintf(fid,'\n<p><b>Model Residual sum [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,6)));
+end
+fprintf(fid,'\n\t</div>');
+fprintf(fid,'\n\t<div class="column3">');
+if MRSCont.flags.didSeg && isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
+    if table2array(MRSCont.seg.tables_Voxel_1(kk,4)) < 0.4
+        fprintf(fid,'\n<p style="color:red;"><b>fThalamus in voxel [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,4))*100);
+    else
+        fprintf(fid,'\n<p style="color:green;"><b>fThalamus in voxel [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,4))*100);
+    end
+    if table2array(MRSCont.seg.tables_Voxel_1(kk,5)) < 0.5
+        fprintf(fid,'\n<p style="color:red;"><b>Thalamus covered [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,5))*100);
+    else
+        fprintf(fid,'\n<p style="color:green;"><b>Thalamus covered [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,5))*100);
+    end
+    if table2array(MRSCont.seg.tables_Voxel_1(kk,6)) > 0.05
+        fprintf(fid,'\n<p style="color:red;"><b>fCortex in voxel [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,6))*100);
+    else
+        fprintf(fid,'\n<p style="color:green;"><b>fCortex in voxel [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,6))*100);
+    end  
+    switch num2str([table2array(MRSCont.seg.tables_Voxel_1(kk,7)),table2array(MRSCont.seg.tables_Voxel_1(kk,8)),table2array(MRSCont.seg.tables_Voxel_1(kk,9))])
+        case '0  0  0'
+            str = ' No/No/No';
+            fprintf(fid,'\n<p style="color:red;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
+        case '0  0  1'
+            str = 'No/No/Yes';
+            fprintf(fid,'\n<p style="color:red;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
+        case '0  1  0'
+            str = 'No/Yes/No';
+            fprintf(fid,'\n<p style="color:red;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
+        case '0  1  1'
+            str = 'No/Yes/Yes';
+            fprintf(fid,'\n<p style="color:green;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
+        case '1  0  1'
+            str = 'Yes/No/Yes';
+            fprintf(fid,'\n<p style="color:orange;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
+        case '1  1  0'
+            str = 'Yes/Yes/No';
+            fprintf(fid,'\n<p style="color:orange;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
+        case '1  1  1'
+            str = 'Yes/Yes/Yes';
+            fprintf(fid,'\n<p style="color:green;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
+        otherwise
+            str = 'Somewthing is wrong';
+            fprintf(fid,'\n<p style="color:green;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
+    end   
 end
 fprintf(fid,'\n\t</div>');
 fprintf(fid,'\n</div>');
@@ -1194,6 +1254,11 @@ if MRSCont.flags.didSeg
     fprintf(fid,'\n\t<div class="column3">');
     fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_mask.jpg']));
     fprintf(fid,'\n\t</div>');
+    if isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
+        fprintf(fid,'\n\t<div class="column3">');
+        fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_CoM.jpg']));
+        fprintf(fid,'\n\t</div>');        
+    end
 end
 fprintf(fid,'\n</div>');
 fprintf(fid,'\n</body>');

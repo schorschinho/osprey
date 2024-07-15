@@ -111,7 +111,7 @@ opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (defa
 opts.SubSpecAlignment.mets = 'L2Norm';          % OPTIONS:    - 'L2Norm' (default)
                                                 %             - 'L1Norm'
                                                 %             - 'none'
-
+opts.UnstableWater = 0;
 %Perform eddy-current correction on the metabolite data (raw) or metabolite
 %-nulled data (mm). This can either be done similar for all data sets by
 %supplying a single value or specified for each dataset individually by supplying
@@ -126,10 +126,10 @@ opts.ECC.mm                 = 1;                %             - '0' (no)
                                                 %             - [] array
 
 % Save LCModel-exportable files for each spectrum?
-opts.saveLCM                = 0;                % OPTIONS:    - 0 (no, default)
+opts.saveLCM                = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 % Save jMRUI-exportable files for each spectrum?
-opts.savejMRUI              = 0;                % OPTIONS:    - 0 (no, default)
+opts.savejMRUI              = 1;                % OPTIONS:    - 0 (no, default)
                                                 %             - 1 (yes)
 
 % Save processed spectra in vendor-specific format (SDAT/SPAR, RDA, P)?
@@ -184,7 +184,7 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
 
 % How do you want to model the co-edited macromolecules at 3 ppm for GABA-edited MRS?
-opts.fit.coMM3              = 'freeGauss';      % OPTIONS:    - {'3to2MM'} (default)
+opts.fit.coMM3              = '3to2MM';      % OPTIONS:    - {'3to2MM'} (default)
                                                 %             - {'3to2MMsoft'}
                                                 %             - {'1to1GABA'}
                                                 %             - {'1to1GABAsoft'}

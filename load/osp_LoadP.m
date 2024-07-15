@@ -45,22 +45,29 @@ for kk = 1:MRSCont.nDatasets(1)
             % type of sequence needs to be differentiated here already.
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
             if MRSCont.flags.isUnEdited
-                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},1);
+                [raw, raw_ref,raw_w]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},1);
                 raw.flags.UnEdited = 1;
                 raw_ref = op_combine_water_subspecs(raw_ref,0);
                 raw_ref.flags.UnEdited = 1;
+                if ~isempty(raw_w)
+                    raw_w = op_combine_water_subspecs(raw_w,0);
+                    raw_w.flags.UnEdited = 1;
+                    raw_w                               = osp_add_nii_mrs_field(raw_w,MRSCont.ver.Osp);
+                    MRSCont.raw_w_uncomb{metab_ll,kk}   = raw_w;
+                    MRSCont.flags.hasWater              = 1;
+                end
             elseif MRSCont.flags.isMEGA
-                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},2);
+                [raw, raw_ref,~]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},2);
                 raw.flags.isMEGA = 1;
                 raw_ref = op_combine_water_subspecs(raw_ref,0);
                 raw_ref.flags.isMEGA = 1;
             elseif MRSCont.flags.isHERMES
-                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},4);
+                [raw, raw_ref,~]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},4);
                 raw.flags.isHERMES = 1;
                 raw_ref = op_combine_water_subspecs(raw_ref,0);
                 raw_ref.flags.isHERMES = 1;
             elseif MRSCont.flags.isHERCULES
-                [raw, raw_ref]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},4);
+                [raw, raw_ref,~]  = io_loadspec_GE(MRSCont.files{metab_ll,kk},4);
                 raw.flags.isHERCULES = 1;
                 raw_ref = op_combine_water_subspecs(raw_ref,0);
                 raw_ref.flags.isHERCULES = 1;
@@ -73,6 +80,7 @@ for kk = 1:MRSCont.nDatasets(1)
         end
     end
 end
+
 time = toc(refLoadTime);
 [~] = printLog('done',time,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);  
 % Set flag

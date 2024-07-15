@@ -160,7 +160,10 @@ DicomHeader.vectorSize           = dcmHeader.sSpecPara.lVectorSize; % Data point
 % performed), the respective field does not show up in the dicom file. This
 % case needs to be intercepted. Setting to the minimum possible value.
 if ~isfield(dcmHeader.sSpecPara.sVoI, 'dInPlaneRot')
-        dcmHeader.sSpecPara.sVoI.dInPlaneRot = realmin('double');
+    dcmHeader.sSpecPara.sVoI.dInPlaneRot = realmin('double');
+end
+if ~isfield(dcmHeader.sSpecPara.sVoI, 'sPosition')
+    dcmHeader.sSpecPara.sVoI.sPosition.dCor = realmin('double');
 end
 VoI_Params = {'dCor','dSag','dTra'};
 for pp = 1:length(VoI_Params)
@@ -190,9 +193,37 @@ else
     DicomHeader.deltaFreq        = 0;
 end
 
-DicomHeader.B0                   = dcmHeader.sProtConsistencyInfo.flNominalB0; % Nominal B0 [T]
 DicomHeader.dwellTime            = dcmHeader.sRXSPEC.alDwellTime0; % dwell time [ns]
 DicomHeader.tx_freq              = dcmHeader.sTXSPEC.asNucleusInfo0.lFrequency; % Transmitter frequency [Hz]
+
+if isfield(dcmHeader.sProtConsistencyInfo, 'flNominalB0')
+    DicomHeader.B0                   = dcmHeader.sProtConsistencyInfo.flNominalB0; % Nominal B0 [T]
+else % XA30 missing this field, so determine B0 from Tx freq:
+    Nucleus = dcmHeader.sTXSPEC.asNucleusInfo0.tNucleus;
+    Nucleus = Nucleus(isstrprop(Nucleus,'alphanum'));
+
+    switch strtrim(Nucleus) % Determine correct Gyromagnetic ratio for the Nucleus (3 s.f.):
+        case '1H'
+            gamma = 42.577;
+        case '2H'
+            gamma = 6.536;
+        case '3HE'
+            gamma = -32.434;
+        case '7LI'
+            gamma = 16.546;
+        case '13C'
+            gamma = 10.708;
+        case '19F'
+            gamma = 40.052;
+        case '23NA'
+            gamma = 11.262;
+        case '31P'
+            gamma = 17.235;
+        case '129XE'
+            gamma = -11.777;
+    end
+    DicomHeader.B0 = DicomHeader.tx_freq*1e-6 ./ gamma; % determine B0 from the transmit frequency [T]
+end
 
 if isfield(dcmHeader,'PatientPosition')
     DicomHeader.PatientPosition = dcmHeader.PatientPosition;

@@ -127,5 +127,6 @@ function osp_updateProWindow(gui)
         end
         set(gui.upperBox.pro.Info{gui.process.Selected},'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]);
         set(gui.controls.b_save_proTab{gui.process.Selected},'Callback',{@osp_onPrint,gui});
+        gui.controls.YLimits = [];
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class 
 end

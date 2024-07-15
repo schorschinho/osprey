@@ -76,6 +76,11 @@ for kk = 1:MRSCont.nDatasets(1)
             MRSCont.fit.basisSet                    = basisSet;
             MRSCont.fit.resBasisSet.metab{1,kk,1}         = resBasisSet;
             MRSCont.fit.results.metab.fitParams{1,kk,1}   = fitParams;
+
+             % Write NIfTI-MRS results
+            % MRSCont.fit.nii_mrs.metab{kk} = osp_OspreyFitToNII(MRSCont.processed.metab{kk}, fitParams,resBasisSet,MRSCont.fit.scale{kk},fitOpts);
+
+
             %Modeling MM spectra after the main spectrum re_mm
             if MRSCont.flags.hasMM == 1              %re_mm
                 dataToFit_mm   = MRSCont.processed.mm{kk};
@@ -105,6 +110,10 @@ for kk = 1:MRSCont.nDatasets(1)
                 metabList_mm = fit_createMetabListMM('unedited');
                 % Collect MMfit flag from the options determined in the job file
                 fitMM = MRSCont.opts.fit.fitMM;
+                % Add basis spectra (if they were removed to reduce the file size)
+                if ~isfield(basisSet_mm,'specs')
+                    [basisSet_mm] = osp_recalculate_basis_specs(basisSet_mm);
+                end
                 % Create the modified basis set
                 basisSet_mm = fit_selectMetabs(basisSet_mm, metabList_mm, fitMM);
 
@@ -158,48 +167,7 @@ for kk = 1:MRSCont.nDatasets(1)
 
         % ----- LCModel wrapper fit pipeline -----
     elseif strcmpi(MRSCont.opts.fit.method, 'LCModel')
-         [~] = printLog('OspreyFit',kk,1,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
-
-        % Put the scale to be 1 for now. Might have to adjust.
-        MRSCont.fit.scale{kk} = 1;
-
-        % Create the sub-folder where the LCModel results will be saved,
-        % otherwise LCModel will throw 'FATAL ERROR MAIN 2'.
-        if ~exist(fullfile(MRSCont.outputFolder, 'LCMoutput'), 'dir')
-            mkdir(fullfile(MRSCont.outputFolder, 'LCMoutput'));
-        end
-
-
-        % Find the path to LCModel binary
-        pathLCModelBinaryStruct = osp_platform('lcmodel');
-        pathLCModelBinary = fullfile(MRSCont.ospFolder, 'libraries', 'LCModel',pathLCModelBinaryStruct.os,pathLCModelBinaryStruct.osver,['LCModel_' pathLCModelBinaryStruct.os,'_',pathLCModelBinaryStruct.osver]);
-        switch  pathLCModelBinaryStruct.os
-            case 'macos'
-                bin = 'lcmodel';
-            case 'unix'
-                bin = 'lcmodel';
-            case 'win'
-                bin = 'LCModel.exe';
-        end
-
-        if ~exist([pathLCModelBinary filesep bin],'file') %Unzip binary
-            unzip([pathLCModelBinary filesep bin '.zip'],[pathLCModelBinary filesep]);
-        end
-
-        if ~exist([pathLCModelBinary filesep bin],'file') %Binary is still missing
-            error('ERROR: No LCModel binary found.  Aborting!!');
-        else
-            if ~(ismcc || isdeployed)
-                addpath(which('libraries/LCModel'));
-            end
-        end
-
-        callLCModel(MRSCont, MRSCont.opts.fit.lcmodel.controlfileA{kk},[pathLCModelBinary filesep bin]);
-
-        % Save the parameters and information about the basis set
-
-        MRSCont.fit.results.metab.fitParams{kk} = readLCMFitParams(MRSCont, 'A', kk);
-
+         [MRSCont] = LCModelWrapper(MRSCont,kk,progressText);
     end
 
 end
@@ -242,101 +210,5 @@ end
 time = toc(metFitTime);
 [~] = printLog('done',time,MRSCont.nDatasets,1,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 MRSCont.runtime.FitMet = time;
-
-end
-
-
-function callLCModel(MRSCont, controlFile,pathLCModelBinary)
-% Wrapper function for LCModel binary
-
-callLCMCommand = ['"' pathLCModelBinary '" < "' controlFile '"'];
-system(callLCMCommand);
-
-end
-
-function fitParams = readLCMFitParams(MRSCont, which, kk)
-
-% Fall back to defaults if not provided
-if nargin < 3
-    which = 'A';
-    if nargin < 2
-        kk = 1;
-        if nargin < 1
-            error('ERROR: no input Osprey container specified.  Aborting!!');
-        end
-    end
-end
-
-% Determine output file strings
-switch which
-    case {'A','B','C','D'}
-        lcmOutputFile = ['outputfile' which];
-    case {'diff1'}
-        lcmOutputFile = 'outputfileDiff1';
-    case {'diff2'}
-        lcmOutputFile = 'outputfileDiff2';
-    case {'sum'}
-        lcmOutputFile = 'outputfileSum';
-end
-
-% Read the fit results from the .table files
-tab                 = mrs_readLcmodelTABLE([MRSCont.opts.fit.lcmodel.outputfileA{kk} '.table']);
-fitParams.name      = tab.name;
-fitParams.CRLB      = tab.SDpct;
-fitParams.relConc   = tab.relative_conc;
-fitParams.ph0       = tab.ph0;
-fitParams.ph1       = tab.ph1;
-fitParams.refShift  = tab.refShift;
-fitParams.refFWHM   = tab.fwhm;
-fitParams.SNR       = tab.snr;
-
-%Remove the - in -CrCH2 because it interferes with the downstream functions
-idx = find(strcmp(fitParams.name,'-CrCH2'));
-if ~isempty(idx)
-    fitParams.name{idx} = 'CrCH2';
-end
-%Remove the + in combinations because it interferes with the downstream functions
-idx = find(contains(fitParams.name,'+'));
-if ~isempty(idx)
-    for combs = 1 : length(idx)
-        fitParams.name{idx(combs)} = strrep(fitParams.name{idx(combs)},'+','_');
-    end
-end
-
-% Read the spectrum, fit, and baseline from the .coord files
-[ spectra, spectra_metabolites, x_ppm, info ] = mrs_readLcmodelCOORD( [MRSCont.opts.fit.lcmodel.(lcmOutputFile){kk} '.coord'] );
-fitParams.ppm           = x_ppm;
-fitParams.data          = spectra(:,1);
-fitParams.completeFit   = spectra(:,2);
-if size(spectra,2) == 3
-    fitParams.baseline      = spectra(:,3);
-else
-    fitParams.baseline      =zeros(size(spectra,1),1);
-end
-fitParams.residual      = fitParams.data - fitParams.completeFit;
-
-% The .coord files also contain the individual metabolite fits, BUT only if
-% the estimate is not zero, and the individual metabolite fits include the
-% baseline.
-fitParams.indivMets     = zeros(info.n, length(fitParams.name));
-for rr = 1:length(fitParams.name)
-    % Check whether a particular metabolite has been fit
-    idxMatch = find(strcmp(info.metabolites, fitParams.name{rr}));
-    % If it has been fit, save the fit with the correct index after
-    % subtracting the baseline
-    if idxMatch
-        fitParams.indivMets(:,rr) = spectra_metabolites(:,idxMatch) - fitParams.baseline;
-    end
-end
-% Store amplitudes regardless whether the are fit or not
-fitParams.ampl        = tab.concentration';
-
-% Read the raw area of the unsuppressed water peak from the .print file
-infoPrint = mrs_readLcmodelPRINT( [MRSCont.opts.fit.lcmodel.(lcmOutputFile){kk} '.print'] );
-if isfield(infoPrint,'h2oarea')
-    fitParams.h2oarea = infoPrint.h2oarea;
-end
-
-
 
 end

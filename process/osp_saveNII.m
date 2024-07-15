@@ -30,8 +30,6 @@ function [MRSCont] = osp_saveNII(MRSCont)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 
-% Close any remaining open figures
-close all;
 
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'NIfTIMRS');
@@ -130,8 +128,13 @@ for kk = 1:MRSCont.nDatasets
     
     % Now do the same for the (short-TE) water signal
     if MRSCont.flags.hasWater
-        % Get TE and the input file name
-        [path_w,filename_w,ext_w]   = fileparts(MRSCont.files_w{kk});
+        % Get the input file name. For GE, the water and ecc reference is
+        % already contained in the P file.
+        if strcmpi(MRSCont.vendor, 'GE')
+            [path_w,filename_w,ext_w]   = fileparts(MRSCont.files{kk});
+        else
+            [path_w,filename_w,ext_w]   = fileparts(MRSCont.files_w{kk});
+        end
         % For batch analysis, get the last two sub-folders (e.g. site and
         % subject)
         if strcmp(ext_w, '.gz')

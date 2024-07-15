@@ -344,10 +344,24 @@ if strcmp(sequence, 'MEGA')
                     buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);  
                 end
             case 'Lac'
-                % Lac-edited data dont have co-edited MMS that we need to put
+                % Lac-edited data have co-edited MM14 and MM12 that we need to put
                 % in the DIFF. Therefore loop over metabolite names.
+                % If one of those, then don't subtract the ON and OFF out; instead mimic
+                % the co-edited signal in the DIFF by just a simple OFF MM14 or MM12.
+                MM12     = op_gaussianPeak(n,sw,Bo,centerFreq,0.07*hzppm,1.20,2*oneProtonArea/gaussianArea);
+                MM12     = op_dccorr(MM12,'p');
+                MM14     = op_gaussianPeak(n,sw,Bo,centerFreq,0.095*hzppm,1.385,2*oneProtonArea/gaussianArea);
+                MM14     = op_dccorr(MM14,'p');
+                if strcmp(buffer.name{rr}, 'MM14')
+                    buffer.fids(:,rr,3)      = MM14.fids; % DIFF
+                    buffer.specs(:,rr,3)     = MM14.specs;
+                elseif strcmp(buffer.name{rr}, 'MM12')
+                    buffer.fids(:,rr,3)      = MM12.fids; % DIFF
+                    buffer.specs(:,rr,3)     = MM12.specs;
+                else
                     buffer.fids(:,rr,3)      = buffer.fids(:,rr,2) - buffer.fids(:,rr,1); % DIFF
                     buffer.specs(:,rr,3)     = buffer.specs(:,rr,2) - buffer.specs(:,rr,1);
+                end
         end
         buffer.fids(:,rr,4)      = buffer.fids(:,rr,2) + buffer.fids(:,rr,1); % SUM
         buffer.specs(:,rr,4)     = buffer.specs(:,rr,2) + buffer.specs(:,rr,1);

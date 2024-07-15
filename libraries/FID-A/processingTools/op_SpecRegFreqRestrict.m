@@ -43,8 +43,8 @@ end
 
 if strcmp(seqType,'HERMES') || strcmp(seqType,'HERCULES')
     [in, ~] = osp_onOffClassifyHERMES(in);
-    ppmMin = [0.5,0.5,1.85,1.85];
-    ppmMax = [3.9,3.8,3.9,3.8];
+    ppmMin = [0.5];
+    ppmMax = [3.9];
 end
 
 % Check whether data is coil-combined. If not, throw error.

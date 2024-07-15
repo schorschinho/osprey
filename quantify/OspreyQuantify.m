@@ -128,10 +128,23 @@ for ss = 1 : SubSpectraFitted
             end
         end
     else
-        MRSCont.quantify.names.metab{1,1} = MRSCont.fit.results.metab.fitParams{1, 1}.name;
-        MRSCont.quantify.names.SubSpectra{1,1} = MRSCont.processed.metab{1, 1}.names{1};
+        MRSCont.quantify.names.metab{1,ss} = MRSCont.fit.results.metab.fitParams{1, 1, ss}.name;
+        common_LCModelNames = {'PCh_GPC','Cr_PCr','NAA_NAAG','Glu_Gln','GABA_MM30','GABA_MM09'};
+        Osprey_Names = {'tCho','tCr','tNAA','Glx','GABAplus','GABAplus'};
+        for nn = 1 : length(common_LCModelNames)
+            idx  = find(strcmp(MRSCont.quantify.names.metab{1,ss},common_LCModelNames{nn}));
+            if ~isempty(idx)
+                MRSCont.quantify.names.metab{1,ss}{idx} = Osprey_Names{nn};
+            end
+        end
+        if ss == 1
+            MRSCont.quantify.names.SubSpectra{1,ss} = MRSCont.processed.metab{1, 1}.names{1};
+        else
+            MRSCont.quantify.names.SubSpectra{1,ss} = MRSCont.processed.metab{1, 1}.names{3};
+        end
     end
 end
+
 
 for ss = 1 : SubSpectraFitted
     for kk = 1:MRSCont.nDatasets(1)
@@ -149,20 +162,22 @@ for ss = 1 : SubSpectraFitted
 end
 
 if strcmp(MRSCont.opts.fit.method, 'LCModel')
-    for kk = 1:MRSCont.nDatasets(1)
-        if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
-            MRSCont.quantify.CRLB{kk}.metab = MRSCont.fit.results.metab.fitParams{kk}.CRLB';
-
-            if qtfyH2O
-                MRSCont.quantify.h2oarea{kk}.metab = MRSCont.fit.results.metab.fitParams{kk}.h2oarea;
-            end
-        else %Is DualVoxel
-            MRSCont.quantify.CRLB{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{kk}.CRLB';
-            MRSCont.quantify.CRLB{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{kk}.CRLB';
-
-            if qtfyH2O
-                MRSCont.quantify.h2oarea{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{kk}.h2oarea;
-                MRSCont.quantify.h2oarea{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{kk}.h2oarea;
+    for ss = 1 : SubSpectraFitted
+        for kk = 1:MRSCont.nDatasets(1)
+            if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
+                MRSCont.quantify.CRLB{1,kk,ss}.metab = MRSCont.fit.results.metab.fitParams{1,kk,ss}.CRLB';
+    
+                if qtfyH2O
+                    MRSCont.quantify.h2oarea{1,kk,ss}.metab = MRSCont.fit.results.metab.fitParams{1,kk,ss}.h2oarea;
+                end
+            else %Is DualVoxel
+                MRSCont.quantify.CRLB{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{1,kk,ss}.CRLB';
+                MRSCont.quantify.CRLB{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{1,kk,ss}.CRLB';
+    
+                if qtfyH2O
+                    MRSCont.quantify.h2oarea{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{1,kk,ss}.h2oarea;
+                    MRSCont.quantify.h2oarea{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{1,kk,ss}.h2oarea;
+                end
             end
         end
     end
@@ -221,20 +236,32 @@ for kk = 1:MRSCont.nDatasets(1)
         else
             % Get WCONC, ATTMET, and ATTH2O from control file
             LCMparam = osp_readlcm_control(MRSCont.opts.fit.lcmodel.controlfileA{kk});
-            if isfield(LCMparam, 'WCONC') % User-supplied WCONC
-                amplWater = str2double(LCMparam.WCONC);
+            if isfield(LCMparam, 'WCONC') || isfield(LCMparam, 'wconc') % User-supplied WCONC
+                try
+                    amplWater = str2double(LCMparam.WCONC);
+                catch
+                    amplWater = str2double(LCMparam.wconc);
+                end
             else
                 amplWater = 35880; %LCModel default WCONC assumes pure WM
             end
 
-            if isfield(LCMparam, 'ATTMET') % User-supplied ATTMET
-                amplWater = amplWater * str2double(LCMparam.ATTMET);
+            if isfield(LCMparam, 'ATTMET') ||  isfield(LCMparam, 'attmet')% User-supplied ATTMET
+                try
+                    amplWater = amplWater * str2double(LCMparam.ATTMET);
+                catch
+                    amplWater = amplWater * str2double(LCMparam.attmet);
+                end
             else
                 %Do nothing as LCModel default ATTMET is 1
             end
 
-            if isfield(LCMparam, 'ATTH2O') % User-supplied ATTH2O
-                amplWater = amplWater / str2double(LCMparam.ATTH2O);
+            if isfield(LCMparam, 'ATTH2O') || isfield(LCMparam, 'atth2o')  % User-supplied ATTH2O
+                try
+                    amplWater = amplWater / str2double(LCMparam.ATTH2O);
+                catch
+                    amplWater = amplWater / str2double(LCMparam.atth2o);
+                end
             else
                 amplWater = amplWater / 0.7; %LCModel default ATTH2O is 0.7
             end
@@ -591,13 +618,9 @@ function rawWaterScaled = quantH2O(metsName, amplMets, amplWater, metsTR, waterT
 % Define constants
 PureWaterConc       = 55500;            % mmol/L
 WaterVisibility     = 0.65;             % assuming pure white matter
-metsTE              = metsTE * 1e-3;    % convert to s
-waterTE             = waterTE * 1e-3;   % convert to s
-metsTR              = metsTR * 1e-3;    % convert to s
-waterTR             = waterTR * 1e-3;   % convert to s
+
 
 % Look up relaxation times
-
 switch Bo
     case '3T'
         % 3T Water
@@ -808,9 +831,7 @@ for mm = 1 : size(amplMets,1)
     for ss = 1 : size(amplMets,3)
         for AlphaMets = 1 : length(metabNames)
             idx  = find(strcmp(metsName.metab{mm,ss},metabNames{AlphaMets}));
-                if isempty(idx)
-                    idx  = find(strcmp(metsName.metab{mm,ss},'Glu_Gln'));
-                end
+
             [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.metab{mm,ss}{idx},Bo);
             % average across GM and WM
             T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
@@ -983,11 +1004,7 @@ if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWate
                         conc = zeros(MRSCont.nDatasets(1),length(names));
 
                         for kk = 1:MRSCont.nDatasets(1)
-                            if (strcmp(qtfyType, 'h2oarea') || strcmp(qtfyType, 'CRLB'))
-                                conc(kk,:) = MRSCont.quantify.(qtfyType){kk}.metab(:,rr);
-                            else
-                                conc(kk,:) = MRSCont.quantify.(qtfyType){mm,kk,ss}.metab(:,rr)';
-                            end
+                            conc(kk,:) = MRSCont.quantify.(qtfyType){mm,kk,ss}.metab(:,rr)';
                         end
                         % Save back to Osprey data container
                         if isfield(MRSCont, 'exclude')

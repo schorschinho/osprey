@@ -50,6 +50,7 @@ MRSCont.opts.ECC.mm                 = 1;                 % Do ECC for all metabo
 MRSCont.opts.cosmetics.LB           = 0;                % Do cosmetic LB
 MRSCont.opts.cosmetics.Zoom         = 2.75;             % Do cosmetic Zoom
 MRSCont.opts.img.deface             = 0;                % Deface data
+MRSCont.opts.load.undoPhaseCycle    = 1;                % Undo phase cycle for nifti MRS
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
@@ -100,6 +101,16 @@ if (ismcc || isdeployed)
         currentDir = ctfroot;
         [currentDir,~,~] = fileparts(currentDir);
          SepFileList =  split(currentDir, filesep);
+        index = find(strcmp(SepFileList,'application'));
+        if ~isempty(index)
+            MRSCont.opts.fit.basissetFolder = fullfile(SepFileList{1:index},'basissets');
+        else
+            MRSCont.opts.fit.basissetFolder = [];
+        end
+    end
+    if isunix
+    	currentDir = pwd;
+    	SepFileList =  split(currentDir, filesep);
         index = find(strcmp(SepFileList,'application'));
         if ~isempty(index)
             MRSCont.opts.fit.basissetFolder = fullfile(SepFileList{1:index},'basissets');

@@ -98,6 +98,7 @@ switch num2str(rdbm_rev_num)
         image_user19 = 49;
         image_user20 = 50;
         image_user22 = 52;
+        image_user24 = 56;
         tlhc         = 121;
         trhc         = 124;
         brhc         = 127;
@@ -134,6 +135,7 @@ switch num2str(rdbm_rev_num)
         image_user19 = 61;
         image_user20 = 62;
         image_user22 = 64;
+        image_user24 = 68;
         tlhc         = 133;
         trhc         = 136;
         brhc         = 139;
@@ -170,11 +172,12 @@ switch num2str(rdbm_rev_num)
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
+        image_user24 = 116;
         tlhc         = 181;
         trhc         = 184;
         brhc         = 187;
         
-    case {'26.002','27','27.001','28.002','28.003'}
+    case {'26.002','27','27.001','28.002','28.003','30'}
         
         % int
         rdb_hdr_off_image   = 11;
@@ -199,6 +202,7 @@ switch num2str(rdbm_rev_num)
         % int
         image_te = 267;
         image_tr = 265;
+        rhi_hdr_psdname = 269;
         
         % float
         image_user8  = 98;
@@ -206,6 +210,7 @@ switch num2str(rdbm_rev_num)
         image_user19 = 109;
         image_user20 = 110;
         image_user22 = 112;
+        image_user24 = 116;
         tlhc         = 181;
         trhc         = 184;
         brhc         = 187;
@@ -222,6 +227,10 @@ fseek(fid, 0, 'bof');
 i_hdr_value = fread(fid, max(rdb_hdr_off_image, rdb_hdr_ps_mps_freq), 'integer*4');
 fseek(fid, i_hdr_value(rdb_hdr_off_image), 'bof');
 o_hdr_value = fread(fid, brhc+2, 'real*4');
+
+% CV24: this CV is especially important for the WIP HERMES/sLASER implementations
+hdr.cv24 = o_hdr_value(image_user24);
+
 
 % Save geometry information to header
 hdr.geometry.size       = o_hdr_value(image_user8:image_user8+2)';

@@ -1,0 +1,215 @@
+{
+    "nifti_mrs_version": {
+        "major": 0,
+        "minor": 9},
+
+    "dimension_tags": {
+        "DIM_COIL": "For storage of data from each individual receiver coil element.",
+        "DIM_DYN": "For storage of each individual acquisition transient. E.g. for post-acquisition B0 drift correction.",
+        "DIM_INDIRECT_0": "The indirect detection dimension - necessary for 2D (and greater) MRS acquisitions.",
+        "DIM_INDIRECT_1": "The indirect detection dimension - necessary for 2D (and greater) MRS acquisitions.",
+        "DIM_INDIRECT_2": "The indirect detection dimension - necessary for 2D (and greater) MRS acquisitions.",
+        "DIM_PHASE_CYCLE": "Used for increments of phase-cycling, for example in dephasing unwanted coherence order pathways, or TPPI for 2D spectra.",
+        "DIM_EDIT": "Used for edited MRS techniques such as MEGA or HERMES.",
+        "DIM_MEAS": "Used to indicate multiple repeats of the full sequence contained within the same original data file.",
+        "DIM_USER_0": "User defined dimension.",
+        "DIM_USER_1": "User defined dimension.",
+        "DIM_USER_2": "User defined dimension.",
+        "DIM_ISIS": "Dimension for storing image-selected in vivo spectroscopy (ISIS) acquisitions.",
+        "DIM_METCYCLE": "For storing metabolite cycled data."},
+
+    "required": {
+        "SpectrometerFrequency": {
+            "type": ["array", "number"],
+            "units": "MHz",
+            "doc": "Precession frequency in MHz of the nucleus being addressed for each spectral axis.",
+            "anon": false},
+        "ResonantNucleus": {
+            "type": ["array", "string"],
+            "units": null,
+            "doc": "Must be one of the DICOM recognised nuclei “1H”, “3HE”, “7LI”, “13C”, “19F”, “23NA”, “31P”, “129XE” or one named in the specified format. I.e. Mass number followed by the chemical symbol in uppercase.",
+            "anon": false}},
+    
+    "standard_defined": {
+        "SpectralWidth": {
+            "type": ["number"],
+            "units": "Hz",
+            "doc": "The spectral bandwidth of the MR signal that is sampled. Inverse of the dwell time. NIfTI-MRS standard compliant software will always preferentially infer the spectral width from the dwell time stored in the NIfTI pixdim field. Units: hertz",
+            "anon": false},
+        "EchoTime": {
+            "type": ["number"],
+            "units": "s",
+            "doc": "Time from centroid of excitation to start of FID or centre of echo. Units: Seconds",
+            "anon": false},
+        "RepetitionTime": {
+            "type": ["number"],
+            "units": "s",
+            "doc": "Sequence repetition time. Units: Seconds",
+            "anon": false},
+        "InversionTime": {
+            "type": ["number"],
+            "units": "s",
+            "doc": "Inversion time. Units: Seconds",
+            "anon": false},
+        "MixingTime": {
+            "type": ["number"],
+            "units": "s",
+            "doc": "Mixing time in e.g. STEAM sequence. Units: Seconds",
+            "anon": false},
+        "AcquisitionStartTime": {
+            "type": ["number"],
+            "units": "s",
+            "doc": "Time, relative to EchoTime, that the acquisition starts. Positive values indicate a time after the EchoTime, negative indicate before the EchoTime, a value of zero indicates no offset. Units: Seconds",
+            "anon": false},
+        "ExcitationFlipAngle": {
+            "type": ["number"],
+            "units": "degrees",
+            "doc": "Nominal excitation pulse flip-angle",
+            "anon": false},
+        "TxOffset": {
+            "type": ["number"],
+            "units": "ppm",
+            "doc": "Transmit chemical shift offset from SpectrometerFrequency",
+            "anon": false},
+        "VOI": {
+            "type": ["array", "array", "number"],
+            "units": null,
+            "doc": "VoI localisation volume for MRSI sequences. Stored as a 4 x 4 affine using identical conventions to the xform NIfTI affine matrix. Not defined for data stored with a single spatial voxel",
+            "anon": false},
+        "WaterSuppressed": {
+            "type": ["bool"],
+            "units": null,
+            "doc": "Boolean value indicating whether data was collected with (True) or without (False) water suppression.",
+            "anon": false},
+        "WaterSuppressionType": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Type of water suppression used.",
+            "anon": false},
+        "SequenceTriggered": {
+            "type": ["bool"],
+            "units": null,
+            "doc": "Boolean value indicating whether the sequence is triggered. If triggered the repetition time might not be constant.",
+            "anon": false},
+
+        "Manufacturer": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Manufacturer of the device. DICOM tag (0008, 0070).",
+            "anon": false},
+        "ManufacturersModelName": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Manufacturer's model name of the device. DICOM tag (0008,1090).",
+            "anon": true},
+        "DeviceSerialNumber": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Manufacturer's serial number of the device. DICOM tag (0018,1000).",
+            "anon": true},
+        "SoftwareVersions": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Manufacturer's designation of the software version. DICOM tag (0018,1020)",
+            "anon": false},
+        "InstitutionName": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Institution's Name. DICOM tag (0008,0080).",
+            "anon": false},
+        "InstitutionAddress": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Institution's address. DICOM tag (0008,0081).",
+            "anon": false},
+        "TxCoil": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Name or description of transmit RF coil.",
+            "anon": false},
+        "RxCoil": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Name or description of receive RF coil.",
+            "anon": false},
+        "SequenceName": {
+            "type": ["string"],
+            "units": null,
+            "doc": "User defined name. DICOM tag (0018,0024).",
+            "anon": false},
+        "ProtocolName": {
+            "type": ["string"],
+            "units": null,
+            "doc": "User-defined description of the conditions under which the Series was performed. DICOM tag (0018,1030).",
+            "anon": false},
+
+        "PatientPosition": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Patient position descriptor relative to the equipment. DICOM tag (0018,5100). Must be one of the DICOM defined code strings e.g. HFS, HFP.",
+            "anon": false},
+        "PatientName": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Patient's full name. DICOM tag (0010,0010).",
+            "anon": true},
+        "PatientID": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Patient identifier. DICOM tag (0010,0020).",
+            "anon": true},
+        "PatientWeight": {
+            "type": ["number"],
+            "units": "kg",
+            "doc": "Weight of the Patient in kilograms. DICOM tag (0010,1030).",
+            "anon": false},
+        "PatientDoB": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Date of birth of the named Patient. YYYYMMDD. DICOM tag (0010,0030).",
+            "anon": true},
+        "PatientSex": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Sex of the named Patient. 'M', 'F', 'O'. DICOM tag (0010,0040)",
+            "anon": false},
+
+        "ConversionMethod": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Description of the process or program used for conversion. May include additional information like software version.",
+            "anon": false},
+        "ConversionTime": {
+            "type": ["string"],
+            "units": null,
+            "doc": "Time and date of conversion. ISO 8601 compliant format",
+            "anon": false},
+        "OriginalFile": {
+            "type": ["array", "string"],
+            "units": null,
+            "doc": "Name and extension of the original file(s)",
+            "anon": true},
+
+        "kSpace": {
+            "type": ["array", "bool"],
+            "units": null,
+            "doc": "Three element list, corresponding to the first three spatial dimensions. If True the data is stored as a dense k-space representation.",
+            "anon": false},
+
+        "EditCondition": {
+            "type": ["array", "string"],
+            "units": null,
+            "doc": "List of strings that index the entries of the EditPulse structure that are used in this data acquisition. Typically used in dynamic headers (dim_N_header).",
+            "anon": false},
+        "EditPulse": {
+            "type": ["object"],
+            "units": null,
+            "doc": "Structure defining editing pulse parameters for each condition. Each condition must be assigned a key.",
+            "anon": false},
+
+        "ProcessingApplied": {
+            "type": ["array"],
+            "units": null,
+            "doc": "Describes and records the processing steps applied to the data.",
+            "anon": false}}
+}

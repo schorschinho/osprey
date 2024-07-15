@@ -73,7 +73,11 @@ while ~feof(fid)
         line=fgets(fid);
         if ischar(line)
             ppmsep_index=contains(line,'PPMSEP');
-            if contains(line,'METABO')
+
+            % ARC 2023-06-14 'METABO' also matches things like "METABO_CONTAM"
+            % and "METABO_SINGLET", which breaks eval'd code later. Hence,
+            % catch 'METABO' then reject 'METABO_':
+            if contains(line,'METABO') && ~contains(line, 'METABO_')
                 break
             end
         end       
@@ -86,22 +90,25 @@ while ~feof(fid)
     end
     
     %Look for the metabolite name
-    metab_index=contains(line,'METABO');
+    metab_index=contains(line,'METABO') && ~contains(line, 'METABO_'); % ARC 2023-06-14
     while ~metab_index;
         line=fgets(fid);
         if ischar(line)
-            metab_index=contains(line,'METABO');
+            metab_index=contains(line,'METABO') && ~contains(line, 'METABO_'); % ARC 2023-06-14
             if metab_index
                 break
             end
         end
     end
-    if strcmp(line(end-3), '''') 
-        metabName=line(10:end-4);
-    else
-        metabName=line(10:end-3);
+
+    % ARC 2023-06-14 : regular expression to extract name part (may need to be adapted in case of odd characters in the metabolite name)
+    pat=regexp(line,'^\s*METABO\s*=\s*[''"]([-_+A-Za-z0-9]+)\s*[''"].*$','tokens');
+
+    if isempty(pat)
+        continue;  % failed to extract a meaningful name... move on to the next metab
     end
 
+    metabName=pat{1}{1};
     
     hdrEnd_index=contains(line,'$END');
     while ~hdrEnd_index;

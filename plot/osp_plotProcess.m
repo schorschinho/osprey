@@ -522,7 +522,7 @@ else
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
             end
-            if isfield(applyDataToScale,'specReg')
+            if isfield(procDataToPlot,'specReg')
                 for jj = 1:size(applyDataToScale.fids,2)
                     applyDataToScale.fids(:,jj) = applyDataToScale.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
@@ -791,7 +791,7 @@ else
                 refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
                 fs = fs - refShift;
             end
-            if isfield(applyDataToPlot,'specReg')
+            if isfield(procDataToPlot,'specReg')
                 for jj = 1:size(applyDataToPlot.fids,2)
                     applyDataToPlot.fids(:,jj) = applyDataToPlot.fids(:,jj) .* ...
                         exp(1i*fs(jj)*2*pi*t') * exp(1i*pi/180*phs(jj));
@@ -916,7 +916,12 @@ if exist('NoAlignProcDataToPlot','var')
             plot(ax_proc, NoAlignProcDataToPlot.ppm, real(NoAlignProcDataToPlot.specs(:,1)), 'Color',MRSCont.colormap.LightAccent, 'LineWidth', 1);       
         end
     else
-        plot(ax_proc, NoAlignProcDataToPlot.ppm, real(NoAlignProcDataToPlot.specs(:,1))/max(real(NoAlignProcDataToPlot.specs(NoAlignProcDataToPlot.ppm>ppmmin&NoAlignProcDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.LightAccent, 'LineWidth', 1);
+        if MRSCont.plot.processed.match == 0
+            plot(ax_proc, NoAlignProcDataToPlot.ppm, real(NoAlignProcDataToPlot.specs(:,1))/max(real(NoAlignProcDataToPlot.specs(NoAlignProcDataToPlot.ppm>ppmmin&NoAlignProcDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.LightAccent, 'LineWidth', 1);
+        else
+            range = abs(min(abs(NoAlignProcDataToPlot.specs(NoAlignProcDataToPlot.ppm>ppmmin&NoAlignProcDataToPlot.ppm<ppmmax)))) + abs(max(abs(NoAlignProcDataToPlot.specs(NoAlignProcDataToPlot.ppm>ppmmin&NoAlignProcDataToPlot.ppm<ppmmax))));
+            plot(ax_proc, NoAlignProcDataToPlot.ppm, real(NoAlignProcDataToPlot.specs(:,1))/range, 'Color',MRSCont.colormap.LightAccent, 'LineWidth', 1);
+        end      
     end
     text(ax_proc, ppmmin+1.5, 1, 'pre alignment', 'Color', colormap.LightAccent);
     text(ax_proc, ppmmin+1.5, 0.9, 'post alignment', 'Color', colormap.Foreground); 
@@ -975,34 +980,45 @@ if isfield(MRSCont,'plot') && isfield(MRSCont.plot, 'processed') && (MRSCont.plo
         end        
     end
 else
-    plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs(:,1))/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
-    if strcmp(which_sub_spec,'diff2')
-        y = [-1.2, 1.2];
-    else if strcmp(which_sub_spec,'diff1')
-            if strcmp(which_spec,'metab')
-                y = [-2, 1.2];   
-            else
-                y = [-1.5, 1.2];   
-            end
-        else
-            if strcmp(which_spec,'metab')
-                y = [-0.2, 1.2];
-            else
-                y = [-1.5, 1.2];   
-            end
-
-        end
+    if MRSCont.plot.processed.match == 0
+        plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs(:,1))/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
+    else
+        range = abs(min(abs(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax)))) + abs(max(abs(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))));
+        plot(ax_proc, procDataToPlot.ppm, real(procDataToPlot.specs(:,1))/range, 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
     end
+        if strcmp(which_sub_spec,'diff2')
+            y = [-1.2, 1.2];
+        else if strcmp(which_sub_spec,'diff1')
+                if strcmp(which_spec,'metab')
+                    y = [-2, 1.2];   
+                else
+                    y = [-1.5, 1.2];   
+                end
+            else
+                if strcmp(which_spec,'metab')
+                    y = [-0.2, 1.2];
+                else
+                    y = [-1.5, 1.2];   
+                end
+    
+            end
+        end
+       
 end
 set(ax_proc, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
 if ~(strcmp(which_sub_spec,'w') || strcmp(which_sub_spec,'ref')|| strcmp(which_sub_spec,'MM_ref'))
-    plot(ax_proc, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
-    plot(ax_proc, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+    % plot(ax_proc, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);   
+    % plot(ax_proc, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+    xline(ax_proc,2.008,'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5)
+    xline(ax_proc,3.027,'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5)
     if ~strcmp(which_sub_spec, 'mm')
-        plot(ax_proc, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5); 
+        % plot(ax_proc, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5); 
+        xline(ax_proc,3.200,'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5)
     else
-        plot(ax_proc, [3.9 3.9], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+        % plot(ax_proc, [3.9 3.9], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5);
+        xline(ax_proc,3.9,'LineStyle', ':', 'Color', colormap.Foreground,  'LineWidth', 0.5)
     end
+    yline(ax_proc,0,'LineStyle', ':', 'Color', colormap.LightAccent,  'LineWidth', 1)
 end
 hold(ax_proc, 'off');
 if MRSCont.plot.processed.match == 0

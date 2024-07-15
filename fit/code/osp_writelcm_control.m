@@ -142,8 +142,12 @@ for ff = 1:length(allFields)
             fprintf(fid, '\n %s = %s', [allFields{ff} '(' num2str(cc) ')'], LCMparam.(allFields{ff}){cc});
         end
     else
-        % If the value is simply a string, we can just write it.
-        fprintf(fid, '\n %s = %s', allFields{ff}, LCMparam.(allFields{ff}));
+        if ~contains(allFields{ff},'gap')
+            % If the value is simply a string, we can just write it.
+            fprintf(fid, '\n %s = %s', allFields{ff}, LCMparam.(allFields{ff}));
+        else
+            fprintf(fid, '\n %s(%s,%s) = %s', allFields{ff}(1:end-2),allFields{ff}(end-1),allFields{ff}(end), LCMparam.(allFields{ff}));
+        end
     end
 end
 fprintf(fid,'\n $END');

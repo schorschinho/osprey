@@ -54,7 +54,9 @@ end
 
 if MRSCont.flags.hasWater
     OrderNames = horzcat(OrderNames, 'w');
-    OrderNamesFit = horzcat(OrderNamesFit, 'w');
+    if ~strcmp(MRSCont.opts.fit.method,'LCModel')
+        OrderNamesFit = horzcat(OrderNamesFit, 'w');
+    end
 end
 
 S = orderfields(MRSCont.fit.results,OrderNamesFit);
@@ -76,6 +78,9 @@ if ~strcmp(MRSCont.opts.fit.method,'LCModel')
     end
 else
     FitSpecNamesStruct.(FitSpecNames{1}){1} = 'A';
+    if MRSCont.flags.isMEGA
+        FitSpecNamesStruct.(FitSpecNames{1}){2} = 'diff1';
+    end
 end
 
 
@@ -138,23 +143,27 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                         end
                     case 'LCModel'
                         dataToPlot  = MRSCont.processed.(FitSpecNames{ss}){kk};
-                        fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
-    
+                        if sf ==1
+                            dataToPlot   = op_takesubspec(dataToPlot,'A');
+                        else
+                            dataToPlot   = op_takesubspec(dataToPlot,'diff1');
+                        end
+                        fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{1,kk,sf};
+                        
                         % Get the LCModel plots we previously extracted from .coord
                         % etc.
                         [ModelOutput] = fit_LCModelParamsToModel(fitParams);
     
                     end
-                    
-                    %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
-                    noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
-                    ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';
-    
-                    P=polyfit(ppmwindow2,noisewindow,2);
-                    noise=noisewindow-polyval(P,ppmwindow2); 
-    
-                    MRSCont.QM.relAmpl.([FitSpecNames{ss} '_' FitSpecNamesStruct.(FitSpecNames{ss}){1,sf}])(bf,kk) = sum(ModelOutput.residual.^2)/(std(real(noise))^2 * length(ModelOutput.residual));
-                        
+                    if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') % metabolite only 
+                        %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
+                        noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
+                        ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';
+        
+                        P=polyfit(ppmwindow2,noisewindow,2);
+                        noise=noisewindow-polyval(P,ppmwindow2);
+                        MRSCont.QM.relAmpl.([FitSpecNames{ss} '_' FitSpecNamesStruct.(FitSpecNames{ss}){1,sf}])(bf,kk) = sum(ModelOutput.residual.^2)/(std(real(noise))^2 * length(ModelOutput.residual));
+                    end
                 end
             end
     end

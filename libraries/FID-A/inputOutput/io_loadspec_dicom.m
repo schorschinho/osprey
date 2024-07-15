@@ -16,6 +16,11 @@
 
 function out=io_loadspec_dicom(folder);
 
+% If path to a .dcm is provided, then extract the folder location:
+if ~isfolder(folder) && isfile(folder)
+    folder =fileparts(folder);
+end
+
 % Create list of complete filenames (incl. path) in the folder
 dirFolder = dir(folder);
 filesInFolder = dirFolder(~[dirFolder.isdir]);
@@ -31,7 +36,19 @@ filesInFolder = fullfile(folder, {filesInFolder.name});
 % Get the header of the first file to make some decisions.
 DicomHeader = read_dcm_header(filesInFolder{1});
 seqtype = DicomHeader.seqtype;
-seqorig = DicomHeader.seqorig;
+
+if isfield(DicomHeader, 'seqorig')
+    seqorig = DicomHeader.seqorig;
+else
+% deal with missing seqorig field for dicom data load on Siemens Minnesota
+% sequences (Auerbach and Deelchand versions, VB17A & VE11C)    
+    if contains(DicomHeader.sequenceFileName, 'slaser_dkd') %Deelchand/Oz
+        seqorig = 'CMRR';
+    elseif contains(DicomHeader.sequenceFileName, 'eja_svs') %Auerbach/Marjanska
+        seqorig = 'CMRR';
+    end
+end
+
 
 % Extract voxel dimensions
 % If a parameter is set to zero (e.g. if no voxel rotation is
@@ -291,6 +308,8 @@ out.centerFreq = centerFreq;
 out.geometry = geometry;
 if isfield(DicomHeader, 'SoftwareVersions')
     out.software = DicomHeader.SoftwareVersions;
+else
+    out.software = 'Siemens';
 end
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;

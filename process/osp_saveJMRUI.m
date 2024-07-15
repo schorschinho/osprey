@@ -34,8 +34,6 @@ function [MRSCont] = osp_saveJMRUI(MRSCont)
 %   HISTORY:
 %       2019-07-23: First version of the code.
 
-% Close any remaining open figures
-close all;
 
 % Set up saving location
 saveDestination = fullfile(MRSCont.outputFolder, 'jMRUIFiles');
@@ -112,9 +110,16 @@ for kk = 1:MRSCont.nDatasets
     
     % Now do the same for the (short-TE) water signal
     if MRSCont.flags.hasWater
+        % Get TE and the input file name. For GE, the water and ecc reference is
+        % already contained in the P file.
         % Get TE and the input file name
-        te_w                = MRSCont.processed.w{kk}.te;
-        [path_w,filename_w,~]   = fileparts(MRSCont.files_w{kk});
+        if strcmpi(MRSCont.vendor, 'GE')
+            te_w                      = MRSCont.processed.A{kk}.te;
+            [path_w,filename_w,~]   = fileparts(MRSCont.files{kk});
+        else
+            te_w                      = MRSCont.processed.w{kk}.te;
+            [path_w,filename_w,~]   = fileparts(MRSCont.files_w{kk});
+        end
         % For batch analysis, get the last two sub-folders (e.g. site and
         % subject)
         path_w_split          = regexp(path_w,filesep,'split');
