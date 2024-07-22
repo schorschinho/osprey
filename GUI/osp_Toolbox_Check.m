@@ -32,7 +32,7 @@ function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %% % 1. SAVE OSPREY VERSION%%%
 %%% 1. SAVE OSPREY VERSION%%%
-OspreyVersion = 'Osprey 2.6.2';
+OspreyVersion = 'Osprey 2.6.3';
 fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 hasSPM = 1; % For the compiled GUI
 %% % 2. GET SPMPATH AND TOOLBOXES%%%
