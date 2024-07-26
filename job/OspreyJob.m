@@ -44,6 +44,7 @@ end
 
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
 [MRSCont] = OspreySettings;
+VersionStruct  = getCurrentVersion;
 
 %%% 2. CHECK JOB INPUT FILE FORMAT %%%
 [~,~,ext] = fileparts(jobFile);
@@ -781,7 +782,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 2.6.3';
+MRSCont.ver.Osp             = ['Osprey ' VersionStruct.Version];
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
