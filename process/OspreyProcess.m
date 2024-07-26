@@ -745,18 +745,18 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
                 end
             end
             if MRSCont.flags.hasRef
-                MRSCont.QM.SNR.ref(ref_ll,kk)    = op_getSNR(MRSCont.processed.ref{kk});
-                MRSCont.QM.FWHM.ref(ref_ll,kk)   = op_getLW(MRSCont.processed.ref{kk},4.2,5.2);
+                MRSCont.QM.SNR.ref(ref_ll,kk)    = op_getSNR(MRSCont.processed.ref{kk},3.7,5.7);
+                MRSCont.QM.FWHM.ref(ref_ll,kk)   = op_getLW(MRSCont.processed.ref{kk},3.7,5.7);
                 MRSCont.processed.ref{kk}.QC_names = {'water'};
             end
             if MRSCont.flags.hasWater
-                MRSCont.QM.SNR.w(w_ll,kk)    = op_getSNR(MRSCont.processed.w{kk});
-                MRSCont.QM.FWHM.w(w_ll,kk)   = op_getLW(MRSCont.processed.w{kk},4.2,5.2);
+                MRSCont.QM.SNR.w(w_ll,kk)    = op_getSNR(MRSCont.processed.w{kk},3.7,5.7);
+                MRSCont.QM.FWHM.w(w_ll,kk)   = op_getLW(MRSCont.processed.w{kk},3.7,5.7);
                 MRSCont.processed.w{kk}.QC_names = {'water'};
             end
             if MRSCont.flags.hasMMRef
-                MRSCont.QM.SNR.mm_ref(mm_ref_ll,kk)    = op_getSNR(MRSCont.processed.mm_ref{kk});
-                MRSCont.QM.FWHM.mm_ref(mm_ref_ll,kk)   = op_getLW(MRSCont.processed.mm_ref{kk},4.2,5.2);
+                MRSCont.QM.SNR.mm_ref(mm_ref_ll,kk)    = op_getSNR(MRSCont.processed.mm_ref{kk},3.7,5.7);
+                MRSCont.QM.FWHM.mm_ref(mm_ref_ll,kk)   = op_getLW(MRSCont.processed.mm_ref{kk},3.7,5.7;
                 MRSCont.processed.mm_ref{kk}.QC_names = {'water'};
             end
         end
