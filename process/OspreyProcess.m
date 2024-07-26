@@ -756,7 +756,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             end
             if MRSCont.flags.hasMMRef
                 MRSCont.QM.SNR.mm_ref(mm_ref_ll,kk)    = op_getSNR(MRSCont.processed.mm_ref{kk},3.7,5.7);
-                MRSCont.QM.FWHM.mm_ref(mm_ref_ll,kk)   = op_getLW(MRSCont.processed.mm_ref{kk},3.7,5.7;
+                MRSCont.QM.FWHM.mm_ref(mm_ref_ll,kk)   = op_getLW(MRSCont.processed.mm_ref{kk},3.7,5.7);
                 MRSCont.processed.mm_ref{kk}.QC_names = {'water'};
             end
         end
