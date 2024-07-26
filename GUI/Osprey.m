@@ -15,6 +15,9 @@ function  Osprey
 %
 %   HISTORY:
 %       2019-07-11: First version of the code.
+%% Get version
+VersionStruct  = getCurrentVersion;
+
 %% Check for available add-ons
   [~,~] = osp_Toolbox_Check ('OspreyGUI',0);
 %% Set up Layout
@@ -30,7 +33,7 @@ ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Ospr
 logoFcn = @()imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
 logoBanner = uiw.utility.loadIcon(logoFcn);
 % Here the intro banner is created
-gui.d = uiw.dialog.About('Name', 'Osprey','Version','2.6.3','Date', 'July 22, 2024',...
+gui.d = uiw.dialog.About('Name', 'Osprey','Version',VersionStruct.Version,'Date', VersionStruct.Date,...
 'Timeout', 3,'CustomText', 'Osprey is provided by Johns Hopkins University.',...
 'ContactInfo', 'gabamrs@gmail.com','LogoCData', logoBanner);
 
