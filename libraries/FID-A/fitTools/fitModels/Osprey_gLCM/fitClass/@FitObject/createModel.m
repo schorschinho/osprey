@@ -47,10 +47,12 @@ function obj = createModel(obj)
     if isfield(obj.Options{obj.step}, 'optimTimeFitRange') && ~isempty(obj.Options{obj.step}.optimTimeFitRange) 
         fitRange.TD     = obj.Options{obj.step}.optimTimeFitRange;          % Get model range
     end
+    fitGap              = obj.Options{obj.step}.gap;                        % Get the gap in the model range
     SignalPart          = obj.Options{obj.step}.optimSignalPart;            % Get optimization signal part
     solver              = obj.Options{obj.step}.solver;                     % Get solver name
     NoiseSD             = obj.NoiseSD;                                      % Get standard deviation of the noise 
-    
+    % basisSet.fids       = basisSet.fids(:, logical(basisSet.includeInFit(obj.step,:)),:); % Only use basis functions that are included
+
 %%  Update parameterizations according to model procedure step
 
     
@@ -194,6 +196,7 @@ function obj = createModel(obj)
                                ppm, ...             % ppm axis
                                t, ...               % time vector
                                fitRange, ...        % model range
+                               fitGap, ...          % model gap
                                SignalPart, ...      % optimization signal part
                                Domain, ...          % optimization domain
                                sse, ...             % lossfunction string
@@ -242,6 +245,7 @@ function obj = createModel(obj)
                                          ppm, ...           % ppm axis
                                          t, ...             % time vector
                                          fitRange, ...      % model range
+                                         fitGap, ...          % model gap
                                          SignalPart, ...    % optimization signal part
                                          Domain,...         % optimization domain
                                          Reg, ...           % regularizer flag
@@ -302,6 +306,7 @@ function obj = createModel(obj)
                                              Reg, ...                       % regularizer flag
                                              parametrizations);             % parameter struct
 
+    
     % Save modeling results
     obj.Model{obj.step}.fit.fit       = fit;                                % Store fit
     obj.Model{obj.step}.fit.baseline  = baseline;                           % Store baseline
@@ -311,6 +316,10 @@ function obj = createModel(obj)
     obj.Model{obj.step}.parsOut       = parsOut;                            % Store final parameters
     obj.Model{obj.step}.info          = info;                               % Store info
 
+    % Baseline model is 'residual' we have still generate the baseline
+    if strcmp(obj.Options{obj.step}.baseline.type, 'residual')
+        obj.residualSmoothing;
+    end
 %% Calculate CRLB
 
     jac = h.forwardJacobian(xk, ...            % x vector with final parameter estimates
@@ -321,6 +330,7 @@ function obj = createModel(obj)
                             ppm, ...           % ppm axis
                             t, ...             % time vector
                             fitRange, ...      % model range
+                            fitGap, ...          % model gap
                             'R', ...           % get complex-valued jacobian
                             Domain,...         % optimization domain
                             Reg, ...           % regularizer flag
@@ -364,20 +374,26 @@ function obj = createModel(obj)
 %% Calculate AICs
 
     % Generate sum-of-squares for final model
-    sse = 'res';                                 % Uses residual vector
-    res  =      h.lossFunction(xk, ...               % x vector with final parameters estimates
-                               data, ...            % time domain data matrix
-                               NoiseSD, ...         % standard deviation of the noise 
-                               basisSet, ...        % basis set struct
-                               baselineBasis, ...   % baseline basis set
-                               ppm, ...             % ppm axis
-                               t, ...               % time vector
-                               fitRange, ...        % model range
-                               SignalPart, ...      % optimization signal part
-                               Domain, ...          % optimization domain
-                               sse, ...             % lossfunction string
-                               Reg, ...             % regularizer flag
-                               parametrizations);   % parameter struct
+    % Baseline model is 'residual' have a different residual vector
+    if ~strcmp(obj.Options{obj.step}.baseline.type, 'residual')
+        sse = 'res';                                 % Uses residual vector
+        res  =      h.lossFunction(xk, ...               % x vector with final parameters estimates
+                                   data, ...            % time domain data matrix
+                                   NoiseSD, ...         % standard deviation of the noise 
+                                   basisSet, ...        % basis set struct
+                                   baselineBasis, ...   % baseline basis set
+                                   ppm, ...             % ppm axis
+                                   t, ...               % time vector
+                                   fitRange, ...        % model range
+                                   fitGap, ...          % model gap
+                                   SignalPart, ...      % optimization signal part
+                                   Domain, ...          % optimization domain
+                                   sse, ...             % lossfunction string
+                                   Reg, ...             % regularizer flag
+                                   parametrizations);   % parameter struct
+    else
+        res = obj.Model{obj.step}.fit.residual;
+    end
     sos = sum(res.^2); 
     % Calculate different AICs
     p       = length(xk);                                                       % Number of estimated parameter

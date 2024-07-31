@@ -166,6 +166,11 @@ end
 % for MSM
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
+if ~iscell(DataToModel)                                                       % Just a single file
+    temporaryCell       = {};
+    temporaryCell{1}    = DataToModel;                                        % Default input is a cell array so we need to change it
+    DataToModel         = temporaryCell;
+end
 
 % Cell array of data which we will loop over
 for kk = 1 : length(DataToModel)
@@ -184,10 +189,19 @@ for kk = 1 : length(DataToModel)
 
     if DoDataScaling == 2
         DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                     % apply scale to data 
-    else if DoDataScaling == 1
-         scaleData(kk) = max(real(DataToModel{kk}.specs(DataToModel{kk}.ppm > -2 & DataToModel{kk}.ppm < 10 ,:))) / max(max(max(real(basisSet.specs(basisSet.ppm > -2 & basisSet.ppm < 10 ,:)))));
+    else if DoDataScaling == 1 && average == 1
+         scaleData(kk) = max(real(DataToModel{kk}.specs)) / max(max(max(real(basisSet.specs))));
          DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                    % apply scale to data
-    end
+    else if DoDataScaling == 1 && average == 0
+              temp                = DataToModel{kk};                                              % Average so you can calculate scale
+              if temp.dims.averages == 0
+                  temp.dims.averages = ndims(temp.sz);
+              end
+              temp                = op_averaging(temp); 
+              scaleData(kk) = max(real(temp.specs)) / max(max(max(real(basisSet.specs))));          % calculate scale
+              DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                    % apply scale to data
+            end
+        end
     end
 
     % Apply zero-filling if needed
@@ -217,7 +231,7 @@ for kk = 1 : length(DataToModel)
         end       
         if isfield(ModelProcedure.Steps{ss},'parametrizations')
             opts.parametrizations  = ModelProcedure.Steps{ss}.parametrizations;         % specify parametrizations constructor
-            parameter = {'ph0','ph1','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl'};
+            parameter = {'ph0','ph1','GlobFreqShift','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl'};
             opts.parametrizations  = orderfields(opts.parametrizations,parameter(ismember(parameter, fieldnames(opts.parametrizations)))); % order struct names according to standard
         end
         if ~isfield(ModelProcedure.Steps{ss},'basisset')                       % which basis functions to include
@@ -287,7 +301,7 @@ for kk = 1 : length(DataToModel)
             parametrization.freqShift.sd = SDSH;
         else
             % ModelParameter{kk,1}.indexMMLipBasisFunctionInBasis;
-            % ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction = zeros(size(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:))));
+            ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction = zeros(size(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:))));
             % Only initialize EX/SD values (for frequency shift and
             % Lorentzian LB) for the metabolites:
             [EXT2, SDT2, SDSH] = fit_setExSDValues(DataToModel{kk}, basisSet);

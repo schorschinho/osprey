@@ -36,9 +36,10 @@
 % out       = Output following alignment of averages.  
 % fs        = Vector of frequency shifts (in Hz) used for alignment.
 % phs       = Vector of phase shifts (in degrees) used for alignment.
+% tmax      = Maximum time (in seconds) in time domain used to determined the part of the FID used for alignment.
 
 
-function [out,fs,phs]=op_alignAverages(in,tmax,med,ref)
+function [out,fs,phs,tmax]=op_alignAverages(in,tmax,med,ref)
 
 if ~in.flags.addedrcvrs
     error('ERROR:  I think it only makes sense to do this after you have combined the channels using op_addrcvrs.  ABORTING!!');

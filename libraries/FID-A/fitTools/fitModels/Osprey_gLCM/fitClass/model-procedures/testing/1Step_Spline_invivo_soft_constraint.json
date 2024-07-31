@@ -19,7 +19,7 @@
         "include": [
           "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
-          "Lip09","Lip13a","Lip13b","Lip20"
+          "Lip09","Lip13a","Lip13b","Lip13c","Lip13d","Lip20"
         ]
       },
       "fit_opts": {
@@ -40,8 +40,16 @@
         "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
       ],
       "parametrizations": {
-        "lorentzLB": {
-          "gr":{"g1":["MM09","MM12","MM14","MM17","MM20","Lip09","Lip13a","Lip13b","Lip20"]}
+        "metAmpl": {
+            "sc":{
+                  "adj": ["NAAG"],
+                  "fix": ["NAA"],
+                  "fix_factor":[1],
+                  "ex": [0.15],
+                  "sd": [0.15],
+                  "fun": "ratio",
+                  "scaling": 20
+            }
         }
       }
     }
