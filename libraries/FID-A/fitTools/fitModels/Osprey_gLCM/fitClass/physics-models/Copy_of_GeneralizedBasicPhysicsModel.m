@@ -47,7 +47,7 @@ end
 
 %% Define lossfunction, forward gradient, forward jacobian, forward model, x2pars, pars2x, fminunc_wrapper
 
-function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, fitGap, SignalPart, Domain, SSE, Reg, parametrizations)
+function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, SignalPart, Domain, SSE, Reg, parametrizations)
 % This function generates the output for the solver according to the
 % loss function. This includes all settings described in the model procedure
 % json.
@@ -64,7 +64,6 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
 %       ppm              = ppm axis
 %       t                = time vector
 %       fitRange         = model range
-%       fitGap           = GAP parameter
 %       SignalPart       = optimization signal part
 %       Domain           = optimization domain
 %       SSE              = lossfunction string
@@ -96,39 +95,16 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
 
 
     if strcmp(Domain,'FD')                                                  % frequency domain optimization
-        [indMin, indMax] = ppmToIndex(ppm, fitRange.FD);                       % Get fit range ppm indices
+        [indMin, indMax] = ppmToIndex(ppm, fitRange);                       % Get fit range ppm indices
         data        = fftshift(fft(data, [], 1),1);                         % Convert data frequency domain data
         data        = data(indMin:indMax,:);                                % Cut out fit range from data
         prediction  = prediction(indMin:indMax,:);                          % Cut out fit range from prediction
     end
     if strcmp(Domain,'TD')                                                  % time domain optimization
-        indMin = fitRange.TD(1);                                            % Get time domain indices
-        indMax = fitRange.TD(2);                                            % Get time domain indices
         prediction  = ifft(ifftshift(prediction,1), [], 1);                 % Convert prediction to time domain
         regu        = ifft(ifftshift(regu,1), [], 1);                       % Convert regularizer to time domain
-        data        = data(indMin:indMax,:);                                % Cut out fit range from data
-        prediction  = prediction(indMin:indMax,:);                          % Cut out fit range from prediction
-    end
-    if strcmp(Domain,'FDTD')                                                % Simualtneous frequency and time domain optimization
-        [indMinFD, indMaxFD] = ppmToIndex(ppm, fitRange.FD);                % Get fit range ppm indices
-        dataFD        = fftshift(fft(data, [], 1),1);                       % Convert data frequency domain data
-        dataFD        = dataFD(indMinFD:indMaxFD,:);                        % Cut out fit range from data
-        predictionFD  = prediction(indMinFD:indMaxFD,:);                    % Cut out fit range from prediction
-
-        indMinTD      = fitRange.TD(1);                                     % Get time domain indices
-        indMaxTD      = fitRange.TD(2);                                     % Get time domain indices
-        predictionTD  = ifft(ifftshift(prediction,1), [], 1);               % Convert prediction to time domain
-        dataTD        = data(indMinTD:indMaxTD,:);                          % Cut out fit range from data
-        predictionTD  = predictionTD(indMinTD:indMaxTD,:);                    % Cut out fit range from prediction
-        data          = cat(1,dataFD,dataTD);                               % Combine FD and TD data
-        prediction    = cat(1,predictionFD,predictionTD);                   % Combine FD and TD data
     end
     residual     = data - prediction;                                       % Calculate residual
-
-    if ~isempty(fitGap) && strcmp(Domain,'FD')
-        [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap);                   % Get fit Gap range ppm indices
-        residual((GapindMin-indMin):(GapindMax-indMin),:)=[];
-    end
 
     switch SignalPart                                                       % Switch for optimization signal part
         case 'R'
@@ -146,33 +122,11 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
     end
 
     if ~isempty(NoiseSD)                                                    % Don't normalize residual if GradientCheck is performed
-        if strcmp(Domain,'FD')
-            Sigma = NoiseSD.FD;                                             % Get sigma squared
-            Sigma = repmat(Sigma, [size(residual,1) 1]);                    % Repeat according to dimensions
-        end
-        if strcmp(Domain,'TD')
-            Sigma = NoiseSD.TD;                                             % Get sigma squared
-            Sigma = repmat(Sigma, [size(residual,1) 1]);                    % Repeat according to dimensions
-        end
-        if strcmp(Domain,'FDTD')
-            SigmaFD = NoiseSD.FD;                                           % Get sigma squared
-            SigmaFD = repmat(SigmaFD, [size(predictionFD,1) 1]);            % Repeat according to dimensions
-            SigmaTD = NoiseSD.TD;                                           % Get sigma squared
-            SigmaTD = repmat(SigmaTD, [size(predictionTD,1) 1]);            % Repeat according to dimensions
-            Sigma  = cat(1,SigmaFD,SigmaTD);                                % Combine frequency and time domain     
-        end
+        Sigma = NoiseSD;                                                    % Get sigma squared
+        Sigma = repmat(Sigma, [size(residual,1) 1]);              % Repeat according to dimensions
         residual = residual ./ Sigma;                                       % Normalize residual
         if size(regu,1) > 0                                                 % Has regularizer
-            if strcmp(Domain,'FD')
-                Sigma = NoiseSD.FD;                                         % Get sigma squared
-            end
-            if strcmp(Domain,'TD')
-                Sigma = NoiseSD.TD;                                         % Get sigma squared
-            end
-            if strcmp(Domain,'FDTD')
-                Sigma = (NoiseSD.FD + NoiseSD.TD)/2;                        % Get sigma squared
-                Sigma = NoiseSD.FD;                                         % Get sigma squared
-            end
+            Sigma = NoiseSD;                                                % Get sigma squared
             Sigma = repmat(Sigma, [size(regu,1) 1]);                        % Repeat according to dimensions
             regu = regu ./ Sigma;                                           % Normalize regularizer
         end
@@ -225,7 +179,7 @@ function grad = forwardGradient(x, data, NoiseSD, basisSet, baselineBasis, ppm, 
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Calculate forward gradient
 
-    [indMin, indMax] = ppmToIndex(ppm, fitRange.FD);                           % Get fit range ppm indices
+    [indMin, indMax] = ppmToIndex(ppm, fitRange);                           % Get fit range ppm indices
 
     % Run forward model to get prediction and regularizer output
     [prediction,~,~,regu]  = forwardModel(x, ...                            % x vector with parameters to optimize
@@ -253,7 +207,7 @@ function grad = forwardGradient(x, data, NoiseSD, basisSet, baselineBasis, ppm, 
     residual      = cat(1,residual,-regu);                                  % Concatenate regularizer
 
     % Generate jacobian
-    jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange.FD,SignalPart,Reg, parametrizations);
+    jac = forwardJacobian(x, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations);
     if strcmp(SignalPart,'R')
         jac         = real(jac);                                  % Take real part jacobian
         residual    = real(residual);
@@ -279,7 +233,7 @@ function grad = forwardGradient(x, data, NoiseSD, basisSet, baselineBasis, ppm, 
     grad = grad';
 end
 
-function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange, fitGap, SignalPart, Domain, Reg, parametrizations)
+function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, fitRange,SignalPart,Reg, parametrizations)
 % This function generates the jacobian for the generalized physics model
 %
 %   USAGE:
@@ -294,7 +248,6 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
 %       t                = time vector
 %       fitRange         = model range
 %       SignalPart       = optimization signal part
-%       Domain           = optimization domain
 %       Reg              = regularizer flag
 %       parametrizations = parameter struct
 %
@@ -327,6 +280,8 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     secDim = size(fidsBasis,3);                                             % Get number spectra along indirect dimension
 
     inputParams = x2pars(x, secDim, parametrizations);                      % Convert x vector to parameter struct
+
+    [indMin, indMax] = ppmToIndex(ppm, fitRange);                           % Get fit range ppm indices
 
     % Run forward model to get prediction and regularizer output
     prediction  = forwardModel(x, ...                                       % x vector with parameters to optimize
@@ -387,74 +342,15 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
 
     end                                                                     % End loop over indirect dimension
 
-
-    %Pick optimization domain
-    if strcmp(Domain,'FD') || strcmp(Domain,'FDTD')                           % frequency domain optimization
-        [indMin, indMax] = ppmToIndex(ppm, fitRange.FD);                    % Get fit range ppm indices
-    end
-    if strcmp(Domain,'TD')                                                  % time domain optimization
-        indMin = fitRange.TD(1);                                            % Get time domain indices
-        indMax = fitRange.TD(2);                                            % Get time domain indices
-        dYdph0  = ifft(ifftshift(dYdph0,1), [], 1);                         % Convert partial derivative wrt ph0 to time domain
-        dYdph1  = ifft(ifftshift(dYdph1,1), [], 1);                         % Convert partial derivative wrt ph1 to time domain
-        dYdgaussLB  = ifft(ifftshift(dYdgaussLB,1), [], 1);                 % Convert partial derivative wrt gaussLB to time domain
-        dYdlorentzLB  = ifft(ifftshift(dYdlorentzLB,1), [], 1);             % Convert partial derivative wrt lorentzLB to time domain
-        dYdfreqShift  = ifft(ifftshift(dYdfreqShift,1), [], 1);             % Convert partial derivative wrt freqShift to time domain
-        dYdmetAmpl  = ifft(ifftshift(dYdmetAmpl,1), [], 1);                 % Convert partial derivative wrt metAmpl to time domain
-        if nBaselineComps ~= 0                                              % Has baseline?
-            dYdbaseAmpl  = ifft(ifftshift(dYdbaseAmpl,1), [], 1);           % Convert partial derivative wrt baseAmpl to time domain
-        end
-    end
-
-    if strcmp(Domain,'FD') || strcmp(Domain,'TD')                           % frequency domain optimization
-        % Reduce to fit range
-        dYdph0          = dYdph0(indMin:indMax,:,:);                            % Cut out fit range
-        dYdph1          = dYdph1(indMin:indMax,:,:);                            % Cut out fit range
-        dYdgaussLB      = dYdgaussLB(indMin:indMax,:,:);                        % Cut out fit range
-        dYdlorentzLB    = dYdlorentzLB(indMin:indMax,:,:,:);                    % Cut out fit range
-        dYdfreqShift    = dYdfreqShift(indMin:indMax,:,:,:);                    % Cut out fit range
-        dYdmetAmpl      = dYdmetAmpl(indMin:indMax,:,:,:);                      % Cut out fit range
-        if nBaselineComps ~= 0                                                  % Has baseline?
-            dYdbaseAmpl           = dYdbaseAmpl(indMin:indMax,:,:,:);           % Cut out fit range
-        end
-
-        % Check if there is a gap in the fit range, if yes introduce it
-        if ~isempty(fitGap) && strcmp(Domain,'FD')
-            [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap);                   % Get fit Gap range ppm indices
-                
-            dYdph0((GapindMin-indMin):(GapindMax-indMin),:,:)             = []; % Cut out the gap
-            dYdph1((GapindMin-indMin):(GapindMax-indMin),:,:)             = []; % Cut out fit gap
-            dYdgaussLB((GapindMin-indMin):(GapindMax-indMin),:,:)         = []; % Cut out fit gap
-            dYdlorentzLB((GapindMin-indMin):(GapindMax-indMin),:,:,:)     = []; % Cut out fit gap
-            dYdfreqShift((GapindMin-indMin):(GapindMax-indMin),:,:,:)     = []; % Cut out fit gap
-            dYdmetAmpl((GapindMin-indMin):(GapindMax-indMin),:,:,:)       = []; % Cut out fit gap
-            if nBaselineComps ~= 0                                              % Has baseline?
-                dYdbaseAmpl((GapindMin-indMin):(GapindMax-indMin),:,:,:)  = []; % Cut out fit gap
-            end
-        end
-
-    else                                                                    % Simulatneous frequency and time domain optimization             
-        indMinTD = fitRange.TD(1);                                            % Get time domain indices
-        indMaxTD = fitRange.TD(2);                                            % Get time domain indices
-        dYdph0TD  = ifft(ifftshift(dYdph0,1), [], 1);                         % Convert partial derivative wrt ph0 to time domain
-        dYdph1TD  = ifft(ifftshift(dYdph1,1), [], 1);                         % Convert partial derivative wrt ph1 to time domain
-        dYdgaussLBTD  = ifft(ifftshift(dYdgaussLB,1), [], 1);                 % Convert partial derivative wrt gaussLB to time domain
-        dYdlorentzLBTD  = ifft(ifftshift(dYdlorentzLB,1), [], 1);             % Convert partial derivative wrt lorentzLB to time domain
-        dYdfreqShiftTD  = ifft(ifftshift(dYdfreqShift,1), [], 1);             % Convert partial derivative wrt freqShift to time domain
-        dYdmetAmplTD  = ifft(ifftshift(dYdmetAmpl,1), [], 1);                 % Convert partial derivative wrt metAmpl to time domain
-        if nBaselineComps ~= 0                                              % Has baseline?
-            dYdbaseAmplTD  = ifft(ifftshift(dYdbaseAmpl,1), [], 1);           % Convert partial derivative wrt baseAmpl to time domain
-        end
-        % Combine frequency and time domain jacobians
-        dYdph0          = cat(1,dYdph0(indMin:indMax,:,:),dYdph0TD(indMinTD:indMaxTD,:,:)); % Cut out fit ranges and combine domains
-        dYdph1          = cat(1,dYdph1(indMin:indMax,:,:),dYdph1TD(indMinTD:indMaxTD,:,:));                            % Cut out fit range
-        dYdgaussLB      = cat(1,dYdgaussLB(indMin:indMax,:,:),dYdgaussLBTD(indMinTD:indMaxTD,:,:));                        % Cut out fit range
-        dYdlorentzLB    = cat(1,dYdlorentzLB(indMin:indMax,:,:,:),dYdlorentzLBTD(indMinTD:indMaxTD,:,:,:));                    % Cut out fit range
-        dYdfreqShift    = cat(1,dYdfreqShift(indMin:indMax,:,:,:),dYdfreqShiftTD(indMinTD:indMaxTD,:,:,:));                    % Cut out fit range
-        dYdmetAmpl      = cat(1,dYdmetAmpl(indMin:indMax,:,:,:),dYdmetAmplTD(indMinTD:indMaxTD,:,:,:));                      % Cut out fit range
-        if nBaselineComps ~= 0                                                  % Has baseline?
-            dYdbaseAmpl           = cat(1,dYdbaseAmpl(indMin:indMax,:,:,:),dYdbaseAmplTD(indMinTD:indMaxTD,:,:,:));           % Cut out fit range
-        end
+    % Reduce to fit range
+    dYdph0          = dYdph0(indMin:indMax,:,:);                            % Cut out fit range
+    dYdph1          = dYdph1(indMin:indMax,:,:);                            % Cut out fit range
+    dYdgaussLB      = dYdgaussLB(indMin:indMax,:,:);                        % Cut out fit range
+    dYdlorentzLB    = dYdlorentzLB(indMin:indMax,:,:,:);                    % Cut out fit range
+    dYdfreqShift    = dYdfreqShift(indMin:indMax,:,:,:);                    % Cut out fit range
+    dYdmetAmpl      = dYdmetAmpl(indMin:indMax,:,:,:);                      % Cut out fit range
+    if nBaselineComps ~= 0                                                  % Has baseline?
+        dYdbaseAmpl           = dYdbaseAmpl(indMin:indMax,:,:,:);           % Cut out fit range
     end
 
 
@@ -475,31 +371,7 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     end                                                                     % End loop over indirect dimension
 
     
-    
-    if secDim == 1 && ~isempty(NoiseSD)                                     % 1D jacobians have not been normalized yet
-        if strcmp(Domain,'FD')
-            Sigma = NoiseSD.FD;                                             % Get sigma
-        end
-        if strcmp(Domain,'TD')
-            Sigma = NoiseSD.TD;                                             % Get sigma
-        end
-        if strcmp(Domain,'FDTD')
-            SigmaFD = NoiseSD.FD;                                           % Get sigma squared
-            SigmaFD = repmat(SigmaFD, [size(dYdph0,1)-size(dYdph0TD(indMinTD:indMaxTD,:,:),1) 1]);            % Repeat according to dimensions
-            SigmaTD = NoiseSD.TD;                                           % Get sigma squared
-            SigmaTD = repmat(SigmaTD, [size(dYdph0TD(indMinTD:indMaxTD,:,:),1) 1]);            % Repeat according to dimensions
-            Sigma  = cat(1,SigmaFD,SigmaTD);                                % Combine frequency and time domain     
-        end
-        dYdph0          = dYdph0 ./ Sigma;                            % Cut out fit range
-        dYdph1          = dYdph1 ./ Sigma;                            % Cut out fit range
-        dYdgaussLB      = dYdgaussLB ./ Sigma;                        % Cut out fit range
-        dYdlorentzLB    = dYdlorentzLB ./ Sigma;                    % Cut out fit range
-        dYdfreqShift    = dYdfreqShift ./ Sigma;                    % Cut out fit range
-        dYdmetAmpl      = dYdmetAmpl ./ Sigma;                      % Cut out fit range
-        if nBaselineComps ~= 0                                                  % Has baseline?
-            dYdbaseAmpl           = dYdbaseAmpl ./ Sigma;           % Cut out fit range
-        end
-    end
+
 
     if secDim > 1                                                           % update each block in the jacobian according to the 2-D parametrization
         [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph0 parameter
@@ -536,6 +408,11 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     end
     jac = (-1) * jac;                                                       % Needed to match numerical jacobian
 
+    if secDim == 1 && ~isempty(NoiseSD)                                     % 1D jacobians have not been normalized yet
+        Sigma = NoiseSD;                                                    % Set sigma
+        jac = jac ./ Sigma;                                                 % Normalize jacobian
+    end
+
     if secDim == 1                                                          % Add penalty term for parameters deviating from expectation values
         tempTerm = [];
 
@@ -570,7 +447,7 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
         if nBaselineComps ~= 0 
             [~,baseAmplPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'baseAmpl', sD, nParams);
         else
-            baseAmplPenaltyJac = zeros(size(ph0PenaltyJac));
+            baseAmplPenaltyJac = [];
         end
         tempTerm = ph0PenaltyJac + ph1PenaltyJac + gaussLBPenaltyJac + lorentzLBPenaltyJac + freqShiftPenaltyJac + metAmplPenaltyJac + baseAmplPenaltyJac; % Concatenate penalty terms
 
@@ -662,7 +539,7 @@ function [Y, baseline, metabs, regu, penaltyTerm,penaltyTermSoftConstraint] = fo
             baseline = cat(2,baseline,T_ph .* bl);                          % Baseline (phase evolution * estimates)
         else
             Y = cat(2,Y,T_ph .* mets);                                      % Final model
-            baseline = cat(2,baseline,zeros(size(specs,1),1));                  % zero baseline
+            baseline = cat(2,baseline,zeros(size(specs)));                  % zero baseline
         end
         metabs = cat(3,metabs,repmat(T_ph, [1 size(specs,2)]) .* specs .* repmat(metAmpl', [size(specs,1) 1]));  % Final basis functions (phase evolution * estimates)
     end                                                                     % End loop over indirect dimension
@@ -985,7 +862,7 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
     secDim = size(dYdX,3);
 
     if ~isempty(NoiseSD)
-        Sigma = NoiseSD.FD;                                                    % Get sigma
+        Sigma = NoiseSD;                                                    % Get sigma
         Sigma = repmat(Sigma', [1 nPoints nLines]);                         % Repeat according to dimensions
         Sigma = permute(Sigma,[2 3 1]);                                     % Dims have to be nPoints nLines secDim
         Sigma = squeeze(Sigma);                                             % Remove zero dimensions

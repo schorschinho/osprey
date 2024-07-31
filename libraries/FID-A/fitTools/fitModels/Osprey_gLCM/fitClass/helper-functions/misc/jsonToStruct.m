@@ -109,6 +109,9 @@ function jsonStruct = jsonToStruct(jsonfile)
                 if isfield(jsonStruct.parameters.(params{pp}), 'type')
                     jsonStruct.parameters.(params{pp}).type = transpose(jsonStruct.parameters.(params{pp}).type);
                 end
+                if isfield(jsonStruct.parameters.(params{pp}), 'RegFun')
+                    jsonStruct.parameters.(params{pp}).RegFun = transpose(jsonStruct.parameters.(params{pp}).RegFun);
+                end
             end
         end
     end

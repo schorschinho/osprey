@@ -82,7 +82,13 @@ classdef FitObject < handle
                     fprintf('Resampling the basis set for you. \n');
                     basis = fit_resampleBasis(data, basis);                 % Resample basis set
                 end
-                              
+                if round(basis.n) ~= round(data.sz(1))
+                    warning('Number of points does not agree between basis set (%5.2e) and data (%5.2e).', ...
+                            data.sz(1), basis.n);
+                    fprintf('Resampling the basis set for you. \n');
+                    basis = fit_resampleBasis(data, basis);                 % Resample basis set
+                end
+                
                 obj.BasisSets.fids  = basis.fids;                           % Set time domain basis functions
                 obj.BasisSets.names = basis.name;                           % Set basis function names
                 obj.BasisSets.includeInFit = ones(size(basis.name));        % Set index vector of basis functions to be included
@@ -165,7 +171,7 @@ classdef FitObject < handle
                         order      = obj.Options{1}.baseline.order;         % Get order of the polynomial baseline
                         [splineArray] = osp_gLCM_makePolyBasis(data, fitRangeFD, order);  % Create polynomial baseline basis array    
                         obj.BaselineBasis = splineArray;                    % Store baseline array in object
-                    case 'none'
+                    case {'none', 'residual'}
                         %%% NO BASELINE %%%
                         obj.BaselineBasis = [];                             % Store empty baseline array in object 
                 end

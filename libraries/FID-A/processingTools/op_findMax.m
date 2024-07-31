@@ -32,7 +32,7 @@ end
 if ~absolute
     specs=real(in.specs);
 else
-    specs=abs(real(in.specs));
+    specs=abs(in.specs);
 end
 
     out = max(specs);

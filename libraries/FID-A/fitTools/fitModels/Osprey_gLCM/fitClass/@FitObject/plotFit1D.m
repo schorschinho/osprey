@@ -1,9 +1,9 @@
-function plotFit(obj,step,secDim, plotRange)
-%%  plotFit(obj,step,secDim, plotRange)
+function plotFit1D(obj,step,secDim, plotRange)
+%%  plotFit1D(obj,step,secDim, plotRange)
 %   This method generates a plot from the fit object.
 %
 %   USAGE:
-%       obj.plotFit(step,secDim, plotRange)
+%       obj.plotFit1D(step,secDim, plotRange)
 %
 %   INPUTS:
 %       step            = step to plot      
@@ -26,7 +26,7 @@ function plotFit(obj,step,secDim, plotRange)
 %%  Diverge to default options if required 
 
     if nargin < 4
-        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range
+        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range      
         if nargin < 3
             secDim = 1;                                             % Set second dimensions to plot
             if nargin < 2
@@ -40,6 +40,7 @@ function plotFit(obj,step,secDim, plotRange)
     ppm = obj.Data.ppm;                                                                 % Get ppm vector
     data = fftshift(fft(obj.Data.fids,[],1),1);                                         % Get data matrix
     fit = obj.Model{step}.fit.fit;                                                      % Get fit matrix
+    fitGap = obj.Options{step}.gap; 
     residual = obj.Model{step}.fit.residual;                                            % Get residual matrix           
     baseline = obj.Model{step}.fit.baseline;                                            % Get baseline matrix
     metabs = obj.Model{step}.fit.metabs;                                                % Get metabolite matrix
@@ -64,6 +65,10 @@ function plotFit(obj,step,secDim, plotRange)
             nexttile                                                                    % Initialize new tile
             hold;                                                                       % Hold plot becuase we want to see all results
             for rr = 1:size(metabs,2)                                                   % Loop over basis functions
+                if ~isempty(fitGap)
+                   [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
+                   metabs(GapindMin:GapindMax,rr,secDim) = Inf;
+                end
                 if rr < MMind(1)                                                        % Plot metabolite basis functions
                     plot(ppm, real(metabs(:,rr,secDim)) - shift/3,...
                         'Color', [110/255 136/255 164/255]);
@@ -72,6 +77,13 @@ function plotFit(obj,step,secDim, plotRange)
                         'Color', [110/255 136/255 164/255]);
                 end
             end                                                                         % End loop over basis functions
+            if ~isempty(fitGap)                                                         % introduce the gap if it egsits 
+                 [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
+                 residual(GapindMin:GapindMax,secDim) = Inf;
+                 fit(GapindMin:GapindMax,secDim) = Inf;
+                 baseline(GapindMin:GapindMax,secDim) = Inf;
+            end
+            
             plot(ppm, real(data(:,secDim)), ...                                         % Plot data                              
                 'Color', [11/255 71/255 111/255]);
             plot(ppm, real(residual(:,secDim)) + shift, ...                             % Plot residual
@@ -89,6 +101,10 @@ function plotFit(obj,step,secDim, plotRange)
         shift = max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...        % Calculate shift for residual and individual basis functions
             min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:)))));    
         for rr = 1:size(metabs,2)                                                       % Loop over basis functions
+            if ~isempty(fitGap)
+                   [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
+                   metabs(GapindMin:GapindMax,rr,secDim) = Inf;
+            end
             if rr < MMind(1)                                                            % Plot metabolite basis functions
                     plot(ppm, real(metabs(:,rr,secDim)) - shift/3, ...
                         'Color', [110/255 136/255 164/255]);
@@ -97,6 +113,14 @@ function plotFit(obj,step,secDim, plotRange)
                     'Color', [110/255 136/255 164/255]);
             end
         end                                                                             % End loop over basis functions
+        
+        if ~isempty(fitGap)                                                             % introduce the gap if it egsits 
+                 [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
+                 residual(GapindMin:GapindMax,secDim) = Inf;
+                 fit(GapindMin:GapindMax,secDim) = Inf;
+                 baseline(GapindMin:GapindMax,secDim) = Inf;
+        end
+        
         plot(ppm, real(data(:,secDim)), ...                                             % Plot data 
             'Color', [11/255 71/255 111/255]);
         plot(ppm, real(residual(:,secDim)) + shift, ...                                 % Plot residual

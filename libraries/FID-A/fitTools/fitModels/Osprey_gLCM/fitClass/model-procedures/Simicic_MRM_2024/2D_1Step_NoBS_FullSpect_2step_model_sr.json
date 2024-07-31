@@ -1,0 +1,87 @@
+{
+  "basisset": {
+    "file": [
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''slaser'',''30'',''basis_philips_slaser30.mat''))"
+    ],
+    "opts":{
+      "repeat": 64
+    }
+  },
+  "Steps": [{
+		"module": "Model",
+		"ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+		"extra": {
+		  "flag": 1,
+		  "DynamicModelJson": "/Volumes/Samsung/working/GenerateSpectra_Code/model_2step/2D_reduce_dims_model_FullSpect_step1_sr.json"
+		},
+		"basisset": {
+		  "spec": 1,
+		  "include": [
+		  "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+			  "NAAG","PCh","PCr","PE","sI","Tau","MM_SLASER_PCC"
+		  ]
+		},
+		"fit_opts": {
+		  "optimFreqFitRange": [
+			0.5,
+			4
+		  ],
+		  "gap": [],
+		  "optimDomain": "FD",
+		  "optimSignalPart": "R",
+		  "baseline": {
+			"type": "none"
+		  },
+		  "solver": "lsqnonlin"
+		},
+		"parameter": [
+		  "ph0",
+		  "ph1",
+		  "GlobFreqShift",
+		  "gaussLB",
+		  "lorentzLB",
+		  "freqShift",
+		  "metAmpl",
+		  "baseAmpl"
+		]
+	  },
+	  {
+		"module": "Model",
+		"ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+		"extra": {
+		  "flag": 1,
+		  "DynamicModelJson": "/Volumes/Samsung/working/GenerateSpectra_Code/model_2step/2D_reduce_dims_model_FullSpect_step2_sr.json"
+		},
+		"basisset": {
+		  "spec": 1,
+		  "include": [
+		  "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+			  "NAAG","PCh","PCr","PE","sI","Tau","MM_SLASER_PCC"
+		  ]
+		},
+		"fit_opts": {
+		  "optimFreqFitRange": [
+			0.5,
+			4
+		  ],
+		  "gap": [],
+		  "optimDomain": "FD",
+		  "optimSignalPart": "R",
+		  "baseline": {
+			"type": "none"
+		  },
+		  "solver": "lsqnonlin"
+		},
+		"parameter": [
+		  "ph0",
+		  "ph1",
+		  "GlobFreqShift",
+		  "gaussLB",
+		  "lorentzLB",
+		  "freqShift",
+		  "metAmpl",
+		  "baseAmpl"
+		]
+	  }
+	]
+}

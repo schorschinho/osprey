@@ -52,7 +52,7 @@ end
 end
 %% Define the number of parameters per spectrum and per indirect dimension for the parameter
 switch parameter                            % Switch with parameter names
-    case {'ph0', 'ph1', 'gaussLB'}
+    case {'ph0', 'ph1', 'gaussLB', 'GlobFreqShift'}
         % one parameter per spectrum
         nParamsPerSpec = 1;
     case {'metAmpl', 'freqShift', 'lorentzLB'}
@@ -183,6 +183,19 @@ switch parameter                                            % Parameter switch w
         parametrizations.gr      = [];
         parametrizations.sc      = [];
 
+     case 'GlobFreqShift'
+        % Initialize frequency shifts as constant with value 0 Hz
+        parametrizations.fun     = 'free';
+        parametrizations.gradfun = 'free';
+        parametrizations.lb      = -10;
+        parametrizations.ub      = 10;
+        parametrizations.init    = 0;
+        parametrizations.ex      = 0;
+        parametrizations.sd      = Inf;
+        parametrizations.RegFun  = '';
+        parametrizations.gr      = [];
+        parametrizations.sc      = [];
+
     case 'gaussLB'
         % Initialize Gaussian LB as constant with value [0.04 *
         % hz/ppm]
@@ -255,6 +268,8 @@ switch parameter                                            % Parameter switch w
         parametrizations.modulator = [1:1:size(obj.Data.fids,2)];
         parametrizations.name   = 'independentVariable';
         parametrizations.RegFun    = '';
+        parametrizations.gr      = [];
+        parametrizations.sc      = [];
 
     otherwise
         % Initialize as free parameter

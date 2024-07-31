@@ -38,6 +38,14 @@
         "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
       ],
       "parametrizations": {
+          "lorentzLB": {
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau"]}
+        },
+        "freqShift": {
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau"]}
+        },
         "baseAmpl": {
           "RegFun": "SecondDerivative"
         }
@@ -63,7 +71,7 @@
         "include": [
           "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
-          "Lip09","Lip13a","Lip13b","Lip20"
+          "Lip09","Lip13a","Lip13b","Lip13c","Lip13d","Lip20"
         ]
       },
       "fit_opts": {
@@ -129,7 +137,10 @@
           ],
           "lb": [
             "Step 1"
-          ]
+          ],
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
+          "Lip09","Lip13a","Lip13b","Lip13c","Lip13d","Lip20"]}
         },
         "freqShift": {
           "init": [
@@ -140,7 +151,10 @@
           ],
           "lb": [
             "Step 1"
-          ]
+          ],
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
+          "Lip09","Lip13a","Lip13b","Lip13c","Lip13d","Lip20"]}
         }
       },
       "regularizer": {
@@ -163,7 +177,7 @@
         "include": [
           "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
-          "Lip09","Lip13a","Lip13b","Lip20"
+          "Lip09","Lip13a","Lip13b","Lip13c","Lip13d","Lip20"
         ]
       },
       "fit_opts": {
