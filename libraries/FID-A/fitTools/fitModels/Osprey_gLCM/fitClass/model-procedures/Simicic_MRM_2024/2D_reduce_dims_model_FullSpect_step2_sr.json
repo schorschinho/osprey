@@ -1,0 +1,52 @@
+{
+  "parameters": {
+  "ph0": {
+	  "type": "free",
+      "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+    },
+  "ph1": {
+      "type": "fixed",
+       "ub": 0,
+       "lb": 0
+    },
+  "GlobFreqShift": {
+      "type": "free",
+	  "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+    },
+  "gaussLB": {
+      "type": "fixed",
+      "init": 9.70
+    },
+  "baseAmpl": {
+      "type": "fixed"
+    },
+  "metAmpl": {
+      "type": "fixed"
+    },
+  "freqShift": {
+      "type": "fixed",
+      "ub": 62.8,
+       "lb": -62.8
+    },
+  "lorentzLB": {
+      "type": "fixed",
+      "init": 2.4238
+    }
+  }
+}
