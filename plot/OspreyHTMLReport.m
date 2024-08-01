@@ -1012,7 +1012,7 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
 end
 fprintf(fid,'\n\t</div>');
 fprintf(fid,'\n\t<div class="column3">');
-if MRSCont.flags.didSeg && isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
+if MRSCont.flags.didSeg && isfield(MRSCont.seg, 'img') && isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
     if table2array(MRSCont.seg.tables_Voxel_1(kk,4)) < 0.4
         fprintf(fid,'\n<p style="color:red;"><b>fThalamus in voxel [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,4))*100);
     else
@@ -1254,7 +1254,7 @@ if MRSCont.flags.didSeg
     fprintf(fid,'\n\t<div class="column3">');
     fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_mask.jpg']));
     fprintf(fid,'\n\t</div>');
-    if isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
+    if isfield(MRSCont.seg, 'img') && isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
         fprintf(fid,'\n\t<div class="column3">');
         fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_CoM.jpg']));
         fprintf(fid,'\n\t</div>');        

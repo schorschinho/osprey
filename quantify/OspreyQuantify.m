@@ -132,16 +132,6 @@ for ss = 1 : SubSpectraFitted
                 end
             end
         end
-    else
-        MRSCont.quantify.names.metab{1,ss} = MRSCont.fit.results.metab.fitParams{1, 1, ss}.name;
-        common_LCModelNames = {'PCh_GPC','Cr_PCr','NAA_NAAG','Glu_Gln','GABA_MM30','GABA_MM09'};
-        Osprey_Names = {'tCho','tCr','tNAA','Glx','GABAplus','GABAplus'};
-        for nn = 1 : length(common_LCModelNames)
-            idx  = find(strcmp(MRSCont.quantify.names.metab{1,ss},common_LCModelNames{nn}));
-            if ~isempty(idx)
-                MRSCont.quantify.names.metab{1,ss}{idx} = Osprey_Names{nn};
-            end
-        end
     else if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM') % For the new gLCM
             obj = MRSCont.fit.metab{1, 1};
             basisSet = obj.BasisSets;
@@ -149,8 +139,20 @@ for ss = 1 : SubSpectraFitted
             MRSCont.quantify.names.SubSpectra{1,1} = 'A';            
     else
         
-            MRSCont.quantify.names.metab{1,1} = MRSCont.fit.results.metab.fitParams{1, 1}.name;
-            MRSCont.quantify.names.SubSpectra{1,1} = MRSCont.processed.metab{1, 1}.names{1};
+            MRSCont.quantify.names.metab{1,ss} = MRSCont.fit.results.metab.fitParams{1, 1, ss}.name;
+            common_LCModelNames = {'PCh_GPC','Cr_PCr','NAA_NAAG','Glu_Gln','GABA_MM30','GABA_MM09'};
+            Osprey_Names = {'tCho','tCr','tNAA','Glx','GABAplus','GABAplus'};
+            for nn = 1 : length(common_LCModelNames)
+                idx  = find(strcmp(MRSCont.quantify.names.metab{1,ss},common_LCModelNames{nn}));
+                if ~isempty(idx)
+                    MRSCont.quantify.names.metab{1,ss}{idx} = Osprey_Names{nn};
+                end
+            end
+            if ss == 1
+            MRSCont.quantify.names.SubSpectra{1,ss} = MRSCont.processed.metab{1, 1}.names{1};
+            else
+                MRSCont.quantify.names.SubSpectra{1,ss} = MRSCont.processed.metab{1, 1}.names{3};
+            end
         end
     end
 end
@@ -1128,7 +1130,7 @@ if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWate
         try
             subspecs = size(MRSCont.fit.results.metab.fitParams,3);
             mmmodels = size(MRSCont.fit.results.metab.fitParams,1);
-            voxels = size(MRSCont.quantify.(qtfyType){1,1,1}.metab,2)
+            voxels = size(MRSCont.quantify.(qtfyType){1,1,1}.metab,2);
         catch
             subspecs = 1;
             mmmodels = 1;
@@ -1147,7 +1149,7 @@ if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWate
 
                         for kk = 1:MRSCont.nDatasets(1)
                             if (strcmp(qtfyType, 'h2oarea') || strcmp(qtfyType, 'CRLB'))
-                                conc(kk,:) = MRSCont.quantify.(qtfyType){kk}.metab(:,rr);
+                                conc(kk,:) = MRSCont.quantify.(qtfyType){mm,kk,ss}.metab(:,rr);
                             else
                                 conc(kk,:) = MRSCont.quantify.(qtfyType){mm,kk,ss}.metab(:,rr)';
                             end
