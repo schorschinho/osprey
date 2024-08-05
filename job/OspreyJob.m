@@ -211,6 +211,16 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Adding macromolecule and lipid basis functions to the fit (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.fitMM = 1;
     end
+    if isfield(jobStruct,'RelaxationAtlas')
+        MRSCont.opts.quantify.RelaxationAtlas = jobStruct(1).RelaxationAtlas;
+    else
+        MRSCont.opts.quantify.RelaxationAtlas = 0;
+    end
+    if isfield(jobStruct,'RelaxationAtlasAge')
+        MRSCont.opts.quantify.RelaxationAtlasAge = jobStruct(1).RelaxationAtlasAge;
+    else
+        MRSCont.opts.quantify.RelaxationAtlasAge = 0;
+    end
     if isfield(jobStruct,'deface')
         MRSCont.opts.img.deface = jobStruct.deface;
     else
@@ -397,6 +407,16 @@ if strcmp(jobFileFormat,'json')
         MRSCont.opts.fit.fitMM = str2num(jobStruct.fitMM);
     else
         MRSCont.opts.fit.fitMM = 1;
+    end
+    if isfield(jobStruct,'RelaxationAtlas')
+        MRSCont.opts.quantify.RelaxationAtlas = jobStruct.RelaxationAtlas;
+    else
+        MRSCont.opts.quantify.RelaxationAtlas = 0;
+    end
+    if isfield(jobStruct,'RelaxationAtlasAge')
+        MRSCont.opts.quantify.RelaxationAtlasAge = jobStruct.RelaxationAtlasAge;
+    else
+        MRSCont.opts.quantify.RelaxationAtlasAge = 0;
     end
     if isfield(jobStruct,'basisSet')
         if isfolder(jobStruct.basisSet)
