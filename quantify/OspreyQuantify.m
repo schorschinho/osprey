@@ -113,7 +113,7 @@ if ~exist(saveDestination,'dir')
 end
 
 % Handle path to Atlas-based resources for relaxation correction 
-if isfield(MRSCont.opts.quantify, 'RelaxationAtlas') && MRSCont.opts.quantify.RelaxationAtlas && ~(ismcc || isdeployed)
+if isfield(MRSCont.opts, 'quantify') && isfield(MRSCont.opts.quantify, 'RelaxationAtlas') && MRSCont.opts.quantify.RelaxationAtlas && ~(ismcc || isdeployed)
     AtlasPath = fileparts(which('quantify/atlas/AtlasLookUpTable.mat'));
 elseif isfield(MRSCont.opts.quantify, 'RelaxationAtlas') && MRSCont.opts.quantify.RelaxationAtlas && (ismcc || isdeployed)
     AtlasPath  = spm_select(1,'dir','Select the folder that contains the relaxometry atlas resources ("quantify/atlas")',{},pwd);
