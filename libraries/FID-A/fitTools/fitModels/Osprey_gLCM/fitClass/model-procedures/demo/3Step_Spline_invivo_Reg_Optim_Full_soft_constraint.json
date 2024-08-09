@@ -4,6 +4,9 @@
     "NoZerofill": 0
     },
     "basisset": {
+    "file": [
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''35'',''basis_philips_press35.mat''))"
+    ],
     "mmdef": [
       "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"  
     ]

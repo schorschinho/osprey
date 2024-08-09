@@ -62,7 +62,7 @@ end
 S = orderfields(MRSCont.fit.results,OrderNamesFit);
 FitSpecNames = fieldnames(S)';
 NoFitSpecNames = length(FitSpecNames);
-if ~strcmp(MRSCont.opts.fit.method,'LCModel')
+if strcmp(MRSCont.opts.fit.method,'Osprey')
     for sf = 1 : NoFitSpecNames
         for sn = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}).fitParams,3)
             for sb = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}).fitParams,1)
@@ -76,10 +76,23 @@ if ~strcmp(MRSCont.opts.fit.method,'LCModel')
             end
         end
     end
-else
-    FitSpecNamesStruct.(FitSpecNames{1}){1} = 'A';
-    if MRSCont.flags.isMEGA
-        FitSpecNamesStruct.(FitSpecNames{1}){2} = 'diff1';
+else if strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
+        for sf = 1 : NoFitSpecNames
+            for sn = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),2)
+                for sb = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),3)
+                    if ~(strcmp(FitSpecNames{sf},'ref') ||strcmp(FitSpecNames{sf},'w'))     
+                        FitSpecNamesStruct.(FitSpecNames{sf}){sb,sn} = MRSCont.fit.results.(FitSpecNames{sf}){1, sn, sb}.Data.spec_name;
+                    else
+                        FitSpecNamesStruct.(FitSpecNames{sf}){1} = FitSpecNames{sf};
+                    end
+                end
+            end
+        end
+    else
+        FitSpecNamesStruct.(FitSpecNames{1}){1} = 'A';
+        if MRSCont.flags.isMEGA
+            FitSpecNamesStruct.(FitSpecNames{1}){2} = 'diff1';
+        end
     end
 end
 
@@ -153,9 +166,11 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                         % Get the LCModel plots we previously extracted from .coord
                         % etc.
                         [ModelOutput] = fit_LCModelParamsToModel(fitParams);
+                    case 'Osprey_gLCM'
+                        MRSCont.QM.relAmpl.([FitSpecNames{ss} '_' FitSpecNamesStruct.(FitSpecNames{ss}){1,sf}])(bf,kk) = MRSCont.fit.results.(FitSpecNames{ss}){kk, sf, bf}.Model{end}.fitQAnumber;
     
                     end
-                    if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') % metabolite only 
+                    if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') && ~strcmp(MRSCont.opts.fit.method,'Osprey_gLCM') % metabolite only 
                         %NOW FIND THE STANDARD DEVIATION OF THE NOISE:
                         noisewindow=dataToPlot.specs(dataToPlot.ppm>-2 & dataToPlot.ppm<0)./MRSCont.fit.scale{kk};
                         ppmwindow2=dataToPlot.ppm(dataToPlot.ppm>-2 & dataToPlot.ppm<0)';

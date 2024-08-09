@@ -1,0 +1,58 @@
+{
+"Steps": [
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "H2O"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          2.0,
+          7.4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "none"
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0",
+        "ph1",
+        "gaussLB",
+        "lorentzLB",
+        "freqShift",
+        "metAmpl",
+        "baseAmpl"
+      ],
+      "parametrizations": {
+        "gaussLB": {
+          "init": 0,
+          "lb": 0,
+          "ub": 5000,
+          "sd": "Inf"
+
+        },
+        "lorentzLB": {
+          "init": 2.4497,
+          "lb": 0,
+          "ub": 50
+        },
+        "freqShift": {
+          "init": 0,
+          "lb": -25,
+          "ub": 25
+        }
+    }
+  }
+  ]
+}

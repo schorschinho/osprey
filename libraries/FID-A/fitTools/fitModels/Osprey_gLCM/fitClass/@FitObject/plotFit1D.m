@@ -1,4 +1,4 @@
-function plotFit1D(obj,step,secDim, plotRange)
+function plotFit1D(obj,newFigure, step,secDim, plotRange)
 %%  plotFit1D(obj,step,secDim, plotRange)
 %   This method generates a plot from the fit object.
 %
@@ -25,12 +25,18 @@ function plotFit1D(obj,step,secDim, plotRange)
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %%  Diverge to default options if required 
 
-    if nargin < 4
-        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range      
+    if nargin < 5
         if nargin < 3
+            step = obj.step;                                    % Set to last step
+        end
+        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range      
+        if nargin < 4
             secDim = 1;                                             % Set second dimensions to plot
-            if nargin < 2
+            if nargin < 3
                 step = obj.step;                                    % Set to last step
+                if nargin < 2
+                    newFigure = 1;                                  % create new figure
+                end
             end
         end
     end
@@ -51,8 +57,9 @@ function plotFit1D(obj,step,secDim, plotRange)
     end
 
 %%  Generate figure
-
-    figure                                                                              % Initialize figure
+    if newFigure
+        figure                                                                     % Initialize figure
+    end
     if size(data,2) > 1 && isempty(secDim)                                              % 2D fit and no user provided indirect dimension index = generate a tiled plot
         plotMat = round(sqrt(size(data,2)));                                            % Set dimensions of tiledlayout                                            
         tiledlayout(plotMat,plotMat)                                                    % Initialize tiledlayout
@@ -126,11 +133,14 @@ function plotFit1D(obj,step,secDim, plotRange)
         plot(ppm, real(residual(:,secDim)) + shift, ...                                 % Plot residual
             'Color', [11/255 71/255 111/255]);
         plot(ppm, real(fit(:,secDim)), ...                                              % Plot fit
-            'Color',[254/255 186/255 47/255], 'LineWidth', 0.1);
+            'Color',[254/255 186/255 47/255], 'LineWidth', 1);
         plot(ppm, real(baseline(:,secDim)), ...                                         % Plot baseline
-            'Color', [11/255 71/255 111/255], 'LineWidth', 0.1);
+            'Color', [11/255 71/255 111/255], 'LineWidth', 1);
         hold off;
-        set(gca, 'XDir', 'reverse', 'XLim', plotRange);                                 % Clean appearance
+        set(gca, 'XDir', 'reverse', 'XLim', plotRange,...
+            'LineWidth', 1, 'TickDir', 'out',...
+            'YTickLabel',{},'YTick',{},...
+            'XColor', [11/255 71/255 111/255]);                                 % Clean appearance
         xlabel('chemical shift (ppm)');
     end
 end

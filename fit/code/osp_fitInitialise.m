@@ -195,7 +195,14 @@ end
 % Osprey, or whether we are wrapping the LCModel binaries.
 switch MRSCont.opts.fit.method
     
-    % ------ OPTION OSPREY -----
+    % ------ OPTION OSPREY gLCM-----
+    case 'Osprey_gLCM'
+        
+        % Load the specified basis set or the user basis set file
+        basisSet = MRSCont.opts.fit.basisSetFile;
+         % Save the modified basis set
+        MRSCont.fit.basisSet = basisSet;
+    % ------ OPTION OSPREY -----    
     case 'Osprey'
         
         % Load the specified basis set or the user basis set file

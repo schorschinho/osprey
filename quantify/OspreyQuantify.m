@@ -133,7 +133,7 @@ for ss = 1 : SubSpectraFitted
             end
         end
     else if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM') % For the new gLCM
-            obj = MRSCont.fit.metab{1, 1};
+            obj = MRSCont.fit.results.metab{1, 1};
             basisSet = obj.BasisSets;
             MRSCont.quantify.names.metab{1,1} = basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)));
             MRSCont.quantify.names.SubSpectra{1,1} = 'A';            
@@ -177,8 +177,8 @@ else
         for kk = 1:MRSCont.nDatasets(1)
             for mm = 1 : BasisSetsFitted
                 if ~isempty(MRSCont.quantify.names.metab{mm,ss})
-                        MRSCont.quantify.amplMets{mm,kk,ss}.metab = MRSCont.fit.metab{kk}.Model{MRSCont.fit.metab{kk}.step}.parsOut.metAmpl';
-                        MRSCont.quantify.CRLB{mm,kk,ss}.metab = table2array(MRSCont.fit.metab{kk}.Model{MRSCont.fit.metab{kk}.step}.CRLB)';
+                        MRSCont.quantify.amplMets{mm,kk,ss}.metab = MRSCont.fit.results.metab{kk}.Model{MRSCont.fit.results.metab{kk}.step}.parsOut.metAmpl';
+                        MRSCont.quantify.CRLB{mm,kk,ss}.metab = table2array(MRSCont.fit.results.metab{kk}.Model{MRSCont.fit.results.metab{kk}.step}.CRLB)';
                 end
             end
         end
@@ -258,7 +258,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 amplWater(:,2) = MRSCont.fit.results{2}.(waterType).fitParams{kk}.ampl;
             end
         else if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
-                amplWater = MRSCont.fit.(waterType){kk}.Model{1}.parsOut.metAmpl;
+                amplWater = MRSCont.fit.results.(waterType){kk}.Model{1}.parsOut.metAmpl;
         else
             
                 % Get WCONC, ATTMET, and ATTH2O from control file

@@ -371,7 +371,7 @@ function obj = createModel(obj)
     end
 
 
-%% Calculate AICs
+%% Calculate AICs & Fit quality number
 
     % Generate sum-of-squares for final model
     % Baseline model is 'residual' have a different residual vector
@@ -402,4 +402,5 @@ function obj = createModel(obj)
     obj.Model{obj.step}.AIC     = - 2 * n * log(sigma) - 2*p;                   % AIC
     obj.Model{obj.step}.AIC_c   = - 2 * n * log(sigma) - 2*(p+1)*(n/(n-p-2));   % AIC_c
     obj.Model{obj.step}.BIC     = - 2 * n * log(sigma) - log(n)*p;              % BIC
+    obj.Model{obj.step}.fitQAnumber =  sos/length(res);
 end

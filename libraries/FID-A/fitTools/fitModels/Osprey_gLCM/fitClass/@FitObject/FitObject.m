@@ -33,7 +33,8 @@ classdef FitObject < handle
                       'txfrq', [], ...                                      % Initialize receiver frequency
                       't', [], ...                                          % Initialize time vector
                       'ppm', [], ...                                        % Initialize frequency axis in ppm
-                      'nucleus', []);                                       % Initialize nucleus string, e.g. '1H'
+                      'nucleus', [],...                                     % Initialize nucleus string, e.g. '1H'
+                      'spec_name', []);                                     % Initialize spectra string, e.g. 'diff1'                                    
         BasisSets = struct('fids', [], ...                                  % Initialize time domain basis functions
                            'names', [], ...                                 % Initialize basis function names
                            'includeInFit', []);                             % Initialize index vector of basis functions to be included
@@ -61,6 +62,7 @@ classdef FitObject < handle
                 obj.Data.txfrq           = data.txfrq(1);                   % Set receiver frequency of first extra entry
                 obj.Data.t               = data.t;                          % Set time vector
                 obj.Data.nucleus         = data.nucleus;                    % Set nucleus string
+                obj.Data.spec_name        = data.names{1};                   % Set spectra string
                 [obj.NoiseSD.FD,obj.NoiseSD.TD] = osp_gLCM_getNoiseSD(data);   % Estimate noise standard deviation frequency/time domain
                 nptsData        = size(data.fids, 1);                       % Get number of datapoints
                 obj.Data.ppm    = calculatePPMAxis(nptsData, data.spectralwidth(1), data.txfrq(1), data.nucleus);   % Create frequency axis in ppm

@@ -222,10 +222,16 @@ classdef OspreyGUI < handle
                     gui.fit.Number = length(fieldnames(MRSCont.fit.results{1}));
                 else
                     gui.fit.Names = fieldnames(MRSCont.fit.results);
-                    gui.fit.Number = length(fieldnames(MRSCont.fit.results)); 
-                    gui.controls.act_y = size(MRSCont.fit.results.metab.fitParams,3);
-                    gui.info.nYvoxels = size(MRSCont.fit.results.metab.fitParams,3);
-                    gui.info.nZvoxels = size(MRSCont.fit.results.metab.fitParams,1);
+                    gui.fit.Number = length(fieldnames(MRSCont.fit.results));
+                    if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                        gui.controls.act_y = size(MRSCont.fit.results.metab.fitParams,3);
+                        gui.info.nYvoxels = size(MRSCont.fit.results.metab.fitParams,3);
+                        gui.info.nZvoxels = size(MRSCont.fit.results.metab.fitParams,1);
+                    else
+                        gui.controls.act_y = size(MRSCont.fit.results.metab,3);
+                        gui.info.nYvoxels = size(MRSCont.fit.results.metab,3);
+                        gui.info.nZvoxels = size(MRSCont.fit.results.metab,1);
+                    end
                 end
             end
 
@@ -363,7 +369,12 @@ classdef OspreyGUI < handle
         % Fit button
             gui.layout.b_fit = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Model data','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_fit,'Units','Normalized','Position',[0.1 0.67 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','FitButton');
-            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= length(MRSCont.fit.scale)))
+            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                finished_data = length(MRSCont.fit.scale);
+            else
+                finished_data = size(MRSCont.fit.results.metab,1);
+            end
+            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= finished_data))
                 gui.layout.b_fit.Enable = 'off';
             else if ~(MRSCont.flags.didProcess == 1  && isfield(MRSCont, 'raw') && (gui.controls.nDatasets(1) >= sz_raw(end)))
                     gui.layout.b_fit.Enable = 'off';
@@ -492,7 +503,7 @@ classdef OspreyGUI < handle
             gui.layout.tabs.TabTitles  = {'Raw', 'Processed', 'LC model', 'Cor/Seg', 'Quantified','Overview'};
             gui.layout.tabs.TabWidth   = 115;
             gui.layout.tabs.Selection  = 1;
-            gui.layout.tabs.TabEnables = {'off', 'off', 'off', 'off', 'off', 'off'};
+            gui.layout.tabs.TabEnables = {'off', 'off', 'on', 'off', 'off', 'off'};
             set( gui.layout.mainLayout, 'Widths', [-0.2  -0.8] );
             gui.layout.EmptydataPlot = 0;
         %% Here we create the inital setup of the tabs
@@ -521,7 +532,12 @@ classdef OspreyGUI < handle
                 set(gui.layout.tabs, 'Visible','off');
             end
             waitbar(gui.waitbar.step*2,gui.controls.waitbar,'Loading your fits');
-            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= length(MRSCont.fit.scale)) ) % Has data fitting been run?
+            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                finished_data = length(MRSCont.fit.scale);
+            else
+                finished_data = size(MRSCont.fit.results.metab,1);
+            end
+            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= finished_data))
                 osp_iniFitWindow(gui);
                 set(gui.controls.b_save_fitTab{gui.load.Selected},'Callback',{@osp_onPrint,gui});
             end
@@ -535,7 +551,7 @@ classdef OspreyGUI < handle
                 osp_iniQuantifyWindow(gui);
             end
             waitbar(gui.waitbar.step*7,gui.controls.waitbar,'Loading your overview');
-            if MRSCont.flags.didOverview && (isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= length(MRSCont.fit.scale))) % Has data fitting been run?
+            if MRSCont.flags.didOverview && (isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= finished_data)) % Has data fitting been run?
                 osp_iniOverviewWindow(gui);
                 set(gui.layout.overviewTab, 'SelectionChangedFcn',{@osp_OverviewTabChangedFcn,gui});
                 set(gui.controls.pop_specsOvPlot,'callback',{@osp_pop_specsOvPlot_Call,gui});

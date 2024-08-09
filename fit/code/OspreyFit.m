@@ -115,8 +115,67 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
 
     MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
 
-else
-    MRSCont.runtime.Fit =  MRSCont.runtime.FitMet;
+else if strcmpi(MRSCont.opts.fit.method, 'Osprey_gLCM')
+    % Read model procedure 
+    ModelProcedure = jsonToStruct(MRSCont.opts.fit.ModelProcedure.ref{1});
+    if isstruct(ModelProcedure.Steps)
+        ModelProcedureCell = cell(size(ModelProcedure.Steps));
+        for ss = 1 : size(ModelProcedure.Steps,1)
+            ModelProcedureCell{ss} = ModelProcedure.Steps(ss,:);
+        end
+        ModelProcedure.Steps = ModelProcedureCell;
+    end
+    if ~isfield(ModelProcedure,'basisset') || ~isfield(ModelProcedure.basisset, 'file') || ... 
+        isempty(ModelProcedure.basisset.file)
+        ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
+    end
+    % If water reference exists, fit it
+    if MRSCont.flags.hasRef
+        refFitTime = tic;
+        % Loop over all the datasets here
+        if isfield(MRSCont.fit.results.metab{1}, 'scale')
+            scale = [];
+            for kk = 1:MRSCont.nDatasets(1)
+                scale = [scale MRSCont.fit.results.metab{kk}.scale];
+            end
+        else
+            scale = 0;
+        end      
+        [MRSCont.fit.results.ref] = Osprey_gLCM(MRSCont.processed.ref,ModelProcedure,0,0,scale);
+        time = toc(refFitTime);
+        if MRSCont.flags.isGUI
+            set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
+            pause(1);
+        end
+        fprintf('... done.\n Elapsed time %f seconds\n',time);
+        MRSCont.runtime.FitRef = time;
+        MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
+    end
+
+    % If short TE water reference exists, fit it
+    if MRSCont.flags.hasWater
+        waterFitTime = tic;
+        % Loop over all the datasets here
+        if isfield(MRSCont.fit.results.metab{1}, 'scale')
+            scale = [];
+            for kk = 1:MRSCont.nDatasets(1)
+                scale = [scale MRSCont.fit.results.metab{kk}.scale];
+            end
+        else
+            scale = 0;
+        end      
+        [MRSCont.fit.results.w] = Osprey_gLCM(MRSCont.processed.w,ModelProcedure,0,0,scale);
+        time = toc(waterFitTime);
+        fprintf('... done.\n Elapsed time %f seconds\n',time);
+        MRSCont.runtime.FitWater = time;
+        MRSCont.runtime.Fit = MRSCont.runtime.Fit + time;
+    end
+
+    MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
+
+    else
+        MRSCont.runtime.Fit =  MRSCont.runtime.FitMet;
+    end
 end
 [~] = printLog('Fulldone',MRSCont.runtime.Fit,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 

@@ -19,7 +19,7 @@ arguments
     JsonModelFile {isCharOrStruct}
     average double {mustBeNumeric} = 0;             % optional
     noZF double {mustBeNumeric} = 0;                % optional
-    scaleData double {mustBeNumeric} = 0;           % optional
+    scaleData double {mustBeNumeric} = 1;           % optional
     NumericJacobian double {mustBeNumeric} = 0;     % optional
     CheckGradient double {mustBeNumeric} = 0;       % optional
     BasisSetStruct struct = [];                     % optional
@@ -62,6 +62,28 @@ if ~isstruct(JsonModelFile)                                                   %P
     end
 else
     ModelProcedure  = JsonModelFile;
+end
+
+% Global options
+if isfield(ModelProcedure,'options')
+    if isfield(ModelProcedure.options,'AverageAlongExtra')
+        average = ModelProcedure.options.AverageAlongExtra; 
+    end
+    if isfield(ModelProcedure.options,'NoZerofill')
+        noZF = ModelProcedure.options.NoZerofill;  
+    end
+    if isfield(ModelProcedure.options,'scaleData')
+        scaleData = ModelProcedure.options.scaleData;  
+    end
+    if isfield(ModelProcedure.options,'NumericJacobian')
+        NumericJacobian = ModelProcedure.options.NumericJacobian;  
+    end
+    if isfield(ModelProcedure.options,'CheckGradient')
+        CheckGradient = ModelProcedure.options.CheckGradient;  
+    end
+    if isfield(ModelProcedure.options,'BasisSetStruct')
+        BasisSetStruct = ModelProcedure.options.BasisSetStruct;  
+    end
 end
 
 % Check if the R part is used for optimization and a factor 2 zerofilling
@@ -189,10 +211,10 @@ for kk = 1 : length(DataToModel)
 
     if DoDataScaling == 2
         DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                     % apply scale to data 
-    else if DoDataScaling == 1 && average == 1
+    else if DoDataScaling == 1 && average == 0
          scaleData(kk) = max(real(DataToModel{kk}.specs)) / max(max(max(real(basisSet.specs))));
          DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                    % apply scale to data
-    else if DoDataScaling == 1 && average == 0
+    else if DoDataScaling == 1 && average == 1
               temp                = DataToModel{kk};                                              % Average so you can calculate scale
               if temp.dims.averages == 0
                   temp.dims.averages = ndims(temp.sz);

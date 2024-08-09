@@ -96,6 +96,8 @@ end
 switch fitMethod
     case 'Osprey'
         colorFit  = MRSCont.colormap.Accent;
+    case 'Osprey_gLCM'
+        colorFit  = [254/255 186/255 47/255];
     case 'LCModel'
         colorFit  = 'r';
 end

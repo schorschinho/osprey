@@ -69,7 +69,11 @@ fprintf(fid,'\n \n');
 %% 2. Acquisition part
 fprintf(fid,'|2. Acquisition|  | \n');
 fprintf(fid,'|--|--| \n');
-fprintf(fid,'|a. Pulse sequence | %s| \n', MRSCont.fit.basisSet.seq{1}); % Here we need something for cases without fitting was done
+try
+    fprintf(fid,'|a. Pulse sequence | %s| \n', MRSCont.fit.basisSet.seq{1}); % Here we need something for cases without fitting was done
+catch
+    fprintf(fid,'|a. Pulse sequence | %s| \n', MRSCont.processed.metab{1, 1}.seq);    
+end
 fprintf(fid,'|b. Volume of interest (VOI) locations | %s| \n', '-');
 if isfield(MRSCont.raw{1}, 'geometry')
     dim_names = fieldnames(MRSCont.raw{1}.geometry.size);

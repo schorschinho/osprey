@@ -1,9 +1,8 @@
 {
-  "options":{
-    "AverageAlongExtra": 0,
-    "NoZerofill": 0
-    },
-    "basisset": {
+  "basisset": {
+    "file": [
+      "which(fullfile(''fit'',''basissets'',''3T'',''siemens'',''unedited'',''press'',''35'',''basis_siemens_press35.mat''))"
+    ],
     "mmdef": [
       "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"  
     ]
@@ -39,6 +38,14 @@
         "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
       ],
       "parametrizations": {
+          "lorentzLB": {
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau"]}
+        },
+        "freqShift": {
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau"]}
+        },
         "baseAmpl": {
           "RegFun": "SecondDerivative"
         }
@@ -130,7 +137,10 @@
           ],
           "lb": [
             "Step 1"
-          ]
+          ],
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
+          "Lip09","Lip13a","Lip13b","Lip13c","Lip13d","Lip20"]}
         },
         "freqShift": {
           "init": [
@@ -141,8 +151,21 @@
           ],
           "lb": [
             "Step 1"
-          ]
-        }
+          ],
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
+          "Lip09","Lip13a","Lip13b","Lip13c","Lip13d","Lip20"]}
+        },
+        "metAmpl": {
+            "sc":{
+                  "adj": ["Lip09","Lip20","MM20","MM12","MM14","MM17","CrCH2","NAAG"],
+                  "fix": [["Lip13a","Lip13b"],["Lip13a","Lip13b"],"MM09","MM09","MM09","MM09",["Cr","PCr"],"NAA"],
+                  "fix_factor":[[1,1],[1,1],1,1,1,1,[1,1],1],
+                  "ex": [0.267,0.15,1.5,0.3,0.75,0.375,0.1,0.15],
+                  "sd": [0.1,0.07,0.375,0.1,0.45,0.3,0.1,0.15],
+                  "fun": "ratio",
+                  "scaling": 1
+            }}
       },
       "regularizer": {
         "parameter": "baseAmpl",
@@ -187,12 +210,11 @@
       "parametrizations": {
         "metAmpl": {
             "sc":{
-                  "adj": ["Lip09","Lip20","MM20","MM12","MM14","MM17","CrCH2","Asp","GABA","sI","Tau","NAAG"],
-                  "fix": [["Lip13a","Lip13b"],["Lip13a","Lip13b"],"MM09","MM09","MM09","MM09",["Cr","PCr"],["Cr","GPC","NAA","NAAG","PCh","PCr"],
-                         ["Cr","GPC","NAA","NAAG","PCh","PCr"],["Cr","GPC","NAA","NAAG","PCh","PCr"],["Cr","GPC","NAA","NAAG","PCh","PCr"],"NAA"],
-                  "fix_factor":[[1,1],[1,1],1,1,1,1,[1,1],[1,3,1,1,3,1],[1,3,1,1,3,1],[1,3,1,1,3,1],[1,3,1,1,3,1],1],
-                  "ex": [0.267,0.15,1.5,0.3,0.75,0.375,0.1,0.05,0.04,0.02,0.04,0.15],
-                  "sd": [0.1,0.07,0.375,0.1,0.45,0.3,0.1,0.05,0.04,0.02,0.06,0.15],
+                  "adj": ["Lip09","Lip20","MM20","MM12","MM14","MM17","CrCH2","NAAG"],
+                  "fix": [["Lip13a","Lip13b"],["Lip13a","Lip13b"],"MM09","MM09","MM09","MM09",["Cr","PCr"],"NAA"],
+                  "fix_factor":[[1,1],[1,1],1,1,1,1,[1,1],1],
+                  "ex": [0.267,0.15,1.5,0.3,0.75,0.375,0.1,0.15],
+                  "sd": [0.1,0.07,0.375,0.1,0.45,0.3,0.1,0.15],
                   "fun": "ratio",
                   "scaling": 1
             }},

@@ -60,7 +60,11 @@ function gui = upper_navigate_box(gui, name,Selection,Overview)
         gui.controls.b_right_z.Enable = 'off';
 
         if ~Overview
-            buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection).fitParams,3)>1) num2str(size(MRSCont.fit.results.(Selection).fitParams,1)>1)];
+            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection).fitParams,3)>1) num2str(size(MRSCont.fit.results.(Selection).fitParams,1)>1)];
+            else
+                buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection),3)>1) num2str(size(MRSCont.fit.results.(Selection),2)>1)];
+            end
             switch buttonString
                     case '001' 
                         gui.controls.b_left_z.Enable = 'on';
@@ -96,7 +100,11 @@ function gui = upper_navigate_box(gui, name,Selection,Overview)
             end
             set( gui.controls.navigate_RawTab, 'Widths', [-20 -30 -20 -30], 'Heights', [-33 -33 -33]);
         else
-            buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection).fitParams,1)>1)];
+            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection).fitParams,1)>1) ];
+            else
+                buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection),1)>1) ];
+            end
             switch buttonString
                     case '01' 
                         gui.controls.b_left_z.Enable = 'on';

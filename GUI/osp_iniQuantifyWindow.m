@@ -84,8 +84,13 @@ if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(M
                 gui.controls.b_right_x.Enable = 'off';
                 gui.controls.b_right_y.Enable = 'off';
                 gui.controls.b_right_z.Enable = 'off';
-                
-                buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.metab.fitParams,3)>1) num2str(size(MRSCont.fit.results.metab.fitParams,1)>1)];
+  
+               if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                    buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.metab.fitParams,3)>1) num2str(size(MRSCont.fit.results.metab.fitParams,1)>1)];
+                else
+                    buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.metab,3)>1) num2str(size(MRSCont.fit.results.metab,2)>1)];
+               end
+               
                 switch buttonString
                         case '001' 
                             gui.controls.b_left_z.Enable = 'on';
