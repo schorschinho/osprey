@@ -3,35 +3,97 @@
 %Georg Oeltzschner, Johns Hopkins University 2019.
 %
 % USAGE:
-% out=io_loadspec_dicom(folder);
-% 
+% out=io_loadspec_dicom(source);
+%
 % DESCRIPTION:
 % Loads a DICOM (.dcm, .ima) file into matlab structure format.
-% 
+%
 % INPUTS:
-% filename       = Name of a folder with DICOM (.dcm, .ima) data to load.
+% source     = Name of a folder (or file) with DICOM (.dcm, .ima) data to load.
 %
 % OUTPUTS:
 % out        = Input dataset in FID-A structure format.
 
-function out=io_loadspec_dicom(folder);
+function out=io_loadspec_dicom(source);
 
-% If path to a .dcm is provided, then extract the folder location:
-if ~isfolder(folder) && isfile(folder)
-    folder =fileparts(folder);
+% ARC170724 : Source may be a folder, or an individual file. We later determine
+% how this should be interpreted.
+if ~isfolder(source) && isfile(source)
+    [folder,filename,ext] =fileparts(source);
+    requested_file=[filename ext];
+else
+    folder=source;
+    requested_file=[];
 end
 
 % Create list of complete filenames (incl. path) in the folder
 dirFolder = dir(folder);
 filesInFolder = dirFolder(~[dirFolder.isdir]);
 hidden = logical(ones(1,length(filesInFolder)));
-for jj = 1:length(filesInFolder) 
+for jj = 1:length(filesInFolder)
     if strcmp(filesInFolder(jj).name(1),'.')
         hidden(jj) = 0;
     end
 end
-filesInFolder = filesInFolder(hidden);%delete hidden files 
-filesInFolder = fullfile(folder, {filesInFolder.name});        
+filesInFolder = filesInFolder(hidden);%delete hidden files
+
+if length(filesInFolder)==0
+    % No files survived. This will not end well.
+    error([ 'io_loadspec_dicom did not find any files in ' folder ])
+end
+
+requested_file_ix=find(strcmp(requested_file,{filesInFolder.name})); % NB, may be empty
+
+if isfolder(folder)
+    filesInFolder = fullfile(folder, {filesInFolder.name});
+else
+    % this can happen if the function is called with a wildcard, eg /path/to/abc*dcm
+    filesInFolder = fullfile(dirname(folder), {filesInFolder.name});
+end
+
+% ARC170724 : If a single file is specified (rather than a directory), check
+% whether this file should be considered in isolation (pre-averaged data) or
+% if it should be combined with other items in the folder. We do this by
+% inspecting the Series Number header.
+
+if ~isempty(requested_file_ix)
+    % check header of the first, last and requested items; if Series Number
+    % does not match, don't try to combine
+    check_header_ix = unique([1, requested_file_ix, length(filesInFolder) ]);
+    encountered_series_numbers = [];
+    encountered_problems = [];
+
+    for ix = check_header_ix
+        try
+            dh = dicominfo(filesInFolder{ix});
+            encountered_series_numbers(end+1) = dh.SeriesNumber;
+        catch
+            encountered_problems(end+1) = ix;
+        end
+    end
+
+    encountered_series_numbers=unique(encountered_series_numbers);
+
+    if any(encountered_problems == requested_file_ix)
+
+        warning([ 'io_loadspec_dicom could not determine SeriesNumber of the requested file: ' source ]);
+        % in this case, fall back on default behaviour
+
+    elseif length(encountered_series_numbers)>1 || length(encountered_problems)>0
+
+        % if we found more than one series, OR we found some unreadable files
+        % (probably non-DICOM), then just retain that one specific file the
+        % caller originally asked for
+
+        if length(encountered_problems)>0
+            warning([ 'io_loadspec_dicom encountered some non-DICOM data in ' source ]);
+        end
+
+        filesInFolder={source};
+    end
+
+    % in any other scenario, full back on the default behaviour
+end
 
 % Get the header of the first file to make some decisions.
 DicomHeader = read_dcm_header(filesInFolder{1});
@@ -41,7 +103,7 @@ if isfield(DicomHeader, 'seqorig')
     seqorig = DicomHeader.seqorig;
 else
 % deal with missing seqorig field for dicom data load on Siemens Minnesota
-% sequences (Auerbach and Deelchand versions, VB17A & VE11C)    
+% sequences (Auerbach and Deelchand versions, VB17A & VE11C)
     if contains(DicomHeader.sequenceFileName, 'slaser_dkd') %Deelchand/Oz
         seqorig = 'CMRR';
     elseif contains(DicomHeader.sequenceFileName, 'eja_svs') %Auerbach/Marjanska
@@ -80,7 +142,7 @@ else
 end
 % Collect all FIDs and sort them into fids array
 for kk = 1:length(filesInFolder)
-    
+
     % First, attempt to retrieve the FID from the DICOM header:
     infoDicom = dicominfo(filesInFolder{kk});
     if isfield(infoDicom, 'SpectroscopyData')
@@ -95,7 +157,7 @@ for kk = 1:length(filesInFolder)
         fids(:,kk) = dicom_get_spectrum_siemens(fd);
         fclose(fd);
     end
-    
+
 end
 
 
@@ -115,16 +177,16 @@ if contains(seqtype,'MEGA')
     else
         out.flags.averaged = 0;
     end
-    
+
     % Currently, the DICOM recon of the universal sequence is flawed.
     % Kick out empty lines here and see if data can be reconstructed.
     if strcmp(seqorig, 'Universal') && out.flags.averaged == 0
         fids(:,size(fids,2)/2+1:end) = [];
     end
-        
+
     % Rearrange into subspecs
     fids = reshape(fids,[size(fids,1) size(fids,2)/2 2]);
-    
+
 elseif strcmp(seqtype,'PRESS') || strcmp(seqtype,'STEAM') || strcmp(seqtype,'sLASER')
     % If the number of stored FIDs does not match the number of averages
     % stored in the DICOM header, the data are averaged.
@@ -137,9 +199,9 @@ elseif strcmp(seqtype,'PRESS') || strcmp(seqtype,'STEAM') || strcmp(seqtype,'sLA
 
 elseif strcmp(seqtype,'HERMES')
 
-    out.flags.averaged = 0; 
+    out.flags.averaged = 0;
     % Currently, the DICOM recon of the universal sequence is flawed.
-    % Kick out empty lines here and see if data can be reconstructed.    
+    % Kick out empty lines here and see if data can be reconstructed.
     if strcmp(seqorig, 'Universal') && out.flags.averaged == 0
         fids(:,size(fids,2)/2+1:end) = [];
     end
@@ -222,7 +284,7 @@ end
 
 %Find the number of averages.  'averages' will specify the current number
 %of averages in the dataset as it is processed, which may be subject to
-%change.  'rawAverages' will specify the original number of acquired 
+%change.  'rawAverages' will specify the original number of acquired
 %averages in the dataset, which is unchangeable.
 if dims.subSpecs ~=0
     if dims.averages~=0
@@ -244,7 +306,7 @@ end
 
 %Find the number of subspecs.  'subspecs' will specify the current number
 %of subspectra in the dataset as it is processed, which may be subject to
-%change.  'rawSubspecs' will specify the original number of acquired 
+%change.  'rawSubspecs' will specify the original number of acquired
 %subspectra in the dataset, which is unchangeable.
 if dims.subSpecs ~=0
     subspecs=sz(dims.subSpecs);
@@ -288,8 +350,8 @@ t=[0:dwelltime:(sz(1)-1)*dwelltime];
 out.fids=fids;
 out.specs=specs;
 out.sz=sz;
-out.ppm=ppm;  
-out.t=t;    
+out.ppm=ppm;
+out.t=t;
 out.spectralwidth=spectralwidth;
 out.dwelltime=dwelltime;
 out.txfrq=txfrq;

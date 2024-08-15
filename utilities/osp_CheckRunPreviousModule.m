@@ -21,8 +21,8 @@ function [hasSPM,OspreyVersion] = osp_CheckRunPreviousModule(MRSCont, module)
 %   AUTHOR:
 %       Georg Oeltzschner (Johns Hopkins University, 2021-07-07)
 %       goeltzs1@jhmi.edu
-%
-
+%%
+VersionStruct  = getCurrentVersion;                         %Get current version
 switch module
     case 'OspreyLoad'
         requiredModules     = {'OspreyJob'};
@@ -74,7 +74,7 @@ for rr = 1:length(requiredModules)
 end
 
 %Do the toolbox check here
-OspreyVersion = 'Osprey 2.6.0';
+OspreyVersion = ['Osprey ' VersionStruct.Version];
 hasSPM = 1;
 [hasSPM,OspreyVersion ] = osp_Toolbox_Check (module,MRSCont.flags.isGUI);
 

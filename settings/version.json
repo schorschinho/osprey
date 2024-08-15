@@ -1,0 +1,3 @@
+{"Version": "2.7.0",
+ "Date": "August 15, 2024",
+"Description": "First digit for major releases, second digit for regular compiled releases, third digit for each commit to the develop branch. "}

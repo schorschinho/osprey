@@ -77,7 +77,8 @@ isjnMP=~isempty(strfind(sequence,'jn_MEGA_GABA')); %Is this Jamie Near's MEGA-PR
 isjnseq=~isempty(strfind(sequence,'jn_')); %Is this another one of Jamie Near's sequences?
 isWIP529=~isempty(strfind(sequence,'edit_529'));%Is this WIP 529 (MEGA-PRESS)?
 ismodWIP=((~isempty(strfind(sequence,'\svs_edit'))||...
-        ~isempty(strfind(sequence,'\wip_svs_edit'))) && isempty(strfind(sequence,'edit_859'))); %Modified WIP
+        ~isempty(strfind(sequence,'\wip_svs_edit'))) && ...
+        (isempty(strfind(sequence,'edit_859')) && isempty(strfind(sequence,'univ')))); %Modified WIP
 isWIP859=~isempty(strfind(sequence,'edit_859'))||...;%Is this WIP 859 (MEGA-PRESS)?
         ~isempty(strfind(sequence,'WIP_859'));%Is this WIP 859 (MEGA-PRESS)? Other naming
 isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA-PRESS sequence
@@ -353,9 +354,8 @@ if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')
     else
         % GO 6/2024: Encountered a VD13 Siemens product sequence that had
         % transients in Set, not in Ave... 
-        if strcmp(sqzDims,'Ave')
-            dims.averages=find(strcmp(sqzDims,'Ave'));
-        else
+        dims.averages=find(strcmp(sqzDims,'Ave'));
+        if isempty(dims.averages)
             dims.averages=find(strcmp(sqzDims,'Set'));
         end
     end

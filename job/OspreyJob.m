@@ -44,6 +44,7 @@ end
 
 %%% 1. INITIALISE DATA CONTAINER WITH DEFAULT SETTINGS
 [MRSCont] = OspreySettings;
+VersionStruct  = getCurrentVersion;
 
 %%% 2. CHECK JOB INPUT FILE FORMAT %%%
 [~,~,ext] = fileparts(jobFile);
@@ -209,6 +210,16 @@ if strcmp(jobFileFormat,'csv')
     else
         fprintf('Adding macromolecule and lipid basis functions to the fit (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.fitMM = 1;
+    end
+    if isfield(jobStruct,'RelaxationAtlas')
+        MRSCont.opts.quantify.RelaxationAtlas = jobStruct(1).RelaxationAtlas;
+    else
+        MRSCont.opts.quantify.RelaxationAtlas = 0;
+    end
+    if isfield(jobStruct,'RelaxationAtlasAge')
+        MRSCont.opts.quantify.RelaxationAtlasAge = jobStruct(1).RelaxationAtlasAge;
+    else
+        MRSCont.opts.quantify.RelaxationAtlasAge = 0;
     end
     if isfield(jobStruct,'deface')
         MRSCont.opts.img.deface = jobStruct.deface;
@@ -396,6 +407,16 @@ if strcmp(jobFileFormat,'json')
         MRSCont.opts.fit.fitMM = str2num(jobStruct.fitMM);
     else
         MRSCont.opts.fit.fitMM = 1;
+    end
+    if isfield(jobStruct,'RelaxationAtlas')
+        MRSCont.opts.quantify.RelaxationAtlas = jobStruct.RelaxationAtlas;
+    else
+        MRSCont.opts.quantify.RelaxationAtlas = 0;
+    end
+    if isfield(jobStruct,'RelaxationAtlasAge')
+        MRSCont.opts.quantify.RelaxationAtlasAge = jobStruct.RelaxationAtlasAge;
+    else
+        MRSCont.opts.quantify.RelaxationAtlasAge = 0;
     end
     if isfield(jobStruct,'basisSet')
         if isfolder(jobStruct.basisSet)
@@ -781,7 +802,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 2.6.0';
+MRSCont.ver.Osp             = ['Osprey ' VersionStruct.Version];
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

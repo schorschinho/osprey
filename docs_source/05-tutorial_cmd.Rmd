@@ -14,7 +14,7 @@ MRSCont = OspreyJob('Path/To/Job/File');
 MRSCont will now contain the options and file locations for your data, as specified in the job file. Next, the data can be loaded:
 
 ```octave
-MRSCont = OspreyLoad(MRScont);
+MRSCont = OspreyLoad(MRSCont);
 ```
 
 The substructure, MRSCont.raw, now contains the raw MRS data, as extracted from their native format. We may now preprocess these data:
