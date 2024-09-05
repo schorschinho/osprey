@@ -162,7 +162,13 @@ opts.fit.includeMetabs      = {'default'};      % OPTIONS:    - {'default'}
                                                 %             - {custom}
 
 % Choose the fitting algorithm
-opts.fit.method             = 'Osprey';         % OPTIONS:    - 'Osprey' (default)
+% If you are using Osprey_gLCM please cite the following paper in addition
+% to the original Osprey paper:
+%   Zöllner HJ, Davies-Jenkins C, Simicic D, Tal A, Sulam J, Oeltzschner G. 
+%   Simultaneous multi-transient linear-combination modeling of MRS data improves uncertainty estimation. 
+%   Magn Reson Med. 2024 Sep;92(3):916-925. doi: 10.1002/mrm.30110
+opts.fit.method             = 'Osprey_gLCM';    % OPTIONS:    - 'Osprey_gLCM' (default)
+                                                %             - 'Osprey' (old model)
                                                 %             - 'LCModel'
 
 % Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
@@ -188,6 +194,18 @@ opts.fit.GaussLBMM          = 0;                % OPTIONS:    - 0 (no, default)
 % Re-run the linear-combiantion model with the cohort-averaged measured MM basis function
 opts.fit.MeanMM             = 1;                % OPTIONS:    - 0 (no)
                                                 %             - 1 (yes, default)
+
+%%% ----- Osprey gLCM FITTING OPTIONS ----
+% The gLCM algorithm uses model procedure json files for modeling. If no file is specified
+% the default file is used (osprey/libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/model-procedures/defaults/3Step_Spline_invivo_Reg_Optim_Full_soft_constraint.json).
+% This also overwrites the Osprey fitting settings described in the
+% section above! For multiple sub-spectra include the matching model
+% procedure json files for each spectrum.
+opts.fit.ModelProcedure.metab = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_Reg_Optim_Full_soft_constraint.json')),...
+                                 which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_Reg_Optim_Full_soft_constraint_MMexp.json')),...
+                                 which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_Reg_Optim_Full_soft_constraint_MMexp.json'))};
+opts.fit.ModelProcedure.mm = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','4Step_Spline_invivo_MM_invivo_Reg_Optim_Full.json'))};
+opts.fit.ModelProcedure.ref = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
 
 % Optional: In case the automatic basisset picker is not working you can manually
 % select the path to the basis set in the osprey/fit/basis, i.e.:
