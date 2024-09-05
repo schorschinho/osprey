@@ -151,7 +151,9 @@ opts.exportParams.path      = '';               % Replace with string for the pa
                                                 % to the save directory
 
 % Choose the fitting algorithm
-opts.fit.method             = 'Osprey';         % OPTIONS:    - 'Osprey' (default)
+opts.fit.method             = 'Osprey_gLCM';    % OPTIONS:    - 'Osprey_gLCM' (default)
+                                                %             - 'Osprey' (old model)
+                                                %             - 'LCModel'
 
 % Select the metabolites to be included in the basis set as a cell array,
 % with entries separates by commas.
@@ -193,6 +195,16 @@ opts.fit.coMM3              = '3to2MM';      % OPTIONS:    - {'3to2MM'} (default
                                                 %             - {'none'}
 
 opts.fit.FWHMcoMM3          = 14;
+
+%%% ----- Osprey gLCM FITTING OPTIONS ----
+% The gLCM algorithm uses model procedure json files for modeling. If no file is specified
+% the default file is used (osprey/libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/model-procedures/defaults/3Step_Spline_invivo_Reg_Optim_Full_soft_constraint.json).
+% This also overwrites the Osprey fitting settings described in the
+% section above! For multiple sub-spectra include the matching model
+% procedure json files for each spectrum.
+opts.fit.ModelProcedure.metab = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-off_Reg_Optim_Full_soft_constraint.json')),...
+                                 which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-diff1_Reg_Optim_Full_soft_constraint.json'))};
+opts.fit.ModelProcedure.ref = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
 
 % Optional: In case the automatic basisset picker is not working you can manually
 % select the path to the basis set in the osprey/fit/basis, i.e.:

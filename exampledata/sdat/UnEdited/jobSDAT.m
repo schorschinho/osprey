@@ -105,7 +105,7 @@ opts.SpecReg = 'RobSpecReg';                  % OPTIONS:    - 'RobSpecReg' (defa
 
 % Which algorithm do you want to align the sub spectra? L2 norm
 % optimization is the default. This is only used for edited MRS!
-%Perform correction on the metabolite data (raw) or metabolite
+% Perform correction on the metabolite data (raw) or metabolite
 %-nulled data (mm).
 opts.SubSpecAlignment.mets = 'L2Norm';          % OPTIONS:    - 'L2Norm' (default)
                                                 %             - 'L1Norm'
