@@ -31,7 +31,8 @@ function osp_updatequantOvWindow(gui)
        
         if ~strcmp(Selection,'Quality') 
             split_Selection = strsplit(Selection,'-');
-            ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.(split_Selection{1})(1,:),split_Selection{2}));   
+            ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.(split_Selection{1})(1,:),split_Selection{2}));
+            ind = ind(1);
     %This function updates the quantification table overview tab
             if strcmp(split_Selection{3},'AlphaCorrWaterScaled') || strcmp(split_Selection{3},'AlphaCorrWaterScaledGroupNormed')
                 if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
@@ -46,16 +47,16 @@ function osp_updatequantOvWindow(gui)
                    QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,1);
                    QuantTextOv(1,:) = {'GABA'}; 
                 end
-                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{3}).Voxel_1{gui.controls.act_z,ind}(:,:));
+                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{3}).Voxel_1{gui.controls.act_z,ind,gui.controls.act_x}(:,:));
             else
                 if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)
                     exclude = length(MRSCont.exclude);
                 else
                     exclude = 0;
                 end            
-                QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,length(MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind}));
+                QuantTextOv = cell(MRSCont.nDatasets(1)+1-exclude,length(MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind,gui.controls.act_x}));
                 QuantTextOv(1,:) = MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind};
-                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{3}).Voxel_1{gui.controls.act_z,ind}(:,:));
+                QuantTextOv(2:end,:) = table2cell(MRSCont.quantify.tables.(split_Selection{1}).(split_Selection{3}).Voxel_1{gui.controls.act_z,ind,gui.controls.act_x}(:,:));
             end
         else
             if isfield(MRSCont,'exclude') && ~isempty(MRSCont.exclude)

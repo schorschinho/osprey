@@ -30,6 +30,7 @@ MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container 
 gui.layout.tabs.TabEnables{3} = 'on';
 gui.layout.tabs.Selection  = 3;
 gui.layout.EmptyFitPlot = 0;
+gui.overview.Selected.ModelPlot = 1;
 
 %%% 2. CREATING SUB TABS FOR THIS TAB %%%%
 % In this case one tab fo each fit (off,sum,diff1,diff2,ref,water)
@@ -145,7 +146,7 @@ for t = 1 : gui.fit.Number %Loop over fits
     if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
         buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection).fitParams,3)>1) num2str(size(MRSCont.fit.results.(Selection).fitParams,1)>1)];
     else
-        buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection),3)>1) num2str(size(MRSCont.fit.results.(Selection),2)>1)];
+        buttonString = [num2str(MRSCont.nDatasets(2) > 1) num2str(size(MRSCont.fit.results.(Selection),3)>1) num2str(size(MRSCont.fit.results.(Selection),1)>1)];
     end
     switch buttonString
             case '001'
@@ -220,10 +221,46 @@ for t = 1 : gui.fit.Number %Loop over fits
     else
             set(gui.upperBox.fit.box{t}, 'Width', [-0.15 -0.65 -0.1 -0.1]);
     end
+
+    if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w') %Is not concateneted or is reference/water fit
+        gui.fit.Style = gui.fit.Names{t};
+    else %Is concatenated and not water/reference
+        gui.fit.Style = 'conc';
+    end
+    
     % Creates layout for plotting and data control
     gui.Plot.fit{t} = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
         'Padding', 5,'BackgroundColor',gui.colormap.Background);
-    set(gui.layout.(gui.layout.fitTabhandles{t}), 'Heights', [-0.1 -0.9]);
+    if ~strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
+        set(gui.layout.(gui.layout.fitTabhandles{t}), 'Heights', [-0.1 -0.9]);
+    else
+        gui.Plot.ModelControls{t} = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
+        'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.controls.text_Model = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','Model Step:',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','left');
+        gui.controls.ModelStep = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','Slider','FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        ModelMaxStepValue = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected,1,1}.step;
+        ModelSliderValues = ModelMaxStepValue - 1;
+        if ModelSliderValues == 0
+            ModelSliderValues = 1;
+        end
+        set(gui.controls.ModelStep,'Min', 1, 'Max', ModelMaxStepValue, 'Value', ModelMaxStepValue,'Tooltip', 'Model step', 'SliderStep', [1/(ModelSliderValues),1/(ModelSliderValues)]);
+        if ModelMaxStepValue == 1
+            set(gui.controls.ModelStep, 'Enable', 'off');
+        else
+            set(gui.controls.ModelStep, 'Enable', 'on');
+        end
+        gui.controls.text_gap = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','  ',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','center');
+        gui.controls.text_Model = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','Plot type:',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','left');
+        gui.controls.PlotType = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','popupmenu','String',{'Compact','Stack','3D plot'},'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        set(gui.controls.ModelStep,'Callback',{@osp_onModelStep,gui});
+        set(gui.controls.PlotType,'Callback',{@osp_pop_PlotType,gui});
+        set(gui.Plot.ModelControls{t}, 'Width', [-0.1 -0.35 -0.1 -0.1 -0.35]);
+        set(gui.layout.(gui.layout.fitTabhandles{t}), 'Heights', [-0.1 -0.85 -0.05]);
+    end
+    
     if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w') %Is not concateneted or is reference/water fit
         gui.fit.Style = gui.fit.Names{t};
     else %Is concatenated and not water/reference
@@ -240,27 +277,11 @@ for t = 1 : gui.fit.Number %Loop over fits
                         RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
                         CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.CRLB;
                     end
-                    ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ph0;
-                    ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ph1;
-                    if ~strcmp(gui.fit.Names{t}, 'ref') && ~strcmp(gui.fit.Names{t}, 'w')
-                        refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.refShift;
-                        refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.refFWHM;
-                    end
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
-                    ph0 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ph0;
-                    ph1 = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ph1;
-                    if ~strcmp(gui.fit.Names{t}, 'ref') && ~strcmp(gui.fit.Names{t}, 'w')
-                        refShift = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.refShift;
-                        refFWHM = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.refFWHM;
-                    end
                 case 'Osprey_gLCM'
-                    RawAmpl = MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.Model{end}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.scale;
-                    ph0 = MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.Model{end}.parsOut.ph0;
-                    ph1 = MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.Model{end}.parsOut.ph1;
-                    refShift = nan;
-                    refFWHM = nan;
-                    CRLB    = MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.Model{end}.CRLB{1,:};
+                    RawAmpl = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                    CRLB    = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB{1,:};
         end
         
     elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
@@ -274,13 +295,7 @@ for t = 1 : gui.fit.Number %Loop over fits
                     end
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-        end
-        ph0 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
-        ph1 = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
-        if ~strcmp(gui.fit.Names{t}, 'ref') && ~strcmp(gui.fit.Names{t}, 'w')
-            refShift = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
-            refFWHM = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
-        end
+         end
     else
         switch MRSCont.opts.fit.method
                 case 'LCModel'
@@ -293,14 +308,8 @@ for t = 1 : gui.fit.Number %Loop over fits
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
                 case 'Osprey_gLCM'
-                    RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end}.Model{end}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.scale;
-                    CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end}.Model{end}.CRLB{1,:};
-        end
-        ph0 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph0;
-        ph1 = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ph1;
-        if ~strcmp(gui.fit.Names{t}, 'ref') && ~strcmp(gui.fit.Names{t}, 'w')
-            refShift = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refShift;
-            refFWHM = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{1,gui.controls.Selected}.refFWHM;
+                    RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                    CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB{1,:};
         end
     end
 
@@ -344,7 +353,7 @@ for t = 1 : gui.fit.Number %Loop over fits
             scale = MRSCont.fit.scale{gui.controls.Selected};
         case 'Osprey_gLCM'
             % Number of metabolites and lipid/MM basis functions
-            basisSetNames =MRSCont.fit.results.(gui.fit.Style){1,1}.BasisSets.names(MRSCont.fit.results.(gui.fit.Style){1,1}.BasisSets.includeInFit(end,:)==1);
+            basisSetNames =MRSCont.fit.results.(gui.fit.Style){1,1}.BasisSets.names(MRSCont.fit.results.(gui.fit.Style){1,1}.BasisSets.includeInFit(gui.controls.ModelStep.Value,:)==1);
             nMMLip = sum(find(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip')));
             nMets   = length(basisSetNames)-nMMLip;
             % Additional info panel string for the water fit range
@@ -357,17 +366,11 @@ for t = 1 : gui.fit.Number %Loop over fits
 
     % Get parameter from file to fill the info panel
     if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
-        StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t},...
-            '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f'),...
-            'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
-            ' ppm\nNumber of metabolites: ' num2str(nMets) '; Number of MM/lipids: ' num2str(nMMLip) ...
-            ' scale: '  num2str(scale)];
+        StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t}];
     else if strcmp (Selection, 'ref') %Reference data?
-            StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t},...
-                '\n' waterFitRangeString];
+            StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t}];
         else %Is water data
-            StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t},...
-                '\n' waterFitRangeString];
+            StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t}];
         end
     end
 
@@ -390,7 +393,14 @@ for t = 1 : gui.fit.Number %Loop over fits
                     NameText = [NameText, [basisSetNames{m} ' \n']];
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     if strcmp(MRSCont.opts.fit.method, 'LCModel') || strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
-                        CRLBText = [CRLBText, [num2str(CRLB(m), '%1.3g') '%%\n']];
+                        if isinf(CRLB(m))
+                            CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '\n']]; 
+                        else if CRLB(m) > 999
+                                CRLBText = [CRLBText, [num2str(Inf, '%1.3g') '\n']]; 
+                            else
+                                CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '%%\n']];
+                            end
+                        end
                     end
 
                 end
@@ -423,9 +433,9 @@ for t = 1 : gui.fit.Number %Loop over fits
                     case 'LCModel'
                     case 'Osprey_gLCM'
                         if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
-                            RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1, gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.scale);
+                            RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale);
                         else
-                            RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1, gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.scale);
+                            RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1, gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale);
                         end
                 end
                 NameText = [''];
@@ -435,7 +445,14 @@ for t = 1 : gui.fit.Number %Loop over fits
                     NameText = [NameText, [basisSetNames{m} ' \n']];
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                     if strcmp(MRSCont.opts.fit.method, 'LCModel') || strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
-                        CRLBText = [CRLBText, [num2str(CRLB(m), '%1.3g') '%%\n']];
+                        if isinf(CRLB(m))
+                            CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '\n']]; 
+                        else if CRLB(m) > 999
+                                CRLBText = [CRLBText, [num2str(Inf, '%1.3g') '\n']]; 
+                            else
+                                CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '%%\n']];
+                            end
+                        end
                     end
 
                 end
@@ -724,7 +741,7 @@ for t = 1 : gui.fit.Number %Loop over fits
     end
     %%%  5. VISUALIZATION PART OF THIS TAB %%%
     %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
-    temp = figure( 'Visible', 'on' );
+    temp = figure( 'Visible', 'off' );
     if ~strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
         if ~((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI))
             temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y gui.controls.act_z],gui.fit.Names{t});
@@ -734,16 +751,23 @@ for t = 1 : gui.fit.Number %Loop over fits
             temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y],Selection); %Create figure
         end
     else
-        MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.plotFit1D(0);
+        MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.plotFit1D(0,gui.controls.ModelStep.Value);
         set(gca, 'YColor', MRSCont.colormap.Background);
+        drawnow
     end
     ViewAxes = gca();
     set(ViewAxes, 'Parent', gui.Plot.fit{t} );
     close( temp );
-
-    set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);
-    set(gui.Plot.fit{t}.Children(2), 'Units', 'normalized');
-    set(gui.Plot.fit{t}.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
+    
+    if ~strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
+        set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);
+        set(gui.Plot.fit{t}.Children(2), 'Units', 'normalized');
+        set(gui.Plot.fit{t}.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
+    else
+        set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);
+        set(gui.Plot.fit{t}.Children(2), 'Units', 'normalized');
+        set(gui.Plot.fit{t}.Children(2), 'OuterPosition', [0.02,0.02,0.3,0.98])
+    end
 end
 h = findall(groot,'Type','figure');
 for ff = 1 : length(h)

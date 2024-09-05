@@ -48,28 +48,32 @@ MRSCont.runtime.Fit = 0;
 % - Apply settings on which metabolites/MM/lipids to include in the fit
 % - Check for inconsistencies between basis set and data
 [MRSCont] = osp_fitInitialise(MRSCont);
-%MRSCont.opts.fit.outputFolder = outputFolder;
 
-% Call the fit functions (depending on sequence type)
-if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
-    if MRSCont.flags.isUnEdited
-        [MRSCont] = osp_fitUnEdited(MRSCont);
-    elseif MRSCont.flags.isMEGA
-        [MRSCont] = osp_fitMEGA(MRSCont);
-    elseif MRSCont.flags.isHERMES
-        [MRSCont] = osp_fitHERMES(MRSCont);
-    elseif MRSCont.flags.isHERCULES
-        % For now, fit HERCULES like HERMES data
-        [MRSCont] = osp_fitHERCULES(MRSCont);
-    else
-        msg = 'No flag set for sequence type!';
-        fprintf(msg);
-        error(msg);
-    end
+
+% New Osprey gLCM model
+if strcmpi(MRSCont.opts.fit.method, 'Osprey_gLCM')
+    [MRSCont] = osp_fit_gLCM(MRSCont);
 else
-    [MRSCont] = osp_fitMultiVoxel(MRSCont);
+    % Call the fit functions (depending on sequence type)
+    if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+        if MRSCont.flags.isUnEdited
+            [MRSCont] = osp_fitUnEdited(MRSCont);
+        elseif MRSCont.flags.isMEGA
+            [MRSCont] = osp_fitMEGA(MRSCont);
+        elseif MRSCont.flags.isHERMES
+            [MRSCont] = osp_fitHERMES(MRSCont);
+        elseif MRSCont.flags.isHERCULES
+            % For now, fit HERCULES like HERMES data
+            [MRSCont] = osp_fitHERCULES(MRSCont);
+        else
+            msg = 'No flag set for sequence type!';
+            fprintf(msg);
+            error(msg);
+        end
+    else
+        [MRSCont] = osp_fitMultiVoxel(MRSCont);
+    end
 end
-
 
 % ----- Perform water reference and short-TE water fit -----
 % The water signal is automatically integrated when the LCModel fit option is
@@ -116,32 +120,50 @@ if strcmpi(MRSCont.opts.fit.method, 'Osprey')
     MRSCont.runtime.Fit = MRSCont.runtime.Fit + MRSCont.runtime.FitMet;
 
 else if strcmpi(MRSCont.opts.fit.method, 'Osprey_gLCM')
-    % Read model procedure 
-    ModelProcedure = jsonToStruct(MRSCont.opts.fit.ModelProcedure.ref{1});
-    if isstruct(ModelProcedure.Steps)
-        ModelProcedureCell = cell(size(ModelProcedure.Steps));
-        for ss = 1 : size(ModelProcedure.Steps,1)
-            ModelProcedureCell{ss} = ModelProcedure.Steps(ss,:);
-        end
-        ModelProcedure.Steps = ModelProcedureCell;
-    end
-    if ~isfield(ModelProcedure,'basisset') || ~isfield(ModelProcedure.basisset, 'file') || ... 
-        isempty(ModelProcedure.basisset.file)
-        ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
-    end
-    % If water reference exists, fit it
-    if MRSCont.flags.hasRef
-        refFitTime = tic;
-        % Loop over all the datasets here
-        if isfield(MRSCont.fit.results.metab{1}, 'scale')
-            scale = [];
-            for kk = 1:MRSCont.nDatasets(1)
-                scale = [scale MRSCont.fit.results.metab{kk}.scale];
+  
+        % If water reference exists, fit it
+        if MRSCont.flags.hasRef
+           % We want a loop over the extra dimension for separate fitting
+            SeparateExtraDims = 1;
+            if MRSCont.processed.metab{1}.dims.extras > 0
+                SeparateExtraDims = MRSCont.processed.metab{1}.sz(MRSCont.processed.ref{1}.dims.extras);
             end
-        else
-            scale = 0;
-        end      
-        [MRSCont.fit.results.ref] = Osprey_gLCM(MRSCont.processed.ref,ModelProcedure,0,0,scale);
+            % Read model procedure 
+            ModelProcedure = jsonToStruct(MRSCont.opts.fit.ModelProcedure.ref{1});
+            if isstruct(ModelProcedure.Steps)
+                ModelProcedureCell = cell(size(ModelProcedure.Steps));
+                for ss = 1 : size(ModelProcedure.Steps,1)
+                    ModelProcedureCell{ss} = ModelProcedure.Steps(ss,:);
+                end
+                ModelProcedure.Steps = ModelProcedureCell;
+            end
+            if ModelProcedure.Steps{1, 1}.extra.flag                                    % Model is actually 2D along extra dimension so we don't want to loop 
+                SeparateExtraDims = 1;
+            end 
+            refFitTime = tic;
+            for ex = 1 : SeparateExtraDims          
+                if ~isfield(ModelProcedure,'basisset') || ~isfield(ModelProcedure.basisset, 'file') || ... 
+                    isempty(ModelProcedure.basisset.file)
+                    if ~iscell(MRSCont.fit.basisSet)
+                        ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
+                    else
+                        ModelProcedure.basisset.file = MRSCont.fit.basisSet;
+                    end
+                end
+                if SeparateExtraDims > 1
+                    ModelProcedure.basisset.opts.index = ex;
+                end
+                % Loop over all the datasets here
+                if isprop(MRSCont.fit.results.metab{1,1}, 'scale')
+                    scale = [];
+                    for kk = 1:MRSCont.nDatasets(1)
+                        scale = [scale MRSCont.fit.results.metab{1,kk,1,ex}.scale];
+                    end
+                else
+                    scale = 0;
+                end      
+                [MRSCont.fit.results.ref(1,:,1,ex)] = Osprey_gLCM(MRSCont.processed.ref,ModelProcedure,0,0,scale)';         
+            end
         time = toc(refFitTime);
         if MRSCont.flags.isGUI
             set(progressText,'String' ,sprintf('... done.\n Elapsed time %f seconds',time));
@@ -154,17 +176,47 @@ else if strcmpi(MRSCont.opts.fit.method, 'Osprey_gLCM')
 
     % If short TE water reference exists, fit it
     if MRSCont.flags.hasWater
-        waterFitTime = tic;
-        % Loop over all the datasets here
-        if isfield(MRSCont.fit.results.metab{1}, 'scale')
-            scale = [];
-            for kk = 1:MRSCont.nDatasets(1)
-                scale = [scale MRSCont.fit.results.metab{kk}.scale];
+        % We want a loop over the extra dimension for separate fitting
+        SeparateExtraDims = 1;
+        if MRSCont.processed.metab{1}.dims.extras > 0
+            SeparateExtraDims = MRSCont.processed.w{1}.sz(MRSCont.processed.metab{1}.dims.extras);
+        end
+        % Read model procedure 
+        ModelProcedure = jsonToStruct(MRSCont.opts.fit.ModelProcedure.w{1});
+        if isstruct(ModelProcedure.Steps)
+            ModelProcedureCell = cell(size(ModelProcedure.Steps));
+            for ss = 1 : size(ModelProcedure.Steps,1)
+                ModelProcedureCell{ss} = ModelProcedure.Steps(ss,:);
             end
-        else
-            scale = 0;
-        end      
-        [MRSCont.fit.results.w] = Osprey_gLCM(MRSCont.processed.w,ModelProcedure,0,0,scale);
+            ModelProcedure.Steps = ModelProcedureCell;
+        end
+        if ModelProcedure.Steps{1, 1}.extra.flag                                    % Model is actually 2D along extra dimension so we don't want to loop 
+            SeparateExtraDims = 1;
+        end 
+        waterFitTime = tic;
+        for ex = 1 : SeparateExtraDims
+            if ~isfield(ModelProcedure,'basisset') || ~isfield(ModelProcedure.basisset, 'file') || ... 
+                isempty(ModelProcedure.basisset.file)
+                if ~iscell(MRSCont.fit.basisSet)
+                    ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
+                else
+                    ModelProcedure.basisset.file = MRSCont.fit.basisSet;
+                end
+            end
+            if SeparateExtraDims > 1
+                ModelProcedure.basisset.opts.index = ex;
+            end
+            % Loop over all the datasets here
+            if isprop(MRSCont.fit.results.metab{1,1}, 'scale')
+                scale = [];
+                for kk = 1:MRSCont.nDatasets(1)
+                    scale = [scale MRSCont.fit.results.metab{1,kk,1,ex}.scale];
+                end
+            else
+                scale = 0;
+            end      
+            [MRSCont.fit.results.w(1,:,1,ex)] = Osprey_gLCM(MRSCont.processed.w,ModelProcedure,0,0,scale)';         
+        end
         time = toc(waterFitTime);
         fprintf('... done.\n Elapsed time %f seconds\n',time);
         MRSCont.runtime.FitWater = time;

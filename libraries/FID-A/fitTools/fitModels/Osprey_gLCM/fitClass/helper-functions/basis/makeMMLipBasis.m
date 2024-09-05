@@ -1,8 +1,12 @@
-function [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel)
+function [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel,oneProtonArea)
 % Georg Oeltzschner, Johns Hopkins University 2023
 % Creates MM and lipid basis functions according to the 'MMLipConfig'
 % struct (provided by MM/lipid definition JSON), matching the metabolite
 % basis functions provided in 'basisSet'
+
+if nargin < 4
+    oneProtonArea = [];
+end
 
 % Duplicate basis struct
 basisSim        = basisSet;
@@ -13,10 +17,12 @@ basisSim.nMM    = 0;
 basisSim.sz     = [];
 basisSim.name   = {};
 
-% Obtain area of water to calculate the one-proton scaling factor
-idx = find(contains(basisSet.name,'H2O'));
-integralH2O = sum(real(basisSet.specs(:,idx,1)));
-oneProtonArea = integralH2O/2;
+if isempty(oneProtonArea)
+    % Obtain area of water to calculate the one-proton scaling factor
+    idx = find(contains(basisSet.name,'H2O'));
+    integralH2O = sum(real(basisSet.specs(:,idx,1)));
+    oneProtonArea = integralH2O/2;
+end
 
 % Parse MM/lipid definition
 basisSimFieldNames = fieldnames(MMLipConfig);

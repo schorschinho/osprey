@@ -91,17 +91,19 @@ if MRSCont.flags.didFit
             end
         end
     else if strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
-        for sf = 1 : NoFitSpecNames
-            for sn = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),2)
-                for sb = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),3)
-                    if ~(strcmp(FitSpecNames{sf},'ref') ||strcmp(FitSpecNames{sf},'w'))     
-                        FitSpecNamesStruct.(FitSpecNames{sf}){sb,sn} = MRSCont.fit.results.(FitSpecNames{sf}){1, sn, sb}.Data.spec_name;
-                    else
-                        FitSpecNamesStruct.(FitSpecNames{sf}){1} = FitSpecNames{sf};
+            for sf = 1 : NoFitSpecNames                                                 % spectra loop (metabs,ref,w)
+                for ex = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),4)             % experiments loop    
+                    for sn = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),3)             % subspectra loop
+                        for sb = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),1)         % basisset loop
+                            if ~(strcmp(FitSpecNames{sf},'ref') ||strcmp(FitSpecNames{sf},'w'))     
+                                FitSpecNamesStruct.(FitSpecNames{sf}){sb,sn,ex} = MRSCont.fit.results.(FitSpecNames{sf}){sb, 1, sn,ex}.Data.spec_name;
+                            else
+                                FitSpecNamesStruct.(FitSpecNames{sf}){1,1,1,ex} = FitSpecNames{sf};
+                            end
+                        end
                     end
                 end
             end
-        end
         else
             FitSpecNamesStruct.(FitSpecNames{1}){1} = 'A';
             if MRSCont.flags.isMEGA
@@ -111,11 +113,6 @@ if MRSCont.flags.didFit
     end
     MRSCont.overview.FitSpecNamesStruct = FitSpecNamesStruct;
 end
-
-
-
-% shift = 0;
-
 
 %%% 3. INTERPOLATION & NORMALIZATION %%%
 % Starting with the processed data
@@ -189,369 +186,388 @@ if MRSCont.flags.didFit
     % Apply the same stpes to the fits
     fprintf('Gathering fit models from fit %d out of %d total fits...', 1, NoFitSpecNames);
     for rr = 1 : Voxels%Loop over
-       for ss = 1 :NoFitSpecNames %Loop over fitted supsctra
-       if strcmp(FitSpecNames{ss}, 'ref') || strcmp(FitSpecNames{ss}, 'w') % Water model
-            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}) = cell(1,MRSCont.nDatasets(1),size(FitSpecNamesStruct.(FitSpecNames{ss}),2));
-        else
-            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}) = cell(size(FitSpecNamesStruct.(FitSpecNames{ss}),1),MRSCont.nDatasets(1),size(FitSpecNamesStruct.(FitSpecNames{ss}),2));
+       for ss = 1 :NoFitSpecNames %Loop over fitted subspectra
+       % Check which types of metabolite data are available
+        if ~strcmp(MRSCont.opts.fit.method, 'LCModel') && ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+            SubSpectraFitted = size(MRSCont.fit.results.(FitSpecNames{ss}).fitParams,3);
+            BasisSetsFitted  = size(MRSCont.fit.results.(FitSpecNames{ss}).fitParams,1);
+            ExperimentsFitted = 1;
+        else if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                   SubSpectraFitted = size(MRSCont.fit.results.(FitSpecNames{ss}),3);
+                   BasisSetsFitted = size(MRSCont.fit.results.(FitSpecNames{ss}),1);
+                   ExperimentsFitted = size(MRSCont.fit.results.(FitSpecNames{ss}),4);
+            else
+                SubSpectraFitted = 1;
+                BasisSetsFitted = 1;
+                ExperimentsFitted = 1;
+            end
         end
-        for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
-            for bf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),1) %Loop over all basis sets
-                msg = sprintf('Gathering fit models from fit %d out of %d total fits...', ss, NoFitSpecNames);
-                reverseStr = repmat(sprintf('\b'), 1, length(msg));
-                fprintf([reverseStr, msg]);
-                if MRSCont.flags.isGUI && isfield(progressText,'String')
-                    set(progressText,'String' ,sprintf('Gathering fit models from fit %d out of %d total fits...\n', ss, NoFitSpecNames));
-                    drawnow
-                end
-                if ~isempty(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})
-                    for kk = 1 : MRSCont.nDatasets(1) %Loop over all datasets
-                        switch MRSCont.opts.fit.method %Which model was used
-                        case 'Osprey'
-                            if strcmp(FitSpecNames{ss}, 'ref') || strcmp(FitSpecNames{ss}, 'w') % Water model
-                                % if water, use the water model
-                                fitRangePPM = MRSCont.opts.fit.rangeWater;
-                                if Voxels < 2
-                                    dataToPlot  = MRSCont.processed.(FitSpecNames{ss}){kk};
-                                    basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1};
-                                    % Get the fit parameters
-                                    fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{kk};
-                                else
-                                    dataToPlot  = op_takeVoxel(MRSCont.processed.(FitSpecNames{ss}){kk},rr);
-                                    basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{bf,sf}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1};
-                                    % Get the fit parameters
-                                    fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{kk};
-                                end
-                                % Pack up into structs to feed into the reconstruction functions
-                                inputData.dataToFit                 = dataToPlot;
-                                inputData.basisSet                  = basisSet;
-                                if Voxels < 2
-                                    inputSettings.scale                 = MRSCont.fit.scale{kk};
-                                else
-                                    inputSettings.scale                 = MRSCont.fit.scale{kk};
-                                end
-                                inputSettings.fitRangePPM           = fitRangePPM;
-                                inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-                                % If water, extract and apply nonlinear parameters
-                                [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = ModelOutput.completeFit;
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      = ModelOutput.ppm;
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = ModelOutput.data;
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = ModelOutput.residual;
-                            else % if metabolite or MM data, use the metabolite model
-                                fitRangePPM = MRSCont.opts.fit.range;
-                                if strcmp(FitSpecNames{ss}, 'mm')
-                                    fitRangePPM = [0.2 4.2];
-                                end
-                                if Voxels < 2
 
-                                    dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
-                                    basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){bf,sf};
-                                    if bf == 2 % We need to insert the subject specific MM basis function into the basis set
-                                        if sf==1
-                                            index = find(strcmp(MRSCont.processed.mm{kk}.names,'A_spline')); 
-                                        end
-                                        if sf==2
-                                            index = find(strcmp(MRSCont.processed.mm{kk}.names,'diff1_spline')); 
-                                        end
-                                        mm_clean_spline = op_takesubspec(MRSCont.processed.mm{kk},index);
-                                        mm_clean_spline               = op_zeropad(mm_clean_spline, 2);  
-                                        ind = find(strcmp(basisSet.name,'MMExp'));
-                                        basisSetfactor = op_freqrange(basisSet,0,1.2);
-                                        mm_clean_spline_factor = op_freqrange(mm_clean_spline,0.7,1.1);
-                                        factor = (max(real(basisSetfactor.specs(:,ind)))/max(real(mm_clean_spline_factor.specs)));
-                                        mm_clean_spline = op_ampScale(mm_clean_spline,factor);
-                                        basisSet.fids(:,ind) = mm_clean_spline.fids;
-                                        basisSet.specs(:,ind) = mm_clean_spline.specs;
-                                    end
-                                    fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
-                                else
-                                   dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{ss}){kk},rr);
-                                   fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{bf,kk,sf};
-                                   basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){bf,sf};
-                                end
-                                % Pack up into structs to feed into the reconstruction functions
-                                inputData.dataToFit                 = dataToPlot;
-                                inputData.basisSet                  = basisSet;
-                                if Voxels < 2
-                                    inputSettings.scale                 = MRSCont.fit.scale{kk};
-                                else
-                                    inputSettings.scale                 = MRSCont.fit.scale{kk};
-                                end
-                                inputSettings.fitRangePPM           = fitRangePPM;
-                                inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-                                inputSettings.fitStyle              = MRSCont.opts.fit.style;
-                                inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
-                                inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
-                                inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
-                                inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
-                                inputSettings.concatenated.Subspec  = FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf};
-                                if isfield(MRSCont.opts.fit,'GAP')
-                                    inputSettings.GAP = MRSCont.opts.fit.GAP.(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf});
-                                else
-                                    inputSettings.GAP = [];
-                                end
-                                if strcmp(inputSettings.fitStyle,'Concatenated')
-                                    [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-                                else
-                                    [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
-                                end
-                                if ~isnan(ModelOutput.completeFit(1)) %If the fit was succesfull
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = ModelOutput.completeFit;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.baseline      = ModelOutput.baseline;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      =  ModelOutput.ppm;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = ModelOutput.residual;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = ModelOutput.data;
-                                    if strcmp(FitSpecNames{ss}, 'mm') %re_mm loop over basis functions
-                                        for n = 1 : (basisSet.nMets + basisSet.nMM)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.(['fit' basisSet.name{n}])  = ModelOutput.indivMets(:,n);
-                                        end
-                                        % tMM = all MM functions
-                                        if basisSet.nMM > 0
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM  = sum(ModelOutput.indivMets(:,basisSet.nMets+1:end),2);
+       if strcmp(FitSpecNames{ss}, 'ref') || strcmp(FitSpecNames{ss}, 'w') % Water model
+            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}) = cell(1,MRSCont.nDatasets(1),size(FitSpecNamesStruct.(FitSpecNames{ss}),2),ExperimentsFitted);
+        else
+            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}) = cell(BasisSetsFitted,MRSCont.nDatasets(1),SubSpectraFitted,ExperimentsFitted);
+       end
+       for ex = 1 : ExperimentsFitted %Loop over all experiments
+            for sf = 1 : SubSpectraFitted %Loop over all fits
+                for bf = 1 : BasisSetsFitted %Loop over all basis sets
+                    msg = sprintf('Gathering fit models from fit %d out of %d total fits...', ss, NoFitSpecNames);
+                    reverseStr = repmat(sprintf('\b'), 1, length(msg));
+                    fprintf([reverseStr, msg]);
+                    if MRSCont.flags.isGUI && isfield(progressText,'String')
+                        set(progressText,'String' ,sprintf('Gathering fit models from fit %d out of %d total fits...\n', ss, NoFitSpecNames));
+                        drawnow
+                    end
+                    if ~isempty(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf,ex})
+                        for kk = 1 : MRSCont.nDatasets(1) %Loop over all datasets
+                            switch MRSCont.opts.fit.method %Which model was used
+                                case 'Osprey'
+                                    if strcmp(FitSpecNames{ss}, 'ref') || strcmp(FitSpecNames{ss}, 'w') % Water model
+                                        % if water, use the water model
+                                        fitRangePPM = MRSCont.opts.fit.rangeWater;
+                                        if Voxels < 2
+                                            dataToPlot  = MRSCont.processed.(FitSpecNames{ss}){kk};
+                                            basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1};
+                                            % Get the fit parameters
+                                            fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{kk};
                                         else
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
+                                            dataToPlot  = op_takeVoxel(MRSCont.processed.(FitSpecNames{ss}){kk},rr);
+                                            basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{bf,sf}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){1};
+                                            % Get the fit parameters
+                                            fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{kk};
                                         end
-                                        %section to write out MM_clean spectra
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.MM_clean = ModelOutput.data -sum(ModelOutput.indivMets(:,1:basisSet.nMets),2);
-                                    else%re_mm
-                                        for n = 1 : size(ModelOutput.indivMets,2) % loop over basis functions
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.(['fit' basisSet.name{n}])  = ModelOutput.indivMets(:,n);
-                                        end
-                                        % Add basis functions of metabolite combinations
-                                        % tNAA = NAA + NAAG
-                                        idx_NAA  = find(strcmp(basisSet.name,'NAA'));
-                                        idx_NAAG  = find(strcmp(basisSet.name,'NAAG'));
-                                        if isempty(idx_NAA) && isempty(idx_NAAG)
-                                            % do nothing
-                                        elseif isempty(idx_NAA) && ~isempty(idx_NAAG)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = ModelOutput.indivMets(:,idx_NAAG);
-                                        elseif ~isempty(idx_NAA) && isempty(idx_NAAG)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = ModelOutput.indivMets(:,idx_NAA);
-                                        elseif ~isempty(idx_NAA) && ~isempty(idx_NAAG)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = ModelOutput.indivMets(:,idx_NAA) + ModelOutput.indivMets(:,idx_NAAG);
-                                        end
-
-
-                                        % tCr = Cr + tCr - CrCH2
-                                        idx_Cr  = find(strcmp(basisSet.name,'Cr'));
-                                        idx_PCr  = find(strcmp(basisSet.name,'PCr'));
-                                        if isempty(idx_Cr) && isempty(idx_PCr)
-                                            % do nothing
-                                        elseif isempty(idx_Cr) && ~isempty(idx_PCr)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = ModelOutput.indivMets(:,idx_PCr);
-                                        elseif ~isempty(idx_Cr) && isempty(idx_PCr)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = ModelOutput.indivMets(:,idx_Cr);
-                                        elseif ~isempty(idx_Cr) && ~isempty(idx_PCr)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_PCr);
-                                        end
-
-                                        % if present, add CrCH2 model
-                                        idx_CrCH2  = find(strcmp(basisSet.name,'CrCH2'));
-                                        if ~isempty(idx_CrCH2)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr + ModelOutput.indivMets(:,idx_CrCH2);
+                                        % Pack up into structs to feed into the reconstruction functions
+                                        inputData.dataToFit                 = dataToPlot;
+                                        inputData.basisSet                  = basisSet;
+                                        if Voxels < 2
+                                            inputSettings.scale                 = MRSCont.fit.scale{kk};
                                         else
-                                            % do nothing
+                                            inputSettings.scale                 = MRSCont.fit.scale{kk};
                                         end
-
-                                        % tCho = GPC + PCh
-                                        idx_GPC  = find(strcmp(basisSet.name,'GPC'));
-                                        idx_PCh  = find(strcmp(basisSet.name,'PCh'));
-                                        if isempty(idx_GPC) && isempty(idx_PCh)
-                                            % do nothing
-                                        elseif isempty(idx_GPC) && ~isempty(idx_PCh)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = ModelOutput.indivMets(:,idx_PCh);
-                                        elseif ~isempty(idx_GPC) && isempty(idx_PCh)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = ModelOutput.indivMets(:,idx_GPC);
-                                        elseif ~isempty(idx_GPC) && ~isempty(idx_PCh)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = ModelOutput.indivMets(:,idx_GPC) + ModelOutput.indivMets(:,idx_PCh);
+                                        inputSettings.fitRangePPM           = fitRangePPM;
+                                        inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
+                                        % If water, extract and apply nonlinear parameters
+                                        [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = ModelOutput.completeFit;
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      = ModelOutput.ppm;
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = ModelOutput.data;
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = ModelOutput.residual;
+                                    else % if metabolite or MM data, use the metabolite model
+                                        fitRangePPM = MRSCont.opts.fit.range;
+                                        if strcmp(FitSpecNames{ss}, 'mm')
+                                            fitRangePPM = [0.2 4.2];
                                         end
-
-                                        % Glx = Glu + Gln
-                                        idx_Glu  = find(strcmp(basisSet.name,'Glu'));
-                                        idx_Gln  = find(strcmp(basisSet.name,'Gln'));
-                                        if isempty(idx_Glu) && isempty(idx_Gln)
-                                            % do nothing
-                                        elseif isempty(idx_Glu) && ~isempty(idx_Gln)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = ModelOutput.indivMets(:,idx_Gln);
-                                        elseif ~isempty(idx_Glu) && isempty(idx_Gln)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = ModelOutput.indivMets(:,idx_Glu);
-                                        elseif ~isempty(idx_Glu) && ~isempty(idx_Gln)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = ModelOutput.indivMets(:,idx_Glu) + ModelOutput.indivMets(:,idx_Gln);
-                                        end
-
-                                        % tEA = PE + EA
-                                        idx_PE  = find(strcmp(basisSet.name,'PE'));
-                                        idx_EA  = find(strcmp(basisSet.name,'EA'));
-                                        if isempty(idx_PE) && isempty(idx_Gln)
-                                            % do nothing
-                                        elseif isempty(idx_PE) && ~isempty(idx_EA)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = ModelOutput.indivMets(:,idx_EA);
-                                        elseif ~isempty(idx_PE) && isempty(idx_EA)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = ModelOutput.indivMets(:,idx_PE);
-                                        elseif ~isempty(idx_PE) && ~isempty(idx_EA)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = ModelOutput.indivMets(:,idx_PE) + ModelOutput.indivMets(:,idx_EA);
-                                        end
-
-                                        % tMM = all MM functions
-                                        if MRSCont.opts.fit.fitMM == 1
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM  = sum(ModelOutput.indivMets(:,basisSet.nMets+1:end),2);
+                                        if Voxels < 2
+        
+                                            dataToPlot  = op_takesubspec(MRSCont.processed.(FitSpecNames{ss}){kk},find(strcmp(MRSCont.processed.(FitSpecNames{ss}){kk}.names,FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})));
+                                            basisSet    = MRSCont.fit.resBasisSet.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){bf,sf};
+                                            if bf == 2 % We need to insert the subject specific MM basis function into the basis set
+                                                if sf==1
+                                                    index = find(strcmp(MRSCont.processed.mm{kk}.names,'A_spline')); 
+                                                end
+                                                if sf==2
+                                                    index = find(strcmp(MRSCont.processed.mm{kk}.names,'diff1_spline')); 
+                                                end
+                                                mm_clean_spline = op_takesubspec(MRSCont.processed.mm{kk},index);
+                                                mm_clean_spline               = op_zeropad(mm_clean_spline, 2);  
+                                                ind = find(strcmp(basisSet.name,'MMExp'));
+                                                basisSetfactor = op_freqrange(basisSet,0,1.2);
+                                                mm_clean_spline_factor = op_freqrange(mm_clean_spline,0.7,1.1);
+                                                factor = (max(real(basisSetfactor.specs(:,ind)))/max(real(mm_clean_spline_factor.specs)));
+                                                mm_clean_spline = op_ampScale(mm_clean_spline,factor);
+                                                basisSet.fids(:,ind) = mm_clean_spline.fids;
+                                                basisSet.specs(:,ind) = mm_clean_spline.specs;
+                                            end
+                                            fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
                                         else
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
+                                           dataToPlot  = op_takeVoxel(MRSCont.processed.(dataPlotNames{ss}){kk},rr);
+                                           fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{bf,kk,sf};
+                                           basisSet    = MRSCont.fit.resBasisSet{rr}.(FitSpecNames{ss}).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){bf,sf};
                                         end
-                                    end %re_mm
-                                else %if the fit was not succesful write nans into the corresponding fields
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = nan;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.baseline      = nan;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      =  nan;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = nan;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = nan;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = nan;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = nan;
-                                end
-                            end
-                        case 'Osprey_gLCM'
-
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.fit;
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.baseline      = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.baseline;
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Data.ppm;
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = fftshift(fft(MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Data.fids,[],1),1);
-                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.residual;
-             
-                                if strcmp(FitSpecNames{ss}, 'mm') %re_mm loop over basis functions
-                                    basisSetNames =MRSCont.fit.results.(FitSpecNames{ss}){1, 1}.BasisSets.names(MRSCont.fit.results.(FitSpecNames{ss}){1, 1}.BasisSets.includeInFit(end,:)==1);
-                                    for n = 1 : sum(MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.BasisSets.includeInFit(end,:))
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.(['fit' basisSetNames{n}])  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,n);
-                                    end
-                                    % tMM = all MM functions
-                                    if basisSet.nMM > 0
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM  = sum(ModelOutput.indivMets(:,basisSet.nMets+1:end),2);
-                                    else
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
-                                    end
-                                    %section to write out MM_clean spectra
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.MM_clean = ModelOutput.data -sum(ModelOutput.indivMets(:,1:basisSet.nMets),2);
-                                else if ~(strcmp(FitSpecNames{ss}, 'ref') || strcmp(FitSpecNames{ss}, 'w'))
-                                        basisSetNames =MRSCont.fit.results.(FitSpecNames{ss}){1, 1}.BasisSets.names(MRSCont.fit.results.(FitSpecNames{ss}){1, 1}.BasisSets.includeInFit(end,:)==1);
-                                        for n = 1 : sum(MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.BasisSets.includeInFit(end,:))
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.(['fit' basisSetNames{n}])  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,n);
-                                        end
-                                        % Add basis functions of metabolite combinations
-                                        % tNAA = NAA + NAAG
-                                        idx_NAA  = find(strcmp(basisSetNames,'NAA'));
-                                        idx_NAAG  = find(strcmp(basisSetNames,'NAAG'));
-                                        if isempty(idx_NAA) && isempty(idx_NAAG)
-                                            % do nothing
-                                        elseif isempty(idx_NAA) && ~isempty(idx_NAAG)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_NAAG);
-                                        elseif ~isempty(idx_NAA) && isempty(idx_NAAG)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_NAA);
-                                        elseif ~isempty(idx_NAA) && ~isempty(idx_NAAG)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_NAA) + MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_NAAG);
-                                        end
-    
-    
-                                        % tCr = Cr + tCr - CrCH2
-                                        idx_Cr  = find(strcmp(basisSetNames,'Cr'));
-                                        idx_PCr  = find(strcmp(basisSetNames,'PCr'));
-                                        if isempty(idx_Cr) && isempty(idx_PCr)
-                                            % do nothing
-                                        elseif isempty(idx_Cr) && ~isempty(idx_PCr)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_PCr);
-                                        elseif ~isempty(idx_Cr) && isempty(idx_PCr)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_Cr);
-                                        elseif ~isempty(idx_Cr) && ~isempty(idx_PCr)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_Cr) + MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_PCr);
-                                        end
-    
-                                        % if present, add CrCH2 model
-                                        idx_CrCH2  = find(strcmp(basisSetNames,'CrCH2'));
-                                        if ~isempty(idx_CrCH2)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr + MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_CrCH2);
+                                        % Pack up into structs to feed into the reconstruction functions
+                                        inputData.dataToFit                 = dataToPlot;
+                                        inputData.basisSet                  = basisSet;
+                                        if Voxels < 2
+                                            inputSettings.scale                 = MRSCont.fit.scale{kk};
                                         else
-                                            % do nothing
+                                            inputSettings.scale                 = MRSCont.fit.scale{kk};
                                         end
-    
-                                        % tCho = GPC + PCh
-                                        idx_GPC  = find(strcmp(basisSetNames,'GPC'));
-                                        idx_PCh  = find(strcmp(basisSetNames,'PCh'));
-                                        if isempty(idx_GPC) && isempty(idx_PCh)
-                                            % do nothing
-                                        elseif isempty(idx_GPC) && ~isempty(idx_PCh)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_PCh);
-                                        elseif ~isempty(idx_GPC) && isempty(idx_PCh)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_GPC);
-                                        elseif ~isempty(idx_GPC) && ~isempty(idx_PCh)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_GPC) + MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_PCh);
+                                        inputSettings.fitRangePPM           = fitRangePPM;
+                                        inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
+                                        inputSettings.fitStyle              = MRSCont.opts.fit.style;
+                                        inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
+                                        inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
+                                        inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
+                                        inputSettings.flags.isPRIAM         = MRSCont.flags.isPRIAM;
+                                        inputSettings.concatenated.Subspec  = FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf};
+                                        if isfield(MRSCont.opts.fit,'GAP')
+                                            inputSettings.GAP = MRSCont.opts.fit.GAP.(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf});
+                                        else
+                                            inputSettings.GAP = [];
                                         end
-    
-                                        % Glx = Glu + Gln
-                                        idx_Glu  = find(strcmp(basisSetNames,'Glu'));
-                                        idx_Gln  = find(strcmp(basisSetNames,'Gln'));
-                                        if isempty(idx_Glu) && isempty(idx_Gln)
-                                            % do nothing
-                                        elseif isempty(idx_Glu) && ~isempty(idx_Gln)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_Gln);
-                                        elseif ~isempty(idx_Glu) && isempty(idx_Gln)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_Glu);
-                                        elseif ~isempty(idx_Glu) && ~isempty(idx_Gln)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_Glu) + MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_Gln);
+                                        if strcmp(inputSettings.fitStyle,'Concatenated')
+                                            [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
+                                        else
+                                            [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
                                         end
-    
-                                        % tEA = PE + EA
-                                        idx_PE  = find(strcmp(basisSetNames,'PE'));
-                                        idx_EA  = find(strcmp(basisSetNames,'EA'));
-                                        if isempty(idx_PE) && isempty(idx_Gln)
-                                            % do nothing
-                                        elseif isempty(idx_PE) && ~isempty(idx_EA)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_EA);
-                                        elseif ~isempty(idx_PE) && isempty(idx_EA)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_PE);
-                                        elseif ~isempty(idx_PE) && ~isempty(idx_EA)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_PE) + MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_EA);
+                                        if ~isnan(ModelOutput.completeFit(1)) %If the fit was succesfull
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = ModelOutput.completeFit;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.baseline      = ModelOutput.baseline;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      =  ModelOutput.ppm;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = ModelOutput.residual;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = ModelOutput.data;
+                                            if strcmp(FitSpecNames{ss}, 'mm') %re_mm loop over basis functions
+                                                for n = 1 : (basisSet.nMets + basisSet.nMM)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.(['fit' basisSet.name{n}])  = ModelOutput.indivMets(:,n);
+                                                end
+                                                % tMM = all MM functions
+                                                if basisSet.nMM > 0
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM  = sum(ModelOutput.indivMets(:,basisSet.nMets+1:end),2);
+                                                else
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
+                                                end
+                                                %section to write out MM_clean spectra
+                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.MM_clean = ModelOutput.data -sum(ModelOutput.indivMets(:,1:basisSet.nMets),2);
+                                            else%re_mm
+                                                for n = 1 : size(ModelOutput.indivMets,2) % loop over basis functions
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.(['fit' basisSet.name{n}])  = ModelOutput.indivMets(:,n);
+                                                end
+                                                % Add basis functions of metabolite combinations
+                                                % tNAA = NAA + NAAG
+                                                idx_NAA  = find(strcmp(basisSet.name,'NAA'));
+                                                idx_NAAG  = find(strcmp(basisSet.name,'NAAG'));
+                                                if isempty(idx_NAA) && isempty(idx_NAAG)
+                                                    % do nothing
+                                                elseif isempty(idx_NAA) && ~isempty(idx_NAAG)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = ModelOutput.indivMets(:,idx_NAAG);
+                                                elseif ~isempty(idx_NAA) && isempty(idx_NAAG)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = ModelOutput.indivMets(:,idx_NAA);
+                                                elseif ~isempty(idx_NAA) && ~isempty(idx_NAAG)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = ModelOutput.indivMets(:,idx_NAA) + ModelOutput.indivMets(:,idx_NAAG);
+                                                end
+        
+        
+                                                % tCr = Cr + tCr - CrCH2
+                                                idx_Cr  = find(strcmp(basisSet.name,'Cr'));
+                                                idx_PCr  = find(strcmp(basisSet.name,'PCr'));
+                                                if isempty(idx_Cr) && isempty(idx_PCr)
+                                                    % do nothing
+                                                elseif isempty(idx_Cr) && ~isempty(idx_PCr)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = ModelOutput.indivMets(:,idx_PCr);
+                                                elseif ~isempty(idx_Cr) && isempty(idx_PCr)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = ModelOutput.indivMets(:,idx_Cr);
+                                                elseif ~isempty(idx_Cr) && ~isempty(idx_PCr)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = ModelOutput.indivMets(:,idx_Cr) + ModelOutput.indivMets(:,idx_PCr);
+                                                end
+        
+                                                % if present, add CrCH2 model
+                                                idx_CrCH2  = find(strcmp(basisSet.name,'CrCH2'));
+                                                if ~isempty(idx_CrCH2)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr + ModelOutput.indivMets(:,idx_CrCH2);
+                                                else
+                                                    % do nothing
+                                                end
+        
+                                                % tCho = GPC + PCh
+                                                idx_GPC  = find(strcmp(basisSet.name,'GPC'));
+                                                idx_PCh  = find(strcmp(basisSet.name,'PCh'));
+                                                if isempty(idx_GPC) && isempty(idx_PCh)
+                                                    % do nothing
+                                                elseif isempty(idx_GPC) && ~isempty(idx_PCh)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = ModelOutput.indivMets(:,idx_PCh);
+                                                elseif ~isempty(idx_GPC) && isempty(idx_PCh)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = ModelOutput.indivMets(:,idx_GPC);
+                                                elseif ~isempty(idx_GPC) && ~isempty(idx_PCh)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCho  = ModelOutput.indivMets(:,idx_GPC) + ModelOutput.indivMets(:,idx_PCh);
+                                                end
+        
+                                                % Glx = Glu + Gln
+                                                idx_Glu  = find(strcmp(basisSet.name,'Glu'));
+                                                idx_Gln  = find(strcmp(basisSet.name,'Gln'));
+                                                if isempty(idx_Glu) && isempty(idx_Gln)
+                                                    % do nothing
+                                                elseif isempty(idx_Glu) && ~isempty(idx_Gln)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = ModelOutput.indivMets(:,idx_Gln);
+                                                elseif ~isempty(idx_Glu) && isempty(idx_Gln)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = ModelOutput.indivMets(:,idx_Glu);
+                                                elseif ~isempty(idx_Glu) && ~isempty(idx_Gln)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fitGlx  = ModelOutput.indivMets(:,idx_Glu) + ModelOutput.indivMets(:,idx_Gln);
+                                                end
+        
+                                                % tEA = PE + EA
+                                                idx_PE  = find(strcmp(basisSet.name,'PE'));
+                                                idx_EA  = find(strcmp(basisSet.name,'EA'));
+                                                if isempty(idx_PE) && isempty(idx_Gln)
+                                                    % do nothing
+                                                elseif isempty(idx_PE) && ~isempty(idx_EA)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = ModelOutput.indivMets(:,idx_EA);
+                                                elseif ~isempty(idx_PE) && isempty(idx_EA)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = ModelOutput.indivMets(:,idx_PE);
+                                                elseif ~isempty(idx_PE) && ~isempty(idx_EA)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittEA  = ModelOutput.indivMets(:,idx_PE) + ModelOutput.indivMets(:,idx_EA);
+                                                end
+        
+                                                % tMM = all MM functions
+                                                if MRSCont.opts.fit.fitMM == 1
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM  = sum(ModelOutput.indivMets(:,basisSet.nMets+1:end),2);
+                                                else
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
+                                                end
+                                            end %re_mm
+                                        else %if the fit was not succesful write nans into the corresponding fields
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = nan;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.baseline      = nan;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      =  nan;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = nan;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittNAA  = nan;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittCr  = nan;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = nan;
                                         end
-    
-                                        % tMM = all MM functions
-                                        idx_tMM = find(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip'));
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM  = sum(MRSCont.fit.results.(FitSpecNames{ss}){kk, 1}.Model{end}.fit.metabs(:,idx_tMM),2);
-                                    end    
-                                end
-                        case 'LCModel'
-                                    if (MRSCont.flags.isPRIAM == 1)
-                                        fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{bf,kk,sf};
-                                    else
-                                        fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
                                     end
-                                    % Get the LCModel plots we previously extracted from .coord
-                                    % etc.
-                                    [ModelOutput] = fit_LCModelParamsToModel(fitParams);
-
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = ModelOutput.completeFit;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.baseline      = ModelOutput.baseline;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      =  ModelOutput.ppm';
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = ModelOutput.residual;
-                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = ModelOutput.data;
-                                    for n = 1 : size(ModelOutput.indivMets,2) % loop over basis functions
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.(['fit' fitParams.name{n}])  = ModelOutput.indivMets(:,n);
-                                    end
-                                     % tMM = all MM functions
-                                    if MRSCont.opts.fit.fitMM == 1
-                                        %Find all MM or Lip functions that are not
-                                        %combined
-                                        idx_tMM = horzcat(find(contains(fitParams.name,'MM')), find(contains(fitParams.name,'Lip')));
-                                        if ~isempty(idx_tMM)
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM  = sum(ModelOutput.indivMets(:,idx_tMM),2);
+                                case 'Osprey_gLCM'
+        
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fit      = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.fit;
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.baseline      = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.baseline;
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.ppm      = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Data.ppm;
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.data      = fftshift(fft(MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Data.fids,[],1),1);
+                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.res      = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.residual;
+                     
+                                        if strcmp(FitSpecNames{ss}, 'mm') %re_mm loop over basis functions
+                                            basisSetNames =MRSCont.fit.results.(FitSpecNames{ss}){1, 1, ex}.BasisSets.names(MRSCont.fit.results.(FitSpecNames{ss}){1, 1}.BasisSets.includeInFit(end,:)==1);
+                                            for n = 1 : sum(MRSCont.fit.results.(FitSpecNames{ss}){1, kk, ex}.BasisSets.includeInFit(end,:))
+                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){1,kk,sf,ex}.(['fit' basisSetNames{n}])  = MRSCont.fit.results.(FitSpecNames{ss}){1,kk,ss,ex}.Model{end}.fit.metabs(:,n,:);
+                                            end
+                                            % tMM = all MM functions
+                                            idx_tMM = find(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip'));                         
+                                            if sum(idx_tMM) > 0
+                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){1,kk,sf,ex}.fittMM  = sum(MRSCont.fit.results.(FitSpecNames{ss}){1,kk,sf,ex}.Model{end}.fit.metabs(:,idx_tMM,:),2);
                                             else
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
+                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){1,kk,sf,ex}.fittMM =nan;
+                                            end
+                                            %section to write out MM_clean spectra
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){1,kk,sf,ex}.MM_clean = fftshift(fft(MRSCont.fit.results.(FitSpecNames{ss}){1,kk,sf,ex}.Data.fids,[],1),1) -sum(MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,~idx_tMM),2);
+                                        else if ~(strcmp(FitSpecNames{ss}, 'ref') || strcmp(FitSpecNames{ss}, 'w'))
+                                                basisSetNames =MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.BasisSets.names(MRSCont.fit.results.(FitSpecNames{ss}){bf, 1, sf,ex}.BasisSets.includeInFit(end,:)==1);
+                                                for n = 1 : sum(MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.BasisSets.includeInFit(end,:))
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.(['fit' basisSetNames{n}])  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,n,:);
+                                                end
+                                                % Add basis functions of metabolite combinations
+                                                % tNAA = NAA + NAAG
+                                                idx_NAA  = find(strcmp(basisSetNames,'NAA'));
+                                                idx_NAAG  = find(strcmp(basisSetNames,'NAAG'));
+                                                if isempty(idx_NAA) && isempty(idx_NAAG)
+                                                    % do nothing
+                                                elseif isempty(idx_NAA) && ~isempty(idx_NAAG)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittNAA  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_NAAG,:);
+                                                elseif ~isempty(idx_NAA) && isempty(idx_NAAG)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittNAA  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_NAA,:);
+                                                elseif ~isempty(idx_NAA) && ~isempty(idx_NAAG)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittNAA  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_NAA,:) + MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_NAAG,:);
+                                                end
+            
+            
+                                                % tCr = Cr + tCr - CrCH2
+                                                idx_Cr  = find(strcmp(basisSetNames,'Cr'));
+                                                idx_PCr  = find(strcmp(basisSetNames,'PCr'));
+                                                if isempty(idx_Cr) && isempty(idx_PCr)
+                                                    % do nothing
+                                                elseif isempty(idx_Cr) && ~isempty(idx_PCr)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittCr  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_PCr,:);
+                                                elseif ~isempty(idx_Cr) && isempty(idx_PCr)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittCr  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_Cr,:);
+                                                elseif ~isempty(idx_Cr) && ~isempty(idx_PCr)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittCr  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_Cr,:) + MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_PCr,:);
+                                                end
+            
+                                                % if present, add CrCH2 model
+                                                idx_CrCH2  = find(strcmp(basisSetNames,'CrCH2'));
+                                                if ~isempty(idx_CrCH2)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittCr  = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittCr + MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_CrCH2,:);
+                                                else
+                                                    % do nothing
+                                                end
+            
+                                                % tCho = GPC + PCh
+                                                idx_GPC  = find(strcmp(basisSetNames,'GPC'));
+                                                idx_PCh  = find(strcmp(basisSetNames,'PCh'));
+                                                if isempty(idx_GPC) && isempty(idx_PCh)
+                                                    % do nothing
+                                                elseif isempty(idx_GPC) && ~isempty(idx_PCh)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittCho  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_PCh,:);
+                                                elseif ~isempty(idx_GPC) && isempty(idx_PCh)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittCho  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_GPC,:);
+                                                elseif ~isempty(idx_GPC) && ~isempty(idx_PCh)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittCho  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_GPC,:) + MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_PCh,:);
+                                                end
+            
+                                                % Glx = Glu + Gln
+                                                idx_Glu  = find(strcmp(basisSetNames,'Glu'));
+                                                idx_Gln  = find(strcmp(basisSetNames,'Gln'));
+                                                if isempty(idx_Glu) && isempty(idx_Gln)
+                                                    % do nothing
+                                                elseif isempty(idx_Glu) && ~isempty(idx_Gln)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fitGlx  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_Gln,:);
+                                                elseif ~isempty(idx_Glu) && isempty(idx_Gln)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fitGlx  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_Glu,:);
+                                                elseif ~isempty(idx_Glu) && ~isempty(idx_Gln)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fitGlx  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_Glu,:) + MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_Gln,:);
+                                                end
+            
+                                                % tEA = PE + EA
+                                                idx_PE  = find(strcmp(basisSetNames,'PE'));
+                                                idx_EA  = find(strcmp(basisSetNames,'EA'));
+                                                if isempty(idx_PE) && isempty(idx_Gln)
+                                                    % do nothing
+                                                elseif isempty(idx_PE) && ~isempty(idx_EA)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittEA  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_EA,:);
+                                                elseif ~isempty(idx_PE) && isempty(idx_EA)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittEA  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_PE,:);
+                                                elseif ~isempty(idx_PE) && ~isempty(idx_EA)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittEA  = MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_PE,:) + MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_EA,:);
+                                                end
+            
+                                                % tMM = all MM functions
+                                                idx_tMM = find(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip'));
+                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf,ex}.fittMM  = sum(MRSCont.fit.results.(FitSpecNames{ss}){bf,kk,sf,ex}.Model{end}.fit.metabs(:,idx_tMM,:),2);
+                                            end    
                                         end
-                                    else
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
-                                    end
+                                case 'LCModel'
+                                            if (MRSCont.flags.isPRIAM == 1)
+                                                fitParams   = MRSCont.fit.results{rr}.(FitSpecNames{ss}).fitParams{bf,kk,sf};
+                                            else
+                                                fitParams   = MRSCont.fit.results.(FitSpecNames{ss}).fitParams{bf,kk,sf};
+                                            end
+                                            % Get the LCModel plots we previously extracted from .coord
+                                            % etc.
+                                            [ModelOutput] = fit_LCModelParamsToModel(fitParams);
+        
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = ModelOutput.completeFit;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.baseline      = ModelOutput.baseline;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.ppm      =  ModelOutput.ppm';
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.res      = ModelOutput.residual;
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.data      = ModelOutput.data;
+                                            for n = 1 : size(ModelOutput.indivMets,2) % loop over basis functions
+                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.(['fit' fitParams.name{n}])  = ModelOutput.indivMets(:,n);
+                                            end
+                                             % tMM = all MM functions
+                                            if MRSCont.opts.fit.fitMM == 1
+                                                %Find all MM or Lip functions that are not
+                                                %combined
+                                                idx_tMM = horzcat(find(contains(fitParams.name,'MM')), find(contains(fitParams.name,'Lip')));
+                                                if ~isempty(idx_tMM)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM  = sum(ModelOutput.indivMets(:,idx_tMM),2);
+                                                    else
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
+                                                end
+                                            else
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fittMM =nan;
+                                            end
+                            end
                         end
                     end
                 end
             end
-        end
+       end
        end
     end
     fprintf('\n... done.\n');
@@ -564,17 +580,19 @@ if MRSCont.flags.didFit
     NoModelCombs = length(ModelCombs);
     for rr = 1 : Voxels
         for sc = 1 : NoModelCombs % Loop over all model combinations
-            for sf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),3)
-                for bf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),1)                                                                                                                                                                                                                                                           for bf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),1)
-                        if isstruct(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf})
-                            for kk = 1 : MRSCont.nDatasets
-                                temp_fit_sz.(ModelCombs{sc})(bf,kk,sf)= length(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit);
+            for ex = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),4)
+                for sf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),3)
+                    for bf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),1)                                                                                                                                                                                                                                                           for bf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),1)
+                            if isstruct(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf})
+                                for kk = 1 : MRSCont.nDatasets
+                                    temp_fit_sz.(ModelCombs{sc})(bf,kk,sf,ex)= length(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.fit);
+                                end
                             end
                         end
                     end
                 end
             end
-            [max_point_fit.(ModelCombs{sc}),max_ind_fit.(ModelCombs{sc})] = max(temp_fit_sz.(ModelCombs{sc})(1,:,1));
+            [max_point_fit.(ModelCombs{sc}),max_ind_fit.(ModelCombs{sc})] = max(max(temp_fit_sz.(ModelCombs{sc})(1,:,1,:)));
         end
     end
 
@@ -583,51 +601,66 @@ if MRSCont.flags.didFit
     fprintf('Interpolating fit models from fit %d out of %d total fits...', 1, NoModelCombs);
     for rr = 1 : Voxels
         for sc = 1 : NoModelCombs % Loop over all model combinations
-           for sf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),3)
-                for bf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),1)
-
-                    msg = sprintf('Interpolating fit models from fit %d out of %d total fits...', sc, NoModelCombs);
-                    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-                    fprintf([reverseStr, msg]);
-                    if MRSCont.flags.isGUI && isfield(progressText,'String')
-                        set(progressText,'String' ,sprintf('Interpolating fit models from fit %d out of %d total fits...\n', sc, NoModelCombs));
-                        drawnow
-                    end
-
-                    for kk = 1 : MRSCont.nDatasets %loop over all datasets
-                        if isstruct(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf})
-                            if length(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit) < max_point_fit.(ModelCombs{sc})
-                                        ppmRangeData        = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){1,max_ind_fit.(ModelCombs{1})}.ppm';
-                                        ppmRangeDataToInt       = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.ppm;
-                                        ppmIsInDataRange    = (ppmRangeDataToInt < ppmRangeData(1)) & (ppmRangeDataToInt > ppmRangeData(end));
-                                        if sum(ppmIsInDataRange) == 0
-                                            ppmIsInDataRange    = (ppmRangeDataToInt > ppmRangeData(1)) & (ppmRangeDataToInt < ppmRangeData(end));
-                                        end
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.data      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.data(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
-                                        if ~(strcmp(ModelCombs{sc}, 'ref') || strcmp(ModelCombs{sc}, 'w'))
-                                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.baseline = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.baseline(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
-                                             names = fields(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf});
-                                             for f = 6 : length(names)
-                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.(names{f})= interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.(names{f})(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
-                                             end
-                                        end
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.ppm = ppmRangeData';
-                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.res = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.data-MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit;
-                                        if ~isempty(MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf}))
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.data(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
-                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.baseline(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
-                                            names = fields(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf});
-                                             for f = 6 : length(names)
-                                                MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.(names{f})(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
-                                             end
-                                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.res(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
-                                        end
+           for ex = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),4)
+               for sf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),3)
+                    for bf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),1)
+    
+                        msg = sprintf('Interpolating fit models from fit %d out of %d total fits...', sc, NoModelCombs);
+                        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+                        fprintf([reverseStr, msg]);
+                        if MRSCont.flags.isGUI && isfield(progressText,'String')
+                            set(progressText,'String' ,sprintf('Interpolating fit models from fit %d out of %d total fits...\n', sc, NoModelCombs));
+                            drawnow
+                        end
+    
+                        for kk = 1 : MRSCont.nDatasets %loop over all datasets
+                            if isstruct(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex})
+                                if length(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.fit) < max_point_fit.(ModelCombs{sc})
+                                            ppmRangeData        = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){1,max_ind_fit.(ModelCombs{1})}.ppm';
+                                            ppmRangeDataToInt       = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.ppm;
+                                            ppmIsInDataRange    = (ppmRangeDataToInt < ppmRangeData(1)) & (ppmRangeDataToInt > ppmRangeData(end));
+                                            if sum(ppmIsInDataRange) == 0
+                                                ppmIsInDataRange    = (ppmRangeDataToInt > ppmRangeData(1)) & (ppmRangeDataToInt < ppmRangeData(end));
+                                            end
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.fit      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.data      = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.data(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
+                                            if ~(strcmp(ModelCombs{sc}, 'ref') || strcmp(ModelCombs{sc}, 'w'))
+                                                 MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.baseline = interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.baseline(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
+                                                 names = fields(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex});
+                                                 for f = 6 : length(names)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.(names{f})= interp1(ppmRangeDataToInt(ppmIsInDataRange), MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.(names{f})(ppmIsInDataRange), ppmRangeData, 'pchip', 'extrap');
+                                                 end
+                                            end
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.ppm = ppmRangeData';
+                                            MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.res = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.data-MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.fit;
+                                            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                                                if ~isempty(MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf}))
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.data(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.baseline(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                                    names = fields(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf});
+                                                     for f = 6 : length(names)
+                                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.(names{f})(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                                     end
+                                                     MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.res(ppmRangeData>MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(1) & ppmRangeData<MRSCont.opts.fit.GAP.(FitSpecNamesStruct.metab{sf})(2)) = nan;
+                                                end
+                                            else
+                                                if ~isempty(MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap)
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.fit(ppmRangeData>MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(1) & ppmRangeData<MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(2)) = nan;
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.data(ppmRangeData>MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(1) & ppmRangeData<MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(2)) = nan;
+                                                    MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.baseline(ppmRangeData>MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(1) & ppmRangeData<MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(2)) = nan;
+                                                    names = fields(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex});
+                                                     for f = 6 : length(names)
+                                                        MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.(names{f})(ppmRangeData>MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(1) & ppmRangeData<MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(2)) = nan;
+                                                     end
+                                                     MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf,ex}.res(ppmRangeData>MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(1) & ppmRangeData<MRSCont.fit.results.metab{bf, kk, sf,ex}.Options{end}.gap(2)) = nan;
+                                                end
+                                            end
+                                end
                             end
                         end
                     end
-                end
+               end
             end
         end
     end
@@ -657,7 +690,7 @@ for rr = 1 : Voxels
                     scale                 = MRSCont.fit.scale{kk};
                 end
             else
-                scale                 = MRSCont.fit.results.metab{kk, 1}.scale;
+                scale                 = MRSCont.fit.results.metab{1, kk, 1}.scale;
             end
             msg = sprintf('Scaling data from dataset %d out of %d total datasets...', kk, MRSCont.nDatasets(1));
             reverseStr = repmat(sprintf('\b'), 1, length(msg));
@@ -803,9 +836,9 @@ if MRSCont.flags.didFit
         % Sort the models according to the groups
         for sc = 1 : NoModelCombs % Loop over all model combinations
             for g = 1 : MRSCont.overview.NoGroups % loop over groups
-                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(['g_' num2str(g)]).(ModelCombs{sc}) = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc})(:,MRSCont.overview.groups == g,:);
+                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(['g_' num2str(g)]).(ModelCombs{sc}) = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc})(:,MRSCont.overview.groups == g,:,:);
             end
-            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).GMean.(ModelCombs{sc}) = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc})(:,MRSCont.overview.groups > 0,:);
+            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).GMean.(ModelCombs{sc}) = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc})(:,MRSCont.overview.groups > 0,:,:);
         end
     end
 end
@@ -831,23 +864,49 @@ end
 
 %Start with the spectra
 for rr = 1 : Voxels
-    for ss = 1 : NoSpec %loop over subspectra
+    for ss = 1 : NoSpec %loop over spectra
         names = fields(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]));
         for g = 1 : length(names) % loop over groups
-            tempSubSpec = zeros(length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})),MRSCont.info.(dataPlotNames{ss}).max_ndatapoint,MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.subspecs);
+            if MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.dims.extras > 0
+                Experiments = MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.sz(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.dims.extras);
+            else
+                Experiments = 1;
+            end
+            if MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.dims.subSpecs > 0
+                subspecs = MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.sz(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.dims.subSpecs);
+            else
+                subspecs = 1;
+            end
+            tempSubSpec = zeros(length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})),MRSCont.info.(dataPlotNames{ss}).max_ndatapoint,MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.subspecs,Experiments);
             if isempty(tempSubSpec)
                 tempSubSpec = zeros(length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})),MRSCont.info.(dataPlotNames{ss}).max_ndatapoint,MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.rawSubspecs);
             end
-            for kk = 1 : length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})) % Loop over datasets to generate a matrix
-                try
-                    tempSubSpec(kk,:,:) = MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1,kk}.specs;
-                catch
-                    tempSubSpec(kk,:,:) = ones(1,MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).(dataPlotNames{1}){1,1}.sz(1)) *nan;
+            for kk = 1 : length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})) % Loop over datasets to generate a matrix                
+                for ex = 1 : Experiments
+                    if subspecs == 1
+                        try
+                            tempSubSpec(kk,:,1,:) = MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1,kk}.specs;
+                        catch
+                            tempSubSpec(kk,:,1,:) = ones(1,MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).(dataPlotNames{1}){1,1}.sz(1)) *nan;
+                        end
+                    else
+                        for ss = 1 : subspecs
+                            try
+                                tempSubSpec(kk,:,ss,:) = MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1,kk}.specs(:,:,ss,ex);
+                            catch
+                                tempSubSpec(kk,:,ss,:) = ones(1,MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).(dataPlotNames{1}){1,1}.sz(1)) *nan;
+                            end
+                        end
+                    end
                 end
             end
             %Calculate mean and SD
-            MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(['mean_' dataPlotNames{ss}]) = squeeze(nanmean(real(tempSubSpec),1));
-            MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(['sd_' dataPlotNames{ss}]) = squeeze(nanstd(real(tempSubSpec),1));
+            for ex = 1 : Experiments
+                for ss = 1 : subspecs
+                    MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(['mean_' dataPlotNames{ss}])(:,ss,ex) = squeeze(nanmean(real(tempSubSpec(:,:,ss,ex)),1));
+                    MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(['sd_' dataPlotNames{ss}])(:,ss,ex) = squeeze(nanstd(real(tempSubSpec(:,:,ss,ex)),1));
+                end
+            end
         end
         %Store ppm
         MRSCont.overview.Osprey.(['ppm_data_' dataPlotNames{ss}]) = MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).(dataPlotNames{ss}){MRSCont.info.(dataPlotNames{ss}).max_ndatapoint_ind}.ppm;
@@ -860,53 +919,87 @@ if MRSCont.flags.didFit
         for sc = 1 : NoModelCombs % Loop over all model combinations
             names = fields(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]));
             for g = 1 : length(names) %Loop over groups
+               for ex = 1 : size(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}),4) 
                for sf = 1 : size(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}),3)
                 for bf = 1 : size(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}),1)
                     if isstruct(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,1,sf})
+                        if ExperimentsFitted < Experiments
+                            tempSubSpec = zeros(size(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}),2),length(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,1,sf}.ppm),Experiments);
+                        else
                             tempSubSpec = zeros(size(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}),2),length(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,1,sf}.ppm));
+                        end                            
                             tempSubRes = tempSubSpec;
                             tempSubdata = tempSubSpec;
                             tempSubBaseline = tempSubSpec;
                             tempInidivMetab = [];
                             for kk = 1 : size(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}),2) % Loop over datasets to generate a matrices
-                              tempSubSpec(kk,:) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf}.fit; %Fits
-                              tempSubRes(kk,:) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf}.res; % Residuals
-                              tempSubdata(kk,:) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf}.data; % spectra
+                              tempSubSpec(kk,:,:) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf,ex}.fit; %Fits
+                              tempSubRes(kk,:,:) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf,ex}.res; % Residuals
+                              tempSubdata(kk,:,:) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf,ex}.data; % spectra
                               if ~(strcmp(ModelCombs{sc}, 'ref') || strcmp(ModelCombs{sc}, 'w')) %Is not water
-                                tempSubBaseline(kk,:) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf}.baseline; % Baseline
-                                fits = fields(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf}); % names of the basis functions
+                                tempSubBaseline(kk,:,:) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf,ex}.baseline; % Baseline
+                                fits = fields(MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf,ex}); % names of the basis functions
                                  for f = 6 : length(fits) % loop over basis functions
-                                        tempInidivMetab.(fits{f})(kk,:)= MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf}.(fits{f});
+                                        tempInidivMetab.(fits{f})(kk,:,:)= MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,kk,sf,ex}.(fits{f});
                                  end
                               end
                             end
-                            %Calculate mean and SD
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_fit_' ModelCombs{sc}])(bf,:,sf) = nanmean(real(tempSubSpec),1);
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_fit_' ModelCombs{sc}])(bf,:,sf) = nanstd(real(tempSubSpec),1);
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_res_' ModelCombs{sc}])(bf,:,sf) = nanmean(real(tempSubRes),1);
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_res_' ModelCombs{sc}])(bf,:,sf) = nanstd(real(tempSubRes),1);
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_data_' ModelCombs{sc}])(bf,:,sf) = nanmean(real(tempSubdata),1);
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_data_' ModelCombs{sc}])(bf,:,sf) = nanstd(real(tempSubdata),1);
-
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['fit_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf) = real(tempSubSpec);
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['res_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf) = real(tempSubRes);
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['data_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf) = real(tempSubdata);
-
-                            if ~(strcmp(ModelCombs{sc}, 'ref') || strcmp(ModelCombs{sc}, 'w')) %Is not water
-                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_baseline_' ModelCombs{sc}])(bf,:,sf) = nanmean(real(tempSubBaseline),1);
-                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_baseline_' ModelCombs{sc}])(bf,:,sf) = nanstd(real(tempSubBaseline),1);
-                                for f = 6 : length(fits) % loop over basis functions
-                                        MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_' fits{f} '_' ModelCombs{sc}])(bf,:,sf) = nanmean(real(tempInidivMetab.(fits{f})),1);
-                                        MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_' fits{f} '_' ModelCombs{sc}])(bf,:,sf) = nanstd(real(tempInidivMetab.(fits{f})),1);
+                            if ExperimentsFitted < Experiments
+                                for exFit = 1 : Experiments 
+                                    %Calculate mean and SD
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_fit_' ModelCombs{sc}])(bf,:,sf,exFit) = nanmean(real(tempSubSpec(:,:,exFit)),1);
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_fit_' ModelCombs{sc}])(bf,:,sf,exFit) = nanstd(real(tempSubSpec(:,:,exFit)),1);
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_res_' ModelCombs{sc}])(bf,:,sf,exFit) = nanmean(real(tempSubRes(:,:,exFit)),1);
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_res_' ModelCombs{sc}])(bf,:,sf,exFit) = nanstd(real(tempSubRes(:,:,exFit)),1);
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_data_' ModelCombs{sc}])(bf,:,sf,exFit) = nanmean(real(tempSubdata(:,:,exFit)),1);
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_data_' ModelCombs{sc}])(bf,:,sf,exFit) = nanstd(real(tempSubdata(:,:,exFit)),1);
+        
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['fit_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf,exFit) = real(tempSubSpec(:,:,exFit));
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['res_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf,exFit) = real(tempSubRes(:,:,exFit));
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['data_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf,exFit) = real(tempSubdata(:,:,exFit));
+        
+                                    if ~(strcmp(ModelCombs{sc}, 'ref') || strcmp(ModelCombs{sc}, 'w')) %Is not water
+                                        MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_baseline_' ModelCombs{sc}])(bf,:,sf,exFit) = nanmean(real(tempSubBaseline(:,:,exFit)),1);
+                                        MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_baseline_' ModelCombs{sc}])(bf,:,sf,exFit) = nanstd(real(tempSubBaseline(:,:,exFit)),1);
+                                        for f = 6 : length(fits) % loop over basis functions
+                                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_' fits{f} '_' ModelCombs{sc}])(bf,:,sf,exFit) = nanmean(real(tempInidivMetab.(fits{f})(:,:,exFit)),1);
+                                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_' fits{f} '_' ModelCombs{sc}])(bf,:,sf,exFit) = nanstd(real(tempInidivMetab.(fits{f})(:,:,exFit)),1);
+                                        end
+                                    end
+                                    %Store ppm
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' ModelCombs{sc}])(bf,:,sf,exFit) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,1,sf,1}.ppm;
                                 end
+                            else
+                                %Calculate mean and SD
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_fit_' ModelCombs{sc}])(bf,:,sf,ex) = nanmean(real(tempSubSpec),1);
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_fit_' ModelCombs{sc}])(bf,:,sf,ex) = nanstd(real(tempSubSpec),1);
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_res_' ModelCombs{sc}])(bf,:,sf,ex) = nanmean(real(tempSubRes),1);
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_res_' ModelCombs{sc}])(bf,:,sf,ex) = nanstd(real(tempSubRes),1);
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_data_' ModelCombs{sc}])(bf,:,sf,ex) = nanmean(real(tempSubdata),1);
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_data_' ModelCombs{sc}])(bf,:,sf,ex) = nanstd(real(tempSubdata),1);
+    
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['fit_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf,ex) = real(tempSubSpec);
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['res_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf,ex) = real(tempSubRes);
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['data_' ModelCombs{sc}])(1:size(tempSubSpec,1),:,bf,sf,ex) = real(tempSubdata);
+    
+                                if ~(strcmp(ModelCombs{sc}, 'ref') || strcmp(ModelCombs{sc}, 'w')) %Is not water
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_baseline_' ModelCombs{sc}])(bf,:,sf,ex) = nanmean(real(tempSubBaseline),1);
+                                    MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_baseline_' ModelCombs{sc}])(bf,:,sf,ex) = nanstd(real(tempSubBaseline),1);
+                                    for f = 6 : length(fits) % loop over basis functions
+                                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['mean_' fits{f} '_' ModelCombs{sc}])(bf,:,sf,ex) = nanmean(real(tempInidivMetab.(fits{f})),1);
+                                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['sd_' fits{f} '_' ModelCombs{sc}])(bf,:,sf,ex) = nanstd(real(tempInidivMetab.(fits{f})),1);
+                                    end
+                                end
+                                %Store ppm
+                                MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' ModelCombs{sc}])(bf,:,sf,ex) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,1,sf,ex}.ppm;
                             end
 
-                            %Store ppm
-                            MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(['ppm_fit_' ModelCombs{sc}])(bf,:,sf) = MRSCont.overview.Osprey.(['sort_models_voxel_' num2str(rr)]).(names{g}).(ModelCombs{sc}){bf,1,sf}.ppm;
+                            
                     end
                 end
+                end
+               end
             end
-           end
         end
     end
 end

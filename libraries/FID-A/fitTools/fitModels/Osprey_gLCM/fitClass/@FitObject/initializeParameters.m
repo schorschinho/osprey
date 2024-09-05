@@ -305,7 +305,7 @@ if nargin == 3
             for pp = 1 : length(predefined.(pars{ff}))          % Loop over entries in the predefined struct this is needed if we add different values per basis function
                 if ischar(predefined.(pars{ff}){pp})            % If string it is either a Step reference or a Regularizer reference
                     if ~strcmp(predefined.(pars{ff}){pp}(1:2),'St')
-                        parametrizations.(pars{ff})(pp,1) = str2num(predefined.(pars{ff}){pp});
+                        parametrizations.(pars{ff})(1,pp) = str2num(predefined.(pars{ff}){pp});
                     else
                         step_to_get_ini = split(predefined.(pars{ff}){pp},' ');         % Get entry from model procedure e.g. Step 1
                         step_to_get_ini = str2num(step_to_get_ini{2});                  % Get numeric value of step
@@ -316,8 +316,8 @@ if nargin == 3
                         end
                     end
                 else
-                    if size(parametrizations.(pars{ff}),2) == 1                         % If single entry we will just add it
-                        parametrizations.(pars{ff})(pp,1) = predefined.(pars{ff}){pp};  % Update numerical value accordingly
+                    if size(predefined.(pars{ff}),1) == 1                         % If single entry we will just add it
+                        parametrizations.(pars{ff})(1,pp) = predefined.(pars{ff}){pp};  % Update numerical value accordingly
                     else                                                                % One value per basis function
                         parametrizations.(pars{ff})(pp,:) = repmat(predefined.(pars{ff}){pp},[1, size(parametrizations.(pars{ff}),2)]); % Repeat according to numbers of basis functions
                     end

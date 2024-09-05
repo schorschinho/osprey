@@ -31,7 +31,7 @@ function osp_onRightX( ~, ~ ,gui)
     % User wants to process the data
 %%% 2. UPDATEWINDOW %%%    
 
-    if gui.controls.act_x < gui.info.nXvoxels
+    if (gui.controls.act_x < gui.info.nXvoxels) || (gui.controls.act_x < gui.info.nExperiments)
         gui.controls.act_x = gui.controls.act_x + 1;
 
         setappdata(gui.figure,'MRSCont',MRSCont); % Write MRSCont into hidden container in gui class

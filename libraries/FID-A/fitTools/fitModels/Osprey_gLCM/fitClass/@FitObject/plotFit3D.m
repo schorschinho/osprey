@@ -1,4 +1,4 @@
-function plotFit3D(obj,step,secDim, plotRange)
+function plotFit3D(obj,newFigure,step,secDim, plotRange)
 %%  plotFit3D(obj,step,secDim, plotRange)
 %   This method generates a 3D plot from the fit object.
 %
@@ -6,6 +6,7 @@ function plotFit3D(obj,step,secDim, plotRange)
 %       obj.plotFit3D(step,secDim, plotRange)
 %
 %   INPUTS:
+%       newFigure       = create a new figure 
 %       step            = step to plot      
 %       secDim          = spectrum along indirect dimension to plot % OPTIONS:   - default (plot all) 
 %                                                                                - n (plot the first n spectra)
@@ -28,12 +29,18 @@ function plotFit3D(obj,step,secDim, plotRange)
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %%  Diverge to default options if required 
 
-    if nargin < 4
-        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range
+    if nargin < 5
         if nargin < 3
+            step = obj.step;                                    % Set to last step
+        end
+        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range
+        if nargin < 4
             secDim = 0;                                             % Set second dimensions to plot (if not defined, it will set it o 0 and plot all)
-            if nargin < 2
+            if nargin < 3
                 step = obj.step;                                    % Set to last step
+                if nargin < 2
+                    newFigure = 1;                                  % create new figure
+                end
             end
         end
     end
@@ -53,7 +60,9 @@ function plotFit3D(obj,step,secDim, plotRange)
     end
 
 %%  Generate figure
-    figure                                                                              % Initialize figure
+    if newFigure
+        figure                                                                     % Initialize figure
+    end                                                                            % Initialize figure
     
     if isVariableRange(secDim)                                                          % Check if the input variable is a Range
         startRange= floor(secDim(1));
@@ -74,7 +83,7 @@ function plotFit3D(obj,step,secDim, plotRange)
                  for ss = startRange : endRange
                     
                        plot3(ppm,dim(:,ss),real(fit(:,ss)),'k', ...
-                           'Linewidth' ,1.5, 'Color', [254/255 186/255 47/255])         % plot fit
+                           'Linewidth' ,1.5, 'Color', [255/255 140/255 0/255])         % plot fit
                        
     
                   end
@@ -101,14 +110,9 @@ function plotFit3D(obj,step,secDim, plotRange)
         for ss = 1:size(fit,2)
 
             plot3(ppm,dim(:,ss),real(fit(:,ss)),'k','Linewidth',1.5, ...                % plot fit
-                'Color', [254/255 186/255 47/255])
+                'Color', [255/255 140/255 0/255])
     
         end
-    
-        set(gca, 'XLim', plotRange);                                 % Clean appearance
-        xlabel('chemical shift (ppm)');
-        view(191,32)
-        hold off
 
     elseif secDim > 0 && secDim <=size(data,2)                                          % if you defined the dimension, it will plot the no. of spectra you defined
         dim_r = 1: secDim;
@@ -129,15 +133,17 @@ function plotFit3D(obj,step,secDim, plotRange)
     
         end
   
-        set(gca, 'XLim', plotRange);                                  % Clean appearance
-        %set(gca, 'XDir', 'reverse');
+        end
+        set(gca, 'XLim', plotRange,...
+            'LineWidth', 1, 'TickDir', 'out',...
+            'YTickLabel',{},'YTick',{},...
+            'ZTickLabel',{},'ZTick',{},...
+            'XColor', [11/255 71/255 111/255], ...
+            'YColor', [11/255 71/255 111/255], ...
+            'ZColor', [11/255 71/255 111/255]);                                  % Clean appearance
         xlabel('chemical shift (ppm)');
         view(191,32)
         hold off
-        end
-    
-
-    % check if the variable is a range
 
 end
     function isRange = isVariableRange(variable)

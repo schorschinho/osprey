@@ -54,7 +54,7 @@ function prediction = ExpDecay(x, t)
  
     Ampl     = x(1,:);                      % Define amplitude from 2D vector
     Decay    = x(2,:);                      % Define decay from 2D vector
-    prediction = Ampl .* exp(-t./Decay);    % Calculate amplitude evolution
+    prediction = Ampl .* exp(-repmat(t',[1 size(Ampl,2)])./Decay);    % Calculate amplitude evolution
     
 end
 
@@ -86,8 +86,8 @@ function [jac] = ExpDecayJac(x, t)
     Ampl     = x(1,:);                                          % Define amplitude from 2D vector
     Decay    = x(2,:);                                          % Define decay from 2D vector  
    
-    dYdAmpl = exp(-t./Decay);                                   % Partial derivative wrt Ampl
-    dYdDecay = t .* Ampl .* (1./(Decay.^2)) .* exp(-t./Decay);  % Partial derivative wrt Decay
+    dYdAmpl = exp(-repmat(t',[1 size(Ampl,2)])./Decay);                                   % Partial derivative wrt Ampl
+    dYdDecay = repmat(t',[1 size(Ampl,2)]) .* Ampl .* (1./(Decay.^2)) .* exp(-repmat(t',[1 size(Ampl,2)])./Decay);  % Partial derivative wrt Decay
 
     jac = cat(3,dYdAmpl,dYdDecay);                              % Concatenate lines to generate jacobian
     jac = squeeze(jac);                                         % Remove zero dimensions

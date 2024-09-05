@@ -1,0 +1,65 @@
+{
+  "options":{
+    "AverageAlongExtra": 0,
+    "NoZerofill": 0
+    },
+    "basisset": {
+    "mmdef": [
+      "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"  
+    ]
+  },
+  "Steps": [
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr","CrCH2","NAA","MM09"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          0,
+          4.2
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.075
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+          "freqShift": {
+          "init": [
+            0
+          ],
+          "ub": [
+            50
+          ],
+          "lb": [
+            -50
+          ],
+          "sd": [
+            "Inf"
+          ],
+          "gr":{"g1":["Cr","CrCH2","NAA","MM09"]}
+        },
+        "metAmpl": {
+          "init": [0,0,0,0],
+          "lb": ["-Inf","-Inf","-Inf",0],
+          "ub": [0,0,0,"Inf"]
+            }
+      }
+    }
+  ]
+}

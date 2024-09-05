@@ -228,7 +228,7 @@ if strcmp(jobFileFormat,'csv')
     end
 end
 
-%%% 3b. LOAD JSON FILE %%%
+%%% 3c. LOAD JSON FILE %%%
 if strcmp(jobFileFormat,'json')
     fid = fopen(jobFile); 
     raw = fread(fid,inf); 
@@ -424,6 +424,17 @@ if strcmp(jobFileFormat,'json')
         fprintf('Spectral fitting parameters will not be saved (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.exportParams.flag = 0;
         MRSCont.opts.exportParams.path = {};
+    end
+    if isfield(jobStruct,'ModelProcedure')
+       if isfield(jobStruct.ModelProcedure,'metab')
+           opts.fit.ModelProcedure.metab = jobStruct.ModelProcedure.metab';
+       end
+       if isfield(jobStruct.ModelProcedure,'ref')
+           opts.fit.ModelProcedure.ref = jobStruct.ModelProcedure.ref;
+       end
+       if isfield(jobStruct.ModelProcedure,'w')
+           opts.fit.ModelProcedure.w = jobStruct.ModelProcedure.w;
+       end
     end
 end
 

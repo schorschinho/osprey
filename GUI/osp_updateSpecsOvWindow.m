@@ -33,12 +33,12 @@ function osp_updateSpecsOvWindow(gui)
         Selection = gui.controls.pop_specsOvPlot.String(gui.overview.Selected.Spec);
         if gui.controls.GM == 0
             for g = 1 :  gui.overview.Number.Groups %Loop over groups
-                temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z);
+                temp = osp_plotOverviewSpec(MRSCont, Selection{1},g, gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z,gui.controls.act_x);
                     ax=get(temp,'Children');
                     copyobj(ax.Children, gui.Plot.specsOv.Children(2));
             end
         else
-           temp = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z);
+           temp = osp_plotOverviewSpec(MRSCont, Selection{1},'GMean', gui.layout.shiftind,'Frequency (ppm)','','',gui.controls.act_z,gui.controls.act_x);
             ax=get(temp,'Children');
             copyobj(ax.Children, gui.Plot.specsOv.Children(2));          
         end

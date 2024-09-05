@@ -1018,23 +1018,32 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
             parameterEstimate = cat(1,parameterEstimate,inputParams.([parameterName 'Reparametrization']).(parametrizations.(parameterName).parameterNames{rp}));
         end
         % Calculate the jacobian according to the external function, parameter estimates, and modulator
-        factor = parametrizations.metAmpl.fun.jac(parameterEstimate,parametrizations.(parameterName).modulator);
-        factor = repmat(factor, [1 1 1 nPoints]);                          % Repeat nPoints times
-        factor = permute(factor,[4 2 1 3]);                                % Dims have to be nPoints secDim nLines nPars
+        factor = parametrizations.(parameterName).fun.jac(parameterEstimate,parametrizations.(parameterName).modulator);
+        if ndims(factor) ==3                                               % For per metabolite cases with more than 1 entry       
+            factor = repmat(factor, [1 1 1 nPoints]);                      % Repeat nPoints times
+            factor = permute(factor,[4 2 1 3]);                            % Dims have to be nPoints secDim nLines nPars
+        else
+            factor = repmat(factor, [1 1 nPoints]);                      % Repeat nPoints times
+            factor = permute(factor,[3 1 2]);                            % Dims have to be nPoints secDim nLines
+        end
         dYdXOrginal = dYdX;                                                % Backup original derivatives
         % Multiply the original derivatives with the derivatives from the
         % reparametrization
         dYdX = [];
         % Loop over new parameters
-        for rp = 1 : length(parametrizations.(parameterName).parameterNames)
-            dYdX = cat(4,dYdX,dYdXOrginal .* factor(:,:,:,rp));
+        nPars = length(parametrizations.(parameterName).parameterNames);    % Parameters for indirect dynamic function
+        for rp = 1 : nPars
+            if ndims(factor) == 4                                               % For per metabolite cases with more than 1 entry 
+                dYdX = cat(4,dYdX,dYdXOrginal .* factor(:,:,:,rp));
+            else
+                dYdX = cat(3,dYdX,dYdXOrginal .* factor(:,:,rp));
+            end
         end
         dYdX = squeeze(dYdX);                                               %Remove length 1 dims
-        if ndims(dYdX) ==3                                                  % Dims have to be nPoints secDim nLines*nPars
-            dYdX = permute(dYdX,[1 3 2]);
-            secDim = size(dYdX,3);
+        if ndims(dYdX) ==3                                                  
+            secDim = size(dYdX,2);
         else
-            secDim = size(dYdX,4);
+            secDim = size(dYdX,3);
         end
 
     end
@@ -1042,7 +1051,7 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
     switch ndims(dYdX)
         case 2   % For fixed parametrizations of ph0, ph1, gaussLB
             dYdX = reshape(dYdX,[],1);
-        case 3   % E.g. Fixed metAmpls or single basis function case
+        case 3   % E.g. Fixed parameter or single basis function case
             if strcmp(parametrizations.(parameterName).type,'fixed')
                 dYdX = permute(dYdX,[1 3 2]);
             end
@@ -1055,11 +1064,20 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
                     end
                 end
             end
+            if strcmp(parametrizations.(parameterName).type,'dynamic')
+                nLines = nLines*nPars;
+            end
             dYdX = reshape(dYdX,[],nLines);
-        case  4 % E.g. free parametrization of per metabolite parameters
-            dYdX = permute(dYdX,[1 3 4 2]);
-            dYdX = reshape(dYdX,[],secDim*nLines);
-    end
+        case  4 % E.g. free parametrization of per metabolite parameters or dynamic cases
+            if strcmp(parametrizations.(parameterName).type,'free')
+                dYdX = permute(dYdX,[1 3 4 2]);
+                dYdX = reshape(dYdX,[],secDim*nLines);
+            end
+            if strcmp(parametrizations.(parameterName).type,'dynamic')
+               dYdX = permute(dYdX,[1 3 4 2]);
+               dYdX = reshape(dYdX,[],nPars*nLines); 
+            end
+   end
 end
 
 function [penalty, penaltyJac] = calcPenalty(inputParams, parametrizations, param, sD)

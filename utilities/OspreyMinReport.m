@@ -72,7 +72,11 @@ fprintf(fid,'|--|--| \n');
 try
     fprintf(fid,'|a. Pulse sequence | %s| \n', MRSCont.fit.basisSet.seq{1}); % Here we need something for cases without fitting was done
 catch
-    fprintf(fid,'|a. Pulse sequence | %s| \n', MRSCont.processed.metab{1, 1}.seq);    
+    try
+        fprintf(fid,'|a. Pulse sequence | %s| \n', MRSCont.processed.metab{1, 1}.seq);    
+    catch
+        fprintf(fid,'|a. Pulse sequence | %s| \n', MRSCont.processed.metab{1, 1}.seq{1});    
+    end
 end
 fprintf(fid,'|b. Volume of interest (VOI) locations | %s| \n', '-');
 if isfield(MRSCont.raw{1}, 'geometry')

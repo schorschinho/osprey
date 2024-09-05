@@ -1,9 +1,9 @@
-function plotFit1D(obj,newFigure, step,secDim, plotRange)
-%%  plotFit1D(obj,step,secDim, plotRange)
-%   This method generates a plot from the fit object.
+function plotFit1DStack(obj,newFigure, step,secDim, plotRange)
+%%  plotFit1DStack(obj,step,secDim, plotRange)
+%   This method generates a stack plot from the fit object.
 %
 %   USAGE:
-%       obj.plotFit1D(step,secDim, plotRange)
+%       obj.plotFit1DStack(step,secDim, plotRange)
 %
 %   INPUTS:
 %       newFigure       = create a new figure                                    - default 1
@@ -51,11 +51,9 @@ function plotFit1D(obj,newFigure, step,secDim, plotRange)
     residual = obj.Model{step}.fit.residual;                                            % Get residual matrix           
     baseline = obj.Model{step}.fit.baseline;                                            % Get baseline matrix
     metabs = obj.Model{step}.fit.metabs;                                                % Get metabolite matrix
-    names   = obj.BasisSets.names(logical(obj.BasisSets.includeInFit(step,:)));     % Get names cell with included metabolites
-    MMind = cat(2,find(contains(names,'MM')),find(contains(names,'Lip')));              % Find the first index with macromolecules 
-    if isempty(MMind)                                                                   % If no MMs are included 
-       MMind = size(metabs,2);                                                          % Set the MMind to nMM
-    end
+    names   = obj.BasisSets.names(logical(obj.BasisSets.includeInFit(step,:)));         % Get names cell with included metabolites
+    nBasis = length(names);                                                             % Get number of basis functions
+
 
 %%  Generate figure
     if newFigure
@@ -77,13 +75,8 @@ function plotFit1D(obj,newFigure, step,secDim, plotRange)
                    [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
                    metabs(GapindMin:GapindMax,rr,secDim) = Inf;
                 end
-                if rr < MMind(1)                                                        % Plot metabolite basis functions
-                    plot(ppm, real(metabs(:,rr,secDim)) - shift/3,...
-                        'Color', [110/255 136/255 164/255]);
-                else                                                                    % Plot macromolecular basis functions
-                    plot(ppm, real(metabs(:,rr,secDim)) - shift*2/3,...
-                        'Color', [110/255 136/255 164/255]);
-                end
+                plot(ppm, real(metabs(:,rr,secDim)) - rr*(shift/nBasis), ...                % Plot basis functions as stack
+                  'Color', [110/255 136/255 164/255]);
             end                                                                         % End loop over basis functions
             if ~isempty(fitGap)                                                         % introduce the gap if it exists 
                  [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
@@ -108,35 +101,21 @@ function plotFit1D(obj,newFigure, step,secDim, plotRange)
         hold;                                                                           % Hold plot becuase we want to see all results
         shift = max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...        % Calculate shift for residual and individual basis functions
             abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))));    
-        if ~isempty(cat(2,find(contains(names,'MM')),find(contains(names,'Lip'))))
-            YAxLim = [min(min(real(metabs(ppm>plotRange(1) & ppm<plotRange(2),MMind(1):end,secDim)))) - ...  % Calculate the y-axis limits
-                     shift*1.1 ...      
-                      max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...
-                      abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))) + ...
-                      max(real(residual(ppm>plotRange(1) & ppm<plotRange(2),:))))];
-        else
-            YAxLim = [min(min(real(metabs(ppm>plotRange(1) & ppm<plotRange(2),:,secDim)))) - ...  % Calculate the y-axis limits
-                     shift*1.1 ...      
-                      max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...
-                      abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))) + ...
-                      max(real(residual(ppm>plotRange(1) & ppm<plotRange(2),:))))];
-        end
+        YAxLim = [min(min(real(metabs(ppm>plotRange(1) & ppm<plotRange(2),end,secDim)))) - ...  % Calculate the y-axis limits
+                 shift*1.15 ...      
+                  max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...
+                  abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))) + ...
+                  max(real(residual(ppm>plotRange(1) & ppm<plotRange(2),:))))];
         for rr = 1:size(metabs,2)                                                       % Loop over basis functions
             if ~isempty(fitGap)
                    [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
                    metabs(GapindMin:GapindMax,rr,secDim) = Inf;
             end
-            if rr < MMind(1)                                                            % Plot metabolite basis functions
-                    plot(ppm, real(metabs(:,rr,secDim)) - shift/2, ...
-                        'Color', [110/255 136/255 164/255]);
-            else                                                                        % Plot macromolecular basis functions
-                plot(ppm, real(metabs(:,rr,secDim)) - shift, ...
-                    'Color', [110/255 136/255 164/255]);
-            end
+            plot(ppm, real(metabs(:,rr,secDim)) - rr*(shift/nBasis)- 2*(shift/nBasis), ...                % Plot basis functions as stack
+                  'Color', [110/255 136/255 164/255]);
+            text(plotRange(1), - rr*(shift/nBasis)- 2*(shift/nBasis), names{rr}, 'FontSize', 10,'Color', [11/255 71/255 111/255]);
         end                                                                             % End loop over basis functions
         
-        text(plotRange(1)-0.05, - shift/2, 'metabolites', 'FontSize', 10,'Color', [11/255 71/255 111/255]);
-        text(plotRange(1)-0.05, - shift, 'MM/Lip', 'FontSize', 10,'Color', [11/255 71/255 111/255]);
         if ~isempty(fitGap)                                                             % introduce the gap if it exists 
                  [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
                  residual(GapindMin:GapindMax,secDim) = nan;
@@ -154,8 +133,8 @@ function plotFit1D(obj,newFigure, step,secDim, plotRange)
             'Color', [11/255 71/255 111/255], 'LineWidth', 1);
         hold off;
         set(gca, 'XDir', 'reverse', 'XLim', plotRange, 'YLim', YAxLim,...
-            'LineWidth', 1, 'TickDir', 'out',...
             'YTickLabel',{},'YTick',{},...
+            'LineWidth', 1, 'TickDir', 'out',...
             'XColor', [11/255 71/255 111/255]);                                 % Clean appearance
         xlabel('chemical shift (ppm)');
     end

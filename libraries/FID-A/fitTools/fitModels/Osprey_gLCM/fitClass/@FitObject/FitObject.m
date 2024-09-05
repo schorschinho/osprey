@@ -77,18 +77,24 @@ classdef FitObject < handle
                             obj.Data.DwellTime, basis.dwelltime);
                     fprintf('Resampling the basis set for you. \n');
                     basis = fit_resampleBasis(data, basis);                 % Resample basis set
-                end
-                if round(basis.spectralwidth) ~= round(obj.Data.SpectralWidth)
+                else if round(basis.spectralwidth) ~= round(obj.Data.SpectralWidth)
                     warning('Spectral width does not agree between basis set (%5.2e) and data (%5.2e).', ...
                             obj.Data.DwellTime, basis.spectralwidth);
                     fprintf('Resampling the basis set for you. \n');
                     basis = fit_resampleBasis(data, basis);                 % Resample basis set
-                end
-                if round(basis.n) ~= round(data.sz(1))
-                    warning('Number of points does not agree between basis set (%5.2e) and data (%5.2e).', ...
-                            data.sz(1), basis.n);
-                    fprintf('Resampling the basis set for you. \n');
-                    basis = fit_resampleBasis(data, basis);                 % Resample basis set
+                    else if round(basis.n) ~= round(data.sz(1))
+                            warning('Number of points does not agree between basis set (%5.2e) and data (%5.2e).', ...
+                                    data.sz(1), basis.n);
+                            fprintf('Resampling the basis set for you. \n');
+                            basis = fit_resampleBasis(data, basis);                 % Resample basis set
+                            else if round(basis.centerFreq) ~= round(data.centerFreq(1))
+                                    warning('Center frequency does not agree between basis set (%5.2e) and data (%5.2e).', ...
+                                            data.centerFreq(1), basis.centerFreq);
+                                    fprintf('Resampling the basis set for you. \n');
+                                    basis = fit_resampleBasis(data, basis);                 % Resample basis set
+                            end
+                        end
+                    end
                 end
                 
                 obj.BasisSets.fids  = basis.fids;                           % Set time domain basis functions

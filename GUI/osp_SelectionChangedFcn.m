@@ -119,18 +119,31 @@ MRSCont = getappdata(gui.figure,'MRSCont');
             gui.controls.b_left_z.Enable = 'off';
             gui.controls.b_right_y.Enable = 'off';
             gui.controls.b_right_z.Enable = 'off';
-            gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
-            gui.controls.act_y = 1;
-            gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
-            gui.controls.act_z = 1;
-            if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3) > 1
+            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
+                gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
+                if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3) > 1
                 gui.controls.b_left_y.Enable = 'on';
                 gui.controls.b_right_y.Enable = 'on';
+                end
+                if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1) > 1
+                    gui.controls.b_left_z.Enable = 'on';
+                    gui.controls.b_right_z.Enable = 'on';
+                end
+            else
+                gui.info.nYvoxels = size(MRSCont.fit.results.metab,3);
+                gui.info.nZvoxels = size(MRSCont.fit.results.metab,1);
+                if size(MRSCont.fit.results.metab,3) > 1
+                    gui.controls.b_left_y.Enable = 'on';
+                    gui.controls.b_right_y.Enable = 'on';
+                end
+                if size(MRSCont.fit.results.metab,1) > 1
+                    gui.controls.b_left_z.Enable = 'on';
+                    gui.controls.b_right_z.Enable = 'on';
+                end
             end
-            if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1) > 1
-                gui.controls.b_left_z.Enable = 'on';
-                gui.controls.b_right_z.Enable = 'on';
-            end
+            gui.controls.act_y = 1;
+            gui.controls.act_z = 1;  
             osp_updateFitWindow(gui);
         case 4 %Coreg Tab
             gui.layout.ListBox.Enable = 'on';
@@ -143,18 +156,31 @@ MRSCont = getappdata(gui.figure,'MRSCont');
             gui.controls.b_left_z.Enable = 'off';
             gui.controls.b_right_y.Enable = 'off';
             gui.controls.b_right_z.Enable = 'off';
-            gui.info.nYvoxels = size(MRSCont.fit.results.metab.fitParams,3);
+            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
+                gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
+                if size(MRSCont.fit.results.metab.fitParams,3) > 1
+                    gui.controls.b_left_y.Enable = 'on';
+                    gui.controls.b_right_y.Enable = 'on';
+                end
+                if size(MRSCont.fit.results.metab.fitParams,1) > 1
+                    gui.controls.b_left_z.Enable = 'on';
+                    gui.controls.b_right_z.Enable = 'on';
+                end
+            else
+                gui.info.nYvoxels = size(MRSCont.fit.results.metab,3);
+                gui.info.nZvoxels = size(MRSCont.fit.results.metab,1);
+                if size(MRSCont.fit.results.metab,3) > 1
+                    gui.controls.b_left_y.Enable = 'on';
+                    gui.controls.b_right_y.Enable = 'on';
+                end
+                if size(MRSCont.fit.results.metab,1) > 1
+                    gui.controls.b_left_z.Enable = 'on';
+                    gui.controls.b_right_z.Enable = 'on';
+                end
+            end
             gui.controls.act_y = 1;
-            gui.info.nZvoxels = size(MRSCont.fit.results.metab.fitParams,1);
             gui.controls.act_z = 1;
-            if size(MRSCont.fit.results.metab.fitParams,3) > 1
-                gui.controls.b_left_y.Enable = 'on';
-                gui.controls.b_right_y.Enable = 'on';
-            end
-            if size(MRSCont.fit.results.metab.fitParams,1) > 1
-                gui.controls.b_left_z.Enable = 'on';
-                gui.controls.b_right_z.Enable = 'on';
-            end
             osp_updateQuantifyWindow(gui);
        case 6 %Overview tab
             gui.layout.ListBox.Enable = 'off';
@@ -165,11 +191,22 @@ MRSCont = getappdata(gui.figure,'MRSCont');
             gui.controls.b_right_z.Enable = 'off';
             gui.info.nXvoxels = 1;
             gui.controls.act_x = 1;
-            gui.info.nZvoxels = size(MRSCont.fit.results.metab.fitParams,1);
+            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                gui.info.nZvoxels = size(MRSCont.fit.results.metab.fitParams,1);
+            else
+                gui.info.nZvoxels = size(MRSCont.fit.results.metab,1);
+            end
             gui.controls.act_z = 1;
-            if size(MRSCont.fit.results.metab.fitParams,1) > 1
-                gui.controls.b_left_z.Enable = 'on';
-                gui.controls.b_right_z.Enable = 'on';
+            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                if size(MRSCont.fit.results.metab.fitParams,1) > 1
+                    gui.controls.b_left_z.Enable = 'on';
+                    gui.controls.b_right_z.Enable = 'on';
+                end
+            else
+                if size(MRSCont.fit.results.metab,1) > 1
+                    gui.controls.b_left_z.Enable = 'on';
+                    gui.controls.b_right_z.Enable = 'on';
+                end
             end
     end
 end

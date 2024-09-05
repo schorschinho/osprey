@@ -10,7 +10,12 @@ function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, average, noZ
 %           BasisSetStruct  - Include predefined basisset struct
 % Outputs:  explicit        - Struct with model parameters
 %           implicit        - NII results file
-
+%
+% If you are using Osprey_gLCM please cite the following paper in addition
+% to the original Osprey paper:
+%   Zöllner HJ, Davies-Jenkins C, Simicic D, Tal A, Sulam J, Oeltzschner G. 
+%   Simultaneous multi-transient linear-combination modeling of MRS data improves uncertainty estimation. 
+%   Magn Reson Med. 2024 Sep;92(3):916-925. doi: 10.1002/mrm.30110
 %% 0. Check inputs
 arguments
     % Argument validation introduced in relatively recent MATLAB versions
@@ -106,12 +111,17 @@ end
 % Load basisset files, add MMs if needed, resample basis sets according to
 % the DataToModel. Generate a basisset matrix for each step? including the
 % indirect dimensions for MSM.
+oneProtonArea = [];                                                         % For scaling of MM/Lipid functions
 if isempty(BasisSetStruct)                                                  % User supplied a recalculated basis set
     if length(ModelProcedure.basisset.file) == 1
         basisSet = load(ConvertRelativePath(ModelProcedure.basisset.file{1})); % Load basis set
         basisSet = basisSet.BASIS;
         basisSet = recalculateBasisSpecs(basisSet);                         % Add ppm axis and frequency domain data
         basisSet = fit_sortBasisSet(basisSet);                              % Sort according to Osprey standard
+        % Obtain area of water to calculate the one-proton scaling factor
+        idx = find(contains(basisSet.name,'H2O'));
+        integralH2O = sum(real(basisSet.specs(:,idx,1)));
+        oneProtonArea = integralH2O/2;
         if isfield(ModelProcedure.basisset,'opts')                          % Apply options to basis, e.g. pick subspectra
             if isfield(ModelProcedure.basisset.opts,'index')               % Index for subspectra
                 basisSet.fids = basisSet.fids(:,:,ModelProcedure.basisset.opts.index);  % Pick fids according to index
@@ -120,6 +130,7 @@ if isempty(BasisSetStruct)                                                  % Us
                 try
                     basisSet.nExtra = basisSet.sz(3);                               % Update extra dimension
                 catch
+                    basisSet.nExtra = 0;
                 end
             end
         end
@@ -141,6 +152,16 @@ if isempty(BasisSetStruct)                                                  % Us
         end
         basisSet.sz = size(basisSet.fids);                                  % Recalculate size entry
         basisSet.nExtra = basisSet.sz(3);                                   % Update extra dimension
+        idx = find(contains(basisSet.name,'H2O'));
+        integralH2O = sum(real(basisSet.specs(:,idx,1)));
+        oneProtonArea = integralH2O/2;
+        if isfield(ModelProcedure.basisset,'opts')                          % Apply options to basis, e.g. pick subspectra
+            if isfield(ModelProcedure.basisset.opts,'index')               % Index for subspectra
+                basisSet.fids = basisSet.fids(:,:,ModelProcedure.basisset.opts.index);  % Pick fids according to index
+                basisSet.specs = basisSet.specs(:,:,ModelProcedure.basisset.opts.index); % Pick specs according to index
+                basisSet.nExtra = 0;
+            end
+        end
     end
     if isfield(ModelProcedure.basisset,'opts')                              % Apply options to basis, e.g. repeat for averages
         if isfield(ModelProcedure.basisset.opts,'repeat')                   % Repeat for each average
@@ -178,7 +199,7 @@ if isfield(ModelProcedure.basisset, 'mmdef') && ~isempty(ModelProcedure.basisset
     
     % Read out MM/Lip configuration file and create matching
     MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.basisset.mmdef{1}));
-    [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel{1});
+    [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel{1}, oneProtonArea);
     % Join basis sets together
     basisSet = joinBasisSets(basisSet, basisSim);
 end
@@ -209,10 +230,20 @@ for kk = 1 : length(DataToModel)
         end
     end
 
+    if isfield(ModelProcedure.basisset,'opts')                         % Apply same options as to basis, e.g. pick subspectra
+        if isfield(ModelProcedure.basisset.opts,'index')               % Index for subspectra or extra for separateModel
+            if DataToModel{kk}.dims.subSpecs ~= 0
+                DataToModel{kk}=op_takesubspec(DataToModel{kk},ModelProcedure.basisset.opts.index);
+            else
+                DataToModel{kk}=op_takeextra(DataToModel{kk},ModelProcedure.basisset.opts.index);
+            end
+        end
+    end
+
     if DoDataScaling == 2
         DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                     % apply scale to data 
     else if DoDataScaling == 1 && average == 0
-         scaleData(kk) = max(real(DataToModel{kk}.specs)) / max(max(max(real(basisSet.specs))));
+         scaleData(kk) = max(max(real(DataToModel{kk}.specs))) / max(max(max(real(basisSet.specs))));
          DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                    % apply scale to data
     else if DoDataScaling == 1 && average == 1
               temp                = DataToModel{kk};                                              % Average so you can calculate scale
@@ -299,9 +330,28 @@ for kk = 1 : length(DataToModel)
         % Create an instance of the class
         if ss == 1
             ModelParameter{kk,1} = FitObject(DataToModel{kk}, basisSet, opts);  % Create OspreyFitObj instance (ss = 1)
+            % For MMExp we want to replace the measured MMs for each subject
+            if isfield(ModelProcedure.basisset,'MMExpSource')
+                mm_clean_spline = DataToModel{kk}.MMExpSub.specs;
+                indMM09 = find(strcmp(basisSet.name,'MM09'));
+                indMMexp = find(strcmp(basisSet.name,'MMexp'));
+                basisSetfactor = op_freqrange(basisSet,0,1.2);
+                mm_clean_spline_factor = mm_clean_spline(DataToModel{kk}.ppm>0.7 & DataToModel{kk}.ppm <1.1);
+                factor = (max(real(basisSetfactor.specs(:,indMM09)))/max(real(mm_clean_spline_factor)));
+                if isempty(indMMexp)
+                    ModelParameter{kk, 1}.BasisSets.fids(:,end+1) = DataToModel{kk}.MMExpSub.fids*factor;
+                    ModelParameter{kk, 1}.BasisSets.names{end+1} = 'MMexp';
+                    ModelParameter{kk, 1}.BasisSets.includeInFit(ss,end+1) = 1;
+                else
+                    ModelParameter{kk, 1}.BasisSets.fids(:,indMMexp) = DataToModel{kk}.MMExpSub.fids*factor;
+                    ModelParameter{kk, 1}.BasisSets.includeInFit(ss,indMMexp) = 1;
+                end
+            end
         else
             ModelParameter{kk,1}.updateOptsAccordingToStep(opts);               % Update model options according to step
         end
+        
+
 
         % Set basisset according to step
         ModelParameter{kk,1}.excludeBasisFunctionFromFit('all');
@@ -312,7 +362,7 @@ for kk = 1 : length(DataToModel)
         if isfield(ModelProcedure.basisset, 'mmdef') && ~isempty(ModelProcedure.basisset.mmdef)
             % Add the initialization of EX/SD values (for frequency shift and
             % Lorentzian LB) here:
-            [EXT2, SDT2, SDSH] = fit_setExSDValues(DataToModel{kk}, basisSet, MMLipConfig, 0);
+            [EXT2, SDT2, SDSH] = fit_setExSDValues(DataToModel{kk}, ModelParameter{kk,1}.BasisSets, MMLipConfig, 0);
              % Store EXT2, SDT2, SDSH to an options/parametrization structure
             EXT2 = EXT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)));
             parametrization.lorentzLB.ex    = EXT2;
@@ -326,7 +376,7 @@ for kk = 1 : length(DataToModel)
             ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction = zeros(size(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:))));
             % Only initialize EX/SD values (for frequency shift and
             % Lorentzian LB) for the metabolites:
-            [EXT2, SDT2, SDSH] = fit_setExSDValues(DataToModel{kk}, basisSet);
+            [EXT2, SDT2, SDSH] = fit_setExSDValues(DataToModel{kk}, ModelParameter{kk,1}.BasisSets);
              % Store EXT2, SDT2, SDSH to an options/parametrization structure
             EXT2 = EXT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)) & logical(~ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction));
             parametrization.lorentzLB.ex    = EXT2;
@@ -361,6 +411,8 @@ for kk = 1 : length(DataToModel)
     end
     if DoDataScaling >= 1                                                   % We did data scaling - so let's store the scale
         ModelParameter{kk,1}.scale = scaleData(kk);
+    else
+        ModelParameter{kk,1}.scale = 1;
     end
     DataToModel{kk} 	= [];                                               % Memory efficiency
 end

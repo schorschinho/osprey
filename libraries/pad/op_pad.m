@@ -24,9 +24,17 @@ function A = op_pad(B, newSize, paddedWith)
 if nargin > 1
     if nargin == 3
         if strcmp(paddedWith, 'zero')
-            A = zeros(newSize,1);
+            try
+                A = zeros(newSize,1);
+            catch
+                 A = zeros(newSize);
+            end
         elseif strcmp(paddedWith, 'nan')
-            A = nan(newSize,1);
+            try
+                A = nan(newSize,1);
+            catch
+                A = nan(newSize);
+            end
         else
             error('Unrecognized token for padding value');
         end

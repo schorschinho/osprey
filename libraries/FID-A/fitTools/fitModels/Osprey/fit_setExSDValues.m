@@ -54,7 +54,7 @@ end
 
 % First, a scaling factor to roughly account for the field strength
 % dependence of T2 is determined
-hzpppm = dataToModel.txfrq*1e-6;
+hzpppm = dataToModel.txfrq(1)*1e-6;
 scalingT2 = sqrt(hzpppm / 85.15); % scaling factor to account for T2 decrease with field strength
 
 % There are some default values listed for the parameters
@@ -66,7 +66,11 @@ defSDSH = 0.004*hzpppm;   % [Hz] - standard deviation for frequency shifts
 %%% 2. LOOP OVER METABOLITE BASIS FUNCTIONS AND MAKE ADJUSTMENTS %%%
 % NAA and NAAG, by default, get a lower SDSH to improve their separation
 % Extract the names of the basis functions
-basisNames = basisSet.name;
+try
+    basisNames = basisSet.name;
+catch
+    basisNames = basisSet.names;
+end
 
 % Set up the initial output vectors
 EXT2 = zeros(size(basisNames));
@@ -74,7 +78,12 @@ SDT2 = zeros(size(basisNames));
 SDSH = zeros(size(basisNames));
 
 % First, loop over the metabolite basis functions
-nMets = basisSet.nMets;
+try
+    nMets = basisSet.nMets;
+catch
+    nMets = sum(~(contains(basisNames,'MM')+ contains(basisNames,'Lip')));
+end
+
 for rr = 1:nMets
     % First, do the EXT2
     EXT2(rr) = defEXT2 * scalingT2;
@@ -96,7 +105,11 @@ end
 %%% 2. LOOP OVER MM BASIS FUNCTIONS AND MAKE ADJUSTMENTS %%%
 % Next, loop over the MM basis functions.
 if isstruct(MMLipConfig)
-    nMM   = basisSet.nMM;
+    try
+        nMM   = basisSet.nMM;
+    catch
+        nMM = size(basisSet.names,2)-nMets;
+    end
     if nMM > 0
         for rr = 1:nMM
             % Find the name of the MM basis function in the MM/lipid config

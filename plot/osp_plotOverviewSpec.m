@@ -1,4 +1,4 @@
-function out = osp_plotOverviewSpec(MRSCont, which_spec, g, shift, xlab, ylab, figTitle, basis)
+function out = osp_plotOverviewSpec(MRSCont, which_spec, g, shift, xlab, ylab, figTitle, basis,exp)
 %% out = osp_plotOverviewSpec(MRSCont, which_spec, g, shift, xlab, ylab, figTitle, basis)
 %   Creates a figure with all spectra or fits.
 %
@@ -55,22 +55,25 @@ cb(4,:) = temp;
 %%% 1. PARSE INPUT ARGUMENTS %%%
 fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
-if nargin<8 
-    basis =1;
-    if nargin<7
-        figTitle=[];
-        if nargin<6
-            ylab='';
-            if nargin<5
-                xlab='Frequency (ppm)';
-                if nargin<4
-                    shift = 0.1;
-                    if nargin<3
-                        g = 1;
-                        if nargin < 2
-                            which_spec = 'metab A';
-                            if nargin<1
-                                error('ERROR: no input Osprey container specified.  Aborting!!');
+if nargin<9
+    exp = 1;
+    if nargin<8 
+        basis =1;
+        if nargin<7
+            figTitle=[];
+            if nargin<6
+                ylab='';
+                if nargin<5
+                    xlab='Frequency (ppm)';
+                    if nargin<4
+                        shift = 0.1;
+                        if nargin<3
+                            g = 1;
+                            if nargin < 2
+                                which_spec = 'metab A';
+                                if nargin<1
+                                    error('ERROR: no input Osprey container specified.  Aborting!!');
+                                end
                             end
                         end
                     end
@@ -79,7 +82,6 @@ if nargin<8
         end
     end
 end
-
 
 % Check version of Osprey - since we have changed the layout of the Overview struct with the implementation of DualVoxel
 if isfield(MRSCont.overview.Osprey, 'sort_data')
@@ -116,10 +118,13 @@ end
         
 if isempty(fit) %Is data
     if ~(strcmp(spec,'ref') || strcmp(spec,'w') || strcmp(spec,'mm_ref'))
-        ind = find(strcmp(MRSCont.overview.SubSpecNamesStruct.(spec),subspec));  
+        ind = find(strcmp(MRSCont.overview.SubSpecNamesStruct.(spec),subspec));
+        if length(ind) > 1 % This happens for more than one experiment cases
+            ind = exp;         
+        end
         ppmRange = MRSCont.opts.fit.range; 
     else
-        ind =1;
+        ind = [1 exp];
         ppmRange = [0 2*4.68];
     end
     data = MRSCont.overview.Osprey.(sort_data).(GroupString).(spec);
@@ -133,6 +138,9 @@ else % Is fit
     switch spec
         case {'metab','mm'}
             ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.(spec)(basis,:),subspec));   
+            if length(ind) > 1 % This happens for more than one experiment cases
+                ind = exp;         
+            end
             data = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['fit_' spec]);
                 if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                     data2 = MRSCont.overview.Osprey.sort_fit_voxel_2.(GroupString).(spec);
@@ -183,7 +191,7 @@ if ~isempty(fit) %Is fit
                     end
                 end
             end
-        else
+else % is data
             maxshift_abs = max(abs(data{1}.specs(:,ind)));
             shift = maxshift_abs * shift;
             plot(data{1}.ppm,real(data{1}.specs(:,ind))+shift ,'color', cb(g,:), 'LineWidth', 1); %data

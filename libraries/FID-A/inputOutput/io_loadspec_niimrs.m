@@ -496,7 +496,7 @@ end
 
 % Store additional information from the nii header
     if out.dims.extras
-        dim_number = out.dims.extras;
+        dim_number = out.dims.extras+3;
         if ischar(out.seq)
             temp_seq = out.seq;
             out = rmfield(out,'seq');

@@ -317,7 +317,7 @@ classdef OspreyGUI < handle
             gui.layout.Buttonbox = uix.HBox('Parent',gui.layout.leftMenu, 'BackgroundColor',gui.colormap.Background,'Tag','LeftButtonBox');
             gui.layout.b_about = uicontrol(gui.layout.Buttonbox,'Style','PushButton','Tag','AboutButton');
             [img, ~, ~] = imread('osprey.png', 'BackgroundColor', gui.colormap.Background);
-            [img2] = imresize(img, 0.08);
+            [img2] = imresize(img, 0.02);
             set(gui.layout.b_about,'CData', img2, 'TooltipString', 'Contact developers via mail');
             set(gui.layout.b_about,'Callback',{@osp_onOsp});
 
@@ -369,10 +369,12 @@ classdef OspreyGUI < handle
         % Fit button
             gui.layout.b_fit = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Model data','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_fit,'Units','Normalized','Position',[0.1 0.67 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','FitButton');
-            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
-                finished_data = length(MRSCont.fit.scale);
-            else
-                finished_data = size(MRSCont.fit.results.metab,1);
+            if (MRSCont.flags.didFit == 1)
+                if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                    finished_data = length(MRSCont.fit.scale);
+                else
+                    finished_data = size(MRSCont.fit.results.metab,2);
+                end
             end
             if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= finished_data))
                 gui.layout.b_fit.Enable = 'off';
@@ -408,9 +410,16 @@ classdef OspreyGUI < handle
         % Quantify button
             gui.layout.b_quant = uicontrol('Parent', gui.layout.p2,'Style','PushButton','String','Quantify','Enable','on','ForegroundColor', gui.colormap.Foreground);
             set(gui.layout.b_quant,'Units','Normalized','Position',[0.1 0.43 0.8 0.08], 'FontSize', 16, 'FontName', gui.font, 'FontWeight', 'Bold','Tag','QuantifyButton');
+            if (MRSCont.flags.didFit == 1)
+                if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                    finished_data = length(MRSCont.fit.scale);
+                else
+                    finished_data = size(MRSCont.fit.results.metab,2);
+                end
+            end
             if MRSCont.flags.didQuantify
                 gui.layout.b_quant.Enable = 'off';
-            else if ~(MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= length(MRSCont.fit.scale)) )
+            else if ~(MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= finished_data) )
                     gui.layout.b_quant.Enable = 'off';
                 end
             end
@@ -532,14 +541,16 @@ classdef OspreyGUI < handle
                 set(gui.layout.tabs, 'Visible','off');
             end
             waitbar(gui.waitbar.step*2,gui.controls.waitbar,'Loading your fits');
-            if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
-                finished_data = length(MRSCont.fit.scale);
-            else
-                finished_data = size(MRSCont.fit.results.metab,1);
-            end
-            if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= finished_data))
-                osp_iniFitWindow(gui);
-                set(gui.controls.b_save_fitTab{gui.load.Selected},'Callback',{@osp_onPrint,gui});
+            if MRSCont.flags.didFit
+                if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                    finished_data = length(MRSCont.fit.scale);
+                else
+                    finished_data = size(MRSCont.fit.results.metab,2);
+                end
+                if (MRSCont.flags.didFit == 1  && isfield(MRSCont, 'fit') && (gui.controls.nDatasets(1) >= finished_data))
+                    osp_iniFitWindow(gui);
+                    set(gui.controls.b_save_fitTab{gui.load.Selected},'Callback',{@osp_onPrint,gui});
+                end
             end
             waitbar(gui.waitbar.step*3,gui.controls.waitbar,'Loading your image operations');
             if (MRSCont.flags.didCoreg == 1  && isfield(MRSCont, 'coreg') && (gui.controls.nDatasets(1) >= length(MRSCont.coreg.vol_image))) % Have coreg/segment masks been created?

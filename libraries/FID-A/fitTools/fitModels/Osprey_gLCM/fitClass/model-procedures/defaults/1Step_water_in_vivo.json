@@ -1,4 +1,9 @@
-{
+{    
+    "basisset": {
+    "opts":{
+        "index": 1
+    }
+  },
   "Steps": [
     {
       "module": "Model",

@@ -1,0 +1,37 @@
+{
+  "parameters": {
+  "metAmpl": {
+      "type": "dynamic",
+      "fun": "ExponentialDecay",
+      "modulator":[0,20,44,71,105,149,211,320],
+      "parameterNames": [
+        "DecayAmpl",
+        "DecayConstant"
+      ],
+      "parametrizations": {
+        "fun": "ExponentialDecay",
+        "init": [0.4,110],
+        "lb": [0,5],
+        "ub": ["Inf","Inf"]
+      }
+    },
+    "ph0": {
+        "type": "fixed"
+      },
+    "ph1": {
+        "type": "fixed"
+      },
+    "gaussLB": {
+        "type": "fixed"
+      },
+    "baseAmpl": {
+        "type": "fixed"
+      },
+    "freqShift": {
+        "type": "fixed"
+      },
+    "lorentzLB": {
+        "type": "fixed"
+      }
+  }
+}

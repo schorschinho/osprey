@@ -47,11 +47,11 @@ function osp_pop_distrOvQuant_Call(src,~,gui)
                 name_list_new=MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind};
                 metab_idx_new = find(strcmp(name_list_new,name_old));   
                 if ~isempty(metab_idx_new)
-                    set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind});
+                    set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind,gui.controls.act_x});
                 else
                     metab_idx_new = 1;
                     set(gui.controls.pop_distrOvMetab, 'Value', 1);
-                    set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind});
+                    set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind,gui.controls.act_x});
                     gui.overview.Selected.Metab = 1;
                 end
                set(gui.controls.pop_distrOvMetab, 'Value', metab_idx_new);

@@ -1,16 +1,12 @@
 {    
-    "basisset": {
-    "opts":{
-        "index": 1
-    }
-  },
 "Steps": [
     {
       "module": "Model",
       "ModelFunction": "GeneralizedBasicPhysicsModel",
-      "extra": {
-        "flag": 0
-      },
+        "extra": {
+          "flag": 1,
+          "DynamicModelJson": "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''model-procedures'',''defaults'',''ExpDecayExample_water.json''))"
+        },
       "basisset": {
         "spec": 1,
         "include": [
@@ -36,8 +32,7 @@
         "gaussLB",
         "lorentzLB",
         "freqShift",
-        "metAmpl",
-        "baseAmpl"
+        "metAmpl"
       ],
       "parametrizations": {
         "gaussLB": {

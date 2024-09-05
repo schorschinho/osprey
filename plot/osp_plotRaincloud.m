@@ -1,4 +1,4 @@
-function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GMean,VoxelIndex,basis)
+function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GMean,VoxelIndex,basis,exp)
 %% [out_rain] = osp_plotRaincloud(MRSCont,metab,plots,tit)
 % Creates raincloud plot from the quantification tables and the chosen quantifcation and metabolite
 % The figure contains raincloud plots with boxplots, as well as, mean
@@ -38,38 +38,41 @@ function [out_rain] = osp_plotRaincloud(MRSCont,model,quant,metab,tit,GMean,Voxe
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Fall back to defaults if not provided
-if nargin < 8
-    basis = 1;
-    if nargin < 7
-        VoxelIndex = 1;
-        if nargin < 6
-            GMean = 0;
-            if nargin<5
-                tit = '';
-                if nargin<4
-                    metab = 'GABA';
-                    if nargin<3
-                        quant = 'tCr';
-                        if nargin<2
-                            model = '';
-                            if MRSCont.flags.isUnEdited
-                                model = 'off';
-                            end
-                            if MRSCont.flags.isMEGA && strcmp(MRSCont.opts.fit.style,'Separate')
-                                    model = 'diff1';
-                                else
-                                    model = 'conc';
-                            end
-                            if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && strcmp(MRSCont.opts.fit.style,'Separate')
-                                    model = 'diff1';
-                                else
-                                    model = 'conc';
-                            end
-                            if strcmp(model,'')
-                                error('ERROR: unable to retrieve default model, please specify.  Aborting!!');
-                            end
-                            if nargin<1
-                                error('ERROR: no input Osprey container specified.  Aborting!!');
+if nargin < 9
+    exp = 1;
+    if nargin < 8
+        basis = 1;
+        if nargin < 7
+            VoxelIndex = 1;
+            if nargin < 6
+                GMean = 0;
+                if nargin<5
+                    tit = '';
+                    if nargin<4
+                        metab = 'GABA';
+                        if nargin<3
+                            quant = 'tCr';
+                            if nargin<2
+                                model = '';
+                                if MRSCont.flags.isUnEdited
+                                    model = 'off';
+                                end
+                                if MRSCont.flags.isMEGA && strcmp(MRSCont.opts.fit.style,'Separate')
+                                        model = 'diff1';
+                                    else
+                                        model = 'conc';
+                                end
+                                if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) && strcmp(MRSCont.opts.fit.style,'Separate')
+                                        model = 'diff1';
+                                    else
+                                        model = 'conc';
+                                end
+                                if strcmp(model,'')
+                                    error('ERROR: unable to retrieve default model, please specify.  Aborting!!');
+                                end
+                                if nargin<1
+                                    error('ERROR: no input Osprey container specified.  Aborting!!');
+                                end
                             end
                         end
                     end
@@ -96,7 +99,7 @@ if ~strcmp(quant,'Quality')
     quant_ind = [basis ind(1)];
     names_list = MRSCont.quantify.names.metab{quant_ind(2)};
     idx_1  = find(strcmp(names_list,metab));
-    metabolite_conc = MRSCont.quantify.tables.metab.(quant).(['Voxel_' num2str(VoxelIndex)]){quant_ind(2)};
+    metabolite_conc = MRSCont.quantify.tables.metab.(quant).(['Voxel_' num2str(VoxelIndex)]){1,quant_ind(2),exp};
     ConcData = metabolite_conc{:,idx_1};  
 else
    quality = {'SNR','FWHM','freqShift'};

@@ -70,24 +70,24 @@ function osp_updateQuantifyWindow(gui)
     if ~(isfield(MRSCont.flags,'isMRSI')&& MRSCont.flags.isMRSI)
         gui.quant.Number.Quants = length(fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model})));
         gui.quant.Names.Quants = fieldnames(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}));
-        QuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y})+1,gui.quant.Number.Quants);
+        QuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y,gui.controls.act_x})+1,gui.quant.Number.Quants);
         QuantText{1,1} = 'Metabolite';
-        QuantText(2:end,1) = MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y}';
+        QuantText(2:end,1) = MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y,gui.controls.act_x}';
     end
        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
            for q = 1 : gui.quant.Number.Quants %Collect all results
                 QuantText(1,q+1) = gui.quant.Names.Quants(q);
                 if strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaled') || strcmp(gui.quant.Names.Quants(q),'AlphaCorrWaterScaledGroupNormed')
-                    AlphaMetNames = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:).Properties.VariableNames;
-                    tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y}),1);
-                    tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:);
+                    AlphaMetNames = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y,gui.controls.act_x}(gui.controls.Selected,:).Properties.VariableNames;
+                    tempQuantText = cell(length(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y,gui.controls.act_x}),1);
+                    tempQuants = MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y,gui.controls.act_x}(gui.controls.Selected,:);
                     for AlM = 1 : length(AlphaMetNames)
-                        idx  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_y},AlphaMetNames{AlM}));
+                        idx  = find(strcmp(MRSCont.quantify.names.(gui.quant.Names.Model{gui.quant.Selected.Model}){gui.controls.act_z,gui.controls.act_y,gui.controls.act_x},AlphaMetNames{AlM}));
                         tempQuantText(idx) = table2cell(tempQuants(1,AlM));
                     end                       
                     QuantText(2:end,q+1) = tempQuantText;
                 else
-                    QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y}(gui.controls.Selected,:))';
+                    QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y,gui.controls.act_x}(gui.controls.Selected,:))';
                 end
             end
             temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...

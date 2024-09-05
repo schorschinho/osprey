@@ -35,9 +35,9 @@ end
 
 if factor %zeropadding by a factor
     %Add zeros using pad function from FileExchange;
-    fids=op_pad(in.fids,in.sz(1)*zpFactor,'zero');
+    fids=op_pad(in.fids,[in.sz(1)*zpFactor in.sz(2)],'zero');
 else %zeropadding up to a certain number 
-    fids=op_pad(in.fids,zpFactor,'zero');
+    fids=op_pad(in.fids,[zpFactor in.sz(2)],'zero');
 end
     
 
@@ -54,7 +54,7 @@ f=[(-in.spectralwidth/2)+(in.spectralwidth/(2*sz(1))):...
     (in.spectralwidth/2)-(in.spectralwidth/(2*sz(1)))];
 
 ppm=f/(in.Bo*42.577);
-ppm=ppm+in.centerFreq;
+ppm=ppm+in.centerFreq(1);
 
 t=[0:in.dwelltime:(sz(1)-1)*in.dwelltime];
 

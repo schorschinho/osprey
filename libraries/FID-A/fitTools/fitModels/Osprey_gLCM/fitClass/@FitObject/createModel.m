@@ -168,6 +168,7 @@ function obj = createModel(obj)
         obj.Options{obj.step}.parametrizations.baseAmpl.start = 0;          % No baseline start index for x vector
         obj.Options{obj.step}.parametrizations.baseAmpl.end = 0;            % No baseline end index for x vector
         obj.Options{obj.step}.parametrizations.baseAmpl.type = 'none';      % Type none
+        obj.Options{obj.step}.parametrizations.baseAmpl.RegFun = '';        % No regularizer needed
     end
     
     parametrizations = obj.Options{obj.step}.parametrizations;              % Write parametrization in variable for solver
@@ -307,10 +308,21 @@ function obj = createModel(obj)
                                              parametrizations);             % parameter struct
 
     
+    if ~isempty(fitGap)                                                     % introduce the gap if it exists 
+         [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
+         fit(GapindMin:GapindMax,:) = nan;
+         baseline(GapindMin:GapindMax,:) = nan;
+         metabs(GapindMin:GapindMax,:,:) = nan;
+    end
+
     % Save modeling results
     obj.Model{obj.step}.fit.fit       = fit;                                % Store fit
     obj.Model{obj.step}.fit.baseline  = baseline;                           % Store baseline
     obj.Model{obj.step}.fit.residual  = spec - fit;                         % Store residual
+    if ~isempty(fitGap)                                                     % introduce the gap if it exists 
+        [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
+        obj.Model{obj.step}.fit.residual(GapindMin:GapindMax,:) = nan;
+    end
     obj.Model{obj.step}.fit.metabs    = metabs;                             % Store metabolite results
     obj.Model{obj.step}.time          = time;                               % Store time vector
     obj.Model{obj.step}.parsOut       = parsOut;                            % Store final parameters

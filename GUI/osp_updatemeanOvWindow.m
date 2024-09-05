@@ -47,7 +47,7 @@ function osp_updatemeanOvWindow(gui)
             end
         else
             if ~(isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM)
-                temp = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1,0,'Frequency (ppm)','','',gui.controls.act_z);
+                temp = osp_plotMeanSpec(MRSCont, Selection{1},'GMean', 1,0,'Frequency (ppm)','','',gui.controls.act_z,gui.controls.act_x);
             else
                 temp = osp_plotMeanSpec(MRSCont, Selection{1},1, 0.01,10,'Frequency (ppm)','','',gui.controls.act_z);
             end

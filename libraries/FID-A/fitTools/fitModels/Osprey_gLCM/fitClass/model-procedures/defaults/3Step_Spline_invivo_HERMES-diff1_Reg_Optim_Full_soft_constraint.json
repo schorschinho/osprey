@@ -1,0 +1,203 @@
+{
+  "options":{
+    "AverageAlongExtra": 0,
+    "NoZerofill": 0
+    },
+    "basisset": {
+            "mmdef": [
+              "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"  
+            ],
+    "opts":{
+        "index": 5
+    }
+  },
+  "Steps": [{
+      "module": "OptimReg",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+         "GABA","GSH","Gln","Glu","NAA","NAAG","MM09","MM3co"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          0.2,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "baseAmpl": {
+          "RegFun": "SecondDerivative"
+        }
+      }
+      ,
+      "regularizer": {
+        "parameter": "baseAmpl",
+        "fun"      : "LambdaEDFormalism",
+        "m"        : 1,
+        "ub"       : 1,
+        "steps"    : 1,
+        "fixedParameter": ["ph0","ph1","gaussLB","lorentzLB","freqShift"]
+      }
+    },
+    {
+      "module": "OptimReg",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "GABA","GSH","Gln","Glu","NAA","NAAG","MM09","MM3co"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          0.2,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "baseAmpl": {
+          "RegFun": "SecondDerivative"
+        },
+        "ph0": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "ph1": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "gaussLB": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "lorentzLB": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "freqShift": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        }
+      },
+      "regularizer": {
+        "parameter": "baseAmpl",
+        "fun"      : "LambdaEDFormalism",
+        "m"        : 5,
+        "ub"       : 7,
+        "steps"    : 20,
+        "fixedParameter": ["ph0","ph1","gaussLB","lorentzLB","freqShift"]
+      }
+    },
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "GABA","GSH","Gln","Glu","NAA","NAAG","MM09","MM3co"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          0.2,
+          4
+        ],
+        "gap": [1.2, 1.95],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+            "metAmpl": {
+            "sc":{
+                  "adj": ["NAAG"],
+                  "fix": ["NAA"],
+                  "fix_factor":[1],
+                  "ex": [0.15],
+                  "sd": [0.15],
+                  "fun": "ratio",
+                  "scaling": 1
+            }},
+        "baseAmpl": {
+          "RegFun": "SecondDerivative",
+          "RegPar": ["Step 2"]
+        }
+      }
+    }
+  ]
+}

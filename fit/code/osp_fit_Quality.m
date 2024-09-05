@@ -78,10 +78,10 @@ if strcmp(MRSCont.opts.fit.method,'Osprey')
     end
 else if strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
         for sf = 1 : NoFitSpecNames
-            for sn = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),2)
-                for sb = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),3)
+            for sn = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),3)
+                for sb = 1 : size(MRSCont.fit.results.(FitSpecNames{sf}),1)
                     if ~(strcmp(FitSpecNames{sf},'ref') ||strcmp(FitSpecNames{sf},'w'))     
-                        FitSpecNamesStruct.(FitSpecNames{sf}){sb,sn} = MRSCont.fit.results.(FitSpecNames{sf}){1, sn, sb}.Data.spec_name;
+                        FitSpecNamesStruct.(FitSpecNames{sf}){sb,sn} = MRSCont.fit.results.(FitSpecNames{sf}){sb,1,sn}.Data.spec_name;
                     else
                         FitSpecNamesStruct.(FitSpecNames{sf}){1} = FitSpecNames{sf};
                     end
@@ -167,7 +167,7 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                         % etc.
                         [ModelOutput] = fit_LCModelParamsToModel(fitParams);
                     case 'Osprey_gLCM'
-                        MRSCont.QM.relAmpl.([FitSpecNames{ss} '_' FitSpecNamesStruct.(FitSpecNames{ss}){1,sf}])(bf,kk) = MRSCont.fit.results.(FitSpecNames{ss}){kk, sf, bf}.Model{end}.fitQAnumber;
+                        MRSCont.QM.relAmpl.([FitSpecNames{ss} '_' FitSpecNamesStruct.(FitSpecNames{ss}){1,sf}])(bf,kk) = MRSCont.fit.results.(FitSpecNames{ss}){bf, kk, sf}.Model{end}.fitQAnumber;
     
                     end
                     if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') && ~strcmp(MRSCont.opts.fit.method,'Osprey_gLCM') % metabolite only 

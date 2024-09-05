@@ -34,17 +34,46 @@ function osp_FitTabChangeFcn(src,~,gui)
     gui.controls.b_left_z.Enable = 'off';
     gui.controls.b_right_y.Enable = 'off';
     gui.controls.b_right_z.Enable = 'off';
-    gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
-    gui.controls.act_y = 1;
-    gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
-    gui.controls.act_z = 1;
-    if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3) > 1
-        gui.controls.b_left_y.Enable = 'on';
-        gui.controls.b_right_y.Enable = 'on';
+    if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+            gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
+            gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
+        else
+            gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}),3);
+            gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}),1);
     end
-    if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1) > 1
-        gui.controls.b_left_z.Enable = 'on';
-        gui.controls.b_right_z.Enable = 'on';
+    gui.controls.act_y = 1;
+    gui.controls.act_z = 1;
+    if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+        if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3) > 1
+            gui.controls.b_left_y.Enable = 'on';
+            gui.controls.b_right_y.Enable = 'on';
+        end
+        if size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1) > 1
+            gui.controls.b_left_z.Enable = 'on';
+            gui.controls.b_right_z.Enable = 'on';
+        end
+    else
+        if size(MRSCont.fit.results.metab,1) > 1
+            gui.controls.b_left_y.Enable = 'on';
+            gui.controls.b_right_y.Enable = 'on';
+        end
+        if size(MRSCont.fit.results.metab,3) > 1
+            gui.controls.b_left_z.Enable = 'on';
+            gui.controls.b_right_z.Enable = 'on';
+        end
+        gui.controls.ModelStep = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(4);
+        ModelMaxStepValue = MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}){1,gui.controls.Selected,1,1}.step;
+        ModelSliderValues = ModelMaxStepValue - 1;
+        if ModelSliderValues == 0
+            ModelSliderValues = 1;
+        end
+        set(gui.controls.ModelStep,'Min', 1, 'Max', ModelMaxStepValue, 'Value', ModelMaxStepValue,'Tooltip', 'Model step', 'SliderStep', [1/(ModelSliderValues),1/(ModelSliderValues)]);
+        if ModelMaxStepValue == 1
+            set(gui.controls.ModelStep, 'Enable', 'off');
+        else
+            set(gui.controls.ModelStep, 'Enable', 'on');
+        end
+
     end
 %%% 2. UPDATE GUI %%%    
     osp_updateFitWindow(gui);

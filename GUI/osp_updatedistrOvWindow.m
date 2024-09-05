@@ -40,6 +40,7 @@ function osp_updatedistrOvWindow(gui)
         if ~strcmp(Selection,'Quality')    
         split_Selection = strsplit(Selection,'-');
             ind = find(strcmp(MRSCont.overview.FitSpecNamesStruct.(split_Selection{1})(1,:),split_Selection{2}));   
+            ind = ind(1);
             if strcmp(split_Selection{3},'AlphaCorrWaterScaled') || strcmp(split_Selection{3},'AlphaCorrWaterScaledGroupNormed')
                 metab = 'GABA';
             else
@@ -53,9 +54,9 @@ function osp_updatedistrOvWindow(gui)
                 end
             else
                 if ~gui.controls.GM
-                    [temp] = osp_plotRaincloud(MRSCont,split_Selection{2},split_Selection{3},metab,'Raincloud plot',0,1,gui.controls.act_z); 
+                    [temp] = osp_plotRaincloud(MRSCont,split_Selection{2},split_Selection{3},metab,'Raincloud plot',0,1,gui.controls.act_z,gui.controls.act_x); 
                 else
-                    [temp] = osp_plotRaincloud(MRSCont,split_Selection{2},split_Selection{3},metab,'Raincloud plot',1,1,gui.controls.act_z);                
+                    [temp] = osp_plotRaincloud(MRSCont,split_Selection{2},split_Selection{3},metab,'Raincloud plot',1,1,gui.controls.act_z,gui.controls.act_x);                
                 end
             end
             set(gui.controls.pop_distrOvMetab, 'String', MRSCont.quantify.names.(split_Selection{1}){gui.controls.act_z,ind});
