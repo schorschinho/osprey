@@ -435,6 +435,11 @@ if strcmp(jobFileFormat,'json')
     else
         opts.load.undoPhaseCycle = 1;
     end
+    if isfield(jobStruct,'SubSpecOrder')
+        MRSCont.opts.Order = jobStruct.SubSpecOrder';
+    else
+        MRSCont.opts.Order = [];
+    end
     debug = '11';
     if isfield(jobStruct,'exportParams')
         MRSCont.opts.exportParams.flag = 1;
