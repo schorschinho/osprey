@@ -271,6 +271,43 @@ if isMinn_dkd
     end
 end
 
+% Product Siemens PRESS/STEAM can also include water reference scans. 
+if isSiemens && (matches(seq,'PRESS')||matches(seq,'STEAM')) && length(sqzSize)>3
+    wRefs=true;
+    
+    % First, separate out the reference scans:
+    Ind = find(matches(sqzDims,'Phs'));
+    if ~(sqzSize(Ind)==2)
+        error('Expecting 2 entries in the "Phs" dimension, we found %i!',Ind);
+    end
+    fids_w = squeeze(GetSlice(fids,Ind,1));
+    fids   = squeeze(GetSlice(fids,Ind,2));
+    sqzDims(Ind) = [];
+    sqzSize(Ind) = [];
+    
+    % Then, concat the averages and repetitions (if they exist)
+    if sqzSize(matches(sqzDims,'Rep'))>1
+        DimAv = find(matches(sqzDims,'Ave'));
+        DimRep = find(matches(sqzDims,'Rep'));
+        
+        % Reshape the fids:
+        NewSize = sqzSize;
+        NewSize(DimAv) = NewSize(DimAv) * NewSize(DimRep);
+        NewSize(DimRep) = [];
+        fids = reshape(fids,NewSize);
+
+        sqzSize = size(fids);
+        sqzDims(DimRep)=[];        
+        
+        % Reshape the water fids, throwing out the zero entries
+        NZ_Avs = find(any(~(squeeze(sum(abs(fids_w),[1,2]))==0),DimRep-2)); % Finds water fids in "averages" which are non-zero
+        fids_w =fids_w(:,:,NZ_Avs,:);
+        Sz = size(fids_w);
+        fids_w = reshape(fids_w,Sz(1),Sz(2),[]);
+    end
+
+end
+
 % Extract voxel dimensions
 if (strcmp(version,'vd') || strcmp(version,'vb') || contains(version,'XA'))
     TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
@@ -852,4 +889,31 @@ else
     out_w=[];
 end
 
+end
 %DONE
+
+function[SlicedArray] = GetSlice(Array, Dim, Idx)
+%% function[SlicedArray] = GetSlice(Array, Dim, Idx)
+%
+% Description: Takes a slice of multi-dimensional array in dimension "Dim"
+% at the specified index: Idx.
+%
+% Input:     Array = Aray to be sliced 
+%            Dim = Dimension in which to slice
+%            Idx = Index (or indices) to extract from dimension "Dim"
+% Output:    SlicedArray = Subset of array
+%
+% Example usage:
+%   For a 7D array, "Data":
+%
+%   SlicedData = GetSlice(Data, 5, 1:5);
+%       returns 7D array but with only the 1st 5 entries in 5th dim
+%
+% C.W. Davies-Jenkins, Johns Hopkins University 2024
+
+Specification = repmat({':'}, 1, ndims(Array)); % Create an vector whose length matches the dimensionality of the Array
+Specification{Dim} = Idx; % At the specified Dim, add the indices we want to extract
+
+SlicedArray = Array(Specification{:}); % Apply the slicing!
+
+end
