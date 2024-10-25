@@ -152,5 +152,16 @@ if isstruct(MMLipConfig)
 
 end
 
+% Find zeros
+[EmptyIndex]=find(EXT2==0);
+if ~isempty(EmptyIndex)
+    for rr = 1:length(EmptyIndex)
+        % First, do the EXT2
+        EXT2(EmptyIndex(rr)) = defEXT2 * scalingT2;
+        SDT2(EmptyIndex(rr)) = defSDT2 * scalingT2;
+        SDSH(EmptyIndex(rr)) = defSDSH;
+    end
+end
+
 
 end

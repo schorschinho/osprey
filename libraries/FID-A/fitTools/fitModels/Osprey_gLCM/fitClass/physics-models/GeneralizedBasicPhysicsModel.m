@@ -463,14 +463,14 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     [dYdmetAmpl]    = updateAccordingToGrouping(dYdmetAmpl,'metAmpl', parametrizations); % Update jacobian block for metAmpl parameter
 
     if Reg                                                                  % Add parameter regularization
-        [dYdph0]        = addParameterRegularization(dYdph0,'ph0', parametrizations,ph0,1,secDim); % Add regularizer to ph0 parameter
-        [dYdph1]        = addParameterRegularization(dYdph1,'ph1', parametrizations,ph1,1,secDim); % Add regularizer to ph1 parameter
-        [dYdgaussLB]    = addParameterRegularization(dYdgaussLB,'gaussLB', parametrizations,gaussLB,1,secDim); % Add regularizer to gaussLB parameter
-        [dYdlorentzLB]  = addParameterRegularization(dYdlorentzLB,'lorentzLB', parametrizations,lorentzLB,1,secDim); % Add regularizer to lorentzLB parameter
-        [dYdfreqShift]  = addParameterRegularization(dYdfreqShift,'freqShift', parametrizations,freqShift,1,secDim); % Add regularizer to freqShift parameter
-        [dYdmetAmpl]    = addParameterRegularization(dYdmetAmpl,'metAmpl', parametrizations,metAmpl,1,secDim); % Add regularizer to metAmpl parameter
+        [dYdph0]        = addParameterRegularization(dYdph0,'ph0', parametrizations,ph0,1,secDim,sD); % Add regularizer to ph0 parameter
+        [dYdph1]        = addParameterRegularization(dYdph1,'ph1', parametrizations,ph1,1,secDim,sD); % Add regularizer to ph1 parameter
+        [dYdgaussLB]    = addParameterRegularization(dYdgaussLB,'gaussLB', parametrizations,gaussLB,1,secDim,sD); % Add regularizer to gaussLB parameter
+        [dYdlorentzLB]  = addParameterRegularization(dYdlorentzLB,'lorentzLB', parametrizations,lorentzLB,1,secDim,sD); % Add regularizer to lorentzLB parameter
+        [dYdfreqShift]  = addParameterRegularization(dYdfreqShift,'freqShift', parametrizations,freqShift,1,secDim,sD); % Add regularizer to freqShift parameter
+        [dYdmetAmpl]    = addParameterRegularization(dYdmetAmpl,'metAmpl', parametrizations,metAmpl,1,secDim,sD); % Add regularizer to metAmpl parameter
         if nBaselineComps ~= 0
-            [dYdbaseAmpl]   = addParameterRegularization(dYdbaseAmpl,'baseAmpl', parametrizations,baseAmpl,1,secDim); % Add regularizer to baseAmpl parameter
+            [dYdbaseAmpl]   = addParameterRegularization(dYdbaseAmpl,'baseAmpl', parametrizations,baseAmpl,1,secDim,sD); % Add regularizer to baseAmpl parameter
         end
     end                                                                     % End loop over indirect dimension
 
@@ -676,13 +676,13 @@ function [Y, baseline, metabs, regu, penaltyTerm,penaltyTermSoftConstraint] = fo
             baseAmpl    = squeeze(inputParams.baseAmpl(sD,:));              % Get baseAmpl parameter
             ph0         = squeeze(inputParams.ph0(sD));                     % Get ph0 parameter
             ph1         = squeeze(inputParams.ph1(sD));                     % Get ph1 parameter
-            [ph0Reg]        = addParameterRegularization([],'ph0', parametrizations,ph0,0,secDim); % Calculate regularizer for ph0 parameter
-            [ph1Reg]        = addParameterRegularization([],'ph1', parametrizations,ph1,0,secDim); % Calculate regularizer for ph1 parameter
-            [gaussLBReg]    = addParameterRegularization([],'gaussLB', parametrizations,gaussLB,0,secDim); % Calculate regularizer for gaussLB parameter
-            [lorentzLBReg]  = addParameterRegularization([],'lorentzLB', parametrizations,lorentzLB,0,secDim); % Calculate regularizer for lorentzLB parameter
-            [freqShiftReg]  = addParameterRegularization([],'freqShift', parametrizations,freqShift,0,secDim); % Calculate regularizer for freqShift parameter
-            [metAmplReg]    = addParameterRegularization([],'metAmpl', parametrizations,metAmpl,0,secDim); % Calculate regularizer for metAmpl parameter
-            [baseAmplReg]   = addParameterRegularization([],'baseAmpl', parametrizations,baseAmpl',0,secDim); % Calculate regularizer for baseAmpl parameter
+            [ph0Reg]        = addParameterRegularization([],'ph0', parametrizations,ph0,0,secDim,sD); % Calculate regularizer for ph0 parameter
+            [ph1Reg]        = addParameterRegularization([],'ph1', parametrizations,ph1,0,secDim,sD); % Calculate regularizer for ph1 parameter
+            [gaussLBReg]    = addParameterRegularization([],'gaussLB', parametrizations,gaussLB,0,secDim,sD); % Calculate regularizer for gaussLB parameter
+            [lorentzLBReg]  = addParameterRegularization([],'lorentzLB', parametrizations,lorentzLB,0,secDim,sD); % Calculate regularizer for lorentzLB parameter
+            [freqShiftReg]  = addParameterRegularization([],'freqShift', parametrizations,freqShift,0,secDim,sD); % Calculate regularizer for freqShift parameter
+            [metAmplReg]    = addParameterRegularization([],'metAmpl', parametrizations,metAmpl,0,secDim,sD); % Calculate regularizer for metAmpl parameter
+            [baseAmplReg]   = addParameterRegularization([],'baseAmpl', parametrizations,baseAmpl',0,secDim,sD); % Calculate regularizer for baseAmpl parameter
             regu = cat(2,regu,[ph0Reg , ph1Reg, gaussLBReg, lorentzLBReg, freqShiftReg, metAmplReg, baseAmplReg]); % Concatenate regularizer
         end
     end                                                                     % End loop over indirect dimension
@@ -862,7 +862,7 @@ function [f,g,h] = fminunc_wrapper(x,F,GJ,H)
 end
 
 %% Functions needed for 2D modeling and regularization
-function parameterMatrix = addParameterRegularization(parameterMatrix,parameterName, parametrizations,inputParams,jacobian,secDim)
+function parameterMatrix = addParameterRegularization(parameterMatrix,parameterName, parametrizations,inputParams,jacobian,secDim,sD)
 % This function adds regularization terms to a parameter matrix
 %
 %   USAGE:
@@ -890,13 +890,21 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Add regularizer to parameter matrix
     if ~strcmp(parametrizations.(parameterName).RegFun,'')                  % Don't apply regularization to the parameter
+        if length(parametrizations.(parameterName).RegPar) ==1                  % Allows for regularization parameters for each sec dim entry
+            RegPar = parametrizations.(parameterName).RegPar;
+        else
+            RegPar = parametrizations.(parameterName).RegPar(sD);
+        end
+       if strcmp(parametrizations.(parameterName).type,'free')
+            RegMatrix = parametrizations.(parameterName).RegFun.fun((parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1)/secDim);
+       else
+            RegMatrix = parametrizations.(parameterName).RegFun.fun((parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1));
+       end
         if jacobian
-           RegMatrix = parametrizations.(parameterName).RegFun.fun(parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1);
-           RegMatrix = repmat(sqrt(parametrizations.(parameterName).RegPar)*RegMatrix,[1 1 secDim])/secDim;
+           RegMatrix = repmat(sqrt(RegPar)*RegMatrix,[1 1 secDim]); % removed a devision
            parameterMatrix = cat(1,parameterMatrix,RegMatrix);
         else
-           RegMatrix = parametrizations.(parameterName).RegFun.fun(parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1);
-           RegMatrix = sqrt(parametrizations.(parameterName).RegPar)*RegMatrix*inputParams/secDim;;
+           RegMatrix = sqrt(RegPar)*RegMatrix*inputParams; % removed a devision
            parameterMatrix =  RegMatrix;
         end
 
@@ -906,9 +914,17 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
         numberOfParameters = [];                                            % Initialize number of parameters
         for ff = 1 : length(pars)                                           % Loop over parameters
             numberOfParameters(end+1) = parametrizations.(pars{ff}).end-parametrizations.(pars{ff}).start + 1; % Calculate number of parameters
+            if strcmp(parametrizations.(pars{ff}).type,'free')
+                numberOfParameters(end) = numberOfParameters(end)/secDim;
+            end    
         end                                                                 % End loop over parameters
-        if (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1) <= max(numberOfParameters) && strcmp(parametrizations.(parameterName).RegFun,'')  % Add zeros if jacobian is too short
-            parameterMatrix = cat(1,parameterMatrix,zeros(max(numberOfParameters),parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1,secDim));    %Add correct number of zeros to the end
+        if strcmp(parametrizations.(parameterName).type,'free')
+            nPars = (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1)/secDim;
+        else
+            nPars = (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1);
+        end
+        if  nPars <= max(numberOfParameters) && strcmp(parametrizations.(parameterName).RegFun,'')  % Add zeros if jacobian is too short
+            parameterMatrix = cat(1,parameterMatrix,zeros(max(numberOfParameters),nPars,secDim));    %Add correct number of zeros to the end
         end
     end
 end
