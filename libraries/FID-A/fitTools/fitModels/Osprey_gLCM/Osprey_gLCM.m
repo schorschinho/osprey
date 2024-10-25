@@ -304,15 +304,11 @@ for kk = 1 : length(DataToModel)
             opts.parametrizations.gaussLB.init = DataToModel{kk}.FWHM;
         end
         if isfield(ModelProcedure.Steps{ss}, 'extra')                                   % Is 2D model
-            if isfield(ModelProcedure.Steps{ss}.extra, 'paraIndirect')
-                opts.paraIndirect = ModelProcedure.Steps{ss}.extra.paraIndirect;
-            else
-                if ModelProcedure.Steps{ss}.extra.flag == 1 && isfield(ModelProcedure.Steps{ss}.extra,'DynamicModelJson')
-                    if ~isstruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson)                                               %Parsed as json file
-                        opts.paraIndirect  = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{ss}.extra.DynamicModelJson)); % specify parametrizations constructor for indirect dimension
-                    else
-                        opts.paraIndirect = ModelProcedure.Steps{ss}.extra.DynamicModelJson;
-                    end
+            if ModelProcedure.Steps{ss}.extra.flag == 1 && isfield(ModelProcedure.Steps{ss}.extra,'DynamicModelJson')
+                if ~isstruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson)                                               %Parsed as json file
+                    opts.paraIndirect  = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{ss}.extra.DynamicModelJson)); % specify parametrizations constructor for indirect dimension
+                else
+                    opts.paraIndirect = ModelProcedure.Steps{ss}.extra.DynamicModelJson;
                 end
             end
         end
