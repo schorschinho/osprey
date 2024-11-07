@@ -44,7 +44,7 @@ if nargin<5
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
             % For SPECIAL acquisitions, some of the sub-spectra need to be combined
             % prior to determining the CC coefficients. We'll set a flag here.
-            isSpecial = strcmpi(MRSCont.raw_uncomb{metab_ll,kk}.seq(1), 'special');
+            isSpecial = strcmpi(MRSCont.raw_uncomb{metab_ll,kk}.seq, 'special');
             MRSCont.flags.isSPECIAL = isSpecial;
             % Check if reference scans exist, if so, get CC coefficients from there
             if MRSCont.flags.hasRef
