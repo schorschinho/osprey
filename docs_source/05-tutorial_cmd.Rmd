@@ -32,8 +32,8 @@ MRSCont = OspreyFit(MRSCont);
 Modeling results are added to the MRSCont.fit, including results tables. If we have structural data, we can coregister our voxels, and perform tissue segmentation:
 
 ```octave
-MRScont = OspreyCoreg(MRSCont);
-MRScont = OspreySeg(MRSCont);
+MRSCont = OspreyCoreg(MRSCont);
+MRSCont = OspreySeg(MRSCont);
 ```
 
 MRSCont now has sub-structures relating to voxel masks and volumes, MRSCont.coreg, and tissue segmentation results in MRSCont.seg.
