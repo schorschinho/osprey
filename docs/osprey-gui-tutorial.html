@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Chapter 5 Osprey GUI tutorial | Osprey Documentation</title>
   <meta name="description" content="Osprey is an all-in-one software suite for state-of-the art processing and quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data." />
-  <meta name="generator" content="bookdown 0.29 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.34 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Chapter 5 Osprey GUI tutorial | Osprey Documentation" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Georg Oeltzschner" />
 
 
-<meta name="date" content="2023-04-28" />
+<meta name="date" content="2024-11-25" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -92,7 +92,7 @@ code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
 code span.at { color: #7d9029; } /* Attribute */
 code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
+code span.bu { color: #008000; } /* BuiltIn */
 code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
 code span.ch { color: #4070a0; } /* Char */
 code span.cn { color: #880000; } /* Constant */
@@ -105,7 +105,7 @@ code span.er { color: #ff0000; font-weight: bold; } /* Error */
 code span.ex { } /* Extension */
 code span.fl { color: #40a070; } /* Float */
 code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
+code span.im { color: #008000; font-weight: bold; } /* Import */
 code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 code span.kw { color: #007020; font-weight: bold; } /* Keyword */
 code span.op { color: #666666; } /* Operator */
@@ -119,6 +119,10 @@ code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
 
 <link rel="stylesheet" href="css/style.css" type="text/css" />
 </head>
@@ -165,13 +169,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="4.3.2" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#sub-spectral-alignment"><i class="fa fa-check"></i><b>4.3.2</b> Sub-spectral alignment</a></li>
 <li class="chapter" data-level="4.3.3" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#eddy-current-correction"><i class="fa fa-check"></i><b>4.3.3</b> Eddy-current correction</a></li>
 <li class="chapter" data-level="4.3.4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#saving-data-to-external-formats"><i class="fa fa-check"></i><b>4.3.4</b> Saving data to external formats</a></li>
-<li class="chapter" data-level="4.3.5" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#matbolites-included-in-the-basis-set"><i class="fa fa-check"></i><b>4.3.5</b> Matbolites included in the basis-set</a></li>
+<li class="chapter" data-level="4.3.5" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#metabolites-included-in-the-basis-set"><i class="fa fa-check"></i><b>4.3.5</b> Metabolites included in the basis-set</a></li>
 <li class="chapter" data-level="4.3.6" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#lcmodel-specific-options"><i class="fa fa-check"></i><b>4.3.6</b> LCModel-specific options</a></li>
 <li class="chapter" data-level="4.3.7" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#fit-style"><i class="fa fa-check"></i><b>4.3.7</b> Fit style</a></li>
 <li class="chapter" data-level="4.3.8" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#fitting-range"><i class="fa fa-check"></i><b>4.3.8</b> Fitting range</a></li>
 <li class="chapter" data-level="4.3.9" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#baseline-knot-spacing"><i class="fa fa-check"></i><b>4.3.9</b> Baseline knot spacing</a></li>
 <li class="chapter" data-level="4.3.10" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#macromolecule-and-lipid-signals"><i class="fa fa-check"></i><b>4.3.10</b> Macromolecule and lipid signals</a></li>
-<li class="chapter" data-level="4.3.11" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#co-edited-macrommolecules"><i class="fa fa-check"></i><b>4.3.11</b> Co-edited macrommolecules</a></li>
+<li class="chapter" data-level="4.3.11" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#co-edited-macromolecules"><i class="fa fa-check"></i><b>4.3.11</b> Co-edited macromolecules</a></li>
 </ul></li>
 <li class="chapter" data-level="4.4" data-path="the-osprey-job-file.html"><a href="the-osprey-job-file.html#specifying-mrs-data-and-structural-imaging-files"><i class="fa fa-check"></i><b>4.4</b> Specifying MRS data and structural imaging files</a>
 <ul>
@@ -239,10 +243,10 @@ In this documentation chapter, we will use the <code>jobTwix.m</code> job file i
 <div id="starting-osprey" class="section level2 hasAnchor" number="5.1">
 <h2><span class="header-section-number">5.1</span> Starting Osprey<a href="osprey-gui-tutorial.html#starting-osprey" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>At the MATLAB prompt, enter</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb1-1"><a href="osprey-gui-tutorial.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;</span> Osprey</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode octave"><code class="sourceCode octave"><span id="cb1-1"><a href="osprey-gui-tutorial.html#cb1-1" tabindex="-1"></a><span class="op">&gt;&gt;</span> Osprey</span></code></pre></div>
 <p>This will initiate the <strong>Osprey</strong> GUI application and the underlying processing modules. Once the startup is complete, you will see the <strong>Osprey</strong> startup menu box:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyStartupMenu"></span>
-<img src="img/04-osprey-startup-menu.png" alt="The Osprey Startup Menu." width="181" />
+<img src="img/04-osprey-startup-menu.png" alt="The Osprey Startup Menu."  />
 <p class="caption">
 Figure 5.1: The Osprey Startup Menu.
 </p>
@@ -252,21 +256,21 @@ Figure 5.1: The Osprey Startup Menu.
 <h2><span class="header-section-number">5.2</span> Loading a job file<a href="osprey-gui-tutorial.html#loading-a-job-file" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Click the <code>Load Job file</code> button, navigate to the <code>exampledata/twix</code> directory, and add the file <code>jobTwix.m</code> to the right column:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreySelectJobFile"></span>
-<img src="img/04-osprey-select-job-file.png" alt="Selecting a job file." width="510" />
+<img src="img/04-osprey-select-job-file.png" alt="Selecting a job file."  />
 <p class="caption">
 Figure 5.2: Selecting a job file.
 </p>
 </div>
 <p>Click <code>Done</code>. If you have run an <strong>Osprey</strong> analysis previously with the same output folder specified in the job file, you will be shown a warning:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyOverwriteWarning"></span>
-<img src="img/04-warning-overwrite.png" alt="Warning when you are about to overwrite a previous analysis." width="270" />
+<img src="img/04-warning-overwrite.png" alt="Warning when you are about to overwrite a previous analysis."  />
 <p class="caption">
 Figure 5.3: Warning when you are about to overwrite a previous analysis.
 </p>
 </div>
 <p>Click <code>Yes</code>. <strong>Osprey</strong> will now extract all necessary information from the job file you selected by running the <code>OspreyJob</code> module in the background. The next window you see is the main GUI:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyJob"></span>
-<img src="img/04-osprey-gui-job.png" alt="The Osprey GUI after OspreyJob." width="742" />
+<img src="img/04-osprey-gui-job.png" alt="The Osprey GUI after OspreyJob."  />
 <p class="caption">
 Figure 5.4: The Osprey GUI after OspreyJob.
 </p>
@@ -338,7 +342,7 @@ You can export a PDF of the spectrum (along with the information box) by clickin
 <p>Click the (now available!) <code>Process data</code> button to initiate the post-processing. <strong>Osprey</strong> will now perform all appropriate processing steps (depending on the available data: eddy-current correction, frequency-and-phase alignment, water removal, frequency referencing, initial phasing) by running the <code>OspreyProcess</code> module in the background. This process may take several seconds per dataset. You can monitor the progress through the wait bar.</p>
 <p>Once the post-processing is complete, the <code>Processed</code> tab becomes active, showing four different panels:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyProcess"></span>
-<img src="img/04-process-mets.png" alt="The Osprey GUI after OspreyProcess." width="694" />
+<img src="img/04-process-mets.png" alt="The Osprey GUI after OspreyProcess."  />
 <p class="caption">
 Figure 5.5: The Osprey GUI after OspreyProcess.
 </p>
@@ -346,7 +350,7 @@ Figure 5.5: The Osprey GUI after OspreyProcess.
 <p>The top left panel shows the individual averages prior to frequency-and-phase alignment. The bottom left panel shows them after frequency-and-phase alignment.
 The top right panel shows a scatter plot of the maximum of the 3.02 ppm Cr/PCr signal over the course of the acquisition for both pre- and post-alignment. Finally, the bottom right panel shows the aligned, averaged and referenced spectrum after eddy-current correction and residual water removal. This spectrum will be passed on to the <code>Fit</code> module for modeling.</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyProcess2"></span>
-<img src="img/04-process-mets-subspec.png" alt="Different sub-spectra can be visualized by cycling through the &quot;Spec&quot; windows." width="672" />
+<img src="img/04-process-mets-subspec.png" alt="Different sub-spectra can be visualized by cycling through the &quot;Spec&quot; windows."  />
 <p class="caption">
 Figure 5.6: Different sub-spectra can be visualized by cycling through the “Spec” windows.
 </p>
@@ -371,7 +375,7 @@ You can export a PDF of the four post-processing display panels (along with the 
 <p>Click the (now available!) <code>Fit data</code> button to initiate the post-processing. <strong>Osprey</strong> will now model the processed metabolite and water spectra by running the <code>OspreyFit</code> module in the background. This process may take a few seconds, or up to a minute or more per dataset, depending on the complexity of the data and model. You can monitor the progress through the wait bar.</p>
 <p>Once the modeling is complete, the <code>Fit</code> tab becomes active:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyFit"></span>
-<img src="img/04-fit-mets.png" alt="The Osprey GUI after OspreyFit." width="694" />
+<img src="img/04-fit-mets.png" alt="The Osprey GUI after OspreyFit."  />
 <p class="caption">
 Figure 5.7: The Osprey GUI after OspreyFit.
 </p>
@@ -402,7 +406,7 @@ If you are only interested in the voxel mask, you can skip the <code>Process</co
 </div>
 <p>Once the co-registration is complete, the <code>Cor/Seg</code> tab becomes active:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyCoreg"></span>
-<img src="img/04-coreg.png" alt="The Osprey GUI after OspreyCoReg." width="645" />
+<img src="img/04-coreg.png" alt="The Osprey GUI after OspreyCoReg."  />
 <p class="caption">
 Figure 5.8: The Osprey GUI after OspreyCoReg.
 </p>
@@ -426,7 +430,7 @@ If you are only interested in the tissue fractions, you can skip the <code>Proce
 </div>
 <p>Once the segmentation is complete, the <code>Cor/Seg</code> tab features another figure:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreySeg"></span>
-<img src="img/04-seg.png" alt="The Osprey GUI after OspreySeg." width="645" />
+<img src="img/04-seg.png" alt="The Osprey GUI after OspreySeg."  />
 <p class="caption">
 Figure 5.9: The Osprey GUI after OspreySeg.
 </p>
@@ -442,7 +446,7 @@ You can export a PDF of the combined co-registration/segmentation display by cli
 <p>Click the <code>Quantify</code> button to have <strong>Osprey</strong> run the <code>OspreyQuantify</code> module in the background. This should take less than a second per dataset. During this process, several quantitative metabolite estimates are calculated, such as tCr ratios and water-scaled estimates with different degrees of sophistication. Please refer to the <strong>Osprey</strong> manuscript for details on the implementation of these quantification routines.</p>
 <p>Once the quantification is complete, the <code>Quantify</code> tab becomes active:</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyQuantify"></span>
-<img src="img/04-quantify.png" alt="The Osprey GUI after OspreyQuantify." width="645" />
+<img src="img/04-quantify.png" alt="The Osprey GUI after OspreyQuantify."  />
 <p class="caption">
 Figure 5.10: The Osprey GUI after OspreyQuantify.
 </p>
@@ -462,7 +466,7 @@ Figure 5.10: The Osprey GUI after OspreyQuantify.
 You can select the data or complete fits for the metabolite and water data by using the dropdown menu at the top of the window.
 </div>
 <div class="figure"><span style="display:block;" id="fig:ospreyOverviewSpectra"></span>
-<img src="img/04-overview-spectra.png" alt="The Overview Spectra tab in the Osprey GUI." width="645" />
+<img src="img/04-overview-spectra.png" alt="The Overview Spectra tab in the Osprey GUI."  />
 <p class="caption">
 Figure 5.11: The Overview Spectra tab in the Osprey GUI.
 </p>
@@ -475,7 +479,7 @@ Figure 5.11: The Overview Spectra tab in the Osprey GUI.
 You can select the metabolite and water data by using the dropdown menu at the top of the window.
 </div>
 <div class="figure"><span style="display:block;" id="fig:ospreyOverviewMeanSpectra"></span>
-<img src="img/04-overview-mean-spectra.png" alt="The Overview Mean Spectra tab in the Osprey GUI." width="645" />
+<img src="img/04-overview-mean-spectra.png" alt="The Overview Mean Spectra tab in the Osprey GUI."  />
 <p class="caption">
 Figure 5.12: The Overview Mean Spectra tab in the Osprey GUI.
 </p>
@@ -495,7 +499,7 @@ You can select the metabolite and water data by using the dropdown menu at the t
 You can select the quantification routine to be displayed (tCr ratios, raw water-scaled, CSF-corrected water-scaled, tissue-corrected water-scaled) by using the dropdown menu at the top of the window.
 </div>
 <div class="figure"><span style="display:block;" id="fig:ospreyQuantifyTable"></span>
-<img src="img/04-overview-quantify-table.png" alt="The Overview Quantify Table tab in the Osprey GUI." width="645" />
+<img src="img/04-overview-quantify-table.png" alt="The Overview Quantify Table tab in the Osprey GUI."  />
 <p class="caption">
 Figure 5.13: The Overview Quantify Table tab in the Osprey GUI.
 </p>
@@ -509,7 +513,7 @@ You can select the quantification routine to be displayed (tCr ratios, raw water
 </div>
 <p>By default, the <code>Distribution</code> tab is set to display the tCr ratios of tNAA.</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyOverviewDistribution"></span>
-<img src="img/04-overview-distribution.png" alt="The Overview Distribution tab in the Osprey GUI." width="645" />
+<img src="img/04-overview-distribution.png" alt="The Overview Distribution tab in the Osprey GUI."  />
 <p class="caption">
 Figure 5.14: The Overview Distribution tab in the Osprey GUI.
 </p>
@@ -523,7 +527,7 @@ You can select the quantification routine and metabolite to be correlated, as we
 </div>
 <p>By default, the <code>Correlation</code> tab is set to display the correlation of tNAA/tCr to SNR.</p>
 <div class="figure"><span style="display:block;" id="fig:ospreyOverviewCorrelation"></span>
-<img src="img/04-overview-correlation.png" alt="The Overview Correlation tab in the Osprey GUI." width="645" />
+<img src="img/04-overview-correlation.png" alt="The Overview Correlation tab in the Osprey GUI."  />
 <p class="caption">
 Figure 5.15: The Overview Correlation tab in the Osprey GUI.
 </p>
