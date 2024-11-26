@@ -1,5 +1,4 @@
 # Osprey
-[![Documentation Status]([https://readthedocs.org/projects/osprey/badge](https://schorschinho.github.io/osprey)/?version=latest)]([[https://osprey-bids.readthedocs.io/en/latest/](https://schorschinho.github.io/osprey)](https://schorschinho.github.io/osprey))
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/schorschinho/osprey)](https://github.com/schorschinho/osprey/releases)
 [![GitHub Release Date](https://img.shields.io/github/release-date/schorschinho/osprey)](https://github.com/schorschinho/osprey/releases)
 [![Build Status](https://dev.azure.com/OspreyCI/Osprey/_apis/build/status/develop-pull?branchName=develop)](https://dev.azure.com/OspreyCI/Osprey/_build/latest?definitionId=1&branchName=develop)
