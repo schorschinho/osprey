@@ -79,3 +79,5 @@ specifying-stat-file
 explicit-vs-automated-file
 osprey-command-line-tutorial
 fig:ospreyProcess2
+metabolites-included-in-the-basis-set
+co-edited-macromolecules

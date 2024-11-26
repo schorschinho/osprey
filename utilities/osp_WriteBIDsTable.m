@@ -12,17 +12,22 @@ function[] = osp_WriteBIDsTable(Table,OutLoc)
 
 writetable(Table,[OutLoc,'.txt'],'Delimiter','\t'); % Write table with tab delimiter
 movefile([OutLoc,'.txt'],[OutLoc,'.tsv']); % Change file extension to tsv
+fprintf('Writing table to file = %s\n', [OutLoc,'.tsv']);
 
-for JJ=1:length(Table.Properties.VariableNames)
-    JSON.(Table.Properties.VariableNames{JJ}).LongName = Table.Properties.CustomProperties.VariableLongNames{JJ};
-    JSON.(Table.Properties.VariableNames{JJ}).Description = Table.Properties.VariableDescriptions{JJ};
-    JSON.(Table.Properties.VariableNames{JJ}).Units = Table.Properties.VariableUnits{JJ};
-    %JSON.(Table.Properties.VariableNames{JJ}).TermURL = Table.Properties.CustomProperties.VariableTermURL{JJ};
+if length(Table.Properties.VariableNames) > 0
+	for JJ=1:length(Table.Properties.VariableNames)
+		JSON.(Table.Properties.VariableNames{JJ}).LongName = Table.Properties.CustomProperties.VariableLongNames{JJ};
+		JSON.(Table.Properties.VariableNames{JJ}).Description = Table.Properties.VariableDescriptions{JJ};
+		JSON.(Table.Properties.VariableNames{JJ}).Units = Table.Properties.VariableUnits{JJ};
+		%JSON.(Table.Properties.VariableNames{JJ}).TermURL = Table.Properties.CustomProperties.VariableTermURL{JJ};
+	end
+	
+	% Write json structure to text file following jsonencode
+	json_fn = [OutLoc,'.json'];
+	fprintf('Writing table to file = %s\n', json_fn);
+	fid=fopen(json_fn,'w');
+	fprintf(fid, jsonencode(JSON)); 
+	fclose(fid);
 end
-
-% Write json structure to text file following jsonencode
-fid=fopen([OutLoc,'.json'],'w');
-fprintf(fid, jsonencode(JSON)); 
-fclose(fid);
 
 end
