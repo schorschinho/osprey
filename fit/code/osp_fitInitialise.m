@@ -191,6 +191,15 @@ if isfield(MRSCont.opts.fit, 'basisSetFile') && ~strcmpi(MRSCont.opts.fit.method
     end
 end
 
+% For the compiled Windwos version we are suddenly seeing an additonal
+% fileseparator in the basisset string. Fix this by removing the leading
+% character for Windows if it is a fileseparator.
+if ispc
+    if strcmp(MRSCont.opts.fit.basisSetFile(1),filesep)
+        MRSCont.opts.fit.basisSetFile = MRSCont.opts.fit.basisSetFile(2:end);
+    end
+end
+
 % The workflow will differ depending on whether we fit entirely within
 % Osprey, or whether we are wrapping the LCModel binaries.
 switch MRSCont.opts.fit.method
