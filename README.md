@@ -99,7 +99,7 @@ Should you publish material that made use of Osprey, please cite the following p
 
 Please also refer to the version you have used during your analysis using the Zenodo DOI:
 
-[![DOI](https://zenodo.org/badge/197683508.svg)](https://doi.org/10.5281/zenodo.14226161)
+[![DOI](https://zenodo.org/badge/197683508.svg)](https://doi.org/10.5281/zenodo.14226197)
 
 ## Acknowledgements
 
