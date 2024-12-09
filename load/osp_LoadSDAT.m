@@ -33,21 +33,21 @@ if MRSCont.flags.hasMM %re_mm adding functionality to load MM data
             MRSCont.files_mm{kk} = MRSCont.files_mm{1}; % re_mm allowable to specify one MM file for the whole batch
         end %re_mm 
     end   %re_mm 
-    if ((length(MRSCont.files_mm) ~= MRSCont.nDatasets(1)) )   %re_mm 
+    if ((size(MRSCont.files_mm,2) ~= MRSCont.nDatasets(1)) )   %re_mm 
         msg = 'Number of specified MM files does not match number of specified metabolite files.'; %re_mm 
         fprintf(msg);
         error(msg);
     end   %re_mm 
 end   %re_mm 
 if MRSCont.flags.hasRef
-    if length(MRSCont.files_ref) ~= MRSCont.nDatasets(1)
+    if size(MRSCont.files_ref,2) ~= MRSCont.nDatasets(1)
         msg = 'Number of specified reference files does not match number of specified metabolite files.'; %re_mm 
         fprintf(msg);
         error(msg);
     end
 end
 if MRSCont.flags.hasWater
-    if length(MRSCont.files_w) ~= MRSCont.nDatasets(1)
+    if size(MRSCont.files_w,2) ~= MRSCont.nDatasets(1)
         msg = 'Number of specified water files does not match number of specified metabolite files.'; %re_mm 
         fprintf(msg);
         error(msg);
