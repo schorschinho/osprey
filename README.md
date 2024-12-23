@@ -64,7 +64,8 @@ functions.
 
 To perform voxel co-registration and tissue segmentation, download **SPM12**
 [from the UCL website](http://www.fil.ion.ucl.ac.uk/spm/software/spm12/), then
-extract and add to your MATLAB path.
+extract and add to your MATLAB path. If you run an Apple Silicon processor 
+(M1 and later), please download the [SPM development version from GitHub](https://github.com/spm/spm).
 
 If you want to use the `Osprey` Graphical User Interface (GUI),
 please download the following toolboxes from the MATLAB File Exchange:

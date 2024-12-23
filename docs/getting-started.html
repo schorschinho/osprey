@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Chapter 2 Getting started | Osprey Documentation</title>
   <meta name="description" content="Osprey is an all-in-one software suite for state-of-the art processing and quantitative analysis of in-vivo magnetic resonance spectroscopy (MRS) data." />
-  <meta name="generator" content="bookdown 0.34 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.41 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Chapter 2 Getting started | Osprey Documentation" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Georg Oeltzschner" />
 
 
-<meta name="date" content="2024-11-25" />
+<meta name="date" content="2024-12-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -56,7 +56,7 @@
 
 <style type="text/css">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -66,7 +66,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -150,7 +150,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2" data-path="getting-started.html"><a href="getting-started.html"><i class="fa fa-check"></i><b>2</b> Getting started</a>
 <ul>
 <li class="chapter" data-level="2.1" data-path="getting-started.html"><a href="getting-started.html#system-requirements"><i class="fa fa-check"></i><b>2.1</b> System requirements</a></li>
-<li class="chapter" data-level="2.2" data-path="getting-started.html"><a href="getting-started.html#installing-osprey"><i class="fa fa-check"></i><b>2.2</b> Installing Osprey</a></li>
+<li class="chapter" data-level="2.2" data-path="getting-started.html"><a href="getting-started.html#installing-osprey-and-necessary-dependencies"><i class="fa fa-check"></i><b>2.2</b> Installing Osprey and necessary dependencies</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="getting-started.html"><a href="getting-started.html#osprey-package"><i class="fa fa-check"></i><b>2.2.1</b> Osprey package</a></li>
+<li class="chapter" data-level="2.2.2" data-path="getting-started.html"><a href="getting-started.html#spm-package"><i class="fa fa-check"></i><b>2.2.2</b> SPM package</a></li>
+<li class="chapter" data-level="2.2.3" data-path="getting-started.html"><a href="getting-started.html#gui-toolboxes"><i class="fa fa-check"></i><b>2.2.3</b> GUI Toolboxes</a></li>
+</ul></li>
 <li class="chapter" data-level="2.3" data-path="getting-started.html"><a href="getting-started.html#how-to-organize-your-raw-data"><i class="fa fa-check"></i><b>2.3</b> How to organize your raw data</a></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="the-osprey-workflow.html"><a href="the-osprey-workflow.html"><i class="fa fa-check"></i><b>3</b> The Osprey Workflow</a></li>
@@ -273,8 +278,10 @@ You may need to ask your system administrator for a separate license for missing
 The available toolboxes (including SPM) are checked at the initial call of the Osprey GUI, and missing toolboxes are reported back to the user.
 </div>
 </div>
-<div id="installing-osprey" class="section level2 hasAnchor" number="2.2">
-<h2><span class="header-section-number">2.2</span> Installing Osprey<a href="getting-started.html#installing-osprey" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="installing-osprey-and-necessary-dependencies" class="section level2 hasAnchor" number="2.2">
+<h2><span class="header-section-number">2.2</span> Installing Osprey and necessary dependencies<a href="getting-started.html#installing-osprey-and-necessary-dependencies" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="osprey-package" class="section level3 hasAnchor" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> Osprey package<a href="getting-started.html#osprey-package" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Get the latest <strong>Osprey</strong> code from our <a href="https://github.com/schorschinho/osprey">GitHub repository</a>:</p>
 <ul>
 <li><p>Clone the repository, or download and extract the contents of the .ZIP file to a directory on your drive.</p>
@@ -287,7 +294,14 @@ Figure 2.1: Cloning Osprey from GitHub.
 <li><p>Add the entire <code>osprey</code> directory (with subfolders) to your MATLAB path.</p></li>
 <li><p>Make sure to regularly check the repository for updates, as we frequently commit new features, bug fixes, and improved functions.</p></li>
 </ul>
+</div>
+<div id="spm-package" class="section level3 hasAnchor" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> SPM package<a href="getting-started.html#spm-package" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>To perform voxel co-registration and tissue segmentation, download <strong>SPM12</strong> <a href="http://www.fil.ion.ucl.ac.uk/spm/software/spm12/">from the University College London website</a>. You will need to provide the SPM team with some information before you can access the download link.</p>
+
+<div class="rmdnote">
+If you run an Apple Silicon processor (M1 and later), please download the <a href="https://github.com/spm/spm">SPM development version from GitHub</a>. The SPM12 package behind the official download link above likely does not contain pre-compiled C binaries for Silicon.
+</div>
 <ul>
 <li>Extract the downloaded archive so that the <code>spm12</code> folder is on the same directory level as the <code>osprey</code> folder:</li>
 </ul>
@@ -302,10 +316,11 @@ Figure 2.2: Make sure that the SPM12 and Osprey folders are in the same director
 </ul>
 
 <div class="rmdwarning">
-<ul>
-<li>during testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail. Add the top-level directory to your path, but not subfolders.
-</div></li>
-</ul>
+During testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail. Add the top-level directory to your path, but not subfolders.
+</div>
+</div>
+<div id="gui-toolboxes" class="section level3 hasAnchor" number="2.2.3">
+<h3><span class="header-section-number">2.2.3</span> GUI Toolboxes<a href="getting-started.html#gui-toolboxes" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>If you want to use the <strong>Osprey</strong> Graphical User Interface (GUI), please download the following toolboxes from the MATLAB File Exchange:</p>
 <ul>
 <li><p><a href="https://www.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox">GUI Layout Toolbox</a>
@@ -314,6 +329,7 @@ Figure 2.2: Make sure that the SPM12 and Osprey folders are in the same director
 (Robin Jackey)</p></li>
 </ul>
 <p>Download both toolboxes in the MATLAB toolbox format (.mltbx). You can double-click to install. MATLAB will automatically add the toolboxes to its path.</p>
+</div>
 </div>
 <div id="how-to-organize-your-raw-data" class="section level2 hasAnchor" number="2.3">
 <h2><span class="header-section-number">2.3</span> How to organize your raw data<a href="getting-started.html#how-to-organize-your-raw-data" class="anchor-section" aria-label="Anchor link to header"></a></h2>
