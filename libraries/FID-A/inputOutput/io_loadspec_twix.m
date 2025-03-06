@@ -163,7 +163,16 @@ if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequenc
         ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
         ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence
     squeezedData=squeeze(dOut.data);
-    if twix_obj.image.NCol>1 && twix_obj.image.NCha>1
+    % GO 3/2025: Adding a case where NRep>1, which adds a fifth dimension
+    % to everything
+    if twix_obj.image.NCol>1 && twix_obj.image.NCha>1 && twix_obj.image.NAve>1 && twix_obj.image.NRep>1
+        data(:,:,:,1,:)=squeezedData(:,:,[1:2:end-1],:);
+        data(:,:,:,2,:)=squeezedData(:,:,[2:2:end],:);
+        % Permute so that the 'Set' dimension containing the SPECIAL
+        % sub-specs remains last
+        data = permute(data, [1, 2, 3, 5, 4]);
+        sqzSize=[sqzSize(1) sqzSize(2) sqzSize(3)/2 sqzSize(4) 2];
+    elseif twix_obj.image.NCol>1 && twix_obj.image.NCha>1
         data(:,:,:,1)=squeezedData(:,:,[1:2:end-1]);
         data(:,:,:,2)=squeezedData(:,:,[2:2:end]);
         sqzSize=[sqzSize(1) sqzSize(2) sqzSize(3)/2 2];
@@ -434,7 +443,7 @@ end
 if ~isempty(dimsToIndex)
     %Now index the dimension of the sub-spectra
     if isjnseq  || isSpecial
-        if strcmp(version,'vd') || strcmp(version,'ve')
+        if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')
             dims.subSpecs=find(strcmp(sqzDims,'Set'));
         else
             dims.subSpecs=find(strcmp(sqzDims,'Ida'));
@@ -797,7 +806,7 @@ out.flags.isHERMES = 0;
 out.flags.isHERCULES = 0;
 out.flags.isPRIAM = 0;
 out.flags.isMRSI = 0;
-if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER') || strcmp(seq,'SPECIAL')
     out.flags.isUnEdited = 1;
 end
 if contains(seq,'MEGA')
@@ -873,7 +882,7 @@ if wRefs
     out_w.flags.isHERCULES = 0;
     out_w.flags.isPRIAM = 0;
     out_w.flags.isMRSI = 0;
-    if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+    if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER') || strcmp(seq,'SPECIAL')
         out_w.flags.isUnEdited = 1;
     end
     if contains(seq,'MEGA')
