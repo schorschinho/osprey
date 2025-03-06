@@ -61,7 +61,7 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
 
 %%  Generate figure
     if newFigure
-        figure                                                                     % Initialize figure
+        figure;                                                                     % Initialize figure
     end                                                                            % Initialize figure
     
     if isVariableRange(secDim)                                                          % Check if the input variable is a Range
@@ -78,7 +78,7 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
                          hold on
                  end
 
-                 hold on
+                 hold on;
                  dim=dim+0.05;                                                          % for some reason matlab has a problem when you put the fit exactly on top of the data, so this adds a small offset
                  for ss = startRange : endRange
                     
@@ -103,7 +103,7 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
 
             plot3(ppm,dim(:,ss),real(data(:,ss)),'k','Linewidth',0.4, ...               % plot data
                 'Color', [11/255 71/255 111/255])
-            hold on
+            hold on;
         end
         hold on
         dim=dim+0.05;                                                      
@@ -122,7 +122,7 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
 
             plot3(ppm,dim(:,ss),real(data(:,ss)),'k','Linewidth',0.4, ...               % plot data
                 'Color', [11/255 71/255 111/255])
-            hold on
+            hold on;
         end
         hold on
         dim=dim+0.05;

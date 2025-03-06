@@ -191,7 +191,7 @@ end
 
 %% 2.a Generate MM/Lip basis functions
 if isfield(ModelProcedure.basisset, 'mmdef') && ~isempty(ModelProcedure.basisset.mmdef)                    %Overwrite if defined
-    ModelProcedure.basisset.mmdef{1} = 'which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))';
+    % ModelProcedure.basisset.mmdef{1} = 'which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))';
 
     % First, we'll remove any MM or lipid basis functions that may be in the
     % input basis set (to avoid duplication)

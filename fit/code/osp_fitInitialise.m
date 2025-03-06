@@ -53,8 +53,8 @@ end
     
 % Find the right basis set (provided as *.mat file in Osprey basis set
 % format)
-if ~(length(MRSCont.opts.fit.basisSetFile)>1)
-    if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile)  && ~isfolder(MRSCont.opts.fit.basisSetFile))
+
+    if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile)  && ~isfolder(MRSCont.opts.fit.basisSetFile(1)))
     
         % Intercept non-integer echo times and replace the decimal point with
         % an underscore to avoid file extension problems
@@ -162,7 +162,7 @@ if ~(length(MRSCont.opts.fit.basisSetFile)>1)
     else
         ext = 1;
     end
-end
+
 % Clear existing basis set
 MRSCont.fit.basisSet = [];
 

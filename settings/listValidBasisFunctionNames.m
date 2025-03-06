@@ -34,7 +34,9 @@ switch type
             {'bHG', '2HG', '2-HG'},...   % 2-hydroxyglutarate
             'Car', ...  % Carnitine
             'Cit',...   % Citrate
-            {'Cr', 'Cre'},...    % Cr
+            {'Cr', 'Cre'},... % Cr
+            'Cr_methyl_only',...% Cr_methyl_only
+            'Cr_methylene_only',...%Cr_methylene_only
             'Cys', ...  % Cysteic acid
             'Cystat',...% Cystat
             'CrCH2',... % negative CrCH2 correction signal
@@ -60,7 +62,11 @@ switch type
             'Leu',...   % Leucine
             'Lys',...   % Lysine
             'NAA',...   % N-Acetylaspartate
-            'NAAG',...  % N-Acetylaspartylglutamate
+            'NAA_Acetyl_only',...
+            'NAA_Aspartate_only',...   
+            'NAAG',... % N-Acetylaspartylglutamate
+            'NAAG_Acetyl_only',...
+            'NAAG_AspGlu_only',... 
             {'PCh', 'PCho'},...   % Phosphocholine
             'PCr',...   % Phosphocreatine
             'PE',...    % Phosphoethanolamine

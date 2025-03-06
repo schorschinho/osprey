@@ -178,9 +178,12 @@ function sse = lossFunction(x, data, NoiseSD, basisSet, baselineBasis, ppm, t, f
         end
     end
 
+    penaltyTermSoftConstraintToAdd = zeros(size(penaltyTermSoftConstraint,1),size(residual,2)); % For 2D data we need to create a matrix
+    penaltyTermSoftConstraintToAdd(:,1) = penaltyTermSoftConstraint;        % Update according to calculations 
+
     residual  = cat(1,residual,-regu);                                      % Add regularizer term
     residual  = cat(1,residual,penaltyTerm);                                % Add penalty term
-    residual  = cat(1,residual,penaltyTermSoftConstraint);                  % Add soft constraint penalty term
+    residual  = cat(1,residual,penaltyTermSoftConstraintToAdd);                  % Add soft constraint penalty term
     residual = reshape(residual,[],1);                                      % Reshape the multidimenisonal case
 
     switch SSE                                                              % Switch for return to solver
@@ -458,10 +461,6 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     end
 
 
-    [dYdlorentzLB]  = updateAccordingToGrouping(dYdlorentzLB,'lorentzLB', parametrizations); % Update jacobian block for lorentzLB parameter
-    [dYdfreqShift]  = updateAccordingToGrouping(dYdfreqShift,'freqShift', parametrizations); % Update jacobian block for freqShift parameter
-    [dYdmetAmpl]    = updateAccordingToGrouping(dYdmetAmpl,'metAmpl', parametrizations); % Update jacobian block for metAmpl parameter
-
     if Reg                                                                  % Add parameter regularization
         [dYdph0]        = addParameterRegularization(dYdph0,'ph0', parametrizations,ph0,1,secDim,sD); % Add regularizer to ph0 parameter
         [dYdph1]        = addParameterRegularization(dYdph1,'ph1', parametrizations,ph1,1,secDim,sD); % Add regularizer to ph1 parameter
@@ -474,44 +473,37 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
         end
     end                                                                     % End loop over indirect dimension
 
-    
-    
-    if secDim == 1 && ~isempty(NoiseSD)                                     % 1D jacobians have not been normalized yet
-        if strcmp(Domain,'FD')
-            Sigma = NoiseSD.FD;                                             % Get sigma
-        end
-        if strcmp(Domain,'TD')
-            Sigma = NoiseSD.TD;                                             % Get sigma
-        end
-        if strcmp(Domain,'FDTD')
-            SigmaFD = NoiseSD.FD;                                           % Get sigma squared
-            SigmaFD = repmat(SigmaFD, [size(dYdph0,1)-size(dYdph0TD(indMinTD:indMaxTD,:,:),1) 1]);            % Repeat according to dimensions
-            SigmaTD = NoiseSD.TD;                                           % Get sigma squared
-            SigmaTD = repmat(SigmaTD, [size(dYdph0TD(indMinTD:indMaxTD,:,:),1) 1]);            % Repeat according to dimensions
-            Sigma  = cat(1,SigmaFD,SigmaTD);                                % Combine frequency and time domain     
-        end
-        dYdph0          = dYdph0 ./ Sigma;                            % Cut out fit range
-        dYdph1          = dYdph1 ./ Sigma;                            % Cut out fit range
-        dYdgaussLB      = dYdgaussLB ./ Sigma;                        % Cut out fit range
-        dYdlorentzLB    = dYdlorentzLB ./ Sigma;                    % Cut out fit range
-        dYdfreqShift    = dYdfreqShift ./ Sigma;                    % Cut out fit range
-        dYdmetAmpl      = dYdmetAmpl ./ Sigma;                      % Cut out fit range
-        if nBaselineComps ~= 0                                                  % Has baseline?
-            dYdbaseAmpl           = dYdbaseAmpl ./ Sigma;           % Cut out fit range
-        end
+    [dYdpen] = calcPenalty(1,inputParams, parametrizations, secDim);       % Calculate expectation value penalties   
+    % if secDim == 1
+        dYdpen  = updateAccordingToGrouping(0,dYdpen,[], parametrizations,x);
+    % end
+
+    % nParams = size(dYdpen,1);
+    nParams = length(x);
+    tempTerm = [];
+    [~,ph0PenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'ph0', 1, nParams);
+    [~,ph1PenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'ph1', 1, nParams);
+    [~,gaussLBPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'gaussLB', 1, nParams);
+    [~,lorentzLBPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'lorentzLB', 1, nParams);
+    [~,freqShiftPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'freqShift', 1, nParams);
+    [~,metAmplPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'metAmpl', 1, nParams);
+    if nBaselineComps ~= 0 
+        [~,baseAmplPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'baseAmpl', 1, nParams);
+    else
+        baseAmplPenaltyJac = zeros(size(ph0PenaltyJac));
     end
 
-    if secDim > 1                                                           % update each block in the jacobian according to the 2-D parametrization
-        [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph0 parameter
-        [dYdph1]        = updateJacobianBlock(dYdph1,'ph1', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for ph1 parameter
-        [dYdgaussLB]    = updateJacobianBlock(dYdgaussLB,'gaussLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for gaussLB parameter
-        [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for lorentzLB parameter
-        [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for freqShift parameter
-        [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,SignalPart,NoiseSD); % Update jacobian block for metAmpl parameter
-        if nBaselineComps ~= 0
-            [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,SignalPart,NoiseSD);  % Update jacobian block for baseAmpl parameter
-        end
+    % update each block in the jacobian according to the 2-D parametrization
+    [dYdph0]        = updateJacobianBlock(dYdph0,'ph0', parametrizations,inputParams,Domain,NoiseSD,dYdpen,fitRange,ph0PenaltyJac); % Update jacobian block for ph0 parameter
+    [dYdph1]        = updateJacobianBlock(dYdph1,'ph1', parametrizations,inputParams,Domain,NoiseSD,dYdpen,fitRange,ph1PenaltyJac); % Update jacobian block for ph1 parameter
+    [dYdgaussLB]    = updateJacobianBlock(dYdgaussLB,'gaussLB', parametrizations,inputParams,Domain,NoiseSD,dYdpen,fitRange,gaussLBPenaltyJac); % Update jacobian block for gaussLB parameter
+    [dYdlorentzLB]  = updateJacobianBlock(dYdlorentzLB,'lorentzLB', parametrizations,inputParams,Domain,NoiseSD,dYdpen,fitRange,lorentzLBPenaltyJac); % Update jacobian block for lorentzLB parameter
+    [dYdfreqShift]  = updateJacobianBlock(dYdfreqShift,'freqShift', parametrizations,inputParams,Domain,NoiseSD,dYdpen,fitRange,freqShiftPenaltyJac); % Update jacobian block for freqShift parameter
+    [dYdmetAmpl]    = updateJacobianBlock(dYdmetAmpl,'metAmpl', parametrizations,inputParams,Domain,NoiseSD,dYdpen,fitRange,metAmplPenaltyJac); % Update jacobian block for metAmpl parameter
+    if nBaselineComps ~= 0
+        [dYdbaseAmpl]   = updateJacobianBlock(dYdbaseAmpl,'baseAmpl', parametrizations,inputParams,Domain,NoiseSD,dYdpen,fitRange,baseAmplPenaltyJac);  % Update jacobian block for baseAmpl parameter
     end
+
 
     if nBaselineComps ~= 0                                                  % Has baseline?
         jac = cat(2, dYdph0, dYdph1, dYdgaussLB, dYdlorentzLB, dYdfreqShift, dYdmetAmpl, dYdbaseAmpl); % Create final jacobian
@@ -534,49 +526,7 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
     if strcmp(SignalPart,'C')                                               % just return the complex for CRLBs
 
     end
-    jac = (-1) * jac;                                                       % Needed to match numerical jacobian
-
-    if secDim == 1                                                          % Add penalty term for parameters deviating from expectation values
-        tempTerm = [];
-
-        [~,ph0PenaltyJac] = calcPenalty(inputParams, parametrizations, 'ph0', sD);
-        [~,ph1PenaltyJac] = calcPenalty(inputParams, parametrizations, 'ph1', sD);
-        [~,gaussLBPenaltyJac] = calcPenalty(inputParams, parametrizations, 'gaussLB', sD);
-        [~,lorentzLBPenaltyJac] = calcPenalty(inputParams, parametrizations, 'lorentzLB', sD);
-        [~,freqShiftPenaltyJac] = calcPenalty(inputParams, parametrizations, 'freqShift', sD);
-        [~,metAmplPenaltyJac] = calcPenalty(inputParams, parametrizations, 'metAmpl', sD);
-        if nBaselineComps ~= 0
-            [~,baseAmplPenaltyJac] = calcPenalty(inputParams, parametrizations, 'baseAmpl', sD);
-        else
-            baseAmplPenaltyJac = [];
-        end
-        tempTerm = cat(2,tempTerm,[ph0PenaltyJac , ph1PenaltyJac, gaussLBPenaltyJac, lorentzLBPenaltyJac, freqShiftPenaltyJac, metAmplPenaltyJac, baseAmplPenaltyJac]); % Concatenate penalty terms
-
-        dYdpen = diag(tempTerm);                                            % Copy to diagonal matrix (derivatives only affect each parameter itself, others are zero!)
-
-        jac = cat(1, jac, dYdpen);                                          % Append to Jacobian
-
-    end
-    
-    if secDim == 1                                                          % Add penalty term for parameters deviating from expectation values
-        nParams = length(x);
-        tempTerm = [];
-        [~,ph0PenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'ph0', sD, nParams);
-        [~,ph1PenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'ph1', sD, nParams);
-        [~,gaussLBPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'gaussLB', sD, nParams);
-        [~,lorentzLBPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'lorentzLB', sD, nParams);
-        [~,freqShiftPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'freqShift', sD, nParams);
-        [~,metAmplPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'metAmpl', sD, nParams);
-        if nBaselineComps ~= 0 
-            [~,baseAmplPenaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, 'baseAmpl', sD, nParams);
-        else
-            baseAmplPenaltyJac = zeros(size(ph0PenaltyJac));
-        end
-        tempTerm = ph0PenaltyJac + ph1PenaltyJac + gaussLBPenaltyJac + lorentzLBPenaltyJac + freqShiftPenaltyJac + metAmplPenaltyJac + baseAmplPenaltyJac; % Concatenate penalty terms
-
-        jac = cat(1, jac, tempTerm);                                          % Append to Jacobian
-
-    end
+    jac = (-1) * jac;                                                       % Needed to match numerical jacobian       
 
 end
 
@@ -687,39 +637,26 @@ function [Y, baseline, metabs, regu, penaltyTerm,penaltyTermSoftConstraint] = fo
         end
     end                                                                     % End loop over indirect dimension
 
-    if secDim == 1
+    penaltyTerm = calcPenalty(0,inputParams, parametrizations, secDim);    % Add penalty terms from expectation values
+    penaltyTerm  = updateAccordingToGrouping(0,penaltyTerm,[], parametrizations,x);
 
-        ph0Penalty = calcPenalty(inputParams, parametrizations, 'ph0', sD);
-        ph1Penalty = calcPenalty(inputParams, parametrizations, 'ph1', sD);
-        gaussLBPenalty = calcPenalty(inputParams, parametrizations, 'gaussLB', sD);
-        lorentzLBPenalty = calcPenalty(inputParams, parametrizations, 'lorentzLB', sD);
-        freqShiftPenalty = calcPenalty(inputParams, parametrizations, 'freqShift', sD);
-        metAmplPenalty = calcPenalty(inputParams, parametrizations, 'metAmpl', sD);
-        if ~isempty(bl) 
-            baseAmplPenalty = calcPenalty(inputParams, parametrizations, 'baseAmpl', sD);
-        else
-            baseAmplPenalty = [];
-        end
-        penaltyTerm = cat(2,penaltyTerm,[ph0Penalty , ph1Penalty, gaussLBPenalty, lorentzLBPenalty, freqShiftPenalty, metAmplPenalty, baseAmplPenalty]); % Concatenate penalty terms
-        penaltyTerm = penaltyTerm';
+    nParams = length(x);
+    ph0SoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'ph0', 1, nParams);
+    ph1SoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'ph1', 1, nParams);
+    gaussLBSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'gaussLB', 1, nParams);
+    lorentzLBSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'lorentzLB', 1, nParams);
+    freqShiftSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'freqShift', 1, nParams);
+    metAmplSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'metAmpl', 1, nParams);
+    if ~isempty(bl) 
+        baseAmplSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'baseAmpl', 1, nParams);
+    else
+        baseAmplSoftContstraint = [];
     end
-
-    if secDim == 1
-        nParams = length(x);
-        ph0SoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'ph0', sD, nParams);
-        ph1SoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'ph1', sD, nParams);
-        gaussLBSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'gaussLB', sD, nParams);
-        lorentzLBSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'lorentzLB', sD, nParams);
-        freqShiftSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'freqShift', sD, nParams);
-        metAmplSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'metAmpl', sD, nParams);
-        if ~isempty(bl) 
-            baseAmplSoftContstraint = calcSoftConstraintPenalty(inputParams, parametrizations, 'baseAmpl', sD, nParams);
-        else
-            baseAmplSoftContstraint = [];
-        end
-        penaltyTermSoftConstraint = cat(2,penaltyTermSoftConstraint,[ph0SoftContstraint , ph1SoftContstraint, gaussLBSoftContstraint, lorentzLBSoftContstraint, freqShiftSoftContstraint, metAmplSoftContstraint, baseAmplSoftContstraint]); % Concatenate penalty terms
-        penaltyTermSoftConstraint = penaltyTermSoftConstraint';
-    end    
+    penaltyTermSoftConstraint = cat(2,penaltyTermSoftConstraint,[ph0SoftContstraint , ph1SoftContstraint, gaussLBSoftContstraint, lorentzLBSoftContstraint, freqShiftSoftContstraint, metAmplSoftContstraint, baseAmplSoftContstraint]); % Concatenate penalty terms
+    penaltyTermSoftConstraint = penaltyTermSoftConstraint';  
+    if secDim > 1
+        penaltyTermSoftConstraint  = updateAccordingToGrouping(0,penaltyTermSoftConstraint,[], parametrizations,x);
+    end
 end
 
 function paramStruct = x2pars(x, secDim, parametrizations)
@@ -786,11 +723,25 @@ function paramStruct = x2pars(x, secDim, parametrizations)
                     paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),1,[]);
                     paramStruct.(pars{ff}) = repmat(paramStruct.(pars{ff}),[secDim,1]);
                 end
-                if strcmp(parametrizations.(pars{ff}).type,'dynamic')
+                if strcmp(parametrizations.(pars{ff}).type,'dynamic')                                        
                     if ~isempty(parametrizations.(pars{ff}).gr)  
-                        paramStruct.(pars{ff}) = paramStruct.(pars{ff})(parametrizations.(pars{ff}).gr.idx); 
+                        idx=parametrizations.(pars{ff}).gr.idx;
+                        nan_positions = isnan(reshape(parametrizations.(pars{ff}).gr.nan_marker,1,[]));
+                        if sum(nan_positions) == 0
+                            paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
+                            paramStruct.(pars{ff})(gg_dyn,:) = paramStruct.(pars{ff})(:,parametrizations.(pars{ff}).gr.idx);
+                        else
+                            temp_pars = nan(size(nan_positions));
+                            temp_pars(~nan_positions) = paramStruct.(pars{ff});
+                            paramStruct.(pars{ff}) = temp_pars;
+                            paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
+                             for gg_dyn = 1 : size(idx,1)
+                                paramStruct.(pars{ff})(gg_dyn,:) = paramStruct.(pars{ff})(gg_dyn,idx(gg_dyn,:)); 
+                             end
+                        end 
+                    else
+                        paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
                     end
-                    paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
                     for rp = 1 : length(parametrizations.(pars{ff}).parameterNames)
                         paramStruct.([pars{ff} 'Reparametrization']).(parametrizations.(pars{ff}).parameterNames{rp}) = paramStruct.(pars{ff})(rp,:);
                     end
@@ -840,7 +791,9 @@ function [x,indexStruct] = pars2x(paramStruct)
                 else
                     indexStruct.(pars{ff}).start = length(x)+1;             % Set index struct start value to length + 1
                 end
-                x = cat(2,x,reshape(paramStruct.(pars{ff}),1,[]));          % Add new parameters to x vector
+                temp_x =   reshape(paramStruct.(pars{ff}),1,[]);             % Remove nan values for unbalanced regrouping in dynamic models
+                temp_x = temp_x(~isnan(temp_x));
+                x = cat(2,x,temp_x);          % Add new parameters to x vector
                 indexStruct.(pars{ff}).end = length(x);                     % Set index struct end value to length
             end
         end
@@ -920,8 +873,11 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
         end                                                                 % End loop over parameters
         if strcmp(parametrizations.(parameterName).type,'free')
             nPars = (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1)/secDim;
-        else
-            nPars = (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1);
+        else if strcmp(parametrizations.(parameterName).type,'dynamic')
+                nPars = (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1)/length(parametrizations.(parameterName).parameterNames);
+            else
+                nPars = (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1);
+            end
         end
         if  nPars <= max(numberOfParameters) && strcmp(parametrizations.(parameterName).RegFun,'')  % Add zeros if jacobian is too short
             parameterMatrix = cat(1,parameterMatrix,zeros(max(numberOfParameters),nPars,secDim));    %Add correct number of zeros to the end
@@ -929,8 +885,8 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
     end
 end
 
-function dYdX = updateAccordingToGrouping(dYdX,parameterName, parametrizations)
-% This function updates jacobians according to different parameter
+function dYdX = updateAccordingToGrouping(jacobian, dYdX,parameterName, parametrizations,x)
+% This function updates jacobians or panilty terms according to different parameter
 % groupings
 %
 %   USAGE:
@@ -955,30 +911,89 @@ function dYdX = updateAccordingToGrouping(dYdX,parameterName, parametrizations)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %% Update jacobian lines
-if ~isempty(parametrizations.(parameterName).gr)                                                % Has grouping turned on
-    dYdXtemp = zeros(size(dYdX,1),max(parametrizations.(parameterName).gr.idx),size(dYdX,3));
-    for ll = 1 : length(parametrizations.(parameterName).gr.idx)
-        dYdXtemp(:,parametrizations.(parameterName).gr.idx(ll),:) = dYdXtemp(:,parametrizations.(parameterName).gr.idx(ll),:) + dYdX(:,ll,:);
+if jacobian
+    if isempty(parametrizations.(parameterName).gr.idx_repar)
+        idx = parametrizations.(parameterName).gr.idx;
+    else
+        idx = parametrizations.(parameterName).gr.idx_repar;
     end
+    nLines = sum(sum(diff(sort(parametrizations.(parameterName).gr.idx,2),1,2)~=0,2)+1);
+    
+    if ndims(dYdX)==3   
+        dYdXtemp = zeros(size(dYdX,1),size(dYdX,2),nLines); % for indirect dimension
+        for ll = 1 : length(idx)
+            dYdXtemp(:,:,idx(ll)) = dYdXtemp(:,:,idx(ll)) + dYdX(:,:,ll);
+        end
+    else
+        dYdXtemp = zeros(size(dYdX,1),nLines);              % for 1D data
+        for ll = 1 : length(idx)
+            dYdXtemp(:,idx(ll)) = dYdXtemp(:,idx(ll)) + dYdX(:,ll);
+        end
+    end 
     dYdX = dYdXtemp;
+else
+    if ndims(dYdX)==2
+        dYdXtemp = zeros(length(x),size(dYdX,2));
+        pars = fields(parametrizations);
+        run_idx = 1;
+         for ff = 1 : length(pars)                                               % Loop over parameters
+            par_idx = [parametrizations.(pars{ff}).start : parametrizations.(pars{ff}).end];
+            idx     = [1 : length(par_idx)];
+            if ~isempty(parametrizations.(pars{ff}).gr)
+                if isempty(parametrizations.(pars{ff}).gr.idx_repar)
+                    idx = parametrizations.(pars{ff}).gr.idx;
+                else
+                    idx = parametrizations.(pars{ff}).gr.idx_repar;
+                end
+            end
+            for ll = 1 : length(idx)
+                if par_idx(1) ~= 0          %No baseline case
+                    dYdXtemp(par_idx(idx(ll)),:) =  dYdX(run_idx,:);
+                end
+                run_idx = run_idx + 1;
+            end
+         end
+    else
+        dYdXtemp = zeros(length(x),length(x),size(dYdX,3));
+        pars = fields(parametrizations);
+        run_idx = 1;
+         for ff = 1 : length(pars)                                               % Loop over parameters
+            par_idx = [parametrizations.(pars{ff}).start : parametrizations.(pars{ff}).end]; 
+            idx     = [1 : length(par_idx)];
+            if ~isempty(parametrizations.(pars{ff}).gr)
+                if isempty(parametrizations.(pars{ff}).gr.idx_repar)
+                    idx = parametrizations.(pars{ff}).gr.idx;
+                else
+                    idx = parametrizations.(pars{ff}).gr.idx_repar;
+                end
+            end
+            for ll = 1 : length(idx)
+                if par_idx(1) ~= 0          %No baseline case
+                    dYdXtemp(par_idx(idx(ll)),par_idx(idx(ll)),:) =  dYdX(run_idx,run_idx,:);
+                end
+                run_idx = run_idx + 1;
+            end
+         end
+    end
+     dYdX = dYdXtemp;
 end
 
 end
 
 
 
-function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,SignalPart,NoiseSD)
+function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,Domain,NoiseSD,dYdpenExpect,fitRange,dYdpenSoftCon)
 % This function updates jacobians according to the parametrization
 %
 %   USAGE:
-%       dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,SignalPart,NoiseSD)
+%       dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputParams,Domain,NoiseSD)
 %
 %   INPUTS:
 %       dYdX             = jacobian
 %       parameterName    = name of parameter
 %       parametrizations = paramterization options
 %       inputParams      = parameter values
-%       SignalPart       = optimization signal part
+%       Domain           = signal domain
 %       NoiseSD          = standard deviation of the noise
 %
 %   OUTPUTS:
@@ -1000,8 +1015,25 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
     nLines = size(dYdX,2);
     secDim = size(dYdX,3);
 
+    dYdpenSoftConToAdd = zeros([size(dYdpenSoftCon),secDim]);
+    dYdpenSoftConToAdd(:,:,1) = dYdpenSoftCon;
+
     if ~isempty(NoiseSD)
-        Sigma = NoiseSD.FD;                                                    % Get sigma
+        if strcmp(Domain,'FD')
+            Sigma = NoiseSD.FD;                                             % Get sigma
+        end
+        if strcmp(Domain,'TD')
+            Sigma = NoiseSD.TD;                                             % Get sigma
+        end
+        if strcmp(Domain,'FDTD')
+            indMinTD = fitRange.TD(1);                                            % Get time domain indices
+            indMaxTD = fitRange.TD(2);                                            % Get time domain indices
+            SigmaFD = NoiseSD.FD;                                           % Get sigma squared
+            SigmaFD = repmat(SigmaFD, [size(dYdX,1)-size(dYdX(indMinTD:indMaxTD,:,:),1) 1]);            % Repeat according to dimensions
+            SigmaTD = NoiseSD.TD;                                           % Get sigma squared
+            SigmaTD = repmat(SigmaTD, [size(dYdX(indMinTD:indMaxTD,:,:),1) 1]);            % Repeat according to dimensions
+            Sigma  = cat(1,SigmaFD,SigmaTD);                                % Combine frequency and time domain     
+        end
         Sigma = repmat(Sigma', [1 nPoints nLines]);                         % Repeat according to dimensions
         Sigma = permute(Sigma,[2 3 1]);                                     % Dims have to be nPoints nLines secDim
         Sigma = squeeze(Sigma);                                             % Remove zero dimensions
@@ -1063,10 +1095,31 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
         end
 
     end
+    % We want to add the expectation value soft constraint regularizer here including
+    % grouping of different variables
+    dYdpenExpect = dYdpenExpect(:,parametrizations.(parameterName).start:parametrizations.(parameterName).end,:);
+    dYdpenSoftConToAdd = dYdpenSoftConToAdd(:,parametrizations.(parameterName).start:parametrizations.(parameterName).end,:);
+    if strcmp(parameterName,'ph0') ||  strcmp(parameterName,'ph1') || strcmp(parameterName,'gaussLB') || strcmp(parameterName,'baseAmpl') 
+        dYdX  = cat(1,dYdX,-squeeze(dYdpenExpect)) ;                % Add expectation value regularizer to for global parameter
+        dYdX  = cat(1,dYdX,-squeeze(dYdpenSoftConToAdd)) ;          % Add soft constraint value regularizer to for global parameter
+    else
+        if isempty(parametrizations.(parameterName).gr) && ndims(dYdX) ~=4 && ~strcmp(parametrizations.(parameterName).type,'dynamic')
+            dYdX  = cat(1,dYdX,-squeeze(dYdpenExpect));                % Add regularizer to parameter per basis function
+            dYdX  = cat(1,dYdX,-squeeze(dYdpenSoftConToAdd));                % Add regularizer to parameter per basis function
+        elseif secDim == 1        
+           if ~isempty(parametrizations.(parameterName).gr)           
+                dYdX  = updateAccordingToGrouping(1,dYdX,parameterName, parametrizations,[]);                    
+           end
+           dYdX  = cat(1,dYdX,-dYdpenExpect);
+           dYdX  = cat(1,dYdX,-dYdpenSoftConToAdd);
+        end
+    end
     % Finally we have to concatenate along the indirect dimension
     switch ndims(dYdX)
-        case 2   % For fixed parametrizations of ph0, ph1, gaussLB
-            dYdX = reshape(dYdX,[],1);
+        case 2   % For fixed parametrizations of ph0, ph1, gaussLB or 1D data parameter per basis function
+            if secDim > 1
+                dYdX = reshape(dYdX,[],1);
+            end
         case 3   % E.g. Fixed parameter or single basis function case
             if strcmp(parametrizations.(parameterName).type,'fixed')
                 dYdX = permute(dYdX,[1 3 2]);
@@ -1082,6 +1135,10 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
             end
             if strcmp(parametrizations.(parameterName).type,'dynamic')
                 nLines = nLines*nPars;
+                dYdpenExpect = permute(dYdpenExpect,[1 3 2]);
+                dYdpenSoftConToAdd = permute(dYdpenSoftConToAdd,[1 3 2]);
+                dYdX  = cat(1,dYdX,-dYdpenExpect);                % Add regularizer to parameter per basis function
+                dYdX  = cat(1,dYdX,-dYdpenSoftConToAdd);          % Add regularizer to parameter per basis function
             end
             dYdX = reshape(dYdX,[],nLines);
         case  4 % E.g. free parametrization of per metabolite parameters or dynamic cases
@@ -1091,99 +1148,198 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
             end
             if strcmp(parametrizations.(parameterName).type,'dynamic')
                dYdX = permute(dYdX,[1 3 4 2]);
-               dYdX = reshape(dYdX,[],nPars*nLines); 
+               dYdX = reshape(dYdX,[],secDim,nPars*nLines); 
+               if ~isempty(parametrizations.(parameterName).gr)
+                    [dYdX]  = updateAccordingToGrouping(1,dYdX,parameterName, parametrizations,[]);                    
+               end
+               dYdpenExpect = permute(dYdpenExpect,[1 3 2]);
+               dYdpenSoftConToAdd = permute(dYdpenSoftConToAdd,[1 3 2]);
+               dYdX  = cat(1,dYdX,-dYdpenExpect);                % Add regularizer to parameter per basis function
+               dYdX  = cat(1,dYdX,-dYdpenSoftConToAdd);          % Add regularizer to parameter per basis function
+               dYdX = reshape(dYdX,[],size(dYdX,3)); 
             end
    end
 end
 
-function [penalty, penaltyJac] = calcPenalty(inputParams, parametrizations, param, sD)
-% Calculates the penalty term for deviations from expectation values
-% relative to standard deviations
-actualValue         = squeeze(inputParams.(param)(sD,:));
-if ~isempty(parametrizations.(param).gr)
-    idx = parametrizations.(param).gr.idx;
-    actualValue =  actualValue(idx);
-    actualValue =  actualValue(1:max(idx));
-end
-expectationValue    = parametrizations.(param).ex;
-standardDeviation   = parametrizations.(param).sd;
+function [penaltyTerm] = calcPenalty(jacobian,inputParams, parametrizations, secDim);
+param = fields(parametrizations);                                  % Loop over all model parameters
 
-% In the LCModel objective functions, the terms are in the shape of
-% (difference-to-expectation-value)^2/(standard-deviation)^2. We are
-% here formulating the vector of penalties that is appended to the
-% residual, i.e., squared afterwards. We therefore give the penalty vector
-% in the shape of (difference-to-expectation)/(standard-deviation).
-diffVec     = actualValue-expectationValue;
-sdVec       = standardDeviation;
-penalty     = diffVec./sdVec;
-
-% Jacobian
-penaltyJac  = 1./sdVec;                % Because the penalty is a linear sum of its parts
+for sD = 1 : secDim                                                 % Loop over indirect dimension
+    tempTerm = [];                                                      % Initialize empty vector to collect the penalties for each parameter            
+    for pp = 1:length(param)
+        
+        % Calculates the penalty term for deviations from expectation values
+        % relative to standard deviations       
+        if strcmp(parametrizations.(param{pp}).type,'free')
+            expectationValue    = parametrizations.(param{pp}).ex(sD,:);
+            standardDeviation   = parametrizations.(param{pp}).sd(sD,:);
+            actualValue         = squeeze(inputParams.(param{pp})(sD,:));
+            if ~isempty(parametrizations.(param{pp}).gr)
+                idx = parametrizations.(param{pp}).gr.idx;
+                actualValue =  actualValue(idx);
+                actualValue =  actualValue(1:max(idx));
+            end
+        end
+        if strcmp(parametrizations.(param{pp}).type,'fixed')
+            expectationValue    = parametrizations.(param{pp}).ex(1,:);
+            standardDeviation   = parametrizations.(param{pp}).sd(1,:);
+            actualValue         = squeeze(inputParams.(param{pp})(sD,:));
+            if ~isempty(parametrizations.(param{pp}).gr)
+                idx = parametrizations.(param{pp}).gr.idx;
+                actualValue =  actualValue(idx);
+                actualValue =  actualValue(1:max(idx));
+            end
+        end
+        if strcmp(parametrizations.(param{pp}).type,'dynamic')
+            actualValue =[];
+            expectationValue =[];
+            standardDeviation =[];
+            for dd = 1 : length(parametrizations.(param{pp}).parameterNames)
+                actualValue         = [actualValue squeeze(inputParams.([param{pp} 'Reparametrization']).(parametrizations.(param{pp}).parameterNames{dd})(1,:))];
+                expectationValue    = [expectationValue parametrizations.(param{pp}).ex(dd,:)];
+                standardDeviation   = [standardDeviation parametrizations.(param{pp}).sd(dd,:)];
+            end
+            actualValue(isnan(actualValue))=[];
+            expectationValue(isnan(expectationValue))=[];
+            standardDeviation(isnan(standardDeviation))=[];
+        end
+        
+        % In the LCModel objective functions, the terms are in the shape of
+        % (difference-to-expectation-value)^2/(standard-deviation)^2. We are
+        % here formulating the vector of penalties that is appended to the
+        % residual, i.e., squared afterwards. We therefore give the penalty vector
+        % in the shape of (difference-to-expectation)/(standard-deviation).
+        diffVec     = actualValue-expectationValue;
+        % Scale with regards to indirect dimension
+        if strcmp(parametrizations.(param{pp}).type,'fixed') ||...
+           strcmp(parametrizations.(param{pp}).type,'dynamic') 
+           diffVec = diffVec/secDim; 
+        end
+        sdVec       = standardDeviation;
+        penalty     = diffVec./sdVec;
+        
+        if ~jacobian 
+            if ~strcmp(param{pp},'baseAmpl')                               % The baseline parameter might be empty
+                tempTerm = cat(2,tempTerm,penalty);                         % Add penalty term
+            else
+                if ~strcmp(parametrizations.(param{pp}).type,'none')       % Add penalty term if baseline is defined
+                    tempTerm = cat(2,tempTerm,penalty);
+                end
+            end
+        else
+            % Jacobian
+            penaltyJac  = 1./(sdVec*secDim);                % Because the penalty is a linear sum of its parts
+            if ~strcmp(param{pp},'baseAmpl')                               % The baseline parameter might be empty
+                tempTerm = cat(2,tempTerm,penaltyJac);                         % Add penalty term
+            else
+                if ~strcmp(parametrizations.(param{pp}).type,'none')       % Add penalty term if baseline is defined
+                        tempTerm = cat(2,tempTerm,penaltyJac);
+                end
+            end
+        end
+    end
+    if ~jacobian 
+        penaltyTerm(:,sD) = tempTerm;                                        % Save as one concatenated vector of penalties to be appended to the residual
+    else
+        tempTerm = diag(tempTerm); 
+        penaltyTerm(:,:,sD) = tempTerm;                                        % Save as one concatenated vector of penalties to be appended to the residual
+    end
+end    
 end
 
 function [penalty, penaltyJac] = calcSoftConstraintPenalty(inputParams, parametrizations, param, sD, nParams)
 penalty = [];
 penaltyJac = [];
 if ~isempty(parametrizations.(param).sc)
-    % Calculates the penalty term for deviations from soft constraints
-    for mm = 1 : size(parametrizations.(param).sc.fix_idx,1)
-        idx           = parametrizations.(param).sc.fix_idx(mm,:);
-        idx(idx==0)   =[];
-        tempfixValue  = squeeze(inputParams.(param)(sD,idx));
-        fixValue(mm)  = sum(tempfixValue .* parametrizations.(param).sc.fix_factor{mm}');
+    if ~strcmp(parametrizations.(param).type,'dynamic')
+        penalty  = zeros(1,length(squeeze(inputParams.(param)(sD,:))));
+    else    
+        n_repar = length(parametrizations.(param).parameterNames);
+        penalty  = zeros(1,n_repar*length(squeeze(inputParams.(param)(sD,:))));
     end
-    for mm = 1 : size(parametrizations.(param).sc.adj_idx,1)
-        idx           = parametrizations.(param).sc.adj_idx(mm,:);
-        idx(idx==0)   =[];
-        tempadjValue  = squeeze(inputParams.(param)(sD,idx));
-        adjValue(mm)  = sum(tempadjValue);
-    end
-    if strcmp(parametrizations.(param).sc.fun,'ratio')
-        actualValue = adjValue ./fixValue;
-        actualValue(isnan(actualValue)) = 0;
-        actualValue(isinf(actualValue)) = 0;
-    else
-        actualValue = fixValue - adjValue;
-    end
-    
-    expectationValue = parametrizations.(param).sc.ex';
-    standardDeviation   = parametrizations.(param).sc.sd';
-
-
-    diffVec     = actualValue-expectationValue;
-    sdVec       = standardDeviation;
-
-    penalty  = zeros(1,length(squeeze(inputParams.(param)(sD,:))));
-
-
-    penalty(parametrizations.(param).sc.adj_idx) = parametrizations.(param).sc.scaling*diffVec./sdVec;
-
-    
-    % Jacobian
     penaltyJac  = zeros(nParams,nParams);
-    if sum(fixValue==0)==0 
-        for m_adj = 1 : size(parametrizations.(param).sc.adj_idx,1)
-            if fixValue(m_adj) ~= 0
-                fix_idx           = parametrizations.(param).sc.fix_idx(m_adj,:);
-                fix_idx(fix_idx==0)   =[];
-                adj_idx           = parametrizations.(param).sc.adj_idx(m_adj,:);
-                adj_idx(adj_idx==0)   =[];
-                for m_fix = 1 : length(fix_idx)
-                    penaltyJac(parametrizations.(param).start+adj_idx-1,parametrizations.(param).start+fix_idx(m_fix)-1) = -parametrizations.(param).sc.scaling*parametrizations.(param).sc.fix_factor{m_adj}(m_fix)*adjValue(m_adj)./(sdVec(m_adj).*fixValue(m_adj).*fixValue(m_adj));
+    for qq = 1 : length(parametrizations.(param).sc.fix_idx)
+        fixValue=[];
+        adjValue=[];
+        % Calculates the penalty term for deviations from soft constraints
+        for mm = 1 : size(parametrizations.(param).sc.fix_idx{qq},1)
+            idx           = parametrizations.(param).sc.fix_idx{qq}(mm,:);
+            idx(idx==0)   =[];
+            tempfixValue  = squeeze(inputParams.(param)(sD,idx));
+            fixValue(mm)  = sum(tempfixValue .* parametrizations.(param).sc.fix_factor{qq}{mm}');
+        end
+        for mm = 1 : size(parametrizations.(param).sc.adj_idx{qq},1)
+            idx           = parametrizations.(param).sc.adj_idx{qq}(mm,:);
+            idx(idx==0)   =[];
+            tempadjValue  = squeeze(inputParams.(param)(sD,idx));
+            adjValue(mm)  = sum(tempadjValue);
+        end
+        if strcmp(parametrizations.(param).sc.fun,'ratio')
+            actualValue = adjValue ./fixValue;
+            actualValue(isnan(actualValue)) = 0;
+            actualValue(isinf(actualValue)) = 0;
+        else
+            actualValue = fixValue - adjValue;
+        end
+        
+        expectationValue = parametrizations.(param).sc.ex{qq}{:}';
+        standardDeviation   = parametrizations.(param).sc.sd{qq}{:}';
+    
+    
+        diffVec     = actualValue-expectationValue;
+        sdVec       = standardDeviation;
+    
+        if ~strcmp(parametrizations.(param).type,'dynamic')
+            penalty(parametrizations.(param).sc.adj_idx{qq}) = parametrizations.(param).sc.scaling*diffVec./sdVec;
+        else    
+            n_repar = length(parametrizations.(param).parameterNames);
+            penalty(parametrizations.(param).sc.adj_idx{qq}*n_repar-(n_repar-qq)) =  parametrizations.(param).sc.scaling*diffVec./sdVec;
+        end
+    
+        
+        % Jacobian        
+        if ~strcmp(parametrizations.(param).type,'dynamic')
+            if sum(fixValue==0)==0 
+                for m_adj = 1 : size(parametrizations.(param).sc.adj_idx{qq},1)
+                    if fixValue(m_adj) ~= 0
+                        fix_idx           = parametrizations.(param).sc.fix_idx{qq}(m_adj,:);
+                        fix_idx(fix_idx==0)   =[];
+                        adj_idx           = parametrizations.(param).sc.adj_idx{qq}(m_adj,:);
+                        adj_idx(adj_idx==0)   =[];
+                        for m_fix = 1 : length(fix_idx)
+                            penaltyJac(parametrizations.(param).start+adj_idx-1,parametrizations.(param).start+fix_idx(m_fix)-1) = -parametrizations.(param).sc.scaling*parametrizations.(param).sc.fix_factor{qq}{m_adj}(m_fix)*adjValue(m_adj)./(sdVec(m_adj).*fixValue(m_adj).*fixValue(m_adj));
+                        end
+                        penaltyJac(parametrizations.(param).start+adj_idx-1,parametrizations.(param).start+adj_idx-1) = parametrizations.(param).sc.scaling*1./(sdVec(m_adj).*fixValue(m_adj)); 
+                    end
                 end
-                penaltyJac(parametrizations.(param).start+adj_idx-1,parametrizations.(param).start+adj_idx-1) = parametrizations.(param).sc.scaling*1./(sdVec(m_adj).*fixValue(m_adj)); 
+            end
+        else
+            if sum(fixValue==0)==0 
+                for m_adj = 1 : size(parametrizations.(param).sc.adj_idx{qq},1)
+                    if fixValue(m_adj) ~= 0
+                        fix_idx           = parametrizations.(param).sc.fix_idx{qq}(m_adj,:);
+                        fix_idx(fix_idx==0)   =[];
+                        adj_idx           = parametrizations.(param).sc.adj_idx{qq}(m_adj,:);
+                        adj_idx(adj_idx==0)   =[];
+                        fix_idx = n_repar*fix_idx+qq-n_repar;
+                        adj_idx = n_repar*adj_idx+qq-n_repar;
+                        for m_fix = 1 : length(fix_idx)
+                            penaltyJac(parametrizations.(param).start+adj_idx-1,parametrizations.(param).start+fix_idx(m_fix)-1) = -parametrizations.(param).sc.scaling*parametrizations.(param).sc.fix_factor{qq}{m_adj}(m_fix)*adjValue(m_adj)./(sdVec(m_adj).*fixValue(m_adj).*fixValue(m_adj));
+                        end
+                        penaltyJac(parametrizations.(param).start+adj_idx-1,parametrizations.(param).start+adj_idx-1) = parametrizations.(param).sc.scaling*1./(sdVec(m_adj).*fixValue(m_adj)); 
+                    end
+                end
             end
         end
     end
 
-
 else
-    penalty  = zeros(1,length(squeeze(inputParams.(param)(sD,:))));
-    if ~isempty(parametrizations.(param).gr)
-        idx = parametrizations.(param).gr.idx;
-        penalty =  penalty(idx);
-        penalty =  penalty(1:max(idx));
-    end 
+    penalty  = zeros(1,parametrizations.(param).end- parametrizations.(param).start+1);
+    % if ~isempty(parametrizations.(param).gr)
+    %     idx = parametrizations.(param).gr.idx;
+    %     penalty =  penalty(idx);
+    %     penalty =  penalty(1:max(idx));
+    % end 
     penaltyJac  = zeros(nParams,nParams);    
 end
 end

@@ -205,6 +205,7 @@ opts.fit.FWHMcoMM3          = 14;
 opts.fit.ModelProcedure.metab = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-off_Reg_Optim_Full_soft_constraint.json')),...
                                  which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-diff1_Reg_Optim_Full_soft_constraint.json'))};
 opts.fit.ModelProcedure.ref = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
+opts.fit.ModelProcedure.w = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
 
 % Optional: In case the automatic basisset picker is not working you can manually
 % select the path to the basis set in the osprey/fit/basis, i.e.:

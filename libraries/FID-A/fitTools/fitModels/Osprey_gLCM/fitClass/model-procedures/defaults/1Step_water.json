@@ -36,8 +36,7 @@
         "gaussLB",
         "lorentzLB",
         "freqShift",
-        "metAmpl",
-        "baseAmpl"
+        "metAmpl"
       ],
       "parametrizations": {
         "gaussLB": {

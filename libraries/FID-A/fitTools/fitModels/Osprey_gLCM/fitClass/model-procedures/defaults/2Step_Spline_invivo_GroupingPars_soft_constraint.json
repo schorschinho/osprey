@@ -1,8 +1,9 @@
 {
-  "basisset": {
-    "file": [
-      "which(fullfile(''fit'',''basissets'',''3T'',''siemens'',''unedited'',''press'',''35'',''basis_siemens_press35.mat''))"
-    ],
+  "options":{
+    "AverageAlongExtra": 0,
+    "NoZerofill": 0
+    },
+    "basisset": {
     "mmdef": [
       "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"  
     ]
@@ -38,10 +39,10 @@
       ],
       "parametrizations": {
           "lorentzLB": {
-          "gr":{"g1":["Cr","GPC","Glu","mI","NAA"]}
+          "gr":{"g1":[["Cr","GPC","Glu","mI","NAA"]]}
         },
         "freqShift": {
-          "gr":{"g1":["Cr","GPC","Glu","mI","NAA"]}
+          "gr":{"g1":[["Cr","GPC","Glu","mI","NAA"]]}
         }
       }
   },
@@ -79,11 +80,11 @@
       "parametrizations": {
         "metAmpl": {
             "sc":{
-                  "adj": ["Lip09","Lip20","MM20","MM12","MM14","MM17","CrCH2","NAAG"],
-                  "fix": [["Lip13a","Lip13b"],["Lip13a","Lip13b"],"MM09","MM09","MM09","MM09",["Cr","PCr"],"NAA"],
-                  "fix_factor":[[1,1],[1,1],1,1,1,1,[1,1],1],
-                  "ex": [0.267,0.15,1.5,0.3,0.75,0.375,0.1,0.15],
-                  "sd": [0.1,0.07,0.375,0.1,0.45,0.3,0.1,0.15],
+                  "adj": [["Lip09","Lip20","MM20","MM12","MM14","MM17","CrCH2","NAAG"]],
+                  "fix": [[["Lip13a","Lip13b"],["Lip13a","Lip13b"],"MM09","MM09","MM09","MM09",["Cr","PCr"],"NAA"]],
+                  "fix_factor":[[[1,1],[1,1],1,1,1,1,[1,1],1]],
+                  "ex": [[0.267,0.15,1.5,0.3,0.75,0.375,0.1,0.15]],
+                  "sd": [[0.1,0.07,0.375,0.1,0.45,0.3,0.1,0.15]],
                   "fun": "ratio",
                   "scaling": 1
             }}

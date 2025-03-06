@@ -65,8 +65,8 @@ for ex = 1 : SeparateExtraDims
         ModelProcedure = jsonToStruct(MRSCont.opts.fit.ModelProcedure.metab{1,ss});
         if isstruct(ModelProcedure.Steps)
             ModelProcedureCell = cell(size(ModelProcedure.Steps));
-            for ss = 1 : size(ModelProcedure.Steps,1)
-                ModelProcedureCell{ss} = ModelProcedure.Steps(ss,:);
+            for steps = 1 : size(ModelProcedure.Steps,1)
+                ModelProcedureCell{steps} = ModelProcedure.Steps(steps,:);
             end
             ModelProcedure.Steps = ModelProcedureCell;
         end

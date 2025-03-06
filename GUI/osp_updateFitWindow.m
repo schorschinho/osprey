@@ -106,15 +106,21 @@ function osp_updateFitWindow(gui)
                 resultsFontSize = 11;
             case 'Osprey_gLCM'
                 % Number of metabolites and lipid/MM basis functions
-                if (isfield(MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum,1}.Options{1,ModelStep},'paraIndirect'))              
-                    basisSetNames =MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum,1}.BasisSets.names(MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum}.BasisSets.includeInFit(ModelStep,:)==1);
+                if (isfield(MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum,1}.Options{1,ModelStep},'paraIndirect'))   
+                    if ~strcmp(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,1}.Options{1}.parametrizations.metAmpl.type,'dynamic')
+                        T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.CRLB;
+                    else
+                        T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,1}.Model{gui.controls.ModelStep.Value}.CRLB;
+                    end
+                    basisSetNames =T_CRLB.Properties.VariableNames;
                     DisplayExperiment = experiment;
                     experiment = 1;
                 else
-                    basisSetNames =MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum,experiment}.BasisSets.names(MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum}.BasisSets.includeInFit(ModelStep,:)==1);
+                    T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{ModelStep}.CRLB;
+                    basisSetNames =T_CRLB.Properties.VariableNames;
                     DisplayExperiment = 1;
                 end
-                nMMLip = sum(find(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip')));
+                nMMLip = sum(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip'));
                 nMets   = length(basisSetNames)-nMMLip;
                  % Larger fonts for the results
                 resultsFontSize = 11;
@@ -133,7 +139,11 @@ function osp_updateFitWindow(gui)
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
                 case 'Osprey_gLCM'
-                    RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{ModelStep}.parsOut.metAmpl(DisplayExperiment,:) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                    try
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{ModelStep}.Combined.parsOut.metAmpl(DisplayExperiment,:) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                    catch
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{ModelStep}.parsOut.metAmpl(DisplayExperiment,:) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                    end
                     CRLB    = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{ModelStep}.CRLB{1,:};
 
              end
@@ -162,7 +172,11 @@ function osp_updateFitWindow(gui)
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
                 case 'Osprey_gLCM'
-                    RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment}.Model{ModelStep}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.scale;
+                    try
+                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment}.Model{ModelStep}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.scale;
+                    catch
+                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment}.Model{ModelStep}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.scale;
+                    end
                     CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment}.Model{ModelStep}.CRLB{1,:};
             end
         end

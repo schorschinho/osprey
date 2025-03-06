@@ -27,7 +27,7 @@ function obj = calculateCombinedCRLB(obj, invFisher, xk, metaboliteNames, parame
 %% 0. Set names cell arrays and houskeeping
 step            = obj.step;                                                                     % Get step counter
 typicalMetaboliteCombinations = {'NAA','NAAG';'GPC','PCh';'Cr','PCr';'Glu','Gln';'EA','PE';'GABA','MM3co'; 'GABA', 'MM3to2'}; 
-MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','GABAplus','GABAplus'};
+MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','GABA+','GABA+'};
 
 
 if ~strcmp(obj.Options{step}.parametrizations.metAmpl.type,'dynamic')
@@ -49,6 +49,7 @@ end
 
 %% 1. Get metabolite index, update Jacobian, update amplitude estimates
 AddedMetaboliteCombinations = 0;
+NamesToDelete = [];
 for mm = 1 : length(MetaboliteCombinationNames)
     idx_1 = find(strcmp(metaboliteNames,typicalMetaboliteCombinations{mm,1}));        
     idx_2 = find(strcmp(metaboliteNames,typicalMetaboliteCombinations{mm,2}));
@@ -62,9 +63,12 @@ for mm = 1 : length(MetaboliteCombinationNames)
             BMAT(parametrizations.metAmpl.start + (nPars*idx_1 - nPars),end+1)=1;
             BMAT(parametrizations.metAmpl.start + (nPars*idx_2 - nPars),end)=1;  
         end
+    else
+        NamesToDelete(end+1) = mm;
     end
+    
 end
-
+MetaboliteCombinationNames(NamesToDelete) = [];
 
 
 %% 2. Calculate CRLB
@@ -72,7 +76,8 @@ if size(BMAT,2) > length(metaboliteNames)*nPars         % added new combinations
     combinations = xk * BMAT;                           % build combinations of amplitude parameters
     DAPOSI = BMAT' * invFisher *BMAT;                   % multiply with inverse fisher matrix
     crlbs = sqrt(diag(DAPOSI));                         % get raw CRLBs values
-    obj.Model{step}.Combined.rawCRLB.metAmpl = crlbs(end-AddedMetaboliteCombinations+1:end);  % Raw CRLBs for combined amplitudes                        
+    obj.Model{step}.Combined.rawCRLB.metAmpl = crlbs(end-AddedMetaboliteCombinations+1:end);  % Raw CRLBs for combined amplitudes 
+    obj.Model{step}.Combined.parsOut.metAmpl = combinations;
     relativeCRLB= (crlbs ./ combinations') * 100; % Relative CRLBs for combined amplitudes
     if nPars > 1
         relativeCRLB = cat(1,relativeCRLB(pos:nPars:end-AddedMetaboliteCombinations),relativeCRLB(end-AddedMetaboliteCombinations+1:end));

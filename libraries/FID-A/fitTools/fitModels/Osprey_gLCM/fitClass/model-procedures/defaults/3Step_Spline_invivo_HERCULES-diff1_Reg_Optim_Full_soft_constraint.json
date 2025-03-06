@@ -185,11 +185,11 @@
       "parametrizations": {
             "metAmpl": {
             "sc":{
-                  "adj": ["NAAG"],
-                  "fix": ["NAA"],
-                  "fix_factor":[1],
-                  "ex": [0.15],
-                  "sd": [0.15],
+                  "adj": [["NAAG"]],
+                  "fix": [["NAA"]],
+                  "fix_factor":[[1]],
+                  "ex": [[0.15]],
+                  "sd": [[0.15]],
                   "fun": "ratio",
                   "scaling": 1
             }},

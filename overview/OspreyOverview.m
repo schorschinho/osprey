@@ -881,7 +881,7 @@ for rr = 1 : Voxels
             if isempty(tempSubSpec)
                 tempSubSpec = zeros(length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})),MRSCont.info.(dataPlotNames{ss}).max_ndatapoint,MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1, 1}.rawSubspecs);
             end
-            for kk = 1 : length(MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss})) % Loop over datasets to generate a matrix                
+            for kk = 1 : MRSCont.nDatasets(1) % Loop over datasets to generate a matrix                
                 for ex = 1 : Experiments
                     if subspecs == 1
                         try
@@ -890,11 +890,11 @@ for rr = 1 : Voxels
                             tempSubSpec(kk,:,1,:) = ones(1,MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).(dataPlotNames{1}){1,1}.sz(1)) *nan;
                         end
                     else
-                        for ss = 1 : subspecs
+                        for sub = 1 : subspecs
                             try
-                                tempSubSpec(kk,:,ss,:) = MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1,kk}.specs(:,:,ss,ex);
+                                tempSubSpec(kk,:,sub,:) = MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(dataPlotNames{ss}){1,kk}.specs(:,:,sub,ex);
                             catch
-                                tempSubSpec(kk,:,ss,:) = ones(1,MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).(dataPlotNames{1}){1,1}.sz(1)) *nan;
+                                tempSubSpec(kk,:,sub,:) = ones(1,MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).(dataPlotNames{1}){1,1}.sz(1)) *nan;
                             end
                         end
                     end
@@ -902,9 +902,9 @@ for rr = 1 : Voxels
             end
             %Calculate mean and SD
             for ex = 1 : Experiments
-                for ss = 1 : subspecs
-                    MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(['mean_' dataPlotNames{ss}])(:,ss,ex) = squeeze(nanmean(real(tempSubSpec(:,:,ss,ex)),1));
-                    MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(['sd_' dataPlotNames{ss}])(:,ss,ex) = squeeze(nanstd(real(tempSubSpec(:,:,ss,ex)),1));
+                for sub = 1 : subspecs
+                    MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(['mean_' dataPlotNames{ss}])(:,sub,ex) = squeeze(nanmean(real(tempSubSpec(:,:,sub,ex)),1));
+                    MRSCont.overview.Osprey.(['sort_data_voxel_' num2str(rr)]).(names{g}).(['sd_' dataPlotNames{ss}])(:,sub,ex) = squeeze(nanstd(real(tempSubSpec(:,:,sub,ex)),1));
                 end
             end
         end

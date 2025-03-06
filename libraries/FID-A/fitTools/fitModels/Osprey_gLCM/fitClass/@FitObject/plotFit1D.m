@@ -59,7 +59,7 @@ function plotFit1D(obj,newFigure, step,secDim, plotRange)
 
 %%  Generate figure
     if newFigure
-        figure                                                                     % Initialize figure
+        figure;                                                                     % Initialize figure
     end
     if size(data,2) > 1 && isempty(secDim)                                              % 2D fit and no user provided indirect dimension index = generate a tiled plot
         plotMat = round(sqrt(size(data,2)));                                            % Set dimensions of tiledlayout                                            
@@ -71,7 +71,7 @@ function plotFit1D(obj,newFigure, step,secDim, plotRange)
                   max(abs(residual(ppm>plotRange(1) & ppm<plotRange(2),:))))];
         for secDim = 1 : size(data,2)                                                   % Loop over second dimension 
             nexttile                                                                    % Initialize new tile
-            hold;                                                                       % Hold plot becuase we want to see all results
+            hold on;                                                                       % Hold plot becuase we want to see all results
             for rr = 1:size(metabs,2)                                                   % Loop over basis functions
                 if ~isempty(fitGap)
                    [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
@@ -105,7 +105,7 @@ function plotFit1D(obj,newFigure, step,secDim, plotRange)
             xlabel('chemical shift (ppm)');
         end
     else                                                                                % 1D fit or a user provided indirect dimension 
-        hold;                                                                           % Hold plot becuase we want to see all results
+        hold on;                                                                           % Hold plot becuase we want to see all results
         shift = max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...        % Calculate shift for residual and individual basis functions
             abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))));    
         if ~isempty(cat(2,find(contains(names,'MM')),find(contains(names,'Lip'))))

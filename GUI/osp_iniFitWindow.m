@@ -280,8 +280,13 @@ for t = 1 : gui.fit.Number %Loop over fits
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
                 case 'Osprey_gLCM'
-                    RawAmpl = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
-                    CRLB    = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB{1,:};
+                    try
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                    catch
+                        RawAmpl = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                    end
+                    T_CRLB = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB;
+                    CRLB    = T_CRLB{1,:};
         end
         
     elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
@@ -308,8 +313,10 @@ for t = 1 : gui.fit.Number %Loop over fits
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
                 case 'Osprey_gLCM'
-                    RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
-                    CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB{1,:};
+                    RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                    T_CRLB = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB;
+                    CRLB    = T_CRLB{1,:};
+                    
         end
     end
 
@@ -353,7 +360,7 @@ for t = 1 : gui.fit.Number %Loop over fits
             scale = MRSCont.fit.scale{gui.controls.Selected};
         case 'Osprey_gLCM'
             % Number of metabolites and lipid/MM basis functions
-            basisSetNames =MRSCont.fit.results.(gui.fit.Style){1,1}.BasisSets.names(MRSCont.fit.results.(gui.fit.Style){1,1}.BasisSets.includeInFit(gui.controls.ModelStep.Value,:)==1);
+            basisSetNames =T_CRLB.Properties.VariableNames;
             nMMLip = sum(find(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip')));
             nMets   = length(basisSetNames)-nMMLip;
             % Additional info panel string for the water fit range

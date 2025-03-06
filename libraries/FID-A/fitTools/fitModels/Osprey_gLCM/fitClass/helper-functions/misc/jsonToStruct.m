@@ -71,6 +71,17 @@ function jsonStruct = jsonToStruct(jsonfile)
                                     jsonStruct.Steps{ss}.parametrizations.(params{pp}).sd = Inf;
                                 end
                             end
+                            if isfield(jsonStruct.Steps{ss}.parametrizations.(params{pp}),'sc')
+                                if ~iscell(jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.fix_factor)
+                                    jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.fix_factor = {{jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.fix_factor'}};
+                                end
+                                if ~iscell(jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.ex)
+                                    jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.ex = {{jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.ex'}};
+                                end
+                                if ~iscell(jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.sd)
+                                    jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.sd = {{jsonStruct.Steps{ss}.parametrizations.(params{pp}).sc.sd'}};
+                                end
+                            end
                         end
                     end
                 end
@@ -93,6 +104,17 @@ function jsonStruct = jsonToStruct(jsonfile)
                                         jsonStruct.Steps(ss).parametrizations.(params{pp}).sd = Inf;
                                     end
                                 end
+                                if isfield(jsonStruct.Steps(ss).parametrizations.(params{pp}),'sc')
+                                    if ~iscell(jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.fix_factor)
+                                        jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.fix_factor = {{jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.fix_factor'}};
+                                    end
+                                    if ~iscell(jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.ex)
+                                        jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.ex = {{jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.ex'}};
+                                    end
+                                    if ~iscell(jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.sd)
+                                        jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.sd = {{jsonStruct.Steps(ss).parametrizations.(params{pp}).sc.sd'}};
+                                    end
+                                end
                             end
                         end
                 end
@@ -111,6 +133,61 @@ function jsonStruct = jsonToStruct(jsonfile)
                 end
                 if isfield(jsonStruct.parameters.(params{pp}), 'RegFun')
                     jsonStruct.parameters.(params{pp}).RegFun = transpose(jsonStruct.parameters.(params{pp}).RegFun);
+                end
+                if isfield(jsonStruct.parameters.(params{pp}),'parametrizations') && isfield(jsonStruct.parameters.(params{pp}).parametrizations, 'sc')
+                    if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor)
+                        jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor = num2cell(jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor);
+                    end
+                    if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.ex)
+                        jsonStruct.parameters.(params{pp}).parametrizations.sc.ex = num2cell(jsonStruct.parameters.(params{pp}).parametrizations.sc.ex);
+                    end
+                    if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.sd)
+                        jsonStruct.parameters.(params{pp}).parametrizations.sc.sd = num2cell(jsonStruct.parameters.(params{pp}).parametrizations.sc.sd);
+                    end
+                    for qq = 1 : size(jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor,1)
+                        if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor{qq})
+                            jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor{qq} = {jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor{qq}};
+                        end
+                        if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.ex{qq})
+                            jsonStruct.parameters.(params{pp}).parametrizations.sc.ex{qq} = {jsonStruct.parameters.(params{pp}).parametrizations.sc.ex{qq}};
+                        end                        
+                        if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.sd{qq})
+                            jsonStruct.parameters.(params{pp}).parametrizations.sc.sd{qq} = {jsonStruct.parameters.(params{pp}).parametrizations.sc.sd{qq}};
+                        end
+                    end
+                    if isfield(jsonStruct.parameters.(params{pp}).parametrizations, 'sd')
+                        temp = zeros(length(jsonStruct.parameters.(params{pp}).parametrizations.sd),1);
+                        for ss = 1 : length(jsonStruct.parameters.(params{pp}).parametrizations.sd)
+                            if ischar(jsonStruct.parameters.(params{pp}).parametrizations.sd{ss}) && strcmp(convertCharsToStrings(jsonStruct.parameters.(params{pp}).parametrizations.sd{ss}),'Inf')
+                                temp(ss) = Inf;
+                            else
+                                temp(ss) = cell2mat(jsonStruct.parameters.(params{pp}).parametrizations.sd(ss));
+                            end
+                        end
+                        jsonStruct.parameters.(params{pp}).parametrizations.sd = temp;
+                    end
+                    if isfield(jsonStruct.parameters.(params{pp}).parametrizations, 'ub')
+                        temp = zeros(length(jsonStruct.parameters.(params{pp}).parametrizations.ub),1);
+                        for ss = 1 : length(jsonStruct.parameters.(params{pp}).parametrizations.ub)
+                            if ischar(jsonStruct.parameters.(params{pp}).parametrizations.ub{ss}) && strcmp(convertCharsToStrings(jsonStruct.parameters.(params{pp}).parametrizations.ub{ss}),'Inf')
+                                temp(ss) = Inf;
+                            else
+                                temp(ss) = cell2mat(jsonStruct.parameters.(params{pp}).parametrizations.ub(ss));
+                            end
+                        end
+                        jsonStruct.parameters.(params{pp}).parametrizations.ub = temp;
+                    end
+                    if isfield(jsonStruct.parameters.(params{pp}).parametrizations, 'lb') && iscell(jsonStruct.parameters.(params{pp}).parametrizations.lb)
+                        temp = zeros(length(jsonStruct.parameters.(params{pp}).parametrizations.lb),1);
+                        for ss = 1 : length(jsonStruct.parameters.(params{pp}).parametrizations.lb)
+                            if ischar(jsonStruct.parameters.(params{pp}).parametrizations.lb{ss}) && strcmp(convertCharsToStrings(jsonStruct.parameters.(params{pp}).parametrizations.lb{ss}),'Inf')
+                                temp(ss) = Inf;
+                            else
+                                temp(ss) = cell2mat(jsonStruct.parameters.(params{pp}).parametrizations.lb(ss));
+                            end
+                        end
+                        jsonStruct.parameters.(params{pp}).parametrizations.lb = temp;
+                    end
                 end
             end
         end
