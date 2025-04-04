@@ -54,25 +54,27 @@ switch type
             'Gua',...   % Guanidinoacetate
             'H2O',...   % H2O
             'HCar',...  % Homocarnosine
-            'ILc',...   % Isoleucine
+            {'ILc','iLe','Ile'},...   % Isoleucine
             {'mI', 'Ins', 'mIns'},...    % myo-inositol
             'Lac',...   % Lactate
             'Leu',...   % Leucine
             'Lys',...   % Lysine
+            'MSM',...   % Methyl-sulfonyl-methane
             'NAA',...   % N-Acetylaspartate
             'NAAG',...  % N-Acetylaspartylglutamate
             {'PCh', 'PCho'},...   % Phosphocholine
             'PCr',...   % Phosphocreatine
             'PE',...    % Phosphoethanolamine
             'Pgc',...   % Propyleneglycol
-            {'Phenyl', 'PAl'},...    % Phenylalanine
+            {'Phenyl', 'PAl','Phe'},...    % Phenylalanine
             'Pyr',...   % Pyruvate
             {'sI', 'Scyllo', 'sIns'},...    % scyllo-inositol
             'Ser',...   % Serine
             'Suc',...   % Succinate
             'Tau',...   % Taurine
             'Thr',...   % Threonine
-            'Tyros',... % Tyrosine
+            {'Tryp','Trp'},...  % Tryptophan
+            {'Tyros','Tyr'},... % Tyrosine
             'Val',...   % Valine
             'NAA_Ace',...   % NAA acetyl
             'NAA_Asp',...   % NAA aspartyl
