@@ -760,7 +760,7 @@ else % No csv file supplied
     if length(subject)>1 && ~strcmp(subject{1},subject{2}) %Add names to the csv file
         statFile.subject = subject';
     else
-        statFile.subject = MRSCont.files';
+        statFile.subject = MRSCont.files(:,1)';
     end
     name = statFile.Properties.VariableNames;
 end

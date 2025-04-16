@@ -659,7 +659,7 @@ for kk = 1:MRSCont.nDatasets(1) %Subject loop
             % Define different water removal frequency ranges, depending on
             % whether this is phantom data
             if MRSCont.flags.isPhantom
-                waterRemovalFreqRange = [4.5 5];
+                waterRemovalFreqRange = [4.2 5];
                 fracFID = 0.2;
             else
                 waterRemovalFreqRange = [4.2 4.9];

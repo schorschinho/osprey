@@ -42,9 +42,17 @@ else
 end
 BMAT = zeros(size(invFisher,1),nPars*length(metaboliteNames));                          % Some LCModel nostalgia 
 ll = 1;
-for kk = parametrizations.metAmpl.start+(pos-1):nPars:parametrizations.metAmpl.end
-   BMAT(kk,ll)=1;
-   ll = ll + nPars;
+if ~isempty(parametrizations.metAmpl.gr)                                                % Update according to group variables
+    idx_BMAT = reshape(parametrizations.metAmpl.gr.idx_repar,[nPars length(metaboliteNames)]);
+    for kk = 1:length(metaboliteNames)
+       BMAT(parametrizations.metAmpl.start+idx_BMAT(1,kk)-1,ll)=1;
+       ll = ll + nPars;
+    end
+else
+    for kk = parametrizations.metAmpl.start+(pos-1):1:parametrizations.metAmpl.end
+       BMAT(kk,ll)=1;
+       ll = ll + nPars;
+    end
 end
 
 %% 1. Get metabolite index, update Jacobian, update amplitude estimates
@@ -54,15 +62,23 @@ for mm = 1 : length(MetaboliteCombinationNames)
     idx_1 = find(strcmp(metaboliteNames,typicalMetaboliteCombinations{mm,1}));        
     idx_2 = find(strcmp(metaboliteNames,typicalMetaboliteCombinations{mm,2}));
     if  ~isempty(idx_1) && ~isempty(idx_2)
+        AddedMetaboliteCombinations = AddedMetaboliteCombinations + 1;
         if ~strcmp(obj.Options{step}.parametrizations.metAmpl.type,'dynamic')
-            AddedMetaboliteCombinations = AddedMetaboliteCombinations + 1;
-            BMAT(parametrizations.metAmpl.start + idx_1 - 1,end+1)=1;
-            BMAT(parametrizations.metAmpl.start + idx_2 - 1,end)=1;  
-        else
-            AddedMetaboliteCombinations = AddedMetaboliteCombinations + 1;
-            BMAT(parametrizations.metAmpl.start + (nPars*idx_1 - nPars),end+1)=1;
-            BMAT(parametrizations.metAmpl.start + (nPars*idx_2 - nPars),end)=1;  
+            idx_1 = idx_1 - 1;
+            idx_2 = idx_2 - 1;                          
+        else  
+            idx_1 = nPars*idx_1-nPars;
+            idx_2 = nPars*idx_2-nPars;
         end
+        if isempty(parametrizations.metAmpl.gr)
+             idx_1 = parametrizations.metAmpl.start + idx_1;
+             idx_2 = parametrizations.metAmpl.start + idx_2;
+        else
+            idx_1 = parametrizations.metAmpl.start + parametrizations.metAmpl.gr.idx_repar(idx_1);
+            idx_2 = parametrizations.metAmpl.start + parametrizations.metAmpl.gr.idx_repar(idx_2);
+        end
+        BMAT(idx_1,end+1)=1;
+        BMAT(idx_2,end)=1;
     else
         NamesToDelete(end+1) = mm;
     end

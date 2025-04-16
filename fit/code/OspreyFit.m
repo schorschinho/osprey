@@ -125,7 +125,7 @@ else if strcmpi(MRSCont.opts.fit.method, 'Osprey_gLCM')
         if MRSCont.flags.hasRef
            % We want a loop over the extra dimension for separate fitting
             SeparateExtraDims = 1;
-            if MRSCont.processed.metab{1}.dims.extras > 0
+            if MRSCont.processed.ref{1}.dims.extras > 0
                 SeparateExtraDims = MRSCont.processed.metab{1}.sz(MRSCont.processed.ref{1}.dims.extras);
             end
             % Read model procedure 
@@ -178,7 +178,7 @@ else if strcmpi(MRSCont.opts.fit.method, 'Osprey_gLCM')
     if MRSCont.flags.hasWater
         % We want a loop over the extra dimension for separate fitting
         SeparateExtraDims = 1;
-        if MRSCont.processed.metab{1}.dims.extras > 0
+        if MRSCont.processed.w{1}.dims.extras > 0
             SeparateExtraDims = MRSCont.processed.w{1}.sz(MRSCont.processed.metab{1}.dims.extras);
         end
         % Read model procedure 

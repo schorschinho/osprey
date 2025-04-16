@@ -188,7 +188,7 @@ else
             for kk = 1:MRSCont.nDatasets(1)
                 for mm = 1 : BasisSetsFitted
                     if ~isempty(MRSCont.quantify.names.metab{mm,ss,ex})
-                            MRSCont.quantify.amplMets{mm,kk,ss,ex}.metab = MRSCont.fit.results.metab{mm,kk,ss,ex}.Model{MRSCont.fit.results.metab{kk}.step}.parsOut.metAmpl';
+                            MRSCont.quantify.amplMets{mm,kk,ss,ex}.metab = MRSCont.fit.results.metab{mm,kk,ss,ex}.Model{MRSCont.fit.results.metab{kk}.step}.parsOut.metAmpl(1,:)';
                             MRSCont.quantify.CRLB{mm,kk,ss,ex}.metab = table2array(MRSCont.fit.results.metab{mm,kk,ss,ex}.Model{MRSCont.fit.results.metab{kk}.step}.CRLB)';
                     end
                 end

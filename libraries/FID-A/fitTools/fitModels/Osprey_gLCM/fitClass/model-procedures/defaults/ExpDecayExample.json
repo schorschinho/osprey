@@ -38,13 +38,16 @@
         "type": "fixed"
       },
     "baseAmpl": {
-        "type": "fixed"
+        "type": "free",
+        "RegFun": "SecondDerivative",
+        "RegPar":[15,30,45,60,75,90,105,120]
       },
     "freqShift": {
         "type": "fixed"
       },
     "lorentzLB": {
-        "type": "fixed"
+        "type": "fixed",
+        "gr":{"g1":[["MM09","MM12"]]}
       }
   }
 }

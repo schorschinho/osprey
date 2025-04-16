@@ -72,6 +72,10 @@ function obj = createModel(obj)
         [parsInit, parslb, parsub, parsex, parssd, parsfun, parsgr, parssc] = initializeParameters(obj, parsInit, parslb, parsub, parsex, parssd, parsfun, parsgr, parssc, pars{pp}); % Generate parameter structs
     end                                                     % End loop over parameters
 
+    eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])  % Set model function handle from ModelFunction field (e.g. GeneralizedPhysicsModel)
+    [xtemp, tempIndexStruct] = h.pars2x(parsInit);                        % Create x0 vector
+    totalModelPars = length(xtemp);                         % Get total model parameters before grouping
+
     % Get indices for parameter soft constraints
     pars = fields(parssc);                                        % Get parameter names
     for ff = 1 : length(pars)                                     % Loop over parameters
@@ -167,6 +171,21 @@ function obj = createModel(obj)
             else
                 idx_repar = [];
                 nan_marker_repar = [];
+                nan_idx = find(isnan(nan_marker));
+                if ~isempty(nan_idx)
+                    if length(nan_idx) ==1
+                        idx(nan_idx+1:end) = idx(nan_idx+1:end)-1;
+                    else
+                        for kk = 1 : length(nan_idx)-1
+                            idx(nan_idx(kk)+1:nan_idx(kk+1)-1) = idx(nan_idx(kk)+1:nan_idx(kk+1)-1)-kk;
+                        end
+                        if nan_idx(end) ~= length(idx)
+                            idx(nan_idx(end)+1:end) = idx(nan_idx(end)+1:end)-(kk+1);
+                        end
+                    end
+                end
+                parsgr.(pars{ff}).idx = idx;
+                parsgr.(pars{ff}).nan_marker = nan_marker;
             end
             parsgr.(pars{ff}).idx_repar = idx_repar;
             parsgr.(pars{ff}).nan_marker_repar = nan_marker_repar;
@@ -189,7 +208,7 @@ function obj = createModel(obj)
         end
     end
 
-    eval(['h = ' obj.Options{obj.step}.ModelFunction ';'])  % Set model function handle from ModelFunction field (e.g. GeneralizedPhysicsModel)
+    
     [x0, indexStruct] = h.pars2x(parsInit);                 % Create x0 vector
     [lb,~] = h.pars2x(parslb);                              % Create lb vector
     [ub,~] = h.pars2x(parsub);                              % Create ub vector
@@ -210,6 +229,9 @@ function obj = createModel(obj)
             obj.Options{obj.step}.parametrizations.(pars{pp}).type = parsfun.(pars{pp}); % Update type strings
             obj.Options{obj.step}.parametrizations.(pars{pp}).gr = parsgr.(pars{pp}); % Update grouping information
             obj.Options{obj.step}.parametrizations.(pars{pp}).sc = parssc.(pars{pp}); % Update grouping information
+            obj.Options{obj.step}.parametrizations.(pars{pp}).startNoGroup = tempIndexStruct.(pars{pp}).start; % Update start index for x vector
+            obj.Options{obj.step}.parametrizations.(pars{pp}).endNoGroup = tempIndexStruct.(pars{pp}).end; % Update end index for x vector
+            obj.Options{obj.step}.parametrizations.(pars{pp}).totalModelPars = totalModelPars; % Save total model parameters
         end
     end                                                     % End loop over parameters
     
@@ -221,8 +243,8 @@ function obj = createModel(obj)
         obj.Options{obj.step}.parametrizations.baseAmpl.gr =[];             % No grouping needed
         obj.Options{obj.step}.parametrizations.baseAmpl.sc =[];             % No soft constraints needed
         obj.Options{obj.step}.parameter{end+1} = 'baseAmpl';                % Still need the name in the next line
-    end
-    
+    end    
+
     obj.Options{obj.step}.parametrizations  = orderfields(obj.Options{obj.step}.parametrizations,obj.Options{obj.step}.parameter); % order struct names according to standard
 
     parametrizations = obj.Options{obj.step}.parametrizations;              % Write parametrization in variable for solver

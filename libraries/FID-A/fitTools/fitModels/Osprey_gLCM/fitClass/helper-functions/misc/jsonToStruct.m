@@ -139,10 +139,12 @@ function jsonStruct = jsonToStruct(jsonfile)
                         jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor = num2cell(jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor);
                     end
                     if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.ex)
-                        jsonStruct.parameters.(params{pp}).parametrizations.sc.ex = num2cell(jsonStruct.parameters.(params{pp}).parametrizations.sc.ex);
+                        % jsonStruct.parameters.(params{pp}).parametrizations.sc.ex = num2cell(jsonStruct.parameters.(params{pp}).parametrizations.sc.ex);
+                        jsonStruct.parameters.(params{pp}).parametrizations.sc.ex = {{jsonStruct.parameters.(params{pp}).parametrizations.sc.ex'}};
                     end
                     if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.sd)
-                        jsonStruct.parameters.(params{pp}).parametrizations.sc.sd = num2cell(jsonStruct.parameters.(params{pp}).parametrizations.sc.sd);
+                        % jsonStruct.parameters.(params{pp}).parametrizations.sc.sd = num2cell(jsonStruct.parameters.(params{pp}).parametrizations.sc.sd);
+                        jsonStruct.parameters.(params{pp}).parametrizations.sc.sd = {{jsonStruct.parameters.(params{pp}).parametrizations.sc.sd'}};
                     end
                     for qq = 1 : size(jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor,1)
                         if ~iscell(jsonStruct.parameters.(params{pp}).parametrizations.sc.fix_factor{qq})

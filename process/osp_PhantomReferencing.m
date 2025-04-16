@@ -66,28 +66,35 @@ nearest=min(abs(d),[],2);
 [best_shift,best_ix]=min(nearest);
 % }}}
 
-if (std(nearest(2:4))<0.02)
-    % seemingly stable estimate on the "big 3" candidates peaks, NAA, Cr, Cho
-    % use default referencing (ref OspreyProcess)
-    disp('Phantom: Found standard reference singlets (NAA, Cr, Cho); using default referencing');
-    refSinglets=[3.03 3.22];
-    [refShift, refFWHM] = osp_XReferencing(dataToFit,[3.03 3.22],[1 1],[1.85 4.2]);
-    if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
-        refSinglets=[2.01];
-        [refShift, refFWHM] = osp_XReferencing(dataToFit,2.01,1,[1.85 4.2]);% determine frequency shift
+if ~isempty(nearest)
+    if (std(nearest(2:4))<0.02)
+        % seemingly stable estimate on the "big 3" candidates peaks, NAA, Cr, Cho
+        % use default referencing (ref OspreyProcess)
+        disp('Phantom: Found standard reference singlets (NAA, Cr, Cho); using default referencing');
+        refSinglets=[3.03 3.22];
+        [refShift, refFWHM] = osp_XReferencing(dataToFit,[3.03 3.22],[1 1],[1.85 4.2]);
+        if abs(refShift) > 10 % This a huge shift. Most likley wrong and we will try it again with tNAA only
+            refSinglets=[2.01];
+            [refShift, refFWHM] = osp_XReferencing(dataToFit,2.01,1,[1.85 4.2]);% determine frequency shift
+        end
+    elseif (best_ix==1 && best_shift<0.08) || (nearest(1)<0.03)
+        % found a close match for a 0ppm reference, use it
+        disp('Phantom: Found DSS/TSP reference near 0ppm');
+        refSinglets=[0.00];
+        [refShift, refFWHM] = osp_XReferencing(dataToFit,[0.00],[1],[-1 1]);
+    else
+        % Otherwise, do nothing.
+        % Even if we have a near match to one of the other possible peaks, without
+        % context we cannot safely assume that it actually corresponds to the
+        % correct metabolite
+        disp('Phantom: no reliable reference could be identified!')
+        refSinglets=[];
+        refShift=0;
+        refFWHM=nan;
     end
-elseif (best_ix==1 && best_shift<0.08) || (nearest(1)<0.03)
-    % found a close match for a 0ppm reference, use it
-    disp('Phantom: Found DSS/TSP reference near 0ppm');
-    refSinglets=[0.00];
-    [refShift, refFWHM] = osp_XReferencing(dataToFit,[0.00],[1],[-1 1]);
 else
-    % Otherwise, do nothing.
-    % Even if we have a near match to one of the other possible peaks, without
-    % context we cannot safely assume that it actually corresponds to the
-    % correct metabolite
     disp('Phantom: no reliable reference could be identified!')
-    refSinglets=[];
-    refShift=0;
-    refFWHM=nan;
+        refSinglets=[];
+        refShift=0;
+        refFWHM=nan;
 end
