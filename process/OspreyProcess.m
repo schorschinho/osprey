@@ -836,7 +836,7 @@ if MRSCont.opts.savePDF
 end
 
 % Optional: write edited files to LCModel .RAW files
-if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
+if MRSCont.opts.saveLCM && ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI && MRSCont.nDatasets(2) == 1
     [MRSCont] = osp_saveLCM(MRSCont);
 end
 

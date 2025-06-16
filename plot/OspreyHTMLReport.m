@@ -63,8 +63,8 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
     t = rawDataToPlot.t;
 
     fs = procDataToPlot.specReg{1}.fs(:,SubSpectraIndex);
-    phs = procDataToPlot.specReg{1}.phs(:,SubSpectraIndex);  
-    weights = MRSCont.processed.(which_spec){kk}.specReg{1}.weights{find(strcmp(which_sub_spec,{'A', 'B', 'C', 'D'}))};      
+    phs = procDataToPlot.specReg{1}.phs(:,SubSpectraIndex);
+    weights = MRSCont.processed.(which_spec){kk}.specReg{1}.weights{find(strcmp(which_sub_spec,{'A', 'B', 'C', 'D'}))};
 
     refShift = -repmat(MRSCont.QM.freqShift.(which_spec)(ExtraIndex,kk,SubSpectraIndex), size(fs));
     fs = fs - refShift;
@@ -80,24 +80,24 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
     yLimsAbs = (abs(yLims(1)) +  abs(yLims(2)));
 
     yLims = [yLims(1) - (yLimsAbs*0.1) yLims(2) + (yLimsAbs*0.1)];
-    
+
     % Add the data and plot
     out = figure('Visible','off');
-    hold(gca, 'on');    
+    hold(gca, 'on');
     % Loop over all averages
     try
         nAvgsRaw = rawDataToPlot.sz(rawDataToPlot.dims.averages);
-    catch % This is a wild guess in case no averages dimension is stored 
+    catch % This is a wild guess in case no averages dimension is stored
         nAvgsRaw = rawDataToPlot.sz(2);
     end
 
 
     for rr = 1:nAvgsRaw
         plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);
-        plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);           
+        plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);
     end
     set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
-    
+
      hold(gca, 'off');
     title(gca, 'Post-alignment', 'Color', colormaps.Foreground);
     xlabel(gca, 'chemical shift (ppm)', 'Color', colormaps.Foreground)
@@ -117,10 +117,10 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
     saveas(out,fullfile(outputFigures,[sub_str '_Aligned_',which_spec]),'jpg');
     close(out);
 
-    
+
     out = figure('Visible','off');
-    hold(gca, 'on');  
-    
+    hold(gca, 'on');
+
     if isfield(MRSCont.QM.drift.pre, which_sub_spec)
         if length(MRSCont.QM.drift.pre.(which_sub_spec){kk}) > 1
             crDriftPre = MRSCont.QM.drift.pre.(which_sub_spec){kk} + MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/applyDataToPlot.txfrq*1e6;
@@ -132,8 +132,8 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
                 colors(dots,3) = colors(dots,3) + (1 - colors(dots,3)) * (1-weights(dots,1));
             end
             scatter(gca, [1:length(crDriftPre)],crDriftPre'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,ones(length(crDriftPre),1).*colormaps.LightAccent);
-            scatter(gca, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormaps.Foreground);    
-        
+            scatter(gca, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormaps.Foreground);
+
             text(gca, length(crDriftPre)*1.05, crDriftPre(end)-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Pre', 'Color', colormaps.LightAccent);
             text(gca, length(crDriftPost)*1.05, crDriftPost(end)-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Post', 'Color', colormaps.Foreground);
             set(gca, 'YLim', [3.028-0.1 3.028+0.1]);
@@ -144,7 +144,7 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
             plot(gca, [x(1) x(2)], [3.028-0.04 3.028-0.04],'LineStyle', '--', 'Color', colormaps.Foreground, 'LineWidth', 0.5);
             plot(gca, [x(1) x(2)], [3.028+0.04 3.028+0.04],'LineStyle', '--', 'Color', colormaps.Foreground, 'LineWidth', 0.5);
             hold(gca, 'off');
-        else 
+        else
             x = xlim;
             y = yLims;
             text(gca, x(2)/6, y(2)/2, 'No drift data available','Color', colormaps.Foreground);
@@ -156,7 +156,7 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
     end
     xlabel(gca, 'Averages', 'Color', colormaps.Foreground);
     ylabel(gca, 'Cr frequency (ppm)', 'Color', colormaps.Foreground);
-    title(gca, 'chemical shift drift', 'Color', colormaps.Foreground); 
+    title(gca, 'chemical shift drift', 'Color', colormaps.Foreground);
 
     set(gca, 'LineWidth', 1, 'TickDir', 'out', 'XMinorTick', 'On');
     set(gca, 'FontSize', 16);
@@ -176,9 +176,9 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
         which_sub_spec = ProcSpecNames{ss};
         procDataToPlot = op_takeextra(MRSCont.processed.(which_spec){kk},ExtraIndex);
         SubSpectraIndex = find(strcmp(which_sub_spec,procDataToPlot.names));
-        procDataToPlot = op_takesubspec(procDataToPlot,find(strcmp(which_sub_spec,procDataToPlot.names)));        
+        procDataToPlot = op_takesubspec(procDataToPlot,find(strcmp(which_sub_spec,procDataToPlot.names)));
         out = figure('Visible','off');
-        hold(gca, 'on');    
+        hold(gca, 'on');
         plot(gca, procDataToPlot.ppm, real(procDataToPlot.specs(:,1))/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
         y = [-0.2, 1.2];
         set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
@@ -186,7 +186,7 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
             plot(gca, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             plot(gca, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             if ~strcmp(which_sub_spec, 'mm')
-                plot(gca, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5); 
+                plot(gca, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             else
                 plot(gca, [3.9 3.9], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             end
@@ -201,7 +201,7 @@ if MRSCont.processed.metab{kk}.flags.isUnEdited
         set(gca, 'FontSize', 16);
         set(gca, 'XColor', colormaps.Foreground);
         set(gca, 'Color', colormaps.Background);
-    
+
         box off;
         set(out,'PaperUnits','centimeters');
         set(out,'PaperPosition',[0 0 20 15]);
@@ -262,14 +262,14 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
     else
         yLims = [yLims(1) - (yLimsAbs*0.1) yLims(2) + (yLimsAbs*0.1)];
     end
-    
+
     % Add the data and plot
     out = figure('Visible','off');
-    hold(gca, 'on');    
+    hold(gca, 'on');
     % Loop over all averages
     try
         nAvgsRaw = rawDataToPlot.sz(rawDataToPlot.dims.averages);
-    catch % This is a wild guess in case no averages dimension is stored 
+    catch % This is a wild guess in case no averages dimension is stored
         nAvgsRaw = rawDataToPlot.sz(2);
     end
 
@@ -283,17 +283,17 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
         end
         text(gca, ppmmin+0.3, stagText(1), 'A', 'Color', colormaps.LightAccent);
         text(gca, ppmmin+0.3, stagText(2), 'B', 'Color', colormaps.Foreground);
-        set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);           
+        set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
     else
         for rr = 1:nAvgsRaw
             plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);
             if ~strcmp(which_sub_spec, 'w') && ~strcmp(which_sub_spec, 'ref')
-                plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);           
+                plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);
             end
         end
         set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
      end
-    
+
      hold(gca, 'off');
     title(gca, 'Post-alignment', 'Color', colormaps.Foreground);
     xlabel(gca, 'chemical shift (ppm)', 'Color', colormaps.Foreground)
@@ -313,9 +313,9 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
     saveas(out,fullfile(outputFigures,[sub_str '_Aligned_',which_spec]),'jpg');
     close(out);
 
-    
+
     out = figure('Visible','off');
-    hold(gca, 'on');  
+    hold(gca, 'on');
 
     crDriftPre = MRSCont.QM.drift.pre.(which_sub_spec){kk} + MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/applyDataToPlot.txfrq*1e6;
     crDriftPost = MRSCont.QM.drift.post.(which_sub_spec){kk} + MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/applyDataToPlot.txfrq*1e6;
@@ -326,7 +326,7 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
         colors(dots,3) = colors(dots,3) + (1 - colors(dots,3)) * (1-weights(dots,1));
     end
     scatter(gca, [1:length(crDriftPre)],crDriftPre'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,ones(length(crDriftPre),1).*colormaps.LightAccent);
-    scatter(gca, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormaps.Foreground);    
+    scatter(gca, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormaps.Foreground);
 
     text(gca, length(crDriftPre)*1.05, crDriftPre(end)-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Pre', 'Color', colormaps.LightAccent);
     text(gca, length(crDriftPost)*1.05, crDriftPost(end)-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Post', 'Color', colormaps.Foreground);
@@ -341,7 +341,7 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
 
     xlabel(gca, 'Averages', 'Color', colormaps.Foreground);
     ylabel(gca, 'Cr frequency (ppm)', 'Color', colormaps.Foreground);
-    title(gca, 'chemical shift drift', 'Color', colormaps.Foreground); 
+    title(gca, 'chemical shift drift', 'Color', colormaps.Foreground);
 
     set(gca, 'LineWidth', 1, 'TickDir', 'out', 'XMinorTick', 'On');
     set(gca, 'FontSize', 16);
@@ -361,25 +361,25 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
         which_sub_spec = ProcSpecNames{ss};
         procDataToPlot = op_takeextra(MRSCont.processed.(which_spec){kk},ExtraIndex);
         SubSpectraIndex = find(strcmp(which_sub_spec,procDataToPlot.names));
-        procDataToPlot = op_takesubspec(procDataToPlot,find(strcmp(which_sub_spec,procDataToPlot.names)));        
+        procDataToPlot = op_takesubspec(procDataToPlot,find(strcmp(which_sub_spec,procDataToPlot.names)));
         out = figure('Visible','off');
-        hold(gca, 'on');    
+        hold(gca, 'on');
         plot(gca, procDataToPlot.ppm, real(procDataToPlot.specs(:,1))/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
         if strcmp(which_sub_spec,'diff2')
             y = [-1.2, 1.2];
         else if strcmp(which_sub_spec,'diff1')
                 if strcmp(which_spec,'metab')
-                    y = [-2, 1.2];   
+                    y = [-2, 1.2];
                 else
-                    y = [-1.5, 1.2];   
+                    y = [-1.5, 1.2];
                 end
             else
                 if strcmp(which_spec,'metab')
                     y = [-0.2, 1.2];
                 else
-                    y = [-1.5, 1.2];   
+                    y = [-1.5, 1.2];
                 end
-    
+
             end
         end
         set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
@@ -387,7 +387,7 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
             plot(gca, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             plot(gca, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             if ~strcmp(which_sub_spec, 'mm')
-                plot(gca, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5); 
+                plot(gca, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             else
                 plot(gca, [3.9 3.9], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             end
@@ -402,7 +402,7 @@ if MRSCont.processed.metab{kk}.flags.isMEGA
         set(gca, 'FontSize', 16);
         set(gca, 'XColor', colormaps.Foreground);
         set(gca, 'Color', colormaps.Background);
-    
+
         box off;
         set(out,'PaperUnits','centimeters');
         set(out,'PaperPosition',[0 0 20 15]);
@@ -467,14 +467,14 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
     else
         yLims = [yLims(1) - (yLimsAbs*0.1) yLims(2) + (yLimsAbs*0.1)];
     end
-    
+
     % Add the data and plot
     out = figure('Visible','off');
-    hold(gca, 'on');    
+    hold(gca, 'on');
     % Loop over all averages
     try
         nAvgsRaw = rawDataToPlot.sz(rawDataToPlot.dims.averages);
-    catch % This is a wild guess in case no averages dimension is stored 
+    catch % This is a wild guess in case no averages dimension is stored
         nAvgsRaw = rawDataToPlot.sz(2);
     end
 
@@ -491,18 +491,18 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
         text(gca, ppmmin+0.3, stagText(1), 'A', 'Color', colormaps.LightAccent);
         text(gca, ppmmin+0.3, stagText(2), 'B', 'Color', colormaps.Foreground);
         text(gca, ppmmin+0.3, stagText(3), 'C', 'Color', colormaps.LightAccent);
-        text(gca, ppmmin+0.3, stagText(4), 'D', 'Color', colormaps.Foreground); 
-        set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);           
+        text(gca, ppmmin+0.3, stagText(4), 'D', 'Color', colormaps.Foreground);
+        set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
     else
         for rr = 1:nAvgsRaw
             plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);
             if ~strcmp(which_sub_spec, 'w') && ~strcmp(which_sub_spec, 'ref')
-                plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);           
+                plot(gca, applyDataToPlot.ppm, real(applyDataToPlot.specs(:,rr)), 'LineWidth', 0.5, 'Color', colormaps.Foreground);
             end
         end
         set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax]);
      end
-    
+
      hold(gca, 'off');
     title(gca, 'Post-alignment', 'Color', colormaps.Foreground);
     xlabel(gca, 'chemical shift (ppm)', 'Color', colormaps.Foreground)
@@ -522,9 +522,9 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
     saveas(out,fullfile(outputFigures,[sub_str '_Aligned_',which_spec]),'jpg');
     close(out);
 
-    
+
     out = figure('Visible','off');
-    hold(gca, 'on');  
+    hold(gca, 'on');
 
     crDriftPre = MRSCont.QM.drift.pre.(which_sub_spec){kk} + MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/applyDataToPlot.txfrq*1e6;
     crDriftPost = MRSCont.QM.drift.post.(which_sub_spec){kk} + MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/applyDataToPlot.txfrq*1e6;
@@ -535,7 +535,7 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
         colors(dots,3) = colors(dots,3) + (1 - colors(dots,3)) * (1-weights(dots,1));
     end
     scatter(gca, [1:length(crDriftPre)],crDriftPre'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,ones(length(crDriftPre),1).*colormaps.LightAccent);
-    scatter(gca, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormaps.Foreground);    
+    scatter(gca, [1:length(crDriftPost)],crDriftPost'-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6),36,colors,'filled','MarkerEdgeColor',colormaps.Foreground);
 
     text(gca, length(crDriftPre)*1.05, crDriftPre(end)-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Pre', 'Color', colormaps.LightAccent);
     text(gca, length(crDriftPost)*1.05, crDriftPost(end)-(MRSCont.QM.freqShift.(which_spec)(1,kk,SubSpectraIndex)/procDataToPlot.txfrq*1e6), 'Post', 'Color', colormaps.Foreground);
@@ -550,7 +550,7 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
 
     xlabel(gca, 'Averages', 'Color', colormaps.Foreground);
     ylabel(gca, 'Cr frequency (ppm)', 'Color', colormaps.Foreground);
-    title(gca, 'chemical shift drift', 'Color', colormaps.Foreground); 
+    title(gca, 'chemical shift drift', 'Color', colormaps.Foreground);
 
     set(gca, 'LineWidth', 1, 'TickDir', 'out', 'XMinorTick', 'On');
     set(gca, 'FontSize', 16);
@@ -570,25 +570,25 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
         which_sub_spec = ProcSpecNames{ss};
         procDataToPlot = op_takeextra(MRSCont.processed.(which_spec){kk},ExtraIndex);
         SubSpectraIndex = find(strcmp(which_sub_spec,procDataToPlot.names));
-        procDataToPlot = op_takesubspec(procDataToPlot,find(strcmp(which_sub_spec,procDataToPlot.names)));        
+        procDataToPlot = op_takesubspec(procDataToPlot,find(strcmp(which_sub_spec,procDataToPlot.names)));
         out = figure('Visible','off');
-        hold(gca, 'on');    
+        hold(gca, 'on');
         plot(gca, procDataToPlot.ppm, real(procDataToPlot.specs(:,1))/max(real(procDataToPlot.specs(procDataToPlot.ppm>ppmmin&procDataToPlot.ppm<ppmmax))), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
         if strcmp(which_sub_spec,'diff2')
             y = [-1.2, 1.2];
         else if strcmp(which_sub_spec,'diff1')
                 if strcmp(which_spec,'metab')
-                    y = [-2, 1.2];   
+                    y = [-2, 1.2];
                 else
-                    y = [-1.5, 1.2];   
+                    y = [-1.5, 1.2];
                 end
             else
                 if strcmp(which_spec,'metab')
                     y = [-0.2, 1.2];
                 else
-                    y = [-1.5, 1.2];   
+                    y = [-1.5, 1.2];
                 end
-    
+
             end
         end
         set(gca, 'XDir', 'reverse', 'XLim', [ppmmin, ppmmax], 'YLim', y);
@@ -596,7 +596,7 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
             plot(gca, [2.008 2.008], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             plot(gca, [3.027 3.027], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             if ~strcmp(which_sub_spec, 'mm')
-                plot(gca, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5); 
+                plot(gca, [3.200 3.200], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             else
                 plot(gca, [3.9 3.9], [y(1)-y(2) y(2)],'LineStyle', ':', 'Color', colormaps.Foreground,  'LineWidth', 0.5);
             end
@@ -611,7 +611,7 @@ if MRSCont.processed.metab{kk}.flags.isHERMES || MRSCont.processed.metab{kk}.fla
         set(gca, 'FontSize', 16);
         set(gca, 'XColor', colormaps.Foreground);
         set(gca, 'Color', colormaps.Background);
-    
+
         box off;
         set(out,'PaperUnits','centimeters');
         set(out,'PaperPosition',[0 0 20 15]);
@@ -624,9 +624,9 @@ if MRSCont.flags.hasRef
     ppmmin = 0;
     ppmmax = 2*4.68;
     which_spec = 'ref';
-    procDataToPlot = op_takeextra(MRSCont.processed.ref{kk},ExtraIndex); 
+    procDataToPlot = op_takeextra(MRSCont.processed.ref{kk},ExtraIndex);
     out = figure('Visible','off');
-    hold(gca, 'on');   
+    hold(gca, 'on');
 
     plot(gca, procDataToPlot.ppm, real(procDataToPlot.specs(:,1)), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
     y = [min(MRSCont.plot.processed.(which_spec).min) max(MRSCont.plot.processed.(which_spec).max)];
@@ -655,9 +655,9 @@ if MRSCont.flags.hasWater
     pmmin = 0;
     ppmmax = 2*4.68;
     which_spec = 'w';
-    procDataToPlot = op_takeextra(MRSCont.processed.ref{kk},ExtraIndex); 
+    procDataToPlot = op_takeextra(MRSCont.processed.ref{kk},ExtraIndex);
     out = figure('Visible','off');
-    hold(gca, 'on');   
+    hold(gca, 'on');
 
     plot(gca, procDataToPlot.ppm, real(procDataToPlot.specs(:,1)), 'Color',MRSCont.colormap.Foreground, 'LineWidth', 1.5);
     y = [min(MRSCont.plot.processed.(which_spec).min) max(MRSCont.plot.processed.(which_spec).max)];
@@ -710,7 +710,7 @@ end
 for f = 1 : length(spec_names)
     which_spec=spec_names{f};
     switch fitMethod
-        case 'Osprey'            
+        case 'Osprey'
             VoxelIndex = VoxelIndices{f};
             dataToPlot = MRSCont.processed.(which_spec){kk};
              if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
@@ -723,9 +723,9 @@ for f = 1 : length(spec_names)
                 fitParams   = MRSCont.fit.results.(which_spec).fitParams{VoxelIndex(3),kk,VoxelIndex(2)};
                 fitRangePPM = MRSCont.opts.fit.range;
              end
-            
-            
-            
+
+
+
             inputData.dataToFit                 = dataToPlot;
             inputData.basisSet                  = basisSet;
             inputSettings.scale                 = MRSCont.fit.scale{kk};
@@ -742,13 +742,13 @@ for f = 1 : length(spec_names)
             else
                 inputSettings.GAP = [];
             end
-        case 'LCModel'           
+        case 'LCModel'
             if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
-                
+
                 % Do nothing for now. We'll load the water spectrum in the next
                 % step.
                 fitRangePPM = [0 9];
-    
+
             else
                 fitParams   = MRSCont.fit.results.metab.fitParams{1,kk};
                 fitRangePPM = MRSCont.opts.fit.range;
@@ -793,7 +793,7 @@ for f = 1 : length(spec_names)
                 indivPlots  = ModelOutput.indivMets;
                 basisSetNames = basisSet.name;
             end
-        case 'LCModel'            
+        case 'LCModel'
             colorData = MRSCont.colormap.Foreground;
             colorFit  = 'r';
             linewidthFit = 1.2;
@@ -816,30 +816,30 @@ for f = 1 : length(spec_names)
     end
     ppm         = ModelOutput.ppm;
     dataToPlot  = ModelOutput.data;
-    
-    
+
+
     stagData = 0.1*(max(abs(min(dataToPlot)), abs(max(dataToPlot))));
     maxPlot = max(dataToPlot + abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData;
     out = figure('Visible','off');
-    hold(gca, 'on');  
+    hold(gca, 'on');
     plot(ppm, (zeros(1,length(ppm)) + stagData)/maxPlot, 'Color', colorData); % Zeroline
     plot(ppm, (dataToPlot + stagData)/maxPlot, 'Color', colorData); % Data
     plot(ppm, (fit + stagData)/maxPlot, 'Color', colorFit, 'LineWidth', linewidthFit); % Fit
     plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot) + stagData)/maxPlot, 'Color', colorData, 'LineWidth', 1); % Maximum Data
-    
+
     plot(ppm, (residual + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color', colorData, 'LineWidth', linewidthResidual); % Residual
     plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, 'Color', colorData, 'LineStyle','--', 'LineWidth', 0.5); % Zeroline Residue
     plot(ppm, (zeros(1,length(ppm)) + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot, 'Color', colorData, 'LineWidth', 1); % Max Residue
-    
-    
-    
+
+
+
     text(fitRangePPM(1), (0 + stagData)/maxPlot, '0', 'FontSize', 10,'Color', MRSCont.colormap.Foreground); %Zeroline text
     text(fitRangePPM(1), (0 + max(dataToPlot) + stagData)/maxPlot-0.05, num2str(max(dataToPlot),'%1.2e'), 'FontSize', 10,'Color', MRSCont.colormap.Foreground); % Maximum Data Text
     text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + stagData)/maxPlot, '0', 'FontSize', 10,'Color', MRSCont.colormap.Foreground); %Zeroline Residual text
     text(fitRangePPM(1), (0 + max(dataToPlot +  abs(min(dataToPlot - fit))) + abs(max(dataToPlot - fit)) + stagData)/maxPlot +0.05, num2str(abs(max(dataToPlot - fit)),'%1.2e'), 'FontSize', 10,'Color', MRSCont.colormap.Foreground); %Max Residue text
-    
-    if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w') || contains(which_spec, 'mm')) 
-        plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', colorBaseline);   
+
+    if ~(strcmp(which_spec, 'ref') || strcmp(which_spec, 'w') || contains(which_spec, 'mm'))
+        plot(ppm, (real(baseline) + stagData)/maxPlot, 'k', 'LineWidth', 1, 'Color', colorBaseline);
         stag = maxPlot *  2.5 / nBasisFct;
         % Loop over all basis functions
         for rr = 1:nBasisFct
@@ -854,7 +854,7 @@ for f = 1 : length(spec_names)
     else
         set(gca, 'YLim', [0  1.2]);
     end
-    
+
     set(gca, 'LineWidth', 1, 'TickDir', 'out');
     set(gca, 'FontSize', 16);
     set(gca, 'YColor', MRSCont.colormap.Background);
@@ -926,7 +926,7 @@ end
 %% Write report in HTML files
 %Write as relative path
 outputFigures   = fullfile('reportFigures',sub_str);
-%write an html report: 
+%write an html report:
 fid=fopen(fullfile(outputFolder,[sub_str,'-report.html']),'w+');
 fprintf(fid,'<!DOCTYPE html>');
 fprintf(fid,'\n<html>');
@@ -971,8 +971,8 @@ fprintf(fid,'\n<h2>Summary:</h2>');
 fprintf(fid,'\n<div class="row">');
 fprintf(fid,'\n\t<div class="column3">');
 
-fprintf(fid,'\n<p><b>signal-to-noise tCr</b> \t%5.2f',table2array(MRSCont.QM.tables(kk,1))); 
-if table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.1 
+fprintf(fid,'\n<p><b>signal-to-noise tCr</b> \t%5.2f',table2array(MRSCont.QM.tables(kk,1)));
+if table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.1
     fprintf(fid,'\n<p  style="color:green;"><b>linewidth tCr [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2)));
 end
 if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.15
@@ -983,12 +983,12 @@ if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6 >
 end
 
 if MRSCont.flags.hasRef
-    if table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.1 
+    if table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.1
         fprintf(fid,'\n<p style="color:green;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
     end
     if table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.15
         fprintf(fid,'\n<p style="color:orange;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6);
-    end   
+    end
     if table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.15
         fprintf(fid,'\n<p style="color:red;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
     end
@@ -996,7 +996,7 @@ end
 names = fieldnames(MRSCont.raw{kk}.geometry.size);
 fprintf(fid,'\n<p><b>Voxel dimensions (%s/%s/%s)</b> \t%5.2f/%5.2f/%5.2f </p>',names{1},names{2},names{3},MRSCont.raw{kk}.geometry.size.(names{1}),MRSCont.raw{kk}.geometry.size.(names{2}),MRSCont.raw{kk}.geometry.size.(names{3}));
 
-fprintf(fid,'\n\t</div>'); 
+fprintf(fid,'\n\t</div>');
 fprintf(fid,'\n\t<div class="column3">');
 if MRSCont.processed.metab{kk}.flags.isUnEdited
     fprintf(fid,'\n<p><b>Model Residual A [%%]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,6)));
@@ -1027,7 +1027,7 @@ if MRSCont.flags.didSeg && isfield(MRSCont.seg, 'img') && isfield(MRSCont.seg.im
         fprintf(fid,'\n<p style="color:red;"><b>fCortex in voxel [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,6))*100);
     else
         fprintf(fid,'\n<p style="color:green;"><b>fCortex in voxel [%%]</b> \t%5.2f </p>',table2array(MRSCont.seg.tables_Voxel_1(kk,6))*100);
-    end  
+    end
     switch num2str([table2array(MRSCont.seg.tables_Voxel_1(kk,7)),table2array(MRSCont.seg.tables_Voxel_1(kk,8)),table2array(MRSCont.seg.tables_Voxel_1(kk,9))])
         case '0  0  0'
             str = ' No/No/No';
@@ -1053,7 +1053,7 @@ if MRSCont.flags.didSeg && isfield(MRSCont.seg, 'img') && isfield(MRSCont.seg.im
         otherwise
             str = 'Somewthing is wrong';
             fprintf(fid,'\n<p style="color:green;"><b>Center of Mass (Tha/leftTha/rightTha) in Voxel</b> \t%s </p>',str);
-    end   
+    end
 end
 fprintf(fid,'\n\t</div>');
 fprintf(fid,'\n</div>');
@@ -1061,7 +1061,7 @@ fprintf(fid,'\n<div class="row">');
 if MRSCont.processed.metab{kk}.flags.isUnEdited
     fprintf(fid,'\n\t<div class="column3">');
     fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_A_model.jpg']));
-    fprintf(fid,'\n\t</div>');    
+    fprintf(fid,'\n\t</div>');
 end
 if MRSCont.processed.metab{kk}.flags.isMEGA
     fprintf(fid,'\n\t<div class="column3">');
@@ -1085,7 +1085,7 @@ end
 fprintf(fid,'\n</div>');
 if MRSCont.flags.hasRef || MRSCont.flags.hasWater
     fprintf(fid,'\n<div class="row">');
-    if MRSCont.flags.hasRef 
+    if MRSCont.flags.hasRef
         fprintf(fid,'\n\t<div class="column3">');
         fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_ref_A_model.jpg']));
         fprintf(fid,'\n\t</div>');
@@ -1094,7 +1094,7 @@ if MRSCont.flags.hasRef || MRSCont.flags.hasWater
             fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_w_A_model.jpg']));
             fprintf(fid,'\n\t</div>');
         end
-    
+
     end
 if MRSCont.flags.didCoreg
     fprintf(fid,'\n\t<div class="column3">');
@@ -1121,8 +1121,8 @@ fprintf(fid,'\n\t</div>');
 fprintf(fid,'\n</div>');
 fprintf(fid,'\n\n<p> </p>');
 fprintf(fid,'\n\n<h2>Averaged spectra:</h2>');
-fprintf(fid,'\n<p><b>signal-to-noise tCr</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,1))); 
-if table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.1 
+fprintf(fid,'\n<p><b>signal-to-noise tCr</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,1)));
+if table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.1
     fprintf(fid,'\n<p style="color:green;"><b>linewidth tCr [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,2)));
 end
 if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,2)) / MRSCont.processed.metab{kk}.txfrq*1e6 < 0.15
@@ -1133,12 +1133,12 @@ if table2array(MRSCont.QM.tables(kk,2))/ MRSCont.processed.metab{kk}.txfrq*1e6 >
 end
 
 if MRSCont.flags.hasRef
-    if table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.1 
+    if table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.1
         fprintf(fid,'\n<p style="color:green;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
     end
     if table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.1 && table2array(MRSCont.QM.tables(kk,3)) / MRSCont.processed.ref{kk}.txfrq*1e6 < 0.15
         fprintf(fid,'\n<p style="color:orange;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
-    end   
+    end
     if table2array(MRSCont.QM.tables(kk,3))/ MRSCont.processed.ref{kk}.txfrq*1e6 > 0.15
         fprintf(fid,'\n<p style="color:red;"><b>linewidth water [Hz]</b> \t%5.2f </p>',table2array(MRSCont.QM.tables(kk,3)));
     end
@@ -1205,7 +1205,7 @@ fprintf(fid,'\n<div class="row">');
 if MRSCont.processed.metab{kk}.flags.isUnEdited
     fprintf(fid,'\n\t<div class="column3">');
     fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_metab_A_model.jpg']));
-    fprintf(fid,'\n\t</div>');    
+    fprintf(fid,'\n\t</div>');
 end
 if MRSCont.processed.metab{kk}.flags.isMEGA
     fprintf(fid,'\n\t<div class="column3">');
@@ -1229,7 +1229,7 @@ end
 fprintf(fid,'\n</div>');
 if MRSCont.flags.hasRef || MRSCont.flags.hasWater
     fprintf(fid,'\n<div class="row">');
-    if MRSCont.flags.hasRef 
+    if MRSCont.flags.hasRef
         fprintf(fid,'\n\t<div class="column3">');
         fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_ref_A_model.jpg']));
         fprintf(fid,'\n\t</div>');
@@ -1238,7 +1238,7 @@ if MRSCont.flags.hasRef || MRSCont.flags.hasWater
             fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_w_A_model.jpg']));
             fprintf(fid,'\n\t</div>');
         end
-    
+
     end
 fprintf(fid,'\n</div>');
 end
@@ -1257,7 +1257,7 @@ if MRSCont.flags.didSeg
     if isfield(MRSCont.seg, 'img') && isfield(MRSCont.seg.img, 'vol_Tha_CoM') % HBCD thalamus overlap
         fprintf(fid,'\n\t<div class="column3">');
         fprintf(fid,'\n\t\t<img src= " %s" style="width:100%%">',fullfile(outputFigures,[sub_str '_seg_svs_space-scanner_CoM.jpg']));
-        fprintf(fid,'\n\t</div>');        
+        fprintf(fid,'\n\t</div>');
     end
 end
 fprintf(fid,'\n</div>');

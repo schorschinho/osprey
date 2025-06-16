@@ -27,7 +27,7 @@ function osp_onPrint( ~, ~ ,gui)
 %%% 1. GET DATA %%%
     MRSCont = getappdata(gui.figure,'MRSCont'); % Get MRSCont from hidden container in gui class
     selectedTab = get(gui.layout.tabs, 'Selection');
-    screenSize      = [1, 1, 1000, 900];
+    screenSize      = [1, 1, 1300, 1100];
     canvasSize      = screenSize;
     canvasSize(4)   = screenSize(4) * 0.7;
     canvasSize(3)   = canvasSize(4) * (11/8.5);
@@ -358,7 +358,7 @@ function osp_onPrint( ~, ~ ,gui)
             switch MRSCont.opts.fit.method
                 case 'LCModel'
                     % Number of metabolites and lipid/MM basis functions
-                    basisNames = MRSCont.fit.results.(gui.fit.Style).fitParams{gui.controls.Selected}.name;
+                    basisNames = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.name;
                     nLip    = sum(~cellfun(@isempty, strfind(basisNames, 'Lip')));
                     nMM     = sum(~cellfun(@isempty, strfind(basisNames, 'MM')));
                     nMMLip  = nLip + nMM;
@@ -367,8 +367,12 @@ function osp_onPrint( ~, ~ ,gui)
                     % No info panel string for the water fit range
                     waterFitRangeString = '';
                     % Where are the metabolite names stored?
-                    basisSetNames = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.name;
-                    subSpecName = 'A';
+                    basisSetNames = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.name;
+                    if subspectrum == 1                 %Works only or MEGA-PRESS and unedited
+                        subSpecName = 'A';
+                    else
+                        subSpecName = 'diff1';
+                    end
                     % Smaller fonts for the results
                     resultsFontSize = 6;
                 case 'Osprey'
@@ -398,7 +402,7 @@ function osp_onPrint( ~, ~ ,gui)
                 case 'Osprey_gLCM'
                     % Number of metabolites and lipid/MM basis functions
                     ModelStep = gui.controls.ModelStep.Value;
-                    if (isfield(MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum,1}.Options{1,ModelStep},'paraIndirect'))   
+                    if (isfield(MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum,1}.Options{1,ModelStep},'paraIndirect'))
                         if ~strcmp(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,1}.Options{1}.parametrizations.metAmpl.type,'dynamic')
                             T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.CRLB;
                         else
@@ -432,10 +436,10 @@ function osp_onPrint( ~, ~ ,gui)
                 switch MRSCont.opts.fit.method
                     case 'LCModel'
                         if strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
-                            RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.h2oarea .* MRSCont.fit.scale{gui.controls.Selected};
+                            RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.h2oarea .* MRSCont.fit.scale{gui.controls.Selected};
                         else
-                            RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-                            CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected}.CRLB;
+                            RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+                            CRLB    = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,subspectrum}.CRLB;
                         end
                     case 'Osprey'
                         RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
@@ -447,7 +451,7 @@ function osp_onPrint( ~, ~ ,gui)
                                 RawAmpl = [MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl ...
                                             MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl(length(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl)*2+1:end)]...
                                             .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
-                            end                       
+                            end
                         else
                             if ~isfield(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
                                 RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
@@ -460,7 +464,7 @@ function osp_onPrint( ~, ~ ,gui)
             else %Is concatenated and not water/reference
                 gui.fit.Style = 'conc';
             end
-            
+
             if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
                 StatText = [ 'Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Selected subspecs: ' Selection ];
             else if strcmp (Selection, 'ref') %Reference data?
@@ -489,14 +493,14 @@ function osp_onPrint( ~, ~ ,gui)
                             RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                             if strcmp(MRSCont.opts.fit.method, 'LCModel') || strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
                                 if isinf(CRLB(m))
-                                    CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '\n']]; 
+                                    CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '\n']];
                                 else if CRLB(m) > 999
-                                        CRLBText = [CRLBText, [num2str(Inf, '%1.3g') '\n']]; 
+                                        CRLBText = [CRLBText, [num2str(Inf, '%1.3g') '\n']];
                                     else
                                         CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '%%\n']];
                                     end
                                 end
-                                
+
                             end
                         end
                     else %Water/reference fit but this should never happen in this loop
@@ -540,7 +544,7 @@ function osp_onPrint( ~, ~ ,gui)
                                             RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale);
                                         end
                                     end
-        
+
                                     if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                                         RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl(DisplayExperiment,:)) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale);
                                     else
@@ -555,15 +559,15 @@ function osp_onPrint( ~, ~ ,gui)
                                 RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
                                 if strcmp(MRSCont.opts.fit.method, 'LCModel') || strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
                                     if isinf(CRLB(m))
-                                        CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '\n']]; 
+                                        CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '\n']];
                                     else if CRLB(m) > 999
-                                            CRLBText = [CRLBText, [num2str(Inf, '%1.3g') '\n']]; 
+                                            CRLBText = [CRLBText, [num2str(Inf, '%1.3g') '\n']];
                                         else
                                             CRLBText = [CRLBText, [num2str(round(CRLB(m),1), '%1.3g') '%%\n']];
                                         end
                                     end
                                 end
-        
+
                             end
                             set(Results, 'Title', ['Raw Water Ratio']);
                             FitText = uix.HBox('Parent', Results, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
@@ -683,7 +687,7 @@ function osp_onPrint( ~, ~ ,gui)
 
 %%%  5. VISUALIZATION PART OF THIS TAB %%%
 %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
-            
+
             if ~strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
                 temp = figure( 'Visible', 'on' );
                 if  ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
@@ -705,7 +709,7 @@ function osp_onPrint( ~, ~ ,gui)
                         else
                             MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.plotFit1D(1,ModelStep,DisplayExperiment);
                         end
-                end         
+                end
             end
 
             temp = figure( 'Visible', 'off' );
@@ -716,13 +720,13 @@ function osp_onPrint( ~, ~ ,gui)
             else
                 VoxelIndex = gui.controls.act_x;
             end
-            
+
                 drawnow
                 ViewAxes = gca();
                 set(ViewAxes, 'Parent', Plot );
                 close(gcf);
             set(Plot.Children(2), 'YColor', gui.colormap.Background) % Update YColor
-            set(Plot.Children(2), 'ZColor', gui.colormap.Background) % Update ZColor   
+            set(Plot.Children(2), 'ZColor', gui.colormap.Background) % Update ZColor
             set(Plot,'Widths', [-0.2 -0.8]);
             set(Plot.Children(2), 'Units', 'normalized');
             set(Plot.Children(2), 'OuterPosition', [0.075,0.02,0.95,1])

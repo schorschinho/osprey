@@ -211,6 +211,16 @@ if strcmp(jobFileFormat,'csv')
         fprintf('Adding macromolecule and lipid basis functions to the fit (default). Please indicate otherwise in the csv-file or the GUI \n');
         MRSCont.opts.fit.fitMM = 1;
     end
+    if isfield(jobStruct,'RelaxationAtlas')
+        MRSCont.opts.quantify.RelaxationAtlas = jobStruct(1).RelaxationAtlas;
+    else
+        MRSCont.opts.quantify.RelaxationAtlas = 0;
+    end
+    if isfield(jobStruct,'RelaxationAtlasAge')
+        MRSCont.opts.quantify.RelaxationAtlasAge = jobStruct(1).RelaxationAtlasAge;
+    else
+        MRSCont.opts.quantify.RelaxationAtlasAge = 0;
+    end
     if isfield(jobStruct,'deface')
         MRSCont.opts.img.deface = jobStruct.deface;
     else
@@ -246,21 +256,46 @@ if strcmp(jobFileFormat,'json')
     % and save them as separate cells to be saved into the MRSCont
     % container.
     if isfield(jobStruct, 'files')
-        files = jobStruct.files';
+        if ~iscell(jobStruct.files{1}) || size(jobStruct.files,1) == 1
+            files = jobStruct.files';
+        end
+        if iscell(files{1})
+            files = cellfun(@transpose,files,'UniformOutput',false);
+        end
     else
         error('Invalid job file! A job file needs to contain at least metabolite data in the field ''files''.');
     end
     if isfield(jobStruct, 'files_mm')  %re_mm Adding functionality for MM
-        files_mm = jobStruct.files_mm';   %re_mm
+        if ~iscell(jobStruct.files_mm{1}) || size(jobStruct.files_mm,1) == 1
+            files_mm = jobStruct.files_mm';   %re_mm
+        end
+        if iscell(files_mm{1})
+            files_mm = cellfun(@transpose,files_mm,'UniformOutput',false);
+        end
     end %re_mm
     if isfield(jobStruct, 'files_mm_ref')
-        files_mm_ref = jobStruct.files_mm_ref';
+        if ~iscell(jobStruct.files_mm_ref{1}) || size(jobStruct.files_mm_ref,1) == 1
+            files_mm_ref = jobStruct.files_mm_ref';
+        end
+        if iscell(files_mm_ref{1})
+            files_mm_ref = cellfun(@transpose,files_mm_ref,'UniformOutput',false);
+        end
     end
     if isfield(jobStruct, 'files_ref')
-        files_ref = jobStruct.files_ref';
+        if ~iscell(jobStruct.files_ref{1}) || size(jobStruct.files_ref,1) == 1
+            files_ref = jobStruct.files_ref';
+        end
+        if iscell(files_ref{1})
+            files_ref = cellfun(@transpose,files_ref,'UniformOutput',false);
+        end
     end
     if isfield(jobStruct, 'files_w')
-        files_w = jobStruct.files_w';
+        if ~iscell(jobStruct.files_w{1}) || size(jobStruct.files_w,1) == 1
+            files_w = jobStruct.files_w';
+        end
+        if iscell(files_w{1})
+            files_w = cellfun(@transpose,files_w,'UniformOutput',false);
+        end
     end
     if isfield(jobStruct, 'files_nii')
         files_nii = jobStruct.files_nii';
@@ -398,6 +433,16 @@ if strcmp(jobFileFormat,'json')
     else
         MRSCont.opts.fit.fitMM = 1;
     end
+    if isfield(jobStruct,'RelaxationAtlas')
+        MRSCont.opts.quantify.RelaxationAtlas = jobStruct.RelaxationAtlas;
+    else
+        MRSCont.opts.quantify.RelaxationAtlas = 0;
+    end
+    if isfield(jobStruct,'RelaxationAtlasAge')
+        MRSCont.opts.quantify.RelaxationAtlasAge = jobStruct.RelaxationAtlasAge;
+    else
+        MRSCont.opts.quantify.RelaxationAtlasAge = 0;
+    end
     if isfield(jobStruct,'basisSet')
         if isfolder(jobStruct.basisSet)
             opts.fit.basissetFolder = jobStruct.basisSet;
@@ -414,6 +459,11 @@ if strcmp(jobFileFormat,'json')
         opts.load.undoPhaseCycle = str2num(jobStruct.undoPhaseCycle);
     else
         opts.load.undoPhaseCycle = 1;
+    end
+    if isfield(jobStruct,'SubSpecOrder')
+        MRSCont.opts.Order = jobStruct.SubSpecOrder';
+    else
+        MRSCont.opts.Order = [];
     end
     debug = '11';
     if isfield(jobStruct,'exportParams')

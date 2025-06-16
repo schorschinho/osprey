@@ -153,7 +153,7 @@ for kk = 1:length(files)
             buffer.vendor{kk}       = 'GE';
             buffer.datatype{kk}     = 'P';
             MRSCont.flags.hasRef = 1;
-        elseif strcmpi(ext,'.anon') && contains(name, '.7.anon')
+        elseif strcmpi(ext,'.anon') && contains(name, '.7')
             buffer.vendor{kk}       = 'GE';
             buffer.datatype{kk}     = 'P';
             MRSCont.flags.hasRef = 1;

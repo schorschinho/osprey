@@ -109,7 +109,7 @@ end
 if qtfyTiss == 1
     qtfyAlpha   = 1;
 else
-    if qtfyTiss == 1 
+    if qtfyTiss == 1
         qtfyAlpha   = 1;
     else
         qtfyAlpha   = 0;
@@ -124,6 +124,12 @@ if ~exist(saveDestination,'dir')
     mkdir(saveDestination);
 end
 
+% Handle path to Atlas-based resources for relaxation correction
+if isfield(MRSCont.opts, 'quantify') && isfield(MRSCont.opts.quantify, 'RelaxationAtlas') && MRSCont.opts.quantify.RelaxationAtlas && ~(ismcc || isdeployed)
+    AtlasPath = fileparts(which('quantify/atlas/AtlasLookUpTable.mat'));
+elseif isfield(MRSCont.opts, 'quantify') && isfield(MRSCont.opts.quantify, 'RelaxationAtlas') && MRSCont.opts.quantify.RelaxationAtlas && (ismcc || isdeployed)
+    AtlasPath  = spm_select(1,'dir','Select the folder that contains the relaxometry atlas resources ("quantify/atlas")',{},pwd);
+end
 
 % Add combinations of metabolites to the basisset
 for ex = 1 : ExperimentsFitted
@@ -145,10 +151,10 @@ for ex = 1 : ExperimentsFitted
                     obj = MRSCont.fit.results.metab{mm, 1, ss, ex};
                     basisSet = obj.BasisSets;
                     MRSCont.quantify.names.metab{mm,ss, ex} = basisSet.names(:, logical(basisSet.includeInFit(obj.step,:)));
-                    MRSCont.quantify.names.SubSpectra{mm, ss, ex} = obj.Data.spec_name;          
+                    MRSCont.quantify.names.SubSpectra{mm, ss, ex} = obj.Data.spec_name;
                 end
         else
-            
+
                 MRSCont.quantify.names.metab{1,ss} = MRSCont.fit.results.metab.fitParams{1, 1, ss}.name;
                 common_LCModelNames = {'PCh_GPC','Cr_PCr','NAA_NAAG','Glu_Gln','GABA_MM30','GABA_MM09'};
                 Osprey_Names = {'tCho','tCr','tNAA','Glx','GABAplus','GABAplus'};
@@ -193,7 +199,7 @@ else
                     end
                 end
             end
-        end 
+        end
     end
 end
 
@@ -202,14 +208,14 @@ if strcmp(MRSCont.opts.fit.method, 'LCModel')
         for kk = 1:MRSCont.nDatasets(1)
             if  ~iscell(MRSCont.fit.results) %Is SVS %Is SVS
                 MRSCont.quantify.CRLB{1,kk,ss}.metab = MRSCont.fit.results.metab.fitParams{1,kk,ss}.CRLB';
-    
+
                 if qtfyH2O
                     MRSCont.quantify.h2oarea{1,kk,ss}.metab = MRSCont.fit.results.metab.fitParams{1,kk,ss}.h2oarea;
                 end
             else %Is DualVoxel
                 MRSCont.quantify.CRLB{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{1,kk,ss}.CRLB';
                 MRSCont.quantify.CRLB{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{1,kk,ss}.CRLB';
-    
+
                 if qtfyH2O
                     MRSCont.quantify.h2oarea{kk}.metab(:,1) = MRSCont.fit.results{1}.metab.fitParams{1,kk,ss}.h2oarea;
                     MRSCont.quantify.h2oarea{kk}.metab(:,2) = MRSCont.fit.results{2}.metab.fitParams{1,kk,ss}.h2oarea;
@@ -223,12 +229,12 @@ MRSCont = addMetabComb(MRSCont,SubSpectraFitted,BasisSetsFitted,ExperimentsFitte
 
 %% Process dynamic fitting
 % For now this is only including amplitude results
-if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM') 
+if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
     for ex = 1 : ExperimentsFitted
         for ss = 1 : SubSpectraFitted
             for kk = 1:MRSCont.nDatasets(1)
                 for mm = 1 : BasisSetsFitted
-                    if isfield(MRSCont.fit.results.metab{mm,kk,ss,ex}.Options{MRSCont.fit.results.metab{1}.step}.parametrizations.metAmpl,'parameterNames') 
+                    if isfield(MRSCont.fit.results.metab{mm,kk,ss,ex}.Options{MRSCont.fit.results.metab{1}.step}.parametrizations.metAmpl,'parameterNames')
                         parameterNames = MRSCont.fit.results.metab{mm,kk,ss,ex}.Options{MRSCont.fit.results.metab{1}.step}.parametrizations.metAmpl.parameterNames;
                         for ind  = 1 : length(parameterNames)
                             MRSCont.quantify.indirect{mm,kk,ss,ex}.(parameterNames{ind})= MRSCont.fit.results.metab{mm,kk,ss,ex}.Model{MRSCont.fit.results.metab{kk}.step}.parsOut.metAmplReparametrization.(parameterNames{ind})';
@@ -298,7 +304,7 @@ for kk = 1:MRSCont.nDatasets(1)
                         amplWater(ex) = MRSCont.fit.results.(waterType){1,kk,1,ex}.Model{1}.parsOut.metAmpl(ex);
                     end
             else
-                
+
                     % Get WCONC, ATTMET, and ATTH2O from control file
                 LCMparam = osp_readlcm_control(MRSCont.opts.fit.lcmodel.controlfileA{kk});
                 if isfield(LCMparam, 'WCONC') || isfield(LCMparam, 'wconc') % User-supplied WCONC
@@ -310,7 +316,7 @@ for kk = 1:MRSCont.nDatasets(1)
             else
                     amplWater = 35880; %LCModel default WCONC assumes pure WM
                     end
-    
+
                 if isfield(LCMparam, 'ATTMET') ||  isfield(LCMparam, 'attmet')% User-supplied ATTMET
                     try
                         amplWater = amplWater * str2double(LCMparam.ATTMET);
@@ -320,7 +326,7 @@ for kk = 1:MRSCont.nDatasets(1)
             else
                     %Do nothing as LCModel default ATTMET is 1
                 end
-    
+
                 if isfield(LCMparam, 'ATTH2O') || isfield(LCMparam, 'atth2o')  % User-supplied ATTH2O
                     try
                         amplWater = amplWater / str2double(LCMparam.ATTH2O);
@@ -332,7 +338,7 @@ for kk = 1:MRSCont.nDatasets(1)
                 end
             end
             end
-    
+
             % Get repetition times
             metsTR  = MRSCont.processed.metab{kk}.tr(ex) * 1e-3;
             waterTR = MRSCont.processed.(waterType){kk}.tr(ex) * 1e-3;
@@ -341,7 +347,7 @@ for kk = 1:MRSCont.nDatasets(1)
             waterTE = MRSCont.processed.(waterType){kk}.te(ex) * 1e-3;
             % Calculate water-scaled, but not tissue-corrected metabolite levels
             rawWaterScaled = quantH2O(metsName, amplMets, amplWater(ex), metsTR, waterTR, metsTE, waterTE,Bo);
-    
+
             % Save back to Osprey data container
             for ss = 1 :SubSpectraFitted
                 for mm = 1 :BasisSetsFitted
@@ -380,20 +386,50 @@ for kk = 1:MRSCont.nDatasets(1)
         % Apply tissue correction
         fGM = MRSCont.seg.tissue.fGM(kk,:);
         fWM = MRSCont.seg.tissue.fWM(kk,:);
-        TissCorrWaterScaled = quantTiss(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF,Bo);
 
-        % Save back to Osprey data container
-        for ex = 1 : ExperimentsFitted
+        if ~isfield(MRSCont.opts,'quantify') || ~isfield(MRSCont.opts.quantify, 'RelaxationAtlas') || ~MRSCont.opts.quantify.RelaxationAtlas
+            TissCorrWaterScaled = quantTiss(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF,Bo);
+            % Save back to Osprey data container
             for ss = 1 :SubSpectraFitted
                 for mm = 1 :BasisSetsFitted
-                    if ~isempty( TissCorrWaterScaled{mm,ss,ex})
-                        MRSCont.quantify.metab.TissCorrWaterScaled{mm,kk,ss,ex} = TissCorrWaterScaled{mm,ss,ex}.metab;
+                    if ~isempty( TissCorrWaterScaled{mm,ss})
+                        MRSCont.quantify.metab.TissCorrWaterScaled{mm,kk,ss} = TissCorrWaterScaled{mm,ss}.metab;
                     end
                 end
             end
+        else % Use relaxation atlas for region- (& age-)specifc water relaxation reference values
+            if isfield(MRSCont.opts.quantify, 'RelaxationAtlas') && MRSCont.opts.quantify.RelaxationAtlas
+                if isfield(MRSCont.opts.quantify, 'RelaxationAtlasAge') && MRSCont.opts.quantify.RelaxationAtlasAge % If age-dependent correction enabled, do it
+                    if MRSCont.flags.hasStatfile % Load statfile:
+                        statFile = readtable(MRSCont.file_stat, 'Delimiter', ',','ReadVariableNames',1); % Load CSV input
+                        name = statFile.Properties.VariableNames;
+                        if ~any(matches(name,{'age'})) % Check 'age' is present
+                            error('No "age" column in the stat file. This is required for using the age-dependent atlas!');
+                        else
+                            Age = statFile.age(kk);
+                        end
+                    else
+                        error('Missing stat file!')
+                    end
+                else % If age-dependent correction not enabled, then make dummy variables:
+                    Age = [];
+                    MRSCont.opts.quantify.RelaxationAtlasAge = 0;
+                end
+
+                % Run correction:
+                [TissCorrWaterScaled,AtlasRelax] = quantTissAtlas(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF,Bo, MRSCont.coreg.vol_mask{kk}.fname,AtlasPath,Age,MRSCont.opts.quantify.RelaxationAtlasAge);
+
+                for ss = 1 :SubSpectraFitted
+                    for mm = 1 :BasisSetsFitted
+                        if ~isempty( TissCorrWaterScaled{mm,ss})
+                            MRSCont.quantify.metab.TissCorrWaterScaled{mm,kk,ss} = TissCorrWaterScaled{mm,ss}.metab;
+                        end
+                    end
+                end
+                MRSCont.quantify.metab.AtlasT1T2(kk,1:4) = AtlasRelax; % Save relaxation times (per dataset) back in the container [T1_GM T1_WM T2_GM T2_WM]
+            end
         end
     end
-
 
     %%% 6. GET ALPHA CORRECTION (THIS IS FOR GABA ONLY AT THIS POINT) %%%
     if qtfyAlpha
@@ -456,7 +492,7 @@ if strcmp(MRSCont.opts.fit.method, 'LCModel') || strcmp(MRSCont.opts.fit.method,
     end
 end
 % Look for dynamic fitting results
-if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM') 
+if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
     [MRSCont] = osp_createTable(MRSCont,'indirect');
 end
 %% Clean up and save
@@ -666,7 +702,7 @@ function MRSCont = addMetabComb(MRSCont,SubSpectraFitted,BasisSetsFitted,Experim
                 end
             end
         end
-    end   
+    end
 end
 %%% /Calculate ratios to totale creatine %%%
 %%%%%%%%%%%% BELOW ARE THE QUANTIFICATION FUNCTIONS %%%%%%%%%%%%
@@ -686,9 +722,9 @@ for ex = 1 : size(amplMets,4)
     elseif ~isempty(idx_Cr) && ~isempty(idx_PCr)
         tCr{1}.metab = amplMets{1,1,1,ex}.metab(idx_Cr,:) + amplMets{1,1,1,ex}.metab(idx_PCr,:);
     end
-    
-    
-    
+
+
+
         % If separate fit of sub-spectra has been performed, normalize to 'off' or
         % 'sum'
         tCrNorm = tCr{1,1,1}.metab;
@@ -744,7 +780,7 @@ for ex = 1 : size(amplMets,4)
                 T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
                 T1_Factor(kk) = (1-exp(-waterTR./T1_Water)) ./ (1-exp(-metsTR./T1_Metab(kk)));
                 T2_Factor(kk) = exp(-waterTE./T2_Water) ./ exp(-metsTE./T2_Metab(kk));
-    
+
                 % Calculate
                 if ~isempty(amplMets{mm,1,ss,ex})
                     rawWaterScaled{mm,ss,ex}.metab(kk,:) = (amplMets{mm,1,ss,ex}.metab(kk,:) ./ amplWater) .* PureWaterConc ...
@@ -847,7 +883,7 @@ for ex = 1 : size(amplMets,4)
                 % average across GM and WM
                 T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
                 T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
-    
+
                 % Calculate water-scaled, tissue-corrected molal concentration
                 % estimates
                 if ~isempty(amplMets{mm,1,ss,ex})
@@ -864,6 +900,169 @@ end
 end
 %%% /Calculate CSF-corrected water-scaled estimates %%%
 
+
+%%% Calculate tissue-corrected water-scaled estimates using the relaxometry atlas %%%
+function [TissCorrWaterScaled, AtlasRelax] = quantTissAtlas(metsName, amplMets, amplWater, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, Bo, CoregPath, AtlasPath, Age, Age_correct)
+% This function calculates water-scaled, tissue-corrected metabolite
+% estimates in molal units, according to Gasparovic et al, Magn Reson Med
+% 55:1219-26 (2006).
+
+% Additionally it performs atlas-based regional (and age) dependent
+% correction: Simegn et al 2024
+
+% Define Constants
+switch Bo
+    case '3T'
+        atlas_filename = fullfile(AtlasPath,'atlas_130.nii'); % EVE ATLAS, symmetrizwed by L/R parcels, in SPM space
+        ATLASvol  = spm_vol(atlas_filename);
+        lookup_filename = fullfile(AtlasPath,'AtlasLookUpTable.mat'); % Load the lookup table for parcel indices
+        load(lookup_filename)
+
+        %load voxel mask
+        [Path,FName,Ext] = fileparts(CoregPath);
+        voxel_mask_filename = CoregPath;
+        Rvoxel_mask_filename = fullfile(Path,['r',FName,Ext]);
+
+        if(isfile(Rvoxel_mask_filename)~=1)
+            % Need to reslice the voxel mask to the atlas raster
+            if ~exist(voxel_mask_filename) && exist([voxel_mask_filename,'.gz'])
+                gunzip([voxel_mask_filename,'.gz']);
+            end
+            clear matlabbatch
+            matlabbatch{1}.spm.spatial.coreg.write.ref = {atlas_filename};
+            matlabbatch{1}.spm.spatial.coreg.write.source = {voxel_mask_filename};
+            matlabbatch{1}.spm.spatial.coreg.write.roptions.interp = 0;
+            matlabbatch{1}.spm.spatial.coreg.write.roptions.wrap = [0 0 0];
+            matlabbatch{1}.spm.spatial.coreg.write.roptions.mask = 0;
+            matlabbatch{1}.spm.spatial.coreg.write.roptions.prefix = 'r';
+            spm_jobman('run',matlabbatch);
+        end
+
+        %load resliced voxel mask
+        vol_mask = spm_vol(Rvoxel_mask_filename);
+        Parcels_vol      = ATLASvol(1).private.dat(:,:,:,1) .* vol_mask(1).private.dat(:,:,:);
+
+        %count the unique parcel elements in the voxel (ignoring zeros)
+        unique_parcels = unique(Parcels_vol(:));
+        unique_parcels = round(unique_parcels(unique_parcels~=0)); %contains parcel indices for parcels in MRS voxel
+        n_unique_parcels  = histc(Parcels_vol(:),unique_parcels);
+        n_unique_parcels = n_unique_parcels(unique_parcels~=0); %contains voxel-counts for parcels in MRS voxel
+
+        %Extract T1 and T2 for each parcel
+        T1_voxel_mask_parcels=zeros(size(unique_parcels));
+        T2_voxel_mask_parcels=zeros(size(unique_parcels));
+        GM =zeros(size(unique_parcels));
+        WM =zeros(size(unique_parcels));
+        for ii=1:length(unique_parcels)
+           if(Age_correct)
+               T1_voxel_mask_parcels(ii) = AtlasLookUpTable.T1(unique_parcels(ii)) + (Age-30)*AtlasLookUpTable.T1_slope(unique_parcels(ii));
+               T2_voxel_mask_parcels(ii) = AtlasLookUpTable.T2(unique_parcels(ii)) + (Age-30)*AtlasLookUpTable.T2_slope(unique_parcels(ii));
+           else
+               T1_voxel_mask_parcels(ii) = AtlasLookUpTable.T1(unique_parcels(ii));
+               T2_voxel_mask_parcels(ii) = AtlasLookUpTable.T2(unique_parcels(ii));
+           end
+           GM(ii) = AtlasLookUpTable.GM(unique_parcels(ii));
+           WM(ii) = AtlasLookUpTable.WM(unique_parcels(ii));
+        end
+        %Calculate weighted mean of T1 and T2 for GM and WM
+        T1w_GM= sum(T1_voxel_mask_parcels(GM==1).*n_unique_parcels(GM==1))./sum(n_unique_parcels(GM==1));
+        T2w_GM= sum(T2_voxel_mask_parcels(GM==1).*n_unique_parcels(GM==1))./sum(n_unique_parcels(GM==1));
+        T1w_WM= sum(T1_voxel_mask_parcels(WM==1).*n_unique_parcels(WM==1))./sum(n_unique_parcels(WM==1));
+        T2w_WM= sum(T2_voxel_mask_parcels(WM==1).*n_unique_parcels(WM==1))./sum(n_unique_parcels(WM==1));
+        AtlasRelax = [T1w_GM T1w_WM T2w_GM T2w_WM];
+        T1w_CSF   = 3.817;
+        T2w_CSF   = 0.503;
+    case '7T'
+        error('No atlas for 7T yet!')
+end
+
+% Determine concentration of water in GM, WM and CSF
+% Gasparovic et al. 2006 (MRM) uses relative densities, ref to
+% Ernst et al. 1993 (JMR)
+% fGM = 0.78
+% fWM = 0.65
+% fCSF = 0.97
+% such that
+% concw_GM = 0.78 * 55.51 mol/kg = 43.30
+% concw_WM = 0.65 * 55.51 mol/kg = 36.08
+% concw_CSF = 0.97 * 55.51 mol/kg = 53.84
+concW_GM    = 43.30*1e3;
+concW_WM    = 36.08*1e3;
+concW_CSF   = 53.84*1e3;
+molal_concW = 55.51*1e3;
+
+% Gasparovic et al. method
+% Calculate molal fractions from volume fractions (equivalent to eqs. 5-7 in Gasparovic et al., 2006)
+molal_fGM  = (fGM*concW_GM) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
+molal_fWM  = (fWM*concW_WM) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
+molal_fCSF = (fCSF*concW_CSF) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
+
+for mm = 1 : size(amplMets,1)
+    for ss = 1 : size(amplMets,3)
+        % Metabolites
+        for kk = 1:length(metsName.metab{mm,ss})
+            [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss}{kk},Bo);
+            % average across GM and WM
+            T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
+            T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
+
+            % Calculate water-scaled, tissue-corrected molal concentration
+            % estimates
+            if ~isempty(amplMets{mm,1,ss})
+                TissCorrWaterScaled{mm,ss}.metab(kk,:) = (amplMets{mm,ss}.metab(kk,:) ./ amplWater) .* molal_concW ...
+                    .* (molal_fGM  * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+                    molal_fWM  * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+                    molal_fCSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk)))) ./ ...
+                    (1 - molal_fCSF);
+            end
+        end
+    end
+end
+
+% Determine concentration of water in GM, WM and CSF
+% Gasparovic et al. 2006 (MRM) uses relative densities, ref to
+% Ernst et al. 1993 (JMR)
+% fGM = 0.78
+% fWM = 0.65
+% fCSF = 0.97
+% such that
+% concw_GM = 0.78 * 55.51 mol/kg = 43.30
+% concw_WM = 0.65 * 55.51 mol/kg = 36.08
+% concw_CSF = 0.97 * 55.51 mol/kg = 53.84
+concW_GM    = 43.30*1e3;
+concW_WM    = 36.08*1e3;
+concW_CSF   = 53.84*1e3;
+molal_concW = 55.51*1e3;
+
+% Gasparovic et al. method
+% Calculate molal fractions from volume fractions (equivalent to eqs. 5-7 in Gasparovic et al., 2006)
+molal_fGM  = (fGM*concW_GM) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
+molal_fWM  = (fWM*concW_WM) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
+molal_fCSF = (fCSF*concW_CSF) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
+
+for mm = 1 : size(amplMets,1)
+    for ss = 1 : size(amplMets,3)
+        % Metabolites
+        for kk = 1:length(metsName.metab{mm,ss})
+            [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss}{kk},Bo);
+            % average across GM and WM
+            T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
+            T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
+
+            % Calculate water-scaled, tissue-corrected molal concentration
+            % estimates
+            if ~isempty(amplMets{mm,1,ss})
+                TissCorrWaterScaled{mm,ss}.metab(kk,:) = (amplMets{mm,ss}.metab(kk,:) ./ amplWater) .* molal_concW ...
+                    .* (molal_fGM  * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+                    molal_fWM  * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+                    molal_fCSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk)))) ./ ...
+                    (1 - molal_fCSF);
+            end
+        end
+    end
+end
+end
+%%%/ Calculate tissue-corrected water-scaled estimates using the relaxometry atlas %%%
 
 
 %%% Calculate alpha-corrected water-scaled GABA estimates %%%
@@ -931,7 +1130,7 @@ for ex = 1 : size(amplMets,4)
         for ss = 1 : size(amplMets,3)
             for AlphaMets = 1 : length(metabNames)
                 idx  = find(strcmp(metsName.metab{mm,ss,ex},metabNames{AlphaMets}));
-    
+
                 [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.metab{mm,ss,ex}{idx},Bo);
                 % average across GM and WM
                 T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
@@ -940,11 +1139,11 @@ for ex = 1 : size(amplMets,4)
                         .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
                             fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
                             fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
-        
+
                 AlphaCorrWaterScaled{mm,ss,ex}(:,AlphaMets) = ConcIU_TissCorr_Harris{mm,ss,ex} ./ (fGM + alpha*fWM);
                 AlphaCorrWaterScaledGroupNormed{mm,ss,ex}(:,AlphaMets) = ConcIU_TissCorr_Harris{mm,ss,ex} .* CorrFactor;
             end
-    
+
             if ~isempty(find(strcmp(metsName.metab{mm,ss},'GABAplus')))
                 % GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015))
                 idx_GABA  = find(strcmp(metsName.metab{mm,ss,ex},'GABA'));
@@ -957,7 +1156,7 @@ for ex = 1 : size(amplMets,4)
                     .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
                     fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
                     fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
-    
+
                 AlphaCorrWaterScaled{mm,ss,ex}(:,end+1) = ConcIU_TissCorr_Harris{mm,ss,ex} ./ (fGM + alpha*fWM);
                 AlphaCorrWaterScaledGroupNormed{mm,ss,ex}(:,end+1) = ConcIU_TissCorr_Harris{mm,ss,ex} .* CorrFactor;
             end
@@ -1063,7 +1262,6 @@ switch Bo
 end
 
 end
-
 %%% / Lookup function for metabolite relaxation times %%%
 
 %%% Function to create metabolite overview in MATLAB table format %%%
@@ -1124,7 +1322,7 @@ if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWate
                         if ~isempty(MRSCont.quantify.(qtfyType){mm,1,ss,ex})
                             if ~strcmp(qtfyType, 'indirect')
                                 conc = zeros(MRSCont.nDatasets(1),length(names));
-        
+
                                 for kk = 1:MRSCont.nDatasets(1)
                                     if (strcmp(qtfyType, 'h2oarea') || strcmp(qtfyType, 'CRLB'))
                                         conc(kk,:) = MRSCont.quantify.(qtfyType){mm,kk,ss,ex}.metab(:,rr);
@@ -1169,7 +1367,7 @@ else
                     if ~isempty(MRSCont.quantify.metab.(qtfyType){mm,1,ss,ex})
                         names = {'GABA','Glu','Gln','Glx'};
                         if size(MRSCont.quantify.metab.(qtfyType){mm,1,ss,ex},2) == 5
-                            names = {'GABA','Glu','Gln','Glx','GABAplus'};    
+                            names = {'GABA','Glu','Gln','Glx','GABAplus'};
                         end
                         conc = zeros(MRSCont.nDatasets(1),length(names));
                         for kk = 1:MRSCont.nDatasets(1)

@@ -294,7 +294,7 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
                 sqzDims{end+1} = dimsFieldNames{rr};
             end
         end
-        subspecs    = 0;
+        subspecs    = 1;
     end
 
     if length(sqzDims)==5
@@ -348,11 +348,21 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
         undoPhaseCycle = 1;
     end
     if isfield(hdr_ext, 'Manufacturer') && strcmp(hdr_ext.Manufacturer,'Philips')  && undoPhaseCycle
-        fids = fids .* repmat(conj(fids(1,:,:,:))./abs(fids(1,:,:,:)),[size(fids,1) 1]);
+        if hdr_ext.WaterSuppressed && hdr_ext.EchoTime == 0.080
+            fids(:,:,:,1:2:end) = -fids(:,:,:,1:2:end);
+        end
+        if hdr_ext.WaterSuppressed && hdr_ext.EchoTime == 0.035
+            fids(:,:,2:2:end,:) = -fids(:,:,2:2:end,:);
+        end
     end
-    if isfield(hdr_ext, 'Manufacturer') && strcmp(hdr_ext.Manufacturer,'GE') && undoPhaseCycle 
+    if isfield(hdr_ext, 'Manufacturer') && strcmp(hdr_ext.Manufacturer,'GE') && ~strcmp(hdr_ext.SequenceName,'hbcd2') && undoPhaseCycle 
         if hdr_ext.WaterSuppressed && hdr_ext.EchoTime == 0.080
             fids(:,:,2:2:end,:) = -fids(:,:,2:2:end,:);
+        end
+    else if isfield(hdr_ext, 'Manufacturer') && strcmp(hdr_ext.Manufacturer,'GE') && strcmp(hdr_ext.SequenceName,'hbcd2') && undoPhaseCycle
+            if ~hdr_ext.WaterSuppressed && hdr_ext.EchoTime == 0.080
+                fids = -fids;
+            end
         end
     end
 
