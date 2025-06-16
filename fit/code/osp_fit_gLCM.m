@@ -38,7 +38,7 @@ else
     progressText = '';
 end
 
-
+%% Model metabolite data
 % We want a loop over the extra dimension for separate fitting
 SeparateExtraDims = 1;
 if MRSCont.processed.metab{1}.dims.extras > 0
@@ -60,7 +60,12 @@ for ex = 1 : SeparateExtraDims
     % We want a loop over all the model procedures which indicate the
     % subspectra to be modelled. This way it is possible to change the
     % subspectra in the model procedure. 
-    for ss = 1 : size(MRSCont.opts.fit.ModelProcedure.metab,2)
+    if MRSCont.flags.hasMM ~= 1
+        SpectraToModel =size(MRSCont.opts.fit.ModelProcedure.metab,2);
+    else
+        SpectraToModel = 1;
+    end
+    for ss = 1 : SpectraToModel
         % Read model procedure 
         ModelProcedure = jsonToStruct(MRSCont.opts.fit.ModelProcedure.metab{1,ss});
         if isstruct(ModelProcedure.Steps)
@@ -108,7 +113,11 @@ if MRSCont.flags.hasMM == 1
     end
     if ~isfield(ModelProcedure,'basisset') || ~isfield(ModelProcedure.basisset, 'file') || ... 
         isempty(ModelProcedure.basisset.file)
-        ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
+        if ~iscell(MRSCont.fit.basisSet)
+            ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
+        else
+            ModelProcedure.basisset.file = MRSCont.fit.basisSet;
+        end
     end
     [MRSCont.fit.results.mm(1,:)] = Osprey_gLCM(MRSCont.processed.mm,ModelProcedure)';
 
@@ -134,7 +143,11 @@ if MRSCont.flags.hasMM == 1
     end
     if ~isfield(ModelProcedure,'basisset') || ~isfield(ModelProcedure.basisset, 'file') || ... 
         isempty(ModelProcedure.basisset.file)
-        ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
+        if ~iscell(MRSCont.fit.basisSet)
+            ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
+        else
+            ModelProcedure.basisset.file = MRSCont.fit.basisSet;
+        end
     end
     [MRSCont.fit.results.metab(2,:)] = Osprey_gLCM(MRSCont.processed.metab,ModelProcedure)';
 

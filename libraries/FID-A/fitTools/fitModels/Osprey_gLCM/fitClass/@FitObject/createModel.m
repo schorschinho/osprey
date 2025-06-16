@@ -329,14 +329,22 @@ function obj = createModel(obj)
                                          parametrizations); % parameter struct
             % Set fminunc wrappper handle
             fun  = @(x) h.fminunc_wrapper(x, fcn, jac);
+
+            % Set iterations
+            if isfield(obj.Options{obj.step},'iterations')
+                iterations = obj.Options{obj.step}.iterations;
+            else
+                iterations = 1000;
+            end
+
              % Set solver options
             opts = optimoptions('lsqnonlin', ...
                                 'Algorithm','levenberg-marquardt', ...      % Use LM
                                 'SpecifyObjectiveGradient',SpecifyObjectiveGradient,... % Use analytic jacobian
                                 'CheckGradients',CheckGrad, ...             % Check gradient
                                 'FiniteDifferenceType','central', ...       % for numerically calculated jacobian only
-                                'MaxIterations',1000, ...                   % Iterations
-                                'Display','none');                       % Display no iterations
+                                'MaxIterations',iterations, ...                   % Iterations
+                                'Display','final');                       % Display no iterations
 
             % Add this if you want to plot per iteration
             % 'OutputFcn',@optimplotresidual,...);                          

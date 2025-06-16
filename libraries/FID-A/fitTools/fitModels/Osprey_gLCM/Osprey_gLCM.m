@@ -339,15 +339,28 @@ for kk = 1 : length(DataToModel)
                 mm_clean_spline = DataToModel{kk}.MMExpSub.specs;
                 indMM09 = find(strcmp(basisSet.name,'MM09'));
                 indMMexp = find(strcmp(basisSet.name,'MMexp'));
-                basisSetfactor = op_freqrange(basisSet,0,1.2);
-                mm_clean_spline_factor = mm_clean_spline(DataToModel{kk}.ppm>0.7 & DataToModel{kk}.ppm <1.1);
-                factor = (max(real(basisSetfactor.specs(:,indMM09)))/max(real(mm_clean_spline_factor)));
+                if ~isempty(indMM09) || ~isempty(indMMexp)
+                    basisSetfactor = op_freqrange(basisSet,0,1.2);
+                    mm_clean_spline_factor = mm_clean_spline(DataToModel{kk}.ppm>0.7 & DataToModel{kk}.ppm <1.1);
+                    factor = (max(real(basisSetfactor.specs(:,indMM09)))/max(real(mm_clean_spline_factor)));
+                else
+                    factor = 1/scaleData(kk);
+                end
+
                 if isempty(indMMexp)
-                    ModelParameter{kk, 1}.BasisSets.fids(:,end+1) = DataToModel{kk}.MMExpSub.fids*factor;
+                    if ndims(basisSet.sz) == 2
+                        ModelParameter{kk, 1}.BasisSets.fids(:,end+1) = DataToModel{kk}.MMExpSub.fids*factor;
+                    else
+                        ModelParameter{kk, 1}.BasisSets.fids(:,end+1,:) = repmat(DataToModel{kk}.MMExpSub.fids*factor,[1 1 basisSet.sz(3)]);
+                    end
                     ModelParameter{kk, 1}.BasisSets.names{end+1} = 'MMexp';
                     ModelParameter{kk, 1}.BasisSets.includeInFit(ss,end+1) = 1;
                 else
-                    ModelParameter{kk, 1}.BasisSets.fids(:,indMMexp) = DataToModel{kk}.MMExpSub.fids*factor;
+                    if ndims(basisSet.sz) == 2
+                        ModelParameter{kk, 1}.BasisSets.fids(:,indMMexp) = DataToModel{kk}.MMExpSub.fids*factor;
+                    else
+                        ModelParameter{kk, 1}.BasisSets.fids(:,indMMexp,:) = repmat(DataToModel{kk}.MMExpSub.fids*factor,[1 1 basisSet.sz(3)]);
+                    end
                     ModelParameter{kk, 1}.BasisSets.includeInFit(ss,indMMexp) = 1;
                 end
             end

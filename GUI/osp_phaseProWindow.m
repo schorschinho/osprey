@@ -47,8 +47,8 @@ function osp_phaseProWindow(gui)
         end
   
 %%% 2. PHASING AND FREQUENCY SHIFT HAPPENS HERE %%%   
-    if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'extras')
-        procData = op_takeextra(MRSCont.processed.metab{gui.controls.Selected},Exp);
+    if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'extras')
+        procData = op_takeextra(MRSCont.processed.(Selection){gui.controls.Selected},Exp);
         if gui.controls.posPhase0Shift
             procData=op_addphase(procData ,5);
             if isfield(procData, 'manual') && isfield(procData.manual,'ph0') && Exp <= length(procData.manual.ph0)
@@ -110,10 +110,10 @@ function osp_phaseProWindow(gui)
                 procData.manual.ph0(Exp) = procData.manual.ph0(Exp) + sign(procData.manual.ph0(Exp))*(-1)*360;
             end
         end
-        MRSCont.processed.metab{gui.controls.Selected}=op_addextra(MRSCont.processed.metab{gui.controls.Selected},procData,Exp); 
+        MRSCont.processed.(Selection){gui.controls.Selected}=op_addextra(MRSCont.processed.(Selection){gui.controls.Selected},procData,Exp); 
     
         if isfield(MRSCont, 'processed_no_align')
-            procData = op_takeextra(MRSCont.processed_no_align.metab{gui.controls.Selected},Exp);
+            procData = op_takeextra(MRSCont.processed_no_align.(Selection){gui.controls.Selected},Exp);
             if gui.controls.posPhase0Shift
                 procData=op_addphase(procData ,5);
                 if isfield(procData, 'manual') && isfield(procData.manual,'ph0') && Exp <= length(procData.manual.ph0)
@@ -175,131 +175,131 @@ function osp_phaseProWindow(gui)
                     procData.manual.ph0(Exp) = procData.manual.ph0(Exp) + sign(procData.manual.ph0(Exp))*(-1)*360;
                 end
             end
-            MRSCont.processed_no_align.metab{gui.controls.Selected}=op_addextra(MRSCont.processed_no_align,procData,Exp);
+            MRSCont.processed_no_align.(Selection){gui.controls.Selected}=op_addextra(MRSCont.processed_no_align,procData,Exp);
         end
     else
         if gui.controls.posPhase0Shift
-            MRSCont.processed.metab{gui.controls.Selected}=op_addphase(MRSCont.processed.metab{gui.controls.Selected} ,5);
-            if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.metab{gui.controls.Selected}.manual,'ph0')
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 = MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 + 5;
+            MRSCont.processed.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed.(Selection){gui.controls.Selected} ,5);
+            if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.(Selection){gui.controls.Selected}.manual,'ph0')
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 = MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 + 5;
             else
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 =  5;
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 =  5;
             end
         end
         if gui.controls.negPhase0Shift
-            MRSCont.processed.metab{gui.controls.Selected}=op_addphase(MRSCont.processed.metab{gui.controls.Selected} ,-5);
-            if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.metab{gui.controls.Selected}.manual,'ph0')
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 = MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 - 5;
+            MRSCont.processed.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed.(Selection){gui.controls.Selected} ,-5);
+            if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.(Selection){gui.controls.Selected}.manual,'ph0')
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 = MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 - 5;
             else
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 =  -5;
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 =  -5;
             end
         end
         if gui.controls.posPhase1Shift
-            MRSCont.processed.metab{gui.controls.Selected}=op_addphase(MRSCont.processed.metab{gui.controls.Selected} ,0,0.00001);
-            if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.metab{gui.controls.Selected}.manual,'ph1')
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph1 = MRSCont.processed.metab{gui.controls.Selected}.manual.ph1 + 0.00001;
+            MRSCont.processed.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed.(Selection){gui.controls.Selected} ,0,0.00001);
+            if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.(Selection){gui.controls.Selected}.manual,'ph1')
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph1 = MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph1 + 0.00001;
             else
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph1 =  0.00001;
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph1 =  0.00001;
             end
         end
         if gui.controls.negPhase1Shift
-            MRSCont.processed.metab{gui.controls.Selected}=op_addphase(MRSCont.processed.metab{gui.controls.Selected} ,0,-0.00001);
-            if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.metab{gui.controls.Selected}.manual,'ph1')
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph1 = MRSCont.processed.metab{gui.controls.Selected}.manual.ph1 -0.00001;
+            MRSCont.processed.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed.(Selection){gui.controls.Selected} ,0,-0.00001);
+            if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.(Selection){gui.controls.Selected}.manual,'ph1')
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph1 = MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph1 -0.00001;
             else
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph1 =  -0.00001;
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph1 =  -0.00001;
             end
         end
         if gui.controls.flipPhase
-            MRSCont.processed.metab{gui.controls.Selected}=op_addphase(MRSCont.processed.metab{gui.controls.Selected} ,180);
-            if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.metab{gui.controls.Selected}.manual,'ph0')
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 = MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 + 180;
+            MRSCont.processed.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed.(Selection){gui.controls.Selected} ,180);
+            if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.(Selection){gui.controls.Selected}.manual,'ph0')
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 = MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 + 180;
             else
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 =  180;
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 =  180;
             end
         end
         if gui.controls.posFreqShift
-            MRSCont.processed.metab{gui.controls.Selected}=op_freqshift(MRSCont.processed.metab{gui.controls.Selected} ,1);
-            if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.metab{gui.controls.Selected}.manual,'f')
-                MRSCont.processed.metab{gui.controls.Selected}.manual.f = MRSCont.processed.metab{gui.controls.Selected}.manual.f + 1;
+            MRSCont.processed.(Selection){gui.controls.Selected}=op_freqshift(MRSCont.processed.(Selection){gui.controls.Selected} ,1);
+            if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.(Selection){gui.controls.Selected}.manual,'f')
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.f = MRSCont.processed.(Selection){gui.controls.Selected}.manual.f + 1;
             else
-                MRSCont.processed.metab{gui.controls.Selected}.manual.f =  1;
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.f =  1;
             end
         end
         if gui.controls.negFreqShift
-            MRSCont.processed.metab{gui.controls.Selected}=op_freqshift(MRSCont.processed.metab{gui.controls.Selected} ,-1);
-            if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.metab{gui.controls.Selected}.manual,'f')
-                MRSCont.processed.metab{gui.controls.Selected}.manual.f = MRSCont.processed.metab{gui.controls.Selected}.manual.f - 1;
+            MRSCont.processed.(Selection){gui.controls.Selected}=op_freqshift(MRSCont.processed.(Selection){gui.controls.Selected} ,-1);
+            if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.(Selection){gui.controls.Selected}.manual,'f')
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.f = MRSCont.processed.(Selection){gui.controls.Selected}.manual.f - 1;
             else
-                MRSCont.processed.metab{gui.controls.Selected}.manual.f =  -1;
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.f =  -1;
             end
         end
-        if isfield(MRSCont.processed.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.metab{gui.controls.Selected}.manual,'ph0')
-            if abs(MRSCont.processed.metab{gui.controls.Selected}.manual.ph0) > 360
-                MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 = MRSCont.processed.metab{gui.controls.Selected}.manual.ph0 + sign(MRSCont.processed.metab{gui.controls.Selected}.manual.ph0)*(-1)*360;
+        if isfield(MRSCont.processed.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed.(Selection){gui.controls.Selected}.manual,'ph0')
+            if abs(MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0) > 360
+                MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 = MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0 + sign(MRSCont.processed.(Selection){gui.controls.Selected}.manual.ph0)*(-1)*360;
             end
         end
         
         if isfield(MRSCont, 'processed_no_align')
             if gui.controls.posPhase0Shift
-                MRSCont.processed_no_align.metab{gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.metab{gui.controls.Selected} ,5);
-                if isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual,'ph0')
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 = MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 + 5;
+                MRSCont.processed_no_align.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.(Selection){gui.controls.Selected} ,5);
+                if isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual,'ph0')
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 = MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 + 5;
                 else
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 =  5;
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 =  5;
                 end
             end
             if gui.controls.negPhase0Shift
-                MRSCont.processed_no_align.metab{gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.metab{gui.controls.Selected} ,-5);
-                if isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual,'ph0')
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 = MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 - 5;
+                MRSCont.processed_no_align.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.(Selection){gui.controls.Selected} ,-5);
+                if isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual,'ph0')
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 = MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 - 5;
                 else
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 =  -5;
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 =  -5;
                 end
             end
             if gui.controls.posPhase1Shift
-                MRSCont.processed_no_align.metab{gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.metab{gui.controls.Selected} ,0,0.00001);
-                if isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual,'ph1')
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph1 = MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph1 + 0.00001;
+                MRSCont.processed_no_align.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.(Selection){gui.controls.Selected} ,0,0.00001);
+                if isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual,'ph1')
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph1 = MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph1 + 0.00001;
                 else
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph1 =  0.00001;
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph1 =  0.00001;
                 end
             end
             if gui.controls.negPhase1Shift
-                MRSCont.processed_no_align.metab{gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.metab{gui.controls.Selected} ,0,-0.00001);
-                if isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual,'ph1')
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph1 = MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph1 -0.00001;
+                MRSCont.processed_no_align.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.(Selection){gui.controls.Selected} ,0,-0.00001);
+                if isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual,'ph1')
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph1 = MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph1 -0.00001;
                 else
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph1 =  -0.00001;
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph1 =  -0.00001;
                 end
             end
             if gui.controls.flipPhase
-                MRSCont.processed_no_align.metab{gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.metab{gui.controls.Selected} ,180);
-                if isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual,'ph0')
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 = MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 + 180;
+                MRSCont.processed_no_align.(Selection){gui.controls.Selected}=op_addphase(MRSCont.processed_no_align.(Selection){gui.controls.Selected} ,180);
+                if isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual,'ph0')
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 = MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 + 180;
                 else
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 =  180;
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 =  180;
                 end
             end
             if gui.controls.posFreqShift
-                MRSCont.processed_no_align.metab{gui.controls.Selected}=op_freqshift(MRSCont.processed_no_align.metab{gui.controls.Selected} ,1);
-                if isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual,'f')
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.f = MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.f + 1;
+                MRSCont.processed_no_align.(Selection){gui.controls.Selected}=op_freqshift(MRSCont.processed_no_align.(Selection){gui.controls.Selected} ,1);
+                if isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual,'f')
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.f = MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.f + 1;
                 else
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.f =  1;
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.f =  1;
                 end
             end
             if gui.controls.negFreqShift
-                MRSCont.processed_no_align.metab{gui.controls.Selected}=op_freqshift(MRSCont.processed_no_align.metab{gui.controls.Selected} ,-1);
-                if isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual,'f')
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.f = MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.f - 1;
+                MRSCont.processed_no_align.(Selection){gui.controls.Selected}=op_freqshift(MRSCont.processed_no_align.(Selection){gui.controls.Selected} ,-1);
+                if isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual,'f')
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.f = MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.f - 1;
                 else
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.f =  -1;
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.f =  -1;
                 end
             end
-            if isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual,'ph0')
-                if abs(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0) > 360
-                    MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 = MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0 + sign(MRSCont.processed_no_align.metab{gui.controls.Selected}.manual.ph0)*(-1)*360;
+            if isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}, 'manual') && isfield(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual,'ph0')
+                if abs(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0) > 360
+                    MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 = MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0 + sign(MRSCont.processed_no_align.(Selection){gui.controls.Selected}.manual.ph0)*(-1)*360;
                 end
             end
 
@@ -347,8 +347,8 @@ function osp_phaseProWindow(gui)
     end
 
     % For debugging purposes
-    % if isfield(MRSCont.processed.metab{gui.controls.Selected},'manual')
-    %     MRSCont.processed.metab{gui.controls.Selected}.manual
+    % if isfield(MRSCont.processed.(Selection){gui.controls.Selected},'manual')
+    %     MRSCont.processed.(Selection){gui.controls.Selected}.manual
     % end
     % gui.controls.YLimits
     
