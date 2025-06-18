@@ -118,8 +118,6 @@ opts.SubSpecAlignment.mets = 'L2Norm';          % OPTIONS:    - 'L2Norm' (defaul
 % for the second dataset only:
 % opts.ECC.raw              = [0 1];
 % opts.ECC.mm               = [0 1];
-
-
 opts.ECC.raw                = 1;                % OPTIONS:    - '1' (default)
 opts.ECC.mm                 = 1;                %             - '0' (no)
                                                 %             - [] array
@@ -159,34 +157,6 @@ opts.exportParams.path      = '';               % Replace with string for the pa
 opts.fit.method             = 'Osprey_gLCM';    % OPTIONS:    - 'Osprey_gLCM' (default)
                                                 %             - 'Osprey' (old model)
                                                 %             - 'LCModel'
-%%% ----- Osprey FITTING OPTIONS -----
-%
-% Select the metabolites to be included in the basis set as a cell array,
-% with entries separates by commas.
-% With default Osprey basis sets, you can select the following metabolites:
-% Ala, Asc, Asp, bHB, bHG, Cit, Cr, Cystat, CrCH2, EtOH, GABA, GPC, GSH, Glc, Gln,
-% Glu, Gly, H2O, mI, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, sI, Ser,
-% Tau, Tyros, MM09, MM12, MM14, MM17, MM20, Lip09, Lip13, Lip20.
-% If you enter 'default', the basis set will include all of the above
-% except for Ala, bHB, bHG, Cit, Cystat, EtOH, Glc, Gly, Phenyl, Ser, and Tyros.
-opts.fit.includeMetabs      = {'default'};      % OPTIONS:    - {'default'}
-                                                %             - {custom}
-
-% Choose the fitting style for difference-edited datasets (MEGA, HERMES, HERCULES)
-% (only available for the Osprey fitting method)
-opts.fit.style              = 'Separate';       % OPTIONS:    - 'Concatenated' (default) - will fit DIFF and SUM simultaneously)
-                                                %             - 'Separate' - will fit DIFF and OFF separately
-
-% Determine fitting range (in ppm) for the metabolite and water spectra
-opts.fit.range              = [0.5 4];          % [ppm] Default: [0.5 4]
-opts.fit.rangeWater         = [2.0 7.4];        % [ppm] Default: [2.0 7.4]
-
-% Determine the baseline knot spacing (in ppm) for the metabolite spectra
-opts.fit.bLineKnotSpace     = 0.4;              % [ppm] Default: 0.4.
-
-% Add macromolecule and lipid basis functions to the fit?
-opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
-                                                %             - 1 (yes, default)
                                                 
 %%% ----- Osprey gLCM FITTING OPTIONS ----
 % The gLCM algorithm uses model procedure json files for modeling. If no file is specified
@@ -194,13 +164,13 @@ opts.fit.fitMM              = 1;                % OPTIONS:    - 0 (no)
 % This also overwrites the Osprey fitting settings described in the
 % section above! For multiple sub-spectra include the matching model
 % procedure json files for each spectrum.
-opts.fit.ModelProcedure.metab = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_Reg_Optim_Full_soft_constraint.json'))};
-opts.fit.ModelProcedure.ref = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
+opts.fit.ModelProcedure.metab   = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_Reg_Optim_Full_soft_constraint.json'))};
+opts.fit.ModelProcedure.ref     = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
 
 
 % Optional: In case the automatic basisset picker is not working you can manually
 % select the path to the basis set in the osprey/fit/basis, i.e.:
-% opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';
+% opts.fit.basisSetFile = 'opts.fit.basisSetFile = 'osprey/fit/basissets/3T/philips/unedited/press/35/basis_philips_press35.mat';
 
 % Optional: Deface the strucutral images in the Coreg/Seg figures for HIPAA
 % compliance 
