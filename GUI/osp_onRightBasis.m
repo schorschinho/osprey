@@ -30,11 +30,7 @@ function osp_onRightBasis( ~, ~ ,gui)
 
     % User wants to process the data
 %%% 2. UPDATEWINDOW %%%   
-    if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w') %Is not concateneted or is reference/water fit 
-        gui.fit.Style = gui.fit.Names{gui.fit.Selected};
-    else %Is concatenated and not water/reference
-        gui.fit.Style = 'conc';
-    end
+    gui.fit.Style = gui.fit.Names{gui.fit.Selected};
 
     if gui.controls.act_basis < length(MRSCont.fit.resBasisSet.(gui.fit.Style).(['np_sw_' num2str(round(MRSCont.processed.metab{1}.sz(1))) '_' num2str(round(MRSCont.processed.metab{1}.spectralwidth))]))
         gui.controls.act_basis = gui.controls.act_basis + 1;

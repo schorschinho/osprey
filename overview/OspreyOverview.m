@@ -294,7 +294,6 @@ if MRSCont.flags.didFit
                                         end
                                         inputSettings.fitRangePPM           = fitRangePPM;
                                         inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-                                        inputSettings.fitStyle              = MRSCont.opts.fit.style;
                                         inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
                                         inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
                                         inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
@@ -305,11 +304,8 @@ if MRSCont.flags.didFit
                                         else
                                             inputSettings.GAP = [];
                                         end
-                                        if strcmp(inputSettings.fitStyle,'Concatenated')
-                                            [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-                                        else
-                                            [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
-                                        end
+                                        [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
+                                        
                                         if ~isnan(ModelOutput.completeFit(1)) %If the fit was succesfull
                                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.fit      = ModelOutput.completeFit;
                                             MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(FitSpecNames{ss}){bf,kk,sf}.baseline      = ModelOutput.baseline;

@@ -731,7 +731,6 @@ for f = 1 : length(spec_names)
             inputSettings.scale                 = MRSCont.fit.scale{kk};
             inputSettings.fitRangePPM           = fitRangePPM;
             inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-            inputSettings.fitStyle              = MRSCont.opts.fit.style;
             inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
             inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
             inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;

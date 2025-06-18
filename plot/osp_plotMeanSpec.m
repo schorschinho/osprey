@@ -48,7 +48,6 @@ cb(4,:) = temp;
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Get the fit method and style
 fitMethod   = MRSCont.opts.fit.method;
-fitStyle    = MRSCont.opts.fit.style;
 
 % Fall back to defaults if not provided
 if nargin<10
@@ -434,33 +433,23 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
         switch which_spec
             case 'A'
                 name = 'off';
-                if strcmp(fitStyle,'Concatenated')
-                    data_mean = MRSCont.overview.Osprey.(sort_data).(GroupString).(['mean_' which_spec]);
-                    data_sd = MRSCont.overview.Osprey.(sort_data).(GroupString).(['sd_' which_spec]);
-                    ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);
-                else
-                    fit = 'off';
-                    fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' spec]);
-                    fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' spec]);
-                    data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' spec]);
-                    data_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_data_' spec]);
-                    baseline_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_baseline_' spec]);
-                    baseline_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_baseline_' spec]);
-                    residual_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_res_' spec]);
-                    residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' spec]);
-                    ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' spec]);
-                end
+                fit = 'off';
+                fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' spec]);
+                fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' spec]);
+                data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' spec]);
+                data_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_data_' spec]);
+                baseline_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_baseline_' spec]);
+                baseline_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_baseline_' spec]);
+                residual_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_res_' spec]);
+                residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' spec]);
+                ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' spec]);
             case 'B'
                 name = 'on';
                 data_mean = MRSCont.overview.Osprey.(sort_data).(GroupString).(['mean_' which_spec]);
                 data_sd = MRSCont.overview.Osprey.(sort_data).(GroupString).(['sd_' which_spec]);
                 ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);
             case 'diff1'
-                if ~strcmp(fitStyle,'Concatenated')
-                    fit = which_spec;
-                else
-                    fit = 'conc';
-                end
+                fit = which_spec;
                 fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' spec]);
                 fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' spec]);
                 data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' spec]);
@@ -471,23 +460,10 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                 residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' spec]);
                 ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' spec]);
             case {'sum'}
-                if ~strcmp(fitStyle,'Concatenated')
-                    fit = which_spec;
-                    data_mean = MRSCont.overview.Osprey.(sort_data).(GroupString).(['mean_' which_spec]);
-                    data_sd = MRSCont.overview.Osprey.(sort_data).(GroupString).(['sd_' which_spec]);
-                    ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);
-                else
-                    fit = 'conc';
-                    fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' spec]);
-                    fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' spec]);
-                    data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' spec]);
-                    data_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_data_' spec]);
-                    baseline_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_baseline_' spec]);
-                    baseline_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_baseline_' spec]);
-                    residual_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_res_' spec]);
-                    residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' spec]);
-                    ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' spec]);
-                end
+                fit = which_spec;
+                data_mean = MRSCont.overview.Osprey.(sort_data).(GroupString).(['mean_' which_spec]);
+                data_sd = MRSCont.overview.Osprey.(sort_data).(GroupString).(['sd_' which_spec]);
+                ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);
             case {'ref','w'}
                 fit = which_spec;
                 fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' which_spec]);
@@ -506,29 +482,16 @@ if isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
                 data_sd = MRSCont.overview.Osprey.(sort_data).(GroupString).(['sd_' which_spec]);
                 ppm = MRSCont.overview.Osprey.(['ppm_data_' which_spec]);
             case {'diff1','diff2','sum'}
-                if ~strcmp(fitStyle,'Concatenated')
-                    fit = which_spec;
-                    fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' spec]);
-                    fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' spec]);
-                    data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' spec]);
-                    data_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_data_' spec]);
-                    baseline_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_baseline_' spec]);
-                    baseline_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_baseline_' spec]);
-                    residual_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_res_' spec]);
-                    residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' spec]);
-                    ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' spec]);
-                else
-                    fit = 'conc';
-                    fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' spec]);
-                    fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' spec]);
-                    data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' spec]);
-                    data_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_data_' spec]);
-                    baseline_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_baseline_' spec]);
-                    baseline_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_baseline_' spec]);
-                    residual_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_res_' spec]);
-                    residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' spec]);
-                    ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' spec]);
-                end
+                fit = which_spec;
+                fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' spec]);
+                fit_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_' spec]);
+                data_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_data_' spec]);
+                data_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_data_' spec]);
+                baseline_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_baseline_' spec]);
+                baseline_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_baseline_' spec]);
+                residual_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_res_' spec]);
+                residual_sd = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['sd_res_' spec]);
+                ppm = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['ppm_fit_' spec]);
             case {'ref','w'}
                 fit = which_spec;
                 fit_mean = MRSCont.overview.Osprey.(sort_fit).(GroupString).(['mean_' which_spec]);

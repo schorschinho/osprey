@@ -38,7 +38,7 @@ function osp_updateQuantifyWindow(gui)
             set(gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(2).Children.Children.Children(6),'String',gui.controls.act_x)
             gui.Plot.quant = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(1);
             gui.InfoText.quant = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(1).Children;
-            StatText = ['Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style ...
+            StatText = ['Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  ...
                          '\nSelected metabolite subspectrum: '   subSpecName '\nMM model ' num2str(gui.controls.act_z) ];
         elseif  (MRSCont.flags.isPRIAM && isfield(MRSCont.flags,'isPRIAM')) 
             gui.upperBox.quant.Info = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(1);          
@@ -47,7 +47,7 @@ function osp_updateQuantifyWindow(gui)
             set(gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(2).Children.Children.Children(6),'String',gui.controls.act_x)
             gui.Plot.quant = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(1);
             gui.InfoText.quant = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(1).Children;
-            StatText = ['Voxel ' num2str(gui.controls.act_x) ': Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style ...
+            StatText = ['Voxel ' num2str(gui.controls.act_x) ': Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  ...
                          '\nSelected metabolite subspectrum: ' gui.quant.Names.Model{gui.quant.Selected.Model} ];
         else
             gui.upperBox.quant.Info = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(1);          
@@ -58,7 +58,7 @@ function osp_updateQuantifyWindow(gui)
             gui.Plot.quantHBox = gui.Plot.quantMainBox.Children(1);
             gui.Plot.quantMRSImap = gui.Plot.quantHBox.Children(1).Children(2);
             gui.InfoText.quant = gui.layout.(gui.layout.quantifyTabhandles{gui.quant.Selected.Model}).Children(2).Children(1).Children;
-            StatText = ['Metabolite maps and fits of ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style ...
+            StatText = ['Metabolite maps and fits of ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  ...
                          '\nSelected metabolite subspectrum: ' gui.quant.Names.Model{gui.quant.Selected.Model} 'Selected voxel for fit display ' num2str(gui.controls.act_x) ' ' num2str(gui.controls.act_y)];
         end
      

@@ -57,23 +57,11 @@ qtfyCr = 1;
 if MRSCont.flags.isUnEdited
     getResults = {'off'};
 elseif MRSCont.flags.isMEGA
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'off'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
+    getResults = {'diff1', 'off'};
 elseif MRSCont.flags.isHERMES
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'diff2', 'sum'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
+    getResults = {'diff1', 'diff2', 'sum'};
 elseif MRSCont.flags.isHERCULES
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'diff2', 'sum'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
+    getResults = {'diff1', 'diff2', 'sum'};
 end
 
 % Check which types of water data are available

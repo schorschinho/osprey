@@ -61,11 +61,7 @@ function osp_updateFitWindow(gui)
 
 %%% 2. FILLING INFO PANEL FOR THIS TAB %%%
 % All the information from the Raw data is read out here
-        if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w') %Is not concateneted or is reference/water fit
-            gui.fit.Style = gui.fit.Names{gui.fit.Selected};
-        else %Is concatenated and not water/reference
-            gui.fit.Style = 'conc';
-        end
+        gui.fit.Style = gui.fit.Names{gui.fit.Selected};
 
         
         % For this visualization, we will have to make a few

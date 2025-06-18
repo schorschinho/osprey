@@ -40,7 +40,6 @@ end
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Get the fit method and style
 fitMethod   = MRSCont.opts.fit.method;
-fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
 
 if nargin<6

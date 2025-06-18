@@ -53,7 +53,7 @@ cb(3,:) = cb(4,:);
 cb(4,:) = temp;
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
-fitStyle    = MRSCont.opts.fit.style;
+
 % Fall back to defaults if not provided
 if nargin<9
     exp = 1;

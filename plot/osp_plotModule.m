@@ -445,21 +445,18 @@ switch Module
         set(input_figure, 'Heights', [-0.12 -0.88]);
         %%% 2.cc FILLING FITTED AMPLITUDE PANEL %%%
         % Creates the panel on the right side with the fitted amplitudes
-        if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit
-                switch MRSCont.opts.fit.method
-                    case 'LCModel'
-                        if strcmp(which, 'ref') || strcmp(which, 'w')
-                            RawAmpl = MRSCont.fit.results.(which).fitParams{1,kk}.h2oarea .* MRSCont.fit.scale{kk};
-                        else
-                            RawAmpl = MRSCont.fit.results.(which).fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk};
-                            CRLB    = MRSCont.fit.results.(which).fitParams{1,kk}.CRLB;
-                        end
-                    case 'Osprey'
-                        RawAmpl = MRSCont.fit.results.(which).fitParams{basis,kk,subspectrum}.ampl .* MRSCont.fit.scale{kk};
-                end
-            else %Is concatenated and not water/reference
-                which = 'conc';
+            switch MRSCont.opts.fit.method
+                case 'LCModel'
+                    if strcmp(which, 'ref') || strcmp(which, 'w')
+                        RawAmpl = MRSCont.fit.results.(which).fitParams{1,kk}.h2oarea .* MRSCont.fit.scale{kk};
+                    else
+                        RawAmpl = MRSCont.fit.results.(which).fitParams{1,kk}.ampl .* MRSCont.fit.scale{kk};
+                        CRLB    = MRSCont.fit.results.(which).fitParams{1,kk}.CRLB;
+                    end
+                case 'Osprey'
+                    RawAmpl = MRSCont.fit.results.(which).fitParams{basis,kk,subspectrum}.ampl .* MRSCont.fit.scale{kk};
             end
+
             if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
                 ph0 = MRSCont.fit.results.(which).fitParams{basis,kk,subspectrum}.ph0;
                 ph1 = MRSCont.fit.results.(which).fitParams{basis,kk,subspectrum}.ph1;
@@ -520,7 +517,7 @@ switch Module
                         iniph0 = nan;
                         iniph1 = nan;
                     end
-                    StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
+                    StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method '; Selected subspecs: ' which,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f'),...
                         'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
                         ' ppm\nNumber of metabolites: ' num2str(nMets) '; Number of MM/lipids: ' num2str(nMMLip) ...
@@ -534,7 +531,7 @@ switch Module
                         iniph0 = nan;
                         iniph1 = nan;
                     end
-                    StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
+                    StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method '; Selected subspecs: ' which,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f'),...
                         'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
                         ' ppm\nNumber of metabolites: ' num2str(nMets) '; Number of MM/lipids: ' num2str(nMMLip) ...
@@ -548,7 +545,7 @@ switch Module
                         iniph0 = nan;
                         iniph1 = nan;
                     end
-                    StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
+                    StatText = ['Metabolite Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method '; Selected subspecs: ' which,...
                             '\nFitting range: ' num2str(MRSCont.opts.fit.range(1)) ' to ' num2str(MRSCont.opts.fit.range(2)) ' ppm; Baseline knot spacing: ' num2str(MRSCont.opts.fit.bLineKnotSpace) ' ppm; ph0: ' num2str(ph0,'%1.2f'),...
                             'deg; ph1: ' num2str(ph1,'%1.2f') 'deg; refShift: ' num2str(refShift,'%1.2f') ' Hz; refFWHM: ' num2str(refFWHM,'%1.2f')...
                             ' ppm\nNumber of metabolites: ' num2str(nMets) '; Number of MM/lipids: ' num2str(nMMLip) ...
@@ -556,10 +553,10 @@ switch Module
                 end
 
             else if strcmp (which, 'ref') %Reference data?
-            StatText = ['Reference Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
+            StatText = ['Reference Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method '; Selected subspecs: ' which,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 else %Is water data
-                    StatText = ['Water Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' which,...
+                    StatText = ['Water Data -> Sequence: ' Seq '; Fitting algorithm: ' MRSCont.opts.fit.method '; Selected subspecs: ' which,...
                         '\nFitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
                 end
             end
@@ -753,9 +750,7 @@ switch Module
         %%%  5. VISUALIZATION PART OF THIS TAB %%%
         %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
         temp = figure( 'Visible', 'off' );
-        if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(which, 'ref') || strcmp(which, 'w') %Is not concateneted or is reference/water fit
-            temp = osp_plotFit(MRSCont, kk, which,[1 subspectrum basis],which);
-        end
+        temp = osp_plotFit(MRSCont, kk, which,[1 subspectrum basis],which);
         ViewAxes = gca();
         set(ViewAxes, 'Parent', Plot );
         close( temp );

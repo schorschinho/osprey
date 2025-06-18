@@ -136,7 +136,6 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                             
                             inputSettings.fitRangePPM           = fitRangePPM;
                             inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-                            inputSettings.fitStyle              = MRSCont.opts.fit.style;
                             inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
                             inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
                             inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
@@ -147,11 +146,7 @@ for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
                             else
                                 inputSettings.GAP = [];
                             end
-                            if strcmp(inputSettings.fitStyle,'Concatenated')
-                                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-                            else
-                                [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
-                            end
+                            [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
                             
                         end
                     case 'LCModel'

@@ -179,13 +179,7 @@ if strcmp(jobFileFormat,'csv')
         MRSCont.opts.fit.method = jobStruct(1).method;
     else
         fprintf('Fitting algorithm is set to Osprey (default). Please indicate otherwise in the csv-file or the GUI \n');
-        MRSCont.opts.fit.method = 'Osprey';
-    end
-    if isfield(jobStruct,'style')
-        opts.fit.style = jobStruct(1).style;
-    else
-        fprintf('Fitting style is set to Concatenated (default). Please indicate otherwise in the csv-file or the GUI \n');
-        MRSCont.opts.fit.style = 'Concatenated';
+        MRSCont.opts.fit.method = 'Osprey_gLCM';
     end
     if isfield(jobStruct,'lolim_range') && isfield(jobStruct,'uplim_range')
         opts.fit.range = [jobStruct(1).lolim_range jobStruct(1).uplim_range];
@@ -408,11 +402,6 @@ if strcmp(jobFileFormat,'json')
     else
         opts.fit.method = 'Osprey';
     end
-    if isfield(jobStruct,'style')
-        opts.fit.style = jobStruct.style;
-    else
-        opts.fit.style = 'Separate';
-    end
     if isfield(jobStruct,'lolim_range') && isfield(jobStruct,'uplim_range')
         opts.fit.range = [str2num(jobStruct.lolim_range) str2num(jobStruct.uplim_range)];
     else
@@ -533,12 +522,7 @@ end
 switch seqType
     case 'unedited'
         MRSCont.flags.isUnEdited    = 1;
-        MRSCont.opts.editTarget             = {'none'};
-        MRSCont.opts.fit.style = opts.fit.style; 
-        if strcmp(opts.fit.style, 'Concatenated')
-            fprintf('Fitting style was changed to Separate, because this is unedited data.\n');
-            MRSCont.opts.fit.style = 'Separate';
-        end 
+        MRSCont.opts.editTarget             = {'none'}; 
         if ~isfield(MRSCont.opts.fit, 'GAP')
             MRSCont.opts.fit.GAP.A = [];
             MRSCont.opts.fit.GAP.mm = [];
@@ -555,11 +539,6 @@ switch seqType
             MRSCont.opts.editTarget             = editTarget;
         else
             MRSCont.opts.editTarget = {'GABA'};
-        end
-        MRSCont.opts.fit.style = opts.fit.style;
-        if strcmp(opts.fit.style, 'Concatenated')
-            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
-            MRSCont.opts.fit.style = 'Separate';
         end
         if isfield(opts.fit, 'coMM3')
             MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
@@ -598,11 +577,6 @@ switch seqType
         else
             MRSCont.opts.editTarget = {'GABA','GSH'};
         end
-        MRSCont.opts.fit.style = opts.fit.style;
-        if strcmp(opts.fit.style, 'Concatenated')
-            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
-            MRSCont.opts.fit.style = 'Separate';
-        end
         if isfield(opts.fit, 'coMM3')
             MRSCont.opts.fit.coMM3 = opts.fit.coMM3;
             MRSCont.opts.fit.FWHMcoMM3 = opts.fit.FWHMcoMM3;
@@ -637,11 +611,6 @@ switch seqType
             MRSCont.opts.editTarget             = editTarget;
         else
             MRSCont.opts.editTarget = {'GABA','GSH'};
-        end
-        MRSCont.opts.fit.style = opts.fit.style;
-        if strcmp(opts.fit.style, 'Concatenated')
-            fprintf('Fitting style was changed to Separate, because concatenated modeling is still under development.\n');
-            MRSCont.opts.fit.style = 'Separate';
         end
         if isfield(opts.fit, 'coMM3')
             MRSCont.opts.fit.coMM3 = opts.fit.coMM3;

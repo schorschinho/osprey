@@ -44,7 +44,6 @@ end
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Get the fit method and style
 fitMethod   = MRSCont.opts.fit.method;
-fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
 
 if nargin<5
@@ -127,7 +126,6 @@ inputSettings.scale                 = MRSCont.fit.scale{kk};
 
 inputSettings.fitRangePPM           = fitRangePPM;
 inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-inputSettings.fitStyle              = MRSCont.opts.fit.style;
 inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
 inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
 inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
@@ -148,11 +146,7 @@ switch fitMethod
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
         else
             % if metabolites, use the metabolite model
-            if strcmp(inputSettings.fitStyle,'Concatenated')
-                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-            else
-                [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
-            end
+            [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
         end
     case 'OspreyAsym'
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
@@ -160,11 +154,7 @@ switch fitMethod
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
         else
             % if metabolites, use the metabolite model
-            if strcmp(inputSettings.fitStyle,'Concatenated')
-                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-            else
-                [ModelOutput] = fit_OspreyAsymParamsToModel(inputData, inputSettings, fitParams);
-            end
+            [ModelOutput] = fit_OspreyAsymParamsToModel(inputData, inputSettings, fitParams);
         end        
     case 'OspreyNoLS'
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
@@ -172,11 +162,7 @@ switch fitMethod
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
         else
             % if metabolites, use the metabolite model
-            if strcmp(inputSettings.fitStyle,'Concatenated')
-                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-            else
-                [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
-            end
+            [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
         end        
 end
 
@@ -218,11 +204,7 @@ for y = 1 : YVox
                     [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
                 else
                     % if metabolites, use the metabolite model
-                    if strcmp(inputSettings.fitStyle,'Concatenated')
-                        [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-                    else
-                        [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
-                    end
+                    [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
                 end
             case 'OspreyAsym'
                 if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
@@ -230,11 +212,7 @@ for y = 1 : YVox
                     [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
                 else
                     % if metabolites, use the metabolite model
-                    if strcmp(inputSettings.fitStyle,'Concatenated')
-                        [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-                    else
-                        [ModelOutput] = fit_OspreyAsymParamsToModel(inputData, inputSettings, fitParams);
-                    end
+                    [ModelOutput] = fit_OspreyAsymParamsToModel(inputData, inputSettings, fitParams);
                 end        
             case 'OspreyNoLS'
                 if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
@@ -242,11 +220,7 @@ for y = 1 : YVox
                     [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
                 else
                     % if metabolites, use the metabolite model
-                    if strcmp(inputSettings.fitStyle,'Concatenated')
-                        [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-                    else
-                        [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
-                    end
+                    [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
                 end        
         end
          procDataLineToPlot = vertcat(procDataLineToPlot,ModelOutput.data,ones(50,1)*nan);

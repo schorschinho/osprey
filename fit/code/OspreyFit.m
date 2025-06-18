@@ -263,17 +263,10 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         relResA = MRSCont.QM.relAmpl.metab_A';
         MRSCont.QM.tables.relResA = relResA;
     elseif MRSCont.flags.isMEGA
-        if strcmp( MRSCont.opts.fit.style, 'Separate')
             relResA = MRSCont.QM.relAmpl.metab_A';
             relResdiff1 = MRSCont.QM.relAmpl.metab_diff1';
             MRSCont.QM.tables.relResA = relResA;
             MRSCont.QM.tables.relResdiff1 = relResdiff1;
-        else
-            relRessum = MRSCont.QM.relAmpl.metab_sum';
-            relResdiff1 = MRSCont.QM.relAmpl.metab_diff1';
-            MRSCont.QM.tables.relRessum = relRessum;
-            MRSCont.QM.tables.relResdiff1 = relResdiff1;
-        end
     elseif MRSCont.flags.isHERMES
             relRessum = MRSCont.QM.relAmpl.metab_sum';
             relResdiff1 = MRSCont.QM.relAmpl.metab_diff1';

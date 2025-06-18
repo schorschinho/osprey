@@ -50,7 +50,7 @@ cb(3,:) = cb(4,:);
 cb(4,:) = temp;
 
 %%% 1. PARSE INPUT ARGUMENTS %%%
-fitStyle    = MRSCont.opts.fit.style;
+
 % Fall back to defaults if not provided
 if nargin<7
 ylab='';
@@ -105,16 +105,11 @@ else % Is fit?
     if MRSCont.flags.isMEGA %Is MEGA
         switch fitwhich
             case {'diff1','sum'}
-                if strcmp(fitStyle,'Concatenated') %Is Concatenated?
-                    fit = 'conc';
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
-                else
-                    fit = 'diff1';
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);            
-                end   
+                fit = 'diff1';
+                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
             case {'off'}
-                    fit = 'A';
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);                         
+                fit = 'A';
+                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);
             case {'ref','w'}
                 fit = fitwhich;
                 data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
@@ -123,13 +118,8 @@ else % Is fit?
     if (MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES) %Is Multiplexed
         switch fitwhich
             case {'diff1','diff2','sum'}
-                if strcmp(fitStyle,'Concatenated') %Is Concatenated?
-                    fit = 'conc';
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
-                else
-                    fit = fitwhich;
-                    data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);            
-                end           
+                fit = fitwhich;
+                data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fit '_' fitwhich]);
             case {'ref','w'}
                 fit = fitwhich;
                 data = MRSCont.overview.sort_fit.(['g_' num2str(g)]).([fitwhich '_' fit]);

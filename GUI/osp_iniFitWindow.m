@@ -222,11 +222,7 @@ for t = 1 : gui.fit.Number %Loop over fits
             set(gui.upperBox.fit.box{t}, 'Width', [-0.15 -0.65 -0.1 -0.1]);
     end
 
-    if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w') %Is not concateneted or is reference/water fit
-        gui.fit.Style = gui.fit.Names{t};
-    else %Is concatenated and not water/reference
-        gui.fit.Style = 'conc';
-    end
+    gui.fit.Style = gui.fit.Names{t};
     
     % Creates layout for plotting and data control
     gui.Plot.fit{t} = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
@@ -261,12 +257,7 @@ for t = 1 : gui.fit.Number %Loop over fits
         set(gui.layout.(gui.layout.fitTabhandles{t}), 'Heights', [-0.1 -0.85 -0.05]);
     end
     
-    if  ~strcmp (MRSCont.opts.fit.style, 'Concatenated') ||  strcmp(gui.fit.Names{t}, 'ref') || strcmp(gui.fit.Names{t}, 'w') %Is not concateneted or is reference/water fit
-        gui.fit.Style = gui.fit.Names{t};
-    else %Is concatenated and not water/reference
-        gui.fit.Style = 'conc';
-    end
-
+    gui.fit.Style = gui.fit.Names{t};
 
     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
          switch MRSCont.opts.fit.method
@@ -397,11 +388,11 @@ for t = 1 : gui.fit.Number %Loop over fits
 
     % Get parameter from file to fill the info panel
     if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
-        StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t}];
+        StatText = ['Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method '; Selected subspecs: ' gui.fit.Names{t}];
     else if strcmp (Selection, 'ref') %Reference data?
-            StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t}];
+            StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method '; Selected subspecs: ' gui.fit.Names{t}];
         else %Is water data
-            StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Fitting Style: ' MRSCont.opts.fit.style '; Selected subspecs: ' gui.fit.Names{t}];
+            StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method '; Selected subspecs: ' gui.fit.Names{t}];
         end
     end
 

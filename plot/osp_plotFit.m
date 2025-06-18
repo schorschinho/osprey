@@ -56,15 +56,14 @@ end
 %%% 1. PARSE INPUT ARGUMENTS %%%
 % Get the fit method and style
 fitMethod   = MRSCont.opts.fit.method;
-fitStyle    = MRSCont.opts.fit.style;
 % Fall back to defaults if not provided
 if nargin<9
     [~,filen,ext] = fileparts(MRSCont.files{kk});
     if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
         if strcmp(which_spec, 'conc')
-            figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext]);
+            figTitle = sprintf([fitMethod ' ' conc ' fit plot:\n' filen ext]);
         else
-            figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext]);
+            figTitle = sprintf([fitMethod ' ' which_spec ' fit plot:\n' filen ext]);
         end
     elseif  (MRSCont.flags.isPRIAM && isfield(MRSCont.flags,'isPRIAM'))
         if nargin<4
@@ -74,18 +73,18 @@ if nargin<9
             conc = 'diff1';
         end
         if strcmp(which_spec, 'conc')
-            figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex)]);
+            figTitle = sprintf([fitMethod ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex)]);
         else
-            figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex)]);
+            figTitle = sprintf([fitMethod ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex)]);
         end
     else
         if nargin<4
             VoxelIndex = [1 1 1];
         end
         if strcmp(which_spec, 'conc')
-            figTitle = sprintf([fitMethod ' ' fitStyle ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
+            figTitle = sprintf([fitMethod ' ' conc ' fit plot:\n' filen ext '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
         else
-            figTitle = sprintf([fitMethod ' ' fitStyle ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
+            figTitle = sprintf([fitMethod ' ' which_spec ' fit plot:\n' filen ext  '\n Voxel ' num2str(VoxelIndex(1)) ' ' num2str(VoxelIndex(2))]);
         end
     end
     if nargin<8
@@ -145,7 +144,8 @@ switch fitMethod
                 if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
                     fitRangePPM = MRSCont.opts.fit.rangeWater;
                     basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).water.(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
-                else if strcmp(which_spec, 'conc')
+                else 
+                    if strcmp(which_spec, 'conc')
                         fitRangePPM = MRSCont.opts.fit.range;
                         basisSet    = MRSCont.fit.resBasisSet{VoxelIndex}.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                     else
@@ -157,7 +157,8 @@ switch fitMethod
                 if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
                     fitRangePPM = MRSCont.opts.fit.rangeWater;
                     basisSet    = MRSCont.fit.resBasisSet.(which_spec).water.(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
-                else if strcmp(which_spec, 'conc')
+                else 
+                    if strcmp(which_spec, 'conc')
                         fitRangePPM = MRSCont.opts.fit.range;
                         basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]);
                     else
@@ -176,7 +177,8 @@ switch fitMethod
             if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
                 fitRangePPM = MRSCont.opts.fit.rangeWater;
                 basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex,1};
-            else if strcmp(which_spec, 'conc')
+            else 
+                if strcmp(which_spec, 'conc')
                     fitRangePPM = MRSCont.opts.fit.range;
                     basisSet    = MRSCont.fit.resBasisSet.(which_spec).(['np_sw_' num2str(round(dataToPlot.sz(1))) '_' num2str(round(dataToPlot.spectralwidth))]){VoxelIndex,1};
                 else
@@ -238,7 +240,6 @@ switch fitMethod
         end
         inputSettings.fitRangePPM           = fitRangePPM;
         inputSettings.minKnotSpacingPPM     = MRSCont.opts.fit.bLineKnotSpace;
-        inputSettings.fitStyle              = MRSCont.opts.fit.style;
         inputSettings.flags.isMEGA          = MRSCont.flags.isMEGA;
         inputSettings.flags.isHERMES        = MRSCont.flags.isHERMES;
         inputSettings.flags.isHERCULES      = MRSCont.flags.isHERCULES;
@@ -293,11 +294,7 @@ switch fitMethod
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
         else
             % if metabolites, use the metabolite model
-            if strcmp(inputSettings.fitStyle,'Concatenated')
-                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-            else
-                [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
-            end
+            [ModelOutput] = fit_OspreyParamsToModel(inputData, inputSettings, fitParams);
         end
     case 'OspreyAsym'
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
@@ -305,11 +302,7 @@ switch fitMethod
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
         else
             % if metabolites, use the metabolite model
-            if strcmp(inputSettings.fitStyle,'Concatenated')
-                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-            else
-                [ModelOutput] = fit_OspreyAsymParamsToModel(inputData, inputSettings, fitParams);
-            end
+            [ModelOutput] = fit_OspreyAsymParamsToModel(inputData, inputSettings, fitParams);
         end
     case 'OspreyNoLS'
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
@@ -317,11 +310,7 @@ switch fitMethod
             [ModelOutput] = fit_waterOspreyParamsToModel(inputData, inputSettings, fitParams);
         else
             % if metabolites, use the metabolite model
-            if strcmp(inputSettings.fitStyle,'Concatenated')
-                [ModelOutput] = fit_OspreyParamsToConcModel(inputData, inputSettings, fitParams);
-            else
-                [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
-            end
+             [ModelOutput] = fit_OspreyNoLSParamsToModel(inputData, inputSettings, fitParams);
         end
     case 'LCModel'
         if strcmp(which_spec, 'ref') || strcmp(which_spec, 'w')
