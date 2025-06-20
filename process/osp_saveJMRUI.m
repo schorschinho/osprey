@@ -92,7 +92,7 @@ for kk = 1:MRSCont.nDatasets
         % Get TE and the input file name. For GE, the water reference is
         % already contained in the P file.
         if strcmpi(MRSCont.vendor, 'GE')
-            te_ref                      = MRSCont.processed.A{kk}.te;
+            te_ref                      = MRSCont.processed.metab{kk}.te;
             [path_ref,filename_ref,~]   = fileparts(MRSCont.files{kk});
         else
             te_ref                      = MRSCont.processed.ref{kk}.te;

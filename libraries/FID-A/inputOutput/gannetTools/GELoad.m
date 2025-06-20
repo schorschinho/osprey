@@ -275,6 +275,10 @@ hdr.TE = t_hdr_value(image_te)/1e3;
 hdr.TR = t_hdr_value(image_tr)/1e3;
 hdr.version = rdbm_rev_num;
 
+% GO 2025: Assume proton for now (if we ever need the field where the
+% nucleus is stored, insert here):
+hdr.nucleus = '1H';
+
 % Spectro prescan pfiles
 if npoints == 1 && nrows == 1
     npoints = 2048;

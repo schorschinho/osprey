@@ -214,6 +214,8 @@ if isnumeric(GEhdr.version)
 else
     out.software = ['Rev_number ' GEhdr.version];
 end
+out.nucleus = GEhdr.nucleus;
+
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;
@@ -263,6 +265,7 @@ out_ref.geometry.size.dim1 = temp(1);
 out_ref.geometry.size.dim2 = temp(2);
 out_ref.geometry.size.dim3 = temp(3);
 out_ref.software = out.software;
+out_ref.nucleus = out.nucleus;
 % Add info for niiwrite
 out_ref.PatientPosition = '';
 out_ref.Manufacturer = 'GE';
