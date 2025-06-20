@@ -261,6 +261,11 @@ nreceivers = (stop_recv - start_recv) + 1;
 % RTN 2018
 dataframes = f_hdr_value(rdb_hdr_user4)/nex;
 refframes = f_hdr_value(rdb_hdr_user19);
+% GO 2025 (NFL mode when hdr.cv24 == 16)
+if bitand(hdr.cv24,16)
+    dataframes = f_hdr_value(rdb_hdr_user4)/2;
+    refframes = f_hdr_value(rdb_hdr_user19);
+end
 
 % Read image header as int and float
 % MM (170118): Find TE/TR
@@ -311,7 +316,11 @@ if (nechoes == 1)
         mult = 1/nex;
     end
     
-    
+    % GO 2025 (NFL mode if hdr.cv24 == 16)
+    if bitand(hdr.cv24,16)
+        mult = 1/2;
+    end
+
     WaterData = ShapeData(:,:,2:refframes+1,:) * mult;
     FullData = ShapeData(:,:,refframes+2:end,:) * mult;
     

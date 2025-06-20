@@ -79,3 +79,11 @@ specifying-stat-file
 explicit-vs-automated-file
 osprey-command-line-tutorial
 fig:ospreyProcess2
+metabolites-included-in-the-basis-set
+co-edited-macromolecules
+installing-osprey-and-necessary-dependencies
+osprey-1
+spm
+gui-toolboxes
+osprey-package
+spm-package

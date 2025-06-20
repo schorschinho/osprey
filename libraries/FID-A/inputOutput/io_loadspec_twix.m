@@ -90,9 +90,11 @@ isMinn_dkd=~isempty(strfind(sequence,'svs_slaser_dkd')) ||...   % ... or Dinesh 
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
-isUniversal = ~isempty(strfind(sequence,'univ')) ||... %Is JHU universal editing sequence
-              ~isempty(strfind(sequence,'smm_svs_herc')) ||... % Is Pavi's HERCULES sequence
-              ~isempty(strfind(sequence,'svs_herc_gls')); % Is Gize's HERCULES sequence
+isUniversal = ~isempty(strfind(sequence,'univ')) ||...                  % Is JHU universal editing sequence
+              ~isempty(strfind(sequence,'smm_svs_herc')) ||...          % Is Pavi's HERCULES sequence
+              ~isempty(strfind(sequence,'svs_herc_gls')) ||...          % Is Gize's HERCULES sequence
+              ~isempty(strfind(sequence,'svs_se_herc_gls_v2')) || ...   % Is Gize's HERCULES sequence v2
+              ~isempty(strfind(sequence,'smm_svs_herm'));               % Is Pavi's HERMES sequence
 isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implemented at Donders Institute NL
 isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
 
@@ -161,7 +163,16 @@ if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequenc
         ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
         ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence
     squeezedData=squeeze(dOut.data);
-    if twix_obj.image.NCol>1 && twix_obj.image.NCha>1
+    % GO 3/2025: Adding a case where NRep>1, which adds a fifth dimension
+    % to everything
+    if twix_obj.image.NCol>1 && twix_obj.image.NCha>1 && twix_obj.image.NAve>1 && twix_obj.image.NRep>1
+        data(:,:,:,1,:)=squeezedData(:,:,[1:2:end-1],:);
+        data(:,:,:,2,:)=squeezedData(:,:,[2:2:end],:);
+        % Permute so that the 'Set' dimension containing the SPECIAL
+        % sub-specs remains last
+        data = permute(data, [1, 2, 3, 5, 4]);
+        sqzSize=[sqzSize(1) sqzSize(2) sqzSize(3)/2 sqzSize(4) 2];
+    elseif twix_obj.image.NCol>1 && twix_obj.image.NCha>1
         data(:,:,:,1)=squeezedData(:,:,[1:2:end-1]);
         data(:,:,:,2)=squeezedData(:,:,[2:2:end]);
         sqzSize=[sqzSize(1) sqzSize(2) sqzSize(3)/2 2];
@@ -432,7 +443,7 @@ end
 if ~isempty(dimsToIndex)
     %Now index the dimension of the sub-spectra
     if isjnseq  || isSpecial
-        if strcmp(version,'vd') || strcmp(version,'ve')
+        if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')
             dims.subSpecs=find(strcmp(sqzDims,'Set'));
         else
             dims.subSpecs=find(strcmp(sqzDims,'Ida'));
@@ -795,7 +806,7 @@ out.flags.isHERMES = 0;
 out.flags.isHERCULES = 0;
 out.flags.isPRIAM = 0;
 out.flags.isMRSI = 0;
-if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER') || strcmp(seq,'SPECIAL')
     out.flags.isUnEdited = 1;
 end
 if contains(seq,'MEGA')
@@ -871,7 +882,7 @@ if wRefs
     out_w.flags.isHERCULES = 0;
     out_w.flags.isPRIAM = 0;
     out_w.flags.isMRSI = 0;
-    if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
+    if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER') || strcmp(seq,'SPECIAL')
         out_w.flags.isUnEdited = 1;
     end
     if contains(seq,'MEGA')

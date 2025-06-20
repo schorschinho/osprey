@@ -45,7 +45,9 @@ Widgets Toolbox                                       Version 1.3.330     (R2019
 The available toolboxes (including SPM) are checked at the initial call of the Osprey GUI, and missing toolboxes are reported back to the user.
 ```
 
-## Installing Osprey
+## Installing Osprey and necessary dependencies
+
+### Osprey package
 
 Get the latest **Osprey** code from our [GitHub repository](https://github.com/schorschinho/osprey):
 
@@ -56,9 +58,16 @@ Get the latest **Osprey** code from our [GitHub repository](https://github.com/s
     ``` 
     
   - Add the entire `osprey` directory (with subfolders) to your MATLAB path.
+
   - Make sure to regularly check the repository for updates, as we frequently commit new features, bug fixes, and improved functions.
 
+### SPM package
+
 To perform voxel co-registration and tissue segmentation, download **SPM12** [from the University College London website](http://www.fil.ion.ucl.ac.uk/spm/software/spm12/). You will need to provide the SPM team with some information before you can access the download link.
+
+```{block2, noteSPMmac, type='rmdnote'}
+If you run an Apple Silicon processor (M1 and later), please download the [SPM development version from GitHub](https://github.com/spm/spm). The SPM12 package behind the official download link above likely does not contain pre-compiled C binaries for Silicon. 
+```
 
   - Extract the downloaded archive so that the `spm12` folder is on the same directory level as the `osprey` folder:
   
@@ -69,8 +78,10 @@ To perform voxel co-registration and tissue segmentation, download **SPM12** [fr
   - Add the `spm12` folder to your MATLAB path, but **without** subfolders.
   
 ```{block2, noteSPMsub, type='rmdwarning'}
- - during testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail. Add the top-level directory to your path, but not subfolders.
+During testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail. Add the top-level directory to your path, but not subfolders.
 ```
+
+### GUI Toolboxes
 
 If you want to use the **Osprey** Graphical User Interface (GUI), please download the following toolboxes from the MATLAB File Exchange:
 

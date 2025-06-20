@@ -6,6 +6,8 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/schorschinho/osprey)](https://github.com/schorschinho/osprey/commits/develop)
 [![Website](https://img.shields.io/website?down_color=lightgrey&down_message=offline&up_color=green&up_message=online&url=https%3A%2F%2Fschorschinho.github.io%2Fosprey)](https://schorschinho.github.io/osprey)
 [![License](https://img.shields.io/github/license/schorschinho/osprey)](https://github.com/schorschinho/osprey/blob/develop/LICENSE.md)
+[![DOI](https://zenodo.org/badge/197683508.svg)](https://doi.org/10.5281/zenodo.14226197)
+[![GitHub Total Downloads](https://img.shields.io/github/downloads/schorschinho/osprey/total)](https://github.com/schorschinho/osprey/releases)
 
 <img src="graphics/osprey.png" alt="Osprey" width="200"/>
 
@@ -63,7 +65,8 @@ functions.
 
 To perform voxel co-registration and tissue segmentation, download **SPM12**
 [from the UCL website](http://www.fil.ion.ucl.ac.uk/spm/software/spm12/), then
-extract and add to your MATLAB path.
+extract and add to your MATLAB path. If you run an Apple Silicon processor 
+(M1 and later), please download the [SPM development version from GitHub](https://github.com/spm/spm).
 
 If you want to use the `Osprey` Graphical User Interface (GUI),
 please download the following toolboxes from the MATLAB File Exchange:
@@ -82,7 +85,12 @@ Make sure to remove FID-A and Gannet from your MATLAB path.
 
 ## Contact, Feedback, Suggestions
 
-For any sort of questions, feedback, suggestions, or critique, please visit the [Osprey support forum](https://forum.mrshub.org/c/mrs-software/osprey/10) on the [MRSHub](https://www.mrshub.org).
+To report bugs and problems or to request features, please open a [GitHub Issue](https://github.com/schorschinho/osprey/issues).
+
+For all other questions, feedback, suggestions, or critique, please visit either:
+
+- the [GitHub Discussions forum in this repository](https://github.com/schorschinho/osprey/discussions) or
+- the [Osprey support forum](https://forum.mrshub.org/c/mrs-software/osprey/10) on the [MRSHub](https://www.mrshub.org), if you think your question is of significance to the wider community.
 
 We also welcome your direct contributions to Osprey here in the GitHub repository.
 
@@ -96,9 +104,13 @@ Should you publish material that made use of Osprey, please cite the following p
 
 [G Oeltzschner, HJ Zöllner, SCN Hui, M Mikkelsen, MG Saleh, S Tapper, RAE Edden. Osprey: Open-Source Processing, Reconstruction  & Estimation of Magnetic Resonance Spectroscopy Data. J Neurosci Meth 343:108827 (2020).](https://doi.org/10.1016/j.jneumeth.2020.108827)
 
+Please also refer to the version you have used during your analysis using the Zenodo DOI:
+
+[![DOI](https://zenodo.org/badge/197683508.svg)](https://doi.org/10.5281/zenodo.14226197)
+
 ## Acknowledgements
 
-This work has been supported by NIH grants R01 EB016089, P41 EB15909, P41 EB031771, R01 EB023963, and K99 AG062230.
+This work has been supported by NIH grants R01 EB016089, P41 EB15909, P41 EB031771, R01 EB023963, K99/R00 AG062230, R21 EB033516, R01 EB035529, and K99 AG 080084.
 
 We wish to thank collaborators and partners for providing LCModel basis sets and control files. If you use these resources for your analysis of the following data types, please mention the respective individuals in your acknowledgements:
 - Siemens 7T STEAM (TE = 5 ms): Dr. Dinesh Deelchand (University of Minnesota)

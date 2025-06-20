@@ -1203,9 +1203,12 @@ switch Bo
         relax.tCr  = [(1460+1460)/2 (1240+1240)/2 (148+144+148+144)/4 (166+166)/2]; % Mean values from Cr + PCr
         relax.tCho  = [(1300+1080)/2 (1080+1080)/2 (274+222+274+221)/4 (218+213)/2]; % Mean values from GPC + PCh
         relax.Glx  = [(1340+1270)/2 (1190+1170)/2 (122+99+135+122)/4 (168+124)/2]; % Mean values from Glu + Glx
-
+        
         % Check if metabolite name is in the look-up table
-        if isfield(relax, metName)
+        if iscell(metName) && length(metName)==1
+            metName = metName{1};
+        end
+        if ~iscell(metName) && (isfield(relax, metName))
             T1_GM = relax.(metName)(1) * 1e-3;
             T1_WM = relax.(metName)(2) * 1e-3;
             T2_GM = relax.(metName)(3) * 1e-3;
@@ -1245,9 +1248,12 @@ switch Bo
         relax.tCr  = [1740 1780 107 107]; % The singlet peak ar 3 ppm. 3.9 ppm peak values are [1240 1190 94 94] %T1 from Mlynarik et al. (2012)
         relax.tCho  = [1510 1320  153 153]; % Entire molecule; T1 from Mlynarik et al. (2012) 10.1002/mrm.24352
         relax.Glx  = [1625 1745 107 112]; % Mean values from Glu + Glx
-
+        
         % Check if metabolite name is in the look-up table
-        if isfield(relax, metName)
+        if iscell(metName) && length(metName)==1
+            metName = metName{1};
+        end
+        if ~iscell(metName) && (isfield(relax, metName))
             T1_GM = relax.(metName)(1) * 1e-3;
             T1_WM = relax.(metName)(2) * 1e-3;
             T2_GM = relax.(metName)(3) * 1e-3;

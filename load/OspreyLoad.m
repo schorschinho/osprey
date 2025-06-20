@@ -335,6 +335,24 @@ if MRSCont.flags.isUnEdited
                 raw = temp;
                 MRSCont.raw{kk} = raw;
             end
+
+        elseif MRSCont.flags.isSPECIAL
+            % To capture SPECIAL cases that have both subspecs *and*
+            % repetitions (which are along the 'extras' dimension), we'll
+            % just re-sort the repetitions dimension into 'averages'
+            % dimension
+            if raw.dims.extras ~= 0
+                % Generate empty struct
+                temp = struct;
+                % Extract extras and add to the temporary struct
+                for pp = 1:raw.sz(raw.dims.extras)
+                    extrasToAdd = op_takeextras(raw, pp);
+                    temp = op_concatAverages(temp, extrasToAdd);
+                end
+                % Save back to MRSCont
+                raw = temp;
+                MRSCont.raw{kk} = raw;
+            end
         end
     end
 end

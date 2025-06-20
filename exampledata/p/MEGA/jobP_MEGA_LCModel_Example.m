@@ -1,4 +1,4 @@
-%% jobSDAT.m
+%% jobP_MEGA_LCModel_Example.m
 %   This function describes an Osprey job defined in a MATLAB script.
 %
 %   A valid Osprey job contains four distinct classes of items:
@@ -61,11 +61,10 @@
 %   specific locations as described above.
 %
 %   AUTHOR:
-%       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
-%       goeltzs1@jhmi.edu
+%       C.W. Davies-Jenkins (Johns Hopkins University, 2025-02-26)
 %
 %   HISTORY:
-%       2019-07-15: First version of the code.
+%       2024-02-26: First version of the code.
 
 
 
@@ -235,7 +234,7 @@ clear files files_ref files_w files_nii files_mm
 % up the jobFile for your own data you can set a direct path to your data
 % folder e.g., data_folder = /Volumes/MyProject/data/'
 
-data_folder = fileparts(which(fullfile('exampledata','sdat','MEGA','jobSDAT_MEGA.m')));
+data_folder = fileparts(which(fullfile('exampledata','p','MEGA','jobP_MEGA_LCModel_Example.m')));
 
 % The following lines perform an automated set-up of the jobFile which
 % takes advatage of the BIDS foramt. If you are not using BIDS (highly
@@ -255,33 +254,31 @@ for kk = 1:length(subs)
     sess        = sess([sess.isdir]);
     sess        = sess(contains({sess.name},'ses'));
     for ll = 1:length(sess)
-
+                
         % Specify metabolite data
         % (MANDATORY)
-        dir_metabolite    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_megapress' filesep '*.SDAT']);
+        dir_metabolite    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_press' filesep '*.7']);
         files(counter)      = {[dir_metabolite(end).folder filesep dir_metabolite(end).name]};
-
+        
         % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
         % (OPTIONAL)
         % Leave empty for GE P-files (.7) - these include water reference data by
         % default.
-        dir_ref    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_megapress-ref' filesep '*.SDAT']);
-        files_ref(counter)  = {[dir_ref(end).folder filesep dir_ref(end).name]};
-
+        files_ref  = {};
+        
         % Specify water data for quantification (e.g. short-TE water scan)
         % (OPTIONAL)
-        dir_w    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_press-ref' filesep '*.SDAT']);
-        files_w(counter)  = {[dir_w(end).folder filesep dir_w(end).name]};
+        files_w     = {};
 
         % Specify metabolite-nulled data for quantification
         % (OPTIONAL)
-        files_mm     = {};
-
+        files_mm     = {};  
+        
        % Specify T1-weighted structural imaging data
         % (OPTIONAL)
         % Link to single NIfTI (*.nii) files for Siemens and Philips data
         % Link to DICOM (*.dcm) folders for GE data
-        files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep subs(kk).name '_'  sess(ll).name '_T1w.nii.gz']};
+        files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep sess(ll).name '_T1w.nii.gz']};    
 
         % External segmentation results
         % (OPTIONAL)
@@ -297,6 +294,7 @@ for kk = 1:length(subs)
         counter             = counter + 1;
     end
 end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Definitions without using BIDS
 
@@ -305,24 +303,22 @@ end
 
 % Specify metabolite data
 % (MANDATORY)
-% files(counter)      = {'/Volumes/MyProject/data/sub-01/mrs/MEGAPRESS_act.SDAT',...
-%                        '/Volumes/MyProject/data/sub-02/mrs/MEGAPRESS_act.SDAT'};
+% files(counter)      = {'/Volumes/MyProject/data/sub-01/mrs/PRESS_act.7',...
+%                        '/Volumes/MyProject/data/sub-02/mrs/PRESS_act.7'};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-% files_ref(counter)      = {'/Volumes/MyProject/data/sub-01/mrs/MEGAPRESS_ref.SDAT',...
-%                            '/Volumes/MyProject/data/sub-02/mrs/MEGAPRESS_ref.SDAT'};
+% files_ref(counter)      = {};
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-% files_w     = = {'/Volumes/MyProject/data/sub-01/mrs/PRESS_ref.SDAT',...
-%                  '/Volumes/MyProject/data/sub-02/mrs/PRESS_ref.SDAT'};
+% files_w     = {};
 
 % Specify metabolite-nulled data for quantification
 % (OPTIONAL)
-% files_mm     = {};
+% files_mm     = {};  
 
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
