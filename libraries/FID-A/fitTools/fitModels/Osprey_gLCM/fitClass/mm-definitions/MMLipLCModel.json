@@ -117,10 +117,10 @@
     },
     "MMexp": {
     "ppm": 0.91,
-    "fwmin": 0,
+    "fwmin": 0.14,
     "amp": 3,
     "sdppm": 0.02,
-    "fwex": 0,
+    "fwex": 0.17,
     "sdfw": 0.015
     },
     "MM3co": {
