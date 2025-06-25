@@ -376,7 +376,7 @@ for t = 1 : gui.fit.Number %Loop over fits
         case 'Osprey_gLCM'
             % Number of metabolites and lipid/MM basis functions
             basisSetNames =T_CRLB.Properties.VariableNames;
-            nMMLip = sum(find(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip')));
+            nMMLip = length(find(contains(basisSetNames,'MM') + contains(basisSetNames,'Lip')));
             nMets   = length(basisSetNames)-nMMLip;
             % Additional info panel string for the water fit range
             waterFitRangeString = ['Fitting range: ' num2str(MRSCont.opts.fit.rangeWater(1)) ' to ' num2str(MRSCont.opts.fit.rangeWater(2)) ' ppm'];
@@ -438,7 +438,7 @@ for t = 1 : gui.fit.Number %Loop over fits
             gui.Results.FitTextAmpl  = uicontrol('Parent',gui.Results.FitText,'style','text',...
                 'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-            if strcmp(MRSCont.opts.fit.method, 'LCModel')
+            if strcmp(MRSCont.opts.fit.method, 'LCModel') || strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
                 gui.Results.FitTextCRLB  = uicontrol('Parent',gui.Results.FitText,'style','text',...
                     'FontSize', resultsFontSize, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(CRLBText),...
                     'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
