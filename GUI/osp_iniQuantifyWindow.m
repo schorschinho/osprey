@@ -164,6 +164,9 @@ if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(M
                         end
                     end
                 end
+
+            QuantText = roundQuantTextCRLB(QuantText);
+
             temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             set ( temp, 'BackgroundColor',gui.colormap.Background);
@@ -262,6 +265,8 @@ elseif  (MRSCont.flags.isPRIAM && isfield(MRSCont.flags,'isPRIAM'))
                         QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{t}).(gui.quant.Names.Quants{q}).(['Voxel_' num2str(gui.controls.act_x)])(gui.controls.Selected,:))';
                     end
                 end
+
+                QuantText = roundQuantTextCRLB(QuantText);
             temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             set ( temp, 'BackgroundColor',gui.colormap.Background);

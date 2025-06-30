@@ -89,7 +89,9 @@ function osp_updateQuantifyWindow(gui)
                 else
                     QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).Voxel_1{gui.controls.act_z,gui.controls.act_y,gui.controls.act_x}(gui.controls.Selected,:))';
                 end
-            end
+           end
+
+           QuantText = roundQuantTextCRLB(QuantText);
             temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
              set( temp, 'BackgroundColor',gui.colormap.Background);
@@ -115,7 +117,9 @@ function osp_updateQuantifyWindow(gui)
                 else
                     QuantText(2:end,q+1) = table2cell(MRSCont.quantify.tables.(gui.quant.Names.Model{gui.quant.Selected.Model}).(gui.quant.Names.Quants{q}).(['Voxel_' num2str(gui.controls.act_x)])(gui.controls.Selected,:))';
                 end
-            end
+              end
+
+              QuantText = roundQuantTextCRLB(QuantText);
             temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
              set( temp, 'BackgroundColor',gui.colormap.Background);
