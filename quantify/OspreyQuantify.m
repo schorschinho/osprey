@@ -682,7 +682,7 @@ for mm = 1 : size(amplMets,1)
     % Metabolites
     for ss = 1 : size(amplMets,3)
         for kk = 1:length(metsName.metab{mm,ss})
-            [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss}{kk},Bo);
+            [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss},Bo);
             % average across GM and WM
             T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
             T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
