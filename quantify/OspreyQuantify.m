@@ -682,7 +682,7 @@ for mm = 1 : size(amplMets,1)
     % Metabolites
     for ss = 1 : size(amplMets,3)
         for kk = 1:length(metsName.metab{mm,ss})
-            [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss},Bo);
+            [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss}{kk},Bo);
             % average across GM and WM
             T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
             T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
@@ -1106,7 +1106,7 @@ switch Bo
         relax.Glx  = [(1340+1270)/2 (1190+1170)/2 (122+99+135+122)/4 (168+124)/2]; % Mean values from Glu + Glx
         
         % Check if metabolite name is in the look-up table
-        if iscell(metName) && length(metName)==1
+        if iscell(metName) && isscalar(metName)
             metName = metName{1};
         end
         if ~iscell(metName) && (isfield(relax, metName))
@@ -1151,7 +1151,7 @@ switch Bo
         relax.Glx  = [1625 1745 107 112]; % Mean values from Glu + Glx
         
         % Check if metabolite name is in the look-up table
-        if iscell(metName) && length(metName)==1
+        if iscell(metName) && isscalar(metName)
             metName = metName{1};
         end
         if ~iscell(metName) && (isfield(relax, metName))
