@@ -1,4 +1,4 @@
-%% jobSDAT.m
+%% jobTwix_MEGA_Example.m
 %   This function describes an Osprey job defined in a MATLAB script.
 %
 %   A valid Osprey job contains four distinct classes of items:
@@ -61,11 +61,10 @@
 %   specific locations as described above.
 %
 %   AUTHOR:
-%       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
-%       goeltzs1@jhmi.edu
+%       C.W. Davies-Jenkins (Johns Hopkins University, 2025-02-25)
 %
 %   HISTORY:
-%       2019-07-15: First version of the code.
+%       2024-02-25: First version of the code.
 
 
 
@@ -73,13 +72,13 @@
 %%% 1. SPECIFY SEQUENCE INFORMATION %%%
 
 % Specify sequence type
-seqType = 'MEGA';               % OPTIONS:    - 'unedited' (default)
+seqType = 'HERCULES';           % OPTIONS:    - 'unedited' (default)
                                 %             - 'MEGA'
                                 %             - 'HERMES'
                                 %             - 'HERCULES'
 
 % Specify editing targets
-editTarget = {'GABA'};           % OPTIONS:    - {'none'} (default if 'unedited')
+editTarget = {'GABA','GSH'};    % OPTIONS:    - {'none'} (default if 'unedited')
                                 %             - {'GABA'}, {'GSH'}, {'Lac'}, {'PE322'}, {'PE398'}  (for 'MEGA')
                                 %             - {'GABA', 'GSH'}, {'GABA', 'Lac'}, {'NAA', 'NAAG'} (for 'HERMES'and 'HERCULES')
 
@@ -160,119 +159,127 @@ opts.fit.method             = 'Osprey_gLCM';    % OPTIONS:    - 'Osprey_gLCM' (d
 % This also overwrites the Osprey fitting settings described in the
 % section above! For multiple sub-spectra include the matching model
 % procedure json files for each spectrum.
-opts.fit.ModelProcedure.metab   = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-off_Reg_Optim_Full_soft_constraint.json')),...
-                                   which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-diff1_Reg_Optim_Full_soft_constraint.json'))};
+opts.fit.ModelProcedure.metab   = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_HERCULES-sum_Reg_Optim_Full_soft_constraint.json')),...                                 
+                                   which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_HERCULES-diff1_Reg_Optim_Full_soft_constraint.json')),...
+                                   which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_HERCULES-diff2_Reg_Optim_Full_soft_constraint.json'))};
 opts.fit.ModelProcedure.ref     = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
 opts.fit.ModelProcedure.w       = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
 
 % Optional: In case the automatic basisset picker is not working you can manually
 % select the path to the basis set in the osprey/fit/basis, i.e.:
-% opts.fit.basisSetFile = 'osprey/fit/basis/3T/philips/mega/press/gaba68/basis_philips_megapress_gaba68.mat';
+% opts.fit.basisSetFile = 'osprey/fit/basis/3T/siemens/hercules/gabagsh/basis_siemens_hercules.mat';
 
-% Optional: Deface the strucutral images in the Coreg/Seg figures for HIPAA
+% Optional: Deface the structural images in the Coreg/Seg figures for HIPAA
 % compliance 
 opts.img.deface             = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
-% When using single-average Siemens RDA or DICOM files, specify their
-% folders instead of single files!
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
+% % When using single-average Siemens RDA or DICOM files, specify their
+% % folders instead of single files!
+% 
+% % Clear existing files
+% clear files files_ref files_w files_nii files_mm
+% 
+% % Data folder in BIDS format
+% % The filparts(which()) comment is needed to find the data on your machine. If you set
+% % up the jobFile for your own data you can set a direct path to your data
+% % folder e.g., data_folder = /Volumes/MyProject/data/'
+% 
+% data_folder = fileparts(which(fullfile('exampledata','twix','HERMES','jobTwix_HERMES_Example.m')));
+% 
+% % The following lines perform an automated set-up of the jobFile which
+% % takes advatage of the BIDS foramt. If you are not using BIDS (highly
+% % recommended) you can look at the definitions below the loop to see how to
+% % set up direct path links to your data.
+% subs       = dir(data_folder);
+% subs(1:2)  = [];
+% subs       = subs([subs.isdir]);
+% subs       = subs(contains({subs.name},'sub'));
+% counter    = 1;
+% 
+% for kk = 1:length(subs)
+%     % Loop over sessions
+%     sess        = dir([subs(kk).folder filesep subs(kk).name]);
+%     sess(1:2)   = [];
+%     sess        = sess([sess.isdir]);
+%     sess        = sess(contains({sess.name},'ses'));
+%     for ll = 1:length(sess)
+% 
+%         % Specify metabolite data
+%         % (MANDATORY)
+%         dir_metabolite    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_megapress' filesep '*.SDAT']);
+%         files(counter)      = {[dir_metabolite(end).folder filesep dir_metabolite(end).name]};
+% 
+%         % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
+%         % (OPTIONAL)
+%         % Leave empty for GE P-files (.7) - these include water reference data by
+%         % default.
+%         dir_ref    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_megapress-ref' filesep '*.SDAT']);
+%         files_ref(counter)  = {[dir_ref(end).folder filesep dir_ref(end).name]};
+% 
+%         % Specify water data for quantification (e.g. short-TE water scan)
+%         % (OPTIONAL)
+%         dir_w    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_press-ref' filesep '*.SDAT']);
+%         files_w(counter)  = {[dir_w(end).folder filesep dir_w(end).name]};
+% 
+%         % Specify metabolite-nulled data for quantification
+%         % (OPTIONAL)
+%         files_mm     = {};
+% 
+%        % Specify T1-weighted structural imaging data
+%         % (OPTIONAL)
+%         % Link to single NIfTI (*.nii) files for Siemens and Philips data
+%         % Link to DICOM (*.dcm) folders for GE data
+%         files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep subs(kk).name '_'  sess(ll).name '_T1w.nii.gz']};
+% 
+%         % External segmentation results
+%         % (OPTIONAL)
+%         % Link to NIfTI (*.nii or *.nii.gz) files with segmentation results
+%         % Add supply gray matter, white matter, and CSF as 1 x 3 cell within a
+%         % cell array  or a single 4D file in the same order supplied as 1 x 1 cell;
+% %         files_seg(counter)   = {{[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c1' sess(ll).name '_T1w.nii.gz'],...
+% %                                  [sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c2' sess(ll).name '_T1w.nii.gz'],...
+% %                                  [sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c3' sess(ll).name '_T1w.nii.gz']}};
+% 
+% %         files_seg(counter)   = {{[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep '4D' sess(ll).name '_T1w.nii.gz']}};
+% 
+%         counter             = counter + 1;
+%     end
+% end
 
-% Clear existing files
-clear files files_ref files_w files_nii files_mm
-
-% Data folder in BIDS format
-% The filparts(which()) comment is needed to find the data on your machine. If you set
-% up the jobFile for your own data you can set a direct path to your data
-% folder e.g., data_folder = /Volumes/MyProject/data/'
-
-data_folder = fileparts(which(fullfile('exampledata','sdat','MEGA','jobSDAT_MEGA.m')));
-
-% The following lines perform an automated set-up of the jobFile which
-% takes advatage of the BIDS foramt. If you are not using BIDS (highly
-% recommended) you can look at the definitions below the loop to see how to
-% set up direct path links to your data.
-
-subs       = dir(data_folder);
-subs(1:2)  = [];
-subs       = subs([subs.isdir]);
-subs       = subs(contains({subs.name},'sub'));
-counter    = 1;
-
-for kk = 1:length(subs)
-    % Loop over sessions
-    sess        = dir([subs(kk).folder filesep subs(kk).name]);
-    sess(1:2)   = [];
-    sess        = sess([sess.isdir]);
-    sess        = sess(contains({sess.name},'ses'));
-    for ll = 1:length(sess)
-
-        % Specify metabolite data
-        % (MANDATORY)
-        dir_metabolite    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_megapress' filesep '*.SDAT']);
-        files(counter)      = {[dir_metabolite(end).folder filesep dir_metabolite(end).name]};
-
-        % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
-        % (OPTIONAL)
-        % Leave empty for GE P-files (.7) - these include water reference data by
-        % default.
-        dir_ref    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_megapress-ref' filesep '*.SDAT']);
-        files_ref(counter)  = {[dir_ref(end).folder filesep dir_ref(end).name]};
-
-        % Specify water data for quantification (e.g. short-TE water scan)
-        % (OPTIONAL)
-        dir_w    = dir([sess(ll).folder filesep sess(ll).name filesep 'mrs' filesep subs(kk).name '_' sess(ll).name '_press-ref' filesep '*.SDAT']);
-        files_w(counter)  = {[dir_w(end).folder filesep dir_w(end).name]};
-
-        % Specify metabolite-nulled data for quantification
-        % (OPTIONAL)
-        files_mm     = {};
-
-       % Specify T1-weighted structural imaging data
-        % (OPTIONAL)
-        % Link to single NIfTI (*.nii) files for Siemens and Philips data
-        % Link to DICOM (*.dcm) folders for GE data
-        files_nii(counter)  = {[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep subs(kk).name '_'  sess(ll).name '_T1w.nii.gz']};
-
-        % External segmentation results
-        % (OPTIONAL)
-        % Link to NIfTI (*.nii or *.nii.gz) files with segmentation results
-        % Add supply gray matter, white matter, and CSF as 1 x 3 cell within a
-        % cell array  or a single 4D file in the same order supplied as 1 x 1 cell;
-%         files_seg(counter)   = {{[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c1' sess(ll).name '_T1w.nii.gz'],...
-%                                  [sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c2' sess(ll).name '_T1w.nii.gz'],...
-%                                  [sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep 'c3' sess(ll).name '_T1w.nii.gz']}};
-
-%         files_seg(counter)   = {{[sess(ll).folder filesep sess(ll).name filesep 'anat' filesep subs(kk).name filesep '4D' sess(ll).name '_T1w.nii.gz']}};
-
-        counter             = counter + 1;
-    end
-end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Definitions without using BIDS
 
 % You can always supply direct path to each of the files within
 % the cell array. For example:
 
+% Path to internal test data
+homePath = strrep(userpath, fullfile('Documents', 'MATLAB'), '');
+if ispc
+    oneDriveFolder = fullfile(homePath, 'OneDrive - Johns Hopkins');
+elseif ismac
+    oneDriveFolder = fullfile(homePath, 'Library', 'CloudStorage', 'OneDrive-JohnsHopkins');
+end
+data_folder = fullfile(oneDriveFolder, 'OspreyTestData', 'siemens', 'hercules');
+
 % Specify metabolite data
 % (MANDATORY)
-% files(counter)      = {'/Volumes/MyProject/data/sub-01/mrs/MEGAPRESS_act.SDAT',...
-%                        '/Volumes/MyProject/data/sub-02/mrs/MEGAPRESS_act.SDAT'};
+files    = {fullfile(data_folder, 'Herc_02_HERCULES.dat')};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
 % Leave empty for GE P-files (.7) - these include water reference data by
 % default.
-% files_ref(counter)      = {'/Volumes/MyProject/data/sub-01/mrs/MEGAPRESS_ref.SDAT',...
-%                            '/Volumes/MyProject/data/sub-02/mrs/MEGAPRESS_ref.SDAT'};
+files_ref    = {fullfile(data_folder, 'Herc_02_HERCULES_water.dat')};
+
 
 % Specify water data for quantification (e.g. short-TE water scan)
 % (OPTIONAL)
-% files_w     = = {'/Volumes/MyProject/data/sub-01/mrs/PRESS_ref.SDAT',...
-%                  '/Volumes/MyProject/data/sub-02/mrs/PRESS_ref.SDAT'};
+% files_w    = {fullfile(data_folder, 'hermes', 'Herc_02_HERMES_shortte_water.dat')};
 
 % Specify metabolite-nulled data for quantification
 % (OPTIONAL)
@@ -281,8 +288,7 @@ end
 % Specify T1-weighted structural imaging data
 % (OPTIONAL)
 % Link to single NIfTI (*.nii.gz or #.nii) files for GE, Siemens and Philips data
-% files_nii  = {'/Volumes/MyProject/data/sub-01/anat/T1w.nii.gz',...
-%               '/Volumes/MyProject/data/sub-02/anat/T1w.nii.gz'};
+% files_nii  =  {fullfile(data_folder, 'hermes', 'Herc_02_HERMES_T1.nii')};
 
 % External segmentation results
 % (OPTIONAL)
@@ -305,10 +311,9 @@ end
 % measure. For the grouping variable use 'group' and numbers between 1 and
 % the number of included groups. If no group is supplied the data will be
 % treated as one group. (You can always use the direct path)
-
-file_stat = fullfile(data_folder, 'stat.csv');
-
+% file_stat = fullfile(data_folder, 'stat.csv');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %%% 5. SPECIFY OUTPUT FOLDER %%
 % The Osprey data container will be saved as a *.mat file in the output
 % folder that you specify below. In addition, any exported files (for use

@@ -20,7 +20,7 @@
       "basisset": {
         "spec": 1,
         "include": [
-          "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "Asc","Asp","Cr","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr","PE","sI","Tau"
         ]
       },
@@ -65,7 +65,7 @@
       "basisset": {
         "spec": 1,
         "include": [
-          "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "Asc","Asp","Cr","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr","PE","sI","Tau"
         ]
       },
@@ -164,7 +164,7 @@
       "basisset": {
         "spec": 1,
         "include": [
-          "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "Asc","Asp","Cr","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr","PE","sI","Tau"
         ]
       },
