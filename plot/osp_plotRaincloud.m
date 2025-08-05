@@ -134,6 +134,9 @@ end
 if strcmp(quant, 'Quality')
     ylab = [quality_Names{idx_1}];
 end
+if strcmp(quant, 'CRLB')
+    ylab = [metab ' CRLB'];
+end
 %%% 4. CREATE RAINCLOUD PLOT %%%
 % Generate a new figure and keep the handle memorized
 out_rain = figure('Color', 'w');
@@ -144,6 +147,11 @@ if ~GMean
     f = zeros(1,MRSCont.overview.NoGroups);
     for g = 1 : MRSCont.overview.NoGroups
         data{1,1} = ConcData(MRSCont.overview.groups == g);
+        data{1,1}(isinf(data{1,1})) = nan;
+        if all(isnan(data{1,1}))
+            close(out_rain)
+            error('No entries to plot in group %i!',g)
+        end
         [f_tmp, ~, ~] = ksdensity(data{1,1}, 'bandwidth', []);
         f(g) =  max(f_tmp); 
     end
@@ -151,6 +159,11 @@ if ~GMean
 else
     f = zeros(1,1);
     data{1,1} = ConcData(:);
+    data{1,1}(isinf(data{1,1})) = nan;
+    if all(isnan(data{1,1}))
+        close(out_rain)
+        error('No entries to plot!')
+    end
     [f_tmp, ~, ~] = ksdensity(data{1,1}, 'bandwidth', []);
     f(1) =  max(f_tmp); 
     maxim = max(f);    
@@ -160,6 +173,7 @@ end
 if ~GMean
     for g = 1 : MRSCont.overview.NoGroups
         data{1,1} = ConcData(MRSCont.overview.groups == g);
+        data{1,1}(isinf(data{1,1})) = nan;
         % mean and SD
         meanv = mean(data{1,1});
         sdv = std(data{1,1});
@@ -169,6 +183,7 @@ if ~GMean
     end
 else
     data{1,1} = ConcData(:);
+    data{1,1}(isinf(data{1,1})) = nan;
     % mean and SD
     meanv = mean(data{1,1});
     sdv = std(data{1,1});
@@ -184,13 +199,14 @@ legend('AutoUpdate','off','Location','north','Orientation','horizontal');
 if ~GMean
     for g = 1 : MRSCont.overview.NoGroups
         data{1,1} = ConcData(MRSCont.overview.groups == g);
-
+        data{1,1}(isinf(data{1,1})) = nan;
         rain{g} = raincloud_plot(data{1,1}, 'box_on', 1, 'color', cb(g,:), 'alpha', 0.3,...
              'box_dodge', 1, 'box_dodge_amount', .15*g, 'dot_dodge_amount', .15*g,...
              'box_col_match', 1,'cloud_edge_col', 'none', 'normalize', maxim);
     end
 else
     data{1,1} = ConcData(:);
+    data{1,1}(isinf(data{1,1})) = nan;
     rain{1} = raincloud_plot(data{1,1}, 'box_on', 1, 'color', cb(1,:), 'alpha', 0.3,...
          'box_dodge', 1, 'box_dodge_amount', .15, 'dot_dodge_amount', .15,...
          'box_col_match', 1,'cloud_edge_col', 'none', 'normalize', maxim);

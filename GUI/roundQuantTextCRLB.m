@@ -16,7 +16,7 @@ if any(findCRLBCol(:))
     % Change column title to include [%]
     QuantTextOut{1,CRLBCol} = 'CRLB [%]';
     for m = 2:size(QuantTextIn,1)
-        QuantTextOut{m,4} = round(QuantTextIn{m,4}, 1);
+        QuantTextOut{m,CRLBCol} = round(QuantTextIn{m,CRLBCol}, 1);
     end
 
 else
