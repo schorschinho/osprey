@@ -28,7 +28,6 @@ function osp_updateFitWindow(gui)
         basis = gui.controls.act_z;
         subspectrum = gui.controls.act_y;
         experiment = gui.controls.act_x;
-
         
         switch MRSCont.opts.fit.method
             case 'LCModel'
@@ -50,6 +49,7 @@ function osp_updateFitWindow(gui)
                 gui.Results.FitTextNames = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1).Children.Children(3);
                 gui.controls.ModelStep = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(4);
                 ModelStep = gui.controls.ModelStep.Value;
+                ModelPick = gui.controls.ModelPick.Value;
                 % Selection = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum}.Data.spec_name;
                 set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(3).Children(4).Children(1).Children.Children(4),'String',gui.controls.act_z)
                 set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(3).Children(4).Children(1).Children.Children(5),'String',gui.controls.act_y)
@@ -102,17 +102,17 @@ function osp_updateFitWindow(gui)
                 resultsFontSize = 11;
             case 'Osprey_gLCM'
                 % Number of metabolites and lipid/MM basis functions
-                if (isfield(MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum,1}.Options{1,ModelStep},'paraIndirect'))   
-                    if ~strcmp(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,1}.Options{1}.parametrizations.metAmpl.type,'dynamic')
-                        T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.CRLB;
+                if (isfield(MRSCont.fit.results.(gui.fit.Style){basis,1,subspectrum,1,ModelPick}.Options{1,ModelStep},'paraIndirect'))   
+                    if ~strcmp(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,1,ModelPick}.Options{1}.parametrizations.metAmpl.type,'dynamic')
+                        T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.CRLB;
                     else
-                        T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,1}.Model{gui.controls.ModelStep.Value}.CRLB;
+                        T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,1,ModelPick}.Model{gui.controls.ModelStep.Value}.CRLB;
                     end
                     basisSetNames =T_CRLB.Properties.VariableNames;
                     DisplayExperiment = experiment;
                     experiment = 1;
                 else
-                    T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{ModelStep}.CRLB;
+                    T_CRLB = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{ModelStep}.CRLB;
                     basisSetNames =T_CRLB.Properties.VariableNames;
                     DisplayExperiment = 1;
                 end
@@ -135,22 +135,22 @@ function osp_updateFitWindow(gui)
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
                 case 'Osprey_gLCM'
-                    if isfield(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value},'Combined')
-                        if ~isfield(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
-                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                    if isfield(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value},'Combined')
+                        if ~isfield(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
+                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.scale;
                         else
-                            RawAmpl = [MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl ...
-                                        MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl(length(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl)*2+1:end)]...
-                                        .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                            RawAmpl = [MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl ...
+                                        MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl(length(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl)*2+1:end)]...
+                                        .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.scale;
                         end                       
                     else
-                        if ~isfield(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
-                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                        if ~isfield(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
+                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.scale;
                         else
-                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.scale;
                         end
                     end
-                    CRLB    = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{ModelStep}.CRLB{1,:};
+                    CRLB    = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{ModelStep}.CRLB{1,:};
 
              end
         elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
@@ -163,8 +163,8 @@ function osp_updateFitWindow(gui)
                         CRLB    = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{gui.controls.Selected,subspectrum}.CRLB;
                     end
                 case 'Osprey_gLCM'
-                    RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum,experiment}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
-                    CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Model{end}.CRLB{1,:};
+                    RawAmpl = MRSCont.fit.results{1,gui.controls.act_x}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
+                    CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{end}.CRLB{1,:};
             end
         else
             switch MRSCont.opts.fit.method
@@ -179,16 +179,19 @@ function osp_updateFitWindow(gui)
                     RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{basis,gui.controls.Selected,subspectrum}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
                 case 'Osprey_gLCM'
                     try
-                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment}.Model{ModelStep}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment,ModelPick}.Model{ModelStep}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.scale;
                     catch
-                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment}.Model{ModelStep}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale;
+                        RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment,ModelPick}.Model{ModelStep}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.scale;
                     end
-                    CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment}.Model{ModelStep}.CRLB{1,:};
+                    CRLB    = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.Selected,end,subspectrum,experiment,ModelPick}.Model{ModelStep}.CRLB{1,:};
             end
         end
 
         if  ~strcmp (Selection, 'ref') && ~strcmp (Selection, 'w') %Metabolite data?
-            StatText = [ 'Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Selected subspecs: ' Selection ];
+            StatText = [ 'Metabolite Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Selected subspecs: ' Selection '; Selected subspecs: ' Selection ];
+            if matches(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                [~,Fname] = fileparts(MRSCont.opts.fit.ModelProcedure.metab{ModelPick,subspectrum});
+                StatText = [StatText, '; Model JSON: ' Fname ];
         else if strcmp (Selection, 'ref') %Reference data?
                 StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Selected subspecs: ' Selection];
             else %Is water data
@@ -243,20 +246,20 @@ function osp_updateFitWindow(gui)
                             if ~isfield(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut,'metAmplReparametrization')
                                     RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale);
                                 else
-                                    RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale);
+                                    RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){Model,Pickgui.controls.Selected}.scale);
                                 end
                             else
                                 if ~isfield(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut,'metAmplReparametrization')
-                                    RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl(DisplayExperiment,:)) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale);
+                                    RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl(DisplayExperiment,:)) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,1}.scale);
                                 else
-                                    RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale);
+                                    RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,1}.scale);
                                 end
                             end
 
                             if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
-                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl(DisplayExperiment,:)) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale);
+                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl(DisplayExperiment,:)) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,1}.scale);
                             else
-                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl(DisplayExperiment,:)) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.scale);
+                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl(DisplayExperiment,:)) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,1}.scale);
                             end
                     end
                     NameText = [''];
@@ -389,14 +392,14 @@ function osp_updateFitWindow(gui)
         else
             switch gui.overview.Selected.ModelPlot
                 case 1
-                    MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.plotFit1D(0,ModelStep,DisplayExperiment);
+                    MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.plotFit1D(0,ModelStep,DisplayExperiment);
                 case 2
-                    MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.plotFit1DStack(0,ModelStep,DisplayExperiment);
+                    MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.plotFit1DStack(0,ModelStep,DisplayExperiment);
                 case 3
-                    if size(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.Data.fids) > 1
-                        MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.plotFit3D(0,ModelStep);
+                    if size(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Data.fids) > 1
+                        MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.plotFit3D(0,ModelStep);
                     else
-                        MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment}.plotFit1D(0,ModelStep,DisplayExperiment);
+                        MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.plotFit1D(0,ModelStep,DisplayExperiment);
                     end
             end         
         end

@@ -806,7 +806,9 @@ function osp_onPrint( ~, ~ ,gui)
            InfoText  = uicontrol('Parent',Info,'style','text',...
                 'FontSize', 12, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(StatText),...
             'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+
             Plot = uix.HBox('Parent', input_figure, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+
             set(input_figure, 'Heights', [-0.1 -0.9]);
             switch ovSelection
                 case 1 %SpecOverview
@@ -977,8 +979,38 @@ function osp_onPrint( ~, ~ ,gui)
                     set(out.Children.Children.Children(1).Children,'Children',flipud(out.Children.Children.Children(1).Children.Children));
                     close(fig_hold);
                     MRSCont.flags.isGUI =1;
-                    end
+                case 7 %multiverse
+                    outputFolder    = fullfile(MRSCont.outputFolder,'Figures','OspreyOverview', 'Multiverse');
+                    Exp = gui.controls.act_x;
+                    SubSpec = gui.controls.act_y;
+                    Checkbox = gui.controls.check_multiverseOvPlotMed.Value;
+                    Ref   = gui.controls.pop_multiverseOvPlotArg2.String{gui.controls.pop_multiverseOvPlotArg2.Value};
+                    PlotType = gui.controls.pop_multiverseOvPlotType.String{gui.controls.pop_multiverseOvPlotType.Value};
+                    switch PlotType
+                        case 'Specification curve'
+                            metab = gui.controls.pop_multiverseOvPlotArg.String{gui.controls.pop_multiverseOvPlotArg.Value};
 
+                            PltGap = uicontrol('Parent',Plot,'Style','text','String','  ',...
+                                'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','center');
+                            PltPlot = uix.VBox('Parent', Plot, 'Padding', 45,'Spacing', 5,'BackgroundColor',gui.colormap.Background);
+
+                            outputFile = ['SpecificationCurve_' metab '_' Ref '.pdf'];
+                            fig_hold = osp_plotSpecificationcurve(MRSCont,metab,Ref,0,SubSpec,Exp);
+                            set(fig_hold.Children([2,1]), 'Parent', PltPlot );
+                            close(fig_hold);
+                            set(Plot,'Widths', [-0.1 -0.9]);
+                            set(PltPlot,'Heights', [-0.1 -0.9]);
+                        case 'Inter-model distributions'
+                            if Checkbox
+                                NDataset = 0;
+                            else
+                                NDataset = str2num(gui.controls.pop_multiverseOvPlotArg.String(gui.controls.pop_multiverseOvPlotArg.Value));
+                            end
+                             temp = osp_plotMultiverse(MRSCont,Ref,NDataset,SubSpec,Exp);
+                             outputFile = ['InterModelDistribution_' Ref '.pdf'];
+                             set(temp.Children(1), 'Parent', Plot);
+                    end
+                end
     end
     set(out,'Renderer','painters','Menu','none','Toolbar','none');
     setappdata(gui.figure,'MRSCont',MRSCont);   % Write MRSCont into hidden container in gui class

@@ -58,6 +58,8 @@ function osp_OverviewTabChangedFcn(src,~,gui)
             osp_updatecorrOvWindow(gui);
             set(gui.controls.pop_corrOvQuant, 'value',gui.quant.Selected.Quant)
             set(gui.controls.pop_corrOvMetab, 'value',gui.overview.Selected.Metab)
+        case 7
+            osp_updatemultiverseOvWindow(gui)
       otherwise
             set(gui.layout.overviewTab, 'selection', 1);
     end

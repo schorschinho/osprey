@@ -232,10 +232,27 @@ for t = 1 : gui.fit.Number %Loop over fits
     else
         gui.Plot.ModelControls{t} = uix.HBox('Parent', gui.layout.(gui.layout.fitTabhandles{t}), ...
         'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.controls.text_ModelPick = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','Model Chosen:',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','left');
+        gui.controls.ModelPick = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','Slider','FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        ModelPickMaxStepValue = size(MRSCont.fit.results.(gui.fit.Style),5);
+        ModelPickSliderValues = ModelPickMaxStepValue - 1;
+        if ModelPickSliderValues == 0
+            ModelPickSliderValues = 1;
+        end
+        set(gui.controls.ModelPick,'Min', 1, 'Max', ModelPickMaxStepValue, 'Value', 1,'Tooltip', 'Model chosen', 'SliderStep', [1/(ModelPickSliderValues),1/(ModelPickSliderValues)]);
+        if ModelPickMaxStepValue == 1
+            set(gui.controls.ModelPick, 'Enable', 'off');
+        else
+            set(gui.controls.ModelPick, 'Enable', 'on');
+        end
+        gui.controls.text_gap1 = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','  ',...
+        'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','center');
+
         gui.controls.text_Model = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','Model Step:',...
         'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','left');
         gui.controls.ModelStep = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','Slider','FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-        ModelMaxStepValue = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected,1,1}.step;
+        ModelMaxStepValue = MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected,1,1}.step;
         ModelSliderValues = ModelMaxStepValue - 1;
         if ModelSliderValues == 0
             ModelSliderValues = 1;
@@ -246,14 +263,16 @@ for t = 1 : gui.fit.Number %Loop over fits
         else
             set(gui.controls.ModelStep, 'Enable', 'on');
         end
-        gui.controls.text_gap = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','  ',...
+        gui.controls.text_gap2 = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','  ',...
         'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','center');
         gui.controls.text_Model = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','text','String','Plot type:',...
         'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','left');
         gui.controls.PlotType = uicontrol('Parent',gui.Plot.ModelControls{t},'Style','popupmenu','String',{'Compact','Stack','3D plot'},'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+        set(gui.controls.ModelPick,'Callback',{@osp_onModelPick,gui});
         set(gui.controls.ModelStep,'Callback',{@osp_onModelStep,gui});
         set(gui.controls.PlotType,'Callback',{@osp_pop_PlotType,gui});
-        set(gui.Plot.ModelControls{t}, 'Width', [-0.1 -0.35 -0.1 -0.1 -0.35]);
+        C=-0.23; T=-0.07; G=-0.05;
+        set(gui.Plot.ModelControls{t}, 'Width', [T C G T C G T C]);
         set(gui.layout.(gui.layout.fitTabhandles{t}), 'Heights', [-0.1 -0.85 -0.05]);
     end
     
@@ -271,22 +290,22 @@ for t = 1 : gui.fit.Number %Loop over fits
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results.(gui.fit.Style).fitParams{1,gui.controls.Selected,end}.ampl .* MRSCont.fit.scale{1,gui.controls.Selected};
                 case 'Osprey_gLCM'
-                    if isfield(MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value},'Combined')
-                        if ~isfield(MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
-                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                    if isfield(MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value},'Combined')
+                        if ~isfield(MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
+                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale;
                         else
-                            RawAmpl = [MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl ...
-                                        MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl(length(MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl)*2+1:end)]...
-                                        .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                            RawAmpl = [MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl ...
+                                        MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl(length(MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl)*2+1:end)]...
+                                        .* MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale;
                         end                       
                     else
-                        if ~isfield(MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
-                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                        if ~isfield(MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
+                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale;
                         else
-                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                            RawAmpl = MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl .* MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale;
                         end
                     end
-                    T_CRLB = MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB;
+                    T_CRLB = MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB;
                     CRLB    = T_CRLB{1,:};
         end
         
@@ -314,22 +333,22 @@ for t = 1 : gui.fit.Number %Loop over fits
                 case 'Osprey'
                     RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).fitParams{gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected};
                 case 'Osprey_gLCM'
-                    if isfield(MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value},'Combined')
-                        if ~isfield(MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
-                            RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl .* MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                    if isfield(MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value},'Combined')
+                        if ~isfield(MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
+                            RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl .* MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale;
                         else
-                            RawAmpl = [MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl ...
-                                        MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl.DecayAmpl(MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl*2+1:end)]...
-                                        .* MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                            RawAmpl = [MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl ...
+                                        MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.Combined.parsOut.metAmpl.DecayAmpl(MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl*2+1:end)]...
+                                        .* MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale;
                         end                       
                     else
-                        if ~isfield(MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
-                            RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                        if ~isfield(MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut,'metAmplReparametrization')
+                            RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmpl .* MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale;
                         else
-                            RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl .* MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.scale;
+                            RawAmpl = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.parsOut.metAmplReparametrization.DecayAmpl .* MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale;
                         end
                     end
-                    T_CRLB = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){1,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB;
+                    T_CRLB = MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.Model{gui.controls.ModelStep.Value}.CRLB;
                     CRLB    = T_CRLB{1,:};
                     
         end
@@ -454,17 +473,18 @@ for t = 1 : gui.fit.Number %Loop over fits
                         end
                     case 'LCModel'
                     case 'Osprey_gLCM'
+                        % (Multiverse currently assumes only 1 water model)
                         if MRSCont.flags.hasRef %Calculate Raw Water Scaled amplitudes
                             if ~isfield(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut,'metAmplReparametrization')
-                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale);
+                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale);
                             else
-                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale);
+                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.ref{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale);
                             end
                         else
                             if ~isfield(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut,'metAmplReparametrization')
-                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale);
+                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl) .* MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale);
                             else
-                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){1,gui.controls.Selected}.scale);
+                                RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmplReparametrization.DecayAmpl) .* MRSCont.fit.results.(gui.fit.Style){gui.controls.ModelPick.Value,gui.controls.Selected}.scale);
                             end
                         end
                 end

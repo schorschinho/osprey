@@ -62,44 +62,47 @@ for ex = 1 : SeparateExtraDims
     % subspectra in the model procedure. 
     if MRSCont.flags.hasMM ~= 1
         SpectraToModel =size(MRSCont.opts.fit.ModelProcedure.metab,2);
+        ModelsPerSpec = size(MRSCont.opts.fit.ModelProcedure.metab,1);
     else
         SpectraToModel = 1;
     end
-    for ss = 1 : SpectraToModel
-        % Read model procedure 
-        ModelProcedure = jsonToStruct(MRSCont.opts.fit.ModelProcedure.metab{1,ss});
-        if isstruct(ModelProcedure.Steps)
-            ModelProcedureCell = cell(size(ModelProcedure.Steps));
-            for steps = 1 : size(ModelProcedure.Steps,1)
-                ModelProcedureCell{steps} = ModelProcedure.Steps(steps,:);
-            end
-            ModelProcedure.Steps = ModelProcedureCell;
-        end
-        if ~isfield(ModelProcedure,'basisset') || ~isfield(ModelProcedure.basisset, 'file') || ... 
-            isempty(ModelProcedure.basisset.file)
-            if ~iscell(MRSCont.fit.basisSet)
-                ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
-            else
-                ModelProcedure.basisset.file = MRSCont.fit.basisSet;
-            end
-        end
-        if SeparateExtraDims > 1
-            ModelProcedure.basisset.opts.index = ex;
-        end
-        if (ss == 1) && (ex == 1)
-            [MRSCont.fit.results.metab(1,:,ss,ex)] = Osprey_gLCM(MRSCont.processed.metab,ModelProcedure)';
-        else
-            if isprop(MRSCont.fit.results.metab{1,1,1,1}, 'scale')
-                scale = [];
-                for kk = 1:MRSCont.nDatasets(1)
-                    scale = [scale MRSCont.fit.results.metab{1,kk,1,1}.scale];
+    for ms = 1 : ModelsPerSpec
+        for ss = 1 : SpectraToModel
+            % Read model procedure 
+            ModelProcedure = jsonToStruct(MRSCont.opts.fit.ModelProcedure.metab{ms,ss});
+            if isstruct(ModelProcedure.Steps)
+                ModelProcedureCell = cell(size(ModelProcedure.Steps));
+                for steps = 1 : size(ModelProcedure.Steps,1)
+                    ModelProcedureCell{steps} = ModelProcedure.Steps(steps,:);
                 end
-            else
-                scale = 0;
+                ModelProcedure.Steps = ModelProcedureCell;
             end
-            [MRSCont.fit.results.metab(1,:,ss,ex)] = Osprey_gLCM(MRSCont.processed.metab,ModelProcedure,0,0,scale)';
-        end        
-    end   
+            if ~isfield(ModelProcedure,'basisset') || ~isfield(ModelProcedure.basisset, 'file') || ... 
+                isempty(ModelProcedure.basisset.file)
+                if ~iscell(MRSCont.fit.basisSet)
+                    ModelProcedure.basisset.file = {MRSCont.fit.basisSet};
+                else
+                    ModelProcedure.basisset.file = MRSCont.fit.basisSet;
+                end
+            end
+            if SeparateExtraDims > 1
+                ModelProcedure.basisset.opts.index = ex;
+            end
+            if (ss == 1) && (ex == 1)
+                [MRSCont.fit.results.metab(1,:,ss,ex,ms)] = Osprey_gLCM(MRSCont.processed.metab,ModelProcedure)';
+            else
+                if isprop(MRSCont.fit.results.metab{1,1,1,1,1}, 'scale')
+                    scale = [];
+                    for kk = 1:MRSCont.nDatasets(1)
+                        scale = [scale MRSCont.fit.results.metab{1,kk,1,1,1}.scale];
+                    end
+                else
+                    scale = 0;
+                end
+                [MRSCont.fit.results.metab(1,:,ss,ex,ms)] = Osprey_gLCM(MRSCont.processed.metab,ModelProcedure,0,0,scale)';
+            end        
+        end
+    end
 end
 %% Model MM spectra
 if MRSCont.flags.hasMM == 1

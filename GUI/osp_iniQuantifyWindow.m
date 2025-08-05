@@ -133,7 +133,25 @@ if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(M
             set(gui.upperBox.quant.box{t}, 'Width', [-0.15 -0.85]);
             % Creates layout for plotting and data control
             gui.Plot.quant = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background);
-            set(gui.layout.(gui.layout.quantifyTabhandles{t}), 'Heights', [-0.1 -0.9]);
+
+            gui.controls.lowerBox{t} = uix.HBox('Parent', gui.layout.(gui.layout.quantifyTabhandles{t}),'BackgroundColor',gui.colormap.Background);
+            gui.controls.text_ModelPickq = uicontrol('Parent',gui.controls.lowerBox{t},'Style','text','String','Model Chosen:',...
+            'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,'HorizontalAlignment','left');
+            gui.controls.ModelPickq = uicontrol('Parent',gui.controls.lowerBox{t},'Style','Slider','FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            ModelPickMaxStepValue = size(MRSCont.fit.results.metab,5);
+            ModelPickSliderValues = ModelPickMaxStepValue - 1;
+            if ModelPickSliderValues == 0
+                ModelPickSliderValues = 1;
+            end
+            set(gui.controls.ModelPickq,'Min', 1, 'Max', ModelPickMaxStepValue, 'Value', 1,'Tooltip', 'Model chosen', 'SliderStep', [1/(ModelPickSliderValues),1/(ModelPickSliderValues)]);
+            if ModelPickMaxStepValue == 1
+                set(gui.controls.ModelPickq, 'Enable', 'off');
+            else
+                set(gui.controls.ModelPickq, 'Enable', 'on');
+            end
+            set(gui.controls.ModelPickq,'Callback',{@osp_onModelPickq,gui});
+
+            set(gui.layout.(gui.layout.quantifyTabhandles{t}), 'Heights', [-0.1 -0.85 -0.05]);
             % Get parameter from file to fill the info panel
            StatText = ['Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method ...
                          '\nSelected subspecs: ' gui.quant.Names.Model{gui.quant.Selected.Model} ];

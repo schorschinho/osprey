@@ -30,18 +30,19 @@ function osp_iniOverviewWindow(gui)
         gui.layout.tabs.TabEnables{6} = 'on';  
         gui.layout.tabs.Selection  = 6;  
 % Creating subtabs
-        gui.layout.specsOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.meanOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.quantOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.distrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.corrOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
-        gui.layout.diceOvTab = uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);  
-        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice overlap'};    
-        gui.layout.overviewTab.TabEnables = {'on', 'on', 'off', 'off', 'off', 'off'};   
+        gui.layout.specsOvTab =         uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.layout.meanOvTab =          uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.layout.quantOvTab =         uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.layout.distrOvTab =         uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.layout.corrOvTab =          uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.layout.diceOvTab =          uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);  
+        gui.layout.multiverseOvTab =    uix.HBox('Parent', gui.layout.overviewTab, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+        gui.layout.overviewTab.TabTitles  = {'spectra', 'mean spectra', 'quantify table', 'distribution', 'correlation','dice overlap','multiverse'};    
+        gui.layout.overviewTab.TabEnables = {'on', 'on', 'off', 'off', 'off', 'off', 'off'};   
         gui.layout.overviewTab.TabWidth   = 115;
         gui.layout.overviewTab.Selection  = 1;
 
-        gui.layout.overviewTabhandels = {'specsOvTab','meanOvTab','quantOvTab','distrOvTab','corrOvTab','diceOvTab'};
+        gui.layout.overviewTabhandels = {'specsOvTab','meanOvTab','quantOvTab','distrOvTab','corrOvTab','diceOvTab','multiverseOvTab'};
 % Check version of Osprey - since we have changed the layout of the Overview struct with the implementation of DualVoxel
 if isfield(MRSCont.overview.Osprey, 'sort_data')
     sort_data = 'sort_data';
@@ -222,7 +223,7 @@ end
 
 %%% 4. QUANTIFICATION TABLE %%%
         if isfield(gui.quant, 'Number')
-            gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off'};  
+            gui.layout.overviewTab.TabEnables = {'on', 'on', 'on', 'on', 'on', 'off','off'};  
             gui.layout.overviewTab.Selection  = 3;
             gui.Plot.quantOv = uix.VBox('Parent', gui.layout.quantOvTab,'BackgroundColor',gui.colormap.Background,'Padding', 5);
 
@@ -517,6 +518,63 @@ end
                 gui.Plot.corrOv.Children(3).Legend.Location = 'North';
                 close( temp );
         end
+        
+        %%%%%%%%%%%%% Run the MULTIVERSE tab if there are multi-model results %%%%%%%%%%%%
+        if size(MRSCont.quantify.CRLB,5)>1
+            gui.layout.overviewTab.TabEnables{7} = 'on'; 
+            gui.layout.overviewTab.Selection  = 7;
+            
+            gui.Plot.multiverse = uix.VBox('Parent', gui.layout.multiverseOvTab, 'BackgroundColor',gui.colormap.Background,'Padding', 5,'Spacing',5);
+            
+            gui.upperBox.multiverse.box = uix.HBox('Parent', gui.Plot.multiverse,'BackgroundColor',gui.colormap.Background, 'Spacing',5); 
+            gui = upper_navigate_box(gui, 'multiverse','metab',1);
+
+            gui.controls.multiverseOvPlot = uix.Panel('Parent', gui.upperBox.multiverse.box,'Title', 'Multiverse visualizations', ...
+                                'Padding', 5,'HighlightColor', gui.colormap.Foreground,'BackgroundColor',gui.colormap.Background,...
+                                'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            
+            gui.controls.multiverseOv = uix.HBox('Parent', gui.controls.multiverseOvPlot,...
+                               'Padding', 5, 'Spacing', 10,'BackgroundColor',gui.colormap.Background);
+            
+            SpecModeOpts = MRSCont.overview.FitSpecNamesStruct.metab;
+            VizOpts = {'Inter-model distr.','Specification curve','Model hotspots'};
+            CC=1;
+            for JJ=1:length(VizOpts)
+                for KK = 1:length(SpecModeOpts)
+                    OvPlotType{CC} = [VizOpts{JJ}, ' (', SpecModeOpts{KK}, ')'];
+                    CC = CC+1;
+                end
+            end
+            
+            % Add dropdowns and checkbox:
+            gui.controls.pop_multiverseOvPlotType = uicontrol('Parent',gui.controls.multiverseOv,'style','popupmenu',...
+                                'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', gui.font, ...
+                                'String',OvPlotType, 'Value', 1);
+            gui.controls.pop_multiverseOvPlotArg = uicontrol('Parent',gui.controls.multiverseOv,'style','popupmenu',...
+                                'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', gui.font, ...
+                                'String',unique([MRSCont.quantify.names.metab{1:end}])', 'Value', 1);
+            gui.controls.pop_multiverseOvPlotArg2 = uicontrol('Parent',gui.controls.multiverseOv,'style','popupmenu',...
+                                'Units', 'Normalized', 'Position', [0 0 1 1],'FontName', gui.font, ...
+                                'String',['amplMets';fieldnames(MRSCont.quantify.metab);'CRLBs'], 'Value', 1);
+            gui.controls.check_multiverseOvPlotMed = uicontrol('Parent',gui.controls.multiverseOv,'Style','checkbox','BackgroundColor',gui.colormap.Background,'String','Median across datasets', ...
+                                'Value',1,'Position',[0 0 1 1],'FontName', gui.font);
+
+
+            gui.upperBox.multiverse.upperButtons = uix.Panel('Parent', gui.upperBox.multiverse.box, ...
+                                 'Padding', 5, 'Title', ['Save'],...
+                                 'FontName', gui.font, 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground,...
+                                 'HighlightColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+            gui.controls.b_save_specOvTab = uicontrol('Parent',gui.upperBox.multiverse.upperButtons,'Style','PushButton');
+
+           [img, ~, ~] = imread('Printer.png', 'BackgroundColor', gui.colormap.Background);
+           [img2] = imresize(img, 0.05);
+           set(gui.controls.b_save_specOvTab,'CData', img2, 'TooltipString', 'Create EPS figure from current file');
+
+            
+            set(gui.upperBox.multiverse.box, 'Width', [-0.16 -0.74 -0.1])  
+            osp_updatemultiverseOvWindow(gui)
+        end
+
         gui.layout.overviewTab.Selection  = 2;
         h = findall(groot,'Type','figure');
         for ff = 1 : length(h)

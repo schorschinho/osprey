@@ -583,6 +583,12 @@ classdef OspreyGUI < handle
                 set(gui.controls.check_specsOvPlot,'callback',{@osp_check_specsOvPlot_Call,gui});
                 set(gui.controls.b_save_specOvTab,'Callback',{@osp_onPrint,gui});
                 set(gui.controls.b_save_meanOvTab,'Callback',{@osp_onPrint,gui});
+                if isfield(gui.controls,'pop_multiverseOvPlotType')
+                    set(gui.controls.pop_multiverseOvPlotType,'callback',{@osp_pop_multiverseOv_Call,gui});
+                    set(gui.controls.pop_multiverseOvPlotArg,'callback',{@osp_pop_multiverseOv_Call,gui});
+                    set(gui.controls.pop_multiverseOvPlotArg2,'callback',{@osp_pop_multiverseOv_Call,gui});
+                    set(gui.controls.check_multiverseOvPlotMed, 'callback',{@osp_pop_multiverseOv_Call,gui});
+                end
             end
             gui.layout.tabs.Selection  = 1;
             if ~MRSCont.flags.didLoad %Turn of Listbox if data has not been loaded
