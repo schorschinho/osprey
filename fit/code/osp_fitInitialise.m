@@ -388,11 +388,45 @@ switch MRSCont.opts.fit.method
                     if ~isempty(idx)
                         % If it's a match, check whether it should be included
                         if metabsToInclude{nn}.(currentName) == 1
+                            % This is indicated to be included - do not add
+                            % a chomit entry for this metabolite
                         else
+                            % This is not indicated to be included - add
+                            % a chomit entry for this metabolite!
                             chOmitList{1,nn}{end+1} = ['''' currentName ''''];
                         end
                     else
-                        chOmitList{1,nn}{end+1} = ['''' currentName ''''];
+                        % If the name of this metabolite is *not* in the
+                        % list of metabolites to include, this can mean two
+                        % things:
+
+                        % 1) It just has a different name - check against
+                        % the list of validated metabolites to see if we
+                        % can find an equivalent name (and then
+                        % double-check if we want to include it)
+                        listValidMetNames   = listValidBasisFunctionNames('mets');
+                        listValidMMNames    = listValidBasisFunctionNames('mm');
+                        jointList           = horzcat(listValidMetNames, listValidMMNames);
+                        
+                        % Slightly convoluted way of finding the index that
+                        % has a match
+                        idx_match = find(cellfun(@(c) any(strcmp(c, currentName)), jointList));
+                        if ~isempty(idx_match)
+                            % In this case, we have found the metabolite in
+                            % a valid list, but not as the preferred choice
+                            % in Osprey (e.g., if the metabolite is named
+                            % Ins, but Osprey prefers mI).
+                            % In this case, do not add the metabolite to
+                            % chomit
+                            fprintf("INFO: %s found in the basis set, although Osprey prefers the convention %s - consider renaming in your basis set.\n", currentName, jointList{idx_match}{1});
+                            
+                        else
+                            % 2) It does not show up under *any* name - in this
+                            % case, let's create a chomit entry, and feed back
+                            % a line to the console
+                            fprintf("INFO: %s found in the basis set, but not recognized as a valid metabolite. Will be added to chomit list and therefore excluded from fit. If you need it badly, add it to listValidBasisFunctionNames.m!\n", currentName);
+                            chOmitList{1,nn}{end+1} = ['''' currentName ''''];
+                        end
                     end
                     
                 end
