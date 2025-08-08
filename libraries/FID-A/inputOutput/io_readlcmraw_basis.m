@@ -26,44 +26,37 @@ end
 fid=fopen(filename);
 line=fgets(fid);
 
-%look for FWHMBA
-fwhmba_index=contains(line,'FWHMBA');
-while ~fwhmba_index;
+% Look for key variables (before the $NMUSED string indicating the beginning 
+% of the block featuring the individual basis functions)
+startBasisIndex = contains(line, '$NMUSED');
+while ~startBasisIndex
     line=fgets(fid);
-    fwhmba_index=contains(line,'FWHMBA');
-    line = GetNumFromString(line);
-end
-linewidth=str2num(line);
+    % TE
+    if contains(line, 'ECHOT')
+        te=str2num(GetNumFromString(line));
+    end
+    % HZPPM
+    if contains(line, 'HZPPPM')
+        hzpppm=str2num(GetNumFromString(line));
+        Bo=hzpppm/42.577;
+    end
+    % FWHMBA
+    if contains(line, 'FWHMBA')
+        linewidth=str2num(GetNumFromString(line));
+    end
+    % BADELT
+    if contains(line, 'BADELT')
+        dwelltime=str2num(GetNumFromString(line));
+        spectralwidth=1/dwelltime;
+    end
 
-%look for HZPPM
-hzpppm_index=contains(line,'HZPPPM');
-while ~hzpppm_index;
-    line=fgets(fid);
-    hzpppm_index=contains(line,'HZPPPM');
-    line = GetNumFromString(line);
+    startBasisIndex = contains(line, '$NMUSED')';
+
 end
-hzpppm=str2num(line);
-Bo=hzpppm/42.577;
+
+% Calculate FWHMBA corrected
 linewidth=linewidth*hzpppm;
 
-%look for TE
-te_index=contains(line,'ECHOT');
-while ~te_index;
-    line=fgets(fid);
-    te_index=contains(line,'ECHOT');
-    line = GetNumFromString(line);
-end
-te=str2num(line);
-
-%look for spectral width
-badelt_index=contains(line,'BADELT');
-while ~badelt_index;
-    line=fgets(fid);
-    badelt_index=contains(line,'BADELT');
-    line = GetNumFromString(line);
-end
-dwelltime=str2num(line);
-spectralwidth=1/dwelltime;
 fileEnd=false;
 
 while ~feof(fid)
