@@ -344,7 +344,7 @@ function obj = createModel(obj)
                                 'CheckGradients',CheckGrad, ...             % Check gradient
                                 'FiniteDifferenceType','central', ...       % for numerically calculated jacobian only
                                 'MaxIterations',iterations, ...                   % Iterations
-                                'Display','final');                       % Display no iterations
+                                'Display','off');                       % Display no iterations
 
             % Add this if you want to plot per iteration
             % 'OutputFcn',@optimplotresidual,...);                          
