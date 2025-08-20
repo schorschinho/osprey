@@ -203,9 +203,9 @@ function osp_updateFitWindow(gui)
         if ~((isfield(MRSCont.flags, 'isPRIAM') || isfield(MRSCont.flags, 'isMRSI')) &&  (MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI))
             if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
                 if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit
-                NameText    = [''];
-                RawAmplText = [''];
-                CRLBText    = [''];
+                NameText    = ['Name\n'];
+                RawAmplText = ['Ampl\n'];
+                CRLBText    = ['CRLB\n'];
                 for m = 1 : length(RawAmpl) %Names and Amplitudes
                     NameText = [NameText, [basisSetNames{m} ' \n']];
                     RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
@@ -262,9 +262,9 @@ function osp_updateFitWindow(gui)
                                 RawAmpl = RawAmpl ./ (sum(MRSCont.fit.results.w{1,gui.controls.Selected}.Model{1, 1}.parsOut.metAmpl(DisplayExperiment,:)) .* MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,1}.scale);
                             end
                     end
-                    NameText = [''];
-                    RawAmplText = [''];
-                    CRLBText    = [''];
+                    NameText    = ['Name\n'];
+                    RawAmplText = ['Ampl\n'];
+                    CRLBText    = ['CRLB\n'];
                     for m = 1 : length(RawAmpl) %Names and Amplitudes
                         NameText = [NameText, [basisSetNames{m} ' \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
@@ -297,8 +297,8 @@ function osp_updateFitWindow(gui)
         elseif isfield(MRSCont.flags,'isPRIAM')  && MRSCont.flags.isPRIAM
             if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
                 if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit?
-                    NameText = [''];
-                    RawAmplText = [''];
+                    NameText    = ['Name\n'];
+                    RawAmplText = ['Ampl\n'];
                     for m = 1 : length(RawAmpl) %Names and amplitudes
                         NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
@@ -317,8 +317,8 @@ function osp_updateFitWindow(gui)
                     else
                         RawAmpl = RawAmpl ./ (MRSCont.fit.results{1,gui.controls.act_x}.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                     end
-                    NameText = [''];
-                    RawAmplText = [''];
+                    NameText    = ['Name\n'];
+                    RawAmplText = ['Ampl\n'];
                     for m = 1 : length(RawAmpl)
                         NameText = [NameText, [MRSCont.fit.resBasisSet{1,gui.controls.act_x}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
@@ -337,8 +337,8 @@ function osp_updateFitWindow(gui)
         else
             if ~(MRSCont.flags.hasRef || MRSCont.flags.hasWater) %Raw amplitudes are reported as no water/reference fitting was performed
                 if ~(strcmp(gui.fit.Style, 'ref') || strcmp(gui.fit.Style, 'w')) %Metabolite fit?
-                    NameText = [''];
-                    RawAmplText = [''];
+                    NameText    = ['Name\n'];
+                    RawAmplText = ['Ampl\n'];
                     for m = 1 : length(RawAmpl) %Names and amplitudes
                         NameText = [NameText, [MRSCont.fit.resBasisSet{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
                         RawAmplText = [RawAmplText, [num2str(RawAmpl(m),'%1.2e') '\n']];
@@ -357,8 +357,8 @@ function osp_updateFitWindow(gui)
                     else
                         RawAmpl = RawAmpl ./ (MRSCont.fit.results{gui.controls.act_x,gui.controls.act_y}.w.fitParams{1,gui.controls.Selected}.ampl .* MRSCont.fit.scale{gui.controls.Selected});
                     end
-                    NameText = [''];
-                    RawAmplText = [''];
+                    NameText    = ['Name\n'];
+                    RawAmplText = ['Ampl\n'];
                     for m = 1 : length(RawAmpl)
                         try
                             NameText = [NameText, [MRSCont.fit.resBasisSet{gui.controls.act_x,gui.controls.act_y}.(gui.fit.Style).(MRSCont.info.A.unique_ndatapoint_spectralwidth{1}).name{m} ': \n']];
