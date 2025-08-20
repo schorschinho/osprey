@@ -85,6 +85,7 @@ isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA
          ~isempty(strfind(sequence,'md_svs_slaser_edit')); %Is Thomas Lange's MEGA-s-LASER sequence
 isMinn_eja=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isMinn_dkd=~isempty(strfind(sequence,'svs_slaser_dkd')) ||...   % ... or Dinesh Deelchand's 2016 sLASER sequence?
+          ~isempty(strfind(sequence,'dkd_svs_sLASER')) ||...   % ... or Dinesh Deelchand's 2025 sLASER for CimaX?
        ~isempty(strfind(sequence,'svs_slaserVOI_dkd'))||...% ... or Dinesh Deelchand's 2022 'plug and play' sLASER sequence?
        ~isempty(strfind(sequence,'svs_slaserVOI_dkd2'));%Is this Dinesh Deelchand's (CMRR, U Minnesota) sequence?     
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
