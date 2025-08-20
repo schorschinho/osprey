@@ -2,9 +2,11 @@
 %   This function contains the generalized physics model allowing for 2D
 %   modeling of arbitray MRS data in different domains. It is desinged with
 %   the highest possible felxibility.
-%   There are additional functions that are not included as handles. They
-%   are requried to construct the jacobian for 2D modeling and perform
-%   parameter regularization:
+%   It integreates into the OspreyFitObj environment and allows for easy
+%   changes of solvers. You can also use this function as a template for
+%   your own Physics model. For full functionalty you need to define the
+%   same functions and handels described in the first section. This
+%   includes the following 7 functions: 
 %
 %   lossFunction    - calculates loss function for optimizer
 %   forwardGradient - calculates the forward gradient for optimizer
@@ -14,11 +16,9 @@
 %   pars2x          - converts parameter struct to x vector
 %   fminunc_wrapper - wrapper for MATLAB's fminunc
 %
-%   It integreates into the OspreyFitObj environment and allows for easy
-%   changes of solvers. You can also use this function as a template for
-%   your own Physics model. For full functionalty you need to define the
-%   same functions and handels described in the first section. This
-%   includes the following 7 functions:
+%   There are additional functions that are not included as handles. They
+%   are requried to construct the jacobian for 2D modeling and perform
+%   parameter regularization:
 %   updateJacobianBlock - updates 2D jacobian blocks (only needed for 2D)
 %   addParameterRegularization - adds regularization (only used for reg)
 %
