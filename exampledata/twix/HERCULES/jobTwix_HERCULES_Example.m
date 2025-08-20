@@ -149,6 +149,11 @@ opts.exportParams.path      = '';               % Replace with string for the pa
                                                 % to the save directory
 
 % Choose the fitting algorithm
+% If you are using Osprey_gLCM please cite the following paper in addition
+% to the original Osprey paper:
+%   Zöllner HJ, Davies-Jenkins C, Simicic D, Tal A, Sulam J, Oeltzschner G. 
+%   Simultaneous multi-transient linear-combination modeling of MRS data improves uncertainty estimation. 
+%   Magn Reson Med. 2024 Sep;92(3):916-925. doi: 10.1002/mrm.30110
 opts.fit.method             = 'Osprey_gLCM';    % OPTIONS:    - 'Osprey_gLCM' (default)
                                                 %             - 'Osprey' (old model)
                                                 %             - 'LCModel'

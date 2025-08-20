@@ -149,18 +149,7 @@ opts.exportParams.flag      = 0;                % Options:    - 0 (no, default)
                                                 %             - 1 (yes)
 opts.exportParams.path      = '';               % Replace with string for the path 
                                                 % to the save directory
-
-% Select the metabolites to be included in the basis set as a cell array,
-% with entries separates by commas.
-% With default Osprey basis sets, you can select the following metabolites:
-% Ala, Asc, Asp, bHB, bHG, Cit, Cr, Cystat, CrCH2, EtOH, GABA, GPC, GSH, Glc, Gln,
-% Glu, Gly, H2O, mI, Lac, NAA, NAAG, PCh, PCr, PE, Phenyl, sI, Ser,
-% Tau, Tyros, MM09, MM12, MM14, MM17, MM20, Lip09, Lip13, Lip20.
-% If you enter 'default', the basis set will include all of the above
-% except for Ala, bHB, bHG, Cit, Cystat, EtOH, Glc, Gly, Phenyl, Ser, and Tyros.
-opts.fit.includeMetabs      = {'default'};      % OPTIONS:    - {'default'}
-                                                %             - {custom}
-
+                                                
 % Choose the fitting algorithm
 % If you are using Osprey_gLCM please cite the following paper in addition
 % to the original Osprey paper:
