@@ -129,9 +129,11 @@ end
 
 function PLATFORM = init_platform           %-Initialise platform variables
 %==========================================================================
-if strcmpi(spm_check_version,'matlab')
+if ~exist('OCTAVE_VERSION','builtin')
+    % matlab
     comp = computer;
 else
+    % octave
     if ismac
         comp = uname.machine;
         switch comp
