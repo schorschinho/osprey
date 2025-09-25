@@ -29,6 +29,13 @@ function osp_updateFitWindow(gui)
         subspectrum = gui.controls.act_y;
         experiment = gui.controls.act_x;
         
+        % Fit QA metrics are currently only implemented for Single-voxel
+        % Osprey_gLCM models. Handle that here:
+        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI) && matches(MRSCont.opts.fit.method, 'Osprey_gLCM')
+            ChildInd = 1; 
+        else
+            ChildInd = 0;
+        end
         switch MRSCont.opts.fit.method
             case 'LCModel'
                 gui.Results.FitTextCRLB = gui.Results.fit{gui.fit.Selected}.Children.Children(1);
@@ -44,12 +51,17 @@ function osp_updateFitWindow(gui)
                 set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(4).Children(1).Children.Children(5),'String',gui.controls.act_y)
                 set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(4).Children(1).Children.Children(6),'String',gui.controls.act_x)
             case 'Osprey_gLCM'
-                gui.Results.FitTextCRLB = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1).Children.Children(1);
-                gui.Results.FitTextAmpl = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1).Children.Children(2);
-                gui.Results.FitTextNames = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1).Children.Children(3);
+                
+                gui.Results.FitTextCRLB = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1+ChildInd).Children.Children(1);
+                gui.Results.FitTextAmpl = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1+ChildInd).Children.Children(2);
+                gui.Results.FitTextNames = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1+ChildInd).Children.Children(3);
                 gui.controls.ModelStep = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(4);
                 ModelStep = gui.controls.ModelStep.Value;
                 ModelPick = gui.controls.ModelPick.Value;
+                if ChildInd
+                    gui.Results.FitQMTextNames = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1).Children.Children(2);
+                    gui.Results.FitTextQMAmpl = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(2).Children(1).Children.Children(1);
+                end
                 % Selection = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum}.Data.spec_name;
                 set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(3).Children(4).Children(1).Children.Children(4),'String',gui.controls.act_z)
                 set(gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(3).Children(4).Children(1).Children.Children(5),'String',gui.controls.act_y)
@@ -408,30 +420,75 @@ function osp_updateFitWindow(gui)
         tempXLim = ViewAxes.XLim;
         tempYLim = ViewAxes.YLim;
         tempZLim = ViewAxes.ZLim;
-        delete(gui.Plot.fit{gui.fit.Selected}.Children(2).Children)
-        set(ViewAxes.Children, 'Parent', gui.Plot.fit{gui.fit.Selected}.Children(2)); %Update plot
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2).Title, 'String', ViewAxes.Title.String) %Update title
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'View', ViewAxes.View) % View     
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'XLim', tempXLim) % Update Xlim
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'YLim', tempYLim) % Update Ylim
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'ZLim', tempZLim) % Update Zlim
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'XTick', ViewAxes.XTick) % Update XTick
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'YTick', ViewAxes.YTick) % Update YTick
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'ZTick', ViewAxes.ZTick) % Update ZTick
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'XTickLabel', ViewAxes.XTickLabel) % Update XTickLabel
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'YTickLabel', ViewAxes.YTickLabel) % Update YTickLabel
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'ZTickLabel', ViewAxes.ZTickLabel) % Update ZTickLabel
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'XColor', ViewAxes.XColor) % Update XColor
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'YColor', gui.colormap.Background) % Update YColor
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'ZColor', gui.colormap.Background) % Update ZColor   
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'XDir', ViewAxes.XDir) % XDir
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'YDir', ViewAxes.YDir) % YDir
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'ZDir', ViewAxes.ZDir) % ZDir
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'Units', 'normalized');
-        set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
+        delete(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd).Children)
+        set(ViewAxes.Children, 'Parent', gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd)); %Update plot
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd).Title, 'String', ViewAxes.Title.String) %Update title
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'View', ViewAxes.View) % View     
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'XLim', tempXLim) % Update Xlim
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'YLim', tempYLim) % Update Ylim
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'ZLim', tempZLim) % Update Zlim
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'XTick', ViewAxes.XTick) % Update XTick
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'YTick', ViewAxes.YTick) % Update YTick
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'ZTick', ViewAxes.ZTick) % Update ZTick
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'XTickLabel', ViewAxes.XTickLabel) % Update XTickLabel
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'YTickLabel', ViewAxes.YTickLabel) % Update YTickLabel
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'ZTickLabel', ViewAxes.ZTickLabel) % Update ZTickLabel
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'XColor', ViewAxes.XColor) % Update XColor
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'YColor', gui.colormap.Background) % Update YColor
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'ZColor', gui.colormap.Background) % Update ZColor   
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'XDir', ViewAxes.XDir) % XDir
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'YDir', ViewAxes.YDir) % YDir
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'ZDir', ViewAxes.ZDir) % ZDir
+        set(gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd), 'Units', 'normalized');
+        if strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
+            set(gui.Plot.fit{gui.fit.Selected}.Children(3), 'OuterPosition', [0.17,0.02,0.63,0.98])
+        else
+            set(gui.Plot.fit{gui.fit.Selected}.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
+        end
         % Get rid of the Load figure
         close(temp);
 
+        if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+            if matches(MRSCont.opts.fit.method, 'Osprey_gLCM')
+                NSteps = length(MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model);
+                Time=0;  Niter = 0;
+                for JJ=1:NSteps % Sum the time and iterations across model steps
+                    Time = Time + MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{JJ}.time;
+                    Niter = Niter + MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{JJ}.info.output.iterations;
+                end
+                M_ini = MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.Model{end};
+                
+                NameText = sprintf('Time to fit: \nNiter: \n\n');
+                RawAmplText = sprintf('%.2f s\n%i\n\n',Time,Niter);
+                
+                NameText =    [NameText, sprintf('FQN: \nAIC: \nAIC_c: \nBIC: \n\n')];
+                RawAmplText = [RawAmplText, sprintf('%.2f\n%.2f\n%.2f\n%.2f\n\n', M_ini.fitQAnumber, M_ini.AIC, M_ini.AIC_c, M_ini.BIC)];
+                
+                BoolStr = {'false', 'true'};
+                if matches(gui.fit.Style, 'metab')
+                    % Add dqb
+                    NameText =    [NameText, sprintf('anyNegative: \nbelowBL:\n')];
+                    RawAmplText = [RawAmplText, sprintf('%s\n%s\n', BoolStr{MRSCont.QM.dqb.anyNegative(basis,gui.controls.Selected,subspectrum,experiment,ModelPick)+1}, BoolStr{MRSCont.QM.dqb.belowBaseline(basis,gui.controls.Selected,subspectrum,experiment,ModelPick)+1})];
+                        
+                    NameText =    [NameText, sprintf('H20-2-Cr: \nLip-2-Cr: \nBL-2-Cr:\nBL-Curve:\n')];
+                    RawAmplText = [RawAmplText, sprintf('%.2f\n%.2f\n%.2f\n%.2f\n',...
+                        MRSCont.QM.dqb.Water2tCr_Ratio(basis,gui.controls.Selected,subspectrum,experiment,ModelPick),...
+                        MRSCont.QM.dqb.Lipid2tCr_Ratio(basis,gui.controls.Selected,subspectrum,experiment,ModelPick),...
+                        MRSCont.QM.dqb.Baseline2tCr_Ratio(basis,gui.controls.Selected,subspectrum,experiment,ModelPick),...
+                        MRSCont.QM.dqb.MeanAbsCurvature(basis,gui.controls.Selected,subspectrum,experiment,ModelPick))];
+
+                    NameText =    [NameText, sprintf('SoS Autocorr:\nMax Autocorr:\nRunstest')];
+                    RawAmplText = [RawAmplText, sprintf('%.2f\n%.2f\n%1.2e',...
+                        MRSCont.QM.dqb.Res_SSAutocorr(basis,gui.controls.Selected,subspectrum,experiment,ModelPick),...
+                        MRSCont.QM.dqb.Res_MaxAutocorr(basis,gui.controls.Selected,subspectrum,experiment,ModelPick),...
+                        MRSCont.QM.dqb.Residual_RunstestPVal(basis,gui.controls.Selected,subspectrum,experiment,ModelPick))];
+
+                end
+                set(gui.Results.FitQMTextNames, 'String', sprintf(NameText));
+                set(gui.Results.FitTextQMAmpl, 'String', sprintf(RawAmplText));
+            end
+        end
+        
         % If it is Multivoxel data we have to update the Voxel Position
         % window
         if MRSCont.flags.isMRSI

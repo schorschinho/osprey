@@ -257,6 +257,8 @@ end
 if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     [MRSCont] = osp_fit_Quality(MRSCont);
 
+    MRSCont = osp_dqb_RunAll(MRSCont);
+
     L = length(MRSCont.QM.tables.Properties.VariableNames);
     % Store data quality measures in csv file
     if MRSCont.flags.isUnEdited

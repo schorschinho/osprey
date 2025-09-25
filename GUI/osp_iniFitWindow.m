@@ -795,6 +795,7 @@ for t = 1 : gui.fit.Number %Loop over fits
         end
         end
     end
+
     %%%  5. VISUALIZATION PART OF THIS TAB %%%
     %osp_plotFit is used to visualize the fits (off,diff1,diff2,sum,ref,water)
     temp = figure( 'Visible', 'off' );
@@ -815,15 +816,74 @@ for t = 1 : gui.fit.Number %Loop over fits
     set(ViewAxes, 'Parent', gui.Plot.fit{t} );
     close( temp );
     
+    %%% 6. Add fit QM to the right of the spectrum %%%
+    if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(MRSCont.flags.isPRIAM || MRSCont.flags.isMRSI)
+        
+        if matches(MRSCont.opts.fit.method, 'Osprey_gLCM')
+            gui.Results.fitQM{t} = uix.Panel('Parent', gui.Plot.fit{t},...
+                'Title', 'Raw Amplitudes','FontName', gui.font,'HighlightColor', gui.colormap.Foreground,...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground, 'ShadowColor', gui.colormap.Foreground);
+    
+            set(gui.Results.fitQM{t}, 'Title', 'Fit Quality Measures:');
+            
+            NSteps = length(MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.Model);
+            Time=0;  Niter = 0;
+            for JJ=1:NSteps % Sum the time and iterations across model steps
+                Time = Time + MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.Model{JJ}.time;
+                Niter = Niter + MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.Model{JJ}.info.output.iterations;
+            end
+            M_ini = MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,1}.Model{end};
+            
+            NameText = sprintf('Time to fit: \nNiter: \n\n');
+            RawAmplText = sprintf('%.2f s\n%i\n\n',Time,Niter);
+            
+            % Add FQN and IC
+            NameText =    [NameText, sprintf('FQN: \nAIC: \nAIC_c: \nBIC: \n\n')];
+            RawAmplText = [RawAmplText, sprintf('%.2f\n%.2f\n%.2f\n%.2f\n\n', M_ini.fitQAnumber, M_ini.AIC, M_ini.AIC_c, M_ini.BIC)];
+            
+            if matches(gui.fit.Style, 'metab')
+                % Add dqb
+                NameText =    [NameText, sprintf('anyNegative: \nbelowBaseline:\n')];
+                RawAmplText = [RawAmplText, sprintf('%b\n%b',MRSCont.QM.dqb.anyNegative(gui.controls.Selected, 1),MRSCont.QM.dqb.belowBaseline(gui.controls.Selected, 1))];
+    
+            end
+            gui.Results.FitQMText = uix.HBox('Parent', gui.Results.fitQM{t}, 'Padding', 5,'BackgroundColor',gui.colormap.Background);
+            gui.Results.FitQMTextNames  = uicontrol('Parent',gui.Results.FitQMText,'style','text',...
+                'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(NameText),...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            gui.Results.FitTextQMAmpl  = uicontrol('Parent',gui.Results.FitQMText,'style','text',...
+                'FontSize', 11, 'FontName', gui.font,'HorizontalAlignment', 'left', 'String', sprintf(RawAmplText),...
+                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
+            set(gui.Results.FitQMText, 'Widths', [-0.6 -0.4]);   %(columns in DQ table)
+            set(gui.Plot.fit{t},'Widths', [-0.16 -0.68 -0.16]);  %(Amp-Table, Fig, DQ-Table)  
+
+        end
+    else
+        set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);            %(Amp-Table, Fig)
+    end
+    
+    %gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd).OuterPosition(3) = 0.63;
     if ~strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
-        set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);
         set(gui.Plot.fit{t}.Children(2), 'Units', 'normalized');
         set(gui.Plot.fit{t}.Children(2), 'OuterPosition', [0.17,0.02,0.75,0.98])
     else
-        set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);
-        set(gui.Plot.fit{t}.Children(2), 'Units', 'normalized');
-        set(gui.Plot.fit{t}.Children(2), 'OuterPosition', [0.02,0.02,0.3,0.98])
+        set(gui.Plot.fit{t}.Children(3), 'Units', 'normalized');
+        set(gui.Plot.fit{t}.Children(3), 'OuterPosition', [0.02,0.02,0.63,0.9843])
+        % set(gui.Plot.fit{t}.Children(3), 'Units', 'pixels');
+        
+        % set(gui.Plot.fit{t}, 'Units', 'pixels');
+        % parentPos = gui.Plot.fit{t}.Position;
+        % 
+        % normOuter = [0.02, 0.02, 0.63, 0.9843]; % Normalized units
+        % pixOuter = [parentPos(1) + normOuter(1)*parentPos(3), ...
+        %             parentPos(2) + normOuter(2)*parentPos(4), ...
+        %             normOuter(3)*parentPos(3), ...
+        %             normOuter(4)*parentPos(4)]; % Pixel units
+        % 
+        % set(gui.Plot.fit{t}.Children(3), 'Units', 'pixels');
+        % set(gui.Plot.fit{t}.Children(3), 'OuterPosition', pixOuter)
     end
+
 end
 h = findall(groot,'Type','figure');
 for ff = 1 : length(h)

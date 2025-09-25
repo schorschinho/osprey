@@ -143,7 +143,8 @@ MRSCont = getappdata(gui.figure,'MRSCont');
                 end
             end
             gui.controls.act_y = 1;
-            gui.controls.act_z = 1;  
+            gui.controls.act_z = 1;
+            gui.layout.fitTab.Visible = 'on';
             osp_updateFitWindow(gui);
         case 4 %Coreg Tab
             gui.layout.ListBox.Enable = 'on';
