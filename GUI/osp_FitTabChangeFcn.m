@@ -35,11 +35,11 @@ function osp_FitTabChangeFcn(src,~,gui)
     gui.controls.b_right_y.Enable = 'off';
     gui.controls.b_right_z.Enable = 'off';
     if ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
-            gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
-            gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
-        else
-            gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}),3);
-            gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}),1);
+        gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,3);
+        gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}).fitParams,1);
+    else
+        gui.info.nYvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}),3);
+        gui.info.nZvoxels = size(MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}),1);
     end
     gui.controls.act_y = 1;
     gui.controls.act_z = 1;
@@ -61,6 +61,16 @@ function osp_FitTabChangeFcn(src,~,gui)
             gui.controls.b_left_z.Enable = 'on';
             gui.controls.b_right_z.Enable = 'on';
         end
+
+        gui.controls.ModelPick.Value = 1;
+        if strcmp(gui.fit.Names{gui.fit.Selected}, 'ref') || strcmp(gui.fit.Names{gui.fit.Selected}, 'w')
+            gui.controls.ModelPick.Enable = "off";
+        elseif size(MRSCont.fit.results.(gui.fit.Style),5)>1
+            gui.controls.ModelPick.Enable = "off";
+        else
+            gui.controls.ModelPick.Enable = "on";
+        end
+        
         gui.controls.ModelStep = gui.layout.(gui.layout.fitTabhandles{gui.fit.Selected}).Children(1).Children(4);
         ModelMaxStepValue = MRSCont.fit.results.(gui.fit.Names{gui.fit.Selected}){1,gui.controls.Selected,1,1}.step;
         ModelSliderValues = ModelMaxStepValue - 1;
