@@ -57,7 +57,8 @@ for rr = 1:length(C)
             LCMparam.title = title;
         elseif strcmp(C{rr}{1}(1:6),'CHSIMU') % simulation parameters contains '='
             P{1} = C{rr}{1};
-            P{2} = strjoin(C{rr}(2:end));
+            P{2} = strjoin(C{rr}(2:end), '=');
+            LCMparam = parseControlFileLine(LCMparam, P);
         elseif length(C{rr}) == 3% If length=3, then assume 2-value input
             P{1} = C{rr}{1};
             P{2} = [C{rr}{2},',',C{rr}{3}];
