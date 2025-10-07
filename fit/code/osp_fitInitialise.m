@@ -33,7 +33,7 @@ end
 if contains(seq,'press')
     seq = 'press';
 end
-if contains(seq,'slaser')
+if contains(seq,'slaser') || contains(seq,'herc_')
     seq = 'slaser';
 end
 
@@ -104,7 +104,7 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         elseif MRSCont.flags.isHERCULES
             switch MRSCont.vendor
                 case 'Philips'
-                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat'];
+                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/philips/hercules-' seq '/basis_philips_hercules-' seq '.mat'];
                 case 'GE'
                     MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/ge/hercules-press/basis_ge_hercules-press.mat'];
                 case 'Siemens'
@@ -150,7 +150,7 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         elseif MRSCont.flags.isHERCULES
             switch MRSCont.vendor
                 case 'Philips'
-                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
+                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/philips/hercules-' seq '/basis_philips_hercules-' seq '.mat']);
                 case 'GE'
                     MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/ge/hercules-press/basis_ge_hercules-press.mat']);
                 case 'Siemens'
