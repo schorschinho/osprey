@@ -15,12 +15,10 @@ function jobm = osp_create_job_file(app)
 
 outputFolder = app.OutputFolderEditField.Value;
 
-if ~exist(outputFolder)
-    mkdir(outputFolder)
-end
-
 if isempty(outputFolder)
     outputFolder = cd;
+elseif ~exist(outputFolder, 'dir')
+    mkdir(outputFolder)
 end
 
 JobName = app.JobNameEditField.Value;
@@ -176,7 +174,7 @@ if ~isempty(app.T1DataText.Value{1})
 end
 
 fprintf(fid,'\n\t%s',['"file_stat": ["' app.StatcsvEditField.Value '"],']);
-fprintf(fid,'\n\t%s',['"outputFolder": ["' app.OutputFolderEditField.Value '"]']);
+fprintf(fid,'\n\t%s',['"outputFolder": ["' outputFolder '"]']);
 fprintf(fid,'\n%s','}');
 fclose(fid);
 
