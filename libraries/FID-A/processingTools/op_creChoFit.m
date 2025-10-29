@@ -44,11 +44,15 @@ spec = in.specs;
 
 % Define the spectral range around the Cr-Cho peaks
 freqLim = ppm <= 3.02+0.15 & ppm >= 3.02-0.15;
-[~,i] = max(abs(spec(freqLim)));
+[scale,i] = max(abs(spec(freqLim)));
 freq2 = ppm(freqLim);
 maxFreq = freq2(i);
 freqLim = ppm <= maxFreq+0.58 & ppm >= maxFreq-0.42;
-specRange = real(spec(freqLim));
+
+scale = max(scale,1e-4); % ensure non-zero, non-negative scale for normalisation
+specRange = real(spec(freqLim)) / scale;
+% ARC 2025-10-29 : scale factor added to normalise arbitrarily-scaled input
+% data, which can lead to unpredictable (and unreasonably slow) performance
 
 % Create initial guesses for the fit parameters
 Baseline = (specRange(1) + specRange(end))/2;
@@ -68,11 +72,13 @@ nlinopts = statset(nlinopts,'MaxIter',400,'TolX',1e-6,'TolFun',1e-6);
 x0 = lsqcurvefit(@TwoLorentzModel, x0, ppm(freqLim)', real(specRange), lb, ub, lsqopts);
 [parsFit, residCr] = nlinfit(ppm(freqLim)', specRange, @TwoLorentzModel, x0, nlinopts);
 
+parsFit([1,5,6])=scale * parsFit([1,5,6]); % ARC 2025-10-29 : undo normalisation
+
 % Optional plotting of data and results
 if ~suppressPlot
     % Plot original data
     figure(101);
-    plot(ppm(freqLim),specRange);
+    plot(ppm(freqLim),scale * specRange);
     hold on
     % Plot the fit
     plot(ppm(freqLim),TwoLorentzModel(parsFit,ppm(freqLim)));
