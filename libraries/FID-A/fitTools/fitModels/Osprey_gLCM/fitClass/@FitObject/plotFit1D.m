@@ -54,7 +54,7 @@ function plotFit1D(obj,newFigure, step,secDim, plotRange)
     names   = obj.BasisSets.names(logical(obj.BasisSets.includeInFit(step,:)));     % Get names cell with included metabolites
     MMind = cat(2,find(contains(names,'MM')),find(contains(names,'Lip')));              % Find the first index with macromolecules 
     if isempty(MMind)                                                                   % If no MMs are included 
-       MMind = size(metabs,2);                                                          % Set the MMind to nMM
+       MMind = size(metabs,2)+1;                                                          % Set the MMind to nMM
     end
 
 %%  Generate figure
