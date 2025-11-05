@@ -204,11 +204,11 @@ function osp_updateFitWindow(gui)
             if matches(MRSCont.opts.fit.method, 'Osprey_gLCM')
                 [~,Fname] = fileparts(MRSCont.opts.fit.ModelProcedure.metab{ModelPick,subspectrum});
                 StatText = [StatText, '; Model JSON: ' Fname ];
-        else if strcmp (Selection, 'ref') %Reference data?
-                StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Selected subspecs: ' Selection];
-            else %Is water data
-                StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Selected subspecs: ' Selection];
             end
+        elseif strcmp (Selection, 'ref') %Reference data?
+            StatText = ['Reference Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Selected subspecs: ' Selection];
+        else %Is water data
+            StatText = ['Water Data -> Sequence: ' gui.load.Names.Seq '; Fitting algorithm: ' MRSCont.opts.fit.method  '; Selected subspecs: ' Selection];
         end
         set(gui.upperBox.fit.Info{gui.fit.Selected}.Children, 'String',sprintf(StatText))
         % Update amplitudes for the fit results panel based on the files in the MRSCont (Raw Amplitudes or Water-scaled if ref or water supplied)
