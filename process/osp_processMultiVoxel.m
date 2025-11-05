@@ -23,7 +23,7 @@ else
 end
 if MRSCont.flags.isPRIAM == 1
     for x = 1 : XVox
-        for kk = 1 :MRSCont.nDatasets
+        for kk = 1 :MRSCont.nDatasets(1)
              [~] = printLog('OspreyProcess',[kk,x],[MRSCont.nDatasets, XVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
             procMRSCont.raw{kk} = op_takeVoxel(MRSCont.raw{kk},x);
             if procMRSCont.flags.hasRef
@@ -55,7 +55,7 @@ if MRSCont.flags.isPRIAM == 1
            SubSpecNames = fieldnames(outMRSCont.processed);
            NoSubSpec = length(fieldnames(outMRSCont.processed)); 
            for ss = 1 : NoSubSpec % Loop over Subspec 
-               for kk = 1 :MRSCont.nDatasets
+               for kk = 1 :MRSCont.nDatasets(1)
                     outMRSCont.processed.(SubSpecNames{ss}){kk} = op_addVoxel(outMRSCont.processed.(SubSpecNames{ss}){kk},procMRSCont.processed.(SubSpecNames{ss}){kk},x);                
                end
            end
@@ -83,7 +83,7 @@ elseif MRSCont.flags.isMRSI == 1
     for x = 1 : XVox
         for y = 1 : YVox
             for z = 1 : ZVox 
-                for kk = 1 :MRSCont.nDatasets
+                for kk = 1 :MRSCont.nDatasets(1)
                     [~] = printLog('OspreyProcess',[kk,vox],[MRSCont.nDatasets, NVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
                     if ZVox <=1
                         procMRSCont.raw{kk} = op_takeVoxel(MRSCont.raw{kk},[x y]);
@@ -166,7 +166,7 @@ elseif MRSCont.flags.isMRSI == 1
                     SubSpecNames = fieldnames(outMRSCont.processed);
                     NoSubSpec = length(fieldnames(outMRSCont.processed)); 
                     for ss = 1 : NoSubSpec % Loop over Subspec 
-                        for kk = 1 :MRSCont.nDatasets
+                        for kk = 1 :MRSCont.nDatasets(1)
                             if ZVox <=1
                                 outMRSCont.processed.(SubSpecNames{ss}){kk} = op_addVoxel(outMRSCont.processed.(SubSpecNames{ss}){kk},procMRSCont.processed.(SubSpecNames{ss}){kk},[x y]);
                             else

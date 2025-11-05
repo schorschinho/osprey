@@ -22,11 +22,11 @@ NoSubSpec = length(fieldnames(fitMRSCont.processed));
 if MRSCont.flags.isPRIAM == 1
     for x = 1 : XVox
        for ss = 1 : NoSubSpec % Loop over Subspec
-            for kk = 1 :MRSCont.nDatasets
+            for kk = 1 :MRSCont.nDatasets(1)
                     fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},x);
            end
        end
-        for kk = 1 :MRSCont.nDatasets % Loop over scale values
+        for kk = 1 :MRSCont.nDatasets(1) % Loop over scale values
                     fitMRSCont.fit.scale{kk} =  MRSCont.fit.scale{kk};
         end
         if MRSCont.flags.isUnEdited
@@ -81,7 +81,7 @@ elseif MRSCont.flags.isMRSI == 1
     end
 
    for ss = 1 : NoSubSpec % Loop over Subspec
-       for kk = 1 :MRSCont.nDatasets
+       for kk = 1 :MRSCont.nDatasets(1)
            if ZVox <=1
                fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[cx,cy]);
            else
@@ -151,7 +151,7 @@ elseif MRSCont.flags.isMRSI == 1
              try
              if MRSCont.mask{kk}(x,y,z)
                for ss = 1 : NoSubSpec % Loop over Subspec
-                   for kk = 1 :MRSCont.nDatasets
+                   for kk = 1 :MRSCont.nDatasets(1)
                        if ZVox <=1
                            fitMRSCont.processed.(SubSpecNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(SubSpecNames{ss}){kk},[x,y]);
                        else

@@ -113,7 +113,7 @@ for i = 1 : files
     end
 end
 
-for kk = 1 : MRSCont.nDatasets
+for kk = 1 : MRSCont.nDatasets(1)
     data = MRSCont.overview.Tarquin.all_models.(name){1,kk};
     modelNames = fields(data);
     Cr_height = max(data.data(data.ppm>2.9 & data.ppm<3.1));

@@ -62,7 +62,7 @@ end
 
 %%% 2. EXTRACT DATA TO PLOT %%%
 % Extract processed spectra and fit parameters
-for kk = 1 : MRSCont.nDatasets
+for kk = 1 : MRSCont.nDatasets(1)
     if (MRSCont.flags.isPRIAM == 1)
         if  strcmp(which_spec, 'conc')
             dataToScale{1}=op_takeVoxel(MRSCont.processed.(conc){kk},1);

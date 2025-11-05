@@ -62,19 +62,19 @@ close all;
 warning('off','all');
 fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 if MRSCont.flags.hasMM %re_mm adding functionality to load MM data
-    if ((length(MRSCont.files_mm) == 1) && (MRSCont.nDatasets>1))   %re_mm seems like specificy one MM file for a batch is also an option to plan to accomodate
-        for kk=2:MRSCont.nDatasets %re_mm 
+    if ((length(MRSCont.files_mm) == 1) && (MRSCont.nDatasets(1)>1))   %re_mm seems like specificy one MM file for a batch is also an option to plan to accomodate
+        for kk=2:MRSCont.nDatasets(1) %re_mm 
             MRSCont.files_mm{kk} = MRSCont.files_mm{1}; % re_mm allowable to specify one MM file for the whole batch
         end %re_mm 
     end   %re_mm 
-    if ((length(MRSCont.files_mm) ~= MRSCont.nDatasets) )   %re_mm 
+    if ((length(MRSCont.files_mm) ~= MRSCont.nDatasets(1)) )   %re_mm 
         msg = 'Number of specified MM files does not match number of specified metabolite files.'; %re_mm 
         fprintf(fileID,msg);
         error(msg);
     end   %re_mm 
 end   %re_mm 
 if MRSCont.flags.hasRef
-    if length(MRSCont.files_ref) ~= MRSCont.nDatasets
+    if length(MRSCont.files_ref) ~= MRSCont.nDatasets(1)
         msg = 'Number of specified reference files does not match number of specified metabolite files.'; %re_mm 
         fprintf(fileID,msg);
         error(msg);
@@ -96,7 +96,7 @@ else
     progressText = '';
 end
 
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     
     if MRSCont.flags.hasWater
          [~] = printLog('OspreyLoadWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 

@@ -35,7 +35,7 @@ end
 
 % If existing coil sensitivity images are saved in the SenseReconstruction
 % folder, load them here. Otherwise, start loading them.
-for kk = 1:MRSCont.nDatasets    
+for kk = 1:MRSCont.nDatasets(1)    
     % Check whether the provided CPX file exists
     cpxFile = MRSCont.files_sense{kk};
     [cpxPath, cpxName, cpxExt] = fileparts(cpxFile);
@@ -66,7 +66,7 @@ end
 
 
 % Apply the SENSE unfolding matrix
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     MRSCont.raw{kk} = osp_SenseUnfolding(MRSCont.raw_uncomb{kk},MRSCont.SENSE{kk});
     % Now do the same for the water reference signal
     if MRSCont.flags.hasRef

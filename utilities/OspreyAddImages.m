@@ -28,7 +28,7 @@ function [MRSCont] = OspreyAddImages(MRSCont)
 
 %% Pack images from coregistration
 osp_CheckRunPreviousModule(MRSCont, 'OspreyCoreg')
-for kk = 1 : MRSCont.nDatasets
+for kk = 1 : MRSCont.nDatasets(1)
     % Load T1 image, mask volume, T1 max value, and voxel center
 
         if ~exist(MRSCont.coreg.vol_image{kk}.fname,'file')
@@ -70,7 +70,7 @@ end
 
 %% Pack images from Segmentation
 osp_CheckRunPreviousModule(MRSCont, 'OspreySeg')
-for kk = 1 : MRSCont.nDatasets
+for kk = 1 : MRSCont.nDatasets(1)
     [path_voxel,filename_voxel,~]   = fileparts(MRSCont.files{kk});
 
     % For batch analysis, get the last two sub-folders (e.g. site and

@@ -39,7 +39,7 @@ end
 %     progressText = MRSCont.flags.inProgress;
 % end
 
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
 
 %     msg = sprintf('Loading raw data from dataset %d out of %d total datasets...\n', kk, MRSCont.nDatasets);
 %     fprintf([reverseStr, msg]);

@@ -44,7 +44,7 @@ end
 %% Export files
 
 % Loop over all datasets
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     
     % Write jMRUI .TXT files depending on sequence type
     % Get TE and the input file name
