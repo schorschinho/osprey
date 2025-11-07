@@ -392,7 +392,6 @@ function osp_updateFitWindow(gui)
             end
         end
 %%%3. VISUALIZATION PART OF THIS TAB %%%
-        temp = figure( 'Visible', 'on' );
         if ~strcmp(MRSCont.opts.fit.method,'Osprey_gLCM')
             if  ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
                 temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y gui.controls.act_z],Selection); %Create figure
@@ -401,7 +400,9 @@ function osp_updateFitWindow(gui)
             else
                 temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y],Selection); %Create figure
             end
+            temp.Visible = 'off';
         else
+            temp = figure( 'Visible', 'off' );
             switch gui.overview.Selected.ModelPlot
                 case 1
                     MRSCont.fit.results.(gui.fit.Style){basis,gui.controls.Selected,subspectrum,experiment,ModelPick}.plotFit1D(0,ModelStep,DisplayExperiment);

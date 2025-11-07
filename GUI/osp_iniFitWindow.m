@@ -856,10 +856,9 @@ for t = 1 : gui.fit.Number %Loop over fits
                 'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
             set(gui.Results.FitQMText, 'Widths', [-0.6 -0.4]);   %(columns in DQ table)
             set(gui.Plot.fit{t},'Widths', [-0.16 -0.68 -0.16]);  %(Amp-Table, Fig, DQ-Table)  
-
+        else
+            set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);            %(Amp-Table, Fig)
         end
-    else
-        set(gui.Plot.fit{t},'Widths', [-0.16 -0.84]);            %(Amp-Table, Fig)
     end
     
     %gui.Plot.fit{gui.fit.Selected}.Children(2+ChildInd).OuterPosition(3) = 0.63;
