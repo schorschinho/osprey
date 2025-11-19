@@ -45,18 +45,20 @@ basisSetOut = basisSetIn;
 
 % Check which metabolites are available in the basis set
 metsInBasisSet = basisSetIn.name;
-[metsToKeep,~,~] = intersect(metsInBasisSet, all_mets, 'stable');
+[metsToKeep,originalIdx,~] = intersect(metsInBasisSet, all_mets, 'stable');
 
 % Check for each remaining metabolite in the basis set whether it has been 
 % flagged to be included in the basis set in osp_FitInitialise.m:
-idx_toKeep = zeros(length(metsToKeep),1);
+idx_toKeep = zeros(length(metsInBasisSet),1);
+
 for kk = 1:length(metsToKeep)
     if ~isfield(metabList, metsToKeep{kk}) || ~metabList.(metsToKeep{kk})
-        idx_toKeep(kk) = 0;
+        idx_toKeep(originalIdx(kk)) = 0;
     else
-        idx_toKeep(kk) = 1;
+        idx_toKeep(originalIdx(kk)) = 1;
     end
 end
+
 basisSetOut.nMets = sum(idx_toKeep);
 
 % If the flag for including MM/lipid basis functions is set in osp_FitInitialise,
@@ -66,34 +68,23 @@ all_MMs = listStandardBasisFunctionNames('mm');
 
 % Check which of these are available in the basis set
 MMsInBasisSet = basisSetIn.name;
-[MMsToKeep,~,~] = intersect(MMsInBasisSet, all_MMs, 'stable');
-idx_toKeepMM = zeros(length(MMsToKeep),1);
+[MMsToKeep,originalIdx,~] = intersect(MMsInBasisSet, all_MMs, 'stable');
 if fitMM
     for kk = 1:length(MMsToKeep)
         if ~isfield(metabList, MMsToKeep{kk}) || ~metabList.(MMsToKeep{kk})
-            idx_toKeepMM(kk) = 0;
+            idx_toKeep(originalIdx(kk)) = 0;
         else
-            idx_toKeepMM(kk) = 1;
+            idx_toKeep(originalIdx(kk)) = 1;
         end
     end
 end
-% if fitMM ==1
-%     idx_toKeepMM = ones(length(MMsToKeep),1);
-% else if fitMM == 2
-%         idx_toKeepMM = zeros(8,1);
-%         idx_toKeepMM(end) = 1;
-%     else
-%         idx_toKeepMM = zeros(length(MMsToKeep),1);    
-%     end
-% end
 
-idx_toKeep = [idx_toKeep; idx_toKeepMM];
-basisSetOut.nMM = sum(idx_toKeepMM);
-
+basisSetOut.nMM = sum(idx_toKeep) - basisSetOut.nMets;
 
 % If the flag is set to zero, remove the name, the FIDs and the specs
 % from the basis set. Also update the numbers for metabolite and MM/lipid
 % basis functions
+
 basisSetOut.name   = basisSetOut.name(logical(idx_toKeep));
 basisSetOut.fids   = basisSetOut.fids(:,logical(idx_toKeep),:);
 basisSetOut.specs  = basisSetOut.specs(:,logical(idx_toKeep),:);
