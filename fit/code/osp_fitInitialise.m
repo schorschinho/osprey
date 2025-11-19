@@ -50,114 +50,124 @@ if (Bo >= 2.8 && Bo < 3.1)
 else
     Bo = '7T';
 end
-    
+
+% ARC 20251119 : Ensure consistent values for basisSetFile and basissetFolder {{{
+% Commit 90950e7 introduces the possibility of multiple basis set files (mainly implemented for Philips LCModel fits); this may give inconsistent behaviours in other scenarios which do not expect this.
+
+requestedBasisSetFile=[];
+requestedBasisSetFileList={};
+requestedBasisSetFileAsSpecified=[];
+requestedBasisSetFolder=[];
+
+if isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile)
+
+    % assert(~isfield(MRSCont.opts.fit,'basissetFolder')||isempty(MRSCont.opts.fit.basissetFolder),...
+    %    'opts.fit specified both basisSetFile and basissetFolder, creating an ambiguous situation');
+
+    requestedBasisSetFileAsSpecified = MRSCont.opts.fit.basisSetFile;
+
+    % requested basisSetFile may in fact be a list of multiple files
+    if isa(requestedBasisSetFileAsSpecified, 'cell')
+        requestedBasisSetFileList = requestedBasisSetFileAsSpecified;
+        requestedBasisSetFile = requestedBasisSetFileList{1};
+    else
+        requestedBasisSetFile = requestedBasisSetFileAsSpecified;
+        requestedBasisSetFileList = {requestedBasisSetFile};
+    end
+
+    % requested basisSetFile may also be a folder
+    if isfolder(requestedBasisSetFile)
+        assert(length(requestedBasisSetFileList)==1, 'Only a single basis set folder may be supplied.');
+        requestedBasisSetFolder = requestedBasisSetFile;
+        requestedBasisSetFile = [];
+        requestedBasisSetFileList = {};
+    else
+        assert(isfile(requestedBasisSetFile),'opts.fit.basisSetFile does not appear to be a file');
+    end
+
+elseif isfield(MRSCont.opts.fit,'basissetFolder') && ~isempty(MRSCont.opts.fit.basissetFolder)
+    requestedBasisSetFolder = MRSCont.opts.fit.basissetFolder;
+    assert(isfolder(requestedBasisSetFolder),'opts.fit.basissetFolder does not appear to be a valid folder.');
+end
+
+MRSCont.opts.bit.basisSetFile = requestedBasisSetFileAsSpecified;
+MRSCont.opts.fit.basissetFolder = requestedBasisSetFolder;
+
+% }}}
+
 % Find the right basis set (provided as *.mat file in Osprey basis set
 % format)
 
-    if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile)  && ~isfolder(MRSCont.opts.fit.basisSetFile(1)))
-    
+    if isempty(MRSCont.opts.fit.basisSetFile) || ~isempty(MRSCont.opts.fit.basissetFolder)
         % Intercept non-integer echo times and replace the decimal point with
         % an underscore to avoid file extension problems
         if contains(te, '.')
             te = strrep(te, '.', '_');
         end
-        if (ismcc || isdeployed)
-            if isempty(MRSCont.opts.fit.basissetFolder)
+        if isempty(MRSCont.opts.fit.basissetFolder)
+            if (ismcc || isdeployed)
+                % prompt user for basis set folder
                 info = 'Select the folder that contains all basis set files';           
                 ndata = 1;
                 MRSCont.opts.fit.basissetFolder  = spm_select(ndata,'dir',info,{},pwd);
-            end
-            if MRSCont.flags.isUnEdited
-                switch MRSCont.vendor
-                    case 'Philips'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/philips/unedited/' seq '/' te '/basis_philips_' seq te '.mat'];
-                    case 'GE'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/ge/unedited/' seq '/' te '/basis_ge_' seq te '.mat'];
-                    case 'Siemens'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/unedited/' seq '/' te '/basis_siemens_' seq te '.mat'];
-                end
-            elseif MRSCont.flags.isMEGA
-                editTarget = lower(MRSCont.opts.editTarget{1});
-                switch MRSCont.vendor
-                    case 'Philips'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/philips/mega/' seq '/' editTarget te '/basis_philips_megapress_' editTarget te '.mat'];
-                    case 'GE'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/ge/mega/' seq '/' editTarget te '/basis_ge_megapress_' editTarget te '.mat'];
-                    case 'Siemens'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/mega/' seq '/' editTarget te '/basis_siemens_megapress_' editTarget te '.mat'];
-                end
-            elseif MRSCont.flags.isHERMES
-                editTarget1 = lower(MRSCont.opts.editTarget{1});
-                editTarget2 = lower(MRSCont.opts.editTarget{2});
-                if length(MRSCont.opts.editTarget) == 3
-                    editTarget3 = lower(MRSCont.opts.editTarget{3});
-                else
-                    editTarget3 = '';
-                end
-                switch MRSCont.vendor
-                    case 'Philips'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
-                    case 'GE'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
-                    case 'Siemens'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
-                end
-            elseif MRSCont.flags.isHERCULES
-                switch MRSCont.vendor
-                    case 'Philips'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat'];
-                    case 'GE'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/ge/hercules-press/basis_ge_hercules-press.mat'];
-                    case 'Siemens'
-                        MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/siemens/hercules-press/basis_siemens_hercules-press.mat'];
+            else
+                % find basissets relative to OspreyFit function
+                useBasisSetFolder = [ fullfile(dirname(dirname(which('OspreyFit'))),'basissets') filesep ];
+                if ~isfolder(useBasisSetFolder)
+                    useBasisSetFolder = '/basissets/'; % passed on to "which", which should resolve it from the path
                 end
             end
         else
-            if MRSCont.flags.isUnEdited
-                switch MRSCont.vendor
-                    case 'Philips'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/philips/unedited/' seq '/' te '/basis_philips_' seq te '.mat']);
-                    case 'GE'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/ge/unedited/' seq '/' te '/basis_ge_' seq te '.mat']);
-                    case 'Siemens'
-                        MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/unedited/' seq '/' te '/basis_siemens_' seq te '.mat']);
-                end
-            elseif MRSCont.flags.isMEGA
-                editTarget = lower(MRSCont.opts.editTarget{1});
-                switch MRSCont.vendor
-                    case 'Philips'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/philips/mega/' seq '/' editTarget te '/basis_philips_megapress_' editTarget te '.mat']);
-                    case 'GE'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/ge/mega/' seq '/' editTarget te '/basis_ge_megapress_' editTarget te '.mat']);
-                    case 'Siemens'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/mega/' seq '/' editTarget te '/basis_siemens_megapress_' editTarget te '.mat']);
-                end
-            elseif MRSCont.flags.isHERMES
-                editTarget1 = lower(MRSCont.opts.editTarget{1});
-                editTarget2 = lower(MRSCont.opts.editTarget{2});
-                if length(MRSCont.opts.editTarget) == 3
-                    editTarget3 = lower(MRSCont.opts.editTarget{3});
-                else
-                    editTarget3 = '';
-                end
-                switch MRSCont.vendor
-                    case 'Philips'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
-                    case 'GE'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
-                    case 'Siemens'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat']);
-                end
-            elseif MRSCont.flags.isHERCULES
-                switch MRSCont.vendor
-                    case 'Philips'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
-                    case 'GE'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/ge/hercules-press/basis_ge_hercules-press.mat']);
-                    case 'Siemens'
-                        MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/siemens/hercules-press/basis_siemens_hercules-press.mat']);
-                end
+            useBasisSetFolder = MRSCont.opts.fit.basissetFolder;
+        end
+        if MRSCont.flags.isUnEdited
+            switch MRSCont.vendor
+                case 'Philips'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/philips/unedited/' seq '/' te '/basis_philips_' seq te '.mat'];
+                case 'GE'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/ge/unedited/' seq '/' te '/basis_ge_' seq te '.mat'];
+                case 'Siemens'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/siemens/unedited/' seq '/' te '/basis_siemens_' seq te '.mat'];
             end
+        elseif MRSCont.flags.isMEGA
+            editTarget = lower(MRSCont.opts.editTarget{1});
+            switch MRSCont.vendor
+                case 'Philips'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/philips/mega/' seq '/' editTarget te '/basis_philips_megapress_' editTarget te '.mat'];
+                case 'GE'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/ge/mega/' seq '/' editTarget te '/basis_ge_megapress_' editTarget te '.mat'];
+                case 'Siemens'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/siemens/mega/' seq '/' editTarget te '/basis_siemens_megapress_' editTarget te '.mat'];
+            end
+        elseif MRSCont.flags.isHERMES
+            editTarget1 = lower(MRSCont.opts.editTarget{1});
+            editTarget2 = lower(MRSCont.opts.editTarget{2});
+            if length(MRSCont.opts.editTarget) == 3
+                editTarget3 = lower(MRSCont.opts.editTarget{3});
+            else
+                editTarget3 = '';
+            end
+            switch MRSCont.vendor
+                case 'Philips'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
+                case 'GE'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
+                case 'Siemens'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/siemens/hermes/' editTarget1 editTarget2 editTarget3 '/basis_siemens_hermes.mat'];
+            end
+        elseif MRSCont.flags.isHERCULES
+            switch MRSCont.vendor
+                case 'Philips'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/philips/hercules-press/basis_philips_hercules-press.mat'];
+                case 'GE'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/ge/hercules-press/basis_ge_hercules-press.mat'];
+                case 'Siemens'
+                    MRSCont.opts.fit.basisSetFile        = [useBasisSetFolder Bo '/siemens/hercules-press/basis_siemens_hercules-press.mat'];
+            end
+        end
+        if ~isfile(MRSCont.opts.fit.basisSetFile) && ~isempty(MRSCont.opts.fit.basisSetFile) && ~(ismcc || isdeployed)
+            % use 'which' to resolve items on path, if necessary
+            MRSCont.opts.fit.basisSetFile = which(MRSCont.opts.fit.basisSetFile);
         end
     else
         ext = 1;
@@ -165,12 +175,6 @@ end
 
 % Clear existing basis set
 MRSCont.fit.basisSet = [];
-
-if ~isfile(MRSCont.opts.fit.basisSetFile(1)) && (ismcc || isdeployed)
-    if ~strcmp(MRSCont.opts.fit.basisSetFile(1),filesep)
-        MRSCont.opts.fit.basisSetFile = [filesep MRSCont.opts.fit.basisSetFile];
-    end
-end
 
 % Check if automated basis set pick worked, otherwise the basis set from
 % the user folder is loaded.
@@ -190,15 +194,6 @@ if isfield(MRSCont.opts.fit, 'basisSetFile') && ~strcmpi(MRSCont.opts.fit.method
             ext = 1;
         end
         
-    end
-end
-
-% For the compiled Windows version we are suddenly seeing an additonal
-% fileseparator in the basisset string. Fix this by removing the leading
-% character for Windows if it is a fileseparator.
-if ispc
-    if strcmp(MRSCont.opts.fit.basisSetFile(1),filesep)
-        MRSCont.opts.fit.basisSetFile = MRSCont.opts.fit.basisSetFile(2:end);
     end
 end
 
