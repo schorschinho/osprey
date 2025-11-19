@@ -90,7 +90,7 @@ elseif isfield(MRSCont.opts.fit,'basissetFolder') && ~isempty(MRSCont.opts.fit.b
     assert(isfolder(requestedBasisSetFolder),'opts.fit.basissetFolder does not appear to be a valid folder.');
 end
 
-MRSCont.opts.bit.basisSetFile = requestedBasisSetFileAsSpecified;
+MRSCont.opts.fit.basisSetFile = requestedBasisSetFileAsSpecified;
 MRSCont.opts.fit.basissetFolder = requestedBasisSetFolder;
 
 % }}}
