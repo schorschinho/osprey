@@ -160,7 +160,7 @@ end
 %25 Oct 2018: Due to a recent change, the VE version of Jamie Near's MEGA-PRESS
 %sequence also falls into this category.
 if isSpecial ||... %Catches Ralf Mekle's and CIBM version of the SPECIAL sequence
-        ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
+        ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA30')) && isjnSpecial) ||... %and the VD/VE versions of Jamie Near's SPECIAL sequence
         ((strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && isjnMP);  %and the VD/VE versions of Jamie Near's MEGA-PRESS sequence
     squeezedData=squeeze(dOut.data);
     % GO 3/2025: Adding a case where NRep>1, which adds a fifth dimension
@@ -255,31 +255,97 @@ TR = twix_obj.hdr.MeasYaps.alTR{1};  %Franck Lamberton
 
 wRefs=false;  %Flag to identify if there are automatic water reference scans acquired.  There are none by default.
 
-%Noticed that in Dinesh Deelchand's CMRR sLASER seuqence
-%(svs_slaserVOI_dkd2) contains some reference scans, which are acquired at
-%the very end.  We will save these and store them as a separate water 
-%reference structure (out_w).  
+% Dinesh Deelchand's CMRR sLASER sequences (svs_slaserVOI_dkd and svs_slaserVOI_dkd2) 
+% contain some reference scans, which are acquired at various points
+% (either at the beginning, at the end, or both)
+% We will save these and store them as a separate water reference structure (out_w).  
 if isMinn_dkd
-    %If nRefs is non-zero, then there are automatic water reference scans.
-    %These will be saved as "outw".
-    nRefs=twix_obj.hdr.MeasYaps.sSpecPara.lAutoRefScanNo;
-    if nRefs==1
-        nRefs=0;%Becuase Nrefs seems to have a default value of 1 even if there are no reference scans. 
+
+    % From Dinesh (2024-03-04): 
+    % I checked my code and the observations you mentioned are somewhat 
+    % correct. I have two version of the sequence 
+    % 1) dld_slaserVOI_dkd 
+    %    ScanMode =2 only 
+    %    if ScanNo=2, this means 4 water ref at start and 4 at the end where the first 2 water ref in each are acquired with VAPOR RF off but OVS on while last 2 ref are with VAPOR and OVS completely off. 
+    % 2) dld_slaserVOI_dkd2 
+    %    - ScanMode =8 does the same as ScanMode =2 above 
+    %    - ScanMode =2 with ScanNo=2, this means 2 water ref at start and 2 at end; this acq is done with VAPOR and OVS RF off, but all gradients still ON.
+    
+    scanMode    = twix_obj.hdr.MeasYaps.sSpecPara.lAutoRefScanMode;
+    nRefs       = twix_obj.hdr.MeasYaps.sSpecPara.lAutoRefScanNo;
+    nLines      = sqzSize(end);
+    indexVector = zeros(1,nLines);
+
+    if scanMode==1 % Scan Mode 1 seems to indicate no references
+        nRefs=0;
+        refIndices                      = logical(indexVector); % no ECC ref scans
+        quantIndices                    = logical(indexVector); % no quant ref scans
+        metIndices                      = ~refIndices & ~quantIndices;          % invert to get the metabolite indices
+    else
+        if nRefs>0
+            wRefs=true;
+        end
+
+        % This is the tricky part: let's figure out the metabolite indices
+        % first
+        if contains(sequence, 'dkd2')
+
+            switch scanMode
+                case 2
+                    % nRefs water ref as start & nRefs water ref at end
+                    refIndices                      = logical(indexVector);
+                    quantIndices                    = logical(indexVector); % no quant ref scans
+                    refIndices(1:nRefs)             = 1;
+                    refIndices(end-(nRefs-1):end)   = 1;
+                    metIndices                      = ~refIndices & ~quantIndices; % invert to get the metabolite indices
+
+                case 8
+                    % Now adjust the indices
+                otherwise
+                    error("Unknown scan mode setting for the dkd2 sequence - please contact developers");
+            end
+
+        else
+            % this is the dkd (not dkd2) sequence (which should *only* have
+            % scanMode 2)
+            switch scanMode
+                case 2
+                    % Do the same as above for case 8
+                    % First half of nRefs in each block:
+                    % VAPOR off & OVS on (= ref for ECC)
+                    % Second half of nRefs in each block:
+                    % VAPOR off & OVS on (= ref for quantification)
+                    refIndices                      = logical(indexVector);
+                    quantIndices                    = logical(indexVector);
+                    % First block:
+                    refIndices(1:nRefs/2)           = 1; % ECC
+                    quantIndices((nRefs/2)+1:nRefs) = 1; % quant ref
+                    % Second block:
+                    refIndices(end-(nRefs-1):(end-(nRefs-1))+(nRefs/2-1))   = 1; % ECC
+                    quantIndices(end-(nRefs/2-1):end) = 1; % quant ref
+                    metIndices                      = ~refIndices & ~quantIndices; % invert to get the metabolite indices
+                otherwise
+                    error("Unknown scan mode setting for the dkd sequence - please contact developers");
+            end
+        end
     end
-    if nRefs>0
-        wRefs=true;
-    end
-   
+
+    % Get metabolite data
     if ndims(fids)==4
-        fids_w=fids(:,:,:,end-(nRefs-1):end);
-        fids=fids(:,:,:,end-(nRefs+Naverages-1):end-nRefs);
+        fids_quant=fids(:,:,:,quantIndices);
+        fids_w=fids(:,:,:,refIndices);
+        fids=fids(:,:,:,metIndices);
     elseif ndims(fids)==3
-        fids_w=fids(:,:,end-(nRefs-1):end);
-        fids=fids(:,:,end-(nRefs+Naverages-1):end-nRefs);
+        fids_quant=fids(:,:,quantIndices);
+        fids_w=fids(:,:,refIndices);
+        fids=fids(:,:,metIndices);
     elseif ndims(fids)==2
-        fids_w=fids(:,end-(nRefs-1):end);
-        fids=fids(:,end-(nRefs+Naverages-1):end-nRefs);
+        fids_quant=fids(:,quantIndices);
+        fids_w=fids(:,refIndices);
+        fids=fids(:,metIndices);
     end
+
+
 end
 
 % Product Siemens PRESS/STEAM can also include water reference scans. 
@@ -444,7 +510,13 @@ if ~isempty(dimsToIndex)
     %Now index the dimension of the sub-spectra
     if isjnseq  || isSpecial
         if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')
-            dims.subSpecs=find(strcmp(sqzDims,'Set'));
+            if contains(version,'XA3')
+                dims.subSpecs=find(strcmp(sqzDims,'Set'));
+            elseif contains(version,'XA6')
+                % GO 11/2025: In XA60, the subspec dimension appears to be
+                % 'Ide' instead of 'Set'
+                dims.subSpecs=find(strcmp(sqzDims,'Ide'));
+            end
         else
             dims.subSpecs=find(strcmp(sqzDims,'Ida'));
         end
