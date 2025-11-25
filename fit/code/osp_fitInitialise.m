@@ -53,7 +53,7 @@ end
     
 % Find the right basis set (provided as *.mat file in Osprey basis set
 % format)
-if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile) && ~isfolder(MRSCont.opts.fit.basisSetFile))
+if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile) && ~any(isfolder(MRSCont.opts.fit.basisSetFile)))
 
     % Intercept non-integer echo times and replace the decimal point with
     % an underscore to avoid file extension problems
@@ -372,9 +372,14 @@ switch MRSCont.opts.fit.method
                                 metabsToInclude{2} = fit_createMetabList({'GABA','GSH','Gln','Glu','NAAG','NAA','MM09','MM30'});
                         end
                         metabsInBasis{2}   = fit_readLCMBasisSetMetabs(basisSetFile{2});
+                    case 'Lac'
+                        basisSetFile{2}     = MRSCont.opts.fit.basisSetFile{2};
+                        metabsToInclude{2}  = fit_createMetabList({'Asc','Asp','bHB','Cr','GPC','Gln','Glu','GSH','mI','Lac','NAA','NAAG','PCh','PCr','PE', 'MM14'}); % Dacko & Lange, NMR Biomed 2019;32:e4100 (plus Glu, Gln, Asp, GSH)
+                        metabsInBasis{2}    = fit_readLCMBasisSetMetabs(basisSetFile{2});
                     otherwise
-                        metabsToInclude{2} = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
-                        metabsInBasis{2}   = fit_readLCMBasisSetMetabs(basisSetFile{2});
+                        basisSetFile{2}     = MRSCont.opts.fit.basisSetFile{2};
+                        metabsToInclude{2}  = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
+                        metabsInBasis{2}    = fit_readLCMBasisSetMetabs(basisSetFile{2});
                 end
             end
             % Loop over metabolites in the basis set
@@ -537,7 +542,17 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.15');
                 LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
                 %LCMparam = osp_editControlParameters(LCMparam, 'wdline', '0');
-                LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
+                % GO 11/2025: If CrCH2 is already in the basis set, exclude
+                % it from LCModel simulation
+                if isfield(metabsToInclude{1}, 'CrCH2')
+                    if metabsToInclude{1}.CrCH2 == 1
+                        LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '11');
+                    else
+                        LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
+                    end
+                else
+                    LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
+                end
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
                 LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList{1});
                 LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''Cr+PCr''');
@@ -575,17 +590,19 @@ switch MRSCont.opts.fit.method
                     LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' basisSetFile{2} '''']);
                     LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.15');
                     LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
-                    LCMparam = osp_editControlParameters(LCMparam, 'sptype', '''mega-press-3''');
                     if ~isinf(MRSCont.opts.fit.bLineKnotSpace)
                         LCMparam = osp_editControlParameters(LCMparam, 'nobase', 'F');
                     else
                         switch MRSCont.opts.editTarget{1}
                             case 'GABA'
                                 LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.6');
+                            case 'Lac'
+                                LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '1.0');
                         end
                     end
                     switch MRSCont.opts.editTarget{1}
                         case 'GABA'
+                            LCMparam = osp_editControlParameters(LCMparam, 'sptype', '''mega-press-3''');
                             switch MRSCont.opts.fit.coMM3
                                 case {'3to2MM'}
                                     LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '1');
@@ -614,6 +631,27 @@ switch MRSCont.opts.fit.method
                                     LCMparam = osp_editControlParameters(LCMparam, 'chrato', {'''MM30/MM09 = 0.66 +- .2'''});
                             end
                             LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''NAA+NAAG''');
+                        case 'Lac'
+                            % GO 11/2025 Add some empirical MMs
+                            % For now, I'll just add the ~1.41-ppm one,
+                            % since it's larger and has less overlap (the
+                            % 1.21-ppm one will very heavily overlap with
+                            % bHB). Assume 14 Hz Lorentzian LW for now.
+                            % According to Landheer (10.1002/mrm.28282),
+                            % the 1.4-ppm MM has T2 ~18 Hz
+                            % See discussion in Dacko & Lange, NMR Biomed 2019;32:e4100 (see also Dacko & Lange, MRM 2021;85:1160-1174)
+                            LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '1');
+                            LCMparam = osp_editControlParameters(LCMparam, 'chsimu', {'''MM14 @ 1.41 +- .02 FWHM= .085 <  .114 +- .35 AMP= 2.'''});
+                            % GO 11/2025 Specify the reference singlet (needs to be in
+                            % the basis set!
+                            LCMparam = osp_editControlParameters(LCMparam, 'wsmet', '''Lac''');
+                            LCMparam = osp_editControlParameters(LCMparam, 'wsppm', '0.0');
+                            LCMparam = osp_editControlParameters(LCMparam, 'n1hmet', '1');
+                            % GO 11/2025 Compare to tNAA
+                            LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''NAA+NAAG''');
+                            % GO 11/2025 Add Lac+ output
+                            LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''NAA+NAAG''','''Glu+Gln''','''Lac+MM14'''});
+
                     end
                     
                     LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList{2});                   
