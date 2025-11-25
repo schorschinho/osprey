@@ -31,7 +31,7 @@ function [out] = io_loadspec_rda(pathname)
         filesInFolder = dirFolder(~[dirFolder.isdir]);
         filesInFolder = filesInFolder(~ismember({filesInFolder.name}, {'.','..','.DS_Store'}));
         %hidden = logical(ones(1,length(filesInFolder)));
-        hidden = true(length(filesInFolder));
+        hidden = true(1,length(filesInFolder));
         for jj = 1:length(filesInFolder)
             if strcmp(filesInFolder(jj).name(1),'.')
                 hidden(jj) = 0;
