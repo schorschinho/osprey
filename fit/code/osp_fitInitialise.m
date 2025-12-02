@@ -111,8 +111,9 @@ MRSCont.opts.fit.basissetFolder = requestedBasisSetFolder;
                 ndata = 1;
                 MRSCont.opts.fit.basissetFolder  = spm_select(ndata,'dir',info,{},pwd);
             else
-                % find basissets relative to OspreyFit function
-                useBasisSetFolder = [ fullfile(dirname(dirname(which('OspreyFit'))),'basissets') filesep ];
+                % find basissets relative to Osprey main folder
+                ospreyMainDir = fileparts(which('detectOS.m'));
+                useBasisSetFolder = [ fullfile(ospreyMainDir, 'fit', 'basissets') filesep ];
                 if ~isfolder(useBasisSetFolder)
                     useBasisSetFolder = '/basissets/'; % passed on to "which", which should resolve it from the path
                 end
