@@ -344,7 +344,7 @@ function obj = createModel(obj)
                                 'CheckGradients',CheckGrad, ...             % Check gradient
                                 'FiniteDifferenceType','central', ...       % for numerically calculated jacobian only
                                 'MaxIterations',iterations, ...                   % Iterations
-                                'Display','off');                       % Display no iterations
+                                'Display','none');                       % Display no iterations (final, iter, none)
 
             % Add this if you want to plot per iteration
             % 'OutputFcn',@optimplotresidual,...);                          
@@ -445,7 +445,7 @@ function obj = createModel(obj)
     end
     CRLB = h.x2pars(crlbs, secDim, parametrizations);   % convert CRLBs to parameter struct
     
-    relativeCRLB = CRLB.metAmpl(1,:)./parsOut.metAmpl(1,:) * 100; % Relative CRLBs for amplitudes
+    relativeCRLB = CRLB.metAmpl(:,:)./parsOut.metAmpl(:,:) * 100; % Relative CRLBs for amplitudes
 
     
     obj.Model{obj.step}.rawCRLB = CRLB;                 % Save raw CRLBs
