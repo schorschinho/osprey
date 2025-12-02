@@ -26,8 +26,10 @@ function obj = calculateCombinedCRLB(obj, invFisher, xk, metaboliteNames, parame
 
 %% 0. Set names cell arrays and houskeeping
 step            = obj.step;                                                                     % Get step counter
-typicalMetaboliteCombinations = {'NAA','NAAG';'GPC','PCh';'Cr','PCr';'Glu','Gln';'EA','PE';'GABA','MM3co'; 'GABA', 'MM3to2'}; 
-MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','GABA+','GABA+'};
+typicalMetaboliteCombinations = {'NAA','NAAG';'GPC','PCh';'Cr','PCr';'Glu','Gln';'EA','PE';'GABA','MM3co'; 'GABA', 'MM3to2';...
+                                 'NAA_Acetyl_only','NAAG_Acetyl_only';'Cr_methyl_only','PCr_ch3_only';'Cr_methylene_only','PCr_ch2nhnh_only';...
+                                 'GPC_pCh2_only','PCh_trimethyl_only'}; 
+MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','GABA+','GABA+','tNAA_Acetyl','tCr_methyl','tCr_methylene','tCho_methyl'};
 
 
 if ~strcmp(obj.Options{step}.parametrizations.metAmpl.type,'dynamic')
@@ -63,12 +65,21 @@ for mm = 1 : length(MetaboliteCombinationNames)
     idx_2 = find(strcmp(metaboliteNames,typicalMetaboliteCombinations{mm,2}));
     if  ~isempty(idx_1) && ~isempty(idx_2)
         AddedMetaboliteCombinations = AddedMetaboliteCombinations + 1;
-        if ~strcmp(obj.Options{step}.parametrizations.metAmpl.type,'dynamic')
+        if ~strcmp(obj.Options{step}.parametrizations.metAmpl.type,'dynamic') && ...
+           ~(strcmp(obj.Options{step}.parametrizations.metAmpl.type,'free') && ...
+              size(obj.Data.fids,2)> 1) 
             idx_1 = idx_1 - 1;
             idx_2 = idx_2 - 1;                          
         else  
-            idx_1 = nPars*idx_1-nPars;
-            idx_2 = nPars*idx_2-nPars;
+            if ~(strcmp(obj.Options{step}.parametrizations.metAmpl.type,'free') && ...
+              size(obj.Data.fids,2)> 1) 
+                idx_1 = nPars*idx_1-nPars;
+                idx_2 = nPars*idx_2-nPars;
+            else
+                nPars = size(obj.Data.fids,2);
+                idx_1 = nPars*idx_1-nPars;
+                idx_2 = nPars*idx_2-nPars;
+            end
         end
         if isempty(parametrizations.metAmpl.gr)
              idx_1 = parametrizations.metAmpl.start + idx_1;
@@ -79,6 +90,16 @@ for mm = 1 : length(MetaboliteCombinationNames)
         end
         BMAT(idx_1,end+1)=1;
         BMAT(idx_2,end)=1;
+        if strcmp(obj.Options{step}.parametrizations.metAmpl.type,'free') 
+           if size(obj.Data.fids,2)> 1
+               for secDim = 2 : size(obj.Data.fids,2)
+                   idx_1 = idx_1 + 1;
+                   idx_2 = idx_2 + 1;  
+                   BMAT(idx_1,end+1)=1;
+                   BMAT(idx_2,end)=1;
+               end
+           end
+        end
     else
         NamesToDelete(end+1) = mm;
     end
@@ -96,11 +117,20 @@ if size(BMAT,2) > length(metaboliteNames)*nPars         % added new combinations
     obj.Model{step}.Combined.parsOut.metAmpl = combinations;
     relativeCRLB= (crlbs ./ combinations') * 100; % Relative CRLBs for combined amplitudes
     if nPars > 1
-        relativeCRLB = cat(1,relativeCRLB(pos:nPars:end-AddedMetaboliteCombinations),relativeCRLB(end-AddedMetaboliteCombinations+1:end));
+        if ~(strcmp(obj.Options{step}.parametrizations.metAmpl.type,'free') && ...
+              size(obj.Data.fids,2)> 1) 
+            relativeCRLB = cat(1,relativeCRLB(pos:nPars:end-AddedMetaboliteCombinations),relativeCRLB(end-AddedMetaboliteCombinations+1:end));
+        else
+            relativeCRLB = reshape(relativeCRLB,[nPars, length(metaboliteNames) + AddedMetaboliteCombinations]);
+        end
     end
     try
         obj.Model{step}.CRLB = array2table(relativeCRLB','VariableNames',[metaboliteNames MetaboliteCombinationNames(1:AddedMetaboliteCombinations)]'); % Save table with basis function names and relative CRLBs
     catch
+        try
+            obj.Model{step}.CRLB = array2table(relativeCRLB,'VariableNames',[metaboliteNames MetaboliteCombinationNames(1:AddedMetaboliteCombinations)]');
+        catch
+        end
     end  
 end
 end
