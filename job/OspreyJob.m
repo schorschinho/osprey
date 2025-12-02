@@ -253,8 +253,8 @@ if strcmp(jobFileFormat,'json')
         if ~iscell(jobStruct.files{1}) || size(jobStruct.files,1) == 1
             files = jobStruct.files';
         end
-        if iscell(files{1})
-            files = cellfun(@transpose,files,'UniformOutput',false);
+        if iscell(jobStruct.files{1})
+            files = cellfun(@transpose,jobStruct.files,'UniformOutput',false);
         end
     else
         error('Invalid job file! A job file needs to contain at least metabolite data in the field ''files''.');
@@ -263,32 +263,32 @@ if strcmp(jobFileFormat,'json')
         if ~iscell(jobStruct.files_mm{1}) || size(jobStruct.files_mm,1) == 1
             files_mm = jobStruct.files_mm';   %re_mm
         end
-        if iscell(files_mm{1})
-            files_mm = cellfun(@transpose,files_mm,'UniformOutput',false);
+        if iscell(jobStruct.files_mm{1})
+            files_mm = cellfun(@transpose,jobStruct.files_mm,'UniformOutput',false);
         end
     end %re_mm
     if isfield(jobStruct, 'files_mm_ref')
         if ~iscell(jobStruct.files_mm_ref{1}) || size(jobStruct.files_mm_ref,1) == 1
             files_mm_ref = jobStruct.files_mm_ref';
         end
-        if iscell(files_mm_ref{1})
-            files_mm_ref = cellfun(@transpose,files_mm_ref,'UniformOutput',false);
+        if iscell(jobStruct.files_mm_ref{1})
+            files_mm_ref = cellfun(@transpose,jobStruct.files_mm_ref,'UniformOutput',false);
         end
     end
     if isfield(jobStruct, 'files_ref')
         if ~iscell(jobStruct.files_ref{1}) || size(jobStruct.files_ref,1) == 1
             files_ref = jobStruct.files_ref';
         end
-        if iscell(files_ref{1})
-            files_ref = cellfun(@transpose,files_ref,'UniformOutput',false);
+        if iscell(jobStruct.files_ref{1})
+            files_ref = cellfun(@transpose,jobStruct.files_ref,'UniformOutput',false);
         end
     end
     if isfield(jobStruct, 'files_w')
         if ~iscell(jobStruct.files_w{1}) || size(jobStruct.files_w,1) == 1
             files_w = jobStruct.files_w';
         end
-        if iscell(files_w{1})
-            files_w = cellfun(@transpose,files_w,'UniformOutput',false);
+        if iscell(jobStruct.files_w{1})
+            files_w = cellfun(@transpose,jobStruct.files_w,'UniformOutput',false);
         end
     end
     if isfield(jobStruct, 'files_nii')
