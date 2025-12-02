@@ -808,7 +808,7 @@ for t = 1 : gui.fit.Number %Loop over fits
             temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.fit.Style,[gui.controls.act_x gui.controls.act_y],Selection); %Create figure
         end
     else
-        MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,end}.plotFit1D(0,gui.controls.ModelStep.Value);
+        MRSCont.fit.results.(gui.fit.Style){gui.controls.Selected,1}.plotFit1D(0,gui.controls.ModelStep.Value);
         set(gca, 'YColor', MRSCont.colormap.Background);
         drawnow
     end
