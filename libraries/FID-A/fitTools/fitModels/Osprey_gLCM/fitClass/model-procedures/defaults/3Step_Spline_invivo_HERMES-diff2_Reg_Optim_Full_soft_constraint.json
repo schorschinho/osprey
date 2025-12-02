@@ -5,7 +5,7 @@
     },
     "basisset": {
     "mmdef": [
-      "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
+      "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLip-GSH-diff.json''))"
     ],
     "opts":{
         "index": 6
@@ -178,7 +178,7 @@
         "optimSignalPart": "R",
         "baseline": {
           "type": "spline",
-          "dkntmn": 0.0667
+          "dkntmn": 0.2
         },
         "solver": "lsqnonlin"
       },

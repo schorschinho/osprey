@@ -180,7 +180,7 @@
         "optimSignalPart": "R",
         "baseline": {
           "type": "spline",
-          "dkntmn": 0.0667
+          "dkntmn": 0.1
         },
         "solver": "lsqnonlin"
       },
