@@ -348,7 +348,7 @@ for kk = 1 : length(DataToModel)
                 end
 
                 if isempty(indMMexp)
-                    if ndims(basisSet.sz) == 2
+                    if length(basisSet.sz) == 2
                         ModelParameter{kk, 1}.BasisSets.fids(:,end+1) = DataToModel{kk}.MMExpSub.fids*factor;
                     else
                         ModelParameter{kk, 1}.BasisSets.fids(:,end+1,:) = repmat(DataToModel{kk}.MMExpSub.fids*factor,[1 1 basisSet.sz(3)]);
@@ -356,7 +356,7 @@ for kk = 1 : length(DataToModel)
                     ModelParameter{kk, 1}.BasisSets.names{end+1} = 'MMexp';
                     ModelParameter{kk, 1}.BasisSets.includeInFit(ss,end+1) = 1;
                 else
-                    if ndims(basisSet.sz) == 2
+                    if length(basisSet.sz) == 2
                         ModelParameter{kk, 1}.BasisSets.fids(:,indMMexp) = DataToModel{kk}.MMExpSub.fids*factor;
                     else
                         ModelParameter{kk, 1}.BasisSets.fids(:,indMMexp,:) = repmat(DataToModel{kk}.MMExpSub.fids*factor,[1 1 basisSet.sz(3)]);
