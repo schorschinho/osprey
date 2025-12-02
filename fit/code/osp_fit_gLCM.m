@@ -65,6 +65,7 @@ for ex = 1 : SeparateExtraDims
         ModelsPerSpec = size(MRSCont.opts.fit.ModelProcedure.metab,1);
     else
         SpectraToModel = 1;
+        ModelsPerSpec = 1;
     end
     for ms = 1 : ModelsPerSpec
         for ss = 1 : SpectraToModel
