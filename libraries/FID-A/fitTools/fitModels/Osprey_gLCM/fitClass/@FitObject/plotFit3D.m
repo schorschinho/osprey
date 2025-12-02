@@ -34,6 +34,9 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
             step = obj.step;                                    % Set to last step
         end
         plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range
+        if isempty(plotRange)
+            plotRange = [0.2 4];
+        end
         if nargin < 4
             secDim = 0;                                             % Set second dimensions to plot (if not defined, it will set it o 0 and plot all)
             if nargin < 3
@@ -106,11 +109,19 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
             hold on;
         end
         hold on
-        dim=dim+0.05;                                                      
+        dim=dim;                                                      
         for ss = 1:size(fit,2)
 
             plot3(ppm,dim(:,ss),real(fit(:,ss)),'k','Linewidth',1.5, ...                % plot fit
                 'Color', [255/255 140/255 0/255])
+    
+        end
+
+        dim=dim+0.5;                                                      
+        for ss = 1:size(fit,2)
+
+            plot3(ppm,dim(:,ss),real(residual(:,ss)),'k','Linewidth',1.5, ...                % plot fit
+                'Color', [11/255 71/255 111/255])
     
         end
 

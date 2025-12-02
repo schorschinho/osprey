@@ -30,7 +30,10 @@ function plotFit1DStack(obj,newFigure, step,secDim, plotRange)
         if nargin < 3
             step = obj.step;                                    % Set to last step
         end
-        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range      
+        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range  
+        if isempty(plotRange)
+            plotRange = [0.2 4];
+        end
         if nargin < 4
             secDim = 1;                                             % Set second dimensions to plot
             if nargin < 3
