@@ -29,32 +29,32 @@ switch module
         requiredModuleVerbs = {'defined (job)'};
         currentModuleVerb   = 'load';
     case 'OspreyProcess'
-        requiredModules     = {'OspreyLoad'};
+        requiredModules     = {'OspreyJob', 'OspreyLoad'};
         requiredModuleVerbs = {'defined (job)','loaded'};
         currentModuleVerb   = 'process';
         
     case 'OspreyFit'
-        requiredModules     = {'OspreyLoad', 'OspreyProcess'};
+        requiredModules     = {'OspreyJob', 'OspreyLoad', 'OspreyProcess'};
         requiredModuleVerbs = {'defined (job)','loaded', 'processed'};
         currentModuleVerb   = 'fit';
 
     case 'OspreyCoreg'
-        requiredModules     = {'OspreyLoad'};
+        requiredModules     = {'OspreyJob', 'OspreyLoad'};
         requiredModuleVerbs = {'defined (job)','loaded'};
         currentModuleVerb   = 'coregister';
         
     case 'OspreySeg'
-        requiredModules     = {'OspreyLoad', 'OspreyCoreg'};
+        requiredModules     = {'OspreyJob', 'OspreyLoad', 'OspreyCoreg'};
         requiredModuleVerbs = {'defined (job)','loaded', 'coregistered'};
         currentModuleVerb   = 'segment';
         
     case 'OspreyQuantify'
-        requiredModules     = {'OspreyLoad', 'OspreyProcess', 'OspreyFit'};
+        requiredModules     = {'OspreyJob', 'OspreyLoad', 'OspreyProcess', 'OspreyFit'};
         requiredModuleVerbs = {'defined (job)','loaded', 'processed', 'fit'};
         currentModuleVerb   = 'quantify';
         
     case 'OspreyOverview'
-        requiredModules     = {'OspreyLoad', 'OspreyProcess'};
+        requiredModules     = {'OspreyJob', 'OspreyLoad', 'OspreyProcess'};
         requiredModuleVerbs = {'defined (job)','loaded', 'OspreyProcess'};
         currentModuleVerb   = 'create overview of';
         
