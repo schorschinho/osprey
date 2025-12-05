@@ -399,7 +399,7 @@ switch Module
         switch MRSCont.opts.fit.method
             case 'LCModel'
                 % Number of metabolites and lipid/MM basis functions
-                basisNames = MRSCont.fit.results.metab.fitParams{kk,subspectrum}.name;
+                basisNames = MRSCont.fit.results.metab.fitParams{1,kk,subspectrum}.name;
                 nLip    = sum(~cellfun(@isempty, strfind(basisNames, 'Lip')));
                 nMM     = sum(~cellfun(@isempty, strfind(basisNames, 'MM')));
                 nMMLip  = nLip + nMM;
@@ -408,7 +408,7 @@ switch Module
                 % No info panel string for the water fit range
                 waterFitRangeString = '';
                 % Where are the metabolite names stored?
-                basisSetNames = MRSCont.fit.results.(which).fitParams{kk,subspectrum}.name;
+                basisSetNames = MRSCont.fit.results.(which).fitParams{1,kk,subspectrum}.name;
                 % Determine the name of the subspectrum to be inserted into
                 % the output PDF filename
                 subSpecNames = {'A', 'diff1', 'diff2'}';
