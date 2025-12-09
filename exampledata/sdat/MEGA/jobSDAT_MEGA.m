@@ -165,8 +165,8 @@ opts.fit.method             = 'Osprey_gLCM';    % OPTIONS:    - 'Osprey_gLCM' (d
 % This also overwrites the Osprey fitting settings described in the
 % section above! For multiple sub-spectra include the matching model
 % procedure json files for each spectrum.
-opts.fit.ModelProcedure.metab   = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-off_Reg_Optim_Full_soft_constraint.json')),...
-                                   which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-diff1_Reg_Optim_Full_soft_constraint.json'))};
+opts.fit.ModelProcedure.metab   = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-GABA-off_Reg_Optim_Full_soft_constraint.json')),...
+                                   which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','3Step_Spline_invivo_MEGA-PRESS-GABA-diff1_Reg_Optim_Full_soft_constraint.json'))};
 opts.fit.ModelProcedure.ref     = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
 opts.fit.ModelProcedure.w       = {which(fullfile('Osprey_gLCM','fitClass','model-procedures','defaults','1Step_water.json'))};
 

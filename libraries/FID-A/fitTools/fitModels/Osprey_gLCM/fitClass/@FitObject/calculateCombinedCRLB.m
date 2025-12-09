@@ -28,8 +28,8 @@ function obj = calculateCombinedCRLB(obj, invFisher, xk, metaboliteNames, parame
 step            = obj.step;                                                                     % Get step counter
 typicalMetaboliteCombinations = {'NAA','NAAG';'GPC','PCh';'Cr','PCr';'Glu','Gln';'EA','PE';'GABA','MM3co'; 'GABA', 'MM3to2';...
                                  'NAA_Acetyl_only','NAAG_Acetyl_only';'Cr_methyl_only','PCr_ch3_only';'Cr_methylene_only','PCr_ch2nhnh_only';...
-                                 'GPC_pCh2_only','PCh_trimethyl_only'}; 
-MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','GABA+','GABA+','tNAA_Acetyl','tCr_methyl','tCr_methylene','tCho_methyl'};
+                                 'GPC_pCh2_only','PCh_trimethyl_only'; 'Lac', 'MM14'}; 
+MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','GABA+','GABA+','tNAA_Acetyl','tCr_methyl','tCr_methylene','tCho_methyl','Lac+'};
 
 
 if ~strcmp(obj.Options{step}.parametrizations.metAmpl.type,'dynamic')
