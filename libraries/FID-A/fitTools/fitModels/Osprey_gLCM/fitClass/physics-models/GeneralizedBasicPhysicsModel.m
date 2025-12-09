@@ -860,11 +860,15 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
     if jacobian                                                             % Parameter matrix is jacobian
         pars = fields(parametrizations);                                    % Get parameter names
         numberOfParameters = [];                                            % Initialize number of parameters
+        numberOfRegularizedParameters = 0;                                  % Initialize number of regularized parameters
         for ff = 1 : length(pars)                                           % Loop over parameters
             numberOfParameters(end+1) = parametrizations.(pars{ff}).end-parametrizations.(pars{ff}).start + 1; % Calculate number of parameters
             if strcmp(parametrizations.(pars{ff}).type,'free')
                 numberOfParameters(end) = numberOfParameters(end)/secDim;
-            end    
+            end  
+            if ~strcmp(parametrizations.(pars{ff}).RegFun,'')  
+                numberOfRegularizedParameters = numberOfRegularizedParameters + numberOfParameters(end);
+            end
         end                                                                 % End loop over parameters
         if strcmp(parametrizations.(parameterName).type,'free')
             nPars = (parametrizations.(parameterName).end-parametrizations.(parameterName).start + 1)/secDim;
@@ -878,9 +882,9 @@ function parameterMatrix = addParameterRegularization(parameterMatrix,parameterN
        
         if  nPars <= max(numberOfParameters) && strcmp(parametrizations.(parameterName).RegFun,'')  % Add zeros if jacobian is too short
              if ~strcmp(parametrizations.(parameterName).type,'dynamic')
-                parameterMatrix = cat(1,parameterMatrix,zeros(max(numberOfParameters),nPars,secDim));    %Add correct number of zeros to the end
+                parameterMatrix = cat(1,parameterMatrix,zeros(numberOfRegularizedParameters,nPars,secDim));    %Add correct number of zeros to the end
              else
-                parameterMatrix = cat(1,parameterMatrix,zeros(max(numberOfParameters),secDim,nPars));    %Add correct number of zeros to the end
+                parameterMatrix = cat(1,parameterMatrix,zeros(numberOfRegularizedParameters,secDim,nPars));    %Add correct number of zeros to the end
              end
         end
     end
@@ -1227,6 +1231,9 @@ function dYdX = updateJacobianBlock(dYdX,parameterName, parametrizations,inputPa
         end
         % Calculate the jacobian according to the external function, parameter estimates, and modulator
         factor = parametrizations.(parameterName).fun.jac(parameterEstimate,parametrizations.(parameterName).modulator);
+        if size(factor,2) == 1                                              % For 1 entry we need to squeeze?
+            factor = squeeze(factor);
+        end
         if ndims(factor) ==3                                               % For per metabolite cases with more than 1 entry       
             factor = repmat(factor, [1 1 1 nPoints]);                      % Repeat nPoints times
             factor = permute(factor,[4 2 1 3]);                            % Dims have to be nPoints secDim nLines nPars

@@ -33,7 +33,7 @@
         "optimSignalPart": "R",
         "baseline": {
           "type": "spline",
-          "dkntmn": 0.0667
+          "dkntmn": 0.5
         },
         "solver": "lsqnonlin"
       },
@@ -77,7 +77,7 @@
         "optimSignalPart": "R",
         "baseline": {
           "type": "spline",
-          "dkntmn": 0.0667
+          "dkntmn": 0.5
         },
         "solver": "lsqnonlin"
       },
