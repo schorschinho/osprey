@@ -55,7 +55,11 @@ for rr = 1:length(C)
         if strcmpi(C{rr}{1}, 'title')% If the title field is split, join back together
             title = strjoin(C{rr}(2:end));
             LCMparam.title = title;
-        elseif strcmp(C{rr}{1}(1:6),'CHSIMU') % simulation parameters contains '='
+        elseif strcmpi(C{rr}{1}(1:6),'CHSIMU') % simulation parameters contains '='
+            P{1} = C{rr}{1};
+            P{2} = strjoin(C{rr}(2:end), '=');
+            LCMparam = parseControlFileLine(LCMparam, P);
+        elseif strcmpi(C{rr}{1}(1:6),'CHRATO') % simulation parameters contains '='
             P{1} = C{rr}{1};
             P{2} = strjoin(C{rr}(2:end), '=');
             LCMparam = parseControlFileLine(LCMparam, P);
