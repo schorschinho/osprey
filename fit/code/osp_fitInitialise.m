@@ -482,6 +482,10 @@ switch MRSCont.opts.fit.method
                 if isfield(LCMparam, 'chomit')
                     chOmitList{1} = unique(horzcat(chOmitList{1}, LCMparam.chomit));
                 end
+                % Add NRATIO parameter if chrato is specified
+                if isfield(LCMparam, 'chrato')
+                    LCMparam = osp_editControlParameters(LCMparam, 'nratio', num2str(length(LCMparam.chrato)));
+                end
                 LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList{1});
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
                 LCMparam = osp_editControlParameters(LCMparam, 'filtab', '');
