@@ -98,6 +98,7 @@ isUniversal = ~isempty(strfind(sequence,'univ')) ||...                  % Is JHU
               ~isempty(strfind(sequence,'smm_svs_herm'));               % Is Pavi's HERMES sequence
 isDondersMRSfMRI = contains(sequence,'moco_nav_set'); %Is combined fMRI-MRS sequence implemented at Donders Institute NL
 isConnectom = contains(twix_obj.hdr.Dicom.ManufacturersModelName,'Connectom'); %Is from Connectom scanner (Apparently svs_se Dims are not as expected for vd)
+isColumbia = contains(sequence,'_cu_'); % Is sLASER Columbia University implementation based on CMRR, U Minnesota
 
 %Make a pulse sequence identifier for the header (out.seq);
 if isSpecial || isjnSpecial
@@ -141,6 +142,9 @@ elseif isSiemens
 end
 if isDondersMRSfMRI
     seq = 'SLASER_D';
+end
+if isColumbia
+    seq = 'MEGASLASER'; % So far we only have example data for GSH-edited MEGASLASER for CU
 end
 
 % GO 10/2022:
@@ -347,6 +351,27 @@ if isMinn_dkd
     end
 
 
+end
+
+% The Columbia University MEGA SLASER some reference scans as well. We will
+% save these and store them as a separate water reference struture (out_w).
+if isColumbia
+    %If nRefs is non-zero, then there are automatic water reference scans.
+    %These will be saved as "outw".
+    nRefs=twix_obj.hdr.MeasYaps.sSpecPara.lAutoRefScanNo;
+    if nRefs==1
+        nRefs=0;%Becuase Nrefs seems to have a default value of 1 even if there are no reference scans. 
+    end
+    if nRefs>0
+        wRefs=true;
+    end
+    if ndims(fids)==4
+        fids_w=squeeze(fids(:,:,1:nRefs,1));
+        fids = squeeze(fids(:,:,:,2));
+        fids_A = fids(:,:,1:2:end);
+        fids_B = fids(:,:,2:2:end);
+        fids = cat(4,fids_A,fids_B);
+    end
 end
 
 % Product Siemens PRESS/STEAM can also include water reference scans. 
@@ -730,10 +755,19 @@ date=''; %The above code for extracting the date from the header
 %averages in the dataset, which is unchangeable.
 if dims.subSpecs ~=0
     if dims.averages~=0
-        averages=sz(dims.averages)*sz(dims.subSpecs);
-        rawAverages=averages;
+        if ~isColumbia
+            averages=sz(dims.averages)*sz(dims.subSpecs);
+            rawAverages=averages;
+        else
+            averages=sz(dims.averages);
+            rawAverages=sz(dims.averages)*sz(dims.subSpecs);
+        end
         if wRefs
-            averages_w=sz_w(dims.averages)*sz_w(dims.subSpecs);
+            if ~isColumbia
+                averages_w=sz_w(dims.averages)*sz_w(dims.subSpecs);
+            else
+                averages_w=sz_w(dims.averages);
+            end
             rawAverages_w=averages_w;
         end
     else
@@ -941,7 +975,14 @@ if wRefs
     if out_w.dims.subSpecs==0
         out_w.flags.isFourSteps=0;
     else
-        out_w.flags.isFourSteps=(out_w.sz(out_wop_pl.dims.subSpecs)==4);
+        if ~isColumbia
+            out_w.flags.isFourSteps=(out_w.sz(out_wop_pl.dims.subSpecs)==4);
+        else
+            out_w.dims.subSpecs=0;
+            out_w.flags.isFourSteps=0;
+            out_w.subspecs=1;
+            out_w.rawSubspecs=1;
+        end
     end
     % Add info for niiwrite
     out_w.PatientPosition = twix_obj.hdr.Config.PatientPosition;
