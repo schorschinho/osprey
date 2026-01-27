@@ -135,8 +135,8 @@ for ss = 1 : SubSpectraFitted
         end
     else
         MRSCont.quantify.names.metab{1,ss} = MRSCont.fit.results.metab.fitParams{1, 1, ss}.name;
-        common_LCModelNames = {'PCh_GPC','Cr_PCr','NAA_NAAG','Glu_Gln','GABA_MM30','GABA_MM09', 'Lac_MM14'};
-        Osprey_Names = {'tCho','tCr','tNAA','Glx','GABAplus','GABAplus', 'LacPlus'};
+        common_LCModelNames = {'PCh_GPC','Cr_PCr','NAA_NAAG','Glu_Gln','GABA_MM30','GABA_MM09','Lac_MM14','bHB_MM12'};
+        Osprey_Names = {'tCho','tCr','tNAA','Glx','GABAplus','GABAplus','LacPlus','bHBPlus'};
         for nn = 1 : length(common_LCModelNames)
             idx  = find(strcmp(MRSCont.quantify.names.metab{1,ss},common_LCModelNames{nn}));
             if ~isempty(idx)

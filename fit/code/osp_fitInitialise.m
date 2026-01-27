@@ -374,7 +374,7 @@ switch MRSCont.opts.fit.method
                         metabsInBasis{2}   = fit_readLCMBasisSetMetabs(basisSetFile{2});
                     case 'Lac'
                         basisSetFile{2}     = MRSCont.opts.fit.basisSetFile{2};
-                        metabsToInclude{2}  = fit_createMetabList({'Asc','Asp','bHB','Cr','GPC','Gln','Glu','GSH','mI','Lac','NAA','NAAG','PCh','PCr','PE', 'MM14'}); % Dacko & Lange, NMR Biomed 2019;32:e4100 (plus Glu, Gln, Asp, GSH)
+                        metabsToInclude{2}  = fit_createMetabList({'Asc','Asp','bHB','Cr','GPC','Gln','Glu','GSH','mI','Lac','NAA','NAAG','PCh','PCr','PE', 'MM12', 'MM14'}); % Dacko & Lange, NMR Biomed 2019;32:e4100 (plus Glu, Gln, Asp, GSH)
                         metabsInBasis{2}    = fit_readLCMBasisSetMetabs(basisSetFile{2});
                     otherwise
                         basisSetFile{2}     = MRSCont.opts.fit.basisSetFile{2};
@@ -644,8 +644,11 @@ switch MRSCont.opts.fit.method
                             % According to Landheer (10.1002/mrm.28282),
                             % the 1.4-ppm MM has T2 ~18 Hz
                             % See discussion in Dacko & Lange, NMR Biomed 2019;32:e4100 (see also Dacko & Lange, MRM 2021;85:1160-1174)
-                            LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '1');
-                            LCMparam = osp_editControlParameters(LCMparam, 'chsimu', {'''MM14 @ 1.41 +- .02 FWHM= .085 <  .114 +- .35 AMP= 2.'''});
+                            % GO 01/2026 Add experimental MM12
+                            LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '2');
+                            LCMparam = osp_editControlParameters(LCMparam, 'chsimu', {'''MM12 @ 1.21 +- .02 FWHM= .085 <  .114 +- .35 AMP= 2.''', ...
+                                                                                      '''MM14 @ 1.41 +- .02 FWHM= .085 <  .114 +- .35 AMP= 2.'''});
+                            LCMparam = osp_editControlParameters(LCMparam, 'chrato', {'''MM12/MM14 = 0.25 +- .1'''});
                             % GO 11/2025 Specify the reference singlet (needs to be in
                             % the basis set!
                             LCMparam = osp_editControlParameters(LCMparam, 'wsmet', '''Lac''');
@@ -654,7 +657,7 @@ switch MRSCont.opts.fit.method
                             % GO 11/2025 Compare to tNAA
                             LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''NAA+NAAG''');
                             % GO 11/2025 Add Lac+ output
-                            LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''NAA+NAAG''','''Glu+Gln''','''Lac+MM14'''});
+                            LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''NAA+NAAG''','''Glu+Gln''','''Lac+MM14''','''bHB+MM12'''});
 
                     end
                     
