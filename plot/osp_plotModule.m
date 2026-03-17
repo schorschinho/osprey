@@ -967,7 +967,16 @@ out.PaperSize = [fig_pos(3) fig_pos(4)];
 % print(fig,'-dpdf','-painters','-r600','-bestfit',strcat(plot_path,plot_name));
 
 % print(out,fullfile(outputFolder,outputFile),'-dpdf') % then print it
-saveas(out,fullfile(outputFolder,outputFile),'pdf');
+%saveas(out,fullfile(outputFolder,outputFile),'pdf');
+
+try
+    saveas(out, fullfile(outputFolder, outputFile), 'pdf');
+catch
+    filename = fullfile(outputFolder, [outputFile '.pdf']);
+    exportapp(out, filename);
+end
+
+
 h = findall(groot,'Type','figure');
 for ff = 1 : length(h)
     if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
