@@ -972,7 +972,7 @@ out.PaperSize = [fig_pos(3) fig_pos(4)];
 try
     saveas(out, fullfile(outputFolder, outputFile), 'pdf');
 catch
-    filename = fullfile(outputFolder, [outputFile '.pdf']);
+       filename = fullfile(outputFolder, outputFile);
     exportapp(out, filename);
 end
 
