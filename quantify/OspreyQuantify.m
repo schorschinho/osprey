@@ -647,6 +647,26 @@ function MRSCont = addMetabComb(MRSCont,SubSpectraFitted,BasisSetsFitted,Experim
                     end
                 end
             end
+            %PE+EA
+            for ex = 1 : ExperimentsFitted
+                for ss = 1 : SubSpectraFitted
+                    for mm = 1: BasisSetsFitted
+                        for ms = 1 : ModelsFitted
+                            idx_1 = find(strcmp(MRSCont.quantify.names.metab{mm,ss,ex,ms},'Lac'));
+                            idx_2 = find(strcmp(MRSCont.quantify.names.metab{mm,ss,ex,ms},'MM14'));
+                            if  ~isempty(idx_1) && ~isempty(idx_2)
+                                idx_3 = find(strcmp(MRSCont.quantify.names.metab{mm,ss,ex,ms},'LacPlus'));
+                                if isempty(idx_3)
+                                    MRSCont.quantify.names.metab{mm,ss,ex,ms}{length(MRSCont.quantify.names.metab{mm,ss,ex,ms})+1} = 'LacPlus';
+                                end
+                                idx_tEA = find(strcmp(MRSCont.quantify.names.metab{mm,ss,ex,ms},'LacPlus'));
+                                tEA = MRSCont.quantify.amplMets{mm,kk,ss,ex,ms}.metab(idx_1,:) + MRSCont.quantify.amplMets{mm,kk,ss,ex,ms}.metab(idx_2,:);
+                                MRSCont.quantify.amplMets{mm,kk,ss,ex,ms}.metab(idx_tEA,:) = tEA;
+                            end
+                        end
+                    end
+                end
+            end
             for ms = 1 : ModelsFitted
                 for ex = 1 : ExperimentsFitted
                     for ss = 1 : SubSpectraFitted
