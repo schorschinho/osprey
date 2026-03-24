@@ -7,10 +7,8 @@ function [MRSCont] = OspreyMRSI(jobFile,overwrite,stopAfterProcess)
 % It will be part of the upcoming Osprey release 3.0.0
 % Please make sure to remove any older Osprey versions from your Matlab
 % path. Add the full OspreyMRSIbeta folder to the path. For data
-% visualization you need to install FSL-eyes with the MRS plugin (). Currently
-% you will also have to make a few modifications to the FSL-eyes code to
-% ensure full compatiblity with the Osprey results. We are working with the
-% FSL developers to address this in the future.
+% visualization you need to install FSL-eyes with the mrs-plugin. Currently
+% you will also have to copy the viridis colormap into the fsl folder.
 %
 % The folder contains three example datasets from Philips and Siemens.
 % Philips SPAR/SDAT and data/list files are most supported. All other data
@@ -201,13 +199,13 @@ end
 % MRSCont.opts.MRSI.MaxEcho.FreqAlign.zerofill = 1;
 
 % Cross-correlation alignment of frequencies defined below after Wavelet filter of baseline if lipid/noise > thresh
-% opts.MRSI.MaxEcho.FreqAlign.type = 'CCwithLipRemoval'; 
-% opts.MRSI.MaxEcho.FreqAlign.thresh = 10;
-% opts.MRSI.MaxEcho.FreqAlign.frequencies = [2.01,3.03,3.22,3.9];
-% opts.MRSI.MaxEcho.FreqAlign.polarity = [1,1,1,1];
-% opts.MRSI.MaxEcho.FreqAlign.lim = [1.85,4.2];
-% opts.MRSI.MaxEcho.FreqAlign.realpart = 0;
-% opts.MRSI.MaxEcho.FreqAlign.zerofill = 1;
+% MRSCont.opts.MRSI.MaxEcho.FreqAlign.type = 'CCwithLipRemoval'; 
+% MRSCont.opts.MRSI.MaxEcho.FreqAlign.thresh = 10;
+% MRSCont.opts.MRSI.MaxEcho.FreqAlign.frequencies = [2.01,3.03,3.22,3.9];
+% MRSCont.opts.MRSI.MaxEcho.FreqAlign.polarity = [1,1,1,1];
+% MRSCont.opts.MRSI.MaxEcho.FreqAlign.lim = [1.85,4.2];
+% MRSCont.opts.MRSI.MaxEcho.FreqAlign.realpart = 0;
+% MRSCont.opts.MRSI.MaxEcho.FreqAlign.zerofill = 1;
 
 if ~MRSCont.flags.didProcess
     MRSCont = OspreyProcess(MRSCont);

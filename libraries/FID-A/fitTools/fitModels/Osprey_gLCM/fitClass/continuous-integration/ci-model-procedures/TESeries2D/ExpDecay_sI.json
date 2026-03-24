@@ -1,0 +1,22 @@
+{
+  "parameters": {
+  "metAmpl": {
+      "type": "dynamic",
+      "fun": "ExponentialDecay",
+      "modulator":[0,20,40,60,80,100,130,150,170,190,210,230,250,270,290,300],
+      "parameterNames": [
+        "DecayAmpl",
+        "DecayConstant"
+      ],
+      "parametrizations": {
+        "fun": "ExponentialDecay",
+        "init": [0.4,110],
+        "lb": [0,5],
+        "ub": ["Inf","Inf"]
+      }
+    },
+  "ph1":{
+    "type": "fixed"
+   }
+  }
+}

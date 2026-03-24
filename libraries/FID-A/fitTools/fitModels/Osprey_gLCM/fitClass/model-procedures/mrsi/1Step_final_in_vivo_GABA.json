@@ -1,0 +1,63 @@
+{
+  "basisset": {
+    "file": [
+       "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_Edited_se_MRSI_PRESS_GABA68_wMM.mat"
+    ],
+    "mmdef": [
+    ]
+  },
+  "Steps": [
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "GABAp","GSH","Glu","Gln","NAA","NAAG"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.95,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "poly",
+          "order": 2
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "metAmpl": {
+        "sc":{
+              "adj": ["NAAG_Acetyl_only"],
+              "fix": ["NAA_Acetyl_only"],
+              "fix_factor":[1],
+              "ex": [0.15],
+              "sd": [0.15],
+              "fun": "ratio",
+              "scaling": 1
+        }},
+        "lorentzLB": {
+        "sc":{
+              "adj": ["NAAG"],
+              "fix": ["NAA"],   
+              "fix_factor":[1],
+              "ex": [1],
+              "sd": [0.05],
+              "fun": "ratio",
+              "scaling": 1
+        }}
+      }
+    }
+  ]
+}

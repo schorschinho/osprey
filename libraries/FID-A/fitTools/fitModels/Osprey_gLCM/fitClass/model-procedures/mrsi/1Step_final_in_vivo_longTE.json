@@ -1,0 +1,116 @@
+{
+  "basisset": {
+    "file": [
+      "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA140_noMM.mat"
+    ]
+  },
+  "Steps": [{
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr_methyl_only","Cr_methylene_only","GPC_pCh2_only","NAA_Acetyl_only","NAAG_Acetyl_only",
+          "PCh_trimethyl_only","PCr_ch2nhnh_only","PCr_ch3_only"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.75,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "poly",
+          "order": 2
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "lorentzLB": {
+          "gr":{"g1":["Cr_methyl_only","Cr_methylene_only","GPC_pCh2_only","NAA_Acetyl_only","NAAG_Acetyl_only",
+          "PCh_trimethyl_only","PCr_ch2nhnh_only","PCr_ch3_only"]}
+      },
+      "freqShift": {
+        "gr":{"g1":["Cr_methyl_only","Cr_methylene_only","GPC_pCh2_only","NAA_Acetyl_only","NAAG_Acetyl_only",
+        "PCh_trimethyl_only","PCr_ch2nhnh_only","PCr_ch3_only"]},
+          "lb": -0.01,
+          "ub":0.01
+      },
+        "metAmpl": {
+        "sc":{
+              "adj": ["NAAG_Acetyl_only"],
+              "fix": ["NAA_Acetyl_only"],
+              "fix_factor":[1],
+              "ex": [0.15],
+              "sd": [0.15],
+              "fun": "ratio",
+              "scaling": 1
+        }}
+      }
+    },
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr_methyl_only","Cr_methylene_only","GPC_pCh2_only","NAA_Acetyl_only","NAAG_Acetyl_only",
+          "PCh_trimethyl_only","PCr_ch2nhnh_only","PCr_ch3_only"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.75,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "poly",
+          "order": 2
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "GlobFreqShift": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "metAmpl": {
+        "sc":{
+              "adj": ["NAAG_Acetyl_only"],
+              "fix": ["NAA_Acetyl_only"],
+              "fix_factor":[1],
+              "ex": [0.15],
+              "sd": [0.15],
+              "fun": "ratio",
+              "scaling": 1
+        }
+      }
+      }
+    }
+  ]
+}

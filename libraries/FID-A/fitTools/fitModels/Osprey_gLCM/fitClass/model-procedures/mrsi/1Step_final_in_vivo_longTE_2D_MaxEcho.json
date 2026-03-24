@@ -1,0 +1,57 @@
+{
+  "basisset": {
+    "file": [
+      "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA140_noMM.mat",
+      "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA140_noMM_MaxEcholeftflip.mat"
+
+    ],
+    "mmdef": [
+    ]
+  },
+  "Steps": [
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 1,
+  		  "DynamicModelJson": "/Volumes/Samsung/working/OspreyMRSIbeta/model-procedures/2D_reduce_dims_MaxEcho.json"
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr_methyl_only","Cr_methylene_only","Gln","Glu","mI","GPC_pCh2_only","NAA_Acetyl_only","NAAG_Acetyl_only",
+          "PCh_trimethyl_only","PCr_ch2nhnh_only","PCr_ch3_only"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.75,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "poly",
+          "order": 2
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "metAmpl": {
+        "sc":{
+              "adj": ["NAAG_Acetyl_only"],
+              "fix": ["NAA_Acetyl_only"],
+              "fix_factor":[1],
+              "ex": [0.15],
+              "sd": [0.15],
+              "fun": "ratio",
+              "scaling": 1
+        }}
+      }
+    }
+  ]
+}

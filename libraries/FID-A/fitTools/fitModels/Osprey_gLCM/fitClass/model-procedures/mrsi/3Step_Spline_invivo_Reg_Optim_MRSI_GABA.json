@@ -1,0 +1,258 @@
+{
+  "basisset": {
+    "file": [
+      "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_Edited_se_MRSI_PRESS_GABA68_wMM.mat"
+    ],
+    "mmdef": [
+        "which(fullfile(''gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
+    ],
+    "opts":{
+        "index": 3
+    }
+  },
+  "Steps": [{
+      "module": "OptimReg",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+         "GABAp","GSH","Glu","Gln","NAA","NAAG"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.95,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+          "gaussLB": {
+          "init": 5.11,
+          "ex": 5.11,
+          "sd":0.2
+        },
+          "lorentzLB": {
+          "gr":{"g1":["GABAp","GSH","Glu","Gln","NAA","NAAG"]}
+        },
+        "freqShift": {
+          "gr":{"g1":["GABAp","GSH","Glu","Gln","NAA","NAAG"]},
+            "lb": -0.01,
+            "ub":0.01
+        },
+          "baseAmpl": {
+            "RegFun": "SecondDerivative"
+          }
+      },
+      "regularizer": {
+        "parameter": "baseAmpl",
+        "fun"      : "LambdaEDFormalism",
+        "m"        : 1,
+        "ub"       : 1,
+        "steps"    : 1,
+        "fixedParameter": ["ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift"]
+      }
+    },
+    {
+      "module": "OptimReg",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "GABAp","GSH","Glu","Gln","NAA","NAAG"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.8,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "baseAmpl": {
+          "RegFun": "SecondDerivative"
+        },
+        "ph0": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "ph1": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "GlobFreqShift": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "gaussLB": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "lorentzLB": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ],
+          "gr":{"g1":["GABAp","GSH","Glu","Gln","NAA","NAAG"]}
+        },
+        "freqShift": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ],
+          "gr":{"g1":["GABAp","GSH","Glu","Gln","NAA","NAAG"]}
+        },
+        "metAmpl": {
+        "sc":{
+              "adj": ["NAAG"],
+              "fix": ["NAA"],
+              "fix_factor":[1],
+              "ex": [0.15],
+              "sd": [0.015],
+              "fun": "ratio",
+              "scaling": 1
+        }}
+      },
+      "regularizer": {
+        "parameter": "baseAmpl",
+        "fun"      : "LambdaEDFormalism",
+        "m"        : 15,
+        "ub"       : 14,
+        "steps"    : 20,
+        "fixedParameter": ["ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift"]
+      }
+    },
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "GABAp","GSH","Glu","Gln","NAA","NAAG"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.95,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "GlobFreqShift": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "metAmpl": {
+        "sc":{
+              "adj": ["NAAG"],
+              "fix": ["NAA"],
+              "fix_factor":[1],
+              "ex": [0.15],
+              "sd": [0.015],
+              "fun": "ratio",
+              "scaling": 1
+        }},
+        "lorentzLB": {
+        "sc":{
+              "adj": ["NAAG"],
+              "fix": ["NAA"],
+              "fix_factor":[1],
+              "ex": [1],
+              "sd": [0.05],
+              "fun": "ratio",
+              "scaling": 1
+        }},
+        "baseAmpl": {
+          "RegFun": "SecondDerivative",
+          "RegPar": ["Step 2"]
+        }
+      }
+    }
+  ]
+}
