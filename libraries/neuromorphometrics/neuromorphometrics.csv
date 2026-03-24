@@ -1,0 +1,137 @@
+ROIid;ROIname;Vgm;Vwm;Vcsf;ROIcolor;CircNumber;CircRegion;CircLabel;Hemisphere
+4;3rd Ventricle;0;0;1;0 204 0;135;Ventricle;third;both
+11;4th Ventricle;0;0;1;255 0 0;134;Ventricle;fourth;both
+23;Right Accumbens Area;1;0;0;102 102 255;116;Basal ganglia;Accumbens;right
+30;Left Accumbens Area;1;0;0;102 102 255;52;Basal ganglia;Accumbens;left
+31;Right Amygdala;1;0;0;255 177 100;114;Amygdala;Amygdala;right
+32;Left Amygdala;1;0;0;255 177 100;50;Amygdala;Amygdala;left
+35;Brain Stem;0;1;0;0 255 255;132;Brain stem;Brain stem;both
+36;Right Caudate;1;0;0;255 0 255;117;Basal ganglia;Caudate;right
+37;Left Caudate;1;0;0;255 0 255;53;Basal ganglia;Caudate;left
+38;Right Cerebellum Exterior;1;0;0;102 0 0;126;Cerebellum;exterior;right
+39;Left Cerebellum Exterior;1;0;0;102 0 0;62;Cerebellum;exterior;left
+40;Right Cerebellum White Matter;0;1;0;0 102 0;127;Cerebellum;white;right
+41;Left Cerebellum White Matter;0;1;0;0 102 0;63;Cerebellum;white;left
+44;Right Cerebral White Matter;0;1;0;255 215 0;128;Cerebellum;white;right
+45;Left Cerebral White Matter;0;1;0;255 215 0;64;Cerebellum;white;left
+46;CSF;0;0;1;0 204 0;136;Ventricle;Ventricle;both
+47;Right Hippocampus;1;0;0;255 0 0;122;Hippocampus;Hippocampus;right
+48;Left Hippocampus;1;0;0;255 0 0;58;Hippocampus;Hippocampus;left
+49;Right Inf Lat Vent;0;0;1;102 102 255;123;Ventricle;lateral;right
+50;Left Inf Lat Vent;0;0;1;102 102 255;59;Ventricle;lateral;left
+51;Right Lateral Ventricle;0;0;1;255 177 100;124;Ventricle;lateral;right
+52;Left Lateral Ventricle;0;0;1;255 177 100;60;Ventricle;lateral;left
+55;Right Pallidum;1;0;0;0 255 255;118;Basal ganglia;Pallidum;right
+56;Left Pallidum;1;0;0;0 255 255;54;Basal ganglia;Pallidum;left
+57;Right Putamen;1;0;0;255 0 255;119;Basal ganglia;Putamen;right
+58;Left Putamen;1;0;0;255 0 255;55;Basal ganglia;Putamen;left
+59;Right Thalamus Proper;1;0;0;102 0 0;120;Basal ganglia;Thalamus;right
+60;Left Thalamus Proper;1;0;0;102 0 0;56;Basal ganglia;Thalamus;left
+61;Right Ventral DC;1;1;0;0 102 0;121;Diencephalon;ventral;right
+62;Left Ventral DC;1;1;0;0 102 0;57;Diencephalon;ventral;left
+63;Right vessel;0;0;0;255 215 0;125;Vessel;Vessel;right
+64;Left vessel;0;0;0;255 215 0;61;Vessel;Vessel;left
+69;Optic Chiasm;1;0;0;0 204 0;133;Optic chaism;Optic chaism;both
+71;Cerebellar Vermal Lobules I-V;1;1;0;255 0 0;129;Cerebellum;Cerebellum;both
+72;Cerebellar Vermal Lobules VI-VII;1;1;0;102 102 255;130;Cerebellum;Cerebellum;both
+73;Cerebellar Vermal Lobules VIII-X;1;1;0;255 177 100;131;Cerebellum;Cerebellum;both
+75;Left Basal Forebrain;1;0;0;255 177 100;115;Basal Forebrain;Basal Forebrain;right
+76;Right Basal Forebrain;1;0;0;0 255 255;51;Basal Forebrain;Basal Forebrain;left
+100;Right ACgG anterior cingulate gyrus;1;0;0;255 0 255;109;Limbic cortex;cingulate;right
+101;Left ACgG anterior cingulate gyrus;1;0;0;255 0 255;45;Limbic cortex;cingulate;left
+102;Right AIns anterior insula;1;0;0;102 0 0;69;Frontal lobe;insular;right
+103;Left AIns anterior insula;1;0;0;102 0 0;5;Frontal lobe;insular;left
+104;Right AOrG anterior orbital gyrus;1;0;0;0 102 0;65;Frontal lobe;inferior;right
+105;Left AOrG anterior orbital gyrus;1;0;0;0 102 0;1;Frontal lobe;inferior;left
+106;Right AnG angular gyrus;1;0;0;255 215 0;103;Parietal lobe;lateral;right
+107;Left AnG angular gyrus;1;0;0;255 215 0;39;Parietal lobe;lateral;left
+108;Right Calc calcarine cortex;1;0;0;0 204 0;100;Occipital lobe;medial;right
+109;Left Calc calcarine cortex;1;0;0;0 204 0;36;Occipital lobe;medial;left
+112;Right CO central operculum;1;0;0;255 0 0;84;Frontal lobe;opercular;right
+113;Left CO central operculum;1;0;0;255 0 0;20;Frontal lobe;opercular;left
+114;Right Cun cuneus;1;0;0;102 102 255;101;Occipital lobe;medial;right
+115;Left Cun cuneus;1;0;0;102 102 255;37;Occipital lobe;medial;left
+116;Right Ent entorhinal area;1;0;0;255 177 100;112;Limbic cortex;medial-temporal;right
+117;Left Ent entorhinal area;1;0;0;255 177 100;48;Limbic cortex;medial-temporal;left
+118;Right FO frontal operculum;1;0;0;0 255 255;85;Frontal lobe;opercular;right
+119;Left FO frontal operculum;1;0;0;0 255 255;21;Frontal lobe;opercular;left
+120;Right FRP frontal pole;1;0;0;255 0 255;71;Frontal lobe;lateral;right
+121;Left FRP frontal pole;1;0;0;255 0 255;7;Frontal lobe;lateral;left
+122;Right FuG fusiform gyrus;1;0;0;102 0 0;87;Temporal lobe;inferior;right
+123;Left FuG fusiform gyrus;1;0;0;102 0 0;23;Temporal lobe;inferior;left
+124;Right GRe gyrus rectus;1;0;0;0 102 0;78;Frontal lobe;medial;right
+125;Left GRe gyrus rectus;1;0;0;0 102 0;14;Frontal lobe;medial;left
+128;Right IOG inferior occipital gyrus;1;0;0;255 215 0;96;Occipital lobe;lateral;right
+129;Left IOG inferior occipital gyrus;1;0;0;255 215 0;32;Occipital lobe;lateral;left
+132;Right ITG inferior temporal gyrus;1;0;0;0 204 0;88;Temporal lobe;lateral;right
+133;Left ITG inferior temporal gyrus;1;0;0;0 204 0;24;Temporal lobe;lateral;left
+134;Right LiG lingual gyrus;1;0;0;255 0 0;102;Occipital lobe;medial;right
+135;Left LiG lingual gyrus;1;0;0;255 0 0;38;Occipital lobe;medial;left
+136;Right LOrG lateral orbital gyrus;1;0;0;102 102 255;66;Frontal lobe;inferior;right
+137;Left LOrG lateral orbital gyrus;1;0;0;102 102 255;2;Frontal lobe;inferior;left
+138;Right MCgG middle cingulate gyrus;1;0;0;255 177 100;110;Limbic cortex;cingulate;right
+139;Left MCgG middle cingulate gyrus;1;0;0;255 177 100;46;Limbic cortex;cingulate;left
+140;Right MFC medial frontal cortex;1;0;0;0 255 255;79;Frontal lobe;medial;right
+141;Left MFC medial frontal cortex;1;0;0;0 255 255;15;Frontal lobe;medial;left
+142;Right MFG middle frontal gyrus;1;0;0;255 0 255;72;Frontal lobe;lateral;right
+143;Left MFG middle frontal gyrus;1;0;0;255 0 255;8;Frontal lobe;lateral;left
+144;Right MOG middle occipital gyrus;1;0;0;102 0 0;97;Occipital lobe;lateral;right
+145;Left MOG middle occipital gyrus;1;0;0;102 0 0;33;Occipital lobe;lateral;left
+146;Right MOrG medial orbital gyrus;1;0;0;0 102 0;67;Frontal lobe;inferior;right
+147;Left MOrG medial orbital gyrus;1;0;0;0 102 0;3;Frontal lobe;inferior;left
+148;Right MPoG postcentral gyrus medial segment;1;0;0;255 215 0;107;Parietal lobe;medial;right
+149;Left MPoG postcentral gyrus medial segment;1;0;0;255 215 0;43;Parietal lobe;medial;left
+150;Right MPrG precentral gyrus medial segment;1;0;0;0 204 0;80;Frontal lobe;medial;right
+151;Left MPrG precentral gyrus medial segment;1;0;0;0 204 0;16;Frontal lobe;medial;left
+152;Right MSFG superior frontal gyrus medial segment;1;0;0;255 0 0;81;Frontal lobe;medial;right
+153;Left MSFG superior frontal gyrus medial segment;1;0;0;255 0 0;17;Frontal lobe;medial;left
+154;Right MTG middle temporal gyrus;1;0;0;102 102 255;89;Temporal lobe;lateral;right
+155;Left MTG middle temporal gyrus;1;0;0;102 102 255;25;Temporal lobe;lateral;left
+156;Right OCP occipital pole;1;0;0;255 177 100;98;Occipital lobe;lateral;right
+157;Left OCP occipital pole;1;0;0;255 177 100;34;Occipital lobe;lateral;left
+160;Right OFuG occipital fusiform gyrus;1;0;0;0 255 255;95;Occipital lobe;inferior;right
+161;Left OFuG occipital fusiform gyrus;1;0;0;0 255 255;31;Occipital lobe;inferior;left
+162;Right OpIFG opercular part of the inferior frontal gyrus;1;0;0;255 0 255;73;Frontal lobe;lateral;right
+163;Left OpIFG opercular part of the inferior frontal gyrus;1;0;0;255 0 255;9;Frontal lobe;lateral;left
+164;Right OrIFG orbital part of the inferior frontal gyrus;1;0;0;102 0 0;74;Frontal lobe;lateral;right
+165;Left OrIFG orbital part of the inferior frontal gyrus;1;0;0;102 0 0;10;Frontal lobe;lateral;left
+166;Right PCgG posterior cingulate gyrus;1;0;0;0 102 0;111;Limbic cortex;cingulate;right
+167;Left PCgG posterior cingulate gyrus;1;0;0;0 102 0;47;Limbic cortex;cingulate;left
+168;Right PCu precuneus;1;0;0;255 215 0;108;Parietal lobe;medial;right
+169;Left PCu precuneus;1;0;0;255 215 0;44;Parietal lobe;medial;left
+170;Right PHG parahippocampal gyrus;1;0;0;0 204 0;113;Limbic cortex;medial-temporal;right
+171;Left PHG parahippocampal gyrus;1;0;0;0 204 0;49;Limbic cortex;medial-temporal;left
+172;Right PIns posterior insula;1;0;0;255 0 0;70;Frontal lobe;insular;right
+173;Left PIns posterior insula;1;0;0;255 0 0;6;Frontal lobe;insular;left
+174;Right PO parietal operculum;1;0;0;102 102 255;86;Frontal lobe;opercular;right
+175;Left PO parietal operculum;1;0;0;102 102 255;22;Frontal lobe;opercular;left
+176;Right PoG postcentral gyrus;1;0;0;255 177 100;104;Parietal lobe;lateral;right
+177;Left PoG postcentral gyrus;1;0;0;255 177 100;40;Parietal lobe;lateral;left
+178;Right POrG posterior orbital gyrus;1;0;0;0 255 255;68;Frontal lobe;inferior;right
+179;Left POrG posterior orbital gyrus;1;0;0;0 255 255;4;Frontal lobe;inferior;left
+180;Right PP planum polare;1;0;0;255 0 255;92;Temporal lobe;supra-temporal;right
+181;Left PP planum polare;1;0;0;255 0 255;28;Temporal lobe;supra-temporal;left
+182;Right PrG precentral gyrus;1;0;0;102 0 0;75;Frontal lobe;lateral;right
+183;Left PrG precentral gyrus;1;0;0;102 0 0;11;Frontal lobe;lateral;left
+184;Right PT planum temporale;1;0;0;0 102 0;93;Temporal lobe;supra-temporal;right
+185;Left PT planum temporale;1;0;0;0 102 0;29;Temporal lobe;supra-temporal;left
+186;Right SCA subcallosal area;1;0;0;255 215 0;82;Frontal lobe;medial;right
+187;Left SCA subcallosal area;1;0;0;255 215 0;18;Frontal lobe;medial;left
+190;Right SFG superior frontal gyrus;1;0;0;0 204 0;76;Frontal lobe;lateral;right
+191;Left SFG superior frontal gyrus;1;0;0;0 204 0;12;Frontal lobe;lateral;left
+192;Right SMC supplementary motor cortex;1;0;0;255 0 0;83;Frontal lobe;medial;right
+193;Left SMC supplementary motor cortex;1;0;0;255 0 0;19;Frontal lobe;medial;left
+194;Right SMG supramarginal gyrus;1;0;0;102 102 255;105;Parietal lobe;lateral;right
+195;Left SMG supramarginal gyrus;1;0;0;102 102 255;41;Parietal lobe;lateral;left
+196;Right SOG superior occipital gyrus;1;0;0;255 177 100;99;Occipital lobe;lateral;right
+197;Left SOG superior occipital gyrus;1;0;0;255 177 100;35;Occipital lobe;lateral;left
+198;Right SPL superior parietal lobule;1;0;0;0 255 255;106;Parietal lobe;lateral;right
+199;Left SPL superior parietal lobule;1;0;0;0 255 255;42;Parietal lobe;lateral;left
+200;Right STG superior temporal gyrus;1;0;0;255 0 255;90;Temporal lobe;lateral;right
+201;Left STG superior temporal gyrus;1;0;0;255 0 255;26;Temporal lobe;lateral;left
+202;Right TMP temporal pole;1;0;0;102 0 0;91;Temporal lobe;lateral;right
+203;Left TMP temporal pole;1;0;0;102 0 0;27;Temporal lobe;lateral;left
+204;Right TrIFG triangular part of the inferior frontal gyrus;1;0;0;0 102 0;77;Frontal lobe;lateral;right
+205;Left TrIFG triangular part of the inferior frontal gyrus;1;0;0;0 102 0;13;Frontal lobe;lateral;left
+206;Right TTG transverse temporal gyrus;1;0;0;255 215 0;94;Temporal lobe;supra-temporal;right
+207;Left TTG transverse temporal gyrus;1;0;0;255 215 0;30;Temporal lobe;supra-temporal;left

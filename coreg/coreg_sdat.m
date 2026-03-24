@@ -44,16 +44,12 @@ geom = in.geometry;
 if (vol_image.dim(1)* vol_image.mat(1,1) < geom.size.lr) || (vol_image.dim(2)* vol_image.mat(2,2) < geom.size.ap)
     diff_lr = round((geom.size.lr - vol_image.dim(1)* vol_image.mat(1,1)));
     diff_ap = round((geom.size.ap - vol_image.dim(2)* vol_image.mat(2,2)));
-%     [pad,ind] = max([diff_lr, diff_ap]);
     lr_ap_voxsize = [geom.size.lr/in.nXvoxels, geom.size.ap/in.nYvoxels];
-
     pad = [diff_lr, diff_ap];
-%     temp_pad = pad;
+
     pad = [44 2];
     pad(pad<0) = 0;
-%     voxelsToAdd = round(pad./lr_ap_voxsize);
-%     pad = round(lr_ap_voxsize*voxelsToAdd);
-%     pad(temp_pad<0) = 0;
+
     realignT1MRSI(vol_image.fname,pad);
     [path,file,ext]=fileparts(vol_image.fname);
     vol_image = spm_vol(fullfile(path, ['r',file,ext]));

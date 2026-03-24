@@ -12,7 +12,7 @@
 % OUTPUTS:
 % out        = Output dataset following zeropadding.
 
-function out=op_sortMRSIsdat(in);
+function out=op_sortMRSIsdat(in,pseudo3D,flip_mrsi);
 
 % 2D MRSI data
 %Now that we've indexed the dimensions of the data array, as if they were
@@ -161,12 +161,46 @@ if in.nZvoxels > 1
     end
 end
 
-% if in.nZvoxels > 1
-%     fids = flip(fids,dims.Zvoxels);
-%     fids = flip(fids, dims.Xvoxels);
-% else
-    fids = flip(fids, dims.Xvoxels);
-% end
+
+
+if averages == 1
+    out.flags.averaged = 1;
+    out.averages = 1;
+    fids = squeeze(fids);
+     %change the dims variables.
+    if dims.t>dims.averages
+        dims.t=dims.t-1;
+    end
+    if dims.coils>dims.averages
+        dims.coils=dims.coils-1;
+    end
+    dims.averages=0;
+    if dims.subSpecs>dims.averages
+        dims.subSpecs=dims.subSpecs-1;
+    end
+    if dims.extras>dims.averages
+        dims.extras=dims.extras-1;
+    end
+    if dims.Xvoxels>dims.averages
+        dims.Xvoxels=dims.Xvoxels-1;
+    end
+    if dims.Yvoxels>dims.averages
+        dims.Yvoxels=dims.Yvoxels-1;
+    end
+    if dims.Zvoxels>dims.averages
+        dims.Zvoxels=dims.Zvoxels-1;
+    end
+end
+
+% This will not work for several averages
+for sl = 1 : in.nZvoxels
+    % fids(:,:,:,sl)=flip(fids(:,:,:,sl),dims.Xvoxels);
+    fids(:,:,:,sl)=flip(fids(:,:,:,sl),dims.Yvoxels);
+end
+
+if flip_mrsi.cc
+    fids(:,:,:,:)=flip(fids(:,:,:,:),dims.Zvoxels);
+end
 
 
 %re-calculate Specs using fft
@@ -192,10 +226,27 @@ if ~out.flags.averaged
 end
 
 %UPDATE THE GEOMETRY INFORMATION
-% We have to update geomtry information because the volume in the sdat
-% doesn't represent the FOV of the MRSI
+% First get the correct volume info from phase_encoding_fov
 out.geometry.size.lr = out.geometry.phase_encoding_fov;
 out.geometry.size.ap = out.geometry.phase_encoding_fov * (out.nYvoxels/out.nXvoxels);
+
+% Now calculate the single MRSI voxel size
+out.geometry.size.lr = out.geometry.size.lr/out.nXvoxels;
+out.geometry.size.ap = out.geometry.size.ap/out.nYvoxels;
+
+if in.nZvoxels > 1
+    if pseudo3D 
+        out.geometry.size.cc = out.geometry.size.cc - ((out.nZvoxels-1)*out.geometry.slice_distance);
+        out.geometry.gap = out.geometry.slice_distance - out.geometry.size.cc;
+        out.geometry.pseudo3Dsize.cc = out.geometry.size.cc;
+        out.geometry.size.cc = out.geometry.size.cc + out.geometry.gap;
+        zShift = 1;
+    else
+        out.geometry.size.cc = out.geometry.size.cc - ((out.nZvoxels-1)*out.geometry.slice_distance);
+        out.geometry.gap = out.geometry.slice_distance - out.geometry.size.cc;
+    end
+end
+
 
 %FILLING IN THE FLAGS
 out.flags=in.flags;

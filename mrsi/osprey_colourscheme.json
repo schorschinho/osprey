@@ -1,0 +1,84 @@
+{
+  "fit-data": {
+    "lineWidth": 1,
+    "colour": [0.04, 0.28, 0.44]
+  },
+  "fit-fit": {
+    "lineWidth": 2,
+    "colour": [0.99, 0.73, 0.18]
+  },
+  "fit-baseline": {
+    "lineWidth": 1,
+    "colour": [0.43, 0.53, 0.65]
+  },
+  "fit-residual": {
+    "lineWidth": 1,
+    "colour": [0.04, 0.28, 0.44]
+  },
+  "raw-concentrations": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-tCr": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-CSFWaterScaled": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-rawWaterScaled": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-TissCorrWaterScaled": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "raw-concentrations-QCfilt": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-tCr-QCfilt": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-CSFWaterScaled-QCfilt": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-rawWaterScaled-QCfilt": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-TissCorrWaterScaled-QCfilt": {
+    "cmap": "viridis",
+    "displayRange": ["0.0", "median + 3 * std"]
+  },
+  "conc-raw-concentrations-QC": {
+    "cmap": "hsv",
+    "displayRange": ["0.0", "5.0"]
+  },
+  "conc-tCr-QC": {
+    "cmap": "hsv",
+    "displayRange": ["0.0", "5.0"]
+  },
+  "conc-CSFWaterScaled-QC": {
+    "cmap": "hsv",
+    "displayRange": ["0.0", "5.0"]
+  },
+  "conc-rawWaterScaled-QC": {
+    "cmap": "hsv",
+    "displayRange": ["0.0", "5.0"]
+  },
+  "conc-TissCorrWaterScaled-QC": {
+    "cmap": "hsv",
+    "displayRange": ["0.0", "5.0"]
+  },  
+  "sd": {
+    "cmap": "viridis",
+    "clippingRange": ["0.0", "30.0"],
+    "displayRange": ["median - 2 * std", "median + 2 * std"],
+    "linkLowRanges": false
+  }
+}

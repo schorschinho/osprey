@@ -19,8 +19,10 @@
 % out    = Output dataset consisting of voxel index extracted from 
 %          the input.
 
-function out=op_addVoxel(in1,in2,index);
-
+function out=op_addVoxel(in1,in2,index,data_only)
+if nargin < 4
+    data_only = 0;
+end
 fids=in1.fids(:,:,:,:,:,:,:,:,:);
 
 %change the dims variables
@@ -142,48 +144,49 @@ if ~out.flags.averaged
 end
 
 %Adding processed specific fields
-fields = {'specReg','target','watersupp','refFWHM','refShift'};
-for f = 1 : length(fields)
-    if isfield(out,fields{f})
-        if iscell(out.(fields{f}))
-            %PRIAM data
-            if length(index)==1
-                out.(fields{f}){index} = in2.(fields{f});
-            end
-
-            % 2D MRSI data
-            if length(index)==2
-                out.(fields{f}){index(1),index(2)} = in2.(fields{f});
-            end
-
-            % 3D MRSI data
-            if length(index)==3
-                out.(fields{f}){index(1),index(2),index(3)} = in2.(fields{f});
-            end
-        else
-            if length(index)==1
-                out = rmfield(out, fields{f});
-                out.(fields{f}){1} = in1.(fields{f});
-                out.(fields{f}){index} = in2.(fields{f});
-            end
-
-            % 2D MRSI data
-            if length(index)==2
-                out = rmfield(out, fields{f});
-                out.(fields{f}){1,1} = in1.(fields{f});
-                out.(fields{f}){index(1),index(2)} = in2.(fields{f});
-            end
-
-            % 3D MRSI data
-            if length(index)==3
-                out = rmfield(out, fields{f});
-                out.(fields{f}){1,1,1} = in1.(fields{f});
-                out.(fields{f}){index(1),index(2),index(3)} = in2.(fields{f});
-            end
-        end            
+if ~data_only
+    fields = {'specReg','target','watersupp','refFWHM','refShift'};
+    for f = 1 : length(fields)
+        if isfield(out,fields{f})
+            if iscell(out.(fields{f}))
+                %PRIAM data
+                if length(index)==1
+                    out.(fields{f}){index} = in2.(fields{f});
+                end
+    
+                % 2D MRSI data
+                if length(index)==2
+                    out.(fields{f}){index(1),index(2)} = in2.(fields{f});
+                end
+    
+                % 3D MRSI data
+                if length(index)==3
+                    out.(fields{f}){index(1),index(2),index(3)} = in2.(fields{f});
+                end
+            else
+                if length(index)==1
+                    out = rmfield(out, fields{f});
+                    out.(fields{f}){1} = in1.(fields{f});
+                    out.(fields{f}){index} = in2.(fields{f});
+                end
+    
+                % 2D MRSI data
+                if length(index)==2
+                    out = rmfield(out, fields{f});
+                    out.(fields{f}){1,1} = in1.(fields{f});
+                    out.(fields{f}){index(1),index(2)} = in2.(fields{f});
+                end
+    
+                % 3D MRSI data
+                if length(index)==3
+                    out = rmfield(out, fields{f});
+                    out.(fields{f}){1,1,1} = in1.(fields{f});
+                    out.(fields{f}){index(1),index(2),index(3)} = in2.(fields{f});
+                end
+            end            
+        end
     end
 end
-
 %FILLING IN THE FLAGS
 out.flags=in1.flags;
 out.flags.MultiVoxel=1;

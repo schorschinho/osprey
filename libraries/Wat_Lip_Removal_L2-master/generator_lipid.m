@@ -15,9 +15,9 @@ for ii = 1:NNL
     pha_lip = (rand(1)-0.5)*2*pi;
     amp_lip = exp(-((abs(feq_lip-(LR+LF)/2)).^2)/80^2);
 %     amp_lip = 1;
-%     amp_lip = 100;
+    % amp_lip = 100;
     %% signal model
     fid(:,ii) = amp_lip*exp(-dam_lip*abs(t-echopos*NF2*1/SW)).*exp(-i*((feq_lip)*2*pi*t-pha_lip));
 end
-lip = flipud(fftshift((fft(fid,Zerofill))));
+lip = (fftshift((fft(fid,Zerofill))));
 end

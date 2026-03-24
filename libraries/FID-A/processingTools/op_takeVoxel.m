@@ -29,6 +29,9 @@ function out=op_takeVoxel(in,index);
 if ~isfield(in.dims,'Zvoxels')
     index = index(1:2);
 end
+if in.nZvoxels == 1
+    index = index(1:2);
+end
 if ~isfield(in.dims,'Yvoxels')
     index = index(1);
 end
@@ -83,7 +86,7 @@ if length(index)==3
         %SHOULD NEVER HAPPEN (Time dimension should always be dim=1)
         error('ERROR:  dims.Xvoxels==1 or dims.Yvoxels==1 or dims.Zvoxels==1.  This should never happen!  Aborting!');
     elseif in.dims.Xvoxels==2
-        fids=in.fids(:,index(1),index(2),index(3));
+        fids=in.fids(:,index(1),index(2),index(3),:);
     elseif in.dims.Xvoxels==3;
         fids=in.fids(:,:,index(1),index(2),index(3));
     elseif in.dims.Xvoxels==4;
@@ -94,9 +97,6 @@ if length(index)==3
         fids=in.fids(:,:,:,:,:,index(1),index(2),index(3));  
     end
 end
-
-%re-calculate Specs using fft
-specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
 
 %change the dims variables
 dims = in.dims;
@@ -111,7 +111,14 @@ if length(index)==3
     dims.Xvoxels=0;
     dims.Yvoxels=0;
     dims.Zvoxels=0;    
+    if dims.extras > 0
+        dims.extras = dims.extras -3;
+        fids = squeeze(fids);
+    end
 end
+
+%re-calculate Specs using fft
+specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
 
 %re-calculate the sz variable
 sz=size(fids);
@@ -122,11 +129,11 @@ for f = 1 : length(fields)
     if isfield(in,fields{f})
         % 2D MRSI data
         if length(index)==2
-            in.(fields{f}) = in.(fields{f}){index(1),index(2)};
+            in.(fields{f}) = in.(fields{f})(index(1),index(2));
         end    
         % 3D MRSI data
         if length(index)==3
-            in.(fields{f}) = in.(fields{f}){index(1),index(2),index(3)};
+            in.(fields{f}) = in.(fields{f})(index(1),index(2),index(3));
         end
     end
 end

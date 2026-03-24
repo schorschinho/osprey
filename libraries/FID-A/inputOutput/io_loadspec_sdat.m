@@ -104,6 +104,15 @@ end
 if isfield(header,'phase_encoding_fov')
     geometry.phase_encoding_fov = header.phase_encoding_fov;
 end
+if isfield(header,'si_ap_off_center')
+    geometry.pos.si_ap = header.si_ap_off_center; % voxel center offset in AP direction [mm]
+end
+if isfield(header,'si_lr_off_center')
+    geometry.pos.si_lr = header.si_lr_off_center; % voxel center offset in LR direction [mm]
+end
+if isfield(header,'si_cc_off_center')
+    geometry.pos.si_cc = header.si_cc_off_center; % voxel center offset in CC direction [mm]
+end
 % Produce specs
 specs = fftshift(fft(fids,[],dims.t),dims.t);
 % Calculate t and ppm arrays using the calculated parameters:
@@ -140,6 +149,9 @@ out.centerFreq = centerFreq;
 out.geometry = geometry;
 if isfield(header,'nucleus')
     out.nucleus = header.nucleus;
+    if contains(out.nucleus,'1H')
+        out.nucleus = '1H';
+    end
 end
 if isfield(header,'equipment_sw_verions')
     out.software = ['R ' header.equipment_sw_verions];

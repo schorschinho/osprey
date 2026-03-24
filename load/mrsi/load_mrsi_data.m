@@ -60,7 +60,7 @@ k_ph_corr = [];
 replace_track = [];  
 zero_replace_track = [];  
 corr_options = [];  
-coilcombo = MRSCont.opts.MoCo.coilcombo;
+coilcombo = MRSCont.opts.MRSI.MoCo.coilcombo;
 %%
 % Close any remaining open figures
 close all;
@@ -110,7 +110,15 @@ for kk = 1:MRSCont.nDatasets
         mkdir(outputFolder);
     end
 
+    if isfield(MRSCont.opts.MRSI,'kspacefill')
+           k_zfill = MRSCont.opts.MRSI.kspacefill;
+            % MRSCont.opts.MRSI.nii_shifts = MRSCont.opts.MRSI.nii_shifts .* [MRSCont.opts.MRSI.kspacefill.x,MRSCont.opts.MRSI.kspacefill.y,MRSCont.opts.MRSI.kspacefill.z];
+        else
+            k_zfill = [];
+    end
+
     if MRSCont.flags.hasWater
+        
          [~] = printLog('OspreyLoadWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
         [~, k_fft2_wat_ref_no_k_zfill, k_sort_b4_2dfft,coilcombos, ~] = process_wat_ref(MRSCont.files_w{kk}, k_zfill, 'water reference',coilcombo);
         save(fullfile(outputFolder,'water_k_sort.mat'),'k_sort_b4_2dfft');
@@ -145,21 +153,42 @@ for kk = 1:MRSCont.nDatasets
     
     % Determine number of mixes
     n_mixes = length(unique(data.mix));
+
+    % Determine number of extra1
+    n_extra1 = length(unique(data.extr1));
+
+    % Determine number of extra2
+    n_extra2 = length(unique(data.extr2));
     
     % Determine number of averages per mix
     n_averages = data.kspace_properties.number_of_signal_averages;
+    
+    % sLASER-MRSI stores averges per mix
+    if length(n_averages) > 1
+        n_averages = sum(n_averages);
+    end
+
+    
 
     % Determine number of data points per scan
     n_points = data.kspace_properties.F_resolution(1);
      % Determine number of data points per scan
     kz_tot = data.kspace_properties.number_of_locations(1);
      % Determine number of data points per scan
-    kx_tot = abs(data.kspace_properties.kx_range(1)) + abs(data.kspace_properties.kx_range(2)) +1 ;
+    kx_tot = abs(data.kspace_properties.kx_range(1,1)) + abs(data.kspace_properties.kx_range(1,2)) +1 ;
      % Determine number of data points per scan
-    ky_tot = abs(data.kspace_properties.ky_range(1)) + abs(data.kspace_properties.ky_range(2)) +1 ;
+    ky_tot = abs(data.kspace_properties.ky_range(1,1)) + abs(data.kspace_properties.ky_range(1,2)) +1 ;
     
     if kz_tot > 1 && MRSCont.flags.isMEGA
         seq_type = 'MEGA multislice';
+    end
+
+    if strcmp(seq_type,'MEGA-PRESS')
+        n_averages = n_extra1;
+    end
+
+    if kz_tot == 1 && MRSCont.flags.isUnEdited
+        seq_type = 'sLASER singleslice';
     end
     
     data.kx = data.kx + abs(min(data.kx)) + 1;
@@ -167,6 +196,8 @@ for kk = 1:MRSCont.nDatasets
     data.loca = data.loca + abs(min(data.loca)) + 1;
     data.aver = data.aver + 1;
     data.chan = data.chan + 1;
+    data.extr1 = data.extr1 + 1;
+    data.extr2 = data.extr2 + 1;
     
     % Get meta data of the scans that might by useful first
      % Extract information from SPAR files that is not in DATA/LIST
@@ -277,14 +308,22 @@ for kk = 1:MRSCont.nDatasets
         geometry.slice_distance = str2double(sparheader{sparidx+2});
         sparidx=find(ismember(sparheader, 'phase_encoding_fov')==1);
         geometry.phase_encoding_fov = str2double(sparheader{sparidx+2});
+        sparidx=find(ismember(sparheader, 'phase_encoding_direction')==1);
+        geometry.phase_encoding_direction = sparheader{sparidx+2};
         fclose(sparname);
     
     
         %UPDATE THE GEOMETRY INFORMATION
         % We have to update geomtry information because the volume in the sdat
         % doesn't represent the FOV of the MRSI
-        geometry.size.lr = geometry.phase_encoding_fov;
-        geometry.size.ap = geometry.phase_encoding_fov * (kx_tot/ky_tot);
+        if contains(geometry.phase_encoding_direction,'trans')
+            geometry.size.lr = geometry.phase_encoding_fov;
+            geometry.size.ap = geometry.phase_encoding_fov * (kx_tot/ky_tot);
+        end
+        if contains(geometry.phase_encoding_direction,'cor')
+            geometry.size.lr = geometry.phase_encoding_fov;
+            geometry.size.cc = geometry.phase_encoding_fov * (kx_tot/ky_tot);
+        end
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -309,21 +348,68 @@ for kk = 1:MRSCont.nDatasets
                 k_sort(data.loca(dl+noise_line),data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
             elseif strcmp(seq_type, 'SE multislice')        % SE Multislice, default is 3 slices   
                 k_sort(data.loca(dl+noise_line),data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
+            elseif strcmp(seq_type, 'MEGA-PRESS')        % MEGA-sLASER single slice  
+                k_sort(data.loca(dl+noise_line),data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.extr2(dl+noise_line)) = data_matrix(dl,:); 
+            elseif strcmp(seq_type, 'sLASER singleslice')        % sLASER single slice  
+                k_sort(data.loca(dl+noise_line),data.kx(dl+noise_line), data.ky(dl+noise_line), data.chan(dl+noise_line), :,data.aver(dl+noise_line)) = data_matrix(dl,:); 
             end
         end
-         if strcmp(seq_type, 'MEGA multislice') 
-             k_merge_off = k_sort(:,:,:,:,:,1:2:end);
-             k_merge_on = k_sort(:,:,:,:,:,2:2:end);
-             k_sort = cat(7,k_merge_on,k_merge_off);
+         if strcmp(seq_type, 'MEGA multislice')
+             if kz_tot > 1
+                 k_merge_off = k_sort(:,:,:,:,:,1:2:end);
+                 k_merge_on = k_sort(:,:,:,:,:,2:2:end);
+                 k_sort = cat(7,k_merge_on,k_merge_off);
+             else
+                 k_sort = squeeze(k_sort);
+                 k_merge_off = k_sort(:,:,:,:,1:2:end);
+                 k_merge_on = k_sort(:,:,:,:,2:2:end);
+                 k_sort = cat(6,k_merge_on,k_merge_off);
+             end
               n_averages = n_averages/2;
          end
+         if strcmp(seq_type, 'MEGA-PRESS') 
+             if kz_tot > 1
+                 k_merge_off = k_sort(:,:,:,:,:,1);
+                 k_merge_on = k_sort(:,:,:,:,:,2);
+                 k_sort = cat(7,k_merge_on,k_merge_off);
+             else
+                 k_sort = squeeze(k_sort);
+                 k_merge_off = k_sort(:,:,:,:,1);
+                 k_merge_on = k_sort(:,:,:,:,2);
+                 k_sort = cat(6,k_merge_on,k_merge_off);
+             end
+              n_averages = n_averages/4;
+         end
          dimensions = size(k_sort);
-         if ~strcmp(seq_type, 'SE multislice')
+         if ~strcmp(seq_type, 'SE multislice') && ~strcmp(seq_type, 'sLASER singleslice')
             subspecs = dimensions(end);
          else
              subspecs = 1;
+             k_sort = squeeze(k_sort);
          end
 
+        % Do k-space zero-filling here
+        if isfield(MRSCont.opts.MRSI,'kspacefill')
+            % Metabolite data
+            kx_tot_zf = round(kx_tot * MRSCont.opts.MRSI.kspacefill.x);
+            ky_tot_zf = round(ky_tot * MRSCont.opts.MRSI.kspacefill.y); 
+            sz_ksort = size(k_sort);
+            sz_ksort(2) = kx_tot_zf;
+            sz_ksort(3) = ky_tot_zf;
+            k_sort_zf = zeros(sz_ksort);
+
+            kx_start = floor((kx_tot_zf - kx_tot) / 2) + 1;
+            ky_start = floor((ky_tot_zf - ky_tot) / 2) + 1;        
+            kx_idx = kx_start:(kx_start + kx_tot - 1);
+            ky_idx = ky_start:(ky_start + ky_tot - 1);
+
+            k_sort_zf(:,kx_idx,ky_idx,:,:,:,:) = k_sort;
+            k_sort = k_sort_zf;
+            kx_tot = kx_tot_zf;
+            ky_tot = ky_tot_zf;
+
+        end
+     
         % ------------------------------------------------------------------------------------------
         % --------------- %
         % Hanning Filter  %
@@ -334,42 +420,78 @@ for kk = 1:MRSCont.nDatasets
         save(fullfile(outputFolder,'k_sort.mat'),'k_sort');
 
 
-        hanning_x = repmat(hanning(kx_tot), [1 kz_tot ky_tot n_coils n_points]);
-        hanning_y = permute(repmat(hanning(ky_tot), [1 kx_tot kz_tot n_coils n_points]), [3 2 1 4 5]);
-        hanning_x = permute(hanning_x, [2 1 3 4 5]);
-
-        if subspecs > 1
-            for ss = 1 :  subspecs
-               k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
-               k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
+        if kz_tot > 1
+            hanning_x = repmat(hanning(kx_tot), [1 kz_tot ky_tot n_coils n_points]);
+            hanning_y = permute(repmat(hanning(ky_tot), [1 kx_tot kz_tot n_coils n_points]), [3 2 1 4 5]);
+            hanning_x = permute(hanning_x, [2 1 3 4 5]);
+    
+            if subspecs > 1
+                for ss = 1 :  subspecs
+                   k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
+                   k_sort(:,:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,:,ss).*hanning_x).*hanning_y;
+                end
+            else
+               k_sort(:,:,:,:,:,:) =  (k_sort(:,:,:,:,:,:).*hanning_x).*hanning_y;
+               k_sort(:,:,:,:,:,:) =  (k_sort(:,:,:,:,:,:).*hanning_x).*hanning_y;
             end
         else
-           k_sort(:,:,:,:,:,:) =  (k_sort(:,:,:,:,:,:).*hanning_x).*hanning_y;
-           k_sort(:,:,:,:,:,:) =  (k_sort(:,:,:,:,:,:).*hanning_x).*hanning_y;
+            hanning_x = repmat(hanning(kx_tot), [1 ky_tot n_coils n_points]);
+            hanning_y = permute(repmat(hanning(ky_tot), [1 kx_tot n_coils n_points]), [2 1 3 4]);
+            hanning_x = permute(hanning_x, [2 1 3 4]);
+    
+            if subspecs > 1
+                for ss = 1 :  subspecs
+                   k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
+                   k_sort(:,:,:,:,:,ss) =  (k_sort(:,:,:,:,:,ss).*hanning_x).*hanning_y;
+                end
+            else
+               k_sort(:,:,:,:,:) =  (k_sort(:,:,:,:,:).*hanning_x).*hanning_y;
+               k_sort(:,:,:,:,:) =  (k_sort(:,:,:,:,:).*hanning_x).*hanning_y;
+            end
         end
-        
 
 
         if ~MRSCont.flags.hasWater
-            for kz = 1 : size(k_sort,1)
-                for kx = 1 : size(k_sort,3)
-                    for ky = 1 : size(k_sort,2)
-                      for c = 1 : size(k_sort,4)  
+            if kz_tot > 1
+                for kz = 1 : size(k_sort,1)
+                    for kx = 1 : size(k_sort,3)
+                        for ky = 1 : size(k_sort,2)
+                          for c = 1 : size(k_sort,4)  
+                              if strcmp(coilcombo,'h')
+                                S=max(abs(k_sort(kz,ky,kx,c,1)));
+                                N=std(k_sort(kz,ky,kx,c,end-25:end));
+                                coilcombos.sig(kz,ky,kx,c)=(S/(N.^2));
+                              else
+                                coilcombos.sig(kz,ky,kx,c)=(abs(k_sort(kz,ky,kx,c,1)));
+                              end
+                          end
+                        end
+                    end
+                end
+                for kz = 1 : size(k_sort,1)
+                    for kx = 1 : size(k_sort,3)
+                        for ky = 1 : size(k_sort,2)
+                            coilcombos.sig(kz,ky,kx,:)=coilcombos.sig(kz,ky,kx,:)/max(coilcombos.sig(kz,ky,kx,:));
+                        end
+                    end
+                end
+            else
+                for kx = 1 : size(k_sort,2)
+                    for ky = 1 : size(k_sort,1)
+                      for c = 1 : size(k_sort,3)  
                           if strcmp(coilcombo,'h')
-                            S=max(abs(k_sort(kz,ky,kx,c,1)));
-                            N=std(k_sort(kz,ky,kx,c,end-25:end));
-                            coilcombos.sig(kz,ky,kx,c)=(S/(N.^2));
+                            S=max(abs(k_sort(ky,kx,c,1)));
+                            N=std(k_sort(ky,kx,c,end-25:end));
+                            coilcombos.sig(ky,kx,c)=(S/(N.^2));
                           else
-                            coilcombos.sig(kz,ky,kx,c)=(abs(k_sort(kz,ky,kx,c,1)));
+                            coilcombos.sig(ky,kx,c)=(abs(k_sort(ky,kx,c,1)));
                           end
                       end
                     end
                 end
-            end
-            for kz = 1 : size(k_sort,1)
-                for kx = 1 : size(k_sort,3)
-                    for ky = 1 : size(k_sort,2)
-                        coilcombos.sig(kz,ky,kx,:)=coilcombos.sig(kz,ky,kx,:)/max(coilcombos.sig(kz,ky,kx,:));
+                for kx = 1 : size(k_sort,2)
+                    for ky = 1 : size(k_sort,1)
+                        coilcombos.sig(ky,kx,:)=coilcombos.sig(ky,kx,:)/max(coilcombos.sig(ky,kx,:));
                     end
                 end
             end
@@ -379,27 +501,50 @@ for kk = 1:MRSCont.nDatasets
         % ------------------%
         % Analyzing K-space %
         % ------------------%
-
-        if MRSCont.flags.hasWater
-            wat_peak = squeeze(k_sort_b4_2dfft(:,:,:,:,1));
+        if kz_tot > 1
+            if MRSCont.flags.hasWater
+                wat_peak = squeeze(k_sort_b4_2dfft(:,:,:,:,1));
+            else
+                wat_peak = squeeze(k_sort(:,:,:,:,1,:,:));  
+            end
         else
-            wat_peak = squeeze(k_sort(:,:,:,:,1,:,:));  
+            if MRSCont.flags.hasWater
+                wat_peak = squeeze(k_sort_b4_2dfft(:,:,:,1));
+            else
+                wat_peak = squeeze(k_sort(:,:,:,1,:,:));  
+            end
         end
 
 
 
         % Phase each coil before summing over the channels.
-        if ~MRSCont.flags.hasWater
-            wat_peak = repmat(wat_peak, [1 1 1 1 1 1 n_points]);
-            wat_peak = permute(wat_peak,[1 2 3 4 7 5 6]);
-        else
-            if strcmp(seq_type, 'MEGA multislice')
-                wat_peak = repmat(wat_peak, [1 1 1 1 n_averages subspecs n_points]);
+        if kz_tot > 1
+            if ~MRSCont.flags.hasWater
+                wat_peak = repmat(wat_peak, [1 1 1 1 1 1 n_points]);
                 wat_peak = permute(wat_peak,[1 2 3 4 7 5 6]);
             else
-                wat_peak = repmat(wat_peak, [1 1 1 1 n_averages n_points]);
-                wat_peak = permute(wat_peak,[1 2 3 4 6 5 ]);
-                wat_peak = squeeze(wat_peak);
+                if strcmp(seq_type, 'MEGA multislice')
+                    wat_peak = repmat(wat_peak, [1 1 1 1 n_averages subspecs n_points]);
+                    wat_peak = permute(wat_peak,[1 2 3 4 7 5 6]);
+                else
+                    wat_peak = repmat(wat_peak, [1 1 1 1 n_averages n_points]);
+                    wat_peak = permute(wat_peak,[1 2 3 4 6 5 ]);
+                    wat_peak = squeeze(wat_peak);
+                end
+            end
+        else
+            if ~MRSCont.flags.hasWater
+                wat_peak = repmat(wat_peak, [1 1 1 1 1 n_points]);
+                wat_peak = permute(wat_peak,[1 2 3 6 5 4]);
+            else
+                if strcmp(seq_type, 'MEGA multislice') || strcmp(seq_type, 'MEGA-PRESS')
+                    wat_peak = repmat(wat_peak, [1 1 1 n_averages subspecs n_points]);
+                    wat_peak = permute(wat_peak,[1 2 3 6 4 5]);
+                else
+                    wat_peak = repmat(wat_peak, [1 1 1 n_averages n_points]);
+                    wat_peak = permute(wat_peak,[1 2 3 5 4 ]);
+                    wat_peak = squeeze(wat_peak);
+                end
             end
         end
         
@@ -410,26 +555,35 @@ for kk = 1:MRSCont.nDatasets
 
         save(fullfile(outputFolder,'k_sort_filt_phased.mat'),'k_sort_phased');
 
-        k_sort_phased = squeeze(sum(k_sort_phased,4));
+        if kz_tot > 1
+            k_sort_phased = squeeze(sum(k_sort_phased,4));
+        else
+            k_sort_phased = squeeze(sum(k_sort_phased,3));
+        end
 
         % Let's store the uncorrected k-space data
         k_sort_no_MoCo = k_sort;
         k_sort_phased_k = k_sort_phased;
 
         motion_corr_lb = 0;
-        exp_lb = permute(squeeze((repmat(exp(-(motion_corr_lb*pi*(1:n_points))/n_points), [1 1 size(k_sort_phased_k,1) size(k_sort_phased_k,2) size(k_sort_phased_k,3)]))), [2 3 4 1]);
 
-        % Form spectra in k-space.
-        
-        spec_k = fftshift(fft(squeeze(k_sort_phased_k).*exp_lb,n_points*spec_zfill,4),4);
+        if kz_tot > 1
+            exp_lb = permute(squeeze((repmat(exp(-(motion_corr_lb*pi*(1:n_points))/n_points), [1 1 size(k_sort_phased_k,1) size(k_sort_phased_k,2) size(k_sort_phased_k,3)]))), [2 3 4 1]);
+            % Form spectra in k-space.
+            spec_k = fftshift(fft(squeeze(k_sort_phased_k).*exp_lb,n_points*spec_zfill,4),4);
+        else
+            exp_lb = permute(squeeze((repmat(exp(-(motion_corr_lb*pi*(1:n_points))/n_points), [1 1 size(k_sort_phased_k,1) size(k_sort_phased_k,2)]))), [2 3 1]);
+            % Form spectra in k-space.
+            spec_k = fftshift(fft(squeeze(k_sort_phased_k).*exp_lb,n_points*spec_zfill,3),3);
+        end
 
         if strcmp(seq_type, 'MEGA multislice')
-            if strcmp(MRSCont.opts.MoCo.target, 'fullNoPhase')  
+            if strcmp(MRSCont.opts.MRSI.MoCo.target, 'fullNoPhase')  
             [k_sort_on, k_sort_on2, k_sort_off, k_sort_off2,....
             ~, ~, ~, ~,replace_track] = motion_correct_mrsi_full(k_sort(:,:,:,:,:,1,1), k_sort(:,:,:,:,:,2,1), k_sort(:,:,:,:,:,1,2), k_sort(:,:,:,:,:,2,2),...
                                                                                         spec_k(:,:,:,:,1,1), spec_k(:,:,:,:,2,1), spec_k(:,:,:,:,1,2), spec_k(:,:,:,:,2,2),...
-                                                                                        spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
-            elseif strcmp(MRSCont.opts.MoCo.target, 'RobustMoCo')  
+                                                                                        spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MRSI.MoCo.thresh);
+            elseif strcmp(MRSCont.opts.MRSI.MoCo.target, 'RobustMoCo')  
                 [k_fs_corr, k_ph_corr, k_w_corr] = robust_motion_correct_mrsi(spec_k,first,Larmor);
             else
             
@@ -439,7 +593,7 @@ for kk = 1:MRSCont.nDatasets
             on1_replace_track, off1_replace_track, on2_replace_track, ...
             off2_replace_track, zero_replace_track, ~, corr_options] = motion_correct_mrsi(k_sort(:,:,:,:,:,1,1), k_sort(:,:,:,:,:,2,1), k_sort(:,:,:,:,:,1,2), k_sort(:,:,:,:,:,2,2),...
                                                                                         spec_k(:,:,:,:,1,1), spec_k(:,:,:,:,2,1), spec_k(:,:,:,:,1,2), spec_k(:,:,:,:,2,2),...
-                                                                                        spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MoCo.thresh);
+                                                                                        spec_zfill, seq_type, kx_tot, ky_tot,MRSCont.opts.MRSI.MoCo.thresh);
                                                                                     
                 on_replace_track = cat(4, on1_replace_track,on2_replace_track);
                 off_replace_track = cat(4, off1_replace_track,off2_replace_track);
@@ -452,7 +606,7 @@ for kk = 1:MRSCont.nDatasets
             
         end
        
-       if ~strcmp(seq_type, 'SE multislice') && ~strcmp(MRSCont.opts.MoCo.target, 'RobustMoCo') 
+       if ~strcmp(seq_type, 'SE multislice') && ~strcmp(seq_type, 'sLASER singleslice') && ~strcmp(seq_type, 'MEGA-PRESS') && ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'RobustMoCo') 
            k_sort_merge_on = cat(6, k_sort_on,k_sort_on2);
            k_sort_merge_off = cat(6, k_sort_off,k_sort_off2);
            k_sort = cat(7,k_sort_merge_on,k_sort_merge_off);
@@ -463,7 +617,7 @@ for kk = 1:MRSCont.nDatasets
 if strcmp(seq_type, 'MEGA multislice')
         % MEGA multislice, order: slice, kx, ky, coil, data
 
-            if ~strcmp(MRSCont.opts.MoCo.target, 'none') % Here we are store the non corrected data            
+            if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') % Here we are store the non corrected data            
                 % For each point in time and coil take the 2D fft
                     sz_k_sort = size(k_sort);
                     k_fft2 = zeros([3, kx_tot,ky_tot,sz_k_sort(4:end)]);
@@ -550,12 +704,12 @@ if strcmp(seq_type, 'MEGA multislice')
                 % Phase correction (for motion) here                 %
                 % ---------------------------------------------------% 
                 
-                if ~strcmp(MRSCont.opts.MoCo.target, 'fullNoPhase')  
+                if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'fullNoPhase')  
                     k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 1 size(k_sort,4) size(k_sort, 5)]);
                     k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 3 6 7 4 5]);  
                     k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
                 end
-                if strcmp(MRSCont.opts.MoCo.target, 'RobustMoCo') 
+                if strcmp(MRSCont.opts.MRSI.MoCo.target, 'RobustMoCo') 
                     spectralwidth=sw;
                     dwelltime=1/spectralwidth;
                     t=[0:dwelltime:(size(k_sort,5)-1)*dwelltime];
@@ -620,84 +774,324 @@ if strcmp(seq_type, 'MEGA multislice')
             end
             
             k_fft2 = squeeze(sum(k_fft2_phased,4));
-else
-    % For each point in time and coil take the 2D fft
-        sz_k_sort = size(k_sort);
-        k_fft2 = zeros([3, kx_tot,ky_tot,sz_k_sort(4:end)]);
-        if ~MRSCont.flags.hasWater
-                k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4), sz_k_sort(6:end)]);
-        else
-             k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4)]);
-        end
-       
+elseif strcmp(seq_type, 'MEGA-PRESS')
+    % MEGA single-slice, order: kx, ky, coil, data
 
-    disp('Taking Fourier transforms.')
-    count_ft = 0;
-    for c_idx = 1:size(k_sort,4) % Each coil
-        if ~MRSCont.flags.hasWater
-                wat_peak = squeeze(k_sort(:,:,:,c_idx,1,:,:));
-                for s_idx = 1:3
-                    k_fft2_wat(s_idx,:,:,c_idx,:,:) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
+            if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') % Here we are store the non corrected data            
+                % For each point in time and coil take the 2D fft
+                    sz_k_sort = size(k_sort);
+                    k_fft2 = zeros([kx_tot,ky_tot,sz_k_sort(3:end)]);
+                    if ~MRSCont.flags.hasWater
+                        k_fft2_wat = zeros([kx_tot,ky_tot, sz_k_sort(3), sz_k_sort(5:end)]);
+                    else
+                         k_fft2_wat = zeros([kx_tot,ky_tot, sz_k_sort(3)]);
+                    end
+
+                
+                disp('Taking Fourier transforms of non corrected data.')
+                count_ft = 0;
+                for c_idx = 1:size(k_sort,3) % Each coil
+                    if ~MRSCont.flags.hasWater
+                        wat_peak = squeeze(k_sort_no_MoCo(:,:,c_idx,1,:,:));
+                        k_fft2_wat(:,:,c_idx,:,:) = fft2(squeeze(wat_peak(:,:,:,:)), kx_tot,ky_tot);
+                    else
+                        wat_peak = squeeze(k_sort_b4_2dfft(:,:,c_idx,1));
+                        k_fft2_wat(:,:,c_idx) = fft2(squeeze(wat_peak(:,:,:,:)), kx_tot,ky_tot);
+                    end
+                    for t_idx = 1:size(k_sort, 4) % Each point in time
+                        k_fft2(:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort_no_MoCo(:,:,c_idx,t_idx,:,:)),kx_tot,ky_tot); % zerofill k-space
+                    end
                 end
-            else
-                wat_peak = squeeze(k_sort_b4_2dfft(:,:,:,c_idx,1));
-                for s_idx = 1:3
-                    k_fft2_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
+
+
+                % Phase each coil before summing over the channels.
+                if ~MRSCont.flags.hasWater
+                    k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 n_points]);
+                    k_fft2_wat = permute(k_fft2_wat,[1 2 3 6 4 5]);
+                else
+                    if strcmp(seq_type, 'MEGA multislice') || strcmp(seq_type, 'MEGA-PRESS')
+                        k_fft2_wat_for_water = repmat(k_fft2_wat, [1 1 1 1 n_points]);
+                        k_fft2_wat_for_water = squeeze(k_fft2_wat_for_water);
+                        k_fft2_wat = repmat(k_fft2_wat, [1 1 1 n_averages subspecs n_points]);                   
+                        k_fft2_wat = permute(k_fft2_wat,[1 2 3 6 4 5]);
+                    else
+                        k_fft2_wat = repmat(k_fft2_wat, [1 1 1 n_averages n_points]);
+                        k_fft2_wat = permute(k_fft2_wat,[1 2 3 5 4 ]);
+                        k_fft2_wat = squeeze(k_fft2_wat);
+                    end
                 end
+
+                 if ~MRSCont.flags.hasWater
+                     if strcmp(coilcombo,'c')
+                        k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+                    else
+                        k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
+                        if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                            ampl_fac = repmat(coilcombos.sig, [1 1 1 n_points]);
+                            k_fft2_phased = k_fft2_phased .*ampl_fac;
+                        end
+                     end
+                 else
+                     if strcmp(coilcombo,'c')
+                        k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+                        k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill.*conj(k_fft2_wat_for_water);
+                     else
+                        k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);          
+                        k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill.*conj(k_fft2_wat_for_water)./abs(k_fft2_wat_for_water);
+                        if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                            ampl_fac = repmat(coilcombos.sig, [1 1 1 n_points sz_k_sort(6) sz_k_sort(7)]);
+                            k_fft2_phased = k_fft2_phased .*ampl_fac;
+                        end
+                        if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                            ampl_fac = repmat(coilcombos.sig, [1 1 1 n_points]);
+                            k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill .*ampl_fac;
+                        end
+                     end    
+                     if kz_tot > 1
+                        k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,4));
+                     else
+                         k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));
+                     end
+                end
+
+                    k_fft2_no_MoCo = squeeze(sum(k_fft2_phased,3));
+                    k_fft2 = k_fft2_no_MoCo;
             end
-        for t_idx = 1:size(k_sort, 5) % Each point in time
-            for s_idx = 1:3
-                k_fft2(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort(s_idx,:,:,c_idx,t_idx)),kx_tot,ky_tot); % zerofill k-space
+            % % For each point in time and coil take the 2D fft
+            %     sz_k_sort = size(k_sort);
+            %     k_fft2 = zeros([3, kx_tot,ky_tot,sz_k_sort(4:end)]);
+            %     if ~MRSCont.flags.hasWater
+            %             k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4), sz_k_sort(6:end)]);
+            %     else
+            %          k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4)]);
+            %     end
+            % 
+            %      % -------------- Motion Correction Phase ------------%
+            %     % Phase correction (for motion) here                 %
+            %     % ---------------------------------------------------% 
+            % 
+            %     if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'fullNoPhase')  
+            %         k_ph_corr_rep = repmat(k_ph_corr, [1 1 1 1 1 size(k_sort,4) size(k_sort, 5)]);
+            %         k_ph_corr_rep = permute(k_ph_corr_rep, [ 1 2 3 6 7 4 5]);  
+            %         k_sort = k_sort.*exp(1i*pi*k_ph_corr_rep/180);
+            %     end
+            %     if strcmp(MRSCont.opts.MRSI.MoCo.target, 'RobustMoCo') 
+            %         spectralwidth=sw;
+            %         dwelltime=1/spectralwidth;
+            %         t=[0:dwelltime:(size(k_sort,5)-1)*dwelltime];
+            %         t = repmat(t', [1 size(k_sort,1) size(k_sort,2) size(k_sort,3) size(k_sort,4) size(k_sort,6) size(k_sort,7)]); 
+            %         t = permute(t, [2 3 4 5 1 6 7]); 
+            %         k_fs_corr_rep = repmat(k_fs_corr, [1 1 1 1 1 size(k_sort,4) size(k_sort, 5)]);
+            %         k_fs_corr_rep = permute(k_fs_corr_rep, [ 1 2 3 6 7 4 5]);   
+            %         k_sort = k_sort.*exp(-1i.*k_fs_corr_rep.*2.*pi.*t);
+            %     end
+            % 
+            % save(fullfile(outputFolder,'k_sort_filt_phased_MoCo.mat'),'k_sort');
+            % disp('Taking Fourier transforms.')
+            % count_ft = 0;
+            % for c_idx = 1:size(k_sort,4) % Each coil
+            %     if ~MRSCont.flags.hasWater
+            %             wat_peak = squeeze(k_sort(:,:,:,c_idx,1,:,:));
+            %             for s_idx = 1:3
+            %                 k_fft2_wat(s_idx,:,:,c_idx,:,:) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
+            %             end
+            %         else
+            %             wat_peak = squeeze(k_sort_b4_2dfft(:,:,:,c_idx,1));
+            %             for s_idx = 1:3
+            %                 k_fft2_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
+            %             end
+            %         end
+            %     for t_idx = 1:size(k_sort, 5) % Each point in time
+            %         for s_idx = 1:3
+            %             k_fft2(s_idx,:,:,c_idx, t_idx,:,:) = fft2(squeeze(k_sort(s_idx,:,:,c_idx,t_idx,:,:)),kx_tot,ky_tot); % zerofill k-space
+            %         end
+            %     end
+            % end
+            % 
+            % 
+            % % Phase each coil before summing over the channels.
+            % if ~MRSCont.flags.hasWater
+            %     k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 1 1 n_points]);
+            %     k_fft2_wat = permute(k_fft2_wat,[1 2 3 4 7 5 6]);
+            % else
+            %     k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 n_points sz_k_sort(6) sz_k_sort(7)]);
+            % end
+            % 
+            %  if ~MRSCont.flags.hasWater
+            %      if strcmp(coilcombo,'c')
+            %         k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+            %      else
+            %         k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
+            %         if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+            %             ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
+            %             k_fft2_phased = k_fft2_phased .*ampl_fac;
+            %         end
+            %      end
+            %  else                   
+            %     if strcmp(coilcombo,'c')
+            %         k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+            %      else
+            %         k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);          
+            %         if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+            %             ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points sz_k_sort(6) sz_k_sort(7)]);
+            %             k_fft2_phased = k_fft2_phased .*ampl_fac;
+            %         end
+            %     end                    
+            % end
+            % 
+            % k_fft2 = squeeze(sum(k_fft2_phased,4));
+else % Unedited data
+    if kz_tot > 1
+        % For each point in time and coil take the 2D fft
+            sz_k_sort = size(k_sort);
+            k_fft2 = zeros([3, kx_tot,ky_tot,sz_k_sort(4:end)]);
+            if ~MRSCont.flags.hasWater
+                    k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4), sz_k_sort(6:end)]);
+            else
+                 k_fft2_wat = zeros([3, kx_tot,ky_tot, sz_k_sort(4)]);
+            end
+           
+    
+        disp('Taking Fourier transforms.')
+        count_ft = 0;
+        for c_idx = 1:size(k_sort,4) % Each coil
+            if ~MRSCont.flags.hasWater
+                    wat_peak = squeeze(k_sort(:,:,:,c_idx,1,:,:));
+                    for s_idx = 1:3
+                        k_fft2_wat(s_idx,:,:,c_idx,:,:) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
+                    end
+                else
+                    wat_peak = squeeze(k_sort_b4_2dfft(:,:,:,c_idx,1));
+                    for s_idx = 1:3
+                        k_fft2_wat(s_idx,:,:,c_idx) = fft2(squeeze(wat_peak(s_idx,:,:,:,:)), kx_tot,ky_tot);
+                    end
+                end
+            for t_idx = 1:size(k_sort, 5) % Each point in time
+                for s_idx = 1:3
+                    k_fft2(s_idx,:,:,c_idx, t_idx) = fft2(squeeze(k_sort(s_idx,:,:,c_idx,t_idx)),kx_tot,ky_tot); % zerofill k-space
+                end
             end
         end
-    end
-    
-    
-    % Phase each coil before summing over the channels.
-    k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 n_points]);
-    
-     if ~MRSCont.flags.hasWater
-         if strcmp(coilcombo,'c')
-            k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+        
+        
+        % Phase each coil before summing over the channels.
+        k_fft2_wat = repmat(k_fft2_wat, [1 1 1 1 n_points]);
+        
+         if ~MRSCont.flags.hasWater
+             if strcmp(coilcombo,'c')
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+             else
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
+                if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                    ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
+                    k_fft2_phased = k_fft2_phased .*ampl_fac;
+                end
+             end
          else
-            k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
-            if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
-                ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
-                k_fft2_phased = k_fft2_phased .*ampl_fac;
+             if strcmp(coilcombo,'c')
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+                k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill.*conj(k_fft2_wat);
+             else
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);          
+                k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill.*conj(k_fft2_wat)./abs(k_fft2_wat);
+                if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                    ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
+                    k_fft2_phased = k_fft2_phased .*ampl_fac;
+                end
+                if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                    ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
+                    k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill .*ampl_fac;
+                end
+            end                    
+            k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,4));                  
+        end
+        
+        k_fft2 = squeeze(sum(k_fft2_phased,4));
+    else
+        % For each point in time and coil take the 2D fft
+            sz_k_sort = size(k_sort);
+            k_fft2 = zeros([kx_tot,ky_tot,sz_k_sort(3:end)]);
+            if ~MRSCont.flags.hasWater
+                    k_fft2_wat = zeros([kx_tot,ky_tot, sz_k_sort(3), sz_k_sort(5:end)]);
+            else
+                 k_fft2_wat = zeros([kx_tot,ky_tot, sz_k_sort(3)]);
             end
-         end
-     else
-         if strcmp(coilcombo,'c')
-            k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
-            k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill.*conj(k_fft2_wat);
-         else
-            k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);          
-            k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill.*conj(k_fft2_wat)./abs(k_fft2_wat);
-            if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
-                ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
-                k_fft2_phased = k_fft2_phased .*ampl_fac;
-            end
-            if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
-                ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
-                k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill .*ampl_fac;
-            end
-        end                    
-        k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,4));                  
-    end
+           
     
-    k_fft2 = squeeze(sum(k_fft2_phased,4));
+        disp('Taking Fourier transforms.')
+        count_ft = 0;
+        for c_idx = 1:size(k_sort,3) % Each coil
+            if ~MRSCont.flags.hasWater
+                    wat_peak = squeeze(k_sort(:,:,c_idx,1,:,:));
+                    k_fft2_wat(:,:,c_idx,:,:) = fft2(squeeze(wat_peak(:,:,:,:)), kx_tot,ky_tot);
+                else
+                    wat_peak = squeeze(k_sort_b4_2dfft(:,:,c_idx,1));
+                    k_fft2_wat(:,:,c_idx) = fft2(squeeze(wat_peak(:,:,:,:)), kx_tot,ky_tot);
+                end
+            for t_idx = 1:size(k_sort, 4) % Each point in time
+                k_fft2(:,:,c_idx, t_idx) = fft2(squeeze(k_sort(:,:,c_idx,t_idx)),kx_tot,ky_tot); % zerofill k-space
+            end
+        end
+        
+        
+        % Phase each coil before summing over the channels.
+        k_fft2_wat = repmat(k_fft2_wat, [1 1 1 n_points]);
+        
+         if ~MRSCont.flags.hasWater
+             if strcmp(coilcombo,'c')
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+             else
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);
+                if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                    ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
+                    k_fft2_phased = k_fft2_phased .*ampl_fac;
+                end
+             end
+         else
+             if strcmp(coilcombo,'c')
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat);          
+                k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill.*conj(k_fft2_wat);
+             else
+                k_fft2_phased = k_fft2.*conj(k_fft2_wat)./abs(k_fft2_wat);          
+                k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill.*conj(k_fft2_wat)./abs(k_fft2_wat);
+                if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                    ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
+                    k_fft2_phased = k_fft2_phased .*ampl_fac;
+                end
+                if strcmp(coilcombo,'h') || strcmp(coilcombo,'w')
+                    ampl_fac = repmat(coilcombos.sig, [1 1 1 1 n_points]);
+                    k_fft2_wat_ref_no_k_zfill = k_fft2_wat_ref_no_k_zfill .*ampl_fac;
+                end
+            end                    
+            k_fft2_wat_ref_no_k_zfill = squeeze(sum(k_fft2_wat_ref_no_k_zfill,3));                  
+        end
+        
+        k_fft2 = squeeze(sum(k_fft2_phased,3));
+    end
 end
  %%    Prepare export   
 
-        spec = fftshift(fft(k_fft2,n_points,4));               
+        if kz_tot > 1
+            spec = fftshift(fft(k_fft2,n_points,4));  
+        else
+            spec = fftshift(fft(k_fft2,n_points,3));  
+        end
         spec(isnan(spec)) = 0 + 1i*0;
         
         if MRSCont.flags.hasWater
-            specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,n_points,4));               
+            if kz_tot > 1
+                specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,n_points,4)); 
+            else
+                specs_w = fftshift(fft(k_fft2_wat_ref_no_k_zfill,n_points,3)); 
+            end
             specs_w(isnan(specs_w)) = 0 + 1i*0;
         end
-        if ~strcmp(MRSCont.opts.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
-            specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,n_points,4));               
+        if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')  && ~strcmp(seq_type, 'sLASER singleslice')
+            if kz_tot > 1
+                specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,n_points,4));  
+            else
+                specs_no_MoCo = fftshift(fft(k_fft2_no_MoCo,n_points,3));  
+            end            
             specs_no_MoCo(isnan(specs_no_MoCo)) = 0 + 1i*0;
         end
 
@@ -710,7 +1104,7 @@ end
         spec(1,:,:,:,:,:) = spec_temp(1,:,:,:,:,:); 
         spec(3,:,:,:,:,:) = spec_temp(2,:,:,:,:,:);
         spec(2,:,:,:,:,:) = spec_temp(3,:,:,:,:,:);
-        if ~strcmp(MRSCont.opts.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
+        if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice') && ~strcmp(seq_type, 'sLASER singleslice')
             spec_temp = specs_no_MoCo;
             specs_no_MoCo(1,:,:,:,:,:) = spec_temp(1,:,:,:,:,:); 
             specs_no_MoCo(3,:,:,:,:,:) = spec_temp(2,:,:,:,:,:);
@@ -724,6 +1118,17 @@ end
         end
     end
 
+    % MEGA-sLASER MRSI has a different order for ON and OFF
+    if strcmp(seq_type, 'MEGA-PRESS')
+       spec_temp = spec;
+       if n_averages > 1
+          spec(:,:,:,:,2) = spec_temp(:,:,:,:,1); 
+          spec(:,:,:,:,1) = spec_temp(:,:,:,:,2);
+       else
+          spec(:,:,:,2) = spec_temp(:,:,:,1); 
+          spec(:,:,:,1) = spec_temp(:,:,:,2);
+       end
+    end
 
     %Find the magnetic field strength:
     Bo=Larmor/42.577;
@@ -731,9 +1136,17 @@ end
     
     dims.t=1;
     dims.coils=0;
-    dims.averages=2;
+    if n_averages > 1
+        dims.averages=2;
+    else
+        dims.averages=0;
+    end
     if subspecs>1
-        dims.subSpecs=3;
+        if n_averages > 1
+            dims.subSpecs=3;
+        else
+            dims.subSpecs=2;
+        end
         sz =size(spec);
         [~,t_dim] = max(sz);
         kx_dim = find(sz==kx_tot);
@@ -747,15 +1160,26 @@ end
         end
         if subspecs == 2
             if kz_tot <= 1
-                specs = permute(spec, [t_dim 4 5 ky_dim kx_dim]);
-                if ~strcmp(MRSCont.opts.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
-                    specs_no_MoCo = permute(specs_no_MoCo, [t_dim 4 5 ky_dim kx_dim]);
+                if n_averages > 1
+                    specs = permute(spec, [t_dim 4 5 ky_dim kx_dim]);
+                    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
+                        specs_no_MoCo = permute(specs_no_MoCo, [t_dim 4 5 ky_dim kx_dim]);
+                    end
+                    dims.Xvoxels=4;
+                    dims.Yvoxels=5;
+                    dims.Zvoxels=0;
+                else
+                    specs = permute(spec, [t_dim 4 ky_dim kx_dim]);
+                    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
+                        specs_no_MoCo = permute(specs_no_MoCo, [t_dim 4 ky_dim kx_dim]);
+                    end
+                    dims.Xvoxels=3;
+                    dims.Yvoxels=4;
+                    dims.Zvoxels=0;
                 end
-                dims.Xvoxels=4;
-                dims.Yvoxels=5;
             else
                 specs = permute(spec, [t_dim 5 6 ky_dim kx_dim kz_dim]);
-                if ~strcmp(MRSCont.opts.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
+                if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
                     specs_no_MoCo = permute(specs_no_MoCo, [t_dim 5 6 ky_dim kx_dim kz_dim]);
                 end
                 dims.Xvoxels=4;
@@ -821,6 +1245,7 @@ end
             specs_w = permute(specs_w, [t_dim ky_dim kx_dim]);
             dims_w.Xvoxels=2;
             dims_w.Yvoxels=3;
+            dims_w.Zvoxels=0;
         else
             specs_w = permute(specs_w, [t_dim ky_dim kx_dim kz_dim]);
             dims_w.Xvoxels=2;
@@ -844,7 +1269,7 @@ end
         %disp('Length of vector is odd.  Doing circshift by 1');
         fids=ifft(circshift(fftshift(specs,dims.t),1),[],dims.t);
     end
-    if ~strcmp(MRSCont.opts.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
+    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice') && ~strcmp(seq_type, 'sLASER singleslice')
          if mod(size(specs_no_MoCo,dims.t),2)==0
             %disp('Length of vector is even.  Doing normal conversion');
             fids_no_MoCo=ifft(fftshift(specs_no_MoCo,dims.t),[],dims.t);
@@ -1009,7 +1434,7 @@ end
         out.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
     end
     
-    if ~strcmp(MRSCont.opts.MoCo.target,'none') && ~strcmp(seq_type, 'SE multislice')
+    if ~strcmp(MRSCont.opts.MRSI.MoCo.target,'none') && ~strcmp(seq_type, 'SE multislice') && ~strcmp(seq_type, 'sLASER singleslice')
         MRSCont.MoCo{kk}.k_ph_corr = k_ph_corr;  
         MRSCont.MoCo{kk}.replace_track = replace_track;  
         MRSCont.MoCo{kk}.zero_replace_track = zero_replace_track;  
@@ -1028,20 +1453,12 @@ end
         out.dims.subSpecs = out.dims.subSpecs -1;
         out.dims.Xvoxels = out.dims.Xvoxels -1;
         out.dims.Yvoxels = out.dims.Yvoxels -1;
-        out.dims.Zvoxels = out.dims.Zvoxels -1;
+        if out.dims.Zvoxels~=0
+            out.dims.Zvoxels = out.dims.Zvoxels -1;
+        end
     end
     
-    % Flip LR slice direction here
-%     if (strcmp(seq_type, 'MEGA multislice')|| strcmp(seq_type, 'SE multislice'))
-%         fids = out.fids;
-%         specs = out.specs;
-%         for sl = 1 : out.nZvoxels
-%             out.fids(:,:,:,:,sl)=flip(fids(:,:,:,:,sl),3);
-%             out.specs(:,:,:,:,sl)=flip(specs(:,:,:,:,sl),3);
-%         end
-%     end
-
-    % FLIP AP
+    % FLIP LR
     if (strcmp(seq_type, 'MEGA multislice')|| strcmp(seq_type, 'SE multislice'))
         fids = out.fids;
         specs = out.specs;
@@ -1071,27 +1488,54 @@ end
     ToExport = out;
     ToExport = osp_add_nii_mrs_field(ToExport,MRSCont.ver.Osp); % Setup header
     if length(ToExport.sz) == 4 %CONV
-        ToExport.fids = squeeze(ToExport.fids(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(4))));
-        ToExport.specs = squeeze(ToExport.specs(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(4))));
-        ToExport.nXvoxels = 1;
-    ToExport.nYvoxels = 1;
-    ToExport.nZvoxels = 1;
-    ToExport.sz = size(ToExport.fids);
-    ToExport.dims.Xvoxels = 0;
-    ToExport.dims.Yvoxels = 0;
-    ToExport.dims.Zvoxels = 0;
-        nii = io_writeniimrs(ToExport, fullfile(MRSCont.outputFolder,'nii-export','raw',['raw_vol.nii.gz']));
+        if ~strcmp(seq_type, 'MEGA-PRESS') % Single-slice MEGA
+            ToExport.fids = squeeze(ToExport.fids(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(4))));
+            ToExport.specs = squeeze(ToExport.specs(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(4))));
+            ToExport.nXvoxels = 1;
+            ToExport.nYvoxels = 1;
+            ToExport.nZvoxels = 1;
+            ToExport.sz = size(ToExport.fids);
+            ToExport.dims.Xvoxels = 0;
+            ToExport.dims.Yvoxels = 0;
+            ToExport.dims.Zvoxels = 0;
+            nii = io_writeniimrs(ToExport, fullfile(MRSCont.outputFolder,'nii-export','raw',['raw_vol.nii.gz']));
+        else
+            ToExport.fids = squeeze(ToExport.fids(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(4))));
+            ToExport.specs = squeeze(ToExport.specs(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(4))));
+            ToExport.nXvoxels = 1;
+            ToExport.nYvoxels = 1;
+            ToExport.nZvoxels = 1;
+            ToExport.sz = size(ToExport.fids);
+            ToExport.dims.Xvoxels = 0;
+            ToExport.dims.Yvoxels = 0;
+            ToExport.dims.Zvoxels = 0;
+            ToExport.dims.averages = 2;
+            nii = io_writeniimrs(ToExport, fullfile(MRSCont.outputFolder,'nii-export','raw',['raw_vol.nii.gz']),{'DIM_EDIT'});
+        end
     else
-        ToExport.fids = squeeze(ToExport.fids(:,1,round(ToExport.sz(3)),round(ToExport.sz(4)),round(ToExport.sz(5))));
-        ToExport.specs = squeeze(ToExport.specs(:,1,round(ToExport.sz(3)),round(ToExport.sz(4)),round(ToExport.sz(5))));
-        ToExport.nXvoxels = 1;
-    ToExport.nYvoxels = 1;
-    ToExport.nZvoxels = 1;
-    ToExport.sz = size(ToExport.fids);
-    ToExport.dims.Xvoxels = 0;
-    ToExport.dims.Yvoxels = 0;
-    ToExport.dims.Zvoxels = 0;
-    nii = io_writeniimrs(ToExport, fullfile(MRSCont.outputFolder,'nii-export','raw',['raw_vol.nii.gz']),{'DIM_EDIT'});
+        if strcmp(seq_type, 'sLASER singleslice') % Single-slice sLASER
+            ToExport.fids = squeeze(ToExport.fids(:,round(ToExport.sz(2)),round(ToExport.sz(3))));
+            ToExport.specs = squeeze(ToExport.specs(:,round(ToExport.sz(2)),round(ToExport.sz(3))));
+            ToExport.nXvoxels = 1;
+            ToExport.nYvoxels = 1;
+            ToExport.nZvoxels = 1;
+            ToExport.sz = size(ToExport.fids);
+            ToExport.dims.Xvoxels = 0;
+            ToExport.dims.Yvoxels = 0;
+            ToExport.dims.Zvoxels = 0;
+            nii = io_writeniimrs(ToExport, fullfile(MRSCont.outputFolder,'nii-export','raw',['raw_vol.nii.gz']));
+        else
+            ToExport.fids = squeeze(ToExport.fids(:,round(ToExport.sz(2)),round(ToExport.sz(3)),round(ToExport.sz(5))));
+            ToExport.specs = squeeze(ToExport.specs(:,1,round(ToExport.sz(3)),round(ToExport.sz(4)),round(ToExport.sz(5))));
+            ToExport.nXvoxels = 1;
+            ToExport.nYvoxels = 1;
+            ToExport.nZvoxels = 1;
+            ToExport.sz = size(ToExport.fids);
+            ToExport.dims.Xvoxels = 0;
+            ToExport.dims.Yvoxels = 0;
+            ToExport.dims.Zvoxels = 0;
+            nii = io_writeniimrs(ToExport, fullfile(MRSCont.outputFolder,'nii-export','raw',['raw_vol.nii.gz']),{'DIM_EDIT'});
+        end
     end
     
         
@@ -1099,26 +1543,58 @@ end
 
 
     % Add NIfTI-MRS information
-    out.geometry.size.lr = out.geometry.size.lr/out.nXvoxels;
-    out.geometry.size.ap = out.geometry.size.ap/out.nYvoxels;
-    out.geometry.size.cc = out.geometry.size.cc - ((3-1)*out.geometry.slice_distance);
+    if contains(geometry.phase_encoding_direction,'trans')
+        out.geometry.size.lr = out.geometry.size.lr/out.nXvoxels;
+        out.geometry.size.ap = out.geometry.size.ap/out.nYvoxels;
+        zShift = 0;
+        if kz_tot > 1
+            if MRSCont.opts.MRSI.pseudo3D 
+                out.geometry.size.cc = out.geometry.size.cc - ((3-1)*out.geometry.slice_distance);
+                out.geometry.gap = out.geometry.slice_distance - out.geometry.size.cc;
+                out.geometry.pseudo3Dsize.cc = out.geometry.size.cc;
+                out.geometry.size.cc = out.geometry.size.cc + out.geometry.gap;
+                zShift = out.nZvoxels/2;
+            else
+                out.geometry.size.cc = out.geometry.size.cc - ((3-1)*out.geometry.slice_distance);
+                out.geometry.gap = out.geometry.slice_distance - out.geometry.size.cc;
+            end
+        end
+    end
+    if contains(geometry.phase_encoding_direction,'cor')
+        out.geometry.size.lr = out.geometry.size.lr/out.nXvoxels;
+        out.geometry.size.cc = out.geometry.size.cc/out.nYvoxels;
+        zShift = 0;
+        if kz_tot > 1
+            if MRSCont.opts.MRSI.pseudo3D 
+                out.geometry.size.ap = out.geometry.size.ap - ((3-1)*out.geometry.slice_distance);
+                out.geometry.gap = out.geometry.slice_distance - out.geometry.size.cc;
+                out.geometry.pseudo3Dsize.cc = out.geometry.size.cc;
+                out.geometry.size.cc = out.geometry.size.cc + out.geometry.gap;
+                zShift = out.nZvoxels/2;
+            else
+                out.geometry.size.cc = out.geometry.size.cc - ((3-1)*out.geometry.slice_distance);
+                out.geometry.gap = out.geometry.slice_distance - out.geometry.size.cc;
+            end
+        end
+    end
     out = osp_add_nii_mrs_field(out,MRSCont.ver.Osp); % Setup header
 
-
-    VoxelShift = [-out.nXvoxels/2 + 0.5 , -out.nYvoxels/2 + 0.5, 0]; % Still have to confirm that this is generalizable 
+    VoxelShift = [-out.nXvoxels/2 + MRSCont.opts.MRSI.nii_shifts(1), -out.nYvoxels/2 + MRSCont.opts.MRSI.nii_shifts(2), -zShift + MRSCont.opts.MRSI.nii_shifts(3)]; % Still have to confirm that this is generalizable 
     out = osp_shift_nii_volume(out,VoxelShift); % Update slice
     
 
     MRSCont.raw{kk} = out;
-    if ~strcmp(MRSCont.opts.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice')
+    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && ~strcmp(seq_type, 'SE multislice') && ~strcmp(seq_type, 'sLASER singleslice')
         out.fids = fids_no_MoCo;
         out.specs = specs_no_MoCo;
-        out.specs = squeeze(sum(out.specs,bckp));
-        out.fids = squeeze(sum(out.fids,bckp)); 
-        out.sz=size(out.specs);
-        out.flags.averaged=1;
-        out.dims.averages =0;
-        out.rawAverages=2;
+        if exist('bckp', 'var')
+            out.specs = squeeze(sum(out.specs,bckp));
+            out.fids = squeeze(sum(out.fids,bckp)); 
+            out.sz=size(out.specs);
+            out.flags.averaged=1;
+            out.dims.averages =0;
+            out.rawAverages=2;
+        end
 %         if (strcmp(seq_type, 'MEGA multislice')|| strcmp(seq_type, 'SE multislice'))
 %             fids = out.fids;
 %             specs = out.specs;
@@ -1176,22 +1652,14 @@ end
         else
             out_w.flags.isISIS=(out.sz(out.dims.subSpecs)==4);
         end
-%         if (strcmp(seq_type, 'MEGA multislice')|| strcmp(seq_type, 'SE multislice'))
-%             fids = out_w.fids;
-%             specs = out_w.specs;
-%             for sl = 1 : out_w.nZvoxels
-%                 out_w.fids(:,:,:,sl)=flip(fids(:,:,:,sl),2);
-%                 out_w.specs(:,:,:,sl)=flip(specs(:,:,:,sl),2);
-%             end
-%         end
 
-        % FLIP AP
+        % FLIP LR
         if (strcmp(seq_type, 'MEGA multislice')|| strcmp(seq_type, 'SE multislice'))
             fids = out_w.fids;
             specs = out_w.specs;
             for sl = 1 : out_w.nZvoxels
                 out_w.fids(:,:,:,sl)=flip(fids(:,:,:,sl),3);
-                oout_wut.specs(:,:,:,sl)=flip(specs(:,:,:,sl),3);
+                out_w.specs(:,:,:,sl)=flip(specs(:,:,:,sl),3);
             end
         end
         if hasSPAR
@@ -1207,12 +1675,43 @@ end
         
 
         % Add NIfTI-MRS information
-        out_w.geometry.size.lr = out_w.geometry.size.lr/out.nXvoxels;
-        out_w.geometry.size.ap = out_w.geometry.size.ap/out_w.nYvoxels;
-        out_w.geometry.size.cc = out_w.geometry.size.cc - ((3-1)*out_w.geometry.slice_distance);
+        if contains(geometry.phase_encoding_direction,'trans')
+            out_w.geometry.size.lr = out_w.geometry.size.lr/out_w.nXvoxels;
+            out_w.geometry.size.ap = out_w.geometry.size.ap/out_w.nYvoxels;
+            zShift = 0;
+            if kz_tot > 1
+                if MRSCont.opts.MRSI.pseudo3D 
+                    out_w.geometry.size.cc = out_w.geometry.size.cc - ((3-1)*out_w.geometry.slice_distance);
+                    out_w.geometry.gap = out_w.geometry.slice_distance - out_w.geometry.size.cc;
+                    out_w.geometry.pseudo3Dsize.cc = out_w.geometry.size.cc;
+                    out_w.geometry.size.cc = out_w.geometry.size.cc + out_w.geometry.gap;
+                    zShift  = out_w.nZvoxels/2;
+                else
+                    out_w.geometry.size.cc = out_w.geometry.size.cc - ((3-1)*out_w.geometry.slice_distance);
+                    out_w.geometry.gap = out_w.geometry.slice_distance - out_w.geometry.size.cc;
+                end
+            end
+        end
+        if contains(geometry.phase_encoding_direction,'cor')
+            out_w.geometry.size.lr = out_w.geometry.size.lr/out_w.nXvoxels;
+            out_w.geometry.size.cc = out_w.geometry.size.cc/out_w.nYvoxels;
+            zShift = 0;
+            if kz_tot > 1
+                if MRSCont.opts.MRSI.pseudo3D 
+                    out_w.geometry.size.ap = out_w.geometry.size.ap - ((3-1)*out_w.geometry.slice_distance);
+                    out_w.geometry.gap = out_w.geometry.slice_distance - out_w.geometry.size.cc;
+                    out_w.geometry.pseudo3Dsize.cc = out_w.geometry.size.cc;
+                    out_w.geometry.size.cc = out_w.geometry.size.cc + out_w.geometry.gap;
+                    zShift  = out_w.nZvoxels/2;
+                else
+                    out_w.geometry.size.ap = out_w.geometry.size.ap - ((3-1)*out_w.geometry.slice_distance);
+                    out_w.geometry.gap = out_w.geometry.slice_distance - out_w.geometry.size.cc;
+                end
+            end
+        end
         out_w = osp_add_nii_mrs_field(out_w,MRSCont.ver.Osp); % Setup header
 
-        VoxelShift = [-out_w.nXvoxels/2 + 0.5 , -out_w.nYvoxels/2 + 0.5, 0]; % Still have to confirm that this is generalizable 
+        VoxelShift = [-out_w.nXvoxels/2 + MRSCont.opts.MRSI.nii_shifts(1) , -out_w.nYvoxels/2 + MRSCont.opts.MRSI.nii_shifts(2), -zShift + MRSCont.opts.MRSI.nii_shifts(3)]; % Still have to confirm that this is generalizable 
         out_w = osp_shift_nii_volume(out_w,VoxelShift); % Update slice
 
         MRSCont.raw_w{kk} = out_w;

@@ -69,15 +69,36 @@ for kk = 1:MRSCont.nDatasets
         % to know the number of sub-spectra (e.g. from spectral editing), the
         % type of sequence needs to be differentiated here already.
         if MRSCont.flags.isUnEdited
-            raw         = io_loadspec_sdat(MRSCont.files{kk},1);
+            if ~MRSCont.flags.isMRSI
+                raw         = io_loadspec_sdat(MRSCont.files{kk},1);
+            else
+                raw         = io_loadspec_sdat(MRSCont.files{kk},1);
+                raw         = op_sortMRSIsdat(raw,MRSCont.opts.MRSI.pseudo3D,MRSCont.opts.MRSI.nii_flip);
+            end
         elseif MRSCont.flags.isMEGA
             if ~MRSCont.flags.isMRSI
                 raw         = io_loadspec_sdat(MRSCont.files{kk},2);
             else
                 raw         = io_loadspec_sdat(MRSCont.files{kk},1);
+                raw         = op_sortMRSIsdat(raw,MRSCont.opts.MRSI.pseudo3D,MRSCont.opts.MRSI.nii_flip);
             end
         elseif MRSCont.flags.isHERMES || MRSCont.flags.isHERCULES
             raw         = io_loadspec_sdat(MRSCont.files{kk},4);
+        end
+        raw.Manufacturer = 'Philips';
+        [~,filename,ext] = fileparts(MRSCont.files{kk});
+        raw.OriginalFile = [filename ext];
+        raw.PatientPosition = 'unknown unknown'; 
+        
+        if MRSCont.flags.isMRSI
+            raw.geometry.pos.ap = raw.geometry.pos.si_ap;
+            raw.geometry.pos.lr = raw.geometry.pos.si_lr;
+            raw.geometry.pos.cc = raw.geometry.pos.si_cc;
+            raw = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp); % Setup header
+            VoxelShift = [-raw.nXvoxels/2 + MRSCont.opts.MRSI.nii_shifts(1), -raw.nYvoxels/2 + MRSCont.opts.MRSI.nii_shifts(2), -raw.nZvoxels/2 + MRSCont.opts.MRSI.nii_shifts(3)]; % Still have to confirm that this is generalizable 
+            raw = osp_shift_nii_volume(raw,VoxelShift); % Update slice
+        else
+            raw = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp); % Setup header
         end
         MRSCont.raw{kk}      = raw;
         
@@ -148,10 +169,30 @@ for kk = 1:MRSCont.nDatasets
                     [raw_ref] = op_rmempty(raw_ref); 
                 end
             end
+            raw_ref.Manufacturer = 'Philips';
+            [~,filename,ext] = fileparts(MRSCont.files_ref{kk});
+            raw_ref.OriginalFile = [filename ext];
+            raw_ref.PatientPosition = 'unknown unknown'; 
+            raw_ref = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp); % Setup header 
             MRSCont.raw_ref{kk}  = raw_ref;
         end
         if MRSCont.flags.hasWater
             raw_w   = io_loadspec_sdat(MRSCont.files_w{kk},1);
+            raw_w.Manufacturer = 'Philips';
+            [~,filename,ext] = fileparts(MRSCont.files_w{kk});
+            raw_w.OriginalFile = [filename ext];
+            raw_w.PatientPosition = 'unknown unknown';              
+            if MRSCont.flags.isMRSI
+                raw_w = op_sortMRSIsdat(raw_w,MRSCont.opts.MRSI.pseudo3D,MRSCont.opts.MRSI.nii_flip);
+                raw_w.geometry.pos.ap = raw_w.geometry.pos.si_ap;
+                raw_w.geometry.pos.lr = raw_w.geometry.pos.si_lr;
+                raw_w.geometry.pos.cc = raw_w.geometry.pos.si_cc;
+                raw_w = osp_add_nii_mrs_field(raw_w,MRSCont.ver.Osp); % Setup header 
+                VoxelShift = [-raw_w.nXvoxels/2 + MRSCont.opts.MRSI.nii_shifts(1), -raw_w.nYvoxels/2 + MRSCont.opts.MRSI.nii_shifts(2), -raw_w.nZvoxels/2 + MRSCont.opts.MRSI.nii_shifts(3)]; % Still have to confirm that this is generalizable 
+                raw_w = osp_shift_nii_volume(raw_w,VoxelShift); % Update slice
+            else
+                raw_w = osp_add_nii_mrs_field(raw_w,MRSCont.ver.Osp); % Setup header 
+            end                      
             MRSCont.raw_w{kk}    = raw_w;
         end
     end

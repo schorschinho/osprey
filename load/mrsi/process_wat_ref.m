@@ -71,6 +71,27 @@ for dl = 1:size(data_matrix,1)
     
 end
 
+ % Do k-space zero-filling here
+    if ~isempty(k_zfill)
+        % Metabolite data
+        kx_tot_zf = round(kx_tot * k_zfill.x);
+        ky_tot_zf = round(ky_tot * k_zfill.y); 
+        sz_ksort = size(k_sort);
+        sz_ksort(2) = kx_tot_zf;
+        sz_ksort(3) = ky_tot_zf;
+        k_sort_zf = zeros(sz_ksort);
+
+        kx_start = floor((kx_tot_zf - kx_tot) / 2) + 1;
+        ky_start = floor((ky_tot_zf - ky_tot) / 2) + 1;        
+        kx_idx = kx_start:(kx_start + kx_tot - 1);
+        ky_idx = ky_start:(ky_start + ky_tot - 1);
+
+        k_sort_zf(:,kx_idx,ky_idx,:,:,:,:) = k_sort;
+        k_sort = k_sort_zf;
+        kx_tot = kx_tot_zf;
+        ky_tot = ky_tot_zf;
+    end
+
 % ------------------------------------------------------------------------------------------
 % --------------- %
 % Hanning Filter  %
@@ -145,6 +166,24 @@ end
 coilcombos.ph = angle(k_fft2_wat_ref_no_k_zfill(:,:,:,:,1));
 
 if ~strcmp(seq_type, 'MEGA multislice') && ~strcmp(seq_type, 'SE multislice')
+    for kx = 1 : size(k_fft2_wat_ref_no_k_zfill,2)
+        for ky = 1 : size(k_fft2_wat_ref_no_k_zfill,1)
+          for c = 1 : size(k_fft2_wat_ref_no_k_zfill,3)  
+              if strcmp(coilcombo,'h')
+                S=max(abs(k_fft2_wat_ref_no_k_zfill(ky,kx,c,1)));
+                N=std(k_fft2_wat_ref_no_k_zfill(ky,kx,c,end-25:end));
+                coilcombos.sig(ky,kx,c)=(S/(N.^2));
+              else
+                coilcombos.sig(ky,kx,c)=(abs(k_fft2_wat_ref_no_k_zfill(ky,kx,c,1)));
+              end
+          end
+        end
+    end
+    for kx = 1 : size(k_fft2_wat_ref_no_k_zfill,2)
+        for ky = 1 : size(k_fft2_wat_ref_no_k_zfill,1)
+            coilcombos.sig(ky,kx,:)=coilcombos.sig(ky,kx,:)/max(coilcombos.sig(ky,kx,:));
+        end
+    end
 else
     for kz = 1 : size(k_fft2_wat_ref_no_k_zfill,1)
         for kx = 1 : size(k_fft2_wat_ref_no_k_zfill,3)

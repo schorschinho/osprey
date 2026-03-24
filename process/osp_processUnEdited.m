@@ -33,7 +33,9 @@ function [MRSCont] = osp_processUnEdited(MRSCont)
 warning('off','all');
 
 %% Loop over all datasets
-refProcessTime = tic;
+if ~MRSCont.flags.isMRSI
+    refProcessTime = tic;
+end
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 else
@@ -174,17 +176,20 @@ for kk = 1:MRSCont.nDatasets
         % Define different water removal frequency ranges, depending on
         % whether this is phantom data
 
-         if MRSCont.flags.isPhantom
-            waterRemovalFreqRange = [4.5 5];
-            fracFID = 0.5;
-        else
-            waterRemovalFreqRange = [4.2 6];
-            fracFID = 0.3;
-         end
-        
-        raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
-        if MRSCont.flags.hasMM %re_mm
-            raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
+        switch MRSCont.opts.MRSI.NuisanceRemoval.water.type
+            case 'HSVD'
+                 if MRSCont.flags.isPhantom
+                    waterRemovalFreqRange = [4.5 5];
+                    fracFID = 0.5;
+                else
+                    waterRemovalFreqRange = [4.2 6];
+                    fracFID = 0.3;
+                 end
+                
+                raw = op_iterativeWaterFilter(raw, waterRemovalFreqRange, MRSCont.opts.MRSI.NuisanceRemoval.water.comp, fracFID*length(raw.fids), 0);
+                if MRSCont.flags.hasMM %re_mm
+                    raw_mm = op_iterativeWaterFilter(raw_mm, waterRemovalFreqRange, 32, fracFID*length(raw_mm.fids), 0);
+                end
         end
 
 
@@ -194,21 +199,48 @@ for kk = 1:MRSCont.nDatasets
         %%% DATA
 %         refShift = 0;
         if MRSCont.flags.isMRSI
-            raw = op_zeropad(raw,4);
-            temp = raw;
-            noise = std(real(temp.specs(temp.ppm <= 0 & temp.ppm >= -2)));
-            lipid = max(real(temp.specs(temp.ppm <= 1.9 & temp.ppm >= 0)));
-            ratio = lipid/noise;
-            if ratio > 10
-                temp = op_Wavlet_Filter(temp, -2, 1.85, 2, 10, 0);
+            switch MRSCont.opts.MRSI.FreqAlign.type
+                case 'CC'
+                    temp = raw;
+                    if MRSCont.opts.MRSI.FreqAlign.zerofill
+                        temp = op_zeropad(temp,4);
+                    end
+                    [refShift, ~] = osp_XReferencing(temp,MRSCont.opts.MRSI.FreqAlign.frequencies,MRSCont.opts.MRSI.FreqAlign.polarity,...
+                                                    MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
+                    temp = raw;
+                    [temp]             = op_freqshift(temp,-refShift);            % Reference spectra by cross-correlation 
+                    [~, refFWHM] = osp_XReferencing(temp,MRSCont.opts.MRSI.FreqAlign.frequencies,MRSCont.opts.MRSI.FreqAlign.polarity,...
+                                                    MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
+                    raw.refFWHM = refFWHM;
+                    raw.refShift = 0;    
+                case 'CCwithLipRemoval'
+                    temp = raw;
+                    if MRSCont.opts.MRSI.FreqAlign.zerofill
+                        temp = op_zeropad(temp,4);
+                    end
+                    noise = std(real(temp.specs(temp.ppm <= 0 & temp.ppm >= -2)));
+                    lipid = max(real(temp.specs(temp.ppm <= 1.9 & temp.ppm >= 0)));
+                    ratio = lipid/noise;
+                    if ratio > MRSCont.opts.MRSI.FreqAlign.thresh
+                        temp = op_Wavlet_Filter(temp, -2, 1.85, 2, 10, 0);
+                    end
+                    temp = op_Wavlet_Filter(temp, -2, 4.2, 2, 10000, 0);
+                    [refShift, ~] = osp_XReferencing(temp,MRSCont.opts.MRSI.FreqAlign.frequencies,MRSCont.opts.MRSI.FreqAlign.polarity,...
+                                                    MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
+                    % [refShift, ~] = fit_OspreyReferencing(temp);
+                    temp = raw;
+                    [temp]             = op_freqshift(temp,-refShift);            % Reference spectra by cross-correlation 
+                    [~, refFWHM] = osp_XReferencing(temp,MRSCont.opts.MRSI.FreqAlign.frequencies,MRSCont.opts.MRSI.FreqAlign.polarity,...
+                                                    MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
+                    % [~, refFWHM] = osp_CrChoReferencing(temp);
+                    raw.refFWHM = refFWHM;
+                    raw.refShift = 0;     
+                case 'none'
+                    [~, refFWHM] = osp_CrChoReferencing(raw);
+                    raw.refFWHM = refFWHM;
+                    raw.refShift = 0; 
+                    refShift = 0;  
             end
-            temp = op_Wavlet_Filter(temp, -2, 4.2, 2, 10000, 0);
-            [refShift, ~] = fit_OspreyReferencing(temp);
-            temp = raw;
-            [temp]             = op_freqshift(temp,-refShift);            % Reference spectra by cross-correlation 
-            [~, refFWHM] = osp_CrChoReferencing(temp);
-            raw.refFWHM = refFWHM;
-            raw.refShift = 0;           
         else
             [refShift, ~] = osp_CrChoReferencing(raw);
         end
@@ -223,12 +255,28 @@ for kk = 1:MRSCont.nDatasets
 
         
         % Save back to MRSCont container
-        if strcmp(MRSCont.vendor,'Siemens') || MRSCont.flags.isMRSI
+        if strcmp(MRSCont.vendor,'Siemens')
             % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
             % with the negative phase of that fit
             [raw,globalPhase]       = op_phaseCrCho(raw, 1);
             raw.specReg.phs = raw.specReg.phs - globalPhase*180/pi;
         end
+
+        if MRSCont.flags.isMRSI
+            switch MRSCont.opts.MRSI.phase.type
+                case 'none'
+                    % Do nothing
+                case 'Cr-Cho'
+                    % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+                    % with the negative phase of that fit
+                    [raw,globalPhase]       = op_phaseCrCho(raw, 1);
+                    raw.specReg.phs = raw.specReg.phs - globalPhase*180/pi;
+                case 'auto_phase'
+                    [raw,globalPhase]       = op_autophase(raw, MRSCont.opts.MRSI.phase.limits(1),MRSCont.opts.MRSI.phase.limits(2));
+                    raw.specReg.phs = raw.specReg.phs - globalPhase*180/pi;
+            end
+            
+
         
         MRSCont.processed.A{kk}     = raw;
 
@@ -281,8 +329,10 @@ for kk = 1:MRSCont.nDatasets
             if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w') || strcmp(SubSpec{ss},'mm'))
                  MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = driftPre;
                 MRSCont.QM.drift.post.(SubSpec{ss}){kk} = driftPost;
-                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift;       
-                MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift; 
+                if isfield(MRSCont.processed.(SubSpec{ss}){kk},'watersupp')
+                    MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                end
                 if strcmp(SubSpec{ss},'diff1') || strcmp(SubSpec{ss},'sum')
                     MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = reshape([MRSCont.QM.drift.pre.A'; MRSCont.QM.drift.pre.B'], [], 1)';
                     MRSCont.QM.drift.post.(SubSpec{ss}){kk} = reshape([MRSCont.QM.drift.post.A'; MRSCont.QM.drift.post.B'], [], 1)';
@@ -293,8 +343,14 @@ for kk = 1:MRSCont.nDatasets
         end              
     end
 end
-time = toc(refProcessTime);
-[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+
+if ~MRSCont.flags.isMRSI
+    time = toc(refProcessTime);
+    [~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+else
+    time = 0;
+end
+
 
 %%% 10. SET FLAGS %%%
 MRSCont.flags.avgsAligned       = 1;

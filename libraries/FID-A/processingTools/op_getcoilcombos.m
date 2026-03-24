@@ -49,22 +49,66 @@ if in.flags.addedrcvrs
     error('ERROR:  must provide data prior to coil combination!!  ABORTING!!');
 end
 
-coilcombos.ph=zeros(in.sz(in.dims.coils),1);
-coilcombos.sig=zeros(in.sz(in.dims.coils),1);
-
-for n=1:in.sz(in.dims.coils);
-    coilcombos.ph(n)=angle(in.fids(point,n,1,1));
-    switch mode
-        case 'w'
-            coilcombos.sig(n)=abs(in.fids(point,n,1,1));
-        case 'h'
-            S=max(abs(in.fids(:,n,1,1)));
-            N=std(in.fids(end-100:end,n,1,1));
-            coilcombos.sig(n)=(S/(N.^2));
+if in.nXvoxels*in.nYvoxels*in.nZvoxels == 1                 %            SVS
+    coilcombos.ph=zeros(in.sz(in.dims.coils),1);
+    coilcombos.sig=zeros(in.sz(in.dims.coils),1);
+    
+    for n=1:in.sz(in.dims.coils);
+        coilcombos.ph(n)=angle(in.fids(point,n,1,1));
+        switch mode
+            case 'w'
+                coilcombos.sig(n)=abs(in.fids(point,n,1,1));
+            case 'h'
+                S=max(abs(in.fids(:,n,1,1)));
+                N=std(in.fids(end-100:end,n,1,1));
+                coilcombos.sig(n)=(S/(N.^2));
+        end
     end
-end
+    
+    %Now normalize the coilcombos.sig so that the max amplitude is 1;
+    coilcombos.sig=coilcombos.sig/max(coilcombos.sig);
+else
+    coilcombos.ph=angle(in.fids(point,:,:,:,:));
+    if in.nZvoxels == 1  
+        coilcombos.sig=zeros(in.sz(in.dims.coils),in.sz(in.dims.Xvoxels),in.sz(in.dims.Yvoxels));
+        for x = 1 : in.nXvoxels
+            for y = 1 : in.nYvoxels
+                for n=1:in.sz(in.dims.coils)
+                    switch mode
+                        case 'w'
+                            coilcombos.sig(n,x,y)=abs(in.fids(:,n,x,y));
+                        case 'h'
+                            S = max(abs(in.fids(:,n,x,y)));
+                            N = std(in.fids(end-100:end,n,x,y));
+                            coilcombos.sig(n,x,y)=(S/(N.^2));
+                    end
+                end
+                %Now normalize the coilcombos.sig so that the max amplitude is 1;
+                coilcombos.sig(:,x,y)=coilcombos.sig(:,x,y)/max(coilcombos.sig(:,x,y));
+            end
+        end
+    else
+        coilcombos.sig=zeros(in.sz(in.dims.coils),in.sz(in.dims.Xvoxels),in.sz(in.dims.Yvoxels),in.sz(in.dims.Zvoxels));
+        for x = 1 : in.nXvoxels
+            for y = 1 : in.nYvoxels
+                for z = 1 : in.nZvoxels
+                    for n=1:in.sz(in.dims.coils)
+                        switch mode
+                            case 'w'
+                                coilcombos.sig(n,x,y,z)=abs(in.fids(:,n,x,y,z));
+                            case 'h'
+                                S = max(abs(in.fids(:,n,x,y,z)));
+                                N = std(in.fids(end-100:end,n,x,y,z));
+                                coilcombos.sig(n,x,y,z)=(S/(N.^2));
+                        end
+                    end
+                    %Now normalize the coilcombos.sig so that the max amplitude is 1;
+                    coilcombos.sig(:,x,y,z)=coilcombos.sig(:,x,y,z)/max(coilcombos.sig(:,x,y,z));
+                end
+            end
+        end
+    end
 
-%Now normalize the coilcombos.sig so that the max amplitude is 1;
-coilcombos.sig=coilcombos.sig/max(coilcombos.sig);
+end
 
 

@@ -31,15 +31,15 @@ end
 %% multiple-slice MRSI
 if LL == 4
     Water = wat;
-    Water_inv = inv( eye(NN(3)) + beta * (Water * Water'));
+    Water_inv = inv( eye(NN(1)) + beta * (Water * Water'));
     for ii = 1:NN(4)
-        csi1 = permute(csi(:,:,:,ii),[3 2 1 4]);
+        % csi1 = permute(csi(:,:,:,ii),[3 2 1 4]);
         csi1 = csi(:,:,:,ii);
         N = size(csi1);
         csi1 = reshape(csi1,N(1),N(2)*N(3));
         csi1 = Water_inv * csi1;
         csi1 = reshape(csi1,N(1),N(2),N(3));
-        csi1 = permute(csi1,[3 2 1]);
+        % csi1 = permute(csi1,[3 2 1]);
         csi(:,:,:,ii) = csi1;
     end
     csiws = csi;

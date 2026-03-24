@@ -23,12 +23,24 @@ function A = op_pad(B, newSize, paddedWith)
 
 if nargin > 1
     if nargin == 3
-        if strcmp(paddedWith, 'zero')
-            A = zeros(newSize,1);
-        elseif strcmp(paddedWith, 'nan')
-            A = nan(newSize,1);
+        if ndims(B) == 2 % MRS data
+            if strcmp(paddedWith, 'zero')
+                A = zeros(newSize,size(B,2));
+            elseif strcmp(paddedWith, 'nan')
+                A = nan(newSize,size(B,2));
+            else
+                error('Unrecognized token for padding value');
+            end
         else
-            error('Unrecognized token for padding value');
+            mrsi_matrix_sz = size(B);
+            mrsi_matrix_sz(1) = newSize;
+            if strcmp(paddedWith, 'zero')
+                A = zeros(mrsi_matrix_sz);
+            elseif strcmp(paddedWith, 'nan')
+                A = nan(mrsi_matrix_sz);
+            else
+                error('Unrecognized token for padding value');
+            end
         end
     else
         A = nan(newSize);
@@ -43,5 +55,12 @@ end
 if m < q
     error('The desired new array must be at least the size of the starting array');
 end
-    A(1:q, :) = B;
+    if ndims(B) == 2 % MRS data
+        A(1:q, :) = B;
+    else if ndims(B) == 3 % 2D MRSI data
+        A(1:q, :,:) = B;
+    else %3D or 2D multi-slice MRSI data
+        A(1:q, :,:,:) = B;
+    end
+    end
 end
