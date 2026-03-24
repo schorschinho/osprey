@@ -1,0 +1,210 @@
+{
+  "basisset": {
+    "file": [
+      "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA15_noMM.mat"
+    ],
+    "mmdef": [
+        "which(fullfile(''gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
+    ]
+  },
+  "Steps": [{
+      "module": "OptimReg",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr","CrCH2","GABA","GPC","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.8,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+          "gaussLB": {
+          "init": 5.11,
+          "ex": 5.11,
+          "sd":0.2
+        },
+          "lorentzLB": {
+            "gr":{"g1":["Cr","CrCH2","GABA","GPC","Gln","Glu","mI","Lac","NAA",
+            "NAAG","PCh","PCr"]}
+        },
+        "freqShift": {
+          "gr":{"g1":["Cr","CrCH2","GABA","GPC","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr"]},
+            "lb": -50,
+            "ub":50
+        },
+          "baseAmpl": {
+            "RegFun": "SecondDerivative"
+          }
+      },
+      "regularizer": {
+        "parameter": "baseAmpl",
+        "fun"      : "LambdaEDFormalism",
+        "m"        : 1,
+        "ub"       : 1,
+        "steps"    : 1,
+        "fixedParameter": ["ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift"]
+      }
+    },
+    {
+      "module": "OptimReg",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr","CrCH2","GABA","GPC","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.8,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "baseAmpl": {
+          "RegFun": "SecondDerivative"
+        },
+        "ph0": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "ph1": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "gaussLB": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "lorentzLB": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ],
+          "gr":{"g1":["Cr","CrCH2","GABA","GPC","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr"]}
+        },
+        "freqShift": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ],
+          "gr":{"g1":["Cr","CrCH2","GABA","GPC","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr"]}
+        }
+      },
+      "regularizer": {
+        "parameter": "baseAmpl",
+        "fun"      : "LambdaEDFormalism",
+        "m"        : 15,
+        "ub"       : 14,
+        "steps"    : 20,
+        "fixedParameter": ["ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift"]
+      }
+    },
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr","CrCH2","GABA","GPC","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.8,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.0667
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "baseAmpl": {
+          "RegFun": "SecondDerivative",
+          "RegPar": ["Step 2"]
+        }
+      }
+    }
+  ]
+}

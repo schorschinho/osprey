@@ -1,0 +1,54 @@
+{
+  "basisset": {
+    "file": [
+      "/Volumes/Samsung/working/MRSI-Siemens/mrs_sim_out/save_dir/BASIS_Siemens_UnEdited_sLASER_GABA135_noMM.mat"
+    ],
+    "mmdef": [
+    ]
+  },
+  "Steps": [
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr_methyl_only","Cr_methylene_only","GPC_pCho1gp_only","GPC_pCho2_only","Glu","Gln","GSH","mI","Lac","NAA_acetyl_only","NAAG_acetyl_only",
+          "PCh_ch2ch2_only","PCr_ch2nhnh_only","PCr_ch3_only"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          0.5,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "poly",
+          "order": 3
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "metAmpl": {
+        "sc":{
+          "adj": ["NAAG_acetyl_only"],
+          "fix": ["NAA_acetyl_only"],
+          "fix_factor":[1],
+          "ex": [0.15],
+          "sd": [0.15],
+          "fun": "ratio",
+          "scaling": 1
+        }}
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "parameters": {
+  "ph0": {
+      "type": "fixed"
+    },
+  "ph1": {
+      "type": "fixed"
+    },
+  "gaussLB": {
+      "type": "fixed",
+      "init": 9.70,
+      "ex": 9.70
+    },
+  "baseAmpl": {
+      "type": "fixed"
+    },
+  "metAmpl": {
+      "type": "fixed",
+      "init": [3.13,7.06,8.70]
+    },
+  "freqShift": {
+      "type": "fixed"
+    },
+  "lorentzLB": {
+      "type": "fixed",
+      "init": 3.40,
+       "gr":{"g1":["Cr","NAA"]}
+    }
+  }
+}

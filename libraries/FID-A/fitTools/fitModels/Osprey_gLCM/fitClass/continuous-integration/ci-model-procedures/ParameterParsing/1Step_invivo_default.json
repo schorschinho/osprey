@@ -1,0 +1,11 @@
+{
+  "basisset": {
+    "file": [
+        "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''press'',''30'',''basis_philips_press30.mat''))"
+    ]
+  },
+  "Steps": [
+    {
+      "module": "Model"}
+  ]
+}
