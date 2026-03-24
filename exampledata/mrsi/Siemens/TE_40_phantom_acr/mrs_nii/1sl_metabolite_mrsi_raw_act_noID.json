@@ -1,0 +1,38 @@
+{
+    "SpectrometerFrequency": [
+        123.236735
+    ],
+    "ResonantNucleus": [
+        "1H"
+    ],
+    "EchoTime": 0.07,
+    "RepetitionTime": 2.0,
+    "InversionTime": 0.0,
+    "MixingTime": 0.0,
+    "ExcitationFlipAngle": 90.0,
+    "Manufacturer": "Siemens",
+    "ManufacturersModelName": "Prisma",
+    "DeviceSerialNumber": "66035",
+    "SoftwareVersions": "syngo MR E11",
+    "InstitutionName": "Haukeland universitetssjukehus",
+    "TxCoil": "Body",
+    "SequenceName": "*csislsr",
+    "ProtocolName": "csi_slaser_70",
+    "PatientPosition": "HFS",
+    "PatientName": "phantom^ACR",
+    "PatientID": "2025120202",
+    "PatientWeight": 68.0,
+    "PatientDoB": "19921202",
+    "PatientSex": "O",
+    "ConversionMethod": "spec2nii v0.8.7",
+    "ConversionTime": "2026-03-24T14:10:06.054",
+    "kSpace": [
+        false,
+        false,
+        false
+    ],
+    "OriginalFile": [
+        "MrSpec.20251202.140444.rda"
+    ],
+    "SpectralWidth": 1200.4801920768307
+}
