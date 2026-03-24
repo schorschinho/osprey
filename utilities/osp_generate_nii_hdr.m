@@ -55,13 +55,16 @@ function nii_hdr = osp_generate_nii_hdr(in,nii_hdr,outfile)
     nii_hdr.pixdim(1)] = nifti_mat44_to_quatern(m44);
 
     % Remove unwanted fields from original nii_hdr
-    nii_hdr = rmfield(nii_hdr,'db_name');
-    nii_hdr = rmfield(nii_hdr,'extents');
-    nii_hdr = rmfield(nii_hdr,'glmax');
-    nii_hdr = rmfield(nii_hdr,'glmin');
-    nii_hdr = rmfield(nii_hdr,'regular');
-    nii_hdr = rmfield(nii_hdr,'session_error');
-    nii_hdr = rmfield(nii_hdr,'data_type');
+    try
+        nii_hdr = rmfield(nii_hdr,'db_name');
+        nii_hdr = rmfield(nii_hdr,'extents');
+        nii_hdr = rmfield(nii_hdr,'glmax');
+        nii_hdr = rmfield(nii_hdr,'glmin');
+        nii_hdr = rmfield(nii_hdr,'regular');
+        nii_hdr = rmfield(nii_hdr,'session_error');
+        nii_hdr = rmfield(nii_hdr,'data_type');
+    catch
+    end
 
     %Other fields (have to check this)
     nii_hdr.sizeof_hdr = 540; % NIfTI-2

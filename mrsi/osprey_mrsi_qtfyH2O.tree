@@ -1,0 +1,29 @@
+# This FileTree file describes the data structure (i.e. directories and files) and follows the rules described in "FileTree_rules.md"
+# For more information on FileTree, see documentation here: https://open.win.ox.ac.uk/pages/fsl/file-tree/stable/tutorial.html
+
+concs
+  amplitudes
+    {metab}.nii.gz                      (raw-concentrations)        # This key is mandatory
+  CRLBs
+    {metab}_CRLBs.nii.gz                (sd)
+  rawWaterScaled
+    {metab}.nii.gz                      (conc-rawWaterScaled)
+  tCr
+    {metab}.nii.gz                      (conc-tCr)
+  amplitudes_QCfilt
+    {metab}.nii.gz                      (raw-concentrations-QCfilt)
+  rawWaterScaled_QCfilt
+    {metab}.nii.gz                      (conc-rawWaterScaled-QCfilt)
+  tCr_QCfilt
+    {metab}.nii.gz                      (conc-tCr-QCfilt)
+  amplitudes_QC
+    {metab}.nii.gz                      (raw-concentrations-QC)
+  rawWaterScaled_QC
+    {metab}.nii.gz                      (conc-rawWaterScaled-QC)
+  tCr_QC
+    {metab}.nii.gz                      (conc-tCr-QC)
+fit                                                                     # Dataseries files should have keys starting with 'fit-'
+  data.nii.gz                             (fit-data)
+  baseline.nii.gz                         (fit-baseline)
+  fit.nii.gz                              (fit-fit)
+  residual.nii.gz                         (fit-residual)

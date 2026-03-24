@@ -122,8 +122,8 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     end
 elseif MRSCont.flags.isPRIAM
     [MRSCont] = osp_senseRecon(MRSCont);
-elseif MRSCont.flags.isMRSI && ~strcmp(MRSCont.datatype,'DATA')
-    [MRSCont] = osp_MRSIRecon(MRSCont);
+elseif MRSCont.flags.isMRSI && ~MRSCont.flags.coilsCombined
+    [MRSCont] = osp_combineCoils(MRSCont);
 end
 
 %% If DualVoxel or MRSI we want to extract y-axis scaling
@@ -160,48 +160,77 @@ if MRSCont.flags.isMRSI
     end
     
     for kk = 1 : MRSCont.nDatasets  
-        reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
-        shift = floor(MRSCont.raw{kk}.nZvoxels/2);
-        for ll = 1 : MRSCont.raw{kk}.nZvoxels
+        if (MRSCont.raw{kk}.nZvoxels > 1) && ~MRSCont.opts.MRSI.pseudo3D  
             ToExport = MRSCont.raw{kk};
-            if MRSCont.flags.isUnEdited
-                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
-                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
-                ToExport.nii_mrs.hdr.dim(5) = 1;
-            end
-            if MRSCont.flags.isMEGA
-                ToExport.nii_mrs.hdr.dim(6) = 1;
-                ToExport.fids = squeeze(ToExport.fids(:,:,:,:,ll));
-                ToExport.specs = squeeze(ToExport.specs(:,:,:,:,ll));
-            end
-            ToExport.nZvoxels = 1;
-            ToExport.sz = size(ToExport.fids);
-            ToExport.dims.Zvoxels = 0;
-            
-            VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
-            ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
-            shift = shift - 1;
-            if MRSCont.flags.isUnEdited
-                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw',['raw_slice_' num2str(reorder(ll)) '.nii.gz']));
-            end
-            if MRSCont.flags.isMEGA
-                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw',['raw_slice_' num2str(reorder(ll)) '.nii.gz']),{'DIM_EDIT'});
-            end
-        end
-        if MRSCont.flags.hasWater
-            shift = floor(MRSCont.raw_w{kk}.nZvoxels/2);
-            for ll = 1 : MRSCont.raw_w{kk}.nZvoxels
-                ToExport = MRSCont.raw_w{kk};
-                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
-                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
-                ToExport.nii_mrs.hdr.dim(5) = 1;
+            reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
+            shift = floor(MRSCont.raw{kk}.nZvoxels/2);
+            for ll = 1 : MRSCont.raw{kk}.nZvoxels
+                ToExport = MRSCont.raw{kk};
+                if MRSCont.flags.isUnEdited
+                    ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                    ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                    ToExport.nii_mrs.hdr.dim(5) = 1;
+                end
+                if MRSCont.flags.isMEGA
+                    ToExport.nii_mrs.hdr.dim(6) = 1;
+                    ToExport.fids = squeeze(ToExport.fids(:,:,:,:,ll));
+                    ToExport.specs = squeeze(ToExport.specs(:,:,:,:,ll));
+                end
                 ToExport.nZvoxels = 1;
                 ToExport.sz = size(ToExport.fids);
                 ToExport.dims.Zvoxels = 0;
+                
                 VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
                 ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
                 shift = shift - 1;
-                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw_w',['raw_w_slice_' num2str(reorder(ll)) '.nii.gz']));
+                if MRSCont.flags.isUnEdited
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw',['raw_slice_' num2str(reorder(ll)) '.nii.gz']));
+                end
+                if MRSCont.flags.isMEGA
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw',['raw_slice_' num2str(reorder(ll)) '.nii.gz']),{'DIM_EDIT'});
+                end
+            end
+        else
+            ToExport = MRSCont.raw{kk};
+            ToExport.fids=flip(ToExport.fids,2);
+            ToExport.specs=flip(ToExport.specs,2);
+            if (MRSCont.raw{kk}.nZvoxels > 1)
+                ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+            end
+            if MRSCont.flags.isUnEdited
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw','raw.nii.gz'));
+            end
+            if MRSCont.flags.isMEGA
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw','raw.nii.gz'),{'DIM_EDIT'});
+            end
+        end
+        if MRSCont.flags.hasWater
+            if (MRSCont.raw_w{kk}.nZvoxels > 1) && ~MRSCont.opts.MRSI.pseudo3D 
+                ToExport = MRSCont.raw_w{kk};
+                shift = floor(MRSCont.raw_w{kk}.nZvoxels/2);
+                for ll = 1 : MRSCont.raw_w{kk}.nZvoxels
+                    ToExport = MRSCont.raw_w{kk};
+                    ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                    ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                    ToExport.nii_mrs.hdr.dim(5) = 1;
+                    ToExport.nZvoxels = 1;
+                    ToExport.sz = size(ToExport.fids);
+                    ToExport.dims.Zvoxels = 0;
+                    VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                    ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                    shift = shift - 1;
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw_w',['raw_w_slice_' num2str(reorder(ll)) '.nii.gz']));
+                end
+            else
+                ToExport = MRSCont.raw_w{kk};
+                ToExport.fids=flip(ToExport.fids,2);
+                ToExport.specs=flip(ToExport.specs,2);
+                if (MRSCont.raw_w{kk}.nZvoxels > 1)
+                    ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                    ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+                end
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','raw_w','raw_w.nii.gz'));
             end
         end
     end

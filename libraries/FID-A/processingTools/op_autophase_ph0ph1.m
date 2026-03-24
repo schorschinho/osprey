@@ -71,7 +71,7 @@ end
 %Narrow the frequency range:
 in_zp=op_freqrange(in_zp,ppmmin,ppmmax);
 
-options=optimset('TolX',1e-8,'MaxFunEvals',1e8, 'MaxIter',1e8);
+options=optimset('TolX',1e-20,'MaxFunEvals',1e8, 'MaxIter',1e8);
 phc=fminsearch(@(x) mrs_entropy(x, in_zp), [0 0], options);
 
 phc0 = phc(1);

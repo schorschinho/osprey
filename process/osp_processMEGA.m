@@ -41,7 +41,9 @@ if nargin < 2
 end
 
 %% Loop over all datasets
-refProcessTime = tic;
+if ~MRSCont.flags.isMRSI
+    refProcessTime = tic;
+end
 if MRSCont.flags.isGUI
     progressText = MRSCont.flags.inProgress;
 else
@@ -115,11 +117,6 @@ for kk = 1:MRSCont.nDatasets
             raw.specReg.phs             = phs; % save align parameters
             raw.specReg.weights         = weights; % save align parameters            
         else
-            if MRSCont.flags.isMRSI
-                if MRSCont.opts.MoCo.lb > 0
-                    raw = op_filter(raw, MRSCont.opts.MoCo.lb);
-                end
-            end
                 
             raw.flags.averaged  = 1;
             raw.dims.averages   = 0;
@@ -425,27 +422,35 @@ for kk = 1:MRSCont.nDatasets
         % whether this is phantom data
         
         
+        switch MRSCont.opts.MRSI.NuisanceRemoval.water.type
+            case 'HSVD'
+                if MRSCont.flags.isPhantom
+                    waterRemovalFreqRange = [4.5 5];
+                    fracFID = 0.5;
+                else
+                    waterRemovalFreqRange = [4.2 6];
+                    fracFID = 0.3;
+                end
         
-        if MRSCont.flags.isPhantom
-            waterRemovalFreqRange = [4.5 5];
-            fracFID = 0.5;
-        else
-            waterRemovalFreqRange = [4.2 6];
-            fracFID = 0.3;
+                % Apply iterative water filter
+                if sum(abs(raw_A.fids)>0) && MRSCont.opts.HSVDfilter
+                    raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
+                    raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
+                    diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
+                    Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
+                else
+                    raw_A.watersupp.amp =0;
+                    raw_B.watersupp.amp =0;
+                    diff1.watersupp.amp =0;
+                    Sum.watersupp.amp =0;
+                end
+                if MRSCont.flags.hasMM
+                    raw_mm_A = op_iterativeWaterFilter(raw_mm_A, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+                    raw_mm_B = op_iterativeWaterFilter(raw_mm_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+                    diff1_mm = op_iterativeWaterFilter(diff1_mm, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+                    Sum_mm = op_iterativeWaterFilter(Sum_mm, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
+                end
         end
-
-        % Apply iterative water filter
-        raw_A = op_iterativeWaterFilter(raw_A, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
-        raw_B = op_iterativeWaterFilter(raw_B, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
-        diff1 = op_iterativeWaterFilter(diff1, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
-        Sum = op_iterativeWaterFilter(Sum, waterRemovalFreqRange, 16, fracFID*length(raw.fids), 0);
-        if MRSCont.flags.hasMM
-            raw_mm_A = op_iterativeWaterFilter(raw_mm_A, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-            raw_mm_B = op_iterativeWaterFilter(raw_mm_B, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-            diff1_mm = op_iterativeWaterFilter(diff1_mm, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-            Sum_mm = op_iterativeWaterFilter(Sum_mm, waterRemovalFreqRange, 32, fracFID*length(raw.fids), 0);
-        end
-       
 
         %%% 7. REFERENCE SPECTRUM CORRECTLY TO FREQUENCY AXIS 
         % Reference resulting data correctly and consistently
@@ -456,36 +461,66 @@ for kk = 1:MRSCont.nDatasets
             [diff1]             = op_freqshift(diff1,-refShift_final);            % Apply same shift to diff1
             [Sum]               = op_freqshift(Sum,-refShift_final);              % Apply same shift to sum
         else
-            raw_A = op_zeropad(raw_A,4);
-            raw_B = op_zeropad(raw_B,4);
-            diff1 = op_zeropad(diff1,4);
-            Sum = op_zeropad(Sum,4);
-            temp = raw_A;
-            noise = std(real(temp.specs(temp.ppm <= 0 & temp.ppm >= -2)));
-            lipid = max(real(temp.specs(temp.ppm <= 1.9 & temp.ppm >= 0)));
-            ratio = lipid/noise;
-            if ratio > 10
-                temp = op_Wavlet_Filter(temp, -2, 1.85, 2, 10, 0);
+            switch MRSCont.opts.MRSI.FreqAlign.type
+                case 'CC'
+                    temp = raw_A;
+                    if MRSCont.opts.MRSI.FreqAlign.zerofill
+                        temp = op_zeropad(temp,4);
+                    end
+                    [refShift_final, ~] = osp_XReferencing(temp,MRSCont.opts.MRSI.FreqAlign.frequencies,MRSCont.opts.MRSI.FreqAlign.polarity,...
+                                                    MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
+                    temp = raw_A;
+                    [temp]             = op_freqshift(temp,-refShift_final);            % Reference spectra by cross-correlation 
+                    [~, refFWHM] = osp_XReferencing(temp,MRSCont.opts.MRSI.FreqAlign.frequencies,MRSCont.opts.MRSI.FreqAlign.polarity,...
+                                                    MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
+                    raw_A.refFWHM = refFWHM;
+                    raw_A.refShift = 0;
+                    raw_B.refFWHM = refFWHM;
+                    raw_B.refShift = 0;
+                    diff1.refFWHM = refFWHM;
+                    diff1.refShift = 0;
+                    Sum.refFWHM = refFWHM;
+                    Sum.refShift = 0;
+                case 'CCwithLipRemoval'
+                    temp = raw_A;
+                    if MRSCont.opts.MRSI.FreqAlign.zerofill
+                        temp = op_zeropad(temp,4);
+                    end
+                    noise = std(real(temp.specs(temp.ppm <= 0 & temp.ppm >= -2)));
+                    lipid = max(real(temp.specs(temp.ppm <= 1.9 & temp.ppm >= 0)));
+                    ratio = lipid/noise;
+                    if ratio > MRSCont.opts.MRSI.FreqAlign.thresh
+                        temp = op_Wavlet_Filter(temp, -2, 1.85, 2, 10, 0);
+                    end
+                    temp = op_Wavlet_Filter(temp, -2, 4.2, 2, 10000, 0);
+                    [refShift_final, ~] = osp_XReferencing(temp,MRSCont.opts.MRSI.FreqAlign.frequencies,MRSCont.opts.MRSI.FreqAlign.polarity,...
+                                                    MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
+                    % [refShift, ~] = fit_OspreyReferencing(temp);
+                    temp = raw_A;
+                    [temp]             = op_freqshift(temp,-refShift_final);            % Reference spectra by cross-correlation 
+                    [~, refFWHM] = osp_XReferencing(temp,MRSCont.opts.MRSI.FreqAlign.frequencies,MRSCont.opts.MRSI.FreqAlign.polarity,...
+                                                    MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
+                    % [~, refFWHM] = osp_CrChoReferencing(temp);
+                    raw_A.refFWHM = refFWHM;
+                    raw_A.refShift = 0;
+                    raw_B.refFWHM = refFWHM;
+                    raw_B.refShift = 0;
+                    diff1.refFWHM = refFWHM;
+                    diff1.refShift = 0;
+                    Sum.refFWHM = refFWHM;
+                    Sum.refShift = 0;   
+                case 'none'
+                    [~, refFWHM] = osp_CrChoReferencing(raw_A);
+                    raw_A.refFWHM = refFWHM;
+                    raw_A.refShift = 0;
+                    raw_B.refFWHM = refFWHM;
+                    raw_B.refShift = 0;
+                    diff1.refFWHM = refFWHM;
+                    diff1.refShift = 0;
+                    Sum.refFWHM = refFWHM;
+                    Sum.refShift = 0;
+                    refShift_final = 0;  
             end
-            temp = op_Wavlet_Filter(temp, -2, 4.2, 2, 10000, 0);
-            [refShift_final, ~] = fit_OspreyReferencing(temp);
-
-            temp = raw_A;
-            [temp]             = op_freqshift(temp,-refShift_final);            % Reference spectra by cross-correlation
-            [~, refFWHM] = osp_CrChoReferencing(temp);
-
-            raw_A.refFWHM = refFWHM;
-            raw_B.refFWHM = refFWHM;
-            diff1.refFWHM = refFWHM;
-            Sum.refFWHM = refFWHM;
-            raw_A.refShift = 0;
-            raw_B.refShift = 0;
-            diff1.refShift = 0;
-            Sum.refShift = 0;
-            [raw_A]             = op_freqshift(raw_A,-refShift_final);            % Reference spectra by cross-correlation
-            [raw_B]             = op_freqshift(raw_B,-refShift_final);            % Reference spectra by cross-correlation
-            [diff1]             = op_freqshift(diff1,-refShift_final);            % Reference spectra by cross-correlation
-            [Sum]               = op_freqshift(Sum,-refShift_final);            % Reference spectra by cross-correlation
         end
         if MRSCont.flags.hasMM
             [diff1_mm,~]          = op_autophase(diff1_mm,0.5,1.1);
@@ -552,8 +587,10 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.QM.SNR.(SubSpec{ss})(kk)    = op_getSNR(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2));       
             MRSCont.QM.FWHM.(SubSpec{ss})(kk)   = op_getLW(MRSCont.processed.(SubSpec{ss}){kk},SNRRange{ss}(1),SNRRange{ss}(2)); % in Hz       
             if ~(strcmp(SubSpec{ss},'ref') || strcmp(SubSpec{ss},'w'))
-                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift_SubSpecAlign + refShift_final;       
-                MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                MRSCont.QM.freqShift.(SubSpec{ss})(kk)  = refShift_SubSpecAlign + refShift_final;    
+                if isfield(MRSCont.processed.(SubSpec{ss}){kk},'watersupp')
+                    MRSCont.QM.res_water_amp.(SubSpec{ss})(kk) = sum(MRSCont.processed.(SubSpec{ss}){kk}.watersupp.amp);  
+                end
                 if strcmp(SubSpec{ss},'diff1') || strcmp(SubSpec{ss},'sum')
                     MRSCont.QM.drift.pre.(SubSpec{ss}){kk}  = reshape([MRSCont.QM.drift.pre.A{kk}'; MRSCont.QM.drift.pre.B{kk}'], [], 1)';
                     MRSCont.QM.drift.post.(SubSpec{ss}){kk} = reshape([MRSCont.QM.drift.post.A{kk}'; MRSCont.QM.drift.post.B{kk}'], [], 1)';
@@ -566,8 +603,12 @@ for kk = 1:MRSCont.nDatasets
     end
 end
 
-time = toc(refProcessTime);
-[~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+if ~MRSCont.flags.isMRSI
+    time = toc(refProcessTime);
+    [~] = printLog('done',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+else
+    time = 0;
+end
 
 
 %%% 11. SET FLAGS %%%

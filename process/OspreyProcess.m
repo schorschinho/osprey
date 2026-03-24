@@ -53,9 +53,52 @@ if ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
         error(msg);
     end
 else
+    refProcessTime = tic;
     [MRSCont] = osp_processMultiVoxel(MRSCont);
+    switch MRSCont.opts.MRSI.NuisanceRemoval.water.type
+        case 'L2-basis'
+            for kk = 1:MRSCont.nDatasets(1)
+                [MRSCont.processed.A{kk}] = op_CSIRemoveLipids(MRSCont.processed.A{kk}, MRSCont.opts.MRSI.NuisanceRemoval.water.basisArguments);
+                if MRSCont.flags.isMEGA 
+                    [MRSCont.processed.diff1{kk}] = op_CSIRemoveLipids(MRSCont.processed.diff1{kk}, MRSCont.opts.MRSI.NuisanceRemoval.water.basisArguments);
+                end
+            end
+    end
+    switch MRSCont.opts.MRSI.NuisanceRemoval.lipid.type
+        case 'L2-basis'
+            for kk = 1:MRSCont.nDatasets(1)
+                [MRSCont.processed.A{kk}] = op_CSIRemoveLipids(MRSCont.processed.A{kk}, MRSCont.opts.MRSI.NuisanceRemoval.lipid.basisArguments);
+                if MRSCont.flags.isMEGA 
+                    [MRSCont.processed.diff1{kk}] = op_CSIRemoveLipids(MRSCont.processed.diff1{kk}, MRSCont.opts.MRSI.NuisanceRemoval.lipid.basisArguments);
+                end
+            end
+        case 'L2-mask'
+            for kk = 1:MRSCont.nDatasets(1)
+                [MRSCont.processed.A{kk}] = op_CSIRemoveLipids(MRSCont.processed.A{kk}, MRSCont.opts.MRSI.NuisanceRemoval.lipid.basisArguments,squeeze(MRSCont.seg.tissue.lip(kk,:,:,:)));
+                if MRSCont.flags.isMEGA 
+                    [MRSCont.processed.diff1{kk}] = op_CSIRemoveLipids(MRSCont.processed.diff1{kk}, MRSCont.opts.MRSI.NuisanceRemoval.lipid.basisArguments,squeeze(MRSCont.seg.tissue.lip(kk,:,:,:)));
+                end
+            end
+    end
+    for kk = 1 :MRSCont.nDatasets
+        if MRSCont.flags.isUnEdited
+            MRSCont.processed.A{kk}.refFWHM = cell2mat(MRSCont.processed.A{kk}.refFWHM);
+            MRSCont.processed.A{kk}.refFWHM = cell2mat(MRSCont.processed.A{kk}.refShift);
+        elseif MRSCont.flags.isMEGA           
+            MRSCont.processed.A{kk}.refFWHM = cell2mat(MRSCont.processed.A{kk}.refFWHM);
+            MRSCont.processed.A{kk}.refFWHM = cell2mat(MRSCont.processed.A{kk}.refShift);
+        elseif MRSCont.flags.isHERMES
+            MRSCont.processed.A{kk}.refFWHM = cell2mat(MRSCont.processed.A{kk}.refFWHM);
+            MRSCont.processed.A{kk}.refFWHM = cell2mat(MRSCont.processed.A{kk}.refShift);
+        elseif MRSCont.flags.isHERCULES
+            MRSCont.processed.A{kk}.refFWHM = cell2mat(MRSCont.processed.A{kk}.refFWHM);
+            MRSCont.processed.A{kk}.refFWHM = cell2mat(MRSCont.processed.A{kk}.refShift);
+        end       
+    end
+    time = toc(refProcessTime);
+    fprintf('\n... done.\n Elapsed time %f seconds\n',time);
+    MRSCont.runtime.Proc = time;
 end
-
 
 
 % Gather some more information from the processed data;
@@ -138,67 +181,304 @@ if MRSCont.flags.isMRSI
             mkdir(outputFolderNii);
         end
     end
-    for kk = 1 : MRSCont.nDatasets   
-        reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
-        shift = floor(MRSCont.processed.A{kk}.nZvoxels/2);
-        for ll = 1 : MRSCont.processed.A{kk}.nZvoxels
-            if MRSCont.flags.isUnEdited
-                ToExport = MRSCont.processed.A{kk};
-                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
-                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
-                ToExport.nZvoxels = 1;
-                ToExport.sz = size(ToExport.fids);
-                ToExport.dims.Zvoxels = 0;
-
-                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
-                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
-                shift = shift - 1;
-                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '.nii.gz']));
+    for kk = 1 : MRSCont.nDatasets 
+        if MRSCont.raw{kk}.nZvoxels > 1 && ~MRSCont.opts.MRSI.pseudo3D 
+            reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
+            shift = floor(MRSCont.processed.A{kk}.nZvoxels/2);
+            for ll = 1 : MRSCont.processed.A{kk}.nZvoxels
+                if MRSCont.flags.isUnEdited
+                    ToExport = MRSCont.processed.A{kk};
+                    ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                    ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                    ToExport.nZvoxels = 1;
+                    ToExport.sz = size(ToExport.fids);
+                    ToExport.dims.Zvoxels = 0;
+    
+                    VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                    ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                    shift = shift - 1;
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '.nii.gz']));
+                end
+                if MRSCont.flags.isMEGA
+                    % Export off spectrum
+                    ToExport = MRSCont.processed.A{kk};
+                    ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                    ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                    ToExport.nZvoxels = 1;
+                    ToExport.sz = size(ToExport.fids);
+                    ToExport.dims.Zvoxels = 0;
+    
+                    VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                    ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '_A.nii.gz']));
+    
+                    % Export diff spectrum
+                    ToExport = MRSCont.processed.diff1{kk};
+                    ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                    ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                    ToExport.nZvoxels = 1;
+                    ToExport.sz = size(ToExport.fids);
+                    ToExport.dims.Zvoxels = 0;
+    
+                    VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                    ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                    shift = shift - 1;
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '_diff1.nii.gz']));
+                end
             end
-            if MRSCont.flags.isMEGA
-                % Export off spectrum
-                ToExport = MRSCont.processed.A{kk};
-                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
-                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
-                ToExport.nZvoxels = 1;
-                ToExport.sz = size(ToExport.fids);
-                ToExport.dims.Zvoxels = 0;
-
-                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
-                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
-                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '_A.nii.gz']));
-
-                % Export diff spectrum
-                ToExport = MRSCont.processed.diff1{kk};
-                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
-                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
-                ToExport.nZvoxels = 1;
-                ToExport.sz = size(ToExport.fids);
-                ToExport.dims.Zvoxels = 0;
-
-                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
-                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
-                shift = shift - 1;
-                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_slice_' num2str(reorder(ll)) '_diff1.nii.gz']));
-            end
+        else % Single slice MRSI or pseudo 3D
+                if MRSCont.flags.isUnEdited
+                    % Export off spectrum
+                    ToExport = MRSCont.processed.A{kk};
+                    ToExport.fids=flip(ToExport.fids,2);
+                    ToExport.specs=flip(ToExport.specs,2);
+                    if (MRSCont.raw{kk}.nZvoxels > 1)
+                        ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                        ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+                    end
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_A.nii.gz']));
+                end
+                if MRSCont.flags.isMEGA
+                    % Export off spectrum
+                    ToExport = MRSCont.processed.A{kk};
+                    ToExport.fids=flip(ToExport.fids,1);
+                    ToExport.specs=flip(ToExport.specs,1);
+                    if (MRSCont.raw{kk}.nZvoxels > 1)
+                        ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                        ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+                    end
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_A.nii.gz']));
+        
+                    % Export diff spectrum
+                    ToExport = MRSCont.processed.diff1{kk};
+                    ToExport.fids=flip(ToExport.fids,2);
+                    ToExport.specs=flip(ToExport.specs,2);
+                    if (MRSCont.raw{kk}.nZvoxels > 1)
+                        ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                        ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+                    end
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_diff1.nii.gz']));
+                end
         end
         if MRSCont.flags.hasWater
-            shift = floor(MRSCont.processed.w{kk}.nZvoxels/2);
-            for ll = 1 : MRSCont.processed.w{kk}.nZvoxels
+            if MRSCont.raw_w{kk}.nZvoxels > 1 && ~MRSCont.opts.MRSI.pseudo3D 
+                shift = floor(MRSCont.processed.w{kk}.nZvoxels/2);
+                for ll = 1 : MRSCont.processed.w{kk}.nZvoxels
+                    ToExport = MRSCont.processed.w{kk};
+                    ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                    ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                    ToExport.nZvoxels = 1;
+                    ToExport.sz = size(ToExport.fids);
+                    ToExport.dims.Zvoxels = 0;
+    
+                    VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                    ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                    
+                    shift = shift - 1;
+                    nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_w',['processed_raw_w_slice_' num2str(reorder(ll)) '.nii.gz']));
+                end
+            else
                 ToExport = MRSCont.processed.w{kk};
-                ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
-                ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
-                ToExport.nZvoxels = 1;
-                ToExport.sz = size(ToExport.fids);
-                ToExport.dims.Zvoxels = 0;
-
-                VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
-                ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
-                
-                shift = shift - 1;
-                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_w',['processed_raw_w_slice_' num2str(reorder(ll)) '.nii.gz']));
+                ToExport.fids=flip(ToExport.fids,2);
+                    ToExport.specs=flip(ToExport.specs,2);
+                if (MRSCont.raw_w{kk}.nZvoxels > 1)
+                    ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                    ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+                end
+                nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_w',['processed_raw_w.nii.gz']));
             end
         end
+    end
+    if isfield(MRSCont.opts.MRSI,'MaxEcho')
+        if MRSCont.opts.MRSI.MaxEcho.separate
+            [right] = op_SeparateMaxEcho(MRSCont.processed.A{kk},'right',MRSCont.opts.MRSI.MaxEcho.tstart);
+            MRSCont.processed.AFID{kk} = right;
+
+            if MRSCont.opts.MRSI.MaxEcho.AdditionalPhasing
+                if MRSCont.flags.isGUI
+                    progressText = MRSCont.flags.inProgress;
+                else
+                    progressText = '';
+                end
+                XVox = MRSCont.raw{kk}.nXvoxels;
+                YVox = MRSCont.raw{kk}.nYvoxels;
+                ZVox = MRSCont.raw{kk}.nZvoxels;
+                NVox = XVox*YVox*ZVox;
+                vox = 1;
+                [~] = printLog('OspreyMaxEcho',[kk,vox],[MRSCont.nDatasets, NVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+                for z = 1 : ZVox
+                    for x = 1 : XVox
+                        for y = 1 : YVox
+                            if ZVox <=1
+                                raw = op_takeVoxel(MRSCont.processed.AFID{kk},[x y]);
+                            else
+                                raw = op_takeVoxel(MRSCont.processed.AFID{kk},[x y z]);
+                            end
+                            switch MRSCont.opts.MRSI.phase.type
+                                case 'none'
+                                    % Do nothing
+                                case 'Cr-Cho'
+                                    % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+                                    % with the negative phase of that fit
+                                    [raw,~]       = op_phaseCrCho(raw, 1);
+                                case 'auto_phase'
+                                    [raw,~]       = op_autophase(raw, MRSCont.opts.MRSI.phase.limits(1),MRSCont.opts.MRSI.phase.limits(2));
+                            end
+                            if MRSCont.opts.MRSI.MaxEcho.AdditionalFreqAlign
+                                switch MRSCont.opts.MRSI.MaxEcho.FreqAlign.type
+                                    case 'CC'
+                                        temp = raw;
+                                        if MRSCont.opts.MRSI.FreqAlign.zerofill
+                                            temp = op_zeropad(temp,4);
+                                        end
+                                        [refShift, ~] = osp_XReferencing(temp,MRSCont.opts.MRSI.MaxEcho.FreqAlign.frequencies,MRSCont.opts.MRSI.MaxEcho.FreqAlign.polarity,...
+                                                                        MRSCont.opts.MRSI.MaxEcho.FreqAlign.lim,MRSCont.opts.MRSI.MaxEcho.FreqAlign.realpart);
+
+                                    case 'CCwithLipRemoval'
+                                        temp = raw;
+                                        if MRSCont.opts.MRSI.MaxEcho.FreqAlign.zerofill
+                                            temp = op_zeropad(temp,4);
+                                        end
+                                        noise = std(real(temp.specs(temp.ppm <= 0 & temp.ppm >= -2)));
+                                        lipid = max(real(temp.specs(temp.ppm <= 1.9 & temp.ppm >= 0)));
+                                        ratio = lipid/noise;
+                                        if ratio > MRSCont.opts.MRSI.MaxEcho.FreqAlign.thresh
+                                            temp = op_Wavlet_Filter(temp, -2, 1.85, 2, 10, 0);
+                                        end
+                                        temp = op_Wavlet_Filter(temp, -2, 4.2, 2, 10000, 0);
+                                        [refShift, ~] = osp_XReferencing(temp,MRSCont.opts.MRSI.MaxEcho.FreqAlign.frequencies,MRSCont.opts.MRSI.MaxEcho.FreqAlign.polarity,...
+                                                                        MRSCont.opts.MRSI.MaxEcho.FreqAlign.lim,MRSCont.opts.MRSI.MaxEcho.FreqAlign.realpart);
+                                end
+                                [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation 
+                            end
+                            if ZVox <=1
+                                MRSCont.processed.AFID{kk} = op_addVoxel(MRSCont.processed.AFID{kk},raw,[x y],1);
+                            else
+                                MRSCont.processed.AFID{kk} = op_addVoxel(MRSCont.processed.AFID{kk},raw,[x y z],1);
+                            end
+                            vox = vox + 1;
+                            [~] = printLog('OspreyMaxEcho',[kk,vox],[MRSCont.nDatasets, NVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+                        end
+                    end
+                end
+                [~] = printLog('MRSIdone',0,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+            end
+
+             % Export spectra
+            ToExport = MRSCont.processed.AFID{kk};
+            ToExport.fids=flip(ToExport.fids,2);
+            ToExport.specs=flip(ToExport.specs,2);
+            if (MRSCont.raw{kk}.nZvoxels > 1)
+                ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+            end
+            nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_A_right.nii.gz']));          
+
+            [left] = op_SeparateMaxEcho(MRSCont.processed.A{kk},'flipleft',MRSCont.opts.MRSI.MaxEcho.tstart);
+             % Export spectra
+            ToExport = left;
+            ToExport.fids=flip(ToExport.fids,2);
+            ToExport.specs=flip(ToExport.specs,2);
+            if (MRSCont.raw{kk}.nZvoxels > 1)
+                ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+            end
+            nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_A_left.nii.gz']));
+            MRSCont.processed.Asep{kk} = op_mergeextra(right,left,'echoside');
+
+        end
+    end
+    if  (MRSCont.opts.MRSI.cosemtics.GaussianLB  > 0) || (MRSCont.opts.MRSI.cosemtics.ZeroFillFactor > 0)
+        outputFolderNii = fullfile(outputFolder,'nii-export','processed_raw_enhanced');
+        if ~exist(outputFolderNii,'dir')
+            mkdir(outputFolderNii);
+        end
+        for kk = 1 : MRSCont.nDatasets 
+            if MRSCont.raw{kk}.nZvoxels > 1 && ~MRSCont.opts.MRSI.pseudo3D 
+                reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
+                shift = floor(MRSCont.processed.A{kk}.nZvoxels/2);
+                for ll = 1 : MRSCont.processed.A{kk}.nZvoxels
+                    if MRSCont.flags.isUnEdited
+                        ToExport = MRSCont.processed.A{kk};
+                        ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                        ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                        ToExport.nZvoxels = 1;
+                        ToExport.sz = size(ToExport.fids);
+                        ToExport.dims.Zvoxels = 0;
+        
+                        VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                        ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                        shift = shift - 1;
+                        nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_enhanced',['processed_raw_slice_' num2str(reorder(ll)) '.nii.gz']));
+                    end
+                    if MRSCont.flags.isMEGA
+                        % Export off spectrum
+                        ToExport = MRSCont.processed.A{kk};
+                        ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                        ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                        ToExport.nZvoxels = 1;
+                        ToExport.sz = size(ToExport.fids);
+                        ToExport.dims.Zvoxels = 0;
+        
+                        VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                        ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                        nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_enhanced',['processed_raw_slice_' num2str(reorder(ll)) '_A.nii.gz']));
+        
+                        % Export diff spectrum
+                        ToExport = MRSCont.processed.diff1{kk};
+                        ToExport.fids = squeeze(ToExport.fids(:,:,:,ll));
+                        ToExport.specs = squeeze(ToExport.specs(:,:,:,ll));
+                        ToExport.nZvoxels = 1;
+                        ToExport.sz = size(ToExport.fids);
+                        ToExport.dims.Zvoxels = 0;
+        
+                        VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                        ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice
+                        shift = shift - 1;
+                        nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_enhanced',['processed_raw_slice_' num2str(reorder(ll)) '_diff1.nii.gz']));
+                    end
+                end
+            else % Single slice MRSI or pseudo 3D
+                    if MRSCont.flags.isUnEdited
+                        % Export off spectrum
+                        ToExport = MRSCont.processed.A{kk};
+                        if MRSCont.opts.MRSI.cosemtics.ZeroFillFactor > 0
+                            ToExport = op_zeropad(ToExport,MRSCont.opts.MRSI.cosemtics.ZeroFillFactor,1);
+                        end
+                        if MRSCont.opts.MRSI.cosemtics.GaussianLB > 0
+                            ToExport = op_filter(ToExport,MRSCont.opts.MRSI.cosemtics.GaussianLB);
+                        end
+                        ToExport.fids=flip(ToExport.fids,2);
+                        ToExport.specs=flip(ToExport.specs,2);
+                        if (MRSCont.raw{kk}.nZvoxels > 1)
+                            ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                            ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+                        end
+                        nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_enhanced',['processed_raw_A.nii.gz']));
+                    end
+                    if MRSCont.flags.isMEGA
+                        % Export off spectrum
+                        ToExport = MRSCont.processed.A{kk};
+                        ToExport.fids=flip(ToExport.fids,1);
+                        ToExport.specs=flip(ToExport.specs,1);
+                        if (MRSCont.raw{kk}.nZvoxels > 1)
+                            ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                            ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+                        end
+                        nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_enhanced',['processed_raw_A.nii.gz']));
+            
+                        % Export diff spectrum
+                        ToExport = MRSCont.processed.diff1{kk};
+                        ToExport.fids=flip(ToExport.fids,2);
+                        ToExport.specs=flip(ToExport.specs,2);
+                        if (MRSCont.raw{kk}.nZvoxels > 1)
+                            ToExport.fids = flip(ToExport.fids,length(ToExport.sz));
+                            ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
+                        end
+                        nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw_enhanced',['processed_raw_diff1.nii.gz']));
+                    end
+            end
+        end       
     end
 end
 

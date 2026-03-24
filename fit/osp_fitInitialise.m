@@ -29,8 +29,11 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
     Bo = MRSCont.raw{1}.Bo;  
     if (Bo >= 2.8 && Bo < 3.1)
             Bo = '3T';
-    else
+    else if (Bo >= 6.8 && Bo < 7.2)
             Bo = '7T';
+    else
+            Bo = '9-4T';
+        end
     end
     seq = lower(MRSCont.raw{1}.seq);
     seq = seq(~ismember(seq, char([10 13]))); % remove return or carriage return
@@ -72,6 +75,8 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
                 MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/ge/mega/' seq '/' editTarget te '/basis_ge_megapress_' editTarget te '.mat']);
             case 'Siemens'
                 MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/siemens/mega/' seq '/' editTarget te '/basis_siemens_megapress_' editTarget te '.mat']);
+            case 'Bruker'
+                MRSCont.opts.fit.basisSetFile        = which(['fit/basissets/' Bo '/bruker/mega/' seq '/' editTarget te '/basis_bruker_megapress_' editTarget te '.mat']);
         end
     elseif MRSCont.flags.isHERMES
         editTarget1 = lower(MRSCont.opts.editTarget{1}); 

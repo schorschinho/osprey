@@ -80,6 +80,11 @@ dims.averages = 0;
 dims.subSpecs = 0;
 dims.extras = 0;
 
+% Some hardcoding here for Bruker sequence
+% hdr_ext.dim_5 = 'DIM_DYN';
+% hdr_ext.dim_7 = 'DIM_EDIT';
+
+
 % The NIfTI MRS standard reserves the remaining 3 dimensions, which are
 % then explicitly specified in the JSON header extension fields dim_5,
 % dim_6 and dim_7.
@@ -216,7 +221,7 @@ if dims.subSpecs ~= 0
         rawAverages = averages;
     else
         averages = allDims(dims.subSpecs);
-        rawAverages = 1;
+        rawAverages = averages;
     end
 else
     if dims.averages ~= 0
@@ -249,6 +254,7 @@ end
 % the FID-A GitHub repository.
 
 if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
+    isMRSI = 0;
     dims.x = 0;
     dims.y = 0;
     dims.z = 0;
@@ -326,6 +332,157 @@ if allDims(1)*allDims(2)*allDims(3) == 1 % x=y=z=1
 
     %Now take fft of time domain to get fid:
     specs=fftshift(fft(fids,[],dims.t),dims.t);
+else
+    isMRSI = 1;
+    %MRSI data
+    dims.x = 1;
+    dims.y = 2;
+    dims.z = 3;
+    fids = squeeze(fids);
+
+    %Now that we've indexed the dimensions of the data array, we now need to
+    %permute it so that the order of the dimensions is standardized:  we want
+    %the order to be as follows:
+    %   1) time domain data.
+    %   2) coils.
+    %   3) averages.
+    %   4) subSpecs.
+    %   5) extras.
+    %   6) x direction
+    %   7) y direction
+    %   8) z direction
+
+    % Adjust dimension indices for the fact that we have collapsed the
+    % three spatial dimensions (which we don't need for SVS data)
+    sqzDims = {};
+    dimsFieldNames = fieldnames(dims);
+    for rr = 1:length(dimsFieldNames)
+        if dims.(dimsFieldNames{rr}) ~= 0
+            % Subtract 3 (x, y, z) from the dimension indices
+            dims.(dimsFieldNames{rr}) = dims.(dimsFieldNames{rr});
+            sqzDims{end+1} = dimsFieldNames{rr};
+        end
+    end
+
+    if dims.z ~=0 && allDims(dims.z)==1 % single slice
+        if allDims(dims.z)==1 % For Bruker 
+            sqzDims(dims.z)=[];
+            dims.z =0;
+            dims.t =3;
+            dims.averages =0;
+            if dims.coils > 0
+                dims.coils = dims.coils -1;
+            end
+        end
+        if length(sqzDims)==7
+            fids=permute(fids,[dims.t dims.coils dims.averages dims.subSpecs dims.extras dims.x dims.y]);
+            dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=4;dims.extras=5; dims.x=6; dims.y=7;
+        elseif length(sqzDims)==6
+            if dims.extras==0
+                fids=permute(fids,[dims.t dims.coils dims.averages dims.subSpecs dims.x dims.y]);
+                dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=4;dims.extras=0; dims.x=5; dims.y=6;
+            elseif dims.subSpecs==0
+                fids=permute(fids,[dims.t dims.coils dims.averages dims.extras dims.x dims.y]);
+                dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=0;dims.extras=4; dims.x=5; dims.y=6;
+            elseif dims.averages==0
+                fids=permute(fids,[dims.t dims.coils dims.subSpecs dims.extras dims.x dims.y]);
+                dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=3;dims.extras=4; dims.x=5; dims.y=6;
+            elseif dims.coils==0
+                fids=permute(fids,[dims.t dims.averages dims.subSpecs dims.extras dims.x dims.y]);
+                dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=3;dims.extras=4; dims.x=5; dims.y=6;
+            end
+        elseif length(sqzDims)==5
+            if dims.extras==0 && dims.subSpecs==0
+                fids=permute(fids,[dims.t dims.coils dims.averages dims.x dims.y]);
+                dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=0;dims.extras=0; dims.x=4; dims.y=5;
+            elseif dims.extras==0 && dims.averages==0
+                fids=permute(fids,[dims.t dims.coils dims.subSpecs dims.x dims.y]);
+                dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=3;dims.extras=0; dims.x=4; dims.y=5;
+            elseif dims.extras==0 && dims.coils==0
+                fids=permute(fids,[dims.t dims.averages dims.subSpecs dims.x dims.y]);
+                dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=3;dims.extras=0; dims.x=4; dims.y=5;
+            end
+        elseif length(sqzDims)==4
+            if dims.extras==0 && dims.subSpecs==0 && dims.averages==0
+                fids=permute(fids,[dims.t dims.coils dims.x dims.y]);
+                dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=0;dims.extras=0; dims.x=3; dims.y=4;
+            elseif dims.extras==0 && dims.subSpecs==0 && dims.coils==0
+                fids=permute(fids,[dims.t dims.averages dims.x dims.y]);
+                dims.t=1;dims.coils=0;dims.averages=3;dims.subSpecs=0;dims.extras=0; dims.x=3; dims.y=4;
+            elseif dims.extras==0 && dims.averages==0 && dims.coils==0
+                fids=permute(fids,[dims.t dims.subSpecs dims.x dims.y]);
+                dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=2;dims.extras=0; dims.x=3; dims.y=4;
+            end
+        elseif length(sqzDims)==3
+            fids=permute(fids,[dims.t dims.x dims.y]);
+            dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0; dims.x=2; dims.y=3;
+        elseif length(sqzDims)==1
+            dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0;
+        end
+    else
+
+        if length(sqzDims)==7
+            if dims.extras==0
+                fids=permute(fids,[dims.t dims.coils dims.averages dims.subSpecs dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=4;dims.extras=0; dims.x=5; dims.y=6; dims.z=7;
+            elseif dims.subSpecs==0
+                fids=permute(fids,[dims.t dims.coils dims.averages dims.extras dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=0;dims.extras=4; dims.x=5; dims.y=6; dims.z=7;
+            elseif dims.averages==0
+                fids=permute(fids,[dims.t dims.coils dims.subSpecs dims.extras dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=3;dims.extras=4; dims.x=5; dims.y=6; dims.z=7;
+            elseif dims.coils==0
+                fids=permute(fids,[dims.t dims.averages dims.subSpecs dims.extras dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=3;dims.extras=4; dims.x=5; dims.y=6; dims.z=7;
+            end
+        elseif length(sqzDims)==6
+            if dims.extras==0 && dims.subSpecs==0
+                fids=permute(fids,[dims.t dims.coils dims.averages dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=2;dims.averages=3;dims.subSpecs=0;dims.extras=0; dims.x=4; dims.y=5; dims.z=6;
+            elseif dims.extras==0 && dims.averages==0
+                fids=permute(fids,[dims.t dims.coils dims.subSpecs dims.extras dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=3;dims.extras=0; dims.x=4; dims.y=5; dims.z=6;
+            elseif dims.extras==0 && dims.coils==0
+                fids=permute(fids,[dims.t dims.averages dims.subSpecs dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=3;dims.extras=0; dims.x=4; dims.y=5; dims.z=6;
+            elseif dims.extras==1 && dims.subSpecs==1
+                fids=permute(fids,[dims.t dims.subSpecs dims.extras dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=2;dims.extras=3; dims.x=4; dims.y=5; dims.z=6;
+            elseif dims.extras==1 && dims.averages==1
+                fids=permute(fids,[dims.t dims.averages dims.extras dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=0;dims.extras=3; dims.x=4; dims.y=5; dims.z=6;
+            elseif dims.extras==1 && dims.coils==1
+                fids=permute(fids,[dims.t dims.coils dims.extras dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=0;dims.extras=3; dims.x=4; dims.y=5; dims.z=6;
+            end
+        elseif length(sqzDims)==5
+            if dims.extras==0 && dims.subSpecs==0 && dims.averages==0
+                fids=permute(fids,[dims.t dims.coils dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=2;dims.averages=0;dims.subSpecs=0;dims.extras=0; dims.x=3; dims.y=4; dims.z=5;
+            elseif dims.extras==0 && dims.subSpecs==0 && dims.coils==0
+                fids=permute(fids,[dims.t dims.averages dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=0;dims.averages=2;dims.subSpecs=0;dims.extras=0; dims.x=3; dims.y=4; dims.z=5;
+            elseif dims.extras==0 && dims.averages==0 && dims.coils==0
+                fids=permute(fids,[dims.t dims.subSpecs dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=2;dims.extras=0; dims.x=3; dims.y=4; dims.z=5;
+            elseif dims.subSpecs==0 && dims.averages==0 && dims.coils==0
+                fids=permute(fids,[dims.t dims.extras dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=2; dims.x=3; dims.y=4; dims.z=5;
+            end
+        elseif length(sqzDims)==4
+                fids=permute(fids,[dims.t dims.x dims.y dims.z]);
+                dims.t=1;dims.coils=0;dims.averages=0;dims.subSpecs=0;dims.extras=0; dims.x=2; dims.y=3; dims.z=4;
+        end
+    end
+
+    %Now get the size of the data array:
+    sz=size(fids);
+
+    %Compared to NIfTI MRS, FID-A needs the conjugate
+    fids = conj(fids);
+
+    %Now take fft of time domain to get fid:
+    specs=fftshift(fft(fids,[],dims.t),dims.t);
 
 end
 
@@ -338,7 +495,7 @@ out.nucleus = hdr_ext.ResonantNucleus;
 % Gamma from Wikipedia article "Gyromagnetic ratio" (3 signif. digits)
 for rr = 1:length(out.nucleus)
     switch out.nucleus{rr}
-        case '1H'
+        case {'1H','<1H>'}
             gamma = 42.577;
         case '2H'
             gamma = 6.536;
@@ -445,7 +602,7 @@ out.flags.isMEGA = 0;
 out.flags.isHERMES = 0;
 out.flags.isHERCULES = 0;
 out.flags.isPRIAM = 0;
-out.flags.isMRSI = 0;
+out.flags.isMRSI = isMRSI;
 if strcmp(seq,'PRESS') || strcmp(seq,'STEAM') || strcmp(seq,'SLASER')
     out.flags.isUnEdited = 1;
 end
@@ -459,6 +616,21 @@ if strcmp(seq,'HERCULES')
     out.flags.isHERCULES = 1;
 end
 
+if isMRSI
+    out.nXvoxels = out.sz(out.dims.x);
+    out.nYvoxels = out.sz(out.dims.y);
+    if out.dims.z == 0
+        out.nZvoxels = 1;
+    else
+        out.nZvoxels = out.sz(out.dims.z);
+    end
+    out.dims.Xvoxels = out.dims.x;
+    out.dims.Yvoxels = out.dims.y;
+    out.dims.Zvoxels = out.dims.z;
+    out.dims = rmfield(out.dims,'x');
+    out.dims = rmfield(out.dims,'y');
+    out.dims = rmfield(out.dims,'z');    
+end
 % Store additional information from the nii header
     if out.dims.extras
         if ischar(out.seq)

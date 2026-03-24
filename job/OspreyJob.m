@@ -92,6 +92,9 @@ if strcmp(jobFileFormat,'csv')
     if isfield(jobStruct, 'files_nii')
         files_nii = {jobStruct.files_nii};
     end
+    if isfield(jobStruct, 'files_nii_MRSIloc')
+        files_nii_MRSIloc = {jobStruct.files_nii_MRSIloc};
+    end
     if isfield(jobStruct, 'files_sense')
         files_sense = {jobStruct.sense};
     end
@@ -288,25 +291,31 @@ if exist('MultiVoxel','var')
 
         case 'MRSI'
             MRSCont.flags.isMRSI = 1;
+            if ~isfield(MRSCont.opts.MRSI,'pseudo3D')
+                MRSCont.opts.MRSI.pseudo3D = 1; % To export single file
+            end
+            if ~isfield(MRSCont.opts.MRSI,'nii_shifts')
+                MRSCont.opts.MRSI.nii_shifts = [0 0 0];
+            end
         otherwise
             warning('Multi voxel must be ''PRIAM'' or ''MRSI''in the job file, and has been set to ''single voxel'' (default).');
     end
-    if ~isfield(MRSCont.opts, 'MoCo')
-        MRSCont.opts.MoCo.target = 'none';
-        MRSCont.opts.MoCo.thresh.thresh = 0.8;
-        MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
-        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;    
+    if ~isfield(MRSCont.opts.MRSI, 'MoCo')
+        MRSCont.opts.MRSI.MoCo.target = 'none';
+        MRSCont.opts.MRSI.MoCo.thresh.thresh = 0.8;
+        MRSCont.opts.MRSI.MoCo.thresh.ph_thresh = 0.9;
+        MRSCont.opts.MRSI.MoCo.thresh.last_resort_thresh = 0.6;    
     end
-    if ~isfield(MRSCont.opts.MoCo, 'target')
-        MRSCont.opts.MoCo.target = 'full';
+    if ~isfield(MRSCont.opts.MRSI.MoCo, 'target')
+        MRSCont.opts.MRSI.MoCo.target = 'full';
     end
-    if ~isfield(MRSCont.opts.MoCo, 'thresh')
-        MRSCont.opts.MoCo.thresh.thresh = 0.8;
-        MRSCont.opts.MoCo.thresh.ph_thresh = 0.9;
-        MRSCont.opts.MoCo.thresh.last_resort_thresh = 0.6;
+    if ~isfield(MRSCont.opts.MRSI.MoCo, 'thresh')
+        MRSCont.opts.MRSI.MoCo.thresh.thresh = 0.8;
+        MRSCont.opts.MRSI.MoCo.thresh.ph_thresh = 0.9;
+        MRSCont.opts.MRSI.MoCo.thresh.last_resort_thresh = 0.6;
     end
-    if ~isfield(MRSCont.opts.MoCo, 'coilcombo')
-            MRSCont.opts.MoCo.coilcombo = 'c';
+    if ~isfield(MRSCont.opts.MRSI.MoCo, 'coilcombo')
+            MRSCont.opts.MRSI.MoCo.coilcombo = 'c';
     end
 end
 
@@ -348,6 +357,9 @@ end
 if exist('files_nii','var')
     MRSCont.files_nii = files_nii;
 end
+if exist('files_nii_MRSIloc','var')
+    MRSCont.files_nii_MRSIloc = files_nii_MRSIloc;
+end
 if exist('files_sense','var')
     MRSCont.files_sense = files_sense;
 end
@@ -358,7 +370,7 @@ else
 end
 
 % Check that each array has an identical number of entries
-fieldNames = {'files', 'files_ref', 'files_w','files_mm', 'files_nii', 'files_sense'};
+fieldNames = {'files', 'files_ref', 'files_w','files_mm', 'files_nii', 'files_sense', 'files_nii_MRSIloc'};
 ctr = 0;
 for kk = 1:length(fieldNames)
     if isfield(MRSCont, fieldNames{kk})
@@ -395,7 +407,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 1.0.2';
+MRSCont.ver.Osp             = 'Osprey 3.0.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%
@@ -460,6 +472,9 @@ if ~GUI
                             end
                             if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
+                            end
+                            if isfield(MRSCont,'files_nii_MRSIloc')
+                                MRSCont.files_nii_MRSIloc = MRSContNew.files_nii_MRSIloc;
                             end
                             if isfield(MRSCont,'files_sense')
                                 MRSCont.files_sense = MRSContNew.files_sense;
@@ -534,8 +549,11 @@ else
                             if isfield(MRSCont,'files_w')
                                 MRSCont.files_w = MRSContNew.files_w;
                             end
-                            if isfield(MRSCont,'files_ref')
+                            if isfield(MRSCont,'files_nii')
                                 MRSCont.files_nii = MRSContNew.files_nii;
+                            end
+                            if isfield(MRSCont,'files_nii_MRSIloc')
+                                MRSCont.files_nii_MRSIloc = MRSContNew.files_nii_MRSIloc;
                             end
                             if isfield(MRSCont,'files_sense')
                                 MRSCont.files_sense = MRSContNew.files_sense;

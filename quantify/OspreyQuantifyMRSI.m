@@ -1,7 +1,7 @@
-function [MRSCont] = OspreyQuantifyMRSI(MRSCont)
+function [MRSCont] = OspreyQuantifyMRSI(MRSCont,MetabSpecName)
 %% [MRSCont] = OspreyQuantifyMRSI(MRSCont)
 %   This function transforms the raw amplitude parameters determined during
-%   OspreyFit into MRSI amplitude maps.
+%   OspreyFit into MRSI  maps.
 %
 %   By default, OspreyQuantify will report tCr ratios for all metabolites.
 %   These values will not undergo any further correction for tissue
@@ -21,7 +21,7 @@ function [MRSCont] = OspreyQuantifyMRSI(MRSCont)
 %       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
-%       Dr. Hege Zollner (Johns Hopkins University, 2021-01-06)
+%       Dr. Helge Zollner (Johns Hopkins University, 2021-01-06)
 %       hzoelln2@jhmi.edu
 %
 %   CREDITS:
@@ -35,7 +35,7 @@ function [MRSCont] = OspreyQuantifyMRSI(MRSCont)
 
 
 outputFolder = MRSCont.outputFolder;
-diary(fullfile(outputFolder, 'LogFile.txt'));
+% diary(fullfile(outputFolder, 'LogFile.txt'));
 % Check that OspreyFit has been run before
 if ~MRSCont.flags.didFit
     msg = 'Trying to quantify data, but data have not been modelled yet. Run OspreyFit first.';
@@ -43,37 +43,31 @@ if ~MRSCont.flags.didFit
     error(msg);    
 end
 
-% Version check and updating log file
-MRSCont.ver.Quant             = '1.0.0 Quant';
-fprintf(['Timestamp %s ' MRSCont.ver.Osp '  ' MRSCont.ver.Quant '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
-
 
 %%% 0. CHECK WHICH QUANTIFICATIONS CAN BE DONE %%%
+if isfield(MRSCont.opts, 'MRSI') && isfield(MRSCont.opts.MRSI,'WaterVisibility')
+    WaterVisibility = MRSCont.opts.MRSI.WaterVisibility;
+else
+    WaterVisibility = 0.65;
+end
+
 % tCr ratios can always be calculated (unless the unlikely case that Cr is
 % not in the basis set, a case we'll omit for now).
 qtfyCr = 1;
 
 % Check which types of metabolite data are available
 if MRSCont.flags.isUnEdited
-    getResults = {'off'};
+    getResults = {'metab'};
+    tCrNorm = {'metab'};
 elseif MRSCont.flags.isMEGA
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'off'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
+    getResults = {'metab', 'metab'};
+    tCrNorm = {'metab'};
 elseif MRSCont.flags.isHERMES
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'diff2', 'sum'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
+    getResults = {'metab', 'metab', 'metab'};
+    tCrNorm = {'metab'};
 elseif MRSCont.flags.isHERCULES
-    if strcmpi(MRSCont.opts.fit.style, 'Separate')
-        getResults = {'diff1', 'diff2', 'sum'};
-    elseif strcmpi(MRSCont.opts.fit.style, 'Concatenated')
-        getResults = {'conc'};
-    end
+    getResults = {'metab', 'metab', 'metab'};
+    tCrNorm = {'metab'};
 end
 
 % Check which types of water data are available
@@ -81,15 +75,18 @@ if [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 1]
         % If both water reference and short-TE water data have been
         % provided, use the one with shorter echo time.
         qtfyH2O     = 1;
-        getResults{end+1} = 'w';
+        getResultsWater = {'water'};
+        waterType = 'w';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 0]
         % If only one type of water data has been provided, use it.
         qtfyH2O     = 1;
-        getResults{end+1} = 'ref';
+        getResultsWater = {'ref'};
+        waterType = 'ref';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [0 1]
         % If only one type of water data has been provided, use it.
         qtfyH2O     = 1;
-        getResults{end+1} = 'w';
+        getResultsWater = {'water'};
+        waterType = 'w';
 elseif [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [0 0]
         % If no water ref has been provided, only tCr ratios can be
         % provided.
@@ -132,87 +129,13 @@ end
 warning('off','all');
 
 % Set up saving location
-saveDestination = fullfile(MRSCont.outputFolder, 'QuantifyResults');
+saveDestination = fullfile(outputFolder,'nii-export',['fit_raw_' MetabSpecName]);
 if ~exist(saveDestination,'dir')
     mkdir(saveDestination);
 end
 
-%Find dimensionality of metabolite MRSI acquisition
-dim  = [MRSCont.raw{1}.nXvoxels MRSCont.raw{1}.nYvoxels MRSCont.raw{1}.nZvoxels]; 
-if dim(3) == 1
-    dim = dim(1:2);
-end
 
-% Add combinations of metabolites to the basisset
-if qtfyH2O
-    water = 1;
-else
-    water = 0;
-end
 
-for ll = 1:length(getResults) - water
-    if length(dim) == 2        
-        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
-    else
-        MRSCont.quantify.metabs.(getResults{ll}) = MRSCont.fit.resBasisSet.(getResults{ll}){1,1}.name;
-    end
-end
-
-if qtfyH2O
-    if length(dim) == 2        
-        MRSCont.quantify.metabs.(getResults{end}) = MRSCont.fit.resBasisSet.(getResults{end}).water{1,1}.name;
-    else
-        MRSCont.quantify.metabs.(getResults{end}) = MRSCont.fit.resBasisSet.(getResults{end}).water{1,1}.name;
-    end
-end
-
-for kk = 1:MRSCont.nDatasets
-    for ll = 1:length(getResults)  - water
-        for mm = 1:length(MRSCont.quantify.metabs.(getResults{ll}))
-            if length(dim) == 2
-                for x = 1 : dim(1)
-                    for y = 1 : dim(2)
-                        MRSCont.quantify.amplMets{kk}.(getResults{ll}).(MRSCont.quantify.metabs.(getResults{ll}){mm})(x,y) = MRSCont.fit.results{x,y}.(getResults{ll}).fitParams{kk}.ampl(mm);
-                    end % Y voxel
-                end % X voxel
-            else
-                for z = 1 : dim(3)
-                    for x = 1 : dim(1)
-                        for y = 1 : dim(2)
-                            MRSCont.quantify.amplMets{kk}.(getResults{ll}).(MRSCont.quantify.metabs.(getResults{ll}){mm})(x,y,z) = MRSCont.fit.results{x,y,z}.(getResults{ll}).fitParams{kk}.ampl(mm);
-                        end % Y voxel
-                    end % X voxel  
-                end % slices
-            end
-        end
-    end
-end
-
-%Find dimensionality of metabolite MRSI acquisition
-dim  = [MRSCont.raw_w{1}.nXvoxels MRSCont.raw_w{1}.nYvoxels MRSCont.raw_w{1}.nZvoxels]; 
-if dim(3) == 1
-    dim = dim(1:2);
-end
-
-for kk = 1:MRSCont.nDatasets
-    if length(dim) == 2
-        for x = 1 : dim(1)
-            for y = 1 : dim(2)
-                MRSCont.quantify.amplMets{kk}.w.H2O(x,y) = MRSCont.fit.results{x,y}.w.fitParams{kk}.ampl(1);
-            end % Y voxel
-        end % X voxel
-    else
-        for z = 1 : dim(3)
-            for x = 1 : dim(1)
-                for y = 1 : dim(2)
-                    MRSCont.quantify.amplMets{kk}.w.H2O(x,y,z) = MRSCont.fit.results{x,y,z}.w.fitParams{kk}.ampl(1);
-                end % Y voxel
-            end % X voxel  
-        end % slices
-    end
-end
-
-MRSCont = addMetabComb(MRSCont, getResults);
 
 %% Loop over all datasets
 QuantifyTime = tic;
@@ -224,54 +147,356 @@ end
 
 for kk = 1:MRSCont.nDatasets
     [~] = printLog('OspreyQuant',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
-
-
-
-    %%% 1. GET WATER-SCALED, TISSUE-UNCORRECTED RATIOS %%%
+    
+    % Get all the model results from fit object
+    ModelMatrix = MRSCont.fit.(getResults{1});   
+    ModelMatrix=flip(ModelMatrix,1);
+    if (MRSCont.raw{1}.nZvoxels > 1)
+        ModelMatrix = flip(ModelMatrix,length(size(ModelMatrix)));
+    end    
+   MRSI_model = get_MRSI_amplitudes(ModelMatrix); 
+    non_zero = find(~cellfun('isempty', ModelMatrix));
+    temp = ModelMatrix{non_zero(1)};
+    % metsName = temp.BasisSets.names(logical(temp.BasisSets.includeInFit(end,:)));
+    metsName = temp.Model{end}.CRLB.Properties.VariableNames;
+    
+    
     if qtfyH2O
-        % Get repetition times
-        metsTR  = MRSCont.processed.A{kk}.tr;
-        waterTR = MRSCont.processed.w{kk}.tr;
+        WaterModelMatrix = MRSCont.fit.(getResultsWater{1});
+        WaterModelMatrix = flip(WaterModelMatrix ,1);
+        if (MRSCont.raw_w{1}.nZvoxels > 1)
+            WaterModelMatrix = flip(WaterModelMatrix,length(size(WaterModelMatrix)));
+        end
+        MRSI_model_water = get_MRSI_amplitudes(WaterModelMatrix);         
+        MRSI_model_water.amplitudes = squeeze(sum(MRSI_model_water.amplitudes,1));             
+    end
+    if qtfyCr
+        ModelMatrix2 = MRSCont.fit.(tCrNorm{1});        
+        ModelMatrix2=flip(ModelMatrix2,2);
+        if (MRSCont.raw{1}.nZvoxels > 1)
+            ModelMatrix2 = flip(ModelMatrix2,length(size(ModelMatrix2)));
+        end
+        non_zero = find(~cellfun('isempty', ModelMatrix2));
+        temp = ModelMatrix2{non_zero(1)};
+        MRSI_model2 = get_MRSI_amplitudes(ModelMatrix2); 
+        metab_namesNorm = temp.Model{1}.CRLB.Properties.VariableNames;
+        tCrCombinationNames = {'tNAA','tCr','tCr_methyl_only'};
+        for ll = 1 : 3
+            Idx_1 = find(strcmp(metab_namesNorm,tCrCombinationNames{ll})); 
+            if ~isempty(Idx_1)
+                NormIndex = Idx_1;
+            end
+        end
+    end
+    
+    if qtfyH2O
+         % Get repetition times
+        metsTR  = MRSCont.processed.A{kk}.tr * 1e-3;
+        waterTR = MRSCont.processed.(waterType){kk}.tr * 1e-3;
         % Get echo times
-        metsTE  = MRSCont.processed.A{kk}.te;
-        waterTE = MRSCont.processed.w{kk}.te;
-        % Calculate water-scaled, but not tissue-corrected metabolite levels
-        MRSCont.quantify.rawWaterScaledFactor{kk} = quantH2O(MRSCont.quantify.metabs, getResults, metsTR, waterTR, metsTE, waterTE,Bo);
+        metsTE  = MRSCont.processed.A{kk}.te * 1e-3;
+        waterTE = MRSCont.processed.(waterType){kk}.te * 1e-3;
+         % Calculate factor for water-scaled, but not tissue-corrected metabolite levels
+        rawWaterScaledFactor = quantH2O(metsName, metsTR, waterTR, metsTE, waterTE,Bo, WaterVisibility);
     end
 
+    if qtfyCSF
+        fCSF = squeeze(MRSCont.seg.tissue.fCSF(kk,:,:,:));
+    end
 
-%     %%% 5. GET TISSUE CORRECTION %%%
     if qtfyTiss
         % Get repetition times
-        metsTR  = MRSCont.processed.A{kk}.tr;
-        waterTR = MRSCont.processed.w{kk}.tr;
+        metsTR  = MRSCont.processed.A{kk}.tr * 1e-3;
+        waterTR = MRSCont.processed.(waterType){kk}.tr * 1e-3;
         % Get echo times
-        metsTE  = MRSCont.processed.A{kk}.te;
-        waterTE = MRSCont.processed.w{kk}.te;
-        % Apply tissue correction
-        fGM = squeeze(MRSCont.seg.tissue.fGM(kk,:,:,:));
-        fWM = squeeze(MRSCont.seg.tissue.fWM(kk,:,:,:));
-        fCSF = squeeze(MRSCont.seg.tissue.fCSF(kk,:,:,:));
-        MRSCont.quantify.TissCorrWaterScaledFactor{kk} = quantTiss(MRSCont.quantify.metabs, getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF,Bo);     
+        metsTE  = MRSCont.processed.A{kk}.te * 1e-3;
+        waterTE = MRSCont.processed.(waterType){kk}.te * 1e-3;
+         % Calculate factor for water-scaled, but not tissue-corrected metabolite levels
+        TissCorrWaterScaledFactor = quantTiss(metsName, metsTR, waterTR, metsTE, waterTE, squeeze(MRSCont.seg.tissue.fGM(kk,:,:,:)), squeeze(MRSCont.seg.tissue.fWM(kk,:,:,:)), squeeze(MRSCont.seg.tissue.fCSF(kk,:,:,:)),Bo);
     end
-% 
-% 
-%     %%% 6. GET ALPHA CORRECTION (THIS IS FOR GABA ONLY AT THIS POINT) %%%
-%     if qtfyAlpha
-% 
-%         % For now, this is done for GABA only; however, the principle
-%         % could be extended to other metabolites, as long as we have some
-%         % form of prior knowledge about their concentrations in GM and WM.
-% 
-%         % Calculate mean WM/GM fractions
-%         meanfGM = mean(MRSCont.seg.tissue.fGM); % average GM fraction across datasets
-%         meanfWM = mean(MRSCont.seg.tissue.fWM); % average WM fraction across datasets
-%         [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName,amplMets, amplWater,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM,MRSCont.opts.fit.coMM3);
-% 
-%         % Save back to Osprey data container
-%         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaled{kk} = AlphaCorrWaterScaled;
-%         MRSCont.quantify.(getResults{1}).AlphaCorrWaterScaledGroupNormed{kk} = AlphaCorrWaterScaledGroupNormed;
-%     end
+
+    if (MRSCont.raw{kk}.nZvoxels > 1) && ~MRSCont.opts.MRSI.pseudo3D 
+        reorder = flip(1:data.nZvoxels);
+        for ll = 1 : data.nZvoxels
+                ToExport = data;
+                if isfield(ToExport.geometry,'slice_distance')
+                    VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
+                    ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice 
+                end
+                mkdir(fullfile(saveDestination,['slice_' num2str(reorder(ll))],'fit'))
+                out.hdr = ToExport.nii_mrs.hdr;
+                out.hdr.dim(1) = 3;
+                out.hdr.dim(2) = 1;
+                out.hdr.pixdim(5) = 1;
+                out.hdr.pixdim(1) = 1; % For the other dataset this was -1 QForm changes 
+                if ~isempty(WaterModelMatrix)
+                    mkdir(fullfile(saveDestination,['slice_' num2str(reorder(ll))],'concs','rawWaterScaled'))
+                end
+                mkdir(fullfile(saveDestination,['slice_' num2str(reorder(ll))],'concs','amplitudes'))
+                mkdir(fullfile(saveDestination,['slice_' num2str(reorder(ll))],'concs','tCr'))
+                mkdir(fullfile(saveDestination,['slice_' num2str(reorder(ll))],'concs','CRLBs'))
+                for mm = 1 : length(metsName)
+                    if qtfyH2O
+                        out.img = squeeze(squeeze(MRSI_model.amplitudes(mm,:,:,ll))./MRSI_model_water.amplitudes(:,:,ll) *rawWaterScaledFactor(mm));         
+                    
+                        out.img(isnan(out.img)) =0;
+                        out.img(isinf(out.img)) =0;
+                        nii_tool('save', out, fullfile(saveDestination,['slice_' num2str(reorder(ll))],'concs','rawWaterScaled',[metsName{mm}  '.nii.gz']));
+                    end
+
+                    out.img = squeeze(squeeze(MRSI_model.amplitudes(mm,:,:,ll))./(squeeze(MRSI_model2.amplitudes(NormIndex,:,:,ll))));
+                    out.img(isnan(out.img)) =0;
+                    out.img(isinf(out.img)) =0;
+                    nii_tool('save', out, fullfile(saveDestination,['slice_' num2str(reorder(ll))],'concs','tCr',[metsName{mm}  '.nii.gz']));
+    
+                    out.img = squeeze(squeeze(MRSI_model.amplitudes(mm,:,:,ll)));
+                    out.img(isnan(out.img)) =0;
+                    out.img(isinf(out.img)) =0;
+                    nii_tool('save', out, fullfile(saveDestination,['slice_' num2str(reorder(ll))],'concs','amplitudes',[metsName{mm}  '.nii.gz']));
+    
+    
+                    out.img = squeeze(MRSI_model.relCRLBs(mm,:,:,ll));
+                    out.img(isnan(out.img)) =0;
+                    out.img(isinf(out.img)) =0;
+                    nii_tool('save', out, fullfile(saveDestination,['slice_' num2str(reorder(ll))],'concs','CRLBs',[metsName{mm}  '_CRLBs.nii.gz']));
+                end
+                
+    
+            shift = shift - 1;
+        end
+    else
+        ToExport = MRSCont.processed.A{kk};
+        mkdir(fullfile(saveDestination,'fit'))
+        out.hdr = ToExport.nii_mrs.hdr;
+        out.hdr.dim(1) = 3;
+        out.hdr.dim(2) = 1;
+        out.hdr.pixdim(5) = 1;
+        out.hdr.pixdim(1) = 1; % For the other dataset this was -1 QForm changes 
+        if qtfyH2O
+            mkdir(fullfile(saveDestination,'concs','rawWaterScaled'))
+            mkdir(fullfile(saveDestination,'concs','rawWaterScaled_QCfilt'))
+            mkdir(fullfile(saveDestination,'concs','rawWaterScaled_QC'))
+        end
+        if qtfyCSF
+            mkdir(fullfile(saveDestination,'concs','CSFWaterScaled'))
+            mkdir(fullfile(saveDestination,'concs','CSFWaterScaled_QCfilt'))
+            mkdir(fullfile(saveDestination,'concs','CSFWaterScaled_QC'))
+        end
+        if qtfyTiss
+            mkdir(fullfile(saveDestination,'concs','TissCorrWaterScaled'))
+            mkdir(fullfile(saveDestination,'concs','TissCorrWaterScaled_QCfilt'))
+            mkdir(fullfile(saveDestination,'concs','TissCorrWaterScaled_QC'))
+        end
+        mkdir(fullfile(saveDestination,'concs','QC'))
+        mkdir(fullfile(saveDestination,'concs','amplitudes'))
+        mkdir(fullfile(saveDestination,'concs','tCr'))
+        mkdir(fullfile(saveDestination,'concs','amplitudes_QCfilt'))
+        mkdir(fullfile(saveDestination,'concs','tCr_QCfilt'))
+        mkdir(fullfile(saveDestination,'concs','amplitudes_QC'))
+        mkdir(fullfile(saveDestination,'concs','tCr_QC'))
+        mkdir(fullfile(saveDestination,'concs','CRLBs')) 
+
+         % Export global QC maps
+        if MRSCont.flags.didSeg
+            brain_mask = squeeze(MRSCont.seg.tissue.brain(1,:,:,:));
+            % brain_mask = flip(brain_mask,3);
+        else
+            if isfield(MRSCont.opts.MRSI,'MRSImask')
+                brain_mask = MRSCont.opts.MRSI.MRSImask;
+            else
+                brain_mask = ones(MRSCont.raw{1}.nXvoxels,MRSCont.raw{1}.nYvoxels,MRSCont.raw{1}.nZvoxels);
+            end
+        end
+        
+        GlobalQC = brain_mask * 3;
+        FWHM = MRSCont.quickMaps.A.FWHM;
+        SNR = MRSCont.quickMaps.A.SNR;
+        FWHM = flip(FWHM,1);
+        SNR = flip(SNR,1);
+        FWHM = flip(FWHM,3);
+        SNR = flip(SNR,3);
+        GlobalQC(FWHM>MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold)=1;
+        GlobalQC((FWHM<MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold) & (SNR<MRSCont.opts.MRSI.Quantify.QC.SNRThreshold))=2;
+        out.img = GlobalQC .* brain_mask;
+        out.img(isnan(out.img)) =0;
+        out.img(isinf(out.img)) =0;
+        nii_tool('save', out, fullfile(saveDestination,'concs','QC',[  'GlobalQC_FWHM_SNR.nii.gz']));
+
+        for mm = 1 : length(metsName)
+
+            % Prepare metabolite QC maps
+            CRLB = squeeze(MRSI_model.relCRLBs(mm,:,:,:));
+            MetaboliteQC = brain_mask * 5;
+            MetaboliteQC(FWHM>MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold)=1;
+            MetaboliteQC((FWHM<MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold) & ...
+                         (SNR<MRSCont.opts.MRSI.Quantify.QC.SNRThreshold))=2;
+            MetaboliteQC((FWHM<MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold) & ...
+                         (SNR>MRSCont.opts.MRSI.Quantify.QC.SNRThreshold) & ...
+                         (CRLB>MRSCont.opts.MRSI.Quantify.QC.CRLBThreshold))=3;
+            MetaboliteQC_FWHM_SNR_CRLB = MetaboliteQC;
+
+            % Export raw amplitudes & QC map
+            out.img = squeeze(squeeze(MRSI_model.amplitudes(mm,:,:,:)));        
+            out.img(isnan(out.img)) =0;
+            out.img(isinf(out.img)) =0;
+            percentile_val = prctile(out.img(:), MRSCont.opts.MRSI.Quantify.QC.PercentileThreshold);
+            nii_tool('save', out, fullfile(saveDestination,'concs','amplitudes',[metsName{mm}  '.nii.gz']));
+            MRSCont.quantify.amplitudes.(metsName{mm}) = out.img;
+            
+            MetaboliteQC_FWHM_SNR_CRLB((FWHM<MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold) & ...
+                                       (SNR>MRSCont.opts.MRSI.Quantify.QC.SNRThreshold) & ...
+                                       (CRLB<MRSCont.opts.MRSI.Quantify.QC.CRLBThreshold) & ...
+                                       (out.img>percentile_val))=4;
+
+            out.img(out.img>percentile_val) =0;
+            out.img = out.img  .* brain_mask;
+            nii_tool('save', out, fullfile(saveDestination,'concs','amplitudes_QCfilt',[metsName{mm}  '.nii.gz']));
+            MRSCont.quantify.amplitudes_QCfilt.(metsName{mm}) = out.img;
+
+            out.img = MetaboliteQC_FWHM_SNR_CRLB;
+            nii_tool('save', out, fullfile(saveDestination,'concs','amplitudes_QC',[metsName{mm}  '.nii.gz']));
+            MRSCont.quantify.amplitudes_QC.(metsName{mm}) = out.img;
+            
+
+            % Export tCr ratios & QC map
+            MetaboliteQC_FWHM_SNR_CRLB = MetaboliteQC;
+            out.img = squeeze(squeeze(MRSI_model.amplitudes(mm,:,:,:))./(squeeze(MRSI_model2.amplitudes(end-1,:,:,:))));
+            out.img(isnan(out.img)) =0;
+            out.img(isinf(out.img)) =0;
+            percentile_val = prctile(out.img(:), MRSCont.opts.MRSI.Quantify.QC.PercentileThreshold);
+            nii_tool('save', out, fullfile(saveDestination,'concs','tCr',[metsName{mm}  '.nii.gz']));
+            MRSCont.quantify.tCr.(metsName{mm}) = out.img;
+
+            MetaboliteQC_FWHM_SNR_CRLB((FWHM<MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold) & ...
+                                       (SNR>MRSCont.opts.MRSI.Quantify.QC.SNRThreshold) & ...
+                                       (CRLB<MRSCont.opts.MRSI.Quantify.QC.CRLBThreshold) & ...
+                                       (out.img>percentile_val))=4;
+
+            out.img(out.img>percentile_val) =0;
+            nii_tool('save', out, fullfile(saveDestination,'concs','tCr_QCfilt',[metsName{mm}  '.nii.gz']));
+            MRSCont.quantify.tCr_QCfilt.(metsName{mm}) = out.img;
+
+            out.img = MetaboliteQC_FWHM_SNR_CRLB;
+            out.img = out.img  .* brain_mask;
+            nii_tool('save', out, fullfile(saveDestination,'concs','tCr_QC',[metsName{mm}  '.nii.gz']));
+            MRSCont.quantify.tCr_QC.(metsName{mm}) = out.img;
+            
+            % Export raw water scaled & QC map
+            if qtfyH2O        
+                MetaboliteQC_FWHM_SNR_CRLB = MetaboliteQC;
+                out.img = squeeze(squeeze(MRSI_model.amplitudes(mm,:,:,:))./MRSI_model_water.amplitudes(:,:,:)) * rawWaterScaledFactor.(metsName{mm})(1);
+                out.img(isnan(out.img)) =0;
+                out.img(isinf(out.img)) =0;
+                percentile_val = prctile(out.img(:), MRSCont.opts.MRSI.Quantify.QC.PercentileThreshold);
+                nii_tool('save', out, fullfile(saveDestination,'concs','rawWaterScaled',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.rawWaterScaled.(metsName{mm}) = out.img;
+
+                MetaboliteQC_FWHM_SNR_CRLB((FWHM<MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold) & ...
+                                           (SNR>MRSCont.opts.MRSI.Quantify.QC.SNRThreshold) & ...
+                                           (CRLB<MRSCont.opts.MRSI.Quantify.QC.CRLBThreshold) & ...
+                                           (out.img>percentile_val))=4;
+    
+                out.img(out.img>percentile_val) =0;
+                nii_tool('save', out, fullfile(saveDestination,'concs','rawWaterScaled_QCfilt',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.rawWaterScaled_QCfilt.(metsName{mm}) = out.img;
+    
+                out.img = MetaboliteQC_FWHM_SNR_CRLB;
+                out.img = out.img  .* brain_mask;
+                nii_tool('save', out, fullfile(saveDestination,'concs','rawWaterScaled_QC',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.rawWaterScaled_QC.(metsName{mm}) = out.img;
+            end
+            
+            % Export csf-corrected raw water scaled & QC map
+            if qtfyCSF      
+                MetaboliteQC_FWHM_SNR_CRLB = MetaboliteQC;
+                out.img = squeeze(squeeze(MRSI_model.amplitudes(mm,:,:,:))./MRSI_model_water.amplitudes(:,:,:)) * rawWaterScaledFactor.(metsName{mm})(1) ./ (1-fCSF);
+                out.img(isnan(out.img)) =0;
+                out.img(isinf(out.img)) =0;
+                percentile_val = prctile(out.img(:), MRSCont.opts.MRSI.Quantify.QC.PercentileThreshold);
+                nii_tool('save', out, fullfile(saveDestination,'concs','CSFWaterScaled',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.CSFrawWaterScaled.(metsName{mm}) = out.img;
+
+                MetaboliteQC_FWHM_SNR_CRLB((FWHM<MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold) & ...
+                                           (SNR>MRSCont.opts.MRSI.Quantify.QC.SNRThreshold) & ...
+                                           (CRLB<MRSCont.opts.MRSI.Quantify.QC.CRLBThreshold) & ...
+                                           (out.img>percentile_val))=4;
+    
+                out.img(out.img>percentile_val) =0;
+                nii_tool('save', out, fullfile(saveDestination,'concs','CSFWaterScaled_QCfilt',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.CSFrawWaterScaled_QCfilt.(metsName{mm}) = out.img;
+    
+                out.img = MetaboliteQC_FWHM_SNR_CRLB;
+                out.img = out.img  .* brain_mask;
+                nii_tool('save', out, fullfile(saveDestination,'concs','CSFWaterScaled_QC',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.CSFrawWaterScaled_QC.(metsName{mm}) = out.img;
+                
+            end
+
+            % Export tissue-corrected raw water scaled & QC map
+            if qtfyTiss  
+                MetaboliteQC_FWHM_SNR_CRLB = MetaboliteQC;
+                out.img = squeeze(squeeze(MRSI_model.amplitudes(mm,:,:,:))./MRSI_model_water.amplitudes(:,:,:)) .* TissCorrWaterScaledFactor.(metsName{mm})(:,:,:);               
+                out.img(isnan(out.img)) =0;
+                out.img(isinf(out.img)) =0;     
+                % out.img = nonlocalMeansDenoise(out.img);
+                % out.img(isnan(out.img)) =0;
+                % out.img(isinf(out.img)) =0; 
+                percentile_val = prctile(out.img(:), MRSCont.opts.MRSI.Quantify.QC.PercentileThreshold);
+                nii_tool('save', out, fullfile(saveDestination,'concs','TissCorrWaterScaled',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.TissCorrWaterScaled.(metsName{mm}) = out.img;
+
+                MetaboliteQC_FWHM_SNR_CRLB((FWHM<MRSCont.opts.MRSI.Quantify.QC.FWHMThreshold) & ...
+                                           (SNR>MRSCont.opts.MRSI.Quantify.QC.SNRThreshold) & ...
+                                           (CRLB<MRSCont.opts.MRSI.Quantify.QC.CRLBThreshold) & ...
+                                           (out.img>percentile_val))=4;
+    
+                out.img(out.img>percentile_val) =0;
+                nii_tool('save', out, fullfile(saveDestination,'concs','TissCorrWaterScaled_QCfilt',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.TissCorrWaterScaled_QCfilt.(metsName{mm}) = out.img;
+    
+                out.img = MetaboliteQC_FWHM_SNR_CRLB;
+                out.img = out.img  .* brain_mask;
+                nii_tool('save', out, fullfile(saveDestination,'concs','TissCorrWaterScaled_QC',[metsName{mm}  '.nii.gz']));
+                MRSCont.quantify.TissCorrWaterScaled_QC.(metsName{mm}) = out.img;
+            end
+
+            % Export CRLBs
+            out.img = squeeze(MRSI_model.relCRLBs(mm,:,:,:));
+            out.img(isnan(out.img)) =0;
+            out.img(isinf(out.img)) =0;
+            nii_tool('save', out, fullfile(saveDestination,'concs','CRLBs',[metsName{mm}  '_CRLBs.nii.gz']));
+            MRSCont.quantify.CRLBs.(metsName{mm}) = out.img;
+           
+
+        end
+        if qtfyH2O
+            out.img = squeeze(squeeze(MRSI_model_water.amplitudes(:,:,:)));
+            out.img(isnan(out.img)) =0;
+            out.img(isinf(out.img)) =0;
+            nii_tool('save', out, fullfile(saveDestination,'concs','amplitudes',[  'water.nii.gz']));
+        end
+         MRSCont.quantify.GlobalQC =  GlobalQC .* brain_mask;
+    end
+
+    if qtfyH2O
+        temp_img = squeeze(squeeze(MRSI_model_water.amplitudes(:,:,:)));
+        temp_img(isnan(temp_img)) =0;
+        temp_img(isinf(temp_img)) =0;
+        MRSCont.quantify.water = temp_img;
+    end
+
+    % copy the correct fileTree logic for FSLeyes
+    if qtfyTiss 
+        copyfile(which(fullfile('misc','osprey_mrsi_qtfyTiss.tree')), saveDestination)
+    elseif qtfyH2O
+        copyfile(which(fullfile('misc','osprey_mrsi_qtfyH2O.tree')), saveDestination)
+    else
+        copyfile(which(fullfile('misc','osprey_mrsi_qtfyCr.tree')), saveDestination)
+    end
+    % Copy colorscheme
+    copyfile(which(fullfile('misc','osprey_colourscheme.json')), saveDestination)
+    
+
 end
 time = toc(QuantifyTime);
 if MRSCont.flags.isGUI && isfield(progressText,'String')      
@@ -294,66 +519,7 @@ outputFile      = MRSCont.outputFile;
 if ~exist(outputFolder,'dir')
     mkdir(outputFolder);
 end
-if ~exist(fullfile(outputFolder,'nii-export','segmentation'),'dir')
-    for ll = 1 : MRSCont.processed.A{kk}.nZvoxels
-        mkdir(fullfile(outputFolder,'nii-export','segmentation',['slice_' num2str(ll)]));
-    end
-end
 
-% Write nii results
-for kk = 1:MRSCont.nDatasets
-    reorder = flip(1:MRSCont.raw{kk}.nZvoxels);
-    for rr = 1:length(getResults)-1
-        shift = floor(MRSCont.processed.A{kk}.nZvoxels/2);
-        for ll = 1 : MRSCont.processed.A{kk}.nZvoxels
-            ToExport = MRSCont.processed.A{kk};
-            VoxelShift = [0 , 0, ToExport.geometry.slice_distance/ToExport.geometry.size.cc*shift];
-            ToExport = osp_shift_nii_volume(ToExport,VoxelShift); % Update slice  
-            out.hdr = ToExport.nii_mrs.hdr;
-            out.hdr.dim(1) = 3;
-            out.hdr.pixdim(1) = -1;
-            for mm = 1 : length(MRSCont.quantify.metabs.off)
-                %amplitudes
-                out.img = squeeze(MRSCont.quantify.amplMets{1, 1}.(getResults{rr}).(MRSCont.quantify.metabs.(getResults{rr}){mm})(:,:,ll));
-                nii_tool('save', out, fullfile(outputFolder,'nii-export','fit_raw',['slice_' num2str(reorder(ll))],'concs','amplitudes',[MRSCont.quantify.metabs.(getResults{rr}){mm} '.nii.gz']));
-                %CreatineRatios
-                out.img = squeeze(MRSCont.quantify.amplMets{1, 1}.(getResults{rr}).(MRSCont.quantify.metabs.(getResults{rr}){mm})(:,:,ll)) ./ squeeze(MRSCont.quantify.amplMets{1, 1}.(getResults{rr}).tCr(:,:,ll));
-                out.img(isnan(out.img)) =0;
-                out.img(isinf(out.img)) =0;
-                nii_tool('save', out, fullfile(outputFolder,'nii-export','fit_raw',['slice_' num2str(reorder(ll))],'concs','tCr',[MRSCont.quantify.metabs.(getResults{rr}){mm} '.nii.gz']));
-                %rawWaterScaled
-                if qtfyH2O
-                    out.img = squeeze(MRSCont.quantify.amplMets{1, 1}.(getResults{rr}).(MRSCont.quantify.metabs.(getResults{rr}){mm})(:,:,ll)) ./ squeeze(MRSCont.quantify.amplMets{1, 1}.w.H2O(:,:,ll)) * MRSCont.quantify.rawWaterScaledFactor{1, 1}.(getResults{rr}).(MRSCont.quantify.metabs.(getResults{rr}){mm});
-                    out.img(isnan(out.img)) =0;
-                    out.img(isinf(out.img)) =0;
-                    nii_tool('save', out, fullfile(outputFolder,'nii-export','fit_raw',['slice_' num2str(reorder(ll))],'concs','rawWaterScaled',[MRSCont.quantify.metabs.(getResults{rr}){mm} '.nii.gz']));
-                end
-                if qtfyCSF
-                   out.img = squeeze(MRSCont.seg.tissue.fGM(kk,:,:,ll));
-                   nii_tool('save', out, fullfile(outputFolder,'nii-export','segmentation',['slice_' num2str(reorder(ll))],'fGM.nii.gz'));
-                   out.img = squeeze(MRSCont.seg.tissue.fWM(kk,:,:,ll));
-                   nii_tool('save', out, fullfile(outputFolder,'nii-export','segmentation',['slice_' num2str(reorder(ll))],'fWM.nii.gz')); 
-                   out.img = squeeze(MRSCont.seg.tissue.fCSF(kk,:,:,ll));
-                   nii_tool('save', out, fullfile(outputFolder,'nii-export','segmentation',['slice_' num2str(reorder(ll))],'fCSF.nii.gz')); 
-                   out.img = squeeze(MRSCont.seg.tissue.brain(kk,:,:,ll));
-                   nii_tool('save', out, fullfile(outputFolder,'nii-export','segmentation',['slice_' num2str(reorder(ll))],'brain.nii.gz')); 
-                   fCSF = squeeze(MRSCont.seg.tissue.fCSF(kk,:,:,ll));
-                   out.img = squeeze(MRSCont.quantify.amplMets{1, 1}.(getResults{rr}).(MRSCont.quantify.metabs.(getResults{rr}){mm})(:,:,ll)) ./ squeeze(MRSCont.quantify.amplMets{1, 1}.w.H2O(:,:,ll)) ./ (1-fCSF) * MRSCont.quantify.rawWaterScaledFactor{1, 1}.(getResults{rr}).(MRSCont.quantify.metabs.(getResults{rr}){mm});
-                   out.img(isnan(out.img)) =0;
-                   out.img(isinf(out.img)) =0;
-                   nii_tool('save', out, fullfile(outputFolder,'nii-export','fit_raw',['slice_' num2str(reorder(ll))],'concs','CSFWaterScaled',[MRSCont.quantify.metabs.(getResults{rr}){mm} '.nii.gz']));
-                end
-                if qtfyTiss
-                    out.img = squeeze(MRSCont.quantify.amplMets{1, 1}.(getResults{rr}).(MRSCont.quantify.metabs.(getResults{rr}){mm})(:,:,ll)) ./ squeeze(MRSCont.quantify.amplMets{1, 1}.w.H2O(:,:,ll)) .* squeeze(MRSCont.quantify.TissCorrWaterScaledFactor{1, 1}.(getResults{rr}).(MRSCont.quantify.metabs.(getResults{rr}){mm})(:,:,ll));
-                    out.img(isnan(out.img)) =0;
-                    out.img(isinf(out.img)) =0;
-                    nii_tool('save', out, fullfile(outputFolder,'nii-export','fit_raw',['slice_' num2str(reorder(ll))],'concs','TissCorrWaterScaled',[MRSCont.quantify.metabs.(getResults{rr}){mm} '.nii.gz']));
-                end
-            end
-            shift = shift - 1;
-        end
-    end
-end
 
 
 if MRSCont.flags.isGUI
@@ -368,101 +534,12 @@ end
 
 %%
 
-%%% Add combinations of metabolites %%%
-function MRSCont = addMetabComb(MRSCont, getResults)
-%% Loop over all datasets
-for kk = 1:MRSCont.nDatasets
-    % tNAA NAA+NAAG
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'NAA'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'NAAG'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            comb = MRSCont.quantify.amplMets{kk}.(getResults{ll}).NAA + MRSCont.quantify.amplMets{kk}.(getResults{ll}).NAAG;
-            MRSCont.quantify.amplMets{kk}.(getResults{ll}).tNAA = comb;
-            MRSCont.quantify.metabs.(getResults{ll}){end+1} = 'tNAA';
-        end
-    end
-    % Glx Glu+Gln
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glu'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Gln'));   
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            comb = MRSCont.quantify.amplMets{kk}.(getResults{ll}).Glu + MRSCont.quantify.amplMets{kk}.(getResults{ll}).Gln;
-            MRSCont.quantify.amplMets{kk}.(getResults{ll}).Glx = comb;
-            MRSCont.quantify.metabs.(getResults{ll}){end+1} = 'Glx';
-        end
-    end
-    % tCho GPC+PCh
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GPC'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCh'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            comb = MRSCont.quantify.amplMets{kk}.(getResults{ll}).GPC + MRSCont.quantify.amplMets{kk}.(getResults{ll}).PCh;
-            MRSCont.quantify.amplMets{kk}.(getResults{ll}).tCho = comb;
-            MRSCont.quantify.metabs.(getResults{ll}){end+1} = 'tCho';
-        end
-    end
-    % tCr Cr+PCr
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Cr'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'PCr'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            comb = MRSCont.quantify.amplMets{kk}.(getResults{ll}).Cr + MRSCont.quantify.amplMets{kk}.(getResults{ll}).PCr;
-            MRSCont.quantify.amplMets{kk}.(getResults{ll}).tCr = comb;
-            MRSCont.quantify.metabs.(getResults{ll}){end+1} = 'tCr';
-        end
-    end
-    %Glc+Tau
-    for ll = 1:length(getResults)
-        idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Glc'));
-        idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'Tau'));
-        if  ~isempty(idx_1) && ~isempty(idx_2)
-            comb = MRSCont.quantify.amplMets{kk}.(getResults{ll}).Glc + MRSCont.quantify.amplMets{kk}.(getResults{ll}).Tau;
-            MRSCont.quantify.amplMets{kk}.(getResults{ll}).GlcTau = comb;
-            MRSCont.quantify.metabs.(getResults{ll}){end+1} = 'GlcTau';
-        end
-    end
-    %GABA+coMM3
-    if strcmp(MRSCont.opts.fit.coMM3, '1to1GABA') % fixed GABA coMM3 model
-        for ll = 1:length(getResults)        
-            idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
-            if  ~isempty(idx_1)
-                comb = MRSCont.quantify.amplMets{kk}.(getResults{ll}).GABA;
-                MRSCont.quantify.amplMets{kk}.(getResults{ll}).GABAplus = comb;
-                MRSCont.quantify.metabs.(getResults{ll}){end+1} = 'GABAplus';
-            end
-        end        
-    else if strcmp(MRSCont.opts.fit.coMM3, '3to2MM') % fixed MM09 coMM3 model
-             for ll = 1:length(getResults)
-                idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
-                idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'MM09'));
-                if  ~isempty(idx_1) && ~isempty(idx_2)
-                    comb = MRSCont.quantify.amplMets{kk}.(getResults{ll}).GABA + MRSCont.quantify.amplMets{kk}.(getResults{ll}).MM09;
-                    MRSCont.quantify.amplMets{kk}.(getResults{ll}).GABAplus = comb;
-                    MRSCont.quantify.metabs.(getResults{ll}){end+1} = 'GABAplus';
-                end
-            end              
-        else % Models with a separate comMM3 function or without a co-edited MM function         
-            for ll = 1:length(getResults)
-                idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'GABA'));
-                idx_2 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'MM3co'));
-                if  ~isempty(idx_1) && ~isempty(idx_2)
-                    comb = MRSCont.quantify.amplMets{kk}.(getResults{ll}).GABA + MRSCont.quantify.amplMets{kk}.(getResults{ll}).MM3co;
-                    MRSCont.quantify.amplMets{kk}.(getResults{ll}).GABAplus = comb;
-                    MRSCont.quantify.metabs.(getResults{ll}){end+1} = 'GABAplus';
-                end
-            end
-        end
-    end
-end
-end
 
 %%% Calculate correction for water-scaled estimates %%%
-function rawWaterScaledFactor = quantH2O(metsName, getResults, metsTR, waterTR, metsTE, waterTE,Bo)
+function rawWaterScaledFactor = quantH2O(metsName, metsTR, waterTR, metsTE, waterTE,Bo,WaterVisibility)
 
 % Define constants
-PureWaterConc       = 55500;            % mmol/L
-WaterVisibility     = 1;             % assuming pure water
+PureWaterConc       = 1;            % mmol/L
 metsTE              = metsTE * 1e-3;    % convert to s
 waterTE             = waterTE * 1e-3;   % convert to s
 metsTR              = metsTR * 1e-3;    % convert to s
@@ -478,28 +555,28 @@ waterTR             = waterTR * 1e-3;   % convert to s
 T1_Water            = 1.100;            % average of WM and GM, Wansapura et al. 1999 (JMRI)
 T2_Water            = 0.095;            % average of WM and GM, Wansapura et al. 1999 (JMRI)
 
-% Metabolites
-for ll = 1:length(getResults)-1
-    for kk = 1:length(metsName.(getResults{ll}))
-        [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.(getResults{1}){kk},Bo);
-        % average across GM and WM
-        T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
-        T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
-        T1_Factor(kk) = (1-exp(-waterTR./T1_Water)) ./ (1-exp(-metsTR./T1_Metab(kk)));
-        T2_Factor(kk) = exp(-waterTE./T2_Water) ./ exp(-metsTE./T2_Metab(kk));
 
-        % Calculate
-        rawWaterScaledFactor.(getResults{ll}).(metsName.(getResults{1}){kk}) = PureWaterConc ...
-            .* WaterVisibility .* T1_Factor(kk) .* T2_Factor(kk);
-    end
+% Metabolites
+for kk = 1:length(metsName)
+    [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName{kk},Bo);
+    % average across GM and WM
+    T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
+    T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
+    T1_Factor(kk) = (1-exp(-waterTR./T1_Water)) ./ (1-exp(-metsTR./T1_Metab(kk)));
+    T2_Factor(kk) = exp(-waterTE./T2_Water) ./ exp(-metsTE./T2_Metab(kk));
+
+    % Calculate
+    rawWaterScaledFactor.(metsName{kk}) = PureWaterConc ...
+        .* WaterVisibility .* T1_Factor(kk) .* T2_Factor(kk);
 end
+
 end
 %%% /Calculate raw water-scaled estimates %%%
 
 
 
 %%% Calculate tissue-corrected water-scaled estimates %%%
-function TissCorrWaterScaledFactor = quantTiss(metsName,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF,Bo)
+function TissCorrWaterScaledFactor = quantTiss(metsName,metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF,Bo)
 % This function calculates water-scaled, tissue-corrected metabolite
 % estimates in molal units, according to Gasparovic et al, Magn Reson Med
 % 55:1219-26 (2006).
@@ -566,105 +643,23 @@ molal_fWM  = (fWM*concW_WM) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
 molal_fCSF = (fCSF*concW_CSF) ./ (fGM*concW_GM + fWM*concW_WM + fCSF*concW_CSF);
 
 % Metabolites
-for ll = 1:length(getResults)-1
-    for kk = 1:length(metsName.(getResults{ll}))
-        [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.(getResults{1}){kk},Bo);
-        % average across GM and WM
-        T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
-        T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
+for kk = 1:length(metsName)
+    [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName{kk},Bo);
+    % average across GM and WM
+    T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
+    T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);
 
-        % Calculate water-scaled, tissue-corrected molal concentration
-        % estimates
-        TissCorrWaterScaledFactor.(getResults{ll}).(metsName.(getResults{1}){kk})  = molal_concW ...
-            .* (molal_fGM  * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
-                molal_fWM  * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
-                molal_fCSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk)))) ./ ...
-                (1 - molal_fCSF);
-    end
+    % Calculate water-scaled, tissue-corrected molal concentration
+    % estimates
+    TissCorrWaterScaledFactor.(metsName{kk})  = molal_concW ...
+        .* (molal_fGM  * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+            molal_fWM  * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk))) + ...
+            molal_fCSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab(kk))) * exp(-metsTE/T2_Metab(kk)))) ./ ...
+            (1 - molal_fCSF);
 end
 
 end
 %%% /Calculate CSF-corrected water-scaled estimates %%%
-
-
-
-%%% Calculate alpha-corrected water-scaled GABA estimates %%%
-function [AlphaCorrWaterScaled, AlphaCorrWaterScaledGroupNormed] = quantAlpha(metsName, amplMets, amplWater,getResults, metsTR, waterTR, metsTE, waterTE, fGM, fWM, fCSF, meanfGM, meanfWM,coMM3)
-% This function calculates water-scaled, alpha-corrected GABA
-% estimates in molal units, according to Gasparovic et al, Magn Reson Med
-% 55:1219-26 (2006).
-
-% Define Constants
-% Water relaxation
-% From Lu et al. 2005 (JMRI)
-% CSF T1 = 3817 +/- 424msec - but state may underestimated and that 4300ms
-% is likely more accurate - but the reference is to an ISMRM 2001 abstract
-% MacKay (last author) 2006 ISMRM abstract has T1 CSF = 3300 ms
-% CSF T2 = 503.0 +/- 64.3 Piechnik MRM 2009; 61: 579
-% However, other values from Stanisz et al:
-% CPMG for T2, IR for T1
-% T2GM = 99 +/ 7, lit: 71+/- 10 (27)
-% T1GM = 1820 +/- 114, lit 1470 +/- 50 (29)
-% T2WM = 69 +/-3 lit 56 +/- 4 (27)
-% T1WM = 1084 +/- 45 lit 1110 +/- 45 (29)
-T1w_WM    = 0.832;
-T2w_WM    = 0.0792;
-T1w_GM    = 1.331;
-T2w_GM    = 0.110;
-T1w_CSF   = 3.817;
-T2w_CSF   = 0.503;
-
-% Determine concentration of water in GM, WM and CSF
-% Gasparovic et al. 2006 (MRM) uses relative densities, ref to
-% Ernst et al. 1993 (JMR)
-% fGM = 0.78
-% fWM = 0.65
-% fCSF = 0.97
-% such that
-% concw_GM = 0.78 * 55.51 mol/kg = 43.30
-% concw_WM = 0.65 * 55.51 mol/kg = 36.08
-% concw_CSF = 0.97 * 55.51 mol/kg = 53.84
-concW_GM    = 43.30*1e3;
-concW_WM    = 36.08*1e3;
-concW_CSF   = 53.84*1e3;
-
-% Calculate alpha correction factor for GABA
-cWM = 1; % concentration of GABA in pure WM
-cGM = 2; % concentration of GABA in pure GM
-alpha = cWM/cGM;
-CorrFactor = (meanfGM + alpha*meanfWM) / ((fGM + alpha*fWM) * (meanfGM + meanfWM));
-
-% GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015))
-idx_GABA  = find(strcmp(metsName.(getResults{1}),'GABA'));
-[T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.(getResults{1}){idx_GABA});
-% average across GM and WM
-T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
-T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
-ConcIU_TissCorr_Harris = (amplMets.(getResults{1})(idx_GABA) ./ amplWater) ...
-        .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-            fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-            fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
-
-AlphaCorrWaterScaled = ConcIU_TissCorr_Harris / (fGM + alpha*fWM);
-AlphaCorrWaterScaledGroupNormed = ConcIU_TissCorr_Harris * CorrFactor;
-
-if ~strcmp(coMM3, 'none')
-    % GABA (Harris et al, J Magn Reson Imaging 42:1431-1440 (2015))
-    idx_GABAp  = find(strcmp(metsName.(getResults{1}),'GABAplus'));
-    [T1_Metab_GM, T1_Metab_WM, T2_Metab_GM, T2_Metab_WM] = lookUpRelaxTimes(metsName.(getResults{1}){idx_GABA});
-    % average across GM and WM
-    T1_Metab = mean([T1_Metab_GM T1_Metab_WM]);
-    T2_Metab = mean([T2_Metab_GM T2_Metab_WM]);
-    ConcIU_TissCorr_Harris = (amplMets.(getResults{1})(idx_GABAp) ./ amplWater) ...
-            .* (fGM * concW_GM * (1 - exp(-waterTR/T1w_GM)) * exp(-waterTE/T2w_GM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-                fWM * concW_WM * (1 - exp(-waterTR/T1w_WM)) * exp(-waterTE/T2w_WM) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)) + ...
-                fCSF * concW_CSF * (1 - exp(-waterTR/T1w_CSF)) * exp(-waterTE/T2w_CSF) / ((1 - exp(-metsTR/T1_Metab)) * exp(-metsTE/T2_Metab)));
-
-    AlphaCorrWaterScaled(2,1) = ConcIU_TissCorr_Harris / (fGM + alpha*fWM);
-    AlphaCorrWaterScaledGroupNormed(2,1) = ConcIU_TissCorr_Harris * CorrFactor;
-end
-end
-%%% /Calculate alpha-corrected water-scaled GABA estimates %%%
 
 
 
@@ -683,25 +678,34 @@ switch Bo
         relax.Asc   = [1340 1190 (125+105)/2 172];
         relax.Asp   = [1340 1190 (111+90)/2 148];
         relax.Cr    = [1460 1240 (148+144)/2 166]; % 3.03 ppm resonance; 3.92 ppm signal is taken care of by -CrCH2 during fitting
+        relax.Cr_methyl_only    = [1460 1240 (148+144)/2 166]; % 3.03 ppm resonance; 
         relax.GABA  = [1310 1310 (102+75)/2 (102+75)/2]; % No WM estimate available; take GM estimate; both in good accordance with 88 ms reported by Edden et al
         relax.Glc   = [1340 1190 (117+88)/2 155]; % Glc1: [1310 1310 (128+90)/2 156];
         relax.Gln   = [1340 1190 (122+99)/2 168];
         relax.Glu   = [1270 1170 (135+122)/2 124];
         relax.Gly   = [1340 1190 (102+81)/2 152];
         relax.GPC   = [1300 1080 (274+222)/2 218]; % This is the Choline singlet (3.21 ppm, tcho2 in the paper); glycerol is tcho: [1310 1310 (257+213)/2 182]; % choline multiplet is tcho1: [1310 1310 (242+190)/2 178];
+        relax.GPC_pCh2_only   = [1300 1080 (274+222)/2 218]; % This is the Choline singlet (3.21 ppm, tcho2 in the paper); 
         relax.GSH   = [1340 1190 (100+77)/2 145]; % This is the cysteine signal (GSH1 in the paper), glycine is GSH: [1310 1310 (99+72)/2 145]; % glutamate is GSH2: [1310 1310 (102+76)/2 165];
         relax.Lac   = [1340 1190 (110+99)/2 159];
         relax.Ins   = [1230 1010 (244+229)/2 161];
         relax.NAA   = [1470 1350 (253+263)/2 343]; % This is the 2.008 ppm acetyl signal (naa in the paper); aspartyl is naa1: [1310 1310 (223+229)/2 310];
+        relax.NAA_Acetyl_only   = [1470 1350 (253+263)/2 343]; % This is the 2.008 ppm acetyl signal (naa in the paper); 
         relax.NAAG  = [1340 1190 (128+107)/2 185]; % This is the 2.042 ppm acetyl signal (naag in the paper); aspartyl is naag1: [1310 1310 (108+87)/2 180]; % glutamate is NAAG2: [1310 1310 (110+78)/2 157];
+        relax.NAAG_Acetyl_only  = [1340 1190 (128+107)/2 185]; % This is the 2.042 ppm acetyl signal (naag in the paper); aspartyl is naag1: [1310 1310 (108+87)/2 180]; 
         relax.PCh   = [1300 1080 (274+221)/2 213]; % This is the singlet (3.20 ppm, tcho4 in the paper); multiple is tcho3: [1310 1310 (243+191)/2 178];
+        relax.PCh_trimethyl_only   = [1300 1080 (274+221)/2 213]; % This is the singlet (3.20 ppm, tcho4 in the paper); 
         relax.PCr   = [1460 1240 (148+144)/2 166]; % 3.03 ppm resonance; 3.92 ppm signal is taken care of by -CrCH2 during fitting; same as Cr
+        relax.PCr_ch3_only   = [1460 1240 (148+144)/2 166]; % 3.03 ppm resonance; 
         relax.PE    = [1340 1190 (119+86)/2 158];
         relax.Scy   = [1340 1190 (125+107)/2 170];
         relax.Tau   = [1340 1190 (123+102)/2 (123+102)/2]; % No WM estimate available; take GM estimate
         relax.tNAA  = [(1470+1340)/2 (1350+1190)/2 (253+263+128+107)/4 (343+185)/2]; % Mean values from NAA + NAAG
+        relax.tNAA_Acetyl_only  = [(1470+1340)/2 (1350+1190)/2 (253+263+128+107)/4 (343+185)/2]; % Mean values from NAA + NAAG
         relax.tCr  = [(1460+1460)/2 (1240+1240)/2 (148+144+148+144)/4 (166+166)/2]; % Mean values from Cr + PCr
+        relax.tCr_methyl_only  = [(1460+1460)/2 (1240+1240)/2 (148+144+148+144)/4 (166+166)/2]; % Mean values from Cr + PCr
         relax.tCho  = [(1300+1080)/2 (1080+1080)/2 (274+222+274+221)/4 (218+213)/2]; % Mean values from GPC + PCh
+        relax.tCho_pCh2_only  = [(1300+1080)/2 (1080+1080)/2 (274+222+274+221)/4 (218+213)/2]; % Mean values from GPC + PCh
         relax.Glx  = [(1340+1270)/2 (1190+1170)/2 (122+99+135+122)/4 (168+124)/2]; % Mean values from Glu + Glx
 
         % Check if metabolite name is in the look-up table

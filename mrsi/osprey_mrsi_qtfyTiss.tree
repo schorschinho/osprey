@@ -1,0 +1,41 @@
+# This FileTree file describes the data structure (i.e. directories and files) and follows the rules described in "FileTree_rules.md"
+# For more information on FileTree, see documentation here: https://open.win.ox.ac.uk/pages/fsl/file-tree/stable/tutorial.html
+
+concs
+  amplitudes
+    {metab}.nii.gz                      (raw-concentrations)        # This key is mandatory
+  CRLBs
+    {metab}_CRLBs.nii.gz                (sd)
+  CSFWaterScaled
+    {metab}.nii.gz                      (conc-CSFWaterScaled)
+  rawWaterScaled
+    {metab}.nii.gz                      (conc-rawWaterScaled)
+  tCr
+    {metab}.nii.gz                      (conc-tCr)
+  TissCorrWaterScaled
+    {metab}.nii.gz                      (conc-TissCorrWaterScaled)
+  amplitudes_QCfilt
+    {metab}.nii.gz                      (raw-concentrations-QCfilt)
+  CSFWaterScaled_QCfilt
+    {metab}.nii.gz                      (conc-CSFWaterScaled-QCfilt)
+  rawWaterScaled_QCfilt
+    {metab}.nii.gz                      (conc-rawWaterScaled-QCfilt)
+  tCr_QCfilt
+    {metab}.nii.gz                      (conc-tCr-QCfilt)
+  TissCorrWaterScaled_QCfilt
+    {metab}.nii.gz                      (conc-TissCorrWaterScaled-QCfilt)
+  amplitudes_QC
+    {metab}.nii.gz                      (raw-concentrations-QC)
+  CSFWaterScaled_QC
+    {metab}.nii.gz                      (conc-CSFWaterScaled-QC)
+  rawWaterScaled_QC
+    {metab}.nii.gz                      (conc-rawWaterScaled-QC)
+  tCr_QC
+    {metab}.nii.gz                      (conc-tCr-QC)
+  TissCorrWaterScaled_QC
+    {metab}.nii.gz                      (conc-TissCorrWaterScaled-QC)
+fit                                                                     # Dataseries files should have keys starting with 'fit-'
+  data.nii.gz                             (fit-data)
+  baseline.nii.gz                         (fit-baseline)
+  fit.nii.gz                              (fit-fit)
+  residual.nii.gz                         (fit-residual)

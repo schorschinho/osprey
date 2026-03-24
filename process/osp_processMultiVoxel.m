@@ -2,7 +2,7 @@ function [outMRSCont] = osp_processMultiVoxel(MRSCont)
 fileID = fopen(fullfile(MRSCont.outputFolder, 'LogFile.txt'),'a+');
 outMRSCont= MRSCont;
 procMRSCont = MRSCont;
-if ~strcmp(MRSCont.opts.MoCo, 'none')
+if ~strcmp(MRSCont.opts.MRSI.MoCo, 'none')
     procMRSCont_no_MoCo =MRSCont;
 end
 %% Get infos to set up a loop to process all voxels
@@ -77,7 +77,7 @@ if MRSCont.flags.isPRIAM == 1
         end
     end    
 
-elseif MRSCont.flags.isMRSI == 1    
+elseif MRSCont.flags.isMRSI == 1  
     NVox = XVox*YVox*ZVox;
     vox = 1;
     for x = 1 : XVox
@@ -87,12 +87,12 @@ elseif MRSCont.flags.isMRSI == 1
                     [~] = printLog('OspreyProcess',[kk,vox],[MRSCont.nDatasets, NVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
                     if ZVox <=1
                         procMRSCont.raw{kk} = op_takeVoxel(MRSCont.raw{kk},[x y]);
-                        if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                        if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                             procMRSCont_no_MoCo.raw{kk} = op_takeVoxel(MRSCont.raw_no_MoCo{kk},[x y]);
                         end
                     else
                         procMRSCont.raw{kk} = op_takeVoxel(MRSCont.raw{kk},[x y z]);
-                        if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                        if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                             procMRSCont_no_MoCo.raw{kk} = op_takeVoxel(MRSCont.raw_no_MoCo{kk},[x y z]);
                         end
                     end
@@ -100,12 +100,12 @@ elseif MRSCont.flags.isMRSI == 1
                         try
                             if ZVox <=1
                                 procMRSCont.raw_ref{kk} = op_takeVoxel(MRSCont.raw_ref{kk},[x y]);
-                                if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                                if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                                     procMRSCont_no_MoCo.raw_ref{kk} = op_takeVoxel(MRSCont.raw_ref{kk},[x y]);
                                 end
                             else
                                  procMRSCont.raw_ref{kk} = op_takeVoxel(MRSCont.raw_ref{kk},[x y z]);
-                                 if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                                 if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                                      procMRSCont_no_MoCo.raw_ref{kk} = op_takeVoxel(MRSCont.raw_ref{kk},[x y z]);
                                  end
                             end
@@ -116,12 +116,12 @@ elseif MRSCont.flags.isMRSI == 1
                         try
                             if ZVox <=1
                                 procMRSCont.raw_w{kk} = op_takeVoxel(MRSCont.raw_w{kk},[x y]);
-                                if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                                if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                                     procMRSCont_no_MoCo.raw_w{kk} = op_takeVoxel(MRSCont.raw_w{kk},[x y]);
                                 end
                             else
                                 procMRSCont.raw_w{kk} = op_takeVoxel(MRSCont.raw_w{kk},[x y z]);
-                                if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                                if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                                      procMRSCont_no_MoCo.raw_w{kk} = op_takeVoxel(MRSCont.raw_w{kk},[x y z]);
                                 end
                             end
@@ -130,28 +130,25 @@ elseif MRSCont.flags.isMRSI == 1
                     end
                 end
                 
-                if (x==8) && (y==9) && (z==2)
-                    x
-                end
                 if MRSCont.flags.isUnEdited
                     [procMRSCont] = osp_processUnEdited(procMRSCont);
-                    if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                         [procMRSCont_no_MoCo] = osp_processUnEdited(procMRSCont_no_MoCo);
                     end
                 elseif MRSCont.flags.isMEGA           
                     [procMRSCont] = osp_processMEGA(procMRSCont);
-                    if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                         [procMRSCont_no_MoCo] = osp_processMEGA(procMRSCont_no_MoCo);
                     end
                 elseif MRSCont.flags.isHERMES
                     [procMRSCont] = osp_processHERMES(procMRSCont);
-                    if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                         [procMRSCont_no_MoCo] = osp_processHERMES(procMRSCont_no_MoCo);
                     end
                 elseif MRSCont.flags.isHERCULES
                     % For now, process HERCULES like HERMES data
                     [procMRSCont] = osp_processHERCULES(procMRSCont);
-                    if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                         [procMRSCont_no_MoCo] = osp_processHERCULES(procMRSCont_no_MoCo);
                     end
                 else
@@ -162,7 +159,7 @@ elseif MRSCont.flags.isMRSI == 1
                 if (x == 1) && (y == 1) && (z == 1)
                     outMRSCont.processed = procMRSCont.processed;
                     outMRSCont.QM = procMRSCont.QM;
-                    if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                    if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                         outMRSCont.processed_no_MoCo = procMRSCont_no_MoCo.processed;
                         outMRSCont.QM_no_MoCo = procMRSCont_no_MoCo.QM;
                     end
@@ -176,7 +173,7 @@ elseif MRSCont.flags.isMRSI == 1
                             else
                                 outMRSCont.processed.(SubSpecNames{ss}){kk} = op_addVoxel(outMRSCont.processed.(SubSpecNames{ss}){kk},procMRSCont.processed.(SubSpecNames{ss}){kk},[x y z]);
                             end
-                            if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                            if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none') && isfield(MRSCont,'raw_no_MoCo')
                                 if ZVox <=1
                                     outMRSCont.processed_no_MoCo.(SubSpecNames{ss}){kk} = op_addVoxel(outMRSCont.processed_no_MoCo.(SubSpecNames{ss}){kk},procMRSCont_no_MoCo.processed.(SubSpecNames{ss}){kk},[x y]);
                                 else
@@ -211,7 +208,7 @@ elseif MRSCont.flags.isMRSI == 1
                                     end
                                 end %Initial cell aray set up           
                             end %inital struct set up
-                            if ~strcmp(MRSCont.opts.MoCo.target, 'none')
+                            if ~strcmp(MRSCont.opts.MRSI.MoCo.target, 'none')  && isfield(MRSCont,'raw_no_MoCo')
                                 if isfield(outMRSCont,fields{f})
                                     if iscell(outMRSCont.([fields{f} '_no_MoCo']))
                                         % 2D MRSI data
@@ -243,15 +240,6 @@ elseif MRSCont.flags.isMRSI == 1
         end %yVox
     end % xVox
 end %isMRSI  
-[~] = printLog('MRSIdone',time,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
+[~] = printLog('MRSIdone',0,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
-% Let's do some L2 lipid filtering here
-% for kk = 1 :MRSCont.nDatasets
-%     if MRSCont.flags.isUnEdited
-% 
-%         lip1 = generator_lipid(outMRSCont.processed.A{kk}.spectralwidth,outMRSCont.processed.A{kk}.sz(1), outMRSCont.processed.A{kk}.sz(1), sum(outMRSCont.processed.A{kk}.ppm< 0) + 1, sum(outMRSCont.processed.A{kk}.ppm< 1.9) + 1, 10, 5, outMRSCont.processed.A{kk}.sz(1), 0);
-%         outMRSCont.processed.A{kk}.specs = watersup_sim((outMRSCont.processed.A{kk}.specs), real(lip1), 3);
-%         outMRSCont.processed.A{kk}.fids = ifft(fftshift(outMRSCont.processed.A{kk}.specs,1),[],1);
-%     end
-% end
 end

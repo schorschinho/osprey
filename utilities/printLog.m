@@ -87,6 +87,21 @@ if strcmp(Module,'OspreyProcess') && MRSI && size(kk,2) > 1
         drawnow
     end   
 end
+% Extra phasing 
+if strcmp(Module,'OspreyMaxEcho') && MRSI && size(kk,2) > 1
+     if kk(1) == 1   &&  kk(2) == 1
+        msg = sprintf('Additional max echo phasing %5i out of %5i from dataset %3i out of %3i total datasets...\n',kk(2),nDatasets(2), kk(1), nDatasets(1));
+        fprintf(msg);
+     else
+     msg = sprintf('Additional max echo phasing %5i out of %5i from dataset %3i out of %3i total datasets...\n',kk(2),nDatasets(2), kk(1), nDatasets(1));
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        fprintf([reverseStr, msg]);
+     end
+    if GUI        
+        set(progressText,'String' ,sprintf('Additional max echo phasing %5i out of %5i from dataset %3i out of %3i total datasets...\n',kk(2),nDatasets(2), kk(1), nDatasets(1)));
+        drawnow
+    end   
+end
 %% Fit
 if strcmp(Module,'OspreyFit') && ~MRSI 
         msg = sprintf('\nFitting metabolite spectra from dataset %3i out of %3i total datasets...\n', kk, nDatasets);

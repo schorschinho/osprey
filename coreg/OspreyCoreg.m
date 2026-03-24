@@ -88,6 +88,11 @@ for kk = 1:MRSCont.nDatasets
                         [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
                     case 'DICOM'
                         [vol_mask, T1_max, voxel_ctr] = coreg_siemens(MRSCont.raw{kk}, vol_image, maskFile);
+                    case 'NIfTI-MRS'
+                        if MRSCont.flags.isMRSI
+                            [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] = coreg_MRSI(MRSCont.raw{kk},vol_image,MRSCont.outputFolder,MRSCont.opts.MRSI.pseudo3D,MRSCont.opts.MRSI.nii_shifts);
+                            MRSCont.gii_filename_VoxelGrid{kk} = fullfile(MRSCont.outputFolder,'VoxelMasks','VoxelMaskGrid.gii');
+                        end
                     otherwise
                         msg = 'Data type not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                         fprintf(msg);
@@ -101,7 +106,8 @@ for kk = 1:MRSCont.nDatasets
                          if ~MRSCont.flags.isMRSI % SVS coregistration
                             [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile);
                          else
-                              [vol_mask, T1_max, voxel_ctr,MRSI_res_mask] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,[MRSCont.raw{kk}.nZvoxels MRSCont.raw{kk}.nXvoxels MRSCont.raw{kk}.nYvoxels]);
+                             [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] = coreg_MRSI(MRSCont.raw{kk},vol_image,MRSCont.outputFolder,MRSCont.opts.MRSI.pseudo3D,MRSCont.opts.MRSI.nii_shifts);
+                             MRSCont.gii_filename_VoxelGrid{kk} = fullfile(MRSCont.outputFolder,'VoxelMasks','VoxelMaskGrid.gii');
                          end
                     case 'DATA'
                         if isfield(MRSCont.raw{kk}, 'geometry')
@@ -110,7 +116,8 @@ for kk = 1:MRSCont.nDatasets
                             elseif ~MRSCont.flags.isMRSI % PRIAM coregistration 
                                 [vol_mask, T1_max, voxel_ctr,~] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile, MRSCont.SENSE{kk});
                             else
-                                [vol_mask, T1_max, voxel_ctr,MRSI_res_mask] = coreg_sdat(MRSCont.raw{kk}, vol_image, maskFile,[MRSCont.raw{kk}.nZvoxels MRSCont.raw{kk}.nXvoxels MRSCont.raw{kk}.nYvoxels]);
+                                [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] = coreg_MRSI(MRSCont.raw{kk},vol_image,MRSCont.outputFolder,MRSCont.opts.MRSI.pseudo3D,MRSCont.opts.MRSI.nii_shifts);
+                                MRSCont.gii_filename_VoxelGrid{kk} = fullfile(MRSCont.outputFolder,'VoxelMasks','VoxelMaskGrid.gii');
                             end
                         else
                         msg = 'Philips DATA files do not contain voxel geometry information.';
@@ -131,8 +138,12 @@ for kk = 1:MRSCont.nDatasets
                 if contains(file_exten,'.nii')
                     % Load the *.nii file provided in the job file
                     vol_image = spm_vol(MRSCont.files_nii{kk});
-                    
-                    [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{kk}, vol_image, maskFile);
+                    if ~MRSCont.flags.isMRSI % SVS coregistration
+                        [vol_mask, T1_max, voxel_ctr] = coreg_ge_nifti(MRSCont.raw{kk}, vol_image, maskFile);
+                    else
+                        [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] = coreg_MRSI(MRSCont.raw{kk},vol_image,MRSCont.outputFolder,MRSCont.opts.MRSI.pseudo3D,MRSCont.opts.MRSI.nii_shifts);
+                        MRSCont.gii_filename_VoxelGrid{kk} = fullfile(MRSCont.outputFolder,'VoxelMasks','VoxelMaskGrid.gii');
+                    end
                 else
                     switch MRSCont.datatype
                         case 'P'
@@ -155,7 +166,10 @@ for kk = 1:MRSCont.nDatasets
         MRSCont.coreg.vol_mask{kk}  = vol_mask;
         MRSCont.coreg.T1_max{kk}    = T1_max;
         MRSCont.coreg.voxel_ctr{kk} = voxel_ctr;
-        MRSCont.coreg.MRSI_res_mask{kk} = MRSI_res_mask;
+        if MRSCont.flags.isMRSI
+            MRSCont.coreg.index_mask{kk} = index_mask;
+            MRSCont.coreg.gap_mask{kk} = gap_mask;
+        end
         
         if MRSCont.flags.addImages
             [MRSCont.coreg.three_plane_img{kk}] = osp_extract_three_plane_image(vol_image, vol_mask,voxel_ctr,T1_max);
