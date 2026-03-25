@@ -358,9 +358,10 @@ opts.MRSI.atlas.quantities = {'TissCorrWaterScaled','CRLBs'};
 % the example spectra to be plotted and which quantifications/metabolites
 % to show in the report.
 
-opts.MRSI.report.VoxelIndices = [8,8,1;
-                                9,8,1;
-                                10,8,1;];
+opts.MRSI.report.VoxelIndices = [12,11,2;
+                                15,13,2;
+                                13,16,2;
+                                12,18,2;];
 
 % You can plot all the different quantification options depending on your
 % input they include tCr, rawWaterScaled, CSFWaterScaled,
@@ -369,6 +370,7 @@ opts.MRSI.report.quantifications = {'TissCorrWaterScaled'};
 
 %Pick the metabolite names to be reported
 opts.MRSI.report.metabolites = {'tNAA','tCr','tCho','mI','Glx'}; % 'tNAA','tCr', 'tCho', 'Glx','mI'
+opts.MRSI.report.atlasregion = {'Thal_L'};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%

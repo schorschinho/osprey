@@ -250,12 +250,14 @@ opts.MRSI.FreqAlign.zerofill = 0;
 
 % This will generate amplitude integral maps for quick inspection. You can
 % define different regions and spectra to be used.
-opts.MRSI.quickMapsList{2}.specs = {'A'};
+opts.MRSI.quickMapsList{2}.specs = {'A','w'};
 opts.MRSI.quickMapsList{2}.target = 'processed';
 opts.MRSI.quickMapsList{2}.names.A = {'tNAA','tCr','tCho','tLip','H2O'};
 opts.MRSI.quickMapsList{2}.limits.A = [1.95, 2.1; 2.95, 3.12; 3.12, 3.25;0, 1.95;4.1, 6;];
+opts.MRSI.quickMapsList{2}.names.w = {'H2O'};
+opts.MRSI.quickMapsList{2}.limits.w = [4.1, 6;];
 opts.MRSI.quickMapsList{2}.abs = 1;             % Use magnitude spec
-opts.MRSI.quickMapsList{2}.interpolation = 2;   % Spatial interpolation
+opts.MRSI.quickMapsList{2}.interpolation = 0;   % Spatial interpolation
 
 % These are the settings for cosmetically enhanced outputs of the processed
 % spectra including line broadening and zero-filling. This will only be

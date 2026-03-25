@@ -69,6 +69,7 @@ seqType = 'unedited';           % OPTIONS:    - 'unedited' (default)
                                 % Specify Multi voxel type (optional)
 MultiVoxel = 'MRSI';           % OPTIONS:    - 'PRIAM' (default)
 
+dataScenario = 'phantom';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -225,18 +226,18 @@ opts.MRSI.FreqAlign.realpart = 0;
 opts.MRSI.FreqAlign.zerofill = 0;
 
 % Flags for maximum echo processing
-opts.MRSI.MaxEcho.separate = 1;
-opts.MRSI.MaxEcho.tstart = 40; %When did the ADC start?
-opts.MRSI.MaxEcho.AdditionalPhasing = 1;
-opts.MRSI.MaxEcho.AdditionalFreqAlign = 1;
+% opts.MRSI.MaxEcho.separate = 1;
+% opts.MRSI.MaxEcho.tstart = 40; %When did the ADC start?
+% opts.MRSI.MaxEcho.AdditionalPhasing = 1;
+% opts.MRSI.MaxEcho.AdditionalFreqAlign = 1;
 
 % Cross-correlation alignment of frequencies defined below
-opts.MRSI.MaxEcho.FreqAlign.type = 'CC';
-opts.MRSI.MaxEcho.FreqAlign.frequencies = [3.03,3.22,3.9];
-opts.MRSI.MaxEcho.FreqAlign.polarity = [1,1,1];
-opts.MRSI.MaxEcho.FreqAlign.lim = [2.5,4.5];
-opts.MRSI.MaxEcho.FreqAlign.realpart = 1;
-opts.MRSI.MaxEcho.FreqAlign.zerofill = 1;
+% opts.MRSI.MaxEcho.FreqAlign.type = 'CC';
+% opts.MRSI.MaxEcho.FreqAlign.frequencies = [3.03,3.22,3.9];
+% opts.MRSI.MaxEcho.FreqAlign.polarity = [1,1,1];
+% opts.MRSI.MaxEcho.FreqAlign.lim = [2.5,4.5];
+% opts.MRSI.MaxEcho.FreqAlign.realpart = 1;
+% opts.MRSI.MaxEcho.FreqAlign.zerofill = 1;
 
 % Cross-correlation alignment of frequencies defined below after Wavelet filter of baseline if lipid/noise > thresh
 % opts.MRSI.MaxEcho.FreqAlign.type = 'CCwithLipRemoval'; 
@@ -377,7 +378,7 @@ opts.MRSI.report.metabolites = {'tNAA','tCho','mI','Glx'}; % 'tNAA','tCr', 'tCho
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {which(fullfile('exampledata','mrsi','Siemens','TE_40','mrs_nii','1sl_metabolite_mrsi_raw_act.nii.gz'))};
+files       = {which(fullfile('exampledata','mrsi','Siemens','TE_40_phantom_acr','mrs_nii','1sl_metabolite_mrsi_raw_act_noID.nii.gz'))};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)
@@ -393,7 +394,7 @@ files_w     = {};
 % (OPTIONAL)
 % Link to single NIfTI (*.nii) files for Siemens and Philips data
 % Link to DICOM (*.dcm) folders for GE data
-files_nii   = {which(fullfile('exampledata','mrsi','Siemens','TE_40','anat_nii','T1w_anat.nii.gz'))};
+files_nii   = {which(fullfile('exampledata','mrsi','Siemens','TE_40_phantom_acr','anat_nii','T1w_anat.nii.gz'))};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 4. SPECIFY STAT FILE %%%
@@ -412,7 +413,7 @@ file_stat = '';
 
 % Specify output folder
 % (MANDATORY)
-data_folder = fileparts(which(fullfile('exampledata','mrsi','Siemens','TE_40','jobMRSI_TE_40_RDA_NII.m')));
+data_folder = fileparts(which(fullfile('exampledata','mrsi','Siemens','TE_40_phantom_acr','jobMRSI_TE_40_in_vitro_RDA_NII.m')));
 outputFolder = fullfile(data_folder, 'derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -185,15 +185,9 @@ end
 
 if addGrid
     valid_vertices = abs(vertices_voxel(:, 3) - VoxelIndices(1,3)) < 1; 
-    switch vertice_mode
-            case 1   
-                plot(vertices_voxel(valid_vertices, 1) , ...
-                        vertices_voxel(valid_vertices, 2),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 4);
-                
-            case 2
-              plot(vertices_display_voxel(valid_vertices, 1) , ...
-             vertices_display_voxel(valid_vertices, 2),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 4);
-    end        
+
+      plot(vertices_voxel(valid_vertices, 1) , ...
+     vertices_voxel(valid_vertices, 2),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 4);    
 end
 
 ax = gca;

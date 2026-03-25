@@ -11,18 +11,13 @@
     "MixingTime": 0.0,
     "ExcitationFlipAngle": 90.0,
     "Manufacturer": "Siemens",
-    "ManufacturersModelName": "Skyra",
-    "DeviceSerialNumber": "46121",
     "SoftwareVersions": "syngo MR E11",
     "InstitutionName": "JHOC",
     "TxCoil": "Body",
     "SequenceName": "*csi_se",
     "ProtocolName": "csi_se_35",
     "PatientPosition": "HFS",
-    "PatientName": "Lair^Adele^Marie^^",
-    "PatientID": "JH24298913",
     "PatientWeight": 29.62,
-    "PatientDoB": "20070912",
     "PatientSex": "F",
     "ConversionMethod": "spec2nii v0.8.7",
     "ConversionTime": "2026-03-24T14:46:42.039",
@@ -30,9 +25,6 @@
         false,
         false,
         false
-    ],
-    "OriginalFile": [
-        "LAIR_22659352_LESION_MULTI_35.rda"
     ],
     "SpectralWidth": 1200.4801920768307
 }
