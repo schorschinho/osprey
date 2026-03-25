@@ -487,14 +487,14 @@ for kk = 1:MRSCont.nDatasets
 
     % copy the correct fileTree logic for FSLeyes
     if qtfyTiss 
-        copyfile(which(fullfile('misc','osprey_mrsi_qtfyTiss.tree')), saveDestination)
+        copyfile(which(fullfile('mrsi','osprey_mrsi_qtfyTiss.tree')), saveDestination)
     elseif qtfyH2O
-        copyfile(which(fullfile('misc','osprey_mrsi_qtfyH2O.tree')), saveDestination)
+        copyfile(which(fullfile('mrsi','osprey_mrsi_qtfyH2O.tree')), saveDestination)
     else
-        copyfile(which(fullfile('misc','osprey_mrsi_qtfyCr.tree')), saveDestination)
+        copyfile(which(fullfile('mrsi','osprey_mrsi_qtfyCr.tree')), saveDestination)
     end
     % Copy colorscheme
-    copyfile(which(fullfile('misc','osprey_colourscheme.json')), saveDestination)
+    copyfile(which(fullfile('mrsi','osprey_colourscheme.json')), saveDestination)
     
 
 end
