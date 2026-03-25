@@ -3,12 +3,14 @@ function [MRSCont] = OspreyMRSI(jobFile,overwrite,stopAfterProcess)
 % This is script accompanies the beta version of the MRSI analysis pipeline
 % in Osprey which was presented at ISMRM 2025. 
 % 
-%
 % It will be part of the upcoming Osprey release 3.0.0
 % Please make sure to remove any older Osprey versions from your Matlab
 % path. Add the full OspreyMRSIbeta folder to the path. For data
 % visualization you need to install FSL-eyes with the mrs-plugin. Currently
-% you will also have to copy the viridis colormap into the fsl folder.
+% you will also have to copy the viridis colourmap into the fsl folder.
+% Find the location, e.g., ../FSLeyes/lib/python3.13/site-packages/fsleyes/assets/colourmaps
+% copy the viridis color map file from osprey/mrsi/viridis.cmap into the
+% folder, and add 'virdis   Viridis' to the order.txt file.
 %
 % The folder contains three example datasets from Philips and Siemens.
 % Philips SPAR/SDAT and data/list files are most supported. All other data
@@ -222,6 +224,19 @@ end
 [MRSCont] = create_quickMaps(MRSCont);
 
 if stopAfterProcess
+    outputFolder = MRSCont.outputFolder;
+    outputFile      = MRSCont.outputFile;
+    if ~exist(outputFolder,'dir')
+        mkdir(outputFolder);
+    end
+    
+    if MRSCont.flags.isGUI
+        MRSCont.flags.isGUI = 0;
+        save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+        MRSCont.flags.isGUI = 1;
+    else
+       save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+    end
     return
 end
 %% Linear-combination modeling

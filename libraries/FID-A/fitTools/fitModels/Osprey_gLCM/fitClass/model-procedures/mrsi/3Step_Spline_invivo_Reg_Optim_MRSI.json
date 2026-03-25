@@ -4,7 +4,7 @@
       "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA15_noMM.mat"
     ],
     "mmdef": [
-        "which(fullfile(''gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
+        "which(fullfile(''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
     ]
   },
   "Steps": [{

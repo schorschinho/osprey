@@ -1,0 +1,30 @@
+{
+    "SpectrometerFrequency": [
+        123.141257
+    ],
+    "ResonantNucleus": [
+        "1H"
+    ],
+    "EchoTime": 0.28,
+    "RepetitionTime": 1.7,
+    "InversionTime": 0.0,
+    "MixingTime": 0.0,
+    "ExcitationFlipAngle": 90.0,
+    "Manufacturer": "Siemens",
+    "SoftwareVersions": "syngo MR E11",
+    "InstitutionName": "JHOC",
+    "TxCoil": "Body",
+    "SequenceName": "*csi_se",
+    "ProtocolName": "csi_se_280",
+    "PatientPosition": "HFS",
+    "PatientWeight": 29.62,
+    "PatientSex": "F",
+    "ConversionMethod": "spec2nii v0.8.7",
+    "ConversionTime": "2026-03-24T14:45:33.170",
+    "kSpace": [
+        false,
+        false,
+        false
+    ],
+    "SpectralWidth": 1200.4801920768307
+}

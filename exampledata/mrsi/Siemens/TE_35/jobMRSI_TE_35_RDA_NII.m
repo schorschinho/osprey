@@ -225,18 +225,18 @@ opts.MRSI.FreqAlign.realpart = 0;
 opts.MRSI.FreqAlign.zerofill = 0;
 
 % Flags for maximum echo processing
-opts.MRSI.MaxEcho.separate = 1;
-opts.MRSI.MaxEcho.tstart = 40; %When did the ADC start?
-opts.MRSI.MaxEcho.AdditionalPhasing = 1;
-opts.MRSI.MaxEcho.AdditionalFreqAlign = 1;
+% opts.MRSI.MaxEcho.separate = 1;
+% opts.MRSI.MaxEcho.tstart = 40; %When did the ADC start?
+% opts.MRSI.MaxEcho.AdditionalPhasing = 1;
+% opts.MRSI.MaxEcho.AdditionalFreqAlign = 1;
 
 % Cross-correlation alignment of frequencies defined below
-opts.MRSI.MaxEcho.FreqAlign.type = 'CC';
-opts.MRSI.MaxEcho.FreqAlign.frequencies = [3.03,3.22,3.9];
-opts.MRSI.MaxEcho.FreqAlign.polarity = [1,1,1];
-opts.MRSI.MaxEcho.FreqAlign.lim = [2.5,4.5];
-opts.MRSI.MaxEcho.FreqAlign.realpart = 1;
-opts.MRSI.MaxEcho.FreqAlign.zerofill = 1;
+% opts.MRSI.MaxEcho.FreqAlign.type = 'CC';
+% opts.MRSI.MaxEcho.FreqAlign.frequencies = [3.03,3.22,3.9];
+% opts.MRSI.MaxEcho.FreqAlign.polarity = [1,1,1];
+% opts.MRSI.MaxEcho.FreqAlign.lim = [2.5,4.5];
+% opts.MRSI.MaxEcho.FreqAlign.realpart = 1;
+% opts.MRSI.MaxEcho.FreqAlign.zerofill = 1;
 
 % Cross-correlation alignment of frequencies defined below after Wavelet filter of baseline if lipid/noise > thresh
 % opts.MRSI.MaxEcho.FreqAlign.type = 'CCwithLipRemoval'; 
@@ -358,9 +358,9 @@ opts.MRSI.atlas.quantities = {'tCr','CRLBs'};
 % the example spectra to be plotted and which quantifications/metabolites
 % to show in the report.
 
-opts.MRSI.report.VoxelIndices = [8,8,1;
-                                9,8,1;
-                                10,8,1;];
+opts.MRSI.report.VoxelIndices = [9,8,1;
+                                10,8,1;
+                                11,8,1;];
 
 % You can plot all the different quantification options depending on your
 % input they include tCr, rawWaterScaled, CSFWaterScaled,
@@ -369,6 +369,7 @@ opts.MRSI.report.quantifications = {'tCr'};
 
 %Pick the metabolite names to be reported
 opts.MRSI.report.metabolites = {'tNAA','tCho','mI','Glx'}; % 'tNAA','tCr', 'tCho', 'Glx','mI'
+opts.MRSI.report.atlasregion = {'Thal_L'};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
@@ -377,7 +378,7 @@ opts.MRSI.report.metabolites = {'tNAA','tCho','mI','Glx'}; % 'tNAA','tCr', 'tCho
 
 % Specify metabolite data
 % (MANDATORY)
-files       = {which(fullfile('exampledata','mrsi','Siemens','TE_35','mrs_nii','1sl_metabolite_mrsi_raw_act.sdat'))};
+files       = {which(fullfile('exampledata','mrsi','Siemens','TE_35','mrs_nii','1sl_metabolite_mrsi_raw_act.nii.gz'))};
 
 % Specify water reference data for eddy-current correction (same sequence as metabolite data!)
 % (OPTIONAL)

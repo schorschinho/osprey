@@ -358,9 +358,8 @@ opts.MRSI.atlas.quantities = {'TissCorrWaterScaled','CRLBs'};
 % the example spectra to be plotted and which quantifications/metabolites
 % to show in the report.
 
-opts.MRSI.report.VoxelIndices = [8,8,1;
-                                9,8,1;
-                                10,8,1;];
+opts.MRSI.report.VoxelIndices = [25,23,2;
+                                15,19,2;];
 
 % You can plot all the different quantification options depending on your
 % input they include tCr, rawWaterScaled, CSFWaterScaled,
@@ -369,7 +368,7 @@ opts.MRSI.report.quantifications = {'TissCorrWaterScaled'};
 
 %Pick the metabolite names to be reported
 opts.MRSI.report.metabolites = {'tNAA_Acetyl_only','tCho_pCh2_only','tCr_methyl_only'}; % 'tNAA','tCr', 'tCho', 'Glx','mI'
-
+opts.MRSI.report.atlasregion = {'Thal_L'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% 3. SPECIFY MRS DATA AND STRUCTURAL IMAGING FILES %%
 % When using single-average Siemens RDA or DICOM files, specify their
