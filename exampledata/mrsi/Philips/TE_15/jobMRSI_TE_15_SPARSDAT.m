@@ -225,10 +225,7 @@ opts.MRSI.FreqAlign.realpart = 0;
 opts.MRSI.FreqAlign.zerofill = 0;
 
 % Flags for maximum echo processing
-opts.MRSI.MaxEcho.separate = 1;
-opts.MRSI.MaxEcho.tstart = 40; %When did the ADC start?
-opts.MRSI.MaxEcho.AdditionalPhasing = 1;
-opts.MRSI.MaxEcho.AdditionalFreqAlign = 1;
+opts.MRSI.MaxEcho.separate = 0;
 
 % Cross-correlation alignment of frequencies defined below
 opts.MRSI.MaxEcho.FreqAlign.type = 'CC';
@@ -283,7 +280,7 @@ opts.MRSI.MRSImask = [];
 opts.MRSI.LCM.ModelProcedureFileMetabolites = which('/model-procedures/mrsi/3Step_Spline_invivo_Reg_Optim_MRSI.json');
 opts.MRSI.LCM.ModelProcedureFileWater = which('/model-procedures/mrsi/1Step_water_in_vivo.json');
 opts.MRSI.LCM.BasisSetFile = {which('/fit/basissets/mrsi/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA15_noMM.mat')};
-opts.MRSI.LCM.MetabSpecName = 'A';
+opts.MRSI.LCM.MetabSpecName = 'AFID';
 
 % If you have the parallel computing toolbox installed you can parallelize
 opts.MRSI.LCM.parallelComputing = 1;

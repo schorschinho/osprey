@@ -393,7 +393,7 @@ file_stat = '';
 
 % Specify output folder
 % (MANDATORY)
-data_folder = fileparts(which(fullfile('exampledata','mrsi','GE','TE_70','jobMRSI_TE_30_P_NII.m')));
+data_folder = fileparts(which(fullfile('exampledata','mrsi','GE','TE_70','jobMRSI_TE_70_P_NII.m')));
 outputFolder = fullfile(data_folder, 'derivatives');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -77,11 +77,9 @@ else
     plotMap = MRSCont.quantify.(quantification);
 end
 
-
-% if (MRSCont.raw{1}.nZvoxels > 1)
-%     plotMap = flip(plotMap,3);
-% end
-
+if ~isreal(plotMap)
+    plotMap = real(plotMap);
+end
 
 if interpolated > 1
     plotMap = imresize3(plotMap, 'Scale', [interpolated interpolated 1], 'Method' ,'cubic');

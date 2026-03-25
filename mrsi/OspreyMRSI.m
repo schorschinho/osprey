@@ -224,6 +224,19 @@ end
 [MRSCont] = create_quickMaps(MRSCont);
 
 if stopAfterProcess
+    outputFolder = MRSCont.outputFolder;
+    outputFile      = MRSCont.outputFile;
+    if ~exist(outputFolder,'dir')
+        mkdir(outputFolder);
+    end
+    
+    if MRSCont.flags.isGUI
+        MRSCont.flags.isGUI = 0;
+        save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+        MRSCont.flags.isGUI = 1;
+    else
+       save(fullfile(outputFolder, outputFile), 'MRSCont','-v7.3');
+    end
     return
 end
 %% Linear-combination modeling
