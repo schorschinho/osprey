@@ -1,8 +1,36 @@
 function osp_add_orientation_labels_to_montage(idx_start, idx_end, slices_per_row, ...
     tile_width, tile_height, orientation_info, display_info)
-    % Add orientation labels (L/R, A/P, S/I) to each slice in the montage
-    %
-    % Places labels at the edges of each tile and adds an info annotation
+%   This function adds orientation labels (L/R, A/P, S/I) to each slice 
+%   in an MRSI montage display.
+%
+%   Places labels at the edges of each tile to indicate anatomical
+%   orientation and adds an info annotation at the bottom of the figure
+%   showing the view type, slice axis, and display convention.
+%
+%   USAGE:
+%       osp_add_orientation_labels_to_montage(idx_start, idx_end, slices_per_row, ...
+%           tile_width, tile_height, orientation_info, display_info);
+%
+%   INPUTS:
+%       idx_start        = Starting index of slices to display.
+%       idx_end          = Ending index of slices to display.
+%       slices_per_row   = Number of slices per row in the montage.
+%       tile_width       = Width of each tile in pixels.
+%       tile_height      = Height of each tile in pixels.
+%       orientation_info = Structure containing orientation information
+%                          with field 'slice_orientation'.
+%       display_info     = Structure containing display settings
+%                          with field 'convention'.
+%
+%
+%   AUTHOR:
+%       Dr. Helge Zollner (Johns Hopkins University, 2021-01-06)
+%       hzoelln2@jhmi.edu
+%
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
+%%
     
     labels = osp_get_orientation_labels(orientation_info, display_info);
     

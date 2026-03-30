@@ -5,13 +5,14 @@ function out = osp_plotInteractiveMRSIMask(MRSCont, target_image, convention)
 %   USAGE:
 %       out = osp_plotInteractiveMRSIMask(MRSCont, target_image, convention)
 %
-%   OUTPUTS:
-%       out     = MATLAB figure handle
-%
-%   ARGUMENTS:
+%   INPUTS:
 %       MRSCont  = Osprey data container.
 %       target_image = Target image to overlay on
 %       convention   = 'radiological' (L on right) or 'neurological' (L on left)
+%
+%   OUTPUTS:
+%       out     = MATLAB figure handle
+%
 %
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2025-08-04)
@@ -19,8 +20,7 @@ function out = osp_plotInteractiveMRSIMask(MRSCont, target_image, convention)
 %
 %   HISTORY:
 %       2025-08-04: First version of the code.
-
-% Fall back to defaults if not provided
+%% Fall back to defaults if not provided
 if nargin < 3
     convention = 'neurological';
     if nargin < 2
@@ -138,9 +138,17 @@ MRSCont.opts.MRSI.outerMask.saved = 0;
 
 setappdata(out,'MRSCont',MRSCont);
 
-osp_plot_grid_overlay(vertices_display, vertices_MRSI_voxel, ...
-        slice, slice, 1, tile_width, tile_height, ...
-        orientation_info, display_info);
+% addGrid    
+% Find vertices near the current slice (in voxel space, z-axis)
+valid_vertices = abs(vertices_display(:, 3) - slice) < 1; 
+
+% Transform voxel coordinates to montage coordinates        
+plot(vertices_display(valid_vertices, 2) , ...
+     vertices_display(valid_vertices, 1),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 6);
+
+% osp_plot_grid_overlay(vertices_display, vertices_MRSI_voxel, ...
+%         slice, slice, 1, tile_width, tile_height, ...
+%         orientation_info, display_info);
 
 
 axis image

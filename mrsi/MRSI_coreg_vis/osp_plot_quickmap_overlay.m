@@ -1,6 +1,4 @@
-function osp_plot_quickmap_overlay(quickmap, voxel_mask, vertices_display, nXvoxels, ...
-    idx_start, idx_end, slices_per_row, tile_width, tile_height, ...
-    custom_cmap, cmap_sz, alpha, orientation_info, display_info, isQC)
+function osp_plot_quickmap_overlay(quickmap, voxel_mask, vertices_display, nXvoxels, idx_start, idx_end, slices_per_row, tile_width, tile_height, custom_cmap, cmap_sz, alpha, orientation_info, display_info, isQC)
 %% osp_plot_quickmap_overlay
 %   Plots metabolite quickmap or metabolite map overlay on montage.
 %
@@ -32,7 +30,9 @@ function osp_plot_quickmap_overlay(quickmap, voxel_mask, vertices_display, nXvox
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2025-08-04)
 %       hzoelln2@jhmi.edu
-
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
 %% Parse optional isQC parameter
 if nargin < 15
     isQC = 0;

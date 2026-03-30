@@ -1,5 +1,29 @@
 function export_model_to_NII(MRSCont,data,ModelMatrix,outputFolder)
+ %%  export_model_to_NII(MRSCont,data,ModelMatrix,WaterModelMatrix,outputFolder, ModelMatrix2)
+%   This functions writes spectra from the Osprey 3.0.0 model to
+%   NIfTI MRS files. 
+%
+%   USAGE:
+%       out = export_model_to_NII(MRSCont,data,ModelMatrix,outputFolder)
+%
+%   INPUTS:
+%       MRSCont     = Osprey MRS Container
+%       data        = FID-A struct contaiing MRSI data
+%       ModelMatrix = Osprey 3.0 Model results
+%       outputFolder    = Output folder ppath
+%       
+%   OUTPUTS:
+%       NIFTI MRS results
+%
+%   AUTHOR:
+%       Helge Zöllner (Johns Hopkins University, 2025-08-04)
+%       hzoelln2@jhmi.edu
+%
+%   HISTORY:
+%       2025-08-04: First version of the code.   
+%%
     
+    % Get metabolite names from fit
     non_zero = find(~cellfun('isempty', ModelMatrix));
     temp = ModelMatrix{non_zero(1)};
     metab_names = temp.BasisSets.names(logical(temp.BasisSets.includeInFit(end,:)));
@@ -8,7 +32,10 @@ function export_model_to_NII(MRSCont,data,ModelMatrix,outputFolder)
         ModelMatrix = flip(ModelMatrix,length(size(ModelMatrix)));
     end
     
+    % Get results from model matrix
     MRSI_model = get_MRSI_results(ModelMatrix);
+
+    % Export seprate slices if no pseudo 3D is set
     if (MRSCont.raw{1}.nZvoxels > 1) && ~MRSCont.opts.MRSI.pseudo3D 
         shift = floor(data.nZvoxels/2);
         reorder = flip(1:data.nZvoxels);

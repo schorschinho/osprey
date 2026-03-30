@@ -1,15 +1,52 @@
 function [vertices_display] = osp_transform_vertices_for_display(vertices_voxel, img_original, orientation_info, display_info, MRSI_vol)
-    % Transform vertex coordinates to match the displayed image
-    %
-    % Applies the same transformations to vertices as were applied to the image:
-    %   1. Permutation (same order as image)
-    %   2. Flips (same dimensions as image)
-    %   3. Half-voxel offset (for non-axial orientations)
-    %
-    % After transformation:
-    %   vertices_display(:,1) = row index in displayed image (plot Y)
-    %   vertices_display(:,2) = column index in displayed image (plot X)
-    %   vertices_display(:,3) = slice index
+%% vertices_display = osp_transform_vertices_for_display(vertices_voxel, img_original, orientation_info, display_info, MRSI_vol)
+%   This function transforms vertex coordinates to match the displayed
+%   image after all orientation transformations have been applied.
+%
+%   The function applies the same transformations to vertices as were
+%   applied to the image during display preparation:
+%       1. Permutation (same order as applied to image)
+%       2. Flips (same dimensions as flipped in image)
+%       3. Half-voxel offset calculation for coordinate alignment
+%
+%   After transformation, vertex coordinates are in display space:
+%       vertices_display(:,1) = row index in displayed image (plot Y axis)
+%       vertices_display(:,2) = column index in displayed image (plot X axis)
+%       vertices_display(:,3) = slice index
+%
+%   USAGE:
+%       vertices_display = osp_transform_vertices_for_display(vertices_voxel, img_original, orientation_info, display_info);
+%       vertices_display = osp_transform_vertices_for_display(vertices_voxel, img_original, orientation_info, display_info, MRSI_vol);
+%
+%   INPUTS:
+%       vertices_voxel   = Nx3 matrix of vertex coordinates in voxel space.
+%       img_original     = Original 3D image volume (used for dimensions).
+%       orientation_info = Struct from osp_analyze_orientation containing
+%                          orientation analysis results.
+%       display_info     = Struct from osp_prepare_image_for_display containing:
+%           .permuted       - Boolean indicating if permutation was applied
+%           .permute_order  - [1x3] permutation order used
+%           .flipped_dims   - Array of dimensions that were flipped
+%       MRSI_vol         = SPM volume structure for MRSI data (optional).
+%                          Used to calculate scale factors for half-voxel
+%                          offset when MRSI and display resolutions differ.
+%
+%   OUTPUTS:
+%       vertices_display = Nx3 matrix of vertex coordinates in display space,
+%                          ready for plotting on the transformed image.
+%
+%   NOTES:
+%       - Coordinates are 1-indexed (MATLAB convention)
+%       - Half-voxel offsets account for resolution differences between
+%         MRSI grid and display image
+%
+%   AUTHOR:
+%       Dr. Helge Zollner (Johns Hopkins University, 2024-01-06)
+%       hzoelln2@jhmi.edu
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
+%%
     
     img_size = size(img_original);
     

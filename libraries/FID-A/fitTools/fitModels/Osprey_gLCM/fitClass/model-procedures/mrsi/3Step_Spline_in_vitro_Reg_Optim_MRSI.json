@@ -50,8 +50,8 @@
         "freqShift": {
           "gr":{"g1":["Cr","CrCH2","GABA","GPC","Gln","Glu","mI","Lac","NAA",
           "NAAG","PCh","PCr"]},
-            "lb": -50,
-            "ub":50
+            "lb": -0.01,
+            "ub":0.01
         },
           "baseAmpl": {
             "RegFun": "SecondDerivative"
@@ -112,6 +112,17 @@
           ]
         },
         "ph1": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
+        "GlobFreqShift": {
           "init": [
             "Step 1"
           ],
@@ -200,6 +211,17 @@
         "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
       ],
       "parametrizations": {
+        "GlobFreqShift": {
+          "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+        },
         "baseAmpl": {
           "RegFun": "SecondDerivative",
           "RegPar": ["Step 2"]

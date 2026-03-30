@@ -1,4 +1,32 @@
 function [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_T1w_rMRSI(MRSCont, vertices)
+%% [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_T1w_rMRSI(MRSCont, vertices)
+%   This function reslices a T1-weighted structural image to match the MRSI
+%   field-of-view while preserving the higher T1 in-plane resolution.
+%
+%   USAGE:
+%       [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_T1w_rMRSI(MRSCont, vertices);
+%
+%   INPUTS:
+%       MRSCont     = Osprey MRS data container with fields:
+%                     .files_nii    - Cell array containing path to T1 NIfTI
+%                     .outputFolder - Path to Osprey output directory
+%       vertices    = Nx3 matrix of vertex coordinates in world space (mm),
+%                     where N is the number of vertices.
+%
+%   OUTPUTS:
+%       Coreg_img      = 3D image volume array of resliced T1 in MRSI space.
+%       AffineMat      = 4x4 affine transformation matrix of output space.
+%       vertices_voxel = Nx3 matrix of vertex coordinates in voxel space.
+%       MRSI_vol       = SPM volume structure of original MRSI geometry.
+%
+%   AUTHOR:
+%       Dr. Helge Zollner (Johns Hopkins University, 2024-01-06)
+%       hzoelln2@jhmi.edu
+%
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
+%%
     T1_struc_vol = spm_vol(MRSCont.files_nii{1});
     
     gunzip(fullfile(MRSCont.outputFolder, 'quickMaps', 'raw_tNAA.nii.gz'));

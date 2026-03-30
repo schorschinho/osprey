@@ -1,17 +1,58 @@
 function [img_display, display_info] = osp_prepare_image_for_display(img, orientation_info, convention)
-    % Prepare image for display with correct orientation
-    %
-    % This function ensures the image is oriented correctly for display:
-    % 1. Permutes dimensions so that:
-    %    - Dimension 1 (rows) = vertical display axis
-    %    - Dimension 2 (cols) = horizontal display axis
-    %    - Dimension 3 = slices
-    % 2. Flips dimensions for proper anatomical orientation
-    %
-    % Standard display conventions:
-    %   Axial: Horizontal=L-R, Vertical=A-P, A at top
-    %   Sagittal: Horizontal=A-P, Vertical=S-I, A at left, S at top
-    %   Coronal: Horizontal=L-R, Vertical=S-I, S at top
+%% [img_display, display_info] = osp_prepare_image_for_display(img, orientation_info, convention)
+%   This function prepares a 3D image volume for display with correct
+%   anatomical orientation by applying appropriate permutations and flips.
+%
+%   The function ensures the image is oriented according to standard
+%   radiological or neurological display conventions:
+%       1. Permutes dimensions so that:
+%          - Dimension 1 (rows) = vertical display axis
+%          - Dimension 2 (cols) = horizontal display axis
+%          - Dimension 3 = slices
+%       2. Flips dimensions for proper anatomical orientation
+%
+%   Standard display conventions by slice orientation:
+%       Axial:    Horizontal=L-R, Vertical=A-P, Anterior at top
+%       Sagittal: Horizontal=A-P, Vertical=S-I, Anterior at left, Superior at top
+%       Coronal:  Horizontal=L-R, Vertical=S-I, Superior at top
+%
+%
+%   USAGE:
+%       [img_display, display_info] = osp_prepare_image_for_display(img, orientation_info);
+%       [img_display, display_info] = osp_prepare_image_for_display(img, orientation_info, convention);
+%
+%   INPUTS:
+%       img              = 2D or 3D image volume array.
+%       orientation_info = Struct from osp_analyze_orientation containing
+%                          orientation analysis results.
+%       convention       = Display convention string (optional):
+%                          'radiological' (default) or 'neurological'
+%
+%   OUTPUTS:
+%       img_display      = Transformed image ready for display.
+%       display_info     = Struct containing transformation details:
+%           .convention            - Display convention used
+%           .img_size_original     - Original image dimensions
+%           .img_size_display      - Final display image dimensions
+%           .flipped_dims          - Array of dimensions that were flipped
+%           .permute_order         - [1x3] permutation order applied
+%           .permuted              - Boolean indicating if permutation applied
+%           .is_single_slice       - Boolean indicating single slice input
+%           .display_vert_world    - World axis for vertical display dimension
+%           .display_horiz_world   - World axis for horizontal display dimension
+%           .vert_sign_original    - Original sign of vertical axis mapping
+%           .horiz_sign_original   - Original sign of horizontal axis mapping
+%           .vert_img_dim_original - Original image dim that became rows
+%           .horiz_img_dim_original - Original image dim that became columns
+%
+%   AUTHOR:
+%       Dr. Helge Zollner (Johns Hopkins University, 2024-01-06)
+%       hzoelln2@jhmi.edu
+%
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
+%%
     
     if nargin < 3
         convention = 'radiological';

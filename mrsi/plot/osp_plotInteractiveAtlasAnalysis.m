@@ -8,7 +8,7 @@ function out = osp_plotInteractiveAtlasAnalysis(MRSCont,kk,quantification,metabo
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
-%   OUTPUTS:
+%   INPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
 %       quantification = Which quantification to plot use 'TissCorrWaterScaled'
@@ -26,7 +26,7 @@ function out = osp_plotInteractiveAtlasAnalysis(MRSCont,kk,quantification,metabo
 %   HISTORY:
 %       2025-08-04: First version of the code.
 
-% Fall back to defaults if not provided
+%% Fall back to defaults if not provided
 if nargin < 9
     convention = 'neurological';
     if nargin < 8

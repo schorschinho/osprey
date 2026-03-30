@@ -1,6 +1,4 @@
-function osp_plot_mask_overlay(mask, mask_value, vertices_display, nXvoxels, ...
-    idx_start, idx_end, slices_per_row, tile_width, tile_height, ...
-    color, alpha, orientation_info, display_info)
+function osp_plot_mask_overlay(mask, mask_value, vertices_display, nXvoxels, idx_start, idx_end, slices_per_row, tile_width, tile_height, color, alpha, orientation_info, display_info)
 %% osp_plot_mask_overlay
 %   Plots mask overlay on montage.
 %
@@ -13,7 +11,7 @@ function osp_plot_mask_overlay(mask, mask_value, vertices_display, nXvoxels, ...
 %           idx_start, idx_end, slices_per_row, tile_width, tile_height, ...
 %           color, alpha, orientation_info, display_info)
 %
-%   ARGUMENTS:
+%   INPUTS:
 %       mask            = 3D mask in MRSI voxel space [nX, nY, nZ]
 %       mask_value      = 0 to plot where mask==0, 1 to plot where mask==1
 %       vertices_display = transformed vertex coordinates for display
@@ -31,7 +29,9 @@ function osp_plot_mask_overlay(mask, mask_value, vertices_display, nXvoxels, ...
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2025-08-04)
 %       hzoelln2@jhmi.edu
-
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
 %% Transpose mask to match vertex ordering
 % Masks are stored as [nX, nY, nZ] but vertex indexing assumes [nY, nX, nZ]
 % vertex_idx = (y * nXvoxels + x) * 8, where y is outer loop, x is inner

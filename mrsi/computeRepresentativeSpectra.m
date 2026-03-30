@@ -18,9 +18,7 @@ function MRSCont = computeRepresentativeSpectra(MRSCont,MetabSpecName)
 %
 %   HISTORY:
 %       2025-10-31: First version of the code.
-
-
-
+%%
     %   D - Matrix of voxel spectra (n x m)
     %       n = number of voxels
     %       m = number of spectral points
@@ -35,14 +33,17 @@ function MRSCont = computeRepresentativeSpectra(MRSCont,MetabSpecName)
 
 
     for kk = 1:MRSCont.nDatasets
-        % Lets get the data we need by first reshaping it 
+        % Lets get the data we need by first reshaping it and applying the
+        % slice indices
         D = reshape(MRSCont.processed.(MetabSpecName){kk}.specs(:,:,:,MRSCont.opts.MRSI.RepSpectra.SliceIndices),MRSCont.processed.(MetabSpecName){kk}.sz(1),[]);
 
+        % Get gray and white matter fractions 
         WM = reshape(squeeze(MRSCont.seg.tissue.fWM(kk,:,:,MRSCont.opts.MRSI.RepSpectra.SliceIndices)),1,[]);
         GM = reshape(squeeze(MRSCont.seg.tissue.fGM(kk,:,:,MRSCont.opts.MRSI.RepSpectra.SliceIndices)),1,[]); 
         tWM = WM;
         tGM = GM;
 
+        % Apply fraction thresholds
         D = D(:,(tWM + tGM) > MRSCont.opts.MRSI.RepSpectra.fGMpfWM)';
         WM = WM(:,(tWM + tGM) > MRSCont.opts.MRSI.RepSpectra.fGMpfWM)'./(tWM(:,(tWM + tGM) > MRSCont.opts.MRSI.RepSpectra.fGMpfWM)' + tGM(:,(tWM + tGM) > MRSCont.opts.MRSI.RepSpectra.fGMpfWM)');
         GM = GM(:,(tWM + tGM) > MRSCont.opts.MRSI.RepSpectra.fGMpfWM)'./(tWM(:,(tWM + tGM) > MRSCont.opts.MRSI.RepSpectra.fGMpfWM)' + tGM(:,(tWM + tGM) > MRSCont.opts.MRSI.RepSpectra.fGMpfWM)');
@@ -54,7 +55,7 @@ function MRSCont = computeRepresentativeSpectra(MRSCont,MetabSpecName)
         S = S';
 
 
-
+        % Save the results
         MRSCont.RepSpectra = MRSCont.processed.(MetabSpecName);
         MRSCont.RepSpectra{kk}.specs = S;
         MRSCont.RepSpectra{kk}.fids=ifft(fftshift(S,MRSCont.RepSpectra{kk}.dims.t),[],MRSCont.RepSpectra{kk}.dims.t);

@@ -1,9 +1,32 @@
 function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
+%% [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
+%   This function performs the atlas-based analysis of the MRSI data
+%
+%   USAGE:
+%       MRSCont = OspreyMRSIAtlasAnalysis(MRSCont);
+%
+%   INPUTS:
+%       MRSCont     = Osprey MRS data container.
+%
+%   OUTPUTS:
+%       MRSCont     = Osprey MRS data container.
+%
+%   AUTHOR:
+%       Helge Zöllner (Johns Hopkins University, 2025-10-31)
+%       hzoelln2@jhmi.edu
+%
+%   HISTORY:
+%       2025-10-31: First version of the code.
+%% Prepare structure
     if ~isfield(MRSCont,'atlas')
         MRSCont.atlas = cell(1,1);
     end
+%% Perform the atlas analysis
+
+    % Loop over datasets
     for kk = 1:MRSCont.nDatasets  
    
+        % Get anatomical image
          [T1dir, T1name, T1ext]  = fileparts(MRSCont.files_nii{kk});
         if strcmp(T1ext,'.gz')
             T1name = strrep(T1name, '.nii','');
@@ -12,7 +35,8 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
             gunzip(MRSCont.files_nii{kk});
         end 
 
-
+        % Which of the two currently implemeted atalses is requested
+        % Get path to atlas, labels, and IDs of the ROIs
         switch MRSCont.opts.MRSI.atlas.name
             case 'AAL'
                 atlas_path =  which('/libraries/AAL/modAAL3v1_1mm.nii'); 
@@ -35,12 +59,13 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
         end
         warped_atlas_path = fullfile(T1dir,'Subject-Space-Atlas.nii');
 
-        if ~isfield(MRSCont.atlas{kk},'fAtlas')
-            % First we warp the atlas into subject space
+        % First we warp the atlas into subject space
+        if ~isfield(MRSCont.atlas{kk},'fAtlas')            
             gunzip(fullfile(T1dir, ['iy_' T1name '.nii.gz'])); 
             warp_Atlas(fullfile(T1dir,['iy_' T1name '.nii']),atlas_path,fullfile(T1dir,[T1name '.nii']),warped_atlas_path);
         end
 
+        % Get the warped atlas volume
         Atlasvol  = spm_vol(warped_atlas_path);
         Atlasvol  = Atlasvol.private.dat(:,:,:);
 
@@ -49,10 +74,13 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
 
         vx =1; 
         total_voxels = MRSCont.raw{kk}.nXvoxels * MRSCont.raw{kk}.nYvoxels *MRSCont.raw{kk}.nZvoxels;
+
+        % Get index mask of MRSI data to indentify voxel locations
         index_mask = nii_tool('load', MRSCont.coreg.index_mask{kk}.fname);
         index_mask = double(index_mask.img);
-
         index_mask = round(index_mask);
+
+        % Get gap mask if needed
         if ~isempty(MRSCont.coreg.gap_mask{kk})
             gap_mask = nii_tool('load', MRSCont.coreg.gap_mask{kk}.fname);
             gap_mask = double(gap_mask.img);
@@ -61,24 +89,24 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
 
         % We need the number of labels 
         n_labels = length(ROIid);
-        
-        
-
+               
+        % Now calculate the voxel fractions for each label
         if ~isfield(MRSCont.atlas{kk},'fAtlas')
 
+            % Initialize atlas
             MRSCont.atlas{kk}.fAtlas(:,:,:,:)  = zeros(n_labels,MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels,MRSCont.raw{kk}.nZvoxels);
     
+            % Outer mask can be used for acceleration if it was supplied
             if isfield(MRSCont.opts.MRSI,'outerMask')
                 if ~isfield(MRSCont.opts.MRSI.outerMask,'mask')  
                     MRSCont.opts.MRSI.outerMask.mask = zeros(MRSCont.raw{kk}.nXvoxels,MRSCont.raw{kk}.nYvoxels,MRSCont.raw{kk}.nZvoxels);
                     MRSCont.opts.MRSI.outerMask.mask(MRSCont.opts.MRSI.outerMask.x(1):MRSCont.opts.MRSI.outerMask.x(2),...
                                                      MRSCont.opts.MRSI.outerMask.y(1):MRSCont.opts.MRSI.outerMask.y(2),...
                                                      MRSCont.opts.MRSI.outerMask.z(1):MRSCont.opts.MRSI.outerMask.z(2)) = 1;
-                    % MRSCont.opts.MRSI.outerMask.mask = squeeze(MRSCont.opts.MRSI.outerMask.mask);
                 end
             end
             for rr = 1 : MRSCont.raw{kk}.nZvoxels % This also loops over the different slice for MRSI
-                for y = 1 : MRSCont.raw{kk}.nYvoxels
+                for y = 1 : MRSCont.raw{kk}.nYvoxels    % Loop over in plane
                     for x = 1 : MRSCont.raw{kk}.nXvoxels
                         if vx == 1    
                             msg = sprintf('Calculating anatomical label from voxel %3i out of %3i total voxels...\n', vx, total_voxels);
@@ -88,10 +116,10 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                                 reverseStr = repmat(sprintf('\b'), 1, length(msg));
                                 fprintf([reverseStr, msg]);
                         end
-                        if MRSCont.opts.MRSI.outerMask.mask(x,y,rr) && squeeze(MRSCont.seg.tissue.brain(kk,x,y,rr))
-                            index = x * 1e6 + y * 1e3 + rr;
+                        if MRSCont.opts.MRSI.outerMask.mask(x,y,rr) && squeeze(MRSCont.seg.tissue.brain(kk,x,y,rr)) % Inside brain and inside outer mask
+                            index = x * 1e6 + y * 1e3 + rr;                 % Create index to match with mask
                             index_mask_temp =zeros(size(index_mask));
-                            index_mask_temp(index_mask==index) =1;
+                            index_mask_temp(index_mask==index) =1;          % Match mask with index
     
                             % Apply gap mask if needed
                             if MRSCont.opts.MRSI.pseudo3D && ~isempty(MRSCont.coreg.gap_mask{kk})
@@ -153,8 +181,8 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
 
         
 
-        % Run stat analysis 
-
+        % Run atlas based statitics analysis 
+        % Get flags from container    
         CombineLR = MRSCont.opts.MRSI.atlas.CombineLR;
         AtlasThreshold= MRSCont.opts.MRSI.atlas.AtlasThreshold;
         SNRThreshold = MRSCont.opts.MRSI.atlas.SNRThreshold;
@@ -167,8 +195,8 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
 
 
         StatisticsAtlas = zeros(n_labels,8,length(metabolites),length(quantities));
-        for qq = 1 : length(quantities)
-            for lb = 1 : n_labels
+        for qq = 1 : length(quantities)     % Loop over quantitites
+            for lb = 1 : n_labels           % Loop over atas labels
                 AtlasMask = squeeze(sum(MRSCont.atlas{kk}.fAtlas(lb,:,:,:),1));
                 AtlasMaskIni = AtlasMask;
 
@@ -192,6 +220,7 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                 AtlasMaskRemoveSNR(AtlasMaskRemoveSNR > AtlasThreshold) = 1;
                 AtlasMaskRemoveSNR(AtlasMaskRemoveSNR < AtlasThreshold) = 0;
 
+                % For CRLBs we need it per metabolite
                 for mm = 1 : length(metabolites)
                     tempAtlasMask = AtlasMaskMetabs{mm};
                     tempAtlasMask(tempAtlasMask > AtlasThreshold) = 1;
@@ -199,7 +228,7 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                     AtlasMaskMetabs{mm} = tempAtlasMask;
                 end
 
-                for mm = 1 : length(metabolites)
+                for mm = 1 : length(metabolites)    % Loop over metabolites to calcualte statisitcs
                     plotMap = MRSCont.quantify.(quantities{qq}).(metabolites{mm});
 
                     values = plotMap(AtlasMaskMetabs{mm} == 1);
@@ -209,21 +238,22 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
 
                     ResultsAtlas{lb,mm,qq,:}=values;
 
-                    if ~strcmp(quantities{qq},'CRLBs')
+                    if ~strcmp(quantities{qq},'CRLBs')                                  % Do SD thresholding
                         values(values > (mean_values + (SDThreshold*std_values))) = [];
                         values(values < (mean_values - (SDThreshold*std_values))) = [];
                         mean_values = nanmean(values);
                         median_values = nanmedian(values);
                         std_values = nanstd(values);
                     end
-
+                    
+                    % Calculate statitics
                     StatisticsAtlas(lb,1,mm,qq) = mean_values;
                     StatisticsAtlas(lb,2,mm,qq) = median_values;
                     StatisticsAtlas(lb,3,mm,qq) = std_values;
-                    StatisticsAtlas(lb,4,mm,qq) = round(sum(AtlasMaskIni,'all'));
-                    StatisticsAtlas(lb,5,mm,qq) = round(sum(AtlasMaskRemoveFWHM,'all'));
-                    StatisticsAtlas(lb,6,mm,qq) = round(sum(AtlasMaskRemoveSNR,'all'));
-                    StatisticsAtlas(lb,7,mm,qq) = round(sum(AtlasMaskMetabs{mm},'all'));
+                    StatisticsAtlas(lb,4,mm,qq) = round(sum(AtlasMaskIni,'all'));           % Get voxels in label total
+                    StatisticsAtlas(lb,5,mm,qq) = round(sum(AtlasMaskRemoveFWHM,'all'));    % Get voxels after FWHM threshold   
+                    StatisticsAtlas(lb,6,mm,qq) = round(sum(AtlasMaskRemoveSNR,'all'));     % Get voxels after SNR threshold
+                    StatisticsAtlas(lb,7,mm,qq) = round(sum(AtlasMaskMetabs{mm},'all'));    % Get voxels after CRLB threshold
                     StatisticsAtlas(lb,8,mm,qq) = length(values);
                 end
 
@@ -233,7 +263,7 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
 
 
             % Let's quantify LR combined
-            for lb = 1 : size(lr_index,1)
+            for lb = 1 : size(lr_index,1) % Loop over atas labels
                 AtlasMask = squeeze(sum(MRSCont.atlas{kk}.fAtlas(lr_index(lb,1):lr_index(lb,1),:,:,:),1));
                 AtlasMaskIni = AtlasMask;
 
@@ -257,6 +287,7 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                 AtlasMaskRemoveSNR(AtlasMaskRemoveSNR > AtlasThreshold) = 1;
                 AtlasMaskRemoveSNR(AtlasMaskRemoveSNR < AtlasThreshold) = 0;
 
+                % For CRLBs we need it per metabolite
                 for mm = 1 : length(metabolites)
                     tempAtlasMask = AtlasMaskMetabs{mm};
                     tempAtlasMask(tempAtlasMask > AtlasThreshold) = 1;
@@ -264,7 +295,7 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                     AtlasMaskMetabs{mm} = tempAtlasMask;
                 end
 
-                for mm = 1 : length(metabolites)
+                for mm = 1 : length(metabolites)    % Loop over metabolites to calcualte statisitcs
                     plotMap = MRSCont.quantify.(quantities{qq}).(metabolites{mm});
 
                     values = plotMap(AtlasMaskMetabs{mm} == 1);
@@ -273,7 +304,7 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                     std_values = nanstd(values);
                     ResultsAtlas{ind,mm,qq,:}=values;
 
-                    if ~strcmp(quantities{qq},'CRLBs')
+                    if ~strcmp(quantities{qq},'CRLBs')                      % Do SD thresholding
                         values(values > (mean_values + (SDThreshold*std_values))) = [];
                         values(values < (mean_values - (SDThreshold*std_values))) = [];
                         mean_values = nanmean(values);
@@ -281,13 +312,14 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                         std_values = nanstd(values);
                     end
 
+                    % Calculate statitics
                     StatisticsAtlas(ind,1,mm,qq) = mean_values;
                     StatisticsAtlas(ind,2,mm,qq) = median_values;
                     StatisticsAtlas(ind,3,mm,qq) = std_values;
-                    StatisticsAtlas(ind,4,mm,qq) = round(sum(AtlasMaskIni,'all'));
-                    StatisticsAtlas(ind,5,mm,qq) = round(sum(AtlasMaskRemoveFWHM,'all'));
-                    StatisticsAtlas(ind,6,mm,qq) = round(sum(AtlasMaskRemoveSNR,'all'));
-                    StatisticsAtlas(ind,7,mm,qq) = round(sum(AtlasMaskMetabs{mm},'all'));
+                    StatisticsAtlas(ind,4,mm,qq) = round(sum(AtlasMaskIni,'all'));          % Get voxels in label total
+                    StatisticsAtlas(ind,5,mm,qq) = round(sum(AtlasMaskRemoveFWHM,'all'));   % Get voxels after FWHM threshold 
+                    StatisticsAtlas(ind,6,mm,qq) = round(sum(AtlasMaskRemoveSNR,'all'));    % Get voxels after SNR threshold
+                    StatisticsAtlas(ind,7,mm,qq) = round(sum(AtlasMaskMetabs{mm},'all'));   % Get voxels after CRLB threshold
                     StatisticsAtlas(ind,8,mm,qq) = length(values);
                 end
                 ind = ind + 1;
@@ -295,11 +327,12 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
 
         end
         
+        % Get atlas labels
         AtlasLabels = [AtlasLabels,tempAtlasLAbels];      
         AtlasLabelsTable = table(AtlasLabels', 'VariableNames', {'Region'});
         MRSCont.AtlasResults{kk}.QuantitativeAALResults = StatisticsAtlas;
         MRSCont.AtlasResults{kk}.ResultsAAL = ResultsAtlas;
-        % Now lets export
+        % Now lets export the atlas results into a table
         ColNames = {'mean','median','std','total # voxels','# voxels FWHM filtered','# voxels FWHM + SNR filtered',...
                     '# voxels FWHM + SNR + CRLB filtered','# voxels FWHM + SNR + CRLB + SD filtered'};
         for qq = 1 : length(quantities)

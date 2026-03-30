@@ -1,17 +1,19 @@
 %op_SeparateMaxEcho.m
 %
 % USAGE:
-% out=op_getLeftSideMaxEcho(out,tstart);
+% out=op_SeparateMaxEcho(in,side,tstart);
 % 
 % DESCRIPTION:
 % 
 % INPUTS:
 % in        = MRS data structure used by FID-a toolkit. Data should be
 %             pre-processed, for example by out = run_pressproc(filename)
+% side      = which side of the echo do you want. See vatiations below
+% tstart    = When did the ADC open (in ms).
 %
 %
 % OUTPUTS:
-% out       = New spectrum without the water peak in the as a FID-A structure
+% out       = New spectrum from left or right side of echo
 
 function [out ] = op_SeparateMaxEcho(in,side,tstart)
 

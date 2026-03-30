@@ -1,7 +1,8 @@
 function [MRSCont] = OspreyMRSIHTMLReport(MRSCont,kk)
 %% [MRSCont] = OspreyHTMLReport(MRSCont,kk)
 %   This function creates a short HTML report of the processing and modeling
-%   and should be called at the end of the analysis.
+%   and should be called at the end of the analysis. It uses plotly to make
+%   the results interactive.
 %
 %   USAGE:
 %       MRSCont = OspreyHTMLReport(MRSCont,kk);
@@ -14,18 +15,13 @@ function [MRSCont] = OspreyMRSIHTMLReport(MRSCont,kk)
 %       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
-%       Dr. Helge Zoellner (Johns Hopkins University, 2022-05-17)
+%       Helge Zöllner (Johns Hopkins University, 2025-10-31)
 %       hzoelln2@jhmi.edu
 %
-%   CREDITS:
-%       This code is based on numerous functions from the FID-A toolbox by
-%       Dr. Jamie Near (McGill University)
-%       https://github.com/CIC-methods/FID-A
-%       Simpson et al., Magn Reson Med 77:23-33 (2017)
-%
 %   HISTORY:
-%       2022-05-17: First version of the code.
-
+%       2025-10-31: First version of the code.
+%% Prepartion
+% Get colormaps and setup the inital path
 colormaps = MRSCont.colormap;
 ppmmin = 0.2;
 ppmmax=4.2;

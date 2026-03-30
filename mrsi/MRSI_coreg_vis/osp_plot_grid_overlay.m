@@ -1,11 +1,45 @@
-function osp_plot_grid_overlay(vertices_display, vertices_MRSI_voxel, ...
-    idx_start, idx_end, slices_per_row, tile_width, tile_height, ...
-    orientation_info, display_info)
-    % Plot grid overlay on montage
-    %
-    % After all transformations:
-    %   vertices_display(:,1) = image rows = plot Y
-    %   vertices_display(:,2) = image cols = plot X
+function osp_plot_grid_overlay(vertices_display, vertices_MRSI_voxel, idx_start, idx_end, slices_per_row, tile_width, tile_height, orientation_info, display_info)
+%% osp_plot_grid_overlay(vertices_display, vertices_MRSI_voxel, idx_start, idx_end, slices_per_row, tile_width, tile_height, orientation_info, display_info)
+%   This function plots MRSI grid vertex markers as an overlay on a
+%   montage display of image slices.
+%
+%   The function iterates through slices in the montage and plots grid
+%   vertices that fall within each slice. Vertex positions are transformed
+%   from image coordinates to montage coordinates based on the tile layout.
+%
+%   After display transformations:
+%       vertices_display(:,1) corresponds to image rows (plot Y axis)
+%       vertices_display(:,2) corresponds to image columns (plot X axis)
+%
+%   USAGE:
+%       osp_plot_grid_overlay(vertices_display, vertices_MRSI_voxel, idx_start, idx_end, slices_per_row, tile_width, tile_height, orientation_info, display_info);
+%
+%   INPUTS:
+%       vertices_display   = Nx2 matrix of vertex coordinates in display
+%                            space after orientation transformations.
+%       vertices_MRSI_voxel = Nx3 matrix of vertex coordinates in MRSI
+%                            voxel space for slice membership testing.
+%       idx_start          = Starting slice index in the montage.
+%       idx_end            = Ending slice index in the montage.
+%       slices_per_row     = Number of slice tiles per row in the montage.
+%       tile_width         = Width of each tile in pixels.
+%       tile_height        = Height of each tile in pixels.
+%       orientation_info   = Struct from osp_analyze_orientation containing
+%                            orientation analysis results.
+%       display_info       = Struct from osp_prepare_display_slice containing
+%                            display transformation parameters.
+%
+%   OUTPUTS:
+%       None (plots directly to current axes)
+%
+%
+%   AUTHOR:
+%       Dr. Helge Zollner (Johns Hopkins University, 2024-01-06)
+%       hzoelln2@jhmi.edu
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
+%%
     
     grid_color = [254/255, 186/255, 47/255];
     marker_size = 4;
