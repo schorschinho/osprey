@@ -1,26 +1,50 @@
 function [MRSCont] = create_quickMaps(MRSCont)
+%% [MRSCont] = create_quickMaps(MRSCont)
+%   This function generates amplitude integral maps for quick inspection. You can
+%   define different regions and spectra to be used.
+%
+%   USAGE:
+%       MRSCont = create_quickMaps(MRSCont);
+%
+%   INPUTS:
+%       MRSCont     = Osprey MRS data container.
+%
+%   OUTPUTS:
+%       MRSCont     = Osprey MRS data container.
+%
+%   AUTHOR:
+%       Helge Zöllner (Johns Hopkins University, 2025-10-31)
+%       hzoelln2@jhmi.edu
+%
+%   HISTORY:
+%       2025-10-31: First version of the code.
+%% Genreate integral maps
 
-% This will generate amplitude integral maps for quick inspection. You can
-% define different regions and spectra to be used.
-
+% Pick target spectra
 switch MRSCont.opts.MRSI.quickMaps.target
     case 'raw'
+        % Loop over spectra listed in options to create dummy maps
         for ss = 1 : length(MRSCont.opts.MRSI.quickMaps.specs)
             for ll = 1 : length(MRSCont.opts.MRSI.quickMaps.names.(MRSCont.opts.MRSI.quickMaps.specs{ss})  )
                 MRSCont.quickMaps.(MRSCont.opts.MRSI.quickMaps.specs{ss} ).(MRSCont.opts.MRSI.quickMaps.names.(MRSCont.opts.MRSI.quickMaps.specs{ss}){ll})= zeros(MRSCont.(MRSCont.opts.MRSI.quickMaps.specs{ss} ){1}.sz(2:end));
             end
         end
         
+        % Loop over datasets
         for kk =1 : MRSCont.nDatasets(1)
+            % Loop over spectra listed in options
             for ss = 1 : length(MRSCont.opts.MRSI.quickMaps.specs)
+                % Magnitude or real part?
                 if MRSCont.opts.MRSI.quickMaps.abs
                     specs = abs(MRSCont.(MRSCont.opts.MRSI.quickMaps.specs{ss}){kk}.specs);
                 else
                     specs = real(MRSCont.(MRSCont.opts.MRSI.quickMaps.specs{ss}){kk}.specs);
                 end
+                % Create sum spectrum
                 if MRSCont.(MRSCont.opts.MRSI.quickMaps.specs{ss}){kk}.dims.subSpecs > 0
                     specs = squeeze(sum(specs,MRSCont.(MRSCont.opts.MRSI.quickMaps.specs{ss}){kk}.dims.subSpecs));
                 end
+                % Do the integration across the different regions
                 for ll = 1 : length(MRSCont.opts.MRSI.quickMaps.names.(MRSCont.opts.MRSI.quickMaps.specs{ss})  )
                     MRSCont.quickMaps.(MRSCont.opts.MRSI.quickMaps.specs{ss}).(MRSCont.opts.MRSI.quickMaps.names.(MRSCont.opts.MRSI.quickMaps.specs{ss}){ll}) = ...
                     squeeze(sum(specs(MRSCont.(MRSCont.opts.MRSI.quickMaps.specs{ss}){kk}.ppm > MRSCont.opts.MRSI.quickMaps.limits.(MRSCont.opts.MRSI.quickMaps.specs{ss} )(ll,1) & ...
@@ -29,19 +53,24 @@ switch MRSCont.opts.MRSI.quickMaps.target
             end
         end
     case 'processed'
+        % Loop over spectra listed in options
         for ss = 1 : length(MRSCont.opts.MRSI.quickMaps.specs)
             for ll = 1 : length(MRSCont.opts.MRSI.quickMaps.names.(MRSCont.opts.MRSI.quickMaps.specs{ss})  )
                 MRSCont.quickMaps.(MRSCont.opts.MRSI.quickMaps.specs{ss} ).(MRSCont.opts.MRSI.quickMaps.names.(MRSCont.opts.MRSI.quickMaps.specs{ss}){ll})= zeros(MRSCont.processed.(MRSCont.opts.MRSI.quickMaps.specs{ss} ){1}.sz(2:end));
             end
         end
         
+        % Loop over datasets
         for kk =1 : MRSCont.nDatasets(1)
+            % Loop over spectra listed in options
             for ss = 1 : length(MRSCont.opts.MRSI.quickMaps.specs)
+                % Magnitude or real part?
                 if MRSCont.opts.MRSI.quickMaps.abs
                     specs = abs(MRSCont.processed.(MRSCont.opts.MRSI.quickMaps.specs{ss}){kk}.specs);
                 else
                     specs = real(MRSCont.processed.(MRSCont.opts.MRSI.quickMaps.specs{ss}){kk}.specs);
                 end
+                % Do the integration across the different regions
                 for ll = 1 : length(MRSCont.opts.MRSI.quickMaps.names.(MRSCont.opts.MRSI.quickMaps.specs{ss})  )
                     MRSCont.quickMaps.(MRSCont.opts.MRSI.quickMaps.specs{ss}).(MRSCont.opts.MRSI.quickMaps.names.(MRSCont.opts.MRSI.quickMaps.specs{ss}){ll}) = ...
                     squeeze(sum(specs(MRSCont.processed.(MRSCont.opts.MRSI.quickMaps.specs{ss}){kk}.ppm > MRSCont.opts.MRSI.quickMaps.limits.(MRSCont.opts.MRSI.quickMaps.specs{ss} )(ll,1) & ...
@@ -51,7 +80,7 @@ switch MRSCont.opts.MRSI.quickMaps.target
         end
 end
 
-%% Export
+%% Export the results as NIfTI files
 switch MRSCont.opts.MRSI.quickMaps.target
     case 'raw'
         files = [];
@@ -106,6 +135,7 @@ switch MRSCont.opts.MRSI.quickMaps.target
                     end
         end
         
+        % Do interpolation if needed
         if MRSCont.opts.MRSI.quickMaps.interpolation > 1
             for ff = 1 : length(files)
                 gunzip(files{ff});
@@ -216,8 +246,7 @@ switch MRSCont.opts.MRSI.quickMaps.target
                     files{end+1} = fullfile(outputFolder,'quickMaps',[MRSCont.opts.MRSI.quickMaps.specs{ss} '_FWHM.nii.gz']);
                 end
 
-                % Export the abs SNR for Maximum Echo
-
+                % Export the abs SNR
                 specs = abs(MRSCont.processed.A{kk}.specs);
 
                 MRSCont.quickMaps.A.abstNAASNR = ...
@@ -229,7 +258,7 @@ switch MRSCont.opts.MRSI.quickMaps.target
                 MRSCont.quickMaps.A.abstNAASNR = flip(MRSCont.quickMaps.A.abstNAASNR,3);
                 MRSCont.quickMaps.A.abstNAASNR = flip(MRSCont.quickMaps.A.abstNAASNR,1);
 
-                if isfield(MRSCont.processed,'AFID')
+                if isfield(MRSCont.processed,'AFID') % Also do for FID only data for maximum echo MRSI
                     specs = abs(MRSCont.processed.AFID{kk}.specs);
     
                     MRSCont.quickMaps.AFID.abstNAASNR = ...
@@ -251,7 +280,7 @@ switch MRSCont.opts.MRSI.quickMaps.target
                 nii_tool('save', out, fullfile(outputFolder,'quickMaps','A_abstNAA_SNR.nii.gz'));
                 files{end+1} = fullfile(outputFolder,'quickMaps','A_abstNAA_SNR.nii.gz');
 
-                if isfield(MRSCont.processed,'AFID')
+                if isfield(MRSCont.processed,'AFID') % Also do for FID only data for maximum echo MRSI
                     out.img = MRSCont.quickMaps.AFID.abstNAASNR; 
                     out.img(isnan(out.img)) =0;
                     out.img(isinf(out.img)) =0;
@@ -264,6 +293,7 @@ switch MRSCont.opts.MRSI.quickMaps.target
 
         end
         
+         % Do interpolation if needed
         if MRSCont.opts.MRSI.quickMaps.interpolation > 1
             for ff = 1 : length(files)
                 gunzip(files{ff});

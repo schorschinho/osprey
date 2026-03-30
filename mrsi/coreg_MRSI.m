@@ -1,14 +1,41 @@
 function [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] = coreg_MRSI(in,vol_image,outputFolder,pseudo3D,nii_shifts)
-    
+%% [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] = coreg_MRSI(in,vol_image,outputFolder,pseudo3D,nii_shifts)
+%   This function performs the coregistration of an MRSI dataset with an
+%   anatomical image. 
+%
+%   USAGE:
+%       [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] =
+%       coreg_MRSI(in,vol_image,outputFolder,pseudo3D,nii_shifts);
+%
+%   INPUTS:
+%       in          = FID-A MRS struct
+%       vol_img     = SPM vol of anatomical image
+%       outputFolder = path to output folder
+%       pseudo3D    = create a 3D NIfTI of MRS mask ignoring the GAP
+%       nii_shifts  = shifts of the nifti volume
+%
+%   OUTPUTS:
+%       vol_mask    = SPM vol of MRSI mask
+%       T1_max      = max intensity value of anatomical image
+%       voxel_ctr   = corrdinates of center voxel on anatomical image
+%       index_mask  = SPM volume of MRSI index mask
+%       gap_mask    = SPM volume of slice gaps in the MRSI scan
+%
+%   AUTHOR:
+%       Helge Zöllner (Johns Hopkins University, 2025-10-31)
+%       hzoelln2@jhmi.edu
+%
+%   HISTORY:
+%       2025-10-31: First version of the code.
+%%  Prepare
     outputFolder = fullfile(outputFolder,'VoxelMasks');
     if ~exist(outputFolder,'dir')
         mkdir(outputFolder);
     end
 
     gap_mask = [];
-    %% This is voxel masks with ones
-    % We can use it for a grid
-   
+    %% Create voxel mask
+
     if (in.nZvoxels > 1) && ~pseudo3D 
         shift = floor(in.nZvoxels/2);
         reorder = flip(1:in.nZvoxels);
@@ -87,10 +114,7 @@ function [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] = coreg_MRSI(in,vol_i
 
     V = spm_vol(nii_file);
     Y = spm_read_vols(V);
-
-    % V.mat = [VoxelMask.hdr.srow_x; VoxelMask.hdr.srow_y; VoxelMask.hdr.srow_z;];
-    % Y = VoxelMask.img;
-    
+   
     % Get voxel size and origin
     voxel_size = sqrt(sum(V.mat(1:3,1:3).^2));
     origin = V.mat(1:3,4);
@@ -214,10 +238,6 @@ function [vol_mask, T1_max, voxel_ctr,index_mask,gap_mask] = coreg_MRSI(in,vol_i
             reslice_gap_files{end+1} = fullfile(outputFolder,['rVoxelMask_slice_' num2str(ll) '_gap_2.nii']);
         end
         vol_gap = spm_vol(reslice_gap_files{1});
-        % for gg = 2 : length(reslice_gap_files)
-        %     gap_vol_temp = spm_vol(reslice_gap_files{gg});
-        %     vol_gap.private.dat(:,:,:) = vol_gap.private.dat(:,:,:) + gap_vol_temp.private.dat(:,:,:);
-        % end
         n_files = length(reslice_gap_files);
         all_data = zeros([vol_gap.dim, n_files]);
         for gg = 1:n_files

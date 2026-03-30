@@ -5,7 +5,7 @@ function out = osp_plotGlobalConcentration(MRSCont,metabolite,quantification)
 %   USAGE:
 %       out = osp_plotGlobalConcentration(MRSCont,metabolite,quantification)
 %
-%   OUTPUTS:
+%   INPUTS:
 %       out     = MATLAB figure handle
 %       metabolite   = Target metabolite ('tNAA')
 %       quantification = Which quantification to plot
@@ -20,7 +20,7 @@ function out = osp_plotGlobalConcentration(MRSCont,metabolite,quantification)
 %
 %   HISTORY:
 %       2025-08-04: First version of the code.
-
+%%
 % Fall back to defaults if not provided
 if nargin<3
 quantification = 'TissCorrWaterScaled';
@@ -32,15 +32,17 @@ quantification = 'TissCorrWaterScaled';
     end
 end
 
-% Check that OspreyMRSIOverview has been run before
+%% Validate prerequisites
 if ~MRSCont.flags.didOverview
     error('Trying to plot global concentrations, but Overview has not been performed yet. Run OspreyMRSIOverview first.')
 end
 
-
+%% Setup figure
 out = figure;
 set(out, 'Color', [1 1 1]); 
 tiledlayout(2,4,'TileSpacing','compact')
+
+% Global concentration bar plots
 nexttile
 X = categorical({'WM','GM'});  
 b = bar(X,[MRSCont.GlobalConc.(quantification).(metabolite).C(2); MRSCont.GlobalConc.(quantification).(metabolite).C(1);], 'LineWidth', 2);
@@ -56,6 +58,7 @@ set(gca,'TickDir','out')
 ylabel([quantification ' concentration (i.u.)'])
 title(['Global Concentrations ' metabolite],'interpreter','none')
 
+% Tissue fraction historgram
 nexttile
 h = histogram(MRSCont.GlobalConc.(quantification).(metabolite).WM,20); hold on
 h.FaceColor = [1 1 1];
@@ -72,6 +75,7 @@ xlabel('tissue fraction')
 ylabel('# of voxels')
 title('Voxel Fraction Distribution')
 
+% Linear regression plot
 nexttile
 scatter(MRSCont.GlobalConc.(quantification).(metabolite).WM,MRSCont.GlobalConc.(quantification).(metabolite).Q,'k');
 box off
@@ -80,6 +84,7 @@ xlabel('WM fraction')
 ylabel([quantification ' concentration (i.u.)'])
 title(['WM vs concentration ' metabolite],'interpreter','none')
 
+% Residual histogram
 nexttile
 histogram(MRSCont.GlobalConc.(quantification).(metabolite).residuals)
 box off
@@ -88,6 +93,7 @@ xlabel([quantification ' concentration (i.u.)'])
 ylabel('# of voxels')
 title('Model Residual Distribution')
 
+% Raw metabolite concentration map
 nexttile
 metab_image = squeeze(MRSCont.quantify.(quantification).(metabolite)(:,:,MRSCont.opts.MRSI.GlobalConc.SliceIndices));
 metab_image(MRSCont.GlobalConc.(quantification).(metabolite).valid_mask_image == 0) = NaN;
@@ -100,7 +106,7 @@ clim([MRSCont.GlobalConc.(quantification).(metabolite).residual_min MRSCont.Glob
 set(gca,'TickDir','out')
 title([metabolite ' Map'],'interpreter','none')
 
-
+% Valid mask after applying all the thresholds
 nexttile
 imagesc(flip(rot90(squeeze(MRSCont.GlobalConc.(quantification).(metabolite).valid_mask_image)),2))
 colormap gray
@@ -110,6 +116,7 @@ axis off;
 set(gca,'TickDir','out')   
 title('Mask for Linear Regression')
 
+% Predicted metabolite concentration map
 nexttile
 imagesc(flip(rot90(squeeze(MRSCont.GlobalConc.(quantification).(metabolite).Q_predicted_image)),2))
 colormap gray
@@ -120,6 +127,7 @@ clim([MRSCont.GlobalConc.(quantification).(metabolite).residual_min MRSCont.Glob
 set(gca,'TickDir','out')
 title([metabolite ' Prediction Map'],'interpreter','none')
 
+% Residual map
 nexttile
 imagesc(flip(rot90(squeeze(MRSCont.GlobalConc.(quantification).(metabolite).residuals_image)),2))
 colormap gray

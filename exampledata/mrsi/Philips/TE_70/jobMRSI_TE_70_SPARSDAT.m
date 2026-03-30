@@ -232,9 +232,9 @@ opts.MRSI.MaxEcho.AdditionalFreqAlign = 1;
 
 % Cross-correlation alignment of frequencies defined below
 opts.MRSI.MaxEcho.FreqAlign.type = 'CC';
-opts.MRSI.MaxEcho.FreqAlign.frequencies = [3.03,3.22,3.9];
-opts.MRSI.MaxEcho.FreqAlign.polarity = [1,1,1];
-opts.MRSI.MaxEcho.FreqAlign.lim = [2.5,4.5];
+opts.MRSI.MaxEcho.FreqAlign.frequencies = [2.01,3.03,3.22,3.9];
+opts.MRSI.MaxEcho.FreqAlign.polarity = [1,1,1,1];
+opts.MRSI.MaxEcho.FreqAlign.lim = [1.9,4.5];
 opts.MRSI.MaxEcho.FreqAlign.realpart = 1;
 opts.MRSI.MaxEcho.FreqAlign.zerofill = 1;
 
@@ -283,7 +283,7 @@ opts.MRSI.MRSImask = [];
 opts.MRSI.LCM.ModelProcedureFileMetabolites = which('/model-procedures/mrsi/1Step_final_in_vivo_longTE.json');
 opts.MRSI.LCM.ModelProcedureFileWater = which('/model-procedures/mrsi/1Step_water_in_vivo.json');
 opts.MRSI.LCM.BasisSetFile = {which('/fit/basissets/mrsi/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA70_noMM.mat')};
-opts.MRSI.LCM.MetabSpecName = 'A';
+opts.MRSI.LCM.MetabSpecName = 'AFID';
 
 % If you have the parallel computing toolbox installed you can parallelize
 opts.MRSI.LCM.parallelComputing = 1;

@@ -8,7 +8,7 @@ function out = osp_plotSpecAndLocMRSI(MRSCont,VoxelIndices, target_image,target_
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
-%   ARGUMENTS:
+%   INPUTS:
 %       MRSCont  = Osprey data container.
 %       VoxelIndices = Vector with indices; three per column
 %       target_image = Target image to overlay on

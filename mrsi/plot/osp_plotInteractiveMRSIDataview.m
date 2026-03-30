@@ -9,7 +9,7 @@ function out = osp_plotInteractiveMRSIDataview(MRSCont, target_image, target_mod
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
-%   OUTPUTS:
+%   INPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
 %
@@ -19,8 +19,7 @@ function out = osp_plotInteractiveMRSIDataview(MRSCont, target_image, target_mod
 %
 %   HISTORY:
 %       2025-08-04: First version of the code.
-
-% Fall back to defaults if not provided
+%% Fall back to defaults if not provided
 if nargin < 6
 convention = 'neurological';
     if nargin < 5
@@ -463,7 +462,7 @@ function mouseClick(~, ~,out,uiStruct)
     axis image
 
     % % There's a flip in the location...
-    MRSI_x = MRSCont.raw{1}.nXvoxels - MRSI_x + 1;
+    % MRSI_x = MRSCont.raw{1}.nXvoxels - MRSI_x + 1;
     % MRSI_y = MRSCont.raw{1}.nYvoxels - MRSI_y + 1;
 
     title(['MRSI voxel (' num2str(MRSI_x) ',' num2str(MRSI_y) ',' num2str(MRSI_z) ')'],...
@@ -626,11 +625,11 @@ end
     valid_vertices = abs(vertices_voxel(:, 3) - slice) < 1; 
     
     % Transform voxel coordinates to montage coordinates        
-    plot(vertices_voxel(valid_vertices, 1) , ...
-         vertices_voxel(valid_vertices, 2),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 4);
+    plot(vertices_voxel(valid_vertices, 2) , ...
+         vertices_voxel(valid_vertices, 1),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 4);
     
     % % There's a flip in the location...
-    MRSI_x = MRSCont.raw{1}.nXvoxels - MRSI_x + 1;
+    % MRSI_x = MRSCont.raw{1}.nXvoxels - MRSI_x + 1;
     % MRSI_y = MRSCont.raw{1}.nYvoxels - MRSI_y + 1;
 
     title(['MRSI voxel (' num2str(MRSI_x) ',' num2str(MRSI_y) ',' num2str(MRSI_z) ')'],...

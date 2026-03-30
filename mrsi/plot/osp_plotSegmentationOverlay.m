@@ -9,7 +9,7 @@ function out = osp_plotSegmentationOverlay(MRSCont, target, idx_start, idx_end, 
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
-%   ARGUMENTS:
+%   INPUTS:
 %       MRSCont      = Osprey data container.
 %       target       = Tissue map target ('fGM', 'fWM', 'fCSF', etc.)
 %       idx_start    = index MRSI slice to start (1 at bottom)

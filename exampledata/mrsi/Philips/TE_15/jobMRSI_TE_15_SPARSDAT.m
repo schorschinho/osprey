@@ -280,7 +280,7 @@ opts.MRSI.MRSImask = [];
 opts.MRSI.LCM.ModelProcedureFileMetabolites = which('/model-procedures/mrsi/3Step_Spline_invivo_Reg_Optim_MRSI.json');
 opts.MRSI.LCM.ModelProcedureFileWater = which('/model-procedures/mrsi/1Step_water_in_vivo.json');
 opts.MRSI.LCM.BasisSetFile = {which('/fit/basissets/mrsi/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA15_noMM.mat')};
-opts.MRSI.LCM.MetabSpecName = 'AFID';
+opts.MRSI.LCM.MetabSpecName = 'A';
 
 % If you have the parallel computing toolbox installed you can parallelize
 opts.MRSI.LCM.parallelComputing = 1;

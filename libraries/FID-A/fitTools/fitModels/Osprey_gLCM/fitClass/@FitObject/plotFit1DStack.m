@@ -111,7 +111,8 @@ end
     else                                                                                % 1D fit or a user provided indirect dimension 
         hold on;                                                                           % Hold plot becuase we want to see all results
         shift = max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...        % Calculate shift for residual and individual basis functions
-            abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))));    
+            abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))));   
+        max_pos = max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:)));                            % Get max position for y-label
         YAxLim = [min(min(min(real(metabs(ppm>plotRange(1) & ppm<plotRange(2),end,secDim)))) - ...  % Calculate the y-axis limits
                  shift*1.4) ...      
                   max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...
@@ -165,10 +166,10 @@ end
             'Color', [11/255 71/255 111/255], 'LineWidth', 1);
         hold off;
         end
+        yticks(round(max_pos,2, "significant"));
         set(gca, 'XDir', 'reverse', 'XLim', plotRange, 'YLim', YAxLim,...
-            'YTickLabel',{},'YTick',{},...
             'LineWidth', 1, 'TickDir', 'out',...
-            'XColor', [11/255 71/255 111/255]);                                 % Clean appearance
+            'XColor', [11/255 71/255 111/255],'YColor', [11/255 71/255 111/255]);                                 % Clean appearance
         xlabel('chemical shift (ppm)');
     end
 end

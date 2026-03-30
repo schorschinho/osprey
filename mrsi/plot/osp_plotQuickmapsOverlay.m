@@ -9,7 +9,7 @@ function out = osp_plotQuickmapsOverlay(MRSCont, spec, target, idx_start, idx_en
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
-%   ARGUMENTS:
+%   INPUTS:
 %       MRSCont         = Osprey data container.
 %       spec            = Target spectrum ('raw', etc.)
 %       target          = Target metabolite ('tNAA', 'tCr', etc.)
@@ -230,8 +230,7 @@ freezeColors;
 hold on;
 
 %% Plot quickmap overlay
-% Note: quickmap and voxel_mask are in MRSI voxel space [nX, nY, nZ]
-% The dimension transpose is handled inside osp_plot_quickmap_overlay
+
 osp_plot_quickmap_overlay(quickmap, voxel_mask, vertices_display, ...
     MRSCont.raw{1}.nXvoxels, idx_start, idx_end, slices_per_row, ...
     tile_width, tile_height, custom_cmap, cmap_sz, alpha, orientation_info, display_info);

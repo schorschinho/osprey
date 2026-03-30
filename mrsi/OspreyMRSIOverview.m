@@ -10,9 +10,13 @@ function [MRSCont] = OspreyMRSIOverview(MRSCont)
 MRSCont = computeRepresentativeSpectra(MRSCont,'A');
 %% Global Concentration with linear regression
 
+%   This function calculates global concentrations using a linear
+%   regression appoach as drescribed in Tal A, Kirov II, Grossman RI, Gonen O. 
+%   The role of gray and white matter segmentation in quantitative proton MR 
+%   spectroscopic imaging. NMR Biomed. 2012;25(12):1392-1400. doi:10.1002/nbm.2812
 MRSCont = calculateGlobalConcentrations(MRSCont);
 %% Atlas based analysis 
-
+%   This function performs the atlas-based analysis of the MRSI data
 [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont);
 
 %% Save

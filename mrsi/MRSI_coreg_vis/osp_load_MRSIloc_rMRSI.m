@@ -1,4 +1,37 @@
 function [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_MRSIloc_rMRSI(MRSCont, vertices)
+
+%   This function loads the MRSI localization image and transforms voxel
+%   vertex coordinates from world space to image voxel space.
+%
+%   The function reads the NIfTI image used for MRSI localization and
+%   applies the inverse affine transformation to convert vertex coordinates
+%   from RAS+ world coordinates to voxel indices for overlay display.
+%
+%   USAGE:
+%       [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_MRSIloc(MRSCont, vertices);
+%
+%   INPUTS:
+%       MRSCont     = Osprey MRS data container with field:
+%                     .files_nii_MRSIloc - Cell array containing path to
+%                                          MRSI localization NIfTI file.
+%       vertices    = Nx3 matrix of vertex coordinates in world space (mm),
+%                     where N is the number of vertices.
+%
+%   OUTPUTS:
+%       Coreg_img      = 3D image volume array from the NIfTI file.
+%       AffineMat      = 4x4 affine transformation matrix (voxel to world).
+%       vertices_voxel = Nx3 matrix of vertex coordinates in voxel space.
+%       MRSI_vol       = SPM volume structure containing NIfTI header info.
+%
+%   AUTHOR:
+%       Dr. Helge Zollner (Johns Hopkins University, 2024-01-06)
+%       hzoelln2@jhmi.edu
+%
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
+%%
+
     MRSIloc_vol = spm_vol(MRSCont.files_nii_MRSIloc{1});
     
     gunzip(fullfile(MRSCont.outputFolder, 'quickMaps', 'raw_tNAA.nii.gz'));

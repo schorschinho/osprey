@@ -31,8 +31,8 @@ function [MRSCont] = OspreyQuantifyMRSI(MRSCont,MetabSpecName)
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %
 %   HISTORY:
-%       202-01-06: First version of the code.
-
+%       2026-01-06: First version of the code.
+%%
 
 outputFolder = MRSCont.outputFolder;
 % diary(fullfile(outputFolder, 'LogFile.txt'));

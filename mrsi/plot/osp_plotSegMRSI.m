@@ -10,7 +10,7 @@ function out = osp_plotSegMRSI(MRSCont,kk,idx_start,idx_end, plot_mask)
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
-%   ARGUMENTS:
+%   INPUTS:
 %       MRSCont  = Osprey data container.
 %       kk       = Index for the kk-th dataset (optional. Default = 1)
 %       idx_start = index MRSI slice to start (1 at bottom)
@@ -24,7 +24,7 @@ function out = osp_plotSegMRSI(MRSCont,kk,idx_start,idx_end, plot_mask)
 %   HISTORY:
 %       2025-08-04: First version of the code.
 
-% Fall back to defaults if not provided
+%% Fall back to defaults if not provided
 if nargin < 5
     plot_mask = 0;
     if nargin < 4
@@ -42,7 +42,7 @@ if nargin < 5
 end
 
 
-% Check that OspreyCoreg has been run before
+%%  Validate prerequisites
 if ~MRSCont.flags.didLoadData
     error('Trying to plot coregistration, but data has not been loaded yet. Run OspreyLoad first.')
 end
@@ -55,7 +55,7 @@ if ~MRSCont.flags.didSeg
     error('Trying to plot segmentation, but segmentation has not been performed yet. Run OspreySeg first.')
 end
 
-
+%% Setup figure
 out = figure;  
 if ~plot_mask
     tiledlayout(4,1,'TileSpacing','compact')

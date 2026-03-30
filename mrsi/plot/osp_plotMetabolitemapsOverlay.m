@@ -9,7 +9,7 @@ function out = osp_plotMetabolitemapsOverlay(MRSCont, quantification, metabolite
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
-%   ARGUMENTS:
+%   INPUTS:
 %       MRSCont         = Osprey data container.
 %       quantification  = Which quantification to plot ('amplitudes', 'water', 'GlobalQC', etc.)
 %       metabolite      = Target metabolite ('tNAA_Acetyl_only', 'tCr', etc.)

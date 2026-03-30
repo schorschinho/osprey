@@ -1,19 +1,47 @@
 function [orientation_info] = osp_analyze_orientation(AffineMat)
-    % Analyze the affine matrix to determine image orientation
-    %
-    % World coordinate system (RAS+):
-    %   X: Left (-) to Right (+)
-    %   Y: Posterior (-) to Anterior (+)
-    %   Z: Inferior (-) to Superior (+)
-    %
-    % Returns orientation_info struct with:
-    %   - slice_orientation: 'axial', 'sagittal', 'coronal', or 'oblique'
-    %   - dir_cos: direction cosines matrix
-    %   - vox_size: voxel dimensions
-    %   - img_dim_to_world: which world axis each image dim maps to
-    %   - world_to_img_dim: which image dim each world axis maps to
-    %   - standard_horiz_world: which world axis should be horizontal
-    %   - standard_vert_world: which world axis should be vertical
+%   This function analyzes a NIfTI affine transformation matrix to determine
+%   the image orientation relative to the RAS+ world coordinate system.
+%
+%   World coordinate system (RAS+):
+%       X (1): Left (-) to Right (+)
+%       Y (2): Posterior (-) to Anterior (+)
+%       Z (3): Inferior (-) to Superior (+)
+%
+%   The function determines slice orientation (axial, sagittal, coronal, or
+%   oblique) and provides mappings between image dimensions and world axes
+%   for proper display and spatial referencing.
+%
+%   USAGE:
+%       orientation_info = osp_analyze_orientation(AffineMat);
+%
+%   INPUTS:
+%       AffineMat   = 4x4 affine transformation matrix from NIfTI header.
+%
+%   OUTPUTS:
+%       orientation_info = Struct containing:
+%           .AffineMat           - Original affine matrix
+%           .dir_cos             - 3x3 direction cosines matrix
+%           .vox_size            - [1x3] voxel dimensions
+%           .img_dim_to_world    - [1x3] world axis for each image dimension
+%           .img_dim_alignment   - [1x3] alignment strength (0-1)
+%           .world_to_img_dim    - [1x3] image dimension for each world axis
+%           .dim_signs           - [1x3] sign of each dimension mapping
+%           .slice_orientation   - 'axial', 'sagittal', 'coronal', or 'oblique'
+%           .standard_horiz_world - World axis for horizontal display
+%           .standard_vert_world  - World axis for vertical display
+%
+%   AUTHOR:
+%       Dr. Helge Zollner (Johns Hopkins University, 2024-01-06)
+%       hzoelln2@jhmi.edu
+%
+%   CREDITS:
+%       This code is based on NIfTI orientation conventions as described in
+%       the NIfTI-1 data format specification.
+%       https://nifti.nimh.nih.gov/nifti-1
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
+%%
     
     R = AffineMat(1:3, 1:3);
     vox_size = sqrt(sum(R.^2, 1));

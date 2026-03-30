@@ -1,6 +1,4 @@
-function osp_plot_tissue_overlay(tissue_map, brain_mask, vertices_display, nXvoxels, ...
-    idx_start, idx_end, slices_per_row, tile_width, tile_height, ...
-    custom_cmap, cmap_sz, alpha, orientation_info, display_info)
+function osp_plot_tissue_overlay(tissue_map, brain_mask, vertices_display, nXvoxels, idx_start, idx_end, slices_per_row, tile_width, tile_height, custom_cmap, cmap_sz, alpha, orientation_info, display_info)
 %% osp_plot_tissue_overlay
 %   Plots tissue segmentation map overlay on montage.
 %
@@ -32,7 +30,9 @@ function osp_plot_tissue_overlay(tissue_map, brain_mask, vertices_display, nXvox
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2025-08-04)
 %       hzoelln2@jhmi.edu
-
+%
+%   HISTORY:
+%       2026-01-06: First version of the code.
 %% Transpose tissue map and brain mask to match vertex ordering
 % Tissue maps are stored as [nX, nY, nZ] but vertex indexing assumes [nY, nX, nZ]
 % vertex_idx = (y * nXvoxels + x) * 8, where y is outer loop, x is inner

@@ -9,7 +9,7 @@ function out = osp_plotCoregMRSI(MRSCont, target_image, addGrid, addOuterMask, a
 %   OUTPUTS:
 %       out     = MATLAB figure handle
 %
-%   ARGUMENTS:
+%   INPUTS:
 %       MRSCont      = Osprey data container.
 %       target_image = Target image to overlay on:
 %                      'MRSIloc', 'T1w_rMRSIloc', 'T1w_rMRSI', 'MRSIloc_rMRSI'
