@@ -1,4 +1,4 @@
-%% jobSDAT.m
+%% jobMRSI_TE_35_RDA_NII.m
 %   This function describes an Osprey job defined in a MATLAB script.
 %
 %   A valid Osprey job contains four distinct classes of items:
@@ -50,11 +50,11 @@
 %   reference data, and water data need to be located in separate folders.
 %
 %   AUTHOR:
-%       Dr. Georg Oeltzschner (Johns Hopkins University, 2019-07-15)
-%       goeltzs1@jhmi.edu
+%       Dr. Helge Zoellner (Johns Hopkins University, 2026-01-15)
+%       hzoelln2@jhmi.edu
 %
 %   HISTORY:
-%       2019-07-15: First version of the code.
+%       2026-01-15: First version of the code.
 
 
 

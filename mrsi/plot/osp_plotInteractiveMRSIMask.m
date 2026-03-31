@@ -95,11 +95,6 @@ end
 %% Transform vertices to match displayed image
 [vertices_display] = osp_transform_vertices_for_display(vertices_voxel, Coreg_img, orientation_info, display_info, MRSI_vol);
 
-% Also transform for MRSI voxel space (needed for slice selection)
-vertices_homogeneous = [vertices, ones(size(vertices, 1), 1)];
-vertices_MRSI_voxel = (MRSI_vol.mat \ vertices_homogeneous')';
-vertices_MRSI_voxel = vertices_MRSI_voxel(:, 1:3);
-
 %% Setup figure
 out = figure;  
 
@@ -111,7 +106,7 @@ set(out, 'Color', [1 1 1]);
 
 max_val = prctile(Coreg_img_display(:), 99.5);
 slice = round(MRSCont.raw{1}.nZvoxels/2);
-imagesc(flip(rot90(squeeze(Coreg_img_display(:,:,slice))),2),[0 max_val])
+imagesc(squeeze(Coreg_img_display(:,:,slice)),[0 max_val])
 colormap gray;
 axis image
 axis off
@@ -132,8 +127,7 @@ MRSCont.opts.MRSI.outerMask.mask(MRSCont.opts.MRSI.outerMask.x(1):MRSCont.opts.M
 MRSCont.opts.MRSI.outerMask.y(1):MRSCont.opts.MRSI.outerMask.y(2),...
 MRSCont.opts.MRSI.outerMask.z(1):MRSCont.opts.MRSI.outerMask.z(2)) = 1;
 MRSCont.opts.MRSI.outerMask.CoregImage = Coreg_img_display;
-MRSCont.opts.MRSI.outerMask.vertices_voxel = vertices_voxel;
-MRSCont.opts.MRSI.outerMask.kk = 1;
+MRSCont.opts.MRSI.outerMask.vertices_display = vertices_display;
 MRSCont.opts.MRSI.outerMask.saved = 0;
 
 setappdata(out,'MRSCont',MRSCont);
@@ -146,92 +140,87 @@ valid_vertices = abs(vertices_display(:, 3) - slice) < 1;
 plot(vertices_display(valid_vertices, 2) , ...
      vertices_display(valid_vertices, 1),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 6);
 
-% osp_plot_grid_overlay(vertices_display, vertices_MRSI_voxel, ...
-%         slice, slice, 1, tile_width, tile_height, ...
-%         orientation_info, display_info);
-
-
 axis image
 
 
-uiStruct.LeftButton = uicontrol(  'Style', 'pushbutton', ...
+uiStruct.LeftButton = uicontrol('Parent', out, 'Style', 'pushbutton', ...
               'String', '<', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)/2 - 70, out.InnerPosition(4)*0.03, 60, 30]);
 
-uiStruct.zVoxelInd = uicontrol(  'Style', 'Edit', ...
-              'String', round(MRSCont.raw{1}.nZvoxels/2), ...
+uiStruct.zVoxelInd = uicontrol('Parent', out, 'Style', 'Edit', ...
+              'String', num2str(round(MRSCont.raw{1}.nZvoxels/2)), ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)/2, out.InnerPosition(4)*0.03, 60, 30]);
 
-uiStruct.RightButton = uicontrol(  'Style', 'pushbutton', ...
+uiStruct.RightButton = uicontrol('Parent', out, 'Style', 'pushbutton', ...
               'String', '>', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)/2 + 70, out.InnerPosition(4)*0.03, 60, 30]);
 
-uiStruct.Textouter = uicontrol(  'Style', 'Text', ...
+uiStruct.TextSliceIndex = uicontrol('Parent', out, 'Style', 'Text', ...
               'String', 'MRSI slice index', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'HorizontalAlignment','left',...
               'Position', [out.InnerPosition(3)/2, out.InnerPosition(4)*0.07, 150, 20]);
 
-uiStruct.Textouter = uicontrol(  'Style', 'Text', ...
+uiStruct.TextOuterMask = uicontrol('Parent', out, 'Style', 'Text', ...
               'String', 'Outer MRSI Mask Indices', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'HorizontalAlignment','left',...
               'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.85, 150, 20]);
 
-uiStruct.Textouter = uicontrol(  'Style', 'Text', ...
+uiStruct.TextIndex1 = uicontrol('Parent', out, 'Style', 'Text', ...
               'String', 'Index 1', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'HorizontalAlignment','left',...
               'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.825, 100, 20]);
 
-uiStruct.Textouter = uicontrol(  'Style', 'Text', ...
+uiStruct.TextIndex2 = uicontrol('Parent', out, 'Style', 'Text', ...
               'String', 'Index 2', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'HorizontalAlignment','left',...
               'Position', [out.InnerPosition(3)*0.9, out.InnerPosition(4)*0.825, 100, 20]);
 
-uiStruct.outerMaskX1 = uicontrol(  'Style', 'Edit', ...
-              'String', MRSCont.opts.MRSI.outerMask.x(1), ...
+uiStruct.outerMaskX1 = uicontrol('Parent', out, 'Style', 'Edit', ...
+              'String', num2str(MRSCont.opts.MRSI.outerMask.x(1)), ...
                'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.8, 40, 20]);
 
-uiStruct.outerMaskX2 = uicontrol(  'Style', 'Edit', ...
-              'String', MRSCont.opts.MRSI.outerMask.x(2), ...
+uiStruct.outerMaskX2 = uicontrol('Parent', out, 'Style', 'Edit', ...
+              'String', num2str(MRSCont.opts.MRSI.outerMask.x(2)), ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.9, out.InnerPosition(4)*0.8, 40, 20]);
 
-uiStruct.TextX = uicontrol(  'Style', 'Text', ...
+uiStruct.TextX = uicontrol('Parent', out, 'Style', 'Text', ...
               'String', ['X max(' num2str(MRSCont.raw{1}.nXvoxels) ')'], ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'HorizontalAlignment','left',...
               'Position', [out.InnerPosition(3)*0.95, out.InnerPosition(4)*0.8, 100, 20]);
 
-uiStruct.outerMaskY1 = uicontrol(  'Style', 'Edit', ...
-              'String', MRSCont.opts.MRSI.outerMask.y(1), ...
+uiStruct.outerMaskY1 = uicontrol('Parent', out, 'Style', 'Edit', ...
+              'String', num2str(MRSCont.opts.MRSI.outerMask.y(1)), ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.75, 40, 20]);
 
-uiStruct.outerMaskY2 = uicontrol(  'Style', 'Edit', ...
-              'String', MRSCont.opts.MRSI.outerMask.y(2), ...
+uiStruct.outerMaskY2 = uicontrol('Parent', out, 'Style', 'Edit', ...
+              'String', num2str(MRSCont.opts.MRSI.outerMask.y(2)), ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.9, out.InnerPosition(4)*0.75, 40, 20]);
 
-uiStruct.TextY = uicontrol(  'Style', 'Text', ...
+uiStruct.TextY = uicontrol('Parent', out, 'Style', 'Text', ...
               'String', ['Y max(' num2str(MRSCont.raw{1}.nYvoxels) ')'], ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
@@ -239,19 +228,19 @@ uiStruct.TextY = uicontrol(  'Style', 'Text', ...
               'Position', [out.InnerPosition(3)*0.95, out.InnerPosition(4)*0.75, 100, 20]);
 
 
-uiStruct.outerMaskZ1 = uicontrol(  'Style', 'Edit', ...
-              'String', MRSCont.opts.MRSI.outerMask.z(1), ...
+uiStruct.outerMaskZ1 = uicontrol('Parent', out, 'Style', 'Edit', ...
+              'String', num2str(MRSCont.opts.MRSI.outerMask.z(1)), ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.7, 40, 20]);
 
-uiStruct.outerMaskZ2 = uicontrol(  'Style', 'Edit', ...
-              'String', MRSCont.opts.MRSI.outerMask.z(2), ...
+uiStruct.outerMaskZ2 = uicontrol('Parent', out, 'Style', 'Edit', ...
+              'String', num2str(MRSCont.opts.MRSI.outerMask.z(2)), ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.9, out.InnerPosition(4)*0.7, 40, 20]);
 
-uiStruct.TextZ = uicontrol(  'Style', 'Text', ...
+uiStruct.TextZ = uicontrol('Parent', out, 'Style', 'Text', ...
               'String', ['Z max(' num2str(MRSCont.raw{1}.nZvoxels) ')'], ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
@@ -259,33 +248,33 @@ uiStruct.TextZ = uicontrol(  'Style', 'Text', ...
               'Position', [out.InnerPosition(3)*0.95, out.InnerPosition(4)*0.7, 100, 20]);
 
 
-uiStruct.UpdateButton = uicontrol(  'Style', 'pushbutton', ...
+uiStruct.UpdateButton = uicontrol('Parent', out, 'Style', 'pushbutton', ...
               'String', 'Update', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.65, 60, 30]);
 
-uiStruct.SaveButton = uicontrol(  'Style', 'pushbutton', ...
+uiStruct.SaveButton = uicontrol('Parent', out, 'Style', 'pushbutton', ...
               'String', 'Save', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.90, out.InnerPosition(4)*0.65, 60, 30]);
 
-uiStruct.TextNeigh = uicontrol(  'Style', 'Text', ...
+uiStruct.TextNeigh = uicontrol('Parent', out, 'Style', 'Text', ...
               'String', 'Neighborhood Size', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'HorizontalAlignment','left',...
               'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.60, 150, 20]);
 
-uiStruct.Neigh = uicontrol(  'Style', 'Edit', ...
-              'String', 1, ...
+uiStruct.Neigh = uicontrol('Parent', out, 'Style', 'Edit', ...
+              'String', '1', ...
               'ForegroundColor',[11/255 71/255 111/255],...
               'BackgroundColor',[1 1 1],...
               'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.58, 40, 20]);
 
-uiStruct.AddRem = uicontrol('Style', 'checkbox', ...
-                           'String', 'Add/Remove Mask', ...
+uiStruct.AddRem = uicontrol('Parent', out, 'Style', 'checkbox', ...
+                           'String', 'Remove Mask (unchecked=Add)', ...
                            'ForegroundColor',[11/255 71/255 111/255],...
                            'BackgroundColor',[1 1 1],...
                            'Position', [out.InnerPosition(3)*0.85, out.InnerPosition(4)*0.55, 150, 30], ...
@@ -319,42 +308,64 @@ end
 
 % Callback function for mouse clicks
 function mouseClick(~, ~,out,uiStruct)
-    MRSCont = getappdata(out,'MRSCont');  % Get MRSCont from hidden container in gui class 
+    MRSCont = getappdata(out,'MRSCont');
+    if isempty(MRSCont)
+        error('MRSCont data not found');
+    end
+    
     Coreg_img = MRSCont.opts.MRSI.outerMask.CoregImage;
     AddRem = uiStruct.AddRem.Value;
-    Neigh = str2num(uiStruct.Neigh.String);
+    Neigh = str2double(uiStruct.Neigh.String);
+    
+    % Validate Neigh input
+    if isnan(Neigh) || Neigh < 1
+        Neigh = 1;
+        uiStruct.Neigh.String = '1';
+    end
+    Neigh = round(Neigh);
 
     % Get the current point
     currentPoint = get(gca, 'CurrentPoint');
     x = round(currentPoint(1, 1));
     y = round(currentPoint(1, 2));
-    slice_index = str2num(uiStruct.zVoxelInd.String);
+    slice_index = str2double(uiStruct.zVoxelInd.String);
 
-    vertices_voxel = MRSCont.opts.MRSI.outerMask.vertices_voxel;
-    valid_vertices = abs(vertices_voxel(:, 3) - slice_index) < 1; 
-    vertices_voxel_click = vertices_voxel;
+    vertices_display = MRSCont.opts.MRSI.outerMask.vertices_display;
+    valid_vertices = abs(vertices_display(:, 3) - slice_index) < 1; 
+    vertices_voxel_click = vertices_display;
     vertices_voxel_click(~valid_vertices,3)=MRSCont.raw{1}.nZvoxels*10;
-    distances = sqrt((vertices_voxel_click(:,1) - x).^2 + (vertices_voxel_click(:,2) - y).^2 + (vertices_voxel_click(:,3) - slice_index).^2 );
+    distances = sqrt((vertices_voxel_click(:,1) - y).^2 + (vertices_voxel_click(:,2) - x).^2 + (vertices_voxel_click(:,3) - slice_index).^2 );
     distances = sum(reshape(distances,8,[]),1);
     [~, row_index] = min(distances);
-    [MRSI_x,MRSI_y,~]=ind2sub(size(MRSCont.opts.MRSI.outerMask.mask),row_index);
+    
+    % Validate row_index
+    mask_size = size(MRSCont.opts.MRSI.outerMask.mask);
+    total_elements = prod(mask_size);
+    if row_index > total_elements
+        warning('Click outside valid region');
+        return;
+    end
+    
+    [MRSI_x,MRSI_y,~]=ind2sub(mask_size,row_index);
     MRSI_z = slice_index;
     
-    % Display click coordinates
-    % fprintf('Clicked at: (%.2f, %.2f)\n', x, y);
-    % fprintf('MRSI voxel: (%.2f, %.2f, %.2f)\n', MRSI_x, MRSI_y, MRSI_z);
-
+    % Add bounds checking for indexing
+    x_start = max(1, MRSI_x-Neigh+1);
+    x_end = min(mask_size(1), MRSI_x);
+    y_start = max(1, MRSI_y-Neigh+1);
+    y_end = min(mask_size(2), MRSI_y);
     
     if AddRem
-        MRSCont.opts.MRSI.outerMask.mask(MRSI_x-Neigh+1:MRSI_x,MRSI_y-Neigh+1:MRSI_y,MRSI_z) = 0;
+        MRSCont.opts.MRSI.outerMask.mask(x_start:x_end, y_start:y_end, MRSI_z) = 0;
     else
-        MRSCont.opts.MRSI.outerMask.mask(MRSI_x-Neigh+1:MRSI_x,MRSI_y-Neigh+1:MRSI_y,MRSI_z) = 1;
+        MRSCont.opts.MRSI.outerMask.mask(x_start:x_end, y_start:y_end, MRSI_z) = 1;
     end
 
+    % Redraw the plot
     cla(gca);
     max_val = prctile(Coreg_img(:), 99.5);
 
-    imagesc(flip(rot90(squeeze(Coreg_img(:,:,slice_index))),2),[0 max_val])
+    imagesc(squeeze(Coreg_img(:,:,slice_index)),[0 max_val])
     colormap gray;
     axis image
     
@@ -362,30 +373,32 @@ function mouseClick(~, ~,out,uiStruct)
     
     [VoxColors]=cbrewer('qual', 'Set1', 9);
     
-    
+    % Find masked voxels
     linear_indices = find(MRSCont.opts.MRSI.outerMask.mask == 0);
-    [xVoxelIndices, yVoxelIndices, zVoxelIndices] = ind2sub(size(MRSCont.opts.MRSI.outerMask.mask), linear_indices);
-    VoxelIndices = [xVoxelIndices, yVoxelIndices,zVoxelIndices];
-    VoxelIndices(:,1:2) = VoxelIndices(:,1:2)-1;
+    [xVoxelIndices, yVoxelIndices, zVoxelIndices] = ind2sub(mask_size, linear_indices);
+    VoxelIndices = [xVoxelIndices, yVoxelIndices, zVoxelIndices];
     
-    VoxelIndices(zVoxelIndices ~= slice_index,:) = [];
+    % Filter for current slice
+    VoxelIndices = VoxelIndices(zVoxelIndices == slice_index, :);
     
+    % Draw trisurf patches for masked voxels
     for vox = 1 : size(VoxelIndices,1)
-        ind = (VoxelIndices(vox,2)*MRSCont.raw{1, 1}.nXvoxels+VoxelIndices(vox,1)) * 8;
-        tri = delaunay(double(vertices_voxel((1:4)+ind, 1)), double(vertices_voxel((1:4)+ind, 2)));
-        trisurf(tri, vertices_voxel((1:4)+ind, 1), vertices_voxel((1:4)+ind, 2), vertices_voxel((1:4)+ind, 3),...
+        % Calculate linear index for this voxel (0-based for x,y)
+        vox_x = VoxelIndices(vox,1) - 1;
+        vox_y = VoxelIndices(vox,2) - 1;
+        ind = (vox_y * MRSCont.raw{1, 1}.nXvoxels + vox_x) * 8;
+        
+        % Get the 4 bottom vertices for this voxel
+        vert_idx = (1:4) + ind;
+        tri = delaunay(double(vertices_display(vert_idx, 2)), double(vertices_display(vert_idx, 1)));
+        trisurf(tri, vertices_display(vert_idx, 2), vertices_display(vert_idx, 1), vertices_display(vert_idx, 3),...
                'LineWidth',1,'FaceColor',VoxColors(1,:),'EdgeColor', 'none', 'FaceAlpha',0.75);
     end
     
-    
-    
-    % addGrid    
-    % Find vertices near the current slice (in voxel space, z-axis)
-    valid_vertices = abs(vertices_voxel(:, 3) - slice_index) < 1; 
-    
-    % Transform voxel coordinates to montage coordinates        
-    plot(vertices_voxel(valid_vertices, 1) , ...
-         vertices_voxel(valid_vertices, 2),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 4);
+    % Draw grid
+    valid_vertices = abs(vertices_display(:, 3) - slice_index) < 1; 
+    plot(vertices_display(valid_vertices, 2), ...
+         vertices_display(valid_vertices, 1),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 6);
     
     axis image
 
@@ -393,11 +406,14 @@ function mouseClick(~, ~,out,uiStruct)
     MRSCont.opts.MRSI.outerMask.saved = 0;
 
     setappdata(out,'MRSCont',MRSCont);
-
 end
 
  function SaveMRSCont(~,~,out)
-    MRSCont = getappdata(out,'MRSCont');  % Get MRSCont from hidden container in gui class 
+    MRSCont = getappdata(out,'MRSCont');
+    if isempty(MRSCont)
+        error('MRSCont data not found');
+    end
+    
     outputFolder    = MRSCont.outputFolder;
     outputFile      = MRSCont.outputFile;
     if ~exist(outputFolder,'dir')
@@ -409,10 +425,16 @@ end
 
     % Mask has been saved so set flag
     MRSCont.opts.MRSI.outerMask.saved = 1;
+    setappdata(out,'MRSCont',MRSCont);
  end
 
- function CloseFunction(out,~)
-    MRSCont = getappdata(out,'MRSCont');  % Get MRSCont from hidden container in gui class 
+ function CloseFunction(out, ~)
+    MRSCont = getappdata(out,'MRSCont');
+    if isempty(MRSCont)
+        delete(out);
+        return;
+    end
+    
     if ~MRSCont.opts.MRSI.outerMask.saved
         outputFolder    = MRSCont.outputFolder;
         outputFile      = MRSCont.outputFile;
@@ -430,34 +452,35 @@ end
  end
 
  function updatePlot(source, ~,out,uiStruct)
-    MRSCont = getappdata(out,'MRSCont');  % Get MRSCont from hidden container in gui class  
+    MRSCont = getappdata(out,'MRSCont');
+    if isempty(MRSCont)
+        error('MRSCont data not found');
+    end
+    
     Coreg_img = MRSCont.opts.MRSI.outerMask.CoregImage; 
-    vertices_voxel = MRSCont.opts.MRSI.outerMask.vertices_voxel;
-    kk = MRSCont.opts.MRSI.outerMask.kk;
+    vertices_display = MRSCont.opts.MRSI.outerMask.vertices_display;
+    
     if ~strcmp(source.String,'Update')
         if strcmp(source.String,'>')
-            uiStruct.zVoxelInd.String = num2str(str2num(uiStruct.zVoxelInd.String) + 1);
-            if  str2num(uiStruct.zVoxelInd.String) > MRSCont.raw{1}.nZvoxels
-                uiStruct.zVoxelInd.String = num2str(MRSCont.raw{1}.nZvoxels);
-            end
+            current_val = str2double(uiStruct.zVoxelInd.String);
+            new_val = min(current_val + 1, MRSCont.raw{1}.nZvoxels);
+            uiStruct.zVoxelInd.String = num2str(new_val);
         end
         if strcmp(source.String,'<')
-            uiStruct.zVoxelInd.String = num2str(str2num(uiStruct.zVoxelInd.String) - 1);
-            if  str2num(uiStruct.zVoxelInd.String) < 1
-                uiStruct.zVoxelInd.String = '1';
-            end
+            current_val = str2double(uiStruct.zVoxelInd.String);
+            new_val = max(current_val - 1, 1);
+            uiStruct.zVoxelInd.String = num2str(new_val);
         end
     end
 
-    % Now we need to read in all the inputs
-    slice = str2num(uiStruct.zVoxelInd.String);
-    MRSCont.opts.MRSI.outerMask.x(1) = str2num(uiStruct.outerMaskX1.String);
-    MRSCont.opts.MRSI.outerMask.x(2) = str2num(uiStruct.outerMaskX2.String);
-    MRSCont.opts.MRSI.outerMask.y(1) = str2num(uiStruct.outerMaskY1.String);
-    MRSCont.opts.MRSI.outerMask.y(2) = str2num(uiStruct.outerMaskY2.String);
-    MRSCont.opts.MRSI.outerMask.z(1) = str2num(uiStruct.outerMaskZ1.String);
-    MRSCont.opts.MRSI.outerMask.z(2) = str2num(uiStruct.outerMaskZ2.String);
-
+    % Read all inputs
+    slice = str2double(uiStruct.zVoxelInd.String);
+    MRSCont.opts.MRSI.outerMask.x(1) = str2double(uiStruct.outerMaskX1.String);
+    MRSCont.opts.MRSI.outerMask.x(2) = str2double(uiStruct.outerMaskX2.String);
+    MRSCont.opts.MRSI.outerMask.y(1) = str2double(uiStruct.outerMaskY1.String);
+    MRSCont.opts.MRSI.outerMask.y(2) = str2double(uiStruct.outerMaskY2.String);
+    MRSCont.opts.MRSI.outerMask.z(1) = str2double(uiStruct.outerMaskZ1.String);
+    MRSCont.opts.MRSI.outerMask.z(2) = str2double(uiStruct.outerMaskZ2.String);
 
     % Update mask
     if strcmp(source.String,'Update')
@@ -467,11 +490,11 @@ end
         MRSCont.opts.MRSI.outerMask.z(1):MRSCont.opts.MRSI.outerMask.z(2)) = 1;
     end
 
-
+    % Redraw
     cla(gca);
     max_val = prctile(Coreg_img(:), 99.5);
 
-    imagesc(flip(rot90(squeeze(Coreg_img(:,:,slice))),2),[0 max_val])
+    imagesc(squeeze(Coreg_img(:,:,slice)),[0 max_val])
     colormap gray;
     axis image
     
@@ -479,30 +502,33 @@ end
     
     [VoxColors]=cbrewer('qual', 'Set1', 9);
     
-    
+    % Find masked voxels
+    mask_size = size(MRSCont.opts.MRSI.outerMask.mask);
     linear_indices = find(MRSCont.opts.MRSI.outerMask.mask == 0);
-    [xVoxelIndices, yVoxelIndices, zVoxelIndices] = ind2sub(size(MRSCont.opts.MRSI.outerMask.mask), linear_indices);
-    VoxelIndices = [xVoxelIndices, yVoxelIndices,zVoxelIndices];
-    VoxelIndices(:,1:2) = VoxelIndices(:,1:2)-1;
+    [xVoxelIndices, yVoxelIndices, zVoxelIndices] = ind2sub(mask_size, linear_indices);
+    VoxelIndices = [xVoxelIndices, yVoxelIndices, zVoxelIndices];
     
-    VoxelIndices(zVoxelIndices ~= slice,:) = [];
+    % Filter for current slice
+    VoxelIndices = VoxelIndices(zVoxelIndices == slice, :);
     
+    % Draw trisurf patches for masked voxels
     for vox = 1 : size(VoxelIndices,1)
-        ind = (VoxelIndices(vox,2)*MRSCont.raw{1, 1}.nXvoxels+VoxelIndices(vox,1)) * 8;
-        tri = delaunay(double(vertices_voxel((1:4)+ind, 1)), double(vertices_voxel((1:4)+ind, 2)));
-        trisurf(tri, vertices_voxel((1:4)+ind, 1), vertices_voxel((1:4)+ind, 2), vertices_voxel((1:4)+ind, 3),...
+        % Calculate linear index for this voxel (0-based for x,y)
+        vox_x = VoxelIndices(vox,1) - 1;
+        vox_y = VoxelIndices(vox,2) - 1;
+        ind = (vox_y * MRSCont.raw{1, 1}.nXvoxels + vox_x) * 8;
+        
+        % Get the 4 bottom vertices for this voxel
+        vert_idx = (1:4) + ind;
+        tri = delaunay(double(vertices_display(vert_idx, 2)), double(vertices_display(vert_idx, 1)));
+        trisurf(tri, vertices_display(vert_idx, 2), vertices_display(vert_idx, 1), vertices_display(vert_idx, 3),...
                'LineWidth',1,'FaceColor',VoxColors(1,:),'EdgeColor', 'none', 'FaceAlpha',0.75);
     end
     
-    
-    
-    % addGrid    
-    % Find vertices near the current slice (in voxel space, z-axis)
-    valid_vertices = abs(vertices_voxel(:, 3) - slice) < 1; 
-    
-    % Transform voxel coordinates to montage coordinates        
-    plot(vertices_voxel(valid_vertices, 1) , ...
-         vertices_voxel(valid_vertices, 2),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 4);
+    % Draw grid
+    valid_vertices = abs(vertices_display(:, 3) - slice) < 1; 
+    plot(vertices_display(valid_vertices, 2), ...
+         vertices_display(valid_vertices, 1),'.','Color',[254/255 186/255 47/255], 'MarkerSize', 6);
     
     axis image
 
