@@ -60,6 +60,7 @@ catch
     fprintf('Failed to install plotly for offline HTML plotting. Consult getplotlyoffline.');
   end
 end
+close all;
 
 % Get colormaps and setup the inital path
 colormaps = MRSCont.colormap;
