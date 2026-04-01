@@ -11,7 +11,6 @@ function MRSI_model = get_MRSI_results(FitMatrix)
 %
 %   OUTPUTS:
 %       out     = MRSI model struct with spectra
-$
 %
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2025-08-04)
