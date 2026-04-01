@@ -126,16 +126,16 @@ vertices = g.vertices;
 switch target_image
     case 'MRSIloc'
         [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_MRSIloc(MRSCont, vertices);
-        
+
     case 'T1w_rMRSIloc'
         [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_T1w_rMRSIloc(MRSCont, vertices);
-        
+
     case 'T1w_rMRSI'
         [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_T1w_rMRSI(MRSCont, vertices);
-        
+
     case 'MRSIloc_rMRSI'
         [Coreg_img, AffineMat, vertices_voxel, MRSI_vol] = osp_load_MRSIloc_rMRSI(MRSCont, vertices);
-        
+
     otherwise
         error('Unknown target_image type: %s', target_image);
 end
@@ -199,6 +199,8 @@ if ~isQC
         end
     elseif percentile_clean > 1
         max_val_cmap = percentile_clean;
+        else
+        max_val = max(plotMapTemp(:), [], 'all');
     end
 else
     max_val_cmap = max(plotMap_temp(:), [], 'all');
@@ -270,7 +272,7 @@ clim([0 max_val_cmap]);
 if cbar
     cbar_map = colorbar;
     set(cbar_map, 'Color', [1 1 1]);
-    
+
     if isQC
         % QC-specific colorbar labels
         cbar_map.Label.String = 'Applied QC filter';
