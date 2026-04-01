@@ -11,7 +11,6 @@ function MRSI_model = get_MRSI_amplitudes(FitMatrix)
 %
 %   OUTPUTS:
 %       out     = MRSI model struct with amplitudes and relative CRLBs
-$
 %
 %   AUTHOR:
 %       Helge Zöllner (Johns Hopkins University, 2025-08-04)
