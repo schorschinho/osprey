@@ -201,7 +201,7 @@ if MRSCont.flags.hasWater
 
         tstart = tic;
         parfor vx = 1:  length(data_vec)
-                water(vx) = Osprey_gLCM(D.Value(vx),M.Value{vx},0,1,S.Value,0,0,BASIS,1);
+                water(vx) = Osprey_gLCM(D.Value(vx),M.Value{vx},0,~zero_fill,S.Value,0,0,BASIS,1);
                 water{vx}.economizeStorage(1,1);                         % Remove basis set and jacobians
                 WaitMessage.Send;
         end
@@ -220,7 +220,7 @@ if MRSCont.flags.hasWater
     else        % Sequential processing
         tstart = tic;
         for vx = 1:  length(data_vec)
-                water(vx) = Osprey_gLCM(data_vec(vx),ModelProcedureCell{vx},0,0,scaleData,0,0,BASIS,1);
+                water(vx) = Osprey_gLCM(data_vec(vx),ModelProcedureCell{vx},0,~zero_fill,scaleData,0,0,BASIS,1);
                 water{vx}.economizeStorage(1,1);                         % Remove basis set and jacobians
                 WaitMessage.Send;
         end
@@ -368,7 +368,7 @@ end
         S = parallel.pool.Constant(scaleData);
         tstart = tic;
         parfor vx = 1:  length(data_vec)
-                model(vx) = Osprey_gLCM(D.Value(vx),M.Value{vx},0,1,S.Value,0,0,BASIS,1);
+                model(vx) = Osprey_gLCM(D.Value(vx),M.Value{vx},0,~zero_fill,S.Value,0,0,BASIS,1);
                 model{vx}.economizeStorage(1,1);                         % Remove basis set and jacobians
                 WaitMessage.Send;
         end
@@ -385,7 +385,7 @@ end
     else    % Sequential processing
         tstart = tic;
         for vx = 1:  length(data_vec)
-                model(vx) = Osprey_gLCM(data_vec(vx),ModelProcedureCell{vx},0,1,scaleData,0,0,BASIS,1);
+                model(vx) = Osprey_gLCM(data_vec(vx),ModelProcedureCell{vx},0,~zero_fill,scaleData,0,0,BASIS,1);
                 model{vx}.economizeStorage(1,1);                         % Remove basis set and jacobians 
                 WaitMessage.Send;
         end
