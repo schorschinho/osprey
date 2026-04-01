@@ -21,6 +21,46 @@ function [MRSCont] = OspreyMRSIHTMLReport(MRSCont,kk)
 %   HISTORY:
 %       2025-10-31: First version of the code.
 %% Prepartion
+% Ensure that plotly works correctly
+try
+  if ~isfield(MRSCont.opts.MRSI.report,'VoxelIndices')
+      VoxelIndices = [round(MRSCont.raw{kk}.nXvoxels/2),round(MRSCont.raw{kk}.nYvoxels/2),round(MRSCont.raw{kk}.nZvoxels/2);
+                      round(MRSCont.raw{kk}.nXvoxels/2)+1,round(MRSCont.raw{kk}.nYvoxels/2),round(MRSCont.raw{kk}.nZvoxels/2);
+                      round(MRSCont.raw{kk}.nXvoxels/2)+2,round(MRSCont.raw{kk}.nYvoxels/2),round(MRSCont.raw{kk}.nZvoxels/2);];
+  else
+      VoxelIndices = MRSCont.opts.MRSI.report.VoxelIndices;
+  end
+
+  out = osp_plotSpecAndLocMRSI(MRSCont,VoxelIndices,'T1w_rMRSI','OspreyLoad',1,'Fit1DStack',0,2,1,0,0);
+  PosLoadSpec = get(gcf,'Position');
+  set(gcf,'Position',[PosLoadSpec(1) PosLoadSpec(2) 4*PosLoadSpec(4) PosLoadSpec(4)])
+  p = fig2plotly(gcf, 'offline', true,'filename','Raw','fileopt','new','open',false);
+catch
+  close all;
+  fprintf('Installing plotly for offline plotting.');
+  getplotlyoffline('https://cdn.plot.ly/plotly-latest.min.js');
+  try
+    % Plot spectra
+    if ~isfield(MRSCont.opts.MRSI.report,'VoxelIndices')
+        VoxelIndices = [round(MRSCont.raw{kk}.nXvoxels/2),round(MRSCont.raw{kk}.nYvoxels/2),round(MRSCont.raw{kk}.nZvoxels/2);
+                        round(MRSCont.raw{kk}.nXvoxels/2)+1,round(MRSCont.raw{kk}.nYvoxels/2),round(MRSCont.raw{kk}.nZvoxels/2);
+                        round(MRSCont.raw{kk}.nXvoxels/2)+2,round(MRSCont.raw{kk}.nYvoxels/2),round(MRSCont.raw{kk}.nZvoxels/2);];
+    else
+        VoxelIndices = MRSCont.opts.MRSI.report.VoxelIndices;
+    end
+
+    out = osp_plotSpecAndLocMRSI(MRSCont,VoxelIndices,'T1w_rMRSI','OspreyLoad',1,'Fit1DStack',0,2,1,0,0);
+    PosLoadSpec = get(gcf,'Position');
+    set(gcf,'Position',[PosLoadSpec(1) PosLoadSpec(2) 4*PosLoadSpec(4) PosLoadSpec(4)])
+    p = fig2plotly(gcf, 'offline', true,'filename','Raw','fileopt','new','open',false);
+    p = cleanup_spectra(p);
+    movefile(fullfile(pwd,'Raw.html'),fullfile(outputFigures, 'Raw.html'));
+    close(out)
+  catch
+    fprintf('Failed to install plotly for offline HTML plotting. Consult getplotlyoffline.');
+  end
+end
+
 % Get colormaps and setup the inital path
 colormaps = MRSCont.colormap;
 ppmmin = 0.2;
@@ -68,7 +108,7 @@ if MRSCont.flags.didLoadData
     p = cleanup_spectra(p);
     movefile(fullfile(pwd,'Raw.html'),fullfile(outputFigures, 'Raw.html'));
     close(out)
-    
+
     % Quick Maps Load
     currentFolder = pwd;
     field_names = fieldnames(MRSCont.opts.MRSI.quickMapsList{1});
@@ -101,14 +141,14 @@ if MRSCont.flags.didCoreg
     close(out)
 end
 %% OspreySeg
-if MRSCont.flags.didSeg  
+if MRSCont.flags.didSeg
     out = osp_plotCoregMRSI(MRSCont, 'T1w_rMRSI', 0, 1, 1, 1,1, MRSCont.raw{1, 1}.nZvoxels);
     exportgraphics(gcf, 'CoregSeg.png');
     CoregSegPos = get(gcf,'Position');
     % p = fig2plotly(gcf, 'offline', true,'filename','CoregSeg','fileopt','new','open',false);
     movefile(fullfile(pwd,'CoregSeg.png'),fullfile(outputFigures, 'CoregSeg.png'));
     close(out)
-    
+
     out = osp_plotSegMRSI(MRSCont,1,1,MRSCont.raw{1, 1}.nZvoxels, 1);
     set(gcf, 'Units', 'Normalized')
     SegPos = get(gcf,'OuterPosition');
@@ -139,7 +179,7 @@ if MRSCont.flags.didProcess
     p = cleanup_spectra(p);
     movefile(fullfile(pwd,'Process.html'),fullfile(outputFigures, 'Process.html'));
     close(out)
-    
+
     % Quick Maps Process
     field_names = fieldnames(MRSCont.opts.MRSI.quickMapsList{2});
     for ff = 1 : length(field_names)
@@ -160,7 +200,7 @@ if MRSCont.flags.didProcess
             close(out)
         end
     end
-    
+
     names_quickMaps_proc{end+1} = ['A SNR'];
     out = osp_plotQuickmaps(MRSCont, 'A', 'SNR');
     p = fig2plotly(gcf, 'offline', true,'filename',['A_SNR'],'fileopt','new','open',false);
@@ -168,7 +208,7 @@ if MRSCont.flags.didProcess
     movefile(fullfile(pwd,'A_SNR.html'),fullfile(outputFigures,  'A_SNR.html'));
     files_quickMaps_proc{end+1} = fullfile(outputFigures, 'A_SNR.html');
     close(out)
-    
+
     names_quickMaps_proc{end+1} = ['A FWHM'];
     out = osp_plotQuickmaps(MRSCont, 'A', 'FWHM');
     p = fig2plotly(gcf, 'offline', true,'filename',['A_FWHM'],'fileopt','new','open',false);
@@ -176,7 +216,7 @@ if MRSCont.flags.didProcess
     movefile(fullfile(pwd,'A_FWHM.html'),fullfile(outputFigures,  'A_FWHM.html'));
     files_quickMaps_proc{end+1} = fullfile(outputFigures, 'A_FWHM.html');
     close(out)
-    
+
     names_quickMaps_proc{end+1} = ['Global QC filtering'];
     out = osp_plotMetabolitemaps(MRSCont,'GlobalQC','tNAA_Acetyl_only',1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);
     p = fig2plotly(gcf, 'offline', true,'filename',['Global_QC'],'fileopt','new','open',false);
@@ -203,19 +243,19 @@ if MRSCont.flags.didQuantify
     else
         quantifcations = MRSCont.opts.MRSI.report.quantifications;
     end
-    
+
     if ~isfield(MRSCont.opts.MRSI.report, 'metabolites')
         metabolites = {'tNAA'};
     else
         metabolites = MRSCont.opts.MRSI.report.metabolites;
     end
-    
+
     files_Quantification_Maps=[];
     names_Quantification_Maps=[];
     % Loop over quantifications
     for qq = 1 : length(quantifcations)
         for mm = 1 : length(metabolites)
-            out = osp_plotMetabolitemaps(MRSCont,quantifcations{qq},metabolites{mm},1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);  
+            out = osp_plotMetabolitemaps(MRSCont,quantifcations{qq},metabolites{mm},1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);
             p = fig2plotly(gcf, 'offline', true,'filename',[quantifcations{qq},'_',metabolites{mm}],'fileopt','new','open',false);
             p = cleanup_montages(p);
             movefile(fullfile(pwd,[quantifcations{qq},'_',metabolites{mm} '.html']),fullfile(outputFigures,  [quantifcations{qq},'_',metabolites{mm} '.html']));
@@ -224,13 +264,13 @@ if MRSCont.flags.didQuantify
             close(out)
         end
     end
-    
+
     files_Quantification_Maps_QC=[];
     names_Quantification_Maps_QC=[];
     % Loop over quantifications
     for qq = 1 : length(quantifcations)
         for mm = 1 : length(metabolites)
-            out = osp_plotMetabolitemaps(MRSCont,[quantifcations{qq} '_QC'],metabolites{mm},1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);  
+            out = osp_plotMetabolitemaps(MRSCont,[quantifcations{qq} '_QC'],metabolites{mm},1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);
             p = fig2plotly(gcf, 'offline', true,'filename',[quantifcations{qq},'_QC','_',metabolites{mm}],'fileopt','new','open',false);
             p = cleanup_montages(p);
             movefile(fullfile(pwd,[quantifcations{qq},'_QC','_',metabolites{mm} '.html']),fullfile(outputFigures,  [quantifcations{qq},'_QC','_',metabolites{mm} '.html']));
@@ -239,13 +279,13 @@ if MRSCont.flags.didQuantify
             close(out)
         end
     end
-    
+
     files_Quantification_Maps_QCfilt=[];
     names_Quantification_Maps_QCfilt=[];
     % Loop over quantifications
     for qq = 1 : length(quantifcations)
         for mm = 1 : length(metabolites)
-            out = osp_plotMetabolitemaps(MRSCont,[quantifcations{qq} '_QCfilt'],metabolites{mm},1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);  
+            out = osp_plotMetabolitemaps(MRSCont,[quantifcations{qq} '_QCfilt'],metabolites{mm},1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);
             p = fig2plotly(gcf, 'offline', true,'filename',[quantifcations{qq},'_QCfilt','_',metabolites{mm}],'fileopt','new','open',false);
             p = cleanup_montages(p);
             movefile(fullfile(pwd,[quantifcations{qq},'_QCfilt','_',metabolites{mm} '.html']),fullfile(outputFigures,  [quantifcations{qq},'_QCfilt','_',metabolites{mm} '.html']));
@@ -254,12 +294,12 @@ if MRSCont.flags.didQuantify
             close(out)
         end
     end
-    
+
     % CRLB maps
     files_CRLB_Maps=[];
     names_CRLB_Maps=[];
     for mm = 1 : length(metabolites)
-        out = osp_plotMetabolitemaps(MRSCont,'CRLBs',metabolites{mm},1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);  
+        out = osp_plotMetabolitemaps(MRSCont,'CRLBs',metabolites{mm},1,MRSCont.raw{1, 1}.nZvoxels,1,1,0);
         p = fig2plotly(gcf, 'offline', true,'filename',['CRLBs','_',metabolites{mm}],'fileopt','new','open',false);
         p = cleanup_montages(p);
         movefile(fullfile(pwd,['CRLBs','_',metabolites{mm} '.html']),fullfile(outputFigures,  ['CRLBs','_',metabolites{mm} '.html']));
@@ -285,7 +325,7 @@ if MRSCont.flags.didOverview
                 set(gcf, 'OuterPosition', [Pos(1), Pos(2),0.4, 0.4])
                 set(gcf, 'Units', 'Pixels')
                 PosGlobalConc = get(gcf,'Position');
-                exportgraphics(gcf, ['GlobalConc_' quantifcations{qq},'_',metabolites{mm} '.png']);   
+                exportgraphics(gcf, ['GlobalConc_' quantifcations{qq},'_',metabolites{mm} '.png']);
                  movefile(fullfile(pwd,['GlobalConc_' quantifcations{qq},'_',metabolites{mm} '.png']),fullfile(outputFigures,['GlobalConc_' quantifcations{qq},'_',metabolites{mm} '.png']));
                 files_GlobalConc{end+1} = fullfile(outputFigures, ['GlobalConc_' quantifcations{qq},'_',metabolites{mm} '.png']);
                 names_GlobalConc{end+1} = ['Global Concentration ', quantifcations{qq},' ',metabolites{mm}];
@@ -308,7 +348,7 @@ if MRSCont.flags.didOverview
                 set(gcf, 'OuterPosition', [Pos(1), Pos(2),0.4, 0.4])
                 set(gcf, 'Units', 'Pixels')
                 PosAtlas = get(gcf,'Position');
-                 exportgraphics(gcf, ['AtlasResults_' quantifcations{qq},'_region_',num2str(rr), '.png']);  
+                 exportgraphics(gcf, ['AtlasResults_' quantifcations{qq},'_region_',num2str(rr), '.png']);
                 movefile(fullfile(pwd,['AtlasResults_' quantifcations{qq},'_region_',num2str(rr), '.png']),fullfile(outputFigures,['AtlasResults_' quantifcations{qq},'_region_',num2str(rr),'.png']));
                 files_atlas{end+1} = fullfile(outputFigures, ['AtlasResults_' quantifcations{qq},'_region_',num2str(rr), '.png']);
                 names_atlas{end+1} = ['Atlas Results ', quantifcations{qq},' ',regions{rr}];
@@ -320,7 +360,7 @@ end
 %% Write report in HTML files
 %Write as relative path
 outputFigures   = fullfile('reportFigures',sub_str);
-%write an html report: 
+%write an html report:
 fid=fopen(fullfile(outputFolder,[sub_str,'-report.html']),'w+');
 fprintf(fid,'<!DOCTYPE html>');
 fprintf(fid,'\n<html>');
@@ -339,7 +379,7 @@ if MRSCont.flags.didLoadData
     fprintf(fid,'\n<h2> Osprey Load</h2>');
     fprintf(fid,'\n<h3> Example Raw Spectra </h3>');
     fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'Raw.html'),PosLoadSpec(4)*1.5);
-    
+
     fprintf(fid,'\n<h3> Quickmaps Raw Data (Amplitude Integration)</h3>');
     for ff = 1 : length(files_quickMaps_raw)
         fprintf(fid,'\n %s ', names_quickMaps_raw{ff} );
@@ -359,7 +399,7 @@ if MRSCont.flags.didSeg
     fprintf(fid,'\n<h2> Osprey Segmentation</h2>');
     fprintf(fid,'\n<h3> Outer mask + automated brain mask </h3>');
     fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'CoregSeg.png'),CoregSegPos(4)*1.8);
-    
+
     fprintf(fid,'\n<h3> Tissue fraction maps + automated masks </h3>');
     fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'Seg.html'),SegPos(4)*1.5);
 end
@@ -369,14 +409,14 @@ if MRSCont.flags.didProcess
     fprintf(fid,'\n<h2> Osprey Process</h2>');
     fprintf(fid,'\n<h3> Example Processed Spectra %s</h3>',TargetSpec);
     fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'Process.html'),PosProcSpec(4)*1.5);
-    
+
     fprintf(fid,'\n<h3> Quickmaps Processed Data (Amplitude Integration)</h3>');
     for ff = 1 : length(files_quickMaps_proc)
         if ff ==  length(files_quickMaps_proc)-2
             fprintf(fid,'\n<h3> Quality Metric Maps </h3>');
         end
         fprintf(fid,'\n %s ', names_quickMaps_proc{ff} );
-        fprintf(fid,'\n<iframe src=" %s" width="100%%" height="420px" frameborder="0"></iframe>',files_quickMaps_proc{ff});  
+        fprintf(fid,'\n<iframe src=" %s" width="100%%" height="420px" frameborder="0"></iframe>',files_quickMaps_proc{ff});
     end
 end
 
@@ -395,26 +435,26 @@ if MRSCont.flags.didQuantify
         fprintf(fid,'\n %s ', names_Quantification_Maps{ff} );
         fprintf(fid,'\n<iframe src=" %s" width="100%%" height="420px" frameborder="0"></iframe>',files_Quantification_Maps{ff});
     end
-    
+
     fprintf(fid,'\n<h3> Relative CRLB maps </h3>');
     for ff = 1 : length(files_CRLB_Maps)
         fprintf(fid,'\n %s ', names_CRLB_Maps{ff} );
         fprintf(fid,'\n<iframe src=" %s" width="100%%" height="420px" frameborder="0"></iframe>',files_CRLB_Maps{ff});
     end
-    
+
     fprintf(fid,'\n<h3> QC filter maps </h3>');
     for ff = 1 : length(files_Quantification_Maps_QC)
         fprintf(fid,'\n %s ', names_Quantification_Maps_QC{ff} );
         fprintf(fid,'\n<iframe src=" %s" width="100%%" height="420px" frameborder="0"></iframe>',files_Quantification_Maps_QC{ff});
     end
-    
+
     fprintf(fid,'\n<h3> Metabolite maps (QC filtered) </h3>');
     for ff = 1 : length(files_Quantification_Maps_QCfilt)
         fprintf(fid,'\n %s ', names_Quantification_Maps_QCfilt{ff} );
         fprintf(fid,'\n<iframe src=" %s" width="100%%" height="420px" frameborder="0"></iframe>',files_Quantification_Maps_QCfilt{ff});
     end
-    
-    
+
+
 end
 if MRSCont.flags.didOverview
     % OspreyOverview
@@ -450,14 +490,14 @@ function [p] = cleanup_montages(p)
     p.layout.xaxis1.showticklabels = false;
     p.layout.yaxis1.showticklabels = false;
     p.layout.xaxis1.domain = [0, 1];
-    p.layout.yaxis1.domain = [0, 1]; 
+    p.layout.yaxis1.domain = [0, 1];
     p.layout.plot_bgcolor = 'white';
     p.layout.paper_bgcolor = 'white';
     p.data{1}.colorbar.x = 1.02;
     p.data{1}.colorbar.xanchor = 'left';
     p.data{1}.colorbar.y = 0.5;
     p.data{1}.colorbar.yanchor = 'middle';
-    p.data{1}.colorbar.len = 0.95; 
+    p.data{1}.colorbar.len = 0.95;
     p.data{1}.colorbar.thickness = 20; % pixels
     p.data{1}.colorbar.thicknessmode = 'pixels';
     p.layout.margin.l = 0;
