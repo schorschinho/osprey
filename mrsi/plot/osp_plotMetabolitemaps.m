@@ -72,7 +72,7 @@ if nargin < 11
     cbar = 1;
     if nargin < 10
         convention = 'neurological';
-      if nargin < 9  
+      if nargin < 9
         clip = 1;
         if nargin < 8
             percentile_clean = 0;
@@ -87,7 +87,7 @@ if nargin < 11
                             if nargin < 3
                                 metabolite = 'mI';
                                 if nargin < 2
-                                    quantification = 'amplitudes'; 
+                                    quantification = 'amplitudes';
                                     if nargin < 1
                                         error('ERROR: no input Osprey container specified. Aborting!!');
                                     end
@@ -164,17 +164,17 @@ end
 
 %% Setup figure
 if ~MRSCont.flags.isGUI
-    out = figure;   
+    out = figure;
 else
     out = figure('Visible','off');
 end
 
 %% Get colormap
 if ~viridis_map
-    set(out, 'Color', [0 0 0]); 
+    set(out, 'Color', [0 0 0]);
 else
     vir = viridis;
-    set(out, 'Color', vir(1,:)); 
+    set(out, 'Color', vir(1,:));
 end
 
 %% Get output map
@@ -271,7 +271,7 @@ switch orientation_info.slice_orientation
             plotMap_display = flip(plotMap_display, 1);
             display_info.flipped_dims = [display_info.flipped_dims, 1];
         end
-        
+
         % Horizontal = L-R: depends on convention
         if strcmp(convention, 'radiological')
             if horiz_sign > 0
@@ -284,27 +284,27 @@ switch orientation_info.slice_orientation
                 display_info.flipped_dims = [display_info.flipped_dims, 2];
             end
         end
-        
+
     case 'sagittal'
         % Vertical = S-I: S should be at top
         if vert_sign > 0
             plotMap_display = flip(plotMap_display, 1);
             display_info.flipped_dims = [display_info.flipped_dims, 1];
         end
-        
+
         % Horizontal = A-P: A should be at left
         if horiz_sign > 0
             plotMap_display = flip(plotMap_display, 2);
             display_info.flipped_dims = [display_info.flipped_dims, 2];
         end
-        
+
     case 'coronal'
         % Vertical = S-I: S should be at top
         if vert_sign > 0
             plotMap_display = flip(plotMap_display, 1);
             display_info.flipped_dims = [display_info.flipped_dims, 1];
         end
-        
+
         % Horizontal = L-R: depends on convention
         if strcmp(convention, 'radiological')
             if horiz_sign > 0
@@ -317,7 +317,7 @@ switch orientation_info.slice_orientation
                 display_info.flipped_dims = [display_info.flipped_dims, 2];
             end
         end
-        
+
     case 'oblique'
         % Best effort for oblique
         si_in_vert = dir_cos(3, vert_img_dim_original);
@@ -325,7 +325,7 @@ switch orientation_info.slice_orientation
             plotMap_display = flip(plotMap_display, 1);
             display_info.flipped_dims = [display_info.flipped_dims, 1];
         end
-        
+
         lr_in_horiz = dir_cos(1, horiz_img_dim_original);
         if strcmp(convention, 'radiological')
             if lr_in_horiz > 0
@@ -358,6 +358,8 @@ if ~(contains(quantification,'QC') && ~contains(quantification,'QCfilt'))
             max_val = prctile(plotMapTemp, 97);
     elseif percentile_clean > 1
         max_val = percentile_clean;
+        else
+        max_val = max(plotMapTemp(:), [], 'all');
     end
 else
     max_val = max(plotMapTemp(:), [], 'all');
@@ -378,10 +380,10 @@ if viridis_map
 else
     colormap gray
 end
-clim([0 max_val]); 
+clim([0 max_val]);
 
 %% Handle QC-specific colormap
-if contains(quantification,'QC') && ~contains(quantification,'QCfilt')  
+if contains(quantification,'QC') && ~contains(quantification,'QCfilt')
     set(out, 'Color', [0 0 0]);
     if strcmp(quantification,'GlobalQC')
         mymap = [0 0 0
@@ -390,7 +392,7 @@ if contains(quantification,'QC') && ~contains(quantification,'QCfilt')
                 0 1 0];
     else
         mymap = [0 0 0
-                1 0 0           
+                1 0 0
                 0 0 1
                 1 0 1
                 0 1 1
@@ -420,7 +422,7 @@ set(gca, 'Position', [0.01, 0.05, 0.98, 0.9]);
 %% Add colorbar if requested
 if cbar
     cbar_handle = colorbar;
-    
+
     if ~(contains(quantification,'QC') && ~contains(quantification,'QCfilt'))
         cbar_handle.Label.String = quantification;
     else
