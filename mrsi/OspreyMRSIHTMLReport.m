@@ -379,7 +379,7 @@ if MRSCont.flags.didLoadData
     % OspreyLoad
     fprintf(fid,'\n<h2> Osprey Load</h2>');
     fprintf(fid,'\n<h3> Example Raw Spectra </h3>');
-    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'Raw.html'),PosLoadSpec(4)*1.5);
+    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%.0fx" frameborder="0"></iframe>',fullfile(outputFigures, 'Raw.html'),PosLoadSpec(4)*1.5);
 
     fprintf(fid,'\n<h3> Quickmaps Raw Data (Amplitude Integration)</h3>');
     for ff = 1 : length(files_quickMaps_raw)
@@ -392,24 +392,24 @@ if MRSCont.flags.didCoreg
     % OspreyCoreg
     fprintf(fid,'\n<h2> Osprey Coregistration</h2>');
     fprintf(fid,'\n<h3> MRSI slice localization </h3>');
-    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'Coreg.png'),CoregPos(4)*1.8);
+    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%.0fpx" frameborder="0"></iframe>',fullfile(outputFigures, 'Coreg.png'),CoregPos(4)*1.8);
 end
 
 if MRSCont.flags.didSeg
     % OspreySeg
     fprintf(fid,'\n<h2> Osprey Segmentation</h2>');
     fprintf(fid,'\n<h3> Outer mask + automated brain mask </h3>');
-    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'CoregSeg.png'),CoregSegPos(4)*1.8);
+    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%.0fpx" frameborder="0"></iframe>',fullfile(outputFigures, 'CoregSeg.png'),CoregSegPos(4)*1.8);
 
     fprintf(fid,'\n<h3> Tissue fraction maps + automated masks </h3>');
-    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'Seg.html'),SegPos(4)*1.5);
+    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%.0fpx" frameborder="0"></iframe>',fullfile(outputFigures, 'Seg.html'),SegPos(4)*1.5);
 end
 
 if MRSCont.flags.didProcess
     % OspreyProcess
     fprintf(fid,'\n<h2> Osprey Process</h2>');
     fprintf(fid,'\n<h3> Example Processed Spectra %s</h3>',TargetSpec);
-    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'Process.html'),PosProcSpec(4)*1.5);
+    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%.0fx" frameborder="0"></iframe>',fullfile(outputFigures, 'Process.html'),PosProcSpec(4)*1.5);
 
     fprintf(fid,'\n<h3> Quickmaps Processed Data (Amplitude Integration)</h3>');
     for ff = 1 : length(files_quickMaps_proc)
@@ -425,7 +425,7 @@ if MRSCont.flags.didFit
     % OspreyFit
     fprintf(fid,'\n<h2> Osprey Fit</h2>');
     fprintf(fid,'\n<h3> Example Fits </h3>');
-    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',fullfile(outputFigures, 'Fit.html'),PosFitSpec(4)*1.5);
+    fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%.0fx" frameborder="0"></iframe>',fullfile(outputFigures, 'Fit.html'),PosFitSpec(4)*1.5);
 end
 
 if MRSCont.flags.didQuantify
@@ -463,13 +463,13 @@ if MRSCont.flags.didOverview
     fprintf(fid,'\n<h3> Atlas Analysis </h3>');
     for ff = 1 : length(files_atlas)
         fprintf(fid,'\n <h4> %s </h4>', names_atlas{ff} );
-        fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',files_atlas{ff},PosGlobalConc(4)*1.5);
+        fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%.0fx" frameborder="0"></iframe>',files_atlas{ff},PosGlobalConc(4)*1.5);
     end
 
     fprintf(fid,'\n<h3> Global Concentrations </h3>');
     for ff = 1 : length(files_GlobalConc)
         fprintf(fid,'\n <h4> %s </h4>', names_GlobalConc{ff} );
-        fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%ipx" frameborder="0"></iframe>',files_GlobalConc{ff},PosAtlas(4)*1.5);
+        fprintf(fid,'\n<iframe src=" %s" width="100%%" height="%.0fx" frameborder="0"></iframe>',files_GlobalConc{ff},PosAtlas(4)*1.5);
     end
 end
 fprintf(fid,'\n</body>');
