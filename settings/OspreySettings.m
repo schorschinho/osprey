@@ -46,10 +46,11 @@ MRSCont.opts.fit.FWHMcoMM3          = 14;               % FWHM [Hz] of the co-ed
 %%% 2. FIND AND SET PATHS %%%
 % Osprey
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
-allFolders      = strsplit(settingsFolder, filesep);
-ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
-matlabFolder    = strjoin(allFolders(1:end-2), filesep); % parent-parent folder (usually MATLAB folder)
-addpath(genpath(ospFolder));
+if isempty(settingsFolder)
+    error('Osprey not found! Please install Osprey (https://github.com/schorschinho/osprey) and include it in your MATLAB path.');
+else
+    [ospFolder, ~, ~] = fileparts(settingsFolder);
+end
 
 % SPM
 addpath(genpath([matlabFolder filesep 'spm12' filesep]));    % SPM path
