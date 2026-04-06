@@ -31,7 +31,7 @@ function [out] = io_loadspec_rda(pathname)
         filesInFolder = dirFolder(~[dirFolder.isdir]);
         filesInFolder = filesInFolder(~ismember({filesInFolder.name}, {'.','..','.DS_Store'}));
         %hidden = logical(ones(1,length(filesInFolder)));
-        hidden = true(length(filesInFolder));
+        hidden = true(1,length(filesInFolder));
         for jj = 1:length(filesInFolder)
             if strcmp(filesInFolder(jj).name(1),'.')
                 hidden(jj) = 0;
@@ -176,7 +176,7 @@ function [out] = io_loadspec_rda(pathname)
     
     % Write them
     %Modified HR%
-    if contains(rda.software_version,{'XA30','XA60'},'IgnoreCase',true) && ~any(structfun(@(x) x == true,flag))
+    if contains(rda.software_version,{'XA30','XA31','XA60'},'IgnoreCase',true) && ~any(structfun(@(x) x == true,flag))
         geometry.size.VoI_RoFOV     = rda.SlabThickness(3);     % Voxel size in readout direction [mm]
         geometry.size.VoI_PeFOV     = rda.SlabThickness(2);     % Voxel size in phase encoding direction [mm]
         geometry.size.VoIThickness  = rda.SlabThickness(1);     % Voxel size in slice selection direction [mm]

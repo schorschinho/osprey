@@ -135,8 +135,8 @@ for ss = 1 : SubSpectraFitted
         end
     else
         MRSCont.quantify.names.metab{1,ss} = MRSCont.fit.results.metab.fitParams{1, 1, ss}.name;
-        common_LCModelNames = {'PCh_GPC','Cr_PCr','NAA_NAAG','Glu_Gln','GABA_MM30','GABA_MM09'};
-        Osprey_Names = {'tCho','tCr','tNAA','Glx','GABAplus','GABAplus'};
+        common_LCModelNames = {'PCh_GPC','Cr_PCr','NAA_NAAG','Glu_Gln','GABA_MM30','GABA_MM09','Lac_MM14','bHB_MM12'};
+        Osprey_Names = {'tCho','tCr','tNAA','Glx','GABAplus','GABAplus','LacPlus','bHBPlus'};
         for nn = 1 : length(common_LCModelNames)
             idx  = find(strcmp(MRSCont.quantify.names.metab{1,ss},common_LCModelNames{nn}));
             if ~isempty(idx)
@@ -682,7 +682,7 @@ for mm = 1 : size(amplMets,1)
     % Metabolites
     for ss = 1 : size(amplMets,3)
         for kk = 1:length(metsName.metab{mm,ss})
-            [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss},Bo);
+            [T1_Metab_GM(kk), T1_Metab_WM(kk), T2_Metab_GM(kk), T2_Metab_WM(kk)] = lookUpRelaxTimes(metsName.metab{mm,ss}{kk},Bo);
             % average across GM and WM
             T1_Metab(kk) = mean([T1_Metab_GM(kk) T1_Metab_WM(kk)]);
             T2_Metab(kk) = mean([T2_Metab_GM(kk) T2_Metab_WM(kk)]);

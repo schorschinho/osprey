@@ -33,7 +33,7 @@ end
 if contains(seq,'press')
     seq = 'press';
 end
-if contains(seq,'slaser')
+if contains(seq,'slaser') || contains(seq,'herc_')
     seq = 'slaser';
 end
 
@@ -53,7 +53,7 @@ end
     
 % Find the right basis set (provided as *.mat file in Osprey basis set
 % format)
-if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile) && ~isfolder(MRSCont.opts.fit.basisSetFile))
+if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basisSetFile) && ~any(isfolder(MRSCont.opts.fit.basisSetFile)))
 
     % Intercept non-integer echo times and replace the decimal point with
     % an underscore to avoid file extension problems
@@ -104,7 +104,7 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         elseif MRSCont.flags.isHERCULES
             switch MRSCont.vendor
                 case 'Philips'
-                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat'];
+                    MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/philips/hercules-' seq '/basis_philips_hercules-' seq '.mat'];
                 case 'GE'
                     MRSCont.opts.fit.basisSetFile        = [MRSCont.opts.fit.basissetFolder '/' Bo '/ge/hercules-press/basis_ge_hercules-press.mat'];
                 case 'Siemens'
@@ -150,7 +150,7 @@ if ~(isfield(MRSCont.opts.fit,'basisSetFile') && ~isempty(MRSCont.opts.fit.basis
         elseif MRSCont.flags.isHERCULES
             switch MRSCont.vendor
                 case 'Philips'
-                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/philips/hercules-press/basis_philips_hercules-press.mat']);
+                    MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/philips/hercules-' seq '/basis_philips_hercules-' seq '.mat']);
                 case 'GE'
                     MRSCont.opts.fit.basisSetFile        = which(['/basissets/' Bo '/ge/hercules-press/basis_ge_hercules-press.mat']);
                 case 'Siemens'
@@ -372,9 +372,14 @@ switch MRSCont.opts.fit.method
                                 metabsToInclude{2} = fit_createMetabList({'GABA','GSH','Gln','Glu','NAAG','NAA','MM09','MM30'});
                         end
                         metabsInBasis{2}   = fit_readLCMBasisSetMetabs(basisSetFile{2});
+                    case 'Lac'
+                        basisSetFile{2}     = MRSCont.opts.fit.basisSetFile{2};
+                        metabsToInclude{2}  = fit_createMetabList({'Asc','Asp','bHB','Cr','GPC','Gln','Glu','GSH','mI','Lac','NAA','NAAG','PCh','PCr','PE', 'MM12', 'MM14'}); % Dacko & Lange, NMR Biomed 2019;32:e4100 (plus Glu, Gln, Asp, GSH)
+                        metabsInBasis{2}    = fit_readLCMBasisSetMetabs(basisSetFile{2});
                     otherwise
-                        metabsToInclude{2} = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
-                        metabsInBasis{2}   = fit_readLCMBasisSetMetabs(basisSetFile{2});
+                        basisSetFile{2}     = MRSCont.opts.fit.basisSetFile{2};
+                        metabsToInclude{2}  = fit_createMetabList(MRSCont.opts.fit.includeMetabs);
+                        metabsInBasis{2}    = fit_readLCMBasisSetMetabs(basisSetFile{2});
                 end
             end
             % Loop over metabolites in the basis set
@@ -388,11 +393,45 @@ switch MRSCont.opts.fit.method
                     if ~isempty(idx)
                         % If it's a match, check whether it should be included
                         if metabsToInclude{nn}.(currentName) == 1
+                            % This is indicated to be included - do not add
+                            % a chomit entry for this metabolite
                         else
+                            % This is not indicated to be included - add
+                            % a chomit entry for this metabolite!
                             chOmitList{1,nn}{end+1} = ['''' currentName ''''];
                         end
                     else
-                        chOmitList{1,nn}{end+1} = ['''' currentName ''''];
+                        % If the name of this metabolite is *not* in the
+                        % list of metabolites to include, this can mean two
+                        % things:
+
+                        % 1) It just has a different name - check against
+                        % the list of validated metabolites to see if we
+                        % can find an equivalent name (and then
+                        % double-check if we want to include it)
+                        listValidMetNames   = listValidBasisFunctionNames('mets');
+                        listValidMMNames    = listValidBasisFunctionNames('mm');
+                        jointList           = horzcat(listValidMetNames, listValidMMNames);
+                        
+                        % Slightly convoluted way of finding the index that
+                        % has a match
+                        idx_match = find(cellfun(@(c) any(strcmp(c, currentName)), jointList));
+                        if ~isempty(idx_match)
+                            % In this case, we have found the metabolite in
+                            % a valid list, but not as the preferred choice
+                            % in Osprey (e.g., if the metabolite is named
+                            % Ins, but Osprey prefers mI).
+                            % In this case, do not add the metabolite to
+                            % chomit
+                            fprintf("INFO: %s found in the basis set, although Osprey prefers the convention %s - consider renaming in your basis set.\n", currentName, jointList{idx_match}{1});
+                            
+                        else
+                            % 2) It does not show up under *any* name - in this
+                            % case, let's create a chomit entry, and feed back
+                            % a line to the console
+                            fprintf("INFO: %s found in the basis set, but not recognized as a valid metabolite. Will be added to chomit list and therefore excluded from fit. If you need it badly, add it to listValidBasisFunctionNames.m!\n", currentName);
+                            chOmitList{1,nn}{end+1} = ['''' currentName ''''];
+                        end
                     end
                     
                 end
@@ -442,6 +481,10 @@ switch MRSCont.opts.fit.method
                 % Augment list of metabolites to omit
                 if isfield(LCMparam, 'chomit')
                     chOmitList{1} = unique(horzcat(chOmitList{1}, LCMparam.chomit));
+                end
+                % Add NRATIO parameter if chrato is specified
+                if isfield(LCMparam, 'chrato')
+                    LCMparam = osp_editControlParameters(LCMparam, 'nratio', num2str(length(LCMparam.chrato)));
                 end
                 LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList{1});
                 LCMparam = osp_editControlParameters(LCMparam, 'filraw', '');
@@ -503,7 +546,17 @@ switch MRSCont.opts.fit.method
                 LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.15');
                 LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
                 %LCMparam = osp_editControlParameters(LCMparam, 'wdline', '0');
-                LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
+                % GO 11/2025: If CrCH2 is already in the basis set, exclude
+                % it from LCModel simulation
+                if isfield(metabsToInclude{1}, 'CrCH2')
+                    if metabsToInclude{1}.CrCH2 == 1
+                        LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '11');
+                    else
+                        LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
+                    end
+                else
+                    LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '12');
+                end
                 LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''PCh+GPC''','''Cr+PCr''','''NAA+NAAG''','''Glu+Gln''','''Glc+Tau'''});
                 LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList{1});
                 LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''Cr+PCr''');
@@ -541,17 +594,19 @@ switch MRSCont.opts.fit.method
                     LCMparam = osp_editControlParameters(LCMparam, 'filbas', ['''' basisSetFile{2} '''']);
                     LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.15');
                     LCMparam = osp_editControlParameters(LCMparam, 'neach', '99');
-                    LCMparam = osp_editControlParameters(LCMparam, 'sptype', '''mega-press-3''');
                     if ~isinf(MRSCont.opts.fit.bLineKnotSpace)
                         LCMparam = osp_editControlParameters(LCMparam, 'nobase', 'F');
                     else
                         switch MRSCont.opts.editTarget{1}
                             case 'GABA'
                                 LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '0.6');
+                            case 'Lac'
+                                LCMparam = osp_editControlParameters(LCMparam, 'dkntmn', '1.0');
                         end
                     end
                     switch MRSCont.opts.editTarget{1}
                         case 'GABA'
+                            LCMparam = osp_editControlParameters(LCMparam, 'sptype', '''mega-press-3''');
                             switch MRSCont.opts.fit.coMM3
                                 case {'3to2MM'}
                                     LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '1');
@@ -580,6 +635,30 @@ switch MRSCont.opts.fit.method
                                     LCMparam = osp_editControlParameters(LCMparam, 'chrato', {'''MM30/MM09 = 0.66 +- .2'''});
                             end
                             LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''NAA+NAAG''');
+                        case 'Lac'
+                            % GO 11/2025 Add some empirical MMs
+                            % For now, I'll just add the ~1.41-ppm one,
+                            % since it's larger and has less overlap (the
+                            % 1.21-ppm one will very heavily overlap with
+                            % bHB). Assume 14 Hz Lorentzian LW for now.
+                            % According to Landheer (10.1002/mrm.28282),
+                            % the 1.4-ppm MM has T2 ~18 Hz
+                            % See discussion in Dacko & Lange, NMR Biomed 2019;32:e4100 (see also Dacko & Lange, MRM 2021;85:1160-1174)
+                            % GO 01/2026 Add experimental MM12
+                            LCMparam = osp_editControlParameters(LCMparam, 'nsimul', '2');
+                            LCMparam = osp_editControlParameters(LCMparam, 'chsimu', {'''MM12 @ 1.21 +- .02 FWHM= .085 <  .114 +- .35 AMP= 2.''', ...
+                                                                                      '''MM14 @ 1.41 +- .02 FWHM= .085 <  .114 +- .35 AMP= 2.'''});
+                            LCMparam = osp_editControlParameters(LCMparam, 'chrato', {'''MM12/MM14 = 0.25 +- .1'''});
+                            % GO 11/2025 Specify the reference singlet (needs to be in
+                            % the basis set!
+                            LCMparam = osp_editControlParameters(LCMparam, 'wsmet', '''Lac''');
+                            LCMparam = osp_editControlParameters(LCMparam, 'wsppm', '0.0');
+                            LCMparam = osp_editControlParameters(LCMparam, 'n1hmet', '1');
+                            % GO 11/2025 Compare to tNAA
+                            LCMparam = osp_editControlParameters(LCMparam, 'namrel', '''NAA+NAAG''');
+                            % GO 11/2025 Add Lac+ output
+                            LCMparam = osp_editControlParameters(LCMparam, 'chcomb', {'''NAA+NAAG''','''Glu+Gln''','''Lac+MM14''','''bHB+MM12'''});
+
                     end
                     
                     LCMparam = osp_editControlParameters(LCMparam, 'chomit', chOmitList{2});                   

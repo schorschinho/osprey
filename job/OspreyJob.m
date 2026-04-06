@@ -450,6 +450,15 @@ if strcmp(jobFileFormat,'json')
             opts.fit.basisSetFile = jobStruct.basisSet;
         end
     end
+    if isfield(jobStruct,'basisSetFile')
+        opts.fit.basisSetFile = jobStruct.basisSetFile;
+    end
+    if isfield(jobStruct,'controlFile')
+        MRSCont.opts.fit.controlFile = jobStruct.controlFile;
+    end
+    if isfield(jobStruct,'customLCModelBinary')
+        MRSCont.opts.fit.customLCModelBinary = jobStruct.customLCModelBinary;
+    end
     if isfield(jobStruct,'deface')
         opts.img.deface = str2num(jobStruct.deface);
     else
