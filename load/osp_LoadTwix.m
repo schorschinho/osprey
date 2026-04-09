@@ -96,7 +96,14 @@ for kk = 1:MRSCont.nDatasets(1)
             else
                 ref_ll = 1;
                 if ~isempty(raw_ref)
+                    % GO 2026: This is the case where the water reference
+                    % is not provided as a separate file (in files_ref),
+                    % but rather embedded (e.g., in the dkd & dkd2
+                    % sequences). In that case, set the flag and also set
+                    % files_ref to be identical to files (for files_ref is
+                    % used in saveLCM and plotting functions).
                     MRSCont.flags.hasRef = 1;
+                    MRSCont.files_ref{metab_ll,kk} = MRSCont.files{metab_ll,kk};
                 end
             end
             if MRSCont.flags.hasWater
