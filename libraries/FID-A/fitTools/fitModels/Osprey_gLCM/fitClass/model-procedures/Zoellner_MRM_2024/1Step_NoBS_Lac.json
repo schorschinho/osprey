@@ -1,0 +1,51 @@
+{
+  "basisset": {
+    "file": [
+      "which(fullfile('fit','basissets','3T','philips','unedited','slaser','30','basis_philips_slaser30.mat'))"
+    ]
+  },
+  "Steps":
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Lac"
+        ]
+      },
+      "fit_opts": {
+        "ppm": [
+          0.5,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "none"
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0",
+        "ph1",
+        "gaussLB",
+        "lorentzLB",
+        "freqShift",
+        "metAmpl",
+        "baseAmpl"
+      ],
+      "parametrizations": {
+        "gaussLB": {
+          "init": 5.7043
+        },
+        "lorentzLB": {
+          "init": 2.4238
+        }
+      }
+    }
+}

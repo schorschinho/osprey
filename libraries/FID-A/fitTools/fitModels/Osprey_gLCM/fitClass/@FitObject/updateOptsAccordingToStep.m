@@ -100,10 +100,6 @@ function updateOptsAccordingToStep(obj, options)
         options.parametrizations.baseAmpl.ub      = Inf;
         options.parametrizations.baseAmpl.init    = 0;
         
-        % Initialize x (the external dependency vector) as natural numbers
-        options.parametrizations.x.values = [1:1:size(obj.Data.fids,2)];
-        options.parametrizations.x.name   = 'independentVariable';
-        
     end
     
     % Update baseline model 

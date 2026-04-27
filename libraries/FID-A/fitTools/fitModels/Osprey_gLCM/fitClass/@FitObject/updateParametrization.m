@@ -17,16 +17,14 @@ function updateParametrization(obj, parametrization)
 
 pars = fields(parametrization);                                             % Get parameter names to update
 for ff = 1 : length(pars) 
-    
-    if ~isfield(obj.Options{obj.step+1}.parametrizations,(pars{ff}))        % No parametrization exists
-        obj.Options{obj.step+1}.parametrizations.(pars{ff}) = parametrization.(pars{ff});
-    else
-        vals = fields(parametrization.(pars{ff}));
-        for vv = 1 : length(vals)
-            if ~isfield(obj.Options{obj.step+1}.parametrizations.(pars{ff}),vals{vv})
-                obj.Options{obj.step+1}.parametrizations.(pars{ff}).(vals{vv}) = parametrization.(pars{ff}).(vals{vv});
-            end
+    vals = fields(parametrization.(pars{ff}));
+    for vv = 1 : length(vals)
+        if ~isfield(obj.Options{obj.step+1}.parametrizations,(pars{ff}))
+            obj.Options{obj.step+1}.parametrizations.(pars{ff}) = [];
         end
+        if ~isfield(obj.Options{obj.step+1}.parametrizations.(pars{ff}),(vals{vv}))
+            obj.Options{obj.step+1}.parametrizations.(pars{ff}).(vals{vv}) = parametrization.(pars{ff}).(vals{vv});
+        end        
     end
 end
 end

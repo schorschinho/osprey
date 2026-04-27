@@ -1,0 +1,93 @@
+{
+  "basisset": {
+    "file": [
+      "which(fullfile(''fit'',''basissets'',''3T'',''siemens'',''unedited'',''press'',''35'',''basis_siemens_press35.mat''))"
+    ],
+    "mmdef": [
+      "which(fullfile(''libraries'',''FID-A'',''fitTools'',''fitModels'',''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"  
+    ]
+  },
+  "Steps": [{
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr","GPC","Glu","mI","NAA"
+        ]
+      },
+      "fit_opts": {
+        "ppm": [
+          0.5,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.16
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+          "lorentzLB": {
+          "gr":{"g1":["Cr","GPC","Glu","mI","NAA"]}
+        },
+        "freqShift": {
+          "gr":{"g1":["Cr","GPC","Glu","mI","NAA"]}
+        }
+      }
+  },
+    {
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau","MM09","MM12","MM14","MM17","MM20",
+          "Lip09","Lip13a","Lip13b","Lip13c","Lip13d","Lip20"
+        ]
+      },
+      "fit_opts": {
+        "ppm": [
+          0.5,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.4
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+        "metAmpl": {
+            "sc":{
+                  "adj": ["Lip09","Lip20","MM20","MM12","MM14","MM17","CrCH2","NAAG"],
+                  "fix": [["Lip13a","Lip13b"],["Lip13a","Lip13b"],"MM09","MM09","MM09","MM09",["Cr","PCr"],"NAA"],
+                  "fix_factor":[[1,1],[1,1],1,1,1,1,[1,1],1],
+                  "ex": [0.267,0.15,1.5,0.3,0.75,0.375,0.1,0.15],
+                  "sd": [0.1,0.07,0.375,0.1,0.45,0.3,0.1,0.15],
+                  "fun": "ratio",
+                  "scaling": 0.99
+            }}
+      }
+    }
+  ]
+}

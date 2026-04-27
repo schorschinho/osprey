@@ -1,4 +1,4 @@
-classdef BaselineModels1D < matlab.unittest.TestCase   
+zclassdef BaselineModels1D < matlab.unittest.TestCase   
     properties (TestParameter)
         debug = struct('update_priors',0,'plot',1);
         baseline = {'none','spline','poly','reg_spline'};

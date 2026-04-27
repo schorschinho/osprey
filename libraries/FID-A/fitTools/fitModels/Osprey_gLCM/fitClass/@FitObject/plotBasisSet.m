@@ -23,13 +23,13 @@ function plotBasisSet(obj, step, subSpec, plotRange)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %%  Diverge to default options if required 
-    if nargin < 2
-        step = obj.step;                                                % Set to last step
-    end
     if nargin < 4
-        plotRange = obj.Options{step}.optimFreqFitRange;                    % Set plot range  
+        plotRange = obj.Options{obj.step}.optimFreqFitRange;                    % Set plot range  
         if nargin < 3
             subSpec = 1;                                                            % Set subspec
+            if nargin < 2
+                step = obj.step;                                                % Set to last step
+            end
         end
     end
   

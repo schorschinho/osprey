@@ -1,0 +1,38 @@
+{
+  "parameters": {
+  "ph0": {
+      "type": "free",
+      "ub": 3.14159,
+       "lb": -3.12414
+    },
+  "ph1": {
+      "type": "fixed",
+       "ub": 0,
+       "lb": 0
+    },
+  "GlobFreqShift": {
+      "type": "free",
+      "ub": 628,
+       "lb": -628
+    },
+  "gaussLB": {
+      "type": "fixed",
+      "init": 9.70
+    },
+  "baseAmpl": {
+      "type": "fixed"
+    },
+  "metAmpl": {
+      "type": "fixed"
+    },
+  "freqShift": {
+      "type": "fixed",
+      "ub": 0,
+       "lb": 0
+    },
+  "lorentzLB": {
+      "type": "fixed",
+      "init": 2.4238
+    }
+  }
+}

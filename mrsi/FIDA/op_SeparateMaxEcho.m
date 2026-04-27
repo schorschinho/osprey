@@ -32,7 +32,6 @@ switch side
     case 'flipleft'   
         fids = zeros(in.sz);
         fids(1:pointsToPick,:,:,:) = conj(flip(in.fids(1:pointsToPick,:,:,:),1));
-        % fids(1:pointsToPick,:,:,:) = ((in.fids(1:pointsToPick,:,:,:)));
     case 'right'
         fids = zeros(in.sz);
         fids(1:in.sz(1)-pointsToPick+1,:,:,:) = in.fids(pointsToPick:end,:,:,:);

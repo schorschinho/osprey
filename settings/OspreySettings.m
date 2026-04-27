@@ -52,8 +52,6 @@ else
     [ospFolder, ~, ~] = fileparts(settingsFolder);
 end
 
-% SPM
-addpath(genpath([matlabFolder filesep 'spm12' filesep]));    % SPM path
 % Check if SPM12 is installed
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)

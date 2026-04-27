@@ -33,9 +33,7 @@ end
 % Retain only basis functions that are MMs
 basisSet.name   = basisSet.name(~whichIndicesAreTheMMs);
 basisSet.fids   = basisSet.fids(:,~whichIndicesAreTheMMs,:);
-if isfield(basisSet,'specs')
-    basisSet.specs  = basisSet.specs(:,~whichIndicesAreTheMMs,:);
-end
+basisSet.specs  = basisSet.specs(:,~whichIndicesAreTheMMs,:);
 
 % Save metadata
 basisSet.sz     = size(basisSet.fids);
