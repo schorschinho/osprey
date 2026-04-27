@@ -1,0 +1,53 @@
+{
+  "parameters": {
+  "metAmpl": {
+      "type": "dynamic",
+      "fun": "ExponentialDecay",
+      "modulator":[0,20,44,71,105,149,211,320],
+      "parameterNames": [
+        "DecayAmpl",
+        "DecayConstant"
+      ],
+      "parametrizations": {
+        "fun": "ExponentialDecay",
+        "init": [0.4,110],
+        "lb": [0,5],
+        "ub": ["Inf","Inf"],
+        "ex": [0,0],
+        "sd": ["Inf","Inf"],
+        "gr":{"g1":[[],["Glu","Gln"]],
+              "g2":[[],["Cr","PCr"]]},
+        "sc":{
+                  "adj": [["Lip09","Lip20","MM20","MM12","MM14","MM17","CrCH2","NAAG"],[[]]],
+                  "fix": [[["Lip13a","Lip13b"],["Lip13a","Lip13b"],"MM09","MM09","MM09","MM09",["Cr","PCr"],"NAA"],[[]]],
+                  "fix_factor":[[[1,1],[1,1],1,1,1,1,[1,1],1],[[1]]],
+                  "ex": [[0.267,0.15,1.5,0.3,0.75,0.375,0.1,0.15],[[1]]],
+                  "sd": [[0.1,0.07,0.375,0.1,0.45,0.3,0.1,0.15],[[0.5]]],
+                  "fun": "ratio",
+                  "scaling": 1
+            }  
+      }
+    },
+    "ph0": {
+        "type": "fixed"
+      },
+    "ph1": {
+        "type": "fixed"
+      },
+    "gaussLB": {
+        "type": "fixed"
+      },
+    "baseAmpl": {
+        "type": "free",
+        "RegFun": "SecondDerivative",
+        "RegPar":[15,30,45,60,75,90,105,120]
+      },
+    "freqShift": {
+        "type": "fixed"
+      },
+    "lorentzLB": {
+        "type": "fixed",
+        "gr":{"g1":[["MM09","MM12"]]}
+      }
+  }
+}

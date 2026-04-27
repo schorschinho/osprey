@@ -25,7 +25,7 @@ function plotSpectra(obj, secDim, plotRange)
 %%  Diverge to default options if required 
 
     if nargin < 3
-        plotRange = obj.Options{1}.optimFreqFitRange;            % Set plot range
+        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range
         if nargin < 2
             secDim = 1;                                             % Set second dimensions to plot
         end

@@ -82,7 +82,7 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
                  end
 
                  hold on;
-                 dim=dim;                                                          % for some reason matlab has a problem when you put the fit exactly on top of the data, so this adds a small offset
+                 dim=dim+0.05;                                                          % for some reason matlab has a problem when you put the fit exactly on top of the data, so this adds a small offset
                  for ss = startRange : endRange
                     
                        plot3(ppm,dim(:,ss),real(fit(:,ss)),'k', ...
@@ -117,6 +117,14 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
     
         end
 
+        dim=dim+0.5;                                                      
+        for ss = 1:size(fit,2)
+
+            plot3(ppm,dim(:,ss),real(residual(:,ss)),'k','Linewidth',1.5, ...                % plot fit
+                'Color', [11/255 71/255 111/255])
+    
+        end
+
     elseif secDim > 0 && secDim <=size(data,2)                                          % if you defined the dimension, it will plot the no. of spectra you defined
         dim_r = 1: secDim;
         dim = repmat(dim_r, [size(data,1) 1]);
@@ -128,7 +136,7 @@ function plotFit3D(obj,newFigure,step,secDim, plotRange)
             hold on;
         end
         hold on
-        dim=dim;
+        dim=dim+0.05;
         for ss = 1:secDim
 
             plot3(ppm,dim(:,ss),real(fit(:,ss)),'k','Linewidth',1.5, ...                 % plot fit

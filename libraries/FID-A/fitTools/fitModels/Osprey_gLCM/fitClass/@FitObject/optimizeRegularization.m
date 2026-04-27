@@ -74,7 +74,6 @@ function obj = optimizeRegularization(obj, opts)
     % Find the optimal regularization parameter using the mAIC formalism
     if OptimSteps>1                                                         % This is only needed when optimzation is actually ran
         [optimLambda, optimLambdaIndex,ed,AIC] = h_RegOpt.optimLambda(residual,ppm,optimFreqFitRange,SplineBasis,h_Reg,OptimSteps,m,RegParSpace);   % Use optimLambda to find optimal regularization parameter
-        [indMin, indMax] = ppmToIndex(ppm,optimFreqFitRange);
         % Store optimal regularizer parameters in OspreyFitObj for next
         % step. Also store the full ed and AIC space to allow plotting
         % those later.
@@ -82,8 +81,6 @@ function obj = optimizeRegularization(obj, opts)
         obj.Model{obj.step}.Regularization.OptimalRegPar = optimLambda;             % Store optimal regularization parameter in OspreyFitObj
         obj.Model{obj.step}.Regularization.ed = ed;                                 % Store ED array in OspreyFitObj
         obj.Model{obj.step}.Regularization.AIC = AIC;                               % Store AIC array in OspreyFitObj
-        obj.Model{obj.step}.Regularization.residual = residual(indMin:indMax,:);                               % Store AIC array in OspreyFitObj
-        obj.Model{obj.step}.Regularization.Lambda = RegParSpace;                               % Store AIC array in OspreyFitObj
         obj.Options{1, end}.parametrizations.(opts.regularizer.parameter).RegPar = optimLambda; % Get optimal regularization parameter to re-run object for visualization
         if isfield(opts.regularizer,'fixedParameter')                       % Get parameter names that should be fixed during the regularizer optimization             
             for pars = 1 : length(opts.regularizer.fixedParameter)          % Loop over parameters to fix

@@ -1,4 +1,4 @@
-function [NoiseSD]=osp_gLCM_getNoiseSD(in,noiseppmmin,noiseppmmax);
+function [NoiseSD,NoiseSDTD]=osp_gLCM_getNoiseSD(in,noiseppmmin,noiseppmmax);
 % [NoiseSD]=osp_gLCM_getNoiseSD(in,noiseppmmin,noiseppmmax);
 % Calcualte the standard deviation of the noise using the noise covariance
 % matrix
@@ -55,6 +55,8 @@ end
 noisecovariance = cov(real(noise));                                         % Calculate covariance matrix
 NoiseSD = sqrt(diag(noisecovariance))';                                      % Calculate standard deviation
 
+noisecovariance = cov(real(ifft(ifftshift(noise,1), [], 1)));                                         % Calculate covariance matrix
+NoiseSDTD = sqrt(diag(noisecovariance))';                                      % Calculate standard deviation
 end
 
 

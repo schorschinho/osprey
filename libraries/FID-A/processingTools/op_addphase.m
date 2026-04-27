@@ -43,7 +43,9 @@ fids=in.fids.*ones(size(in.fids))*exp(1i*ph0*pi/180);
 specs=fftshift(fft(fids,[],in.dims.t),in.dims.t);
 
 %Now add 1st-order phase
-specs=addphase1(specs,in.ppm,ph1,ppm0,in.Bo);
+if ph1 ~=0
+    specs=addphase1(specs,in.ppm,ph1,ppm0,in.Bo);
+end
 
 %re-calculate Fids using fft
 %if the length of Fids is odd, then you have to do a circshift of one to

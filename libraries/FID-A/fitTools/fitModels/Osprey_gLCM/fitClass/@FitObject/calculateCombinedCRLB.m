@@ -26,44 +26,111 @@ function obj = calculateCombinedCRLB(obj, invFisher, xk, metaboliteNames, parame
 
 %% 0. Set names cell arrays and houskeeping
 step            = obj.step;                                                                     % Get step counter
-typicalMetaboliteCombinations = {'NAA','NAAG';'GPC','PCh';'Cr','PCr';'Glu','Gln';'EA','PE';...
-                                 'NAA_Acetyl_only','NAAG_Acetyl_only';'GPC_pCh2_only','PCh_trimethyl_only';
-                                 'Cr_methyl_only','PCr_ch3_only';'Cr_methylene_only','PCr_ch2nhnh_only'}; 
-MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','tNAA_Acetyl_only','tCho_pCh2_only','tCr_methyl_only','tCr_mehtylene_only'};
+typicalMetaboliteCombinations = {'NAA','NAAG';'GPC','PCh';'Cr','PCr';'Glu','Gln';'EA','PE';'GABA','MM3co'; 'GABA', 'MM3to2';...
+                                 'NAA_Acetyl_only','NAAG_Acetyl_only';'Cr_methyl_only','PCr_ch3_only';'Cr_methylene_only','PCr_ch2nhnh_only';...
+                                 'GPC_pCh2_only','PCh_trimethyl_only'; 'Lac', 'MM14'}; 
+MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','GABA+','GABA+','tNAA_Acetyl','tCr_methyl','tCr_methylene','tCho_methyl','Lac+'};
 
-BMAT = zeros(size(invFisher,1),length(metaboliteNames));                          % Some LCModel nostalgia 
-ll = 1;
-for kk = parametrizations.metAmpl.start:parametrizations.metAmpl.end
-   BMAT(kk,ll)=1;
-   ll = ll + 1;
+
+if ~strcmp(obj.Options{step}.parametrizations.metAmpl.type,'dynamic')
+    nPars = 1;
+    pos = 1;
+else
+    pos = find(contains(parametrizations.metAmpl.parameterNames,'Ampl'));   % For dynamic models we need to identify the reparameterized amplitude parameter position
+    if isempty(pos)
+        pos = 1;
+    end
+    nPars = length(parametrizations.metAmpl.parameterNames);
 end
+BMAT = zeros(size(invFisher,1),nPars*length(metaboliteNames));                          % Some LCModel nostalgia 
+ll = 1;
+if ~isempty(parametrizations.metAmpl.gr)                                                % Update according to group variables
+    idx_BMAT = reshape(parametrizations.metAmpl.gr.idx_repar,[nPars length(metaboliteNames)]);
+    for kk = 1:length(metaboliteNames)
+       BMAT(parametrizations.metAmpl.start+idx_BMAT(1,kk)-1,ll)=1;
+       ll = ll + nPars;
+    end
+else
+    for kk = parametrizations.metAmpl.start+(pos-1):1:parametrizations.metAmpl.end
+       BMAT(kk,ll)=1;
+       ll = ll + nPars;
+    end
+end
+
 %% 1. Get metabolite index, update Jacobian, update amplitude estimates
-AddedMetaboliteIndex =[];
 AddedMetaboliteCombinations = 0;
+NamesToDelete = [];
 for mm = 1 : length(MetaboliteCombinationNames)
     idx_1 = find(strcmp(metaboliteNames,typicalMetaboliteCombinations{mm,1}));        
     idx_2 = find(strcmp(metaboliteNames,typicalMetaboliteCombinations{mm,2}));
     if  ~isempty(idx_1) && ~isempty(idx_2)
         AddedMetaboliteCombinations = AddedMetaboliteCombinations + 1;
-        BMAT(parametrizations.metAmpl.start + idx_1 - 1,end+1)=1;
-        BMAT(parametrizations.metAmpl.start + idx_2 - 1,end)=1;    
-        AddedMetaboliteIndex(end+1) = mm;
+        if ~strcmp(obj.Options{step}.parametrizations.metAmpl.type,'dynamic') && ...
+           ~(strcmp(obj.Options{step}.parametrizations.metAmpl.type,'free') && ...
+              size(obj.Data.fids,2)> 1) 
+            idx_1 = idx_1 - 1;
+            idx_2 = idx_2 - 1;                          
+        else  
+            if ~(strcmp(obj.Options{step}.parametrizations.metAmpl.type,'free') && ...
+              size(obj.Data.fids,2)> 1) 
+                idx_1 = nPars*idx_1-nPars;
+                idx_2 = nPars*idx_2-nPars;
+            else
+                nPars = size(obj.Data.fids,2);
+                idx_1 = nPars*idx_1-nPars;
+                idx_2 = nPars*idx_2-nPars;
+            end
+        end
+        if isempty(parametrizations.metAmpl.gr)
+             idx_1 = parametrizations.metAmpl.start + idx_1;
+             idx_2 = parametrizations.metAmpl.start + idx_2;
+        else
+            idx_1 = parametrizations.metAmpl.start + parametrizations.metAmpl.gr.idx_repar(idx_1);
+            idx_2 = parametrizations.metAmpl.start + parametrizations.metAmpl.gr.idx_repar(idx_2);
+        end
+        BMAT(idx_1,end+1)=1;
+        BMAT(idx_2,end)=1;
+        if strcmp(obj.Options{step}.parametrizations.metAmpl.type,'free') 
+           if size(obj.Data.fids,2)> 1
+               for secDim = 2 : size(obj.Data.fids,2)
+                   idx_1 = idx_1 + 1;
+                   idx_2 = idx_2 + 1;  
+                   BMAT(idx_1,end+1)=1;
+                   BMAT(idx_2,end)=1;
+               end
+           end
+        end
+    else
+        NamesToDelete(end+1) = mm;
     end
+    
 end
-
+MetaboliteCombinationNames(NamesToDelete) = [];
 
 
 %% 2. Calculate CRLB
-if size(BMAT,2) > length(metaboliteNames)               % added new combinations 
+if size(BMAT,2) > length(metaboliteNames)*nPars         % added new combinations 
     combinations = xk * BMAT;                           % build combinations of amplitude parameters
     DAPOSI = BMAT' * invFisher *BMAT;                   % multiply with inverse fisher matrix
     crlbs = sqrt(diag(DAPOSI));                         % get raw CRLBs values
-    obj.Model{step}.Combined.rawCRLB.metAmpl = crlbs(end-AddedMetaboliteCombinations+1:end);  % Raw CRLBs for combined amplitudes                        
+    obj.Model{step}.Combined.rawCRLB.metAmpl = crlbs(end-AddedMetaboliteCombinations+1:end);  % Raw CRLBs for combined amplitudes 
+    obj.Model{step}.Combined.parsOut.metAmpl = combinations;
     relativeCRLB= (crlbs ./ combinations') * 100; % Relative CRLBs for combined amplitudes
-    
+    if nPars > 1
+        if ~(strcmp(obj.Options{step}.parametrizations.metAmpl.type,'free') && ...
+              size(obj.Data.fids,2)> 1) 
+            relativeCRLB = cat(1,relativeCRLB(pos:nPars:end-AddedMetaboliteCombinations),relativeCRLB(end-AddedMetaboliteCombinations+1:end));
+        else
+            relativeCRLB = reshape(relativeCRLB,[nPars, length(metaboliteNames) + AddedMetaboliteCombinations]);
+        end
+    end
     try
-        obj.Model{step}.CRLB = array2table(relativeCRLB','VariableNames',[metaboliteNames MetaboliteCombinationNames(AddedMetaboliteIndex)]'); % Save table with basis function names and relative CRLBs
+        obj.Model{step}.CRLB = array2table(relativeCRLB','VariableNames',[metaboliteNames MetaboliteCombinationNames(1:AddedMetaboliteCombinations)]'); % Save table with basis function names and relative CRLBs
     catch
+        try
+            obj.Model{step}.CRLB = array2table(relativeCRLB,'VariableNames',[metaboliteNames MetaboliteCombinationNames(1:AddedMetaboliteCombinations)]');
+        catch
+        end
     end  
 end
 end

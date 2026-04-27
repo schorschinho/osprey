@@ -1,0 +1,58 @@
+{
+  "parameters": {
+  "ph0": {
+      "type": "free",
+      "ub": 3.14,
+       "lb": -3.14
+    },
+  "ph1": {
+    "type": "free",
+    "ub": 0.5,
+     "lb": -0.5
+    },
+  "GlobFreqShift": {
+    "type": "fixed",
+    "init": [
+            "Step 1"
+          ],
+          "ub": [
+            "Step 1"
+          ],
+          "lb": [
+            "Step 1"
+          ]
+    },
+  "gaussLB": {
+      "type": "fixed"
+    },
+  "baseAmpl": {
+      "type": "free"
+    },
+  "metAmpl": {
+      "type": "fixed",
+      "parametrizations": {
+          "sc":{
+              "adj": [["NAAG_Acetyl_only"]],
+              "fix": [["NAA_Acetyl_only"]],
+              "fix_factor":[[[1]]],
+              "ex": [[0.15]],
+              "sd": [[0.15]],
+              "fun": "ratio",
+              "scaling": 1
+          }
+      }
+    },
+  "freqShift": {
+      "type": "fixed",
+      "sd": 0.25
+    },
+  "lorentzLB": {
+      "type": "free",
+      "ub": 4,
+      "lb": 1,
+      "ini":2.45,
+      "ex":2.45,
+      "sd":0.5
+    }
+  }
+}

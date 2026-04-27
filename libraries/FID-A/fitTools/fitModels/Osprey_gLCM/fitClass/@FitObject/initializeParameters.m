@@ -308,7 +308,7 @@ if nargin == 3
                         step_to_get_ini = split(predefined.(pars{ff}){pp},' ');         % Get entry from model procedure e.g. Step 1
                         step_to_get_ini = str2num(step_to_get_ini{2});                  % Get numeric value of step
                         if ~strcmp(pars{ff}(1:2),'Re')                                  % Is Step
-                            parametrizations.(pars{ff}) = squeeze(obj.Model{step_to_get_ini}.parsOut.(parameter));  % Update numerical value accordingly
+                            parametrizations.(pars{ff}) = squeeze(obj.Model{step_to_get_ini}.parsOut.(parameter)(1,:));  % Update numerical value accordingly
                         else                                                            % Is Regularizer
                             parametrizations.(pars{ff}) = obj.Model{step_to_get_ini}.Regularization.OptimalRegPar; % Get regularization parameter
                         end

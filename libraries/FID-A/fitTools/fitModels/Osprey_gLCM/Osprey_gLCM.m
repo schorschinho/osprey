@@ -10,7 +10,12 @@ function [ModelParameter] = Osprey_gLCM(DataToModel, JsonModelFile, average, noZ
 %           BasisSetStruct  - Include predefined basisset struct
 % Outputs:  explicit        - Struct with model parameters
 %           implicit        - NII results file
-
+%
+% If you are using Osprey_gLCM please cite the following paper in addition
+% to the original Osprey paper:
+%   Zöllner HJ, Davies-Jenkins C, Simicic D, Tal A, Sulam J, Oeltzschner G. 
+%   Simultaneous multi-transient linear-combination modeling of MRS data improves uncertainty estimation. 
+%   Magn Reson Med. 2024 Sep;92(3):916-925. doi: 10.1002/mrm.30110
 %% 0. Check inputs
 arguments
     % Argument validation introduced in relatively recent MATLAB versions
@@ -19,7 +24,7 @@ arguments
     JsonModelFile {isCharOrStruct}
     average double {mustBeNumeric} = 0;             % optional
     noZF double {mustBeNumeric} = 0;                % optional
-    scaleData double {mustBeNumeric} = 0;           % optional
+    scaleData double {mustBeNumeric} = 1;           % optional
     NumericJacobian double {mustBeNumeric} = 0;     % optional
     CheckGradient double {mustBeNumeric} = 0;       % optional
     BasisSetStruct struct = [];                     % optional
@@ -65,6 +70,28 @@ else
     ModelProcedure  = JsonModelFile;
 end
 
+% Global options
+if isfield(ModelProcedure,'options')
+    if isfield(ModelProcedure.options,'AverageAlongExtra')
+        average = ModelProcedure.options.AverageAlongExtra; 
+    end
+    if isfield(ModelProcedure.options,'NoZerofill')
+        noZF = ModelProcedure.options.NoZerofill;  
+    end
+    if isfield(ModelProcedure.options,'scaleData')
+        scaleData = ModelProcedure.options.scaleData;  
+    end
+    if isfield(ModelProcedure.options,'NumericJacobian')
+        NumericJacobian = ModelProcedure.options.NumericJacobian;  
+    end
+    if isfield(ModelProcedure.options,'CheckGradient')
+        CheckGradient = ModelProcedure.options.CheckGradient;  
+    end
+    if isfield(ModelProcedure.options,'BasisSetStruct')
+        BasisSetStruct = ModelProcedure.options.BasisSetStruct;  
+    end
+end
+
 % Check if the R part is used for optimization and a factor 2 zerofilling
 zf = 0;
 for ss = 1 : length(ModelProcedure.Steps)
@@ -85,12 +112,17 @@ end
 % Load basisset files, add MMs if needed, resample basis sets according to
 % the DataToModel. Generate a basisset matrix for each step? including the
 % indirect dimensions for MSM.
+oneProtonArea = [];                                                         % For scaling of MM/Lipid functions
 if isempty(BasisSetStruct)                                                  % User supplied a recalculated basis set
     if length(ModelProcedure.basisset.file) == 1
         basisSet = load(ConvertRelativePath(ModelProcedure.basisset.file{1})); % Load basis set
         basisSet = basisSet.BASIS;
         basisSet = recalculateBasisSpecs(basisSet);                         % Add ppm axis and frequency domain data
         basisSet = fit_sortBasisSet(basisSet);                              % Sort according to Osprey standard
+        % Obtain area of water to calculate the one-proton scaling factor
+        idx = find(contains(basisSet.name,'H2O'));
+        integralH2O = sum(real(basisSet.specs(:,idx,1)));
+        oneProtonArea = integralH2O/2;
         if isfield(ModelProcedure.basisset,'opts')                          % Apply options to basis, e.g. pick subspectra
             if isfield(ModelProcedure.basisset.opts,'index')               % Index for subspectra
                 basisSet.fids = basisSet.fids(:,:,ModelProcedure.basisset.opts.index);  % Pick fids according to index
@@ -99,6 +131,7 @@ if isempty(BasisSetStruct)                                                  % Us
                 try
                     basisSet.nExtra = basisSet.sz(3);                               % Update extra dimension
                 catch
+                    basisSet.nExtra = 0;
                 end
             end
         end
@@ -120,6 +153,16 @@ if isempty(BasisSetStruct)                                                  % Us
         end
         basisSet.sz = size(basisSet.fids);                                  % Recalculate size entry
         basisSet.nExtra = basisSet.sz(3);                                   % Update extra dimension
+        idx = find(contains(basisSet.name,'H2O'));
+        integralH2O = sum(real(basisSet.specs(:,idx,1)));
+        oneProtonArea = integralH2O/2;
+        if isfield(ModelProcedure.basisset,'opts')                          % Apply options to basis, e.g. pick subspectra
+            if isfield(ModelProcedure.basisset.opts,'index')               % Index for subspectra
+                basisSet.fids = basisSet.fids(:,:,ModelProcedure.basisset.opts.index);  % Pick fids according to index
+                basisSet.specs = basisSet.specs(:,:,ModelProcedure.basisset.opts.index); % Pick specs according to index
+                basisSet.nExtra = 0;
+            end
+        end
     end
     if isfield(ModelProcedure.basisset,'opts')                              % Apply options to basis, e.g. repeat for averages
         if isfield(ModelProcedure.basisset.opts,'repeat')                   % Repeat for each average
@@ -134,6 +177,12 @@ else
     basisSet = BasisSetStruct;                                              % Take user supplied basis set
     basisSet.nExtra = 0;                                                    % Normally has no extra dimension
 end
+
+% basisScaling = sind([70,60,45,30,105,140,95,90,25,55]);
+% for sc = 1 : 10
+%     basisSet.fids(:,:,sc) = basisSet.fids(:,:,sc) * basisScaling(sc);
+%     basisSet.specs(:,:,sc) = basisSet.specs(:,:,sc) * basisScaling(sc);
+% end
 
 if length(scaleData) > 1                                                    % The user has supplied a scaling factor for the data               
     DoDataScaling = 2;                                                      % Apply scale to data
@@ -157,7 +206,7 @@ if isfield(ModelProcedure.basisset, 'mmdef') && ~isempty(ModelProcedure.basisset
     
     % Read out MM/Lip configuration file and create matching
     MMLipConfig = jsonToStruct(ConvertRelativePath(ModelProcedure.basisset.mmdef{1}));
-    [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel{1});
+    [basisSim] = makeMMLipBasis(basisSet, MMLipConfig, DataToModel{1}, oneProtonArea);
     % Join basis sets together
     basisSet = joinBasisSets(basisSet, basisSim);
 end
@@ -167,6 +216,11 @@ end
 % for MSM
 % Create the spline basis functions for the given resolution, fit range,
 % and knot spacing parameter.
+if ~iscell(DataToModel)                                                       % Just a single file
+    temporaryCell       = {};
+    temporaryCell{1}    = DataToModel;                                        % Default input is a cell array so we need to change it
+    DataToModel         = temporaryCell;
+end
 
 % Cell array of data which we will loop over
 for kk = 1 : length(DataToModel)
@@ -183,12 +237,31 @@ for kk = 1 : length(DataToModel)
         end
     end
 
+    if isfield(ModelProcedure.basisset,'opts')                         % Apply same options as to basis, e.g. pick subspectra
+        if isfield(ModelProcedure.basisset.opts,'index')               % Index for subspectra or extra for separateModel
+            if DataToModel{kk}.dims.subSpecs ~= 0
+                DataToModel{kk}=op_takesubspec(DataToModel{kk},ModelProcedure.basisset.opts.index);
+            else
+                DataToModel{kk}=op_takeextra(DataToModel{kk},ModelProcedure.basisset.opts.index);
+            end
+        end
+    end
+
     if DoDataScaling == 2
         DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                     % apply scale to data 
-    else if DoDataScaling == 1
-         scaleData(kk) = max(real(DataToModel{kk}.specs(DataToModel{kk}.ppm > -2 & DataToModel{kk}.ppm < 10 ,:))) / max(max(max(real(basisSet.specs(basisSet.ppm > -2 & basisSet.ppm < 10 ,:)))));
+    else if DoDataScaling == 1 && average == 0
+         scaleData(kk) = max(max(real(DataToModel{kk}.specs))) / max(max(max(real(basisSet.specs))));
          DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                    % apply scale to data
-    end
+    else if DoDataScaling == 1 && average == 1
+              temp                = DataToModel{kk};                                              % Average so you can calculate scale
+              if temp.dims.averages == 0
+                  temp.dims.averages = ndims(temp.sz);
+              end
+              temp                = op_averaging(temp); 
+              scaleData(kk) = max(real(temp.specs)) / max(max(max(real(basisSet.specs))));          % calculate scale
+              DataToModel{kk}   = op_ampScale(DataToModel{kk}, 1/scaleData(kk));                    % apply scale to data
+            end
+        end
     end
 
     % Apply zero-filling if needed
@@ -218,7 +291,7 @@ for kk = 1 : length(DataToModel)
         end       
         if isfield(ModelProcedure.Steps{ss},'parametrizations')
             opts.parametrizations  = ModelProcedure.Steps{ss}.parametrizations;         % specify parametrizations constructor
-            parameter = {'ph0','ph1','gaussLB','GlobFreqShift','lorentzLB','lorentzLBright','lorentzLBleft','freqShift','metAmpl','baseAmpl'};
+            parameter = {'ph0','ph1','GlobFreqShift','gaussLB','lorentzLB','freqShift','metAmpl','baseAmpl'};
             opts.parametrizations  = orderfields(opts.parametrizations,parameter(ismember(parameter, fieldnames(opts.parametrizations)))); % order struct names according to standard
         end
         if ~isfield(ModelProcedure.Steps{ss},'basisset')                       % which basis functions to include
@@ -233,30 +306,25 @@ for kk = 1 : length(DataToModel)
             if ~isfield(ModelProcedure.Steps{ss}.basisset, 'spec')
                 ModelProcedure.Steps{ss}.basisset.spec = 1;
             end
-            if iscolumn(ModelProcedure.Steps{ss}.basisset.include)
-                ModelProcedure.Steps{ss}.basisset.include = ModelProcedure.Steps{ss}.basisset.include';
-            end
         end
         if isfield(DataToModel{kk},'FWHM') && ss == 1                                   % get inital FWHM estimate 
             opts.parametrizations.gaussLB.init = DataToModel{kk}.FWHM;
         end
-        if isfield(ModelProcedure.basisset, 'MaxEcho')
-            basisSet.MaxEcho = 1;
-            basisSet.acqStart = ModelProcedure.basisset.acqStart;
-        else
-            basisSet.MaxEcho = 0;
-        end
         if isfield(ModelProcedure.Steps{ss}, 'extra')                                   % Is 2D model
-            if ModelProcedure.Steps{ss}.extra.flag == 1 && isfield(ModelProcedure.Steps{ss}.extra,'DynamicModelJson')
-                if ~isstruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson)                                               %Parsed as json file
-                    opts.paraIndirect  = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{ss}.extra.DynamicModelJson)); % specify parametrizations constructor for indirect dimension
-                else
-                    opts.paraIndirect = ModelProcedure.Steps{ss}.extra.DynamicModelJson;
+            if isfield(ModelProcedure.Steps{ss}.extra, 'paraIndirect')
+                opts.paraIndirect = ModelProcedure.Steps{ss}.extra.paraIndirect;
+            else
+                if ModelProcedure.Steps{ss}.extra.flag == 1 && isfield(ModelProcedure.Steps{ss}.extra,'DynamicModelJson')
+                    if ~isstruct(ModelProcedure.Steps{ss}.extra.DynamicModelJson)                                               %Parsed as json file
+                        opts.paraIndirect  = jsonToStruct(ConvertRelativePath(ModelProcedure.Steps{ss}.extra.DynamicModelJson)); % specify parametrizations constructor for indirect dimension
+                    else
+                        opts.paraIndirect = ModelProcedure.Steps{ss}.extra.DynamicModelJson;
+                    end
                 end
             end
         end
         if strcmp(ModelProcedure.Steps{ss}.module,'OptimReg')                           % Change tolerance values (good for regularization)
-            opts.FunctionTolerance = 1e-4;
+            opts.FunctionTolerance = 1e-3;
             opts.StepTolerance = 1e-3;
             opts.OptimalityTolerance = 1e-3;
         else
@@ -275,9 +343,41 @@ for kk = 1 : length(DataToModel)
         % Create an instance of the class
         if ss == 1
             ModelParameter{kk,1} = FitObject(DataToModel{kk}, basisSet, opts);  % Create OspreyFitObj instance (ss = 1)
+            % For MMExp we want to replace the measured MMs for each subject
+            if isfield(ModelProcedure.basisset,'MMExpSource')
+                mm_clean_spline = DataToModel{kk}.MMExpSub.specs;
+                indMM09 = find(strcmp(basisSet.name,'MM09'));
+                indMMexp = find(strcmp(basisSet.name,'MMexp'));
+                if ~isempty(indMM09) || ~isempty(indMMexp)
+                    basisSetfactor = op_freqrange(basisSet,0,1.2);
+                    mm_clean_spline_factor = mm_clean_spline(DataToModel{kk}.ppm>0.7 & DataToModel{kk}.ppm <1.1);
+                    factor = (max(real(basisSetfactor.specs(:,indMM09)))/max(real(mm_clean_spline_factor)));
+                else
+                    factor = 1/scaleData(kk);
+                end
+
+                if isempty(indMMexp)
+                    if length(basisSet.sz) == 2
+                        ModelParameter{kk, 1}.BasisSets.fids(:,end+1) = DataToModel{kk}.MMExpSub.fids*factor;
+                    else
+                        ModelParameter{kk, 1}.BasisSets.fids(:,end+1,:) = repmat(DataToModel{kk}.MMExpSub.fids*factor,[1 1 basisSet.sz(3)]);
+                    end
+                    ModelParameter{kk, 1}.BasisSets.names{end+1} = 'MMexp';
+                    ModelParameter{kk, 1}.BasisSets.includeInFit(ss,end+1) = 1;
+                else
+                    if length(basisSet.sz) == 2
+                        ModelParameter{kk, 1}.BasisSets.fids(:,indMMexp) = DataToModel{kk}.MMExpSub.fids*factor;
+                    else
+                        ModelParameter{kk, 1}.BasisSets.fids(:,indMMexp,:) = repmat(DataToModel{kk}.MMExpSub.fids*factor,[1 1 basisSet.sz(3)]);
+                    end
+                    ModelParameter{kk, 1}.BasisSets.includeInFit(ss,indMMexp) = 1;
+                end
+            end
         else
             ModelParameter{kk,1}.updateOptsAccordingToStep(opts);               % Update model options according to step
         end
+        
+
 
         % Set basisset according to step
         ModelParameter{kk,1}.excludeBasisFunctionFromFit('all');
@@ -298,35 +398,18 @@ for kk = 1 : length(DataToModel)
             SDSH = SDSH(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)));
             parametrization.freqShift.sd = SDSH;
         else
-            ModelParameter{kk,1}.indexMMLipBasisFunctionInBasis;
+            % ModelParameter{kk,1}.indexMMLipBasisFunctionInBasis;
+            ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction = zeros(size(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:))));
             % Only initialize EX/SD values (for frequency shift and
             % Lorentzian LB) for the metabolites:
             [EXT2, SDT2, SDSH] = fit_setExSDValues(DataToModel{kk}, basisSet);
              % Store EXT2, SDT2, SDSH to an options/parametrization structure
-            % EXT2 = EXT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)) & logical(~ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction));
-            EXT2 = EXT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)));
+            EXT2 = EXT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)) & logical(~ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction));
             parametrization.lorentzLB.ex    = EXT2;
             parametrization.lorentzLB.init  = EXT2;
-            % SDT2 = SDT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)) & logical(~ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction));
-            SDT2 = SDT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)));
+            SDT2 = SDT2(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)) & logical(~ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction));
             parametrization.lorentzLB.sd = SDT2;
-            if isfield(ModelProcedure.basisset, 'MaxEcho') && strcmp(ModelProcedure.Steps{1, 1}.ModelFunction,'GeneralizedBasicPhysicsModelMaxEcho') 
-                parametrization.lorentzLBright.ex    = EXT2;
-                parametrization.lorentzLBright.init  = EXT2;
-                parametrization.lorentzLBright.sd = SDT2;
-                parametrizations.lorentzLBright.RegFun  = '';
-                parametrizations.lorentzLBright.gr      = [];
-                parametrizations.lorentzLBright.sc      = [];
-                parametrization.lorentzLBleft.ex    = EXT2;
-                parametrization.lorentzLBleft.init  = EXT2;
-                parametrization.lorentzLBleft.sd = SDT2;
-                parametrizations.lorentzLBleft.RegFun  = '';
-                parametrizations.lorentzLBleft.gr      = [];
-                parametrizations.lorentzLBleft.sc      = [];
-                parametrization = rmfield(parametrization,'lorentzLB');
-            end
-            % SDSH = SDSH(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)) & logical(~ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction));
-            SDSH = SDSH(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)));
+            SDSH = SDSH(logical(ModelParameter{kk,1}.BasisSets.includeInFit(ss,:)) & logical(~ModelParameter{kk,1}.BasisSets.indexMMLipBasisFunction));
             parametrization.freqShift.sd = SDSH;
         end
        
@@ -358,6 +441,8 @@ for kk = 1 : length(DataToModel)
     end
     if DoDataScaling >= 1                                                   % We did data scaling - so let's store the scale
         ModelParameter{kk,1}.scale = scaleData(kk);
+    else
+        ModelParameter{kk,1}.scale = 1;
     end
     DataToModel{kk} 	= [];                                               % Memory efficiency
 end

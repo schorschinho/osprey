@@ -23,7 +23,7 @@
         ]
       },
       "fit_opts": {
-        "ppm": [
+        "optimFreqFitRange": [
           0.5,
           4
         ],

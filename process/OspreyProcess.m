@@ -294,6 +294,9 @@ if MRSCont.flags.isMRSI
             [right] = op_SeparateMaxEcho(MRSCont.processed.A{kk},'right',MRSCont.opts.MRSI.MaxEcho.tstart);
             MRSCont.processed.AFID{kk} = right;
 
+            [left] = op_SeparateMaxEcho(MRSCont.processed.A{kk},'flipleft',MRSCont.opts.MRSI.MaxEcho.tstart);
+            
+
             if MRSCont.opts.MRSI.MaxEcho.AdditionalPhasing
                 if MRSCont.flags.isGUI
                     progressText = MRSCont.flags.inProgress;
@@ -311,8 +314,12 @@ if MRSCont.flags.isMRSI
                         for y = 1 : YVox
                             if ZVox <=1
                                 raw = op_takeVoxel(MRSCont.processed.AFID{kk},[x y]);
+                                rawLeft  = op_takeVoxel(left,[x y]);
+                                rawRight  = op_takeVoxel(right,[x y]);
                             else
                                 raw = op_takeVoxel(MRSCont.processed.AFID{kk},[x y z]);
+                                rawLeft = op_takeVoxel(left,[x y z]);
+                                rawRight  = op_takeVoxel(right,[x y]);
                             end
                             switch MRSCont.opts.MRSI.phase.type
                                 case 'none'
@@ -320,9 +327,13 @@ if MRSCont.flags.isMRSI
                                 case 'Cr-Cho'
                                     % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
                                     % with the negative phase of that fit
-                                    [raw,~]       = op_phaseCrCho(raw, 1);
+                                    [raw,ph]       = op_phaseCrCho(raw, 1);
+                                    rawLeft = op_addphase(rawLeft,-ph);
+                                    rawRight = op_addphase(rawRight,ph);
                                 case 'auto_phase'
-                                    [raw,~]       = op_autophase(raw, MRSCont.opts.MRSI.phase.limits(1),MRSCont.opts.MRSI.phase.limits(2));
+                                    [raw,ph]       = op_autophase(raw, MRSCont.opts.MRSI.phase.limits(1),MRSCont.opts.MRSI.phase.limits(2));
+                                    rawLeft = op_addphase(rawLeft,-ph);
+                                    rawRight = op_addphase(rawRight,ph);
                             end
                             if MRSCont.opts.MRSI.MaxEcho.AdditionalFreqAlign
                                 switch MRSCont.opts.MRSI.MaxEcho.FreqAlign.type
@@ -350,11 +361,18 @@ if MRSCont.flags.isMRSI
                                                                         MRSCont.opts.MRSI.MaxEcho.FreqAlign.lim,MRSCont.opts.MRSI.MaxEcho.FreqAlign.realpart);
                                 end
                                 [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation 
+                                [rawLeft]         = op_freqshift(rawLeft,-refShift);            % Reference spectra by cross-correlation 
+                                [rawRight]        = op_freqshift(rawRight,-refShift);            % Reference spectra by cross-correlation 
+
                             end
                             if ZVox <=1
                                 MRSCont.processed.AFID{kk} = op_addVoxel(MRSCont.processed.AFID{kk},raw,[x y],1);
+                                left = op_addVoxel(left,rawLeft,[x y],1);
+                                right = op_addVoxel(right,rawRight,[x y],1);
                             else
                                 MRSCont.processed.AFID{kk} = op_addVoxel(MRSCont.processed.AFID{kk},raw,[x y z],1);
+                                left = op_addVoxel(left,rawLeft,[x y z],1);
+                                right = op_addVoxel(right,rawRight,[x y z],1);
                             end
                             vox = vox + 1;
                             [~] = printLog('OspreyMaxEcho',[kk,vox],[MRSCont.nDatasets, NVox],progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
@@ -363,7 +381,7 @@ if MRSCont.flags.isMRSI
                 end
                 [~] = printLog('MRSIdone',0,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
             end
-
+            MRSCont.processed.Asep{kk} = op_mergeextra(right,left,'echoside');
              % Export spectra
             ToExport = MRSCont.processed.AFID{kk};
             ToExport.fids=flip(ToExport.fids,2);
@@ -374,7 +392,7 @@ if MRSCont.flags.isMRSI
             end
             nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_A_right.nii.gz']));          
 
-            [left] = op_SeparateMaxEcho(MRSCont.processed.A{kk},'flipleft',MRSCont.opts.MRSI.MaxEcho.tstart);
+            
              % Export spectra
             ToExport = left;
             ToExport.fids=flip(ToExport.fids,2);
@@ -384,7 +402,7 @@ if MRSCont.flags.isMRSI
                 ToExport.specs = flip(ToExport.fids,length(ToExport.sz));
             end
             nii = io_writeniimrs(ToExport, fullfile(outputFolder,'nii-export','processed_raw',['processed_raw_A_left.nii.gz']));
-            MRSCont.processed.Asep{kk} = op_mergeextra(right,left,'echoside');
+            
 
         end
     end

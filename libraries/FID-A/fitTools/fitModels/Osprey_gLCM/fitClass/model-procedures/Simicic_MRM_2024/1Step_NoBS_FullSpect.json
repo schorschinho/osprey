@@ -1,0 +1,139 @@
+{
+  "basisset": {
+    "file": [
+      "which(fullfile(''fit'',''basissets'',''3T'',''philips'',''unedited'',''slaser'',''30'',''basis_philips_slaser30.mat''))"
+    ]
+  },
+  "Steps":
+    [{
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+			  "NAAG","PCh","PCr","PE","sI","Tau","MM_SLASER_PCC"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          0.5,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "none"
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0",
+        "ph1",
+		"GlobFreqShift",
+        "gaussLB",
+        "lorentzLB",
+        "freqShift",
+        "metAmpl",
+        "baseAmpl"
+      ],
+      "parametrizations": {
+            "ph0": {
+			 "ub": 3.14159,
+             "lb": -3.12414
+                     },
+            "ph1": {
+             "ub": 0,
+              "lb": 0
+            },
+			"GlobFreqShift": {
+				"ub": 628,
+				"lb": -628
+				},
+            "freqShift": {
+                   "ub": 0,
+                "lb": 0
+             },
+             "gaussLB": {
+                 "init": 9.70
+             },
+             "lorentzLB": {
+                  "init": 2.4238
+        }
+      }
+    },
+	{
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","Lac","NAA",
+			  "NAAG","PCh","PCr","PE","sI","Tau","MM_SLASER_PCC"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          0.5,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "none"
+        },
+        "solver": "lsqnonlin"
+      },
+      "parameter": [
+        "ph0",
+        "ph1",
+		"GlobFreqShift",
+        "gaussLB",
+        "lorentzLB",
+        "freqShift",
+        "metAmpl",
+        "baseAmpl"
+      ],
+      "parametrizations": {
+            "ph0": {
+             "init": [
+				"Step 1"
+				],
+			"ub": [
+				"Step 1"
+				],
+			"lb": [
+				"Step 1"
+				]
+                     },
+            "ph1": {
+             "ub": 0,
+              "lb": 0
+            },
+			"GlobFreqShift": {
+			"init": [
+					"Step 1"
+				  ],
+				  "ub": [
+					"Step 1"
+				  ],
+				  "lb": [
+					"Step 1"
+				  ]
+			},
+            "freqShift": {
+                "ub": 62.8,
+                "lb": -62.8
+             },
+             "gaussLB": {
+                 "init": 9.70
+             },
+             "lorentzLB": {
+                  "init": 2.4238
+        }
+      }
+    }]
+	
+}

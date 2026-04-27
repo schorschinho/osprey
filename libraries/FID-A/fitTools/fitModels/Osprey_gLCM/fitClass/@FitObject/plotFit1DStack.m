@@ -1,4 +1,4 @@
-function plotFit1DStack(obj,newFigure, step,secDim, plotRange, plotAbs)
+function plotFit1DStack(obj,newFigure, step,secDim, plotRange)
 %%  plotFit1DStack(obj,step,secDim, plotRange)
 %   This method generates a stack plot from the fit object.
 %
@@ -25,13 +25,15 @@ function plotFit1DStack(obj,newFigure, step,secDim, plotRange, plotAbs)
 %       https://github.com/CIC-methods/FID-A
 %       Simpson et al., Magn Reson Med 77:23-33 (2017)
 %%  Diverge to default options if required 
-if nargin < 6
-    plotAbs = 0;
+
     if nargin < 5
         if nargin < 3
             step = obj.step;                                    % Set to last step
         end
-        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range      
+        plotRange = obj.Options{step}.optimFreqFitRange;            % Set plot range  
+        if isempty(plotRange)
+            plotRange = [0.2 4];
+        end
         if nargin < 4
             secDim = 1;                                             % Set second dimensions to plot
             if nargin < 3
@@ -42,7 +44,7 @@ if nargin < 6
             end
         end
     end
-end
+
 %%  Get fit data from object 
 
     ppm = obj.Data.ppm;                                                                 % Get ppm vector
@@ -85,25 +87,15 @@ end
                  fit(GapindMin:GapindMax,secDim) = nan;
                  baseline(GapindMin:GapindMax,secDim) = nan;
             end
-            if ~plotAbs
-                plot(ppm, real(data(:,secDim)), ...                                         % Plot data                              
-                    'Color', [11/255 71/255 111/255]);
-                plot(ppm, real(residual(:,secDim)) + shift, ...                             % Plot residual
-                    'Color', [11/255 71/255 111/255]);
-                plot(ppm, real(fit(:,secDim)), ...                                          % Plot fit
-                    'Color',[255/255 140/255 0/255], 'LineWidth', 2);
-                plot(ppm, real(baseline(:,secDim)), ...                                     % Plot baseline
-                    'Color', [11/255 71/255 111/255], 'LineWidth', 0.1);
-            else
-                plot(ppm, abs(data(:,secDim)), ...                                         % Plot data                              
-                    'Color', [11/255 71/255 111/255]);
-                plot(ppm, abs(residual(:,secDim)) + shift, ...                             % Plot residual
-                    'Color', [11/255 71/255 111/255]);
-                plot(ppm, abs(fit(:,secDim)), ...                                          % Plot fit
-                    'Color',[255/255 140/255 0/255], 'LineWidth', 2);
-                plot(ppm, abs(baseline(:,secDim)), ...                                     % Plot baseline
-                    'Color', [11/255 71/255 111/255], 'LineWidth', 0.1);
-            end
+            
+            plot(ppm, real(data(:,secDim)), ...                                         % Plot data                              
+                'Color', [11/255 71/255 111/255]);
+            plot(ppm, real(residual(:,secDim)) + shift, ...                             % Plot residual
+                'Color', [11/255 71/255 111/255]);
+            plot(ppm, real(fit(:,secDim)), ...                                          % Plot fit
+                'Color',[255/255 140/255 0/255], 'LineWidth', 2);
+            plot(ppm, real(baseline(:,secDim)), ...                                     % Plot baseline
+                'Color', [11/255 71/255 111/255], 'LineWidth', 0.1);
             hold off;            
             set(gca, 'XDir', 'reverse', 'XLim', plotRange, 'YLim', YAxLim);             % Clean appearance
             xlabel('chemical shift (ppm)');
@@ -111,14 +103,12 @@ end
     else                                                                                % 1D fit or a user provided indirect dimension 
         hold on;                                                                           % Hold plot becuase we want to see all results
         shift = max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...        % Calculate shift for residual and individual basis functions
-            abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))));   
-        max_pos = max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:)));                            % Get max position for y-label
+            abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))));    
         YAxLim = [min(min(min(real(metabs(ppm>plotRange(1) & ppm<plotRange(2),end,secDim)))) - ...  % Calculate the y-axis limits
                  shift*1.4) ...      
                   max(max(real(data(ppm>plotRange(1) & ppm<plotRange(2),:))) + ...
                   abs(min(real((residual(ppm>plotRange(1) & ppm<plotRange(2),:))))) + ...
                   max(real(residual(ppm>plotRange(1) & ppm<plotRange(2),:))))];
-       if ~plotAbs
         for rr = 1:size(metabs,2)                                                       % Loop over basis functions
             if ~isempty(fitGap)
                    [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
@@ -126,26 +116,16 @@ end
             end
             plot(ppm, real(metabs(:,rr,secDim)) - rr*(shift/nBasis)- 2*(shift/nBasis), ...                % Plot basis functions as stack
                   'Color', [110/255 136/255 164/255]);
-            text(plotRange(1), - rr*(shift/nBasis)- 2*(shift/nBasis), names{rr}, 'FontSize', 10,'Color', [11/255 71/255 111/255], 'Interpreter', 'none');
+            text(plotRange(1), - rr*(shift/nBasis)- 2*(shift/nBasis), names{rr}, 'FontSize', 10,'Color', [11/255 71/255 111/255]);
         end                                                                             % End loop over basis functions
-       else
-           for rr = 1:size(metabs,2)                                                       % Loop over basis functions
-            if ~isempty(fitGap)
-                   [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
-                   metabs(GapindMin:GapindMax,rr,secDim) = Inf;
-            end
-            plot(ppm, abs(metabs(:,rr,secDim)) - rr*(shift/nBasis)- 2*(shift/nBasis), ...                % Plot basis functions as stack
-                  'Color', [110/255 136/255 164/255]);
-            text(plotRange(1), - rr*(shift/nBasis)- 2*(shift/nBasis), names{rr}, 'FontSize', 10,'Color', [11/255 71/255 111/255], 'Interpreter', 'none');
-        end  
-       end
+        
         if ~isempty(fitGap)                                                             % introduce the gap if it exists 
                  [GapindMin, GapindMax] = ppmToIndex(ppm, fitGap); 
                  residual(GapindMin:GapindMax,secDim) = nan;
                  fit(GapindMin:GapindMax,secDim) = nan;
                  baseline(GapindMin:GapindMax,secDim) = nan;
         end
-        if ~plotAbs
+        
         plot(ppm, real(data(:,secDim)), ...                                             % Plot data 
             'Color', [11/255 71/255 111/255]);
         plot(ppm, real(residual(:,secDim)) + shift, ...                                 % Plot residual
@@ -155,21 +135,10 @@ end
         plot(ppm, real(baseline(:,secDim)), ...                                         % Plot baseline
             'Color', [11/255 71/255 111/255], 'LineWidth', 1);
         hold off;
-        else
-            plot(ppm, abs(data(:,secDim)), ...                                             % Plot data 
-            'Color', [11/255 71/255 111/255]);
-        plot(ppm, abs(residual(:,secDim)) + shift, ...                                 % Plot residual
-            'Color', [11/255 71/255 111/255]);
-        plot(ppm, abs(fit(:,secDim)), ...                                              % Plot fit
-            'Color',[255/255 140/255 0/255], 'LineWidth', 2);
-        plot(ppm, abs(baseline(:,secDim)), ...                                         % Plot baseline
-            'Color', [11/255 71/255 111/255], 'LineWidth', 1);
-        hold off;
-        end
-        yticks(round(max_pos,2, "significant"));
         set(gca, 'XDir', 'reverse', 'XLim', plotRange, 'YLim', YAxLim,...
+            'YTickLabel',{},'YTick',{},...
             'LineWidth', 1, 'TickDir', 'out',...
-            'XColor', [11/255 71/255 111/255],'YColor', [11/255 71/255 111/255]);                                 % Clean appearance
+            'XColor', [11/255 71/255 111/255]);                                 % Clean appearance
         xlabel('chemical shift (ppm)');
     end
 end
