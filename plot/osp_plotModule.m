@@ -107,7 +107,13 @@ Info = uix.Panel('Parent',box, 'Padding', 5, 'Title', MRSCont.files{1,kk},...
                  'FontName', font, 'BackgroundColor',colormapfig.Background,'ForegroundColor', colormapfig.Foreground,...
                  'HighlightColor', colormapfig.Foreground, 'ShadowColor', colormapfig.Foreground);
 LogoFig = figure('Visible','off');
-[I, map] = imread('osprey.gif','gif');
+%[I, map] = imread('osprey.gif','gif');
+try
+    [I, map] = imread('osprey.gif','gif');  % older matlab style
+catch
+    [I, map] = imread('osprey.gif');        % fallback for newer versions e.g. 2025b
+end
+
 axes(LogoFig, 'Position', [0, 0.85, 0.15, 0.15*11.63/14.22]);
 imshow(I, map);
 axis off;
@@ -967,7 +973,16 @@ out.PaperSize = [fig_pos(3) fig_pos(4)];
 % print(fig,'-dpdf','-painters','-r600','-bestfit',strcat(plot_path,plot_name));
 
 % print(out,fullfile(outputFolder,outputFile),'-dpdf') % then print it
-saveas(out,fullfile(outputFolder,outputFile),'pdf');
+%saveas(out,fullfile(outputFolder,outputFile),'pdf');
+
+try
+    saveas(out, fullfile(outputFolder, outputFile), 'pdf'); % older matlab style
+catch
+       filename = fullfile(outputFolder, outputFile);  % fallback for newer versions e.g. 2025b
+    exportapp(out, filename);
+end
+
+
 h = findall(groot,'Type','figure');
 for ff = 1 : length(h)
     if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))
