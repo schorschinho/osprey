@@ -57,7 +57,8 @@ else if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
        BasisSetsFitted = size(MRSCont.fit.results.metab,1);
        ExperimentsFitted = size(MRSCont.fit.results.metab,4);
        ModelsFitted = size(MRSCont.fit.results.metab,5);
-    else
+else
+        ModelsFitted = 1;
         SubSpectraFitted = 1;
         BasisSetsFitted = 1;
         ExperimentsFitted = 1;
