@@ -1,7 +1,7 @@
 {
   "basisset": {
     "file": [
-      "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA140_noMM.mat"
+      "/Users/helge/Documents/GitHub/osprey/fit/basissets/mrsi/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA140_noMM.mat"
     ]
   },
   "Steps": [{
@@ -29,7 +29,8 @@
           "type": "poly",
           "order": 2
         },
-        "solver": "lsqnonlin"
+        "solver": "lsqnonlin",
+        "iterations": 250
       },
       "parameter": [
         "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
@@ -47,11 +48,11 @@
       },
         "metAmpl": {
         "sc":{
-              "adj": ["NAAG_Acetyl_only"],
-              "fix": ["NAA_Acetyl_only"],
-              "fix_factor":[1],
-              "ex": [0.15],
-              "sd": [0.15],
+              "adj": [["NAAG_Acetyl_only"]],
+              "fix": [["NAA_Acetyl_only"]],
+              "fix_factor":[[[1]]],
+              "ex": [[0.15]],
+              "sd": [[0.15]],
               "fun": "ratio",
               "scaling": 1
         }}
@@ -82,7 +83,8 @@
           "type": "poly",
           "order": 2
         },
-        "solver": "lsqnonlin"
+        "solver": "lsqnonlin",
+        "iterations": 250
       },
       "parameter": [
         "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
@@ -101,11 +103,11 @@
         },
         "metAmpl": {
         "sc":{
-              "adj": ["NAAG_Acetyl_only"],
-              "fix": ["NAA_Acetyl_only"],
-              "fix_factor":[1],
-              "ex": [0.15],
-              "sd": [0.15],
+              "adj": [["NAAG_Acetyl_only"]],
+              "fix": [["NAA_Acetyl_only"]],
+              "fix_factor":[[[1]]],
+              "ex": [[0.15]],
+              "sd": [[0.15]],
               "fun": "ratio",
               "scaling": 1
         }

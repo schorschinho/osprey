@@ -321,20 +321,7 @@ if MRSCont.flags.isMRSI
                                 rawLeft = op_takeVoxel(left,[x y z]);
                                 rawRight  = op_takeVoxel(right,[x y]);
                             end
-                            switch MRSCont.opts.MRSI.phase.type
-                                case 'none'
-                                    % Do nothing
-                                case 'Cr-Cho'
-                                    % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
-                                    % with the negative phase of that fit
-                                    [raw,ph]       = op_phaseCrCho(raw, 1);
-                                    rawLeft = op_addphase(rawLeft,-ph);
-                                    rawRight = op_addphase(rawRight,ph);
-                                case 'auto_phase'
-                                    [raw,ph]       = op_autophase(raw, MRSCont.opts.MRSI.phase.limits(1),MRSCont.opts.MRSI.phase.limits(2));
-                                    rawLeft = op_addphase(rawLeft,-ph);
-                                    rawRight = op_addphase(rawRight,ph);
-                            end
+                      
                             if MRSCont.opts.MRSI.MaxEcho.AdditionalFreqAlign
                                 switch MRSCont.opts.MRSI.MaxEcho.FreqAlign.type
                                     case 'CC'
@@ -363,7 +350,46 @@ if MRSCont.flags.isMRSI
                                 [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation 
                                 [rawLeft]         = op_freqshift(rawLeft,-refShift);            % Reference spectra by cross-correlation 
                                 [rawRight]        = op_freqshift(rawRight,-refShift);            % Reference spectra by cross-correlation 
-
+                                switch MRSCont.opts.MRSI.MaxEcho.phase.type
+                                    case 'none'
+                                        % Do nothing
+                                    case 'Cr-Cho'
+                                        % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
+                                        % with the negative phase of that fit
+                                        [raw,ph]       = op_phaseCrCho(raw, 1);
+                                        rawLeft = op_addphase(rawLeft,-ph);
+                                        rawRight = op_addphase(rawRight,ph);
+                                    case 'auto_phase'
+                                        [raw,ph]       = op_autophase(raw, MRSCont.opts.MRSI.MaxEcho.phase.limits(1),MRSCont.opts.MRSI.MaxEcho.phase.limits(2));
+                                        rawLeft = op_addphase(rawLeft,-ph);
+                                        rawRight = op_addphase(rawRight,ph);
+                                    case 'LCM'
+                                        load(MRSCont.opts.MRSI.MaxEcho.phase.BasisSetFile{1});                   % Assume it is the first one ...
+                                        BASIS = recalculateBasisSpecs(BASIS);                         % Add ppm axis and frequency domain data
+                                        BASIS = fit_sortBasisSet(BASIS);                              % Sort according to Osprey standard
+                                        temp = op_zeropad(raw,2);   
+                                        BASIS = fit_resampleBasis(temp, BASIS); 
+                                        BASIS.centerFreq = 4.68;
+                                        model = Osprey_gLCM(temp,MRSCont.opts.MRSI.MaxEcho.phase.ModelProcedureFileMetabolites,0,1,1,0,0,BASIS,1);                                      
+                                        refShift = model{1, 1}.Model{1, 1}.parsOut.GlobFreqShift;
+                                        [raw]             = op_freqshift(raw,-refShift); 
+                                        [rawLeft]         = op_freqshift(rawLeft,-refShift); 
+                                        [rawRight]        = op_freqshift(rawRight,-refShift); 
+                                        raw.specs = raw.specs .* (exp(1j .* (model{1, 1}.Model{1, 1}.parsOut.ph0 + model{1, 1}.Model{1, 1}.parsOut.ph1.*raw.ppm)'));   
+                                        rawRight.specs = rawRight.specs .* (exp(1j .* (model{1, 1}.Model{1, 1}.parsOut.ph0 + model{1, 1}.Model{1, 1}.parsOut.ph1.*raw.ppm)'));   
+                                        rawLeft.specs = rawLeft.specs .* (exp(-1j .* (model{1, 1}.Model{1, 1}.parsOut.ph0 + model{1, 1}.Model{1, 1}.parsOut.ph1.*raw.ppm)'));   
+                                        if mod(size(raw.specs,raw.dims.t),2)==0
+                                            %disp('Length of vector is even.  Doing normal conversion');
+                                            raw.fids=ifft(fftshift(raw.specs,raw.dims.t),[],raw.dims.t);
+                                            rawRight.fids=ifft(fftshift(rawRight.specs,rawRight.dims.t),[],rawRight.dims.t);
+                                            rawLeft.fids=ifft(fftshift(rawLeft.specs,rawLeft.dims.t),[],rawLeft.dims.t);
+                                        else
+                                            %disp('Length of vector is odd.  Doing circshift by 1');
+                                            raw.fids=ifft(circshift(fftshift(raw.specs,raw.dims.t),1),[],raw.dims.t);
+                                            rawRight.fids=ifft(circshift(fftshift(rawRight.specs,rawRight.dims.t),1),[],rawRight.dims.t);
+                                            rawLeft.fids=ifft(circshift(fftshift(rawLeft.specs,rawLeft.dims.t),1),[],rawLeft.dims.t);
+                                        end
+                                end
                             end
                             if ZVox <=1
                                 MRSCont.processed.AFID{kk} = op_addVoxel(MRSCont.processed.AFID{kk},raw,[x y],1);

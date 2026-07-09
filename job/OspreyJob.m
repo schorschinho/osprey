@@ -304,7 +304,7 @@ if exist('MultiVoxel','var')
         MRSCont.opts.MRSI.MoCo.target = 'none';
         MRSCont.opts.MRSI.MoCo.thresh.thresh = 0.8;
         MRSCont.opts.MRSI.MoCo.thresh.ph_thresh = 0.9;
-        MRSCont.opts.MRSI.MoCo.thresh.last_resort_thresh = 0.6;    
+        MRSCont.opts.MRSI.MoCo.thresh.last_resort_thresh = 0.6;
     end
     if ~isfield(MRSCont.opts.MRSI.MoCo, 'target')
         MRSCont.opts.MRSI.MoCo.target = 'full';
@@ -407,7 +407,7 @@ MRSCont.flags.isGUI     = GUI;
 %%% 7. SET FLAGS AND VERSION %%%
 MRSCont.flags.didJob        = 1;
 MRSCont.loadedJob           = jobFile;
-MRSCont.ver.Osp             = 'Osprey 3.0.0';
+MRSCont.ver.Osp             = 'Osprey-MRSI 1.0.0';
 
 
 %%% 8. CHECK IF OUTPUT STRUCTURE ALREADY EXISTS IN OUTPUT FOLDER %%%

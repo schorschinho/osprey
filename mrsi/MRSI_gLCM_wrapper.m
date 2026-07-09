@@ -125,8 +125,8 @@ if MRSCont.flags.hasWater
     BASIS.centerFreq = 4.68;
 
 
-    % Get data scale
-    scaleData = max(real(MRSCont.processed.(MetabSpecName){1}.specs(MRSCont.processed.(MetabSpecName){1}.ppm > -2 & MRSCont.processed.(MetabSpecName){1}.ppm < 10 ,:,:)),[],'all') / max(max(max(real(BASIS.specs(BASIS.ppm > -2 & BASIS.ppm < 10 ,:)))));
+    % Get data scale from center voxel 
+    scaleData = max(real(MRSCont.processed.(MetabSpecName){1}.specs(MRSCont.processed.(MetabSpecName){1}.ppm > -2 & MRSCont.processed.(MetabSpecName){1}.ppm < 10 ,round(MRSCont.processed.(MetabSpecName){1}.nXvoxels/2) ,round(MRSCont.processed.(MetabSpecName){1}.nYvoxels/2),round(MRSCont.processed.(MetabSpecName){1}.nZvoxels/2))),[],'all') / max(max(max(real(BASIS.specs(BASIS.ppm > -2 & BASIS.ppm < 10 ,:)))));
 
     try
         BASIS = rmfield(BASIS,'specs');
@@ -344,12 +344,12 @@ end
     % Get scaling factor
     if isfield(MRSCont,'fit') 
         if ~isfield(MRSCont.fit,'scale')
-            scaleData = max(real(MRSCont.processed.(MetabSpecName){1}.specs(MRSCont.processed.(MetabSpecName){1}.ppm > -2 & MRSCont.processed.(MetabSpecName){1}.ppm < 10 ,:,:)),[],'all') / max(max(max(real(BASIS.specs(BASIS.ppm > -2 & BASIS.ppm < 10 ,:)))));
+            scaleData = max(real(MRSCont.processed.(MetabSpecName){1}.specs(MRSCont.processed.(MetabSpecName){1}.ppm > -2 & MRSCont.processed.(MetabSpecName){1}.ppm < 10 ,round(MRSCont.processed.(MetabSpecName){1}.nXvoxels/2) ,round(MRSCont.processed.(MetabSpecName){1}.nYvoxels/2),round(MRSCont.processed.(MetabSpecName){1}.nZvoxels/2))),[],'all') / max(max(max(real(BASIS.specs(BASIS.ppm > -2 & BASIS.ppm < 10 ,:)))));
         else
             scaleData =  MRSCont.fit.scale;
         end
     else
-        scaleData = max(real(MRSCont.processed.(MetabSpecName){1}.specs(MRSCont.processed.(MetabSpecName){1}.ppm > -2 & MRSCont.processed.(MetabSpecName){1}.ppm < 10 ,:,:)),[],'all') / max(max(max(real(BASIS.specs(BASIS.ppm > -2 & BASIS.ppm < 10 ,:)))));
+        scaleData = max(real(MRSCont.processed.(MetabSpecName){1}.specs(MRSCont.processed.(MetabSpecName){1}.ppm > -2 & MRSCont.processed.(MetabSpecName){1}.ppm < 10 ,round(MRSCont.processed.(MetabSpecName){1}.nXvoxels/2) ,round(MRSCont.processed.(MetabSpecName){1}.nYvoxels/2),round(MRSCont.processed.(MetabSpecName){1}.nZvoxels/2))),[],'all') / max(max(max(real(BASIS.specs(BASIS.ppm > -2 & BASIS.ppm < 10 ,:)))));
     end
     
     % Prepare results vectors

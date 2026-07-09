@@ -165,6 +165,7 @@ classdef FitObject < handle
                         options.baseline.order = 4;
                     end
                 end
+                
 
                 obj.Options{1} = options;                                   % Save the property struct
                 fitRangeFD    = obj.Options{1}.optimFreqFitRange;              % Get fit range

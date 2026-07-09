@@ -177,21 +177,29 @@ switch brainMask
 end
 
 %% Apply percentile cleanup if requested
-if percentile_clean > 0
-    % Get data for slices we're displaying
-    quickmap_temp = quickmap(:, :, idx_start:idx_end);
-    max_val_clean = prctile(quickmap_temp(:), percentile_clean);
-    quickmap(quickmap > max_val_clean) = NaN;
+if percentile_clean == 1
+    quickmap_temp = squeeze(quickmap(:, :, idx_start:idx_end));
+    max_val_clean = prctile(quickmap_temp(:), 97);
+elseif percentile_clean > 1
+    % Use manual max value
+    max_val_clean = percentile_clean;
 end
 
 %% Calculate colormap range
 quickmap_temp = quickmap(:, :, idx_start:idx_end);
-valid_values = quickmap_temp(~isnan(quickmap_temp) & quickmap_temp > 0);
-if ~isempty(valid_values)
-    max_val_cmap = prctile(valid_values, 97);
-else
-    max_val_cmap = 1;
+if percentile_clean == 1
+        valid_values = quickmap_temp(~isnan(quickmap_temp) & plotMap_temp > 0);
+        if ~isempty(valid_values)
+            max_val_cmap = prctile(valid_values, 97);
+        else
+            max_val_cmap = 1;
+        end
+    elseif percentile_clean > 1
+        max_val_cmap = percentile_clean;
+        else
+        max_val_cmap = max(quickmap_temp(:), [], 'all');
 end
+
 cmap_sz = max_val_cmap / 255;
 
 %% Setup colormap

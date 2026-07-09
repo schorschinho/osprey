@@ -13,7 +13,7 @@ function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %                              OspreyFit
 %                              OspreyCoreg
 %                              OspreySeg
-%      ToolChecked = Flag whether Toolboxes have been checked before. 
+%      ToolChecked = Flag whether Toolboxes have been checked before.
 %
 %   OUTPUTS:
 %       hasSPM     = SPM flag.
@@ -32,7 +32,7 @@ function [hasSPM,OspreyVersion] = osp_Toolbox_Check (Module,ToolChecked)
 %       2020-05-15: First version of the code.
 %%
 %%% 1. GET SPMPATH AND TOOLBOXES%%%
-OspreyVersion = 'Osprey 3.0.0';
+OspreyVersion = 'Osprey-MRSI 1.0.0';
 fprintf(['Timestamp %s ' OspreyVersion '  ' Module '\n'], datestr(now,'mmmm dd, yyyy HH:MM:SS'));
 addons = matlab.addons.installedAddons;
 available = cellstr(table2cell(addons(:,1)));
@@ -46,7 +46,7 @@ end
 [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
 allFolders      = strsplit(settingsFolder, filesep);
 ospFolder       = strjoin(allFolders(1:end-1), filesep); % parent folder (= Osprey folder)
- 
+
 % SPM
 if isfile(fullfile(ospFolder,'GUI','SPMpath.mat')) % Load path to SPM
     load(fullfile(ospFolder,'GUI','SPMpath.mat'),'SPMpath')
@@ -76,12 +76,12 @@ else
     enabled{end+1} = true;
     hasSPM = 1;
     rmpath(genpath([spmversion filesep 'external' filesep 'fieldtrip']));
-end 
+end
 
 try
     if ~isempty(lic)
         available(find(cellfun(@(a)~isempty(a)&&a<1,enabled)), :) = [];
-    end    
+    end
 
     %%% 2. CHECK AVAILABILTY %%%
     switch Module
@@ -92,7 +92,7 @@ try
         case 'OspreyProcess'
             ModuleString = 'run \bfOspreyProcess';
             neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
-            neededSpecific = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox'}; 
+            neededSpecific = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox'};
         case 'OspreyFit'
             ModuleString = 'run \bfOspreyFit';
             neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
@@ -104,13 +104,13 @@ try
         case 'OspreySeg'
             ModuleString = 'run \bfOspreySeg';
             neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
-            neededSpecific = {'SPM12'};        
+            neededSpecific = {'SPM12'};
         otherwise
             ModuleString = ['run \bf' Module];
             neededGlobal = {'Optimization Toolbox', 'Statistics and Machine Learning Toolbox','SPM12'};
             neededSpecific = cellstr({});
     end
-    
+
     %To account for the re-naming of new downloads of the Widget Toolbox
     %for Matlab versions earlier than 2020b, while maintaining
     %functionality for older downloads, we need to check for all naming
@@ -121,7 +121,7 @@ try
         end
     end
     missingSpecific = setdiff(neededSpecific,available);
-    missing = setdiff(neededGlobal,available); 
+    missing = setdiff(neededGlobal,available);
 
     %%% 3. CREATE WARNING MESSAGES %%%
     if ~ToolChecked
@@ -138,7 +138,7 @@ try
             warning{warning_count} = ['Please install them to ' ModuleString '\rm'];
             warning_count = warning_count + 1;
             if ~isempty(missingSpecific)
-                warning{warning_count} = ['The following toolboxes are missing to run ' Module ':']; 
+                warning{warning_count} = ['The following toolboxes are missing to run ' Module ':'];
                 warningc = ['Please install and include the following toolboxes to use ' Module ':'];
                 for i = 1 : length(missingSpecific)
                     warning{warning_count + i} = ['\bf' missingSpecific{i} '\rm'];
@@ -147,7 +147,7 @@ try
                 warning{warning_count + length(missingSpecific) + 1} = ['Please install them to use \bf' Module '\rm'];
                 warndlg(warning,'Missing Toolboxes',opts);
                 error(warningc);
-            end    
+            end
             warndlg(warning,'Missing Toolboxes',opts);
         end
     end
@@ -156,6 +156,6 @@ catch %If the MATLAB version pre-dates the inmplementation of matlab.addons.inst
     warning = cellstr({});
     warning{1} = 'Your current MATLAB version does not allow the automated toolbox check. We assume that all required toolboxes are available.';
     warndlg(warning,'Automated toolbox check not working.',opts);
-end   
+end
 
 end

@@ -123,15 +123,44 @@ function obj = createModel(obj)
             if isfield(parsgr.(pars{ff}),'idx')                         % Remove old index during optimization
                parsgr.(pars{ff}) = rmfield(parsgr.(pars{ff}),'idx'); 
             end
+            if isfield(parsgr.(pars{ff}),'nan_marker')                         % Remove old index during optimization
+               parsgr.(pars{ff}) = rmfield(parsgr.(pars{ff}),'nan_marker'); 
+            end
+            if isfield(parsgr.(pars{ff}),'idx_repar')                         % Remove old index during optimization
+               parsgr.(pars{ff}) = rmfield(parsgr.(pars{ff}),'idx_repar'); 
+            end
+            if isfield(parsgr.(pars{ff}),'nan_marker_repar')                         % Remove old index during optimization
+               parsgr.(pars{ff}) = rmfield(parsgr.(pars{ff}),'nan_marker_repar'); 
+            end
             groups = fields(parsgr.(pars{ff}));                   % Get group names
             if length(groups) == 1
                 parsgr.(pars{ff}).(groups{1}) = parsgr.(pars{ff}).(groups{1})';
             end
             basisNames = basisSet.names;
-            idx = repmat(1:sum(basisSet.includeInFit(obj.step,:)),size(parsgr.(pars{ff}).(groups{1}),1),1);
+            % If reparameterized values have different groups we need to account for that
+            if size(parsgr.(pars{ff}).(groups{1}),1) == 1 &&  size(parsgr.(pars{ff}).(groups{1}),2) > 1
+                gg_dyn_counter = size(parsgr.(pars{ff}).(groups{1}),1);
+            end
+            if size(parsgr.(pars{ff}).(groups{1}),1) > 1 &&  size(parsgr.(pars{ff}).(groups{1}),2) > 1
+                gg_dyn_counter = size(parsgr.(pars{ff}).(groups{1}),1);
+            end
+            if size(parsgr.(pars{ff}).(groups{1}),1) > 1 &&  size(parsgr.(pars{ff}).(groups{1}),2) == 1
+                gg_dyn_counter = size(parsgr.(pars{ff}).(groups{1}),2);
+            end
+            idx = repmat(1:sum(basisSet.includeInFit(obj.step,:)),gg_dyn_counter,1);
             nan_marker = ones(size(idx));
             for gg = 1 : length(groups)                           % Loop over groups
-                for gg_dyn = 1 : size(parsgr.(pars{ff}).(groups{gg}),1)     % If reparameterized values have different groups we need to account for that
+                 % If reparameterized values have different groups we need to account for that
+                    if size(parsgr.(pars{ff}).(groups{gg}),1) == 1 &&  size(parsgr.(pars{ff}).(groups{gg}),2) > 1
+                        gg_dyn_counter = size(parsgr.(pars{ff}).(groups{gg}),1);
+                    end
+                    if size(parsgr.(pars{ff}).(groups{gg}),1) > 1 &&  size(parsgr.(pars{ff}).(groups{gg}),2) > 1
+                        gg_dyn_counter = size(parsgr.(pars{ff}).(groups{gg}),1);
+                    end
+                    if size(parsgr.(pars{ff}).(groups{gg}),1) > 1 &&  size(parsgr.(pars{ff}).(groups{gg}),2) == 1
+                        gg_dyn_counter = size(parsgr.(pars{ff}).(groups{gg}),2);
+                    end
+                for gg_dyn = 1 : gg_dyn_counter   
                     if ~isempty(parsgr.(pars{ff}).(groups{gg}){gg_dyn})
                         [metsToInclude, ~, ~] = intersect(basisNames, parsgr.(pars{ff}).(groups{gg}){gg_dyn}, 'stable');    % Get vector of logical indices
                         firstIndex = find(strcmp(metsToInclude{1}, basisNames));    % Get index of basis function to include

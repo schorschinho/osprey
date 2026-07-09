@@ -36,10 +36,10 @@ function MRSI_model = get_MRSI_amplitudes(FitMatrix)
     MRSI_model.relCRLBs = zeros(size(temp.Model{end}.CRLB,2),size(FitMatrix,1),size(FitMatrix,2),size(FitMatrix,3));
 
     % Typical metabolite names for combination calcualtions
-    typicalMetaboliteCombinations = {'NAA','NAAG';'GPC','PCh';'Cr','PCr';'Glu','Gln';'EA','PE';...
-                                 'NAA_Acetyl_only','NAAG_Acetyl_only';'GPC_pCh2_only','PCh_trimethyl_only';
-                                 'Cr_methyl_only','PCr_ch3_only';'Cr_methylene_only','PCr_ch2nhnh_only'}; 
-    MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','tNAA_Acety_only','tCho_pCh2_only','tCr_methyl_only','tCr_mehtylene_only'};
+typicalMetaboliteCombinations = {'NAA','NAAG';'GPC','PCh';'Cr','PCr';'Glu','Gln';'EA','PE';'GABA','MM3co'; 'GABA', 'MM3to2';...
+                                 'NAA_Acetyl_only','NAAG_Acetyl_only';'Cr_methyl_only','PCr_ch3_only';'Cr_methylene_only','PCr_ch2nhnh_only';...
+                                 'GPC_pCh2_only','PCh_trimethyl_only'; 'Lac', 'MM14'}; 
+MetaboliteCombinationNames = {'tNAA','tCho','tCr','Glx','tEA','GABA+','GABA+','tNAA_Acetyl','tCr_methyl','tCr_methylene','tCho_methyl','Lac+'};
 
     % Loop over names to find combined metabolite names
     AddedMetaboliteIndex =[];

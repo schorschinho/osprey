@@ -213,6 +213,7 @@ for kk = 1:MRSCont.nDatasets
                                                     MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
                     raw.refFWHM = refFWHM;
                     raw.refShift = 0;    
+                    [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation 
                 case 'CCwithLipRemoval'
                     temp = raw;
                     if MRSCont.opts.MRSI.FreqAlign.zerofill
@@ -234,18 +235,21 @@ for kk = 1:MRSCont.nDatasets
                                                     MRSCont.opts.MRSI.FreqAlign.lim,MRSCont.opts.MRSI.FreqAlign.realpart);
                     % [~, refFWHM] = osp_CrChoReferencing(temp);
                     raw.refFWHM = refFWHM;
-                    raw.refShift = 0;     
+                    raw.refShift = 0;
+                    [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation 
                 case 'none'
                     [~, refFWHM] = osp_CrChoReferencing(raw);
                     raw.refFWHM = refFWHM;
                     raw.refShift = 0; 
                     refShift = 0;  
             end
+             
         else
             [refShift, ~] = osp_CrChoReferencing(raw);
+            [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation  
         end
         
-        [raw]             = op_freqshift(raw,-refShift);            % Reference spectra by cross-correlation     
+           
         
         if MRSCont.flags.hasMM %re_mm
             [refShift_mm, ~] = fit_OspreyReferencingMM(raw_mm);
@@ -253,14 +257,6 @@ for kk = 1:MRSCont.nDatasets
             MRSCont.processed.mm{kk}       = raw_mm;                          % Save back to MRSCont container  %re_mm
         end
 
-        
-        % Save back to MRSCont container
-        if strcmp(MRSCont.vendor,'Siemens')
-            % Fit a double-Lorentzian to the Cr-Cho area, and phase the spectrum
-            % with the negative phase of that fit
-            [raw,globalPhase]       = op_phaseCrCho(raw, 1);
-            raw.specReg.phs = raw.specReg.phs - globalPhase*180/pi;
-        end
 
         if MRSCont.flags.isMRSI
             switch MRSCont.opts.MRSI.phase.type
@@ -274,8 +270,26 @@ for kk = 1:MRSCont.nDatasets
                 case 'auto_phase'
                     [raw,globalPhase]       = op_autophase(raw, MRSCont.opts.MRSI.phase.limits(1),MRSCont.opts.MRSI.phase.limits(2));
                     raw.specReg.phs = raw.specReg.phs - globalPhase*180/pi;
+                case 'LCM'
+                    load(MRSCont.opts.MRSI.phase.BasisSetFile{1});                   % Assume it is the first one ...
+                    BASIS = recalculateBasisSpecs(BASIS);                         % Add ppm axis and frequency domain data
+                    BASIS = fit_sortBasisSet(BASIS);                              % Sort according to Osprey standard
+                    temp = op_zeropad(raw,2);   
+                    BASIS = fit_resampleBasis(temp, BASIS); 
+                    BASIS.centerFreq = 4.68;
+                    model = Osprey_gLCM(temp,MRSCont.opts.MRSI.phase.ModelProcedureFileMetabolites,0,1,1,0,0,BASIS,1);                                      
+                    refShift = model{1, 1}.Model{1, 1}.parsOut.GlobFreqShift;
+                    [raw]             = op_freqshift(raw,-refShift); 
+                    raw.specs = raw.specs .* (exp(1j .* (model{1, 1}.Model{1, 1}.parsOut.ph0 + model{1, 1}.Model{1, 1}.parsOut.ph1.*raw.ppm)'));
+                    if mod(size(raw.specs,raw.dims.t),2)==0
+                        %disp('Length of vector is even.  Doing normal conversion');
+                        raw.fids=ifft(fftshift(raw.specs,raw.dims.t),[],raw.dims.t);
+                    else
+                        %disp('Length of vector is odd.  Doing circshift by 1');
+                        raw.fids=ifft(circshift(fftshift(raw.specs,raw.dims.t),1),[],raw.dims.t);
+                    end
             end
-            
+        end
 
         
         MRSCont.processed.A{kk}     = raw;

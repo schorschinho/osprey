@@ -384,21 +384,8 @@ function jac = forwardJacobian(x, data, NoiseSD, basisSet, baselineBasis, ppm, t
         end
     end
 
-    if Reg                                                                  % Add parameter regularization
-            [dYdph0]        = addParameterRegularization(dYdph0,'ph0', parametrizations,ph0,1,secDim); % Add regularizer to ph0 parameter
-            [dYdph1]        = addParameterRegularization(dYdph1,'ph1', parametrizations,ph1,1,secDim); % Add regularizer to ph1 parameter
-            [dYdGlobFreqShift] = addParameterRegularization(dYdGlobFreqShift,'GlobFreqShift', parametrizations,GlobFreqShift,1,secDim); % Add regularizer to GlobFreqShift parameter
-            [dYdgaussLB]    = addParameterRegularization(dYdgaussLB,'gaussLB', parametrizations,gaussLB,1,secDim); % Add regularizer to gaussLB parameter
-            [dYdlorentzLB]  = addParameterRegularization(dYdlorentzLB,'lorentzLB', parametrizations,lorentzLB,1,secDim); % Add regularizer to lorentzLB parameter
-            [dYdfreqShift]  = addParameterRegularization(dYdfreqShift,'freqShift', parametrizations,freqShift,1,secDim); % Add regularizer to freqShift parameter
-            [dYdmetAmpl]    = addParameterRegularization(dYdmetAmpl,'metAmpl', parametrizations,metAmpl,1,secDim); % Add regularizer to metAmpl parameter
-            if nBaselineComps ~= 0
-                [dYdbaseAmpl]   = addParameterRegularization(dYdbaseAmpl,'baseAmpl', parametrizations,baseAmpl,1,secDim); % Add regularizer to baseAmpl parameter
-            end
-    end                                                                     % End loop over indirect dimension
 
-
-    [dYdpen] = calcPenalty(1,inputParams, parametrizations, secDim);
+    [dYdpen] = calcPenalty(1,inputParams, parametrizations, secDim);       % Calculate expectation value penalty jacobian  
     nParams = size(dYdpen,1);                                              % Store number of parameters before grouping for soft constraint jacobian
     dYdpen  = updateAccordingToGrouping('penaltyJacobian',dYdpen,[], parametrizations,x);   % Update expectation value penalty according to grouping
 
@@ -646,13 +633,38 @@ function paramStruct = x2pars(x, secDim, parametrizations)
             case {'metAmpl', 'freqShift', 'lorentzLB','baseAmpl'}            % Parameters that appear once per basis function
                 if strcmp(parametrizations.(pars{ff}).type,'free')
                     paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),secDim,[]);
+                    if ~isempty(parametrizations.(pars{ff}).gr)  
+                        idx=parametrizations.(pars{ff}).gr.idx;
+                        paramStruct.(pars{ff}) = paramStruct.(pars{ff})(:,parametrizations.(pars{ff}).gr.idx); 
+                    end
                 end
                 if strcmp(parametrizations.(pars{ff}).type,'fixed')
+                    if ~isempty(parametrizations.(pars{ff}).gr)  
+                        idx=parametrizations.(pars{ff}).gr.idx;
+                        paramStruct.(pars{ff}) = paramStruct.(pars{ff})(idx); 
+                    end
                     paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),1,[]);
                     paramStruct.(pars{ff}) = repmat(paramStruct.(pars{ff}),[secDim,1]);
                 end
                 if strcmp(parametrizations.(pars{ff}).type,'dynamic')
-                    paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
+                    if ~isempty(parametrizations.(pars{ff}).gr)  
+                        idx=parametrizations.(pars{ff}).gr.idx;
+                        nan_positions = isnan(reshape(parametrizations.(pars{ff}).gr.nan_marker,1,[]));
+                        if sum(nan_positions) == 0
+                            paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
+                            paramStruct.(pars{ff})(:,:) = paramStruct.(pars{ff})(:,parametrizations.(pars{ff}).gr.idx);
+                        else
+                            temp_pars = nan(size(nan_positions));
+                            temp_pars(~nan_positions) = paramStruct.(pars{ff});
+                            paramStruct.(pars{ff}) = temp_pars;
+                            paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
+                             for gg_dyn = 1 : size(idx,1)
+                                paramStruct.(pars{ff})(gg_dyn,:) = paramStruct.(pars{ff})(gg_dyn,idx(gg_dyn,:)); 
+                             end
+                        end 
+                    else
+                        paramStruct.(pars{ff}) = reshape(paramStruct.(pars{ff}),size(parametrizations.(pars{ff}).lb));
+                    end
                     for rp = 1 : length(parametrizations.(pars{ff}).parameterNames)
                         paramStruct.([pars{ff} 'Reparametrization']).(parametrizations.(pars{ff}).parameterNames{rp}) = paramStruct.(pars{ff})(rp,:);
                     end
