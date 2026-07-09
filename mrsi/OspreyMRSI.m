@@ -21,16 +21,11 @@ function [MRSCont] = OspreyMRSI(jobFile,overwrite,stopAfterProcess)
 if nargin < 3
     stopAfterProcess = 0;
     if nargin < 2
-        overwrite = 0;
+        overwrite = '00';
         if nargin<1
             error('ERROR: no input Osprey container specified.  Aborting!!');
         end
     end
-end
-if overwrite
-    overwrite = '11';
-else
-    overwrite = '00';
 end
 %% Initialization with OspreyJob
 %
@@ -307,7 +302,7 @@ end
 % to use and which metabolites to include.
 % MRSCont.opts.MRSI.GlobalConc.SliceIndices = [3];
 % MRSCont.opts.MRSI.GlobalConc.fGMpfWM = 0.8;
-% MRSCont.opts.MRSI.GlobalConc.metabolites = {'tNAA_Acetyl_only','tCr_methyl_only','tCho_pCh2_only'};
+% MRSCont.opts.MRSI.GlobalConc.metabolites = {'tNAA_Acetyl','tCr_methyl','tCho_mehtyl'};
 % MRSCont.opts.MRSI.GlobalConc.quantities = {'TissCorrWaterScaled'};
 
 % You can also visualize the atlas analysis in an interactive plot by
@@ -341,7 +336,7 @@ end
 % MRSCont.opts.MRSI.atlas.FWHMThreshold = 14;
 % MRSCont.opts.MRSI.atlas.CRLBThreshold = [20,20,20];
 % MRSCont.opts.MRSI.atlas.SDThreshold = 3;
-% MRSCont.opts.MRSI.atlas.metabolites = {'tNAA_Acetyl_only','tCr_methyl_only','tCho_pCh2_only'};
+% MRSCont.opts.MRSI.atlas.metabolites = {'tNAA_Acetyl','tCr_methyl','tCho_mehtyl'};
 % MRSCont.opts.MRSI.atlas.quantities = {'TissCorrWaterScaled','CRLBs'};
 
 if ~MRSCont.flags.didOverview
@@ -377,7 +372,7 @@ end
 % MRSCont.opts.MRSI.report.quantifications = {'tCr','rawWaterScaled','CSFrawWaterScaled','TissCorrWaterScaled'};
 % 
 % %Pick the metabolite names to be reported
-% MRSCont.opts.MRSI.report.metabolites = {'tNAA_Acetyl_only','tCr_methyl_only','tCho_pCh2_only'}; % 'tNAA','tCr', 'tCho', 'Glx','mI'
+% MRSCont.opts.MRSI.report.metabolites = {'tNAA_Acetyl','tCr_methyl','tCho_mehtyl'}; % 'tNAA','tCr', 'tCho', 'Glx','mI'
 
 [MRSCont] = OspreyMRSIHTMLReport(MRSCont,1);
 end

@@ -14,7 +14,7 @@
       "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
       "extra": {
         "flag": 1,
-  		  "DynamicModelJson": "/Users/helge/Documents/GitHub/osprey/libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/model-procedures/mrsi/2D_reduce_dims_MaxEcho_Step1.json"
+  		  "DynamicModelJson": "/Users/helge/Documents/GitHub/osprey/libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/model-procedures/mrsi/2D_reduce_dims_MaxEcho_Step1_sharedPhase.json"
       },
       "basisset": {
         "spec": 1,
@@ -35,8 +35,7 @@
           "type": "poly",
           "order": 2
         },
-        "solver": "lsqnonlin",
-        "iterations": 250
+        "solver": "lsqnonlin"
       },
       "parameter": [
         "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
@@ -63,7 +62,7 @@
       "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
       "extra": {
         "flag": 1,
-  		  "DynamicModelJson": "/Users/helge/Documents/GitHub/osprey/libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/model-procedures/mrsi/2D_reduce_dims_MaxEcho_Step2.json"
+  		  "DynamicModelJson": "/Users/helge/Documents/GitHub/osprey/libraries/FID-A/fitTools/fitModels/Osprey_gLCM/fitClass/model-procedures/mrsi/2D_reduce_dims_MaxEcho_Step2_sharedPhase.json"
       },
       "basisset": {
         "spec": 1,
@@ -84,8 +83,7 @@
           "type": "poly",
           "order": 2
         },
-        "solver": "lsqnonlin",
-        "iterations": 250
+        "solver": "lsqnonlin"
       },
       "parameter": [
         "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"

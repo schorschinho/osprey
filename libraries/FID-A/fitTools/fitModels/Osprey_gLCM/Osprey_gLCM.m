@@ -332,11 +332,22 @@ for kk = 1 : length(DataToModel)
             opts.StepTolerance = 1e-10;
             opts.OptimalityTolerance = 1e-10;
         end
+
+        if isfield(ModelProcedure.Steps{ss}.fit_opts,'FunctionTolerance')
+            opts.FunctionTolerance = ModelProcedure.Steps{ss}.fit_opts.FunctionTolerance;
+        end
+        if isfield(ModelProcedure.Steps{ss}.fit_opts,'StepTolerance')
+            opts.StepTolerance = ModelProcedure.Steps{ss}.fit_opts.StepTolerance;
+        end
+        if isfield(ModelProcedure.Steps{ss}.fit_opts,'OptimalityTolerance')
+            opts.OptimalityTolerance = ModelProcedure.Steps{ss}.fit_opts.OptimalityTolerance;
+        end
         opts.NumericJacobian    = NumericJacobian;                                      % Use numerical jacobian instead of the analytical jacobian
         opts.CheckGradient      = CheckGradient;                                        % Do a gradient check in the lsqnonlin solver
 
-        clc
+        
         if ~nonVerbose
+            clc
             fprintf('Running model procedure step %i. \n', ss);
         end
 

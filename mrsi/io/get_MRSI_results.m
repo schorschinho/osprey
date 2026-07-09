@@ -60,7 +60,7 @@ function MRSI_model = get_MRSI_results(FitMatrix)
         MRSI_model.fit = MRSI_model.data;
         MRSI_model.baseline = MRSI_model.data;
         MRSI_model.residual = MRSI_model.data;
-        MRSI_model.metabs = zeros(size(tempModel.Data.fids,1),size(tempModel.Model{temp.step}.fit.metabs,2),size(FitMatrix,1),size(FitMatrix,2),size(FitMatrix,3),size(tempModel.Data.fids,2));
+        MRSI_model.metabs = zeros(size(tempModel.Data.fids,1),size(tempModel.Model{tempModel.step}.fit.metabs,2),size(FitMatrix,1),size(FitMatrix,2),size(FitMatrix,3),size(tempModel.Data.fids,2));
         
         % Loop over results to fill the struct
         for z = 1: dims(3)

@@ -1,0 +1,63 @@
+{
+  "basisset": {
+    "file": [
+      "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA15_noMM.mat"
+    ],
+    "mmdef": [
+        "which(fullfile(''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
+    ]
+  },
+  "Steps": [{
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Cr_methyl_only","Cr_methylene_only","GPC_pCh2_only","NAA_Acetyl_only","NAAG_Acetyl_only",
+          "PCh_trimethyl_only","PCr_ch2nhnh_only","PCr_ch3_only"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.7,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "poly",
+          "dkntmn": 2
+        },
+        "solver": "lsqnonlin",
+        "FunctionTolerance": 0.001,
+        "StepTolerance": 0.001,
+        "OptimalityTolerance": 0.001,
+         "iterations": 100
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+          "gaussLB": {
+          "init": 5.11,
+          "ex": 5.11,
+          "sd":0.2
+        },
+        "lorentzLB": {
+          "gr":{"g1":["Cr_methyl_only","Cr_methylene_only","GPC_pCh2_only","NAA_Acetyl_only","NAAG_Acetyl_only",
+          "PCh_trimethyl_only","PCr_ch2nhnh_only","PCr_ch3_only"]}
+      },
+      "freqShift": {
+        "gr":{"g1":["Cr_methyl_only","Cr_methylene_only","GPC_pCh2_only","NAA_Acetyl_only","NAAG_Acetyl_only",
+        "PCh_trimethyl_only","PCr_ch2nhnh_only","PCr_ch3_only"]},
+          "lb": -0.01,
+          "ub":0.01
+      }
+      }
+  }
+    ]
+  }

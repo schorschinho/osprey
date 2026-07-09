@@ -9,7 +9,7 @@
   },
   "Steps": [{
       "module": "OptimReg",
-      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
       "extra": {
         "flag": 0
       },
@@ -32,11 +32,10 @@
           "type": "spline",
           "dkntmn": 0.0667
         },
-        "solver": "lsqnonlin",
-        "iterations": 10
+        "solver": "lsqnonlin"
       },
       "parameter": [
-        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
       ],
       "parametrizations": {
           "gaussLB": {
@@ -64,12 +63,12 @@
         "m"        : 1,
         "ub"       : 1,
         "steps"    : 1,
-        "fixedParameter": ["ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift"]
+        "fixedParameter": ["ph0","ph1","gaussLB","lorentzLB","freqShift"]
       }
     },
     {
       "module": "OptimReg",
-      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
       "extra": {
         "flag": 0
       },
@@ -92,11 +91,10 @@
           "type": "spline",
           "dkntmn": 0.0667
         },
-        "solver": "lsqnonlin",
-        "iterations": 5
+        "solver": "lsqnonlin"
       },
       "parameter": [
-        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
       ],
       "parametrizations": {
         "baseAmpl": {
@@ -114,17 +112,6 @@
           ]
         },
         "ph1": {
-          "init": [
-            "Step 1"
-          ],
-          "ub": [
-            "Step 1"
-          ],
-          "lb": [
-            "Step 1"
-          ]
-        },
-        "GlobFreqShift": {
           "init": [
             "Step 1"
           ],
@@ -187,15 +174,15 @@
       "regularizer": {
         "parameter": "baseAmpl",
         "fun"      : "LambdaEDFormalism",
-        "m"        : 3,
-        "ub"       : 6,
-        "steps"    : 5,
-        "fixedParameter": ["ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift"]
+        "m"        : 15,
+        "ub"       : 14,
+        "steps"    : 20,
+        "fixedParameter": ["ph0","ph1","gaussLB","lorentzLB","freqShift"]
       }
     },
     {
       "module": "Model",
-      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "ModelFunction": "GeneralizedBasicPhysicsModel",
       "extra": {
         "flag": 0
       },
@@ -218,39 +205,12 @@
           "type": "spline",
           "dkntmn": 0.0667
         },
-        "solver": "lsqnonlin",
-        "iterations": 150
+        "solver": "lsqnonlin"
       },
       "parameter": [
-        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+        "ph0","ph1","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
       ],
       "parametrizations": {
-        "ph0": {
-          "init": [
-            "Step 1"
-          ]
-        },
-        "ph1": {
-          "init": [
-            "Step 1"
-          ]
-        },
-        "GlobFreqShift": {
-          "init": [
-            "Step 1"
-          ],
-          "ub": [
-            "Step 1"
-          ],
-          "lb": [
-            "Step 1"
-          ]
-        },
-        "gaussLB": {
-          "init": [
-            "Step 1"
-          ]
-        },
         "metAmpl": {
         "sc":{
               "adj": [["CrCH2","NAAG","MM20","MM31","MM37","MM38","MM40","Asp","GABA","sI","Tau"]],

@@ -28,7 +28,8 @@
         "baseline": {
           "type": "none"
         },
-        "solver": "lsqnonlin"
+        "solver": "lsqnonlin",
+        "iterations": 250
       },
       "parameter": [
         "ph0",

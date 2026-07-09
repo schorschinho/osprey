@@ -165,8 +165,11 @@ polResidNAA = 1; % Polarity NAA
 % Options for auto phasing
 % opts.MRSI.phase.type = 'none';
 % opts.MRSI.phase.type = 'Cr-Cho';
-opts.MRSI.phase.type = 'auto_phase';
-opts.MRSI.phase.limits = [1.7,2.2];
+% opts.MRSI.phase.type = 'auto_phase';
+% opts.MRSI.phase.limits = [1.7,2.2];
+opts.MRSI.phase.type = 'LCM';
+opts.MRSI.phase.ModelProcedureFileMetabolites = which('/model-procedures/mrsi/1Step_Spline_invivo_FreqAndPhase.json');
+opts.MRSI.phase.BasisSetFile = {which('/fit/basissets/mrsi/BASIS_Siemens_UnEdited_PRESS_GABA35_noMM.mat')};
 
 % Options for MRSI nuisance signal removal are:
 % No water removal
@@ -205,7 +208,7 @@ opts.MRSI.NuisanceRemoval.lipid.basisArguments.plotBasis = false;
 
 % Options for MRSI frequency alignment are:
 % No frequency alignment
-% opts.MRSI.FreqAlign.type = 'none';
+opts.MRSI.FreqAlign.type = 'none';
 
 % Cross-correlation alignment of frequencies defined below
 % opts.MRSI.FreqAlign.type = 'CC';
@@ -216,13 +219,13 @@ opts.MRSI.NuisanceRemoval.lipid.basisArguments.plotBasis = false;
 % opts.MRSI.FreqAlign.zerofill = 0;
 
 % Cross-correlation alignment of frequencies defined below after Wavelet filter of baseline if lipid/noise > thresh
-opts.MRSI.FreqAlign.type = 'CCwithLipRemoval';
-opts.MRSI.FreqAlign.thresh = 10;
-opts.MRSI.FreqAlign.frequencies = [2.01,3.03,3.22];
-opts.MRSI.FreqAlign.polarity = [1,1,1];
-opts.MRSI.FreqAlign.lim = [1.85,4];
-opts.MRSI.FreqAlign.realpart = 0;
-opts.MRSI.FreqAlign.zerofill = 0;
+% opts.MRSI.FreqAlign.type = 'CCwithLipRemoval';
+% opts.MRSI.FreqAlign.thresh = 10;
+% opts.MRSI.FreqAlign.frequencies = [2.01,3.03,3.22];
+% opts.MRSI.FreqAlign.polarity = [1,1,1];
+% opts.MRSI.FreqAlign.lim = [1.85,4];
+% opts.MRSI.FreqAlign.realpart = 0;
+% opts.MRSI.FreqAlign.zerofill = 0;
 
 % Flags for maximum echo processing
 % opts.MRSI.MaxEcho.separate = 1;

@@ -231,7 +231,7 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                 for mm = 1 : length(metabolites)    % Loop over metabolites to calcualte statisitcs
                     plotMap = MRSCont.quantify.(quantities{qq}).(metabolites{mm});
 
-                    values = plotMap(AtlasMaskMetabs{mm} == 1);
+                    values = real(plotMap(AtlasMaskMetabs{mm} == 1));
                     mean_values = nanmean(values);
                     median_values = nanmedian(values);
                     std_values = nanstd(values);
@@ -298,7 +298,7 @@ function [MRSCont] = OspreyMRSIAtlasAnalysis(MRSCont)
                 for mm = 1 : length(metabolites)    % Loop over metabolites to calcualte statisitcs
                     plotMap = MRSCont.quantify.(quantities{qq}).(metabolites{mm});
 
-                    values = plotMap(AtlasMaskMetabs{mm} == 1);
+                    values = real(plotMap(AtlasMaskMetabs{mm} == 1));
                     mean_values = nanmean(values);
                     median_values = nanmedian(values);
                     std_values = nanstd(values);

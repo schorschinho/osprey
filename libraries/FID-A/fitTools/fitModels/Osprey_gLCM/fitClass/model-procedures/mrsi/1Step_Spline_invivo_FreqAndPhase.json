@@ -1,0 +1,63 @@
+{
+  "basisset": {
+    "file": [
+      "/Volumes/Samsung/working/OspreyMRSIbeta/basissets/BASIS_Philips_UnEdited_se_MRSI_PRESS_GABA15_noMM.mat"
+    ],
+    "mmdef": [
+        "which(fullfile(''Osprey_gLCM'',''fitClass'',''mm-definitions'',''MMLipLCModel.json''))"
+    ]
+  },
+  "Steps": [{
+      "module": "Model",
+      "ModelFunction": "GeneralizedBasicPhysicsModelWithGlobalFreqShift",
+      "extra": {
+        "flag": 0
+      },
+      "basisset": {
+        "spec": 1,
+        "include": [
+          "Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau"
+        ]
+      },
+      "fit_opts": {
+        "optimFreqFitRange": [
+          1.7,
+          4
+        ],
+        "gap": [],
+        "optimDomain": "FD",
+        "optimSignalPart": "R",
+        "baseline": {
+          "type": "spline",
+          "dkntmn": 0.5
+        },
+        "solver": "lsqnonlin",
+        "FunctionTolerance": 0.001,
+        "StepTolerance": 0.001,
+        "OptimalityTolerance": 0.001,
+         "iterations": 100
+      },
+      "parameter": [
+        "ph0","ph1","GlobFreqShift","gaussLB","lorentzLB","freqShift","metAmpl","baseAmpl"
+      ],
+      "parametrizations": {
+          "gaussLB": {
+          "init": 5.11,
+          "ex": 5.11,
+          "sd":0.2
+        },
+          "lorentzLB": {
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau"]}
+        },
+        "freqShift": {
+          "gr":{"g1":["Asc","Asp","Cr","CrCH2","GABA","GPC","GSH","Gln","Glu","mI","NAA",
+          "NAAG","PCh","PCr","PE","sI","Tau"]},
+            "lb": -0.01,
+            "ub":0.01
+        }
+      }
+  }
+    ]
+  }

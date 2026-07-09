@@ -179,7 +179,7 @@ if ~isQC
             plotMap(plotMap > max_val_clean) = NaN;
         end
     elseif percentile_clean > 1
-        % Use manual max value
+        % Use manual max valu
         max_val_clean = percentile_clean;
         if ~clip
             plotMap(plotMap > max_val_clean) = NaN;
@@ -200,7 +200,7 @@ if ~isQC
     elseif percentile_clean > 1
         max_val_cmap = percentile_clean;
         else
-        max_val = max(plotMapTemp(:), [], 'all');
+        max_val_cmap = max(plotMap_temp(:), [], 'all');
     end
 else
     max_val_cmap = max(plotMap_temp(:), [], 'all');
