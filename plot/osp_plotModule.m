@@ -967,7 +967,21 @@ out.PaperSize = [fig_pos(3) fig_pos(4)];
 % print(fig,'-dpdf','-painters','-r600','-bestfit',strcat(plot_path,plot_name));
 
 % print(out,fullfile(outputFolder,outputFile),'-dpdf') % then print it
-saveas(out,fullfile(outputFolder,outputFile),'pdf');
+
+% MATLAB R2025b and newer refuse to print/saveas any figure that contains
+% UI components, and the layout above is built from GUI Layout Toolbox
+% panels (uix = uipanel) plus uicontrol info text. exportapp handles those,
+% but it only renders them if the figure is on screen, so show it briefly.
+% NB: test with exist, not which -- 'which' is an input argument here.
+if exist('exportapp','file') == 0
+    saveas(out,fullfile(outputFolder,outputFile),'pdf');
+else
+    prevVis = out.Visible;
+    out.Visible = 'on';
+    drawnow;
+    exportapp(out,fullfile(outputFolder,outputFile));
+    out.Visible = prevVis;
+end
 h = findall(groot,'Type','figure');
 for ff = 1 : length(h)
     if ~(strcmp(h(ff).Tag, 'Osprey') ||  strcmp(h(ff).Tag, 'TMWWaitbar'))

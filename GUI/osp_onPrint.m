@@ -1001,6 +1001,18 @@ end
 fig_pos = out.PaperPosition;
 out.PaperSize = [fig_pos(3) fig_pos(4)];
 
-saveas(out,fullfile(outputFolder,outputFile),'pdf');
+% MATLAB R2025b and newer refuse to print/saveas any figure that contains
+% UI components, and the layout above is built from GUI Layout Toolbox
+% panels (uix = uipanel) plus uicontrol info text. exportapp handles those,
+% but it only renders them if the figure is on screen, so show it briefly.
+if exist('exportapp','file') == 0
+    saveas(out,fullfile(outputFolder,outputFile),'pdf');
+else
+    prevVis = out.Visible;
+    out.Visible = 'on';
+    drawnow;
+    exportapp(out,fullfile(outputFolder,outputFile));
+    out.Visible = prevVis;
+end
 close(out);
 end
