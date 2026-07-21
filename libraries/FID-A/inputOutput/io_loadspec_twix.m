@@ -311,8 +311,7 @@ if isMinn_dkd
             end
 
         else
-            % this is the dkd (not dkd2) sequence (which should *only* have
-            % scanMode 2)
+            % this is the dkd (not dkd2) sequence
             switch scanMode
                 case 2
                     % Do the same as above for case 8
@@ -327,7 +326,30 @@ if isMinn_dkd
                     quantIndices((nRefs/2)+1:nRefs) = 1; % quant ref
                     % Second block:
                     refIndices(end-(nRefs-1):(end-(nRefs-1))+(nRefs/2-1))   = 1; % ECC
-                    quantIndices(end-(nRefs/2-1):end) = 1; % quant ref
+                    quantIndices(end-(nRefs/2-1):end)                       = 1; % quant ref
+                    metIndices                      = ~refIndices & ~quantIndices; % invert to get the metabolite indices
+                case 8
+                    % GO 04/2026: add this case based on test data from Eric Porges
+                    % Here, the sequence tag is dkd_svs_sLASER, so possibly
+                    % this is the same as dkd2 but in disguise. There's
+                    % probably a cleaner way to differentiate these modes
+                    % (likely by doing the ScanMode in the outer if
+                    % statement and the sequence tag in the inner if
+                    % statement) but I'm scared of breaking things... so
+                    % ugly it is for now.
+
+                    % First nRefs in each block:
+                    % VAPOR off & OVS on (= ref for ECC)
+                    % Second nRefs in each block:
+                    % VAPOR off & OVS on (= ref for quantification)
+                    refIndices                      = logical(indexVector);
+                    quantIndices                    = logical(indexVector);
+                    % First block:
+                    refIndices(1:nRefs)             = 1; % ECC
+                    quantIndices((nRefs)+1:2*nRefs) = 1; % quant ref
+                    % Second block:
+                    refIndices(end-(2*nRefs-1):(end-(2*nRefs-1))+(nRefs-1))   = 1; % ECC
+                    quantIndices(end-(nRefs-1):end)                           = 1; % quant ref
                     metIndices                      = ~refIndices & ~quantIndices; % invert to get the metabolite indices
                 otherwise
                     error("Unknown scan mode setting for the dkd sequence - please contact developers");
