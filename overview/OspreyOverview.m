@@ -122,7 +122,7 @@ if (MRSCont.flags.isPRIAM == 1) && isfield(MRSCont.flags,'isPRIAM')
     Voxels = 2;
     for rr = 1 : Voxels
         for ss = 1 : NoSpec % Loop over Subspec
-            for kk = 1 : MRSCont.nDatasets
+            for kk = 1:MRSCont.nDatasets(1)
                 MRSCont.overview.Osprey.(['all_data_voxel_' num2str(rr)]).(dataPlotNames{ss}){kk} = op_takeVoxel(MRSCont.processed.(dataPlotNames{ss}){kk},rr);
             end
         end
@@ -144,7 +144,7 @@ for rr = 1 : Voxels
             set(progressText,'String' ,sprintf('Gathering spectra from subspectrum %d out of %d total subspectra...\n', ss, NoSpec));
             drawnow
         end
-        for kk = 1 : MRSCont.nDatasets
+        for kk = 1:MRSCont.nDatasets(1)
             if MRSCont.processed.(dataPlotNames{ss}){1,kk}.sz(1) < MRSCont.info.(dataPlotNames{ss}).max_ndatapoint
                 ppmRangeData        = MRSCont.processed.(dataPlotNames{ss}){1,MRSCont.info.(dataPlotNames{ss}).max_ndatapoint_ind}.ppm';
                 ppmRangeDataToInt       = MRSCont.processed.(dataPlotNames{ss}){1,kk}.ppm;
@@ -192,7 +192,7 @@ if MRSCont.flags.didFit
                     drawnow
                 end
                 if ~isempty(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})
-                    for kk = 1 : MRSCont.nDatasets(1) %Loop over all datasets
+                    for kk = 1:MRSCont.nDatasets(1) %Loop over all datasets
                         switch MRSCont.opts.fit.method %Which model was used
                         case 'Osprey'
                             if strcmp(FitSpecNames{ss}, 'ref') || strcmp(FitSpecNames{ss}, 'w') % Water model
@@ -448,7 +448,7 @@ if MRSCont.flags.didFit
             for sf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),3)
                 for bf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),1)                                                                                                                                                                                                                                                           for bf = 1 : size(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}),1)
                         if isstruct(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf})
-                            for kk = 1 : MRSCont.nDatasets
+                            for kk = 1:MRSCont.nDatasets(1)
                                 temp_fit_sz.(ModelCombs{sc})(bf,kk,sf)= length(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit);
                             end
                         end
@@ -475,7 +475,7 @@ if MRSCont.flags.didFit
                         drawnow
                     end
 
-                    for kk = 1 : MRSCont.nDatasets %loop over all datasets
+                    for kk = 1:MRSCont.nDatasets(1) %loop over all datasets
                         if isstruct(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf})
                             if length(MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){bf,kk,sf}.fit) < max_point_fit.(ModelCombs{sc})
                                         ppmRangeData        = MRSCont.overview.Osprey.(['all_models_voxel_' num2str(rr)]).(ModelCombs{sc}){1,max_ind_fit.(ModelCombs{1})}.ppm';
@@ -530,7 +530,7 @@ end
 
 for rr = 1 : Voxels
     for ss = 1 : NoSpec % Loop over Subspec
-        for kk = 1 : MRSCont.nDatasets
+        for kk = 1:MRSCont.nDatasets(1)
             if Voxels < 2
                 scale                 = MRSCont.fit.scale{kk};
             else
@@ -563,7 +563,7 @@ end
 % to allow an easier identification.
 
 SepFileList = cell(1,length(MRSCont.files)); % Get all files
-for kk = 1 : MRSCont.nDatasets(1)
+for kk = 1:MRSCont.nDatasets(1)
     SepFileList{kk} =  split(MRSCont.files{kk}, filesep);
     ind = find(contains(lower(SepFileList{kk}),'sub'));
     if ~isempty(ind)

@@ -58,7 +58,7 @@ else
     progressText = '';
 end
 for kk = 1:MRSCont.nDatasets(1)
-    for ll = 1: 1:MRSCont.nDatasets(2)
+    for ll = 1:MRSCont.nDatasets(2)
         [~] = printLog('OspreyLoad',kk,ll,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);    
 
         if ~(MRSCont.flags.didLoad == 1 && MRSCont.flags.speedUp && isfield(MRSCont, 'raw') && (kk > length(MRSCont.raw))) || ~strcmp(MRSCont.ver.Osp,MRSCont.ver.CheckOsp)

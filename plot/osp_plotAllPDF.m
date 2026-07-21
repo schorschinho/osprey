@@ -33,7 +33,7 @@ function osp_plotAllPDF(MRSCont, Module)
 if  ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
     switch Module
         case 'OspreyLoad'
-            for kk = 1 : MRSCont.nDatasets(1)
+            for kk = 1:MRSCont.nDatasets(1)
                 osp_plotModule(MRSCont, 'OspreyLoad', kk,[1 1], 'metabolites');
                 if MRSCont.flags.hasRef
                     osp_plotModule(MRSCont, 'OspreyLoad', kk,[1 1], 'ref');
@@ -47,7 +47,7 @@ if  ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
             end
         case 'OspreyProcess'
             Names = fieldnames(MRSCont.processed);
-            for kk = 1 : MRSCont.nDatasets(1)
+            for kk = 1:MRSCont.nDatasets(1)
                 for mm = 1 : length(Names)
                     for ss = 1 : length(MRSCont.processed.(Names{mm}){kk}.names)
                         if (~contains(MRSCont.processed.(Names{mm}){kk}.names{ss},'spline')) && (~contains(MRSCont.processed.(Names{mm}){kk}.names{ss},'clean'))
@@ -68,7 +68,7 @@ if  ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
                 Names{end+1} = 'w';
             end
                 
-            for kk = 1 : MRSCont.nDatasets(1)
+            for kk = 1:MRSCont.nDatasets(1)
                 for mm = 1 : length(Names)
                     if isfield(MRSCont.fit.results,Names{mm})
                         for bb = 1 : size(MRSCont.fit.results.(Names{mm}).fitParams,1)
@@ -80,11 +80,11 @@ if  ~MRSCont.flags.isPRIAM && ~MRSCont.flags.isMRSI
                 end
             end
         case 'OspreyCoreg'
-            for kk = 1 : MRSCont.nDatasets(1)
+            for kk = 1:MRSCont.nDatasets(1)
               osp_plotModule(MRSCont, 'OspreyCoreg', kk);
             end
         case 'OspreySeg'   
-             for kk = 1 : MRSCont.nDatasets(1)
+             for kk = 1:MRSCont.nDatasets(1)
                  osp_plotModule(MRSCont, 'OspreySeg', kk);
              end 
         case 'OspreyOverview'

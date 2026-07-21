@@ -96,7 +96,7 @@ else
     progressText = '';
 end
 
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     
     if MRSCont.flags.hasWater
          [~] = printLog('OspreyLoadWater',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 

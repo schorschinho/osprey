@@ -40,7 +40,7 @@ if nargin<5
     
     % Loop over all datasets
     for kk = 1:MRSCont.nDatasets(1)
-        for ll = 1: 1:MRSCont.nDatasets(2)
+        for ll = 1:MRSCont.nDatasets(2)
             metab_ll = MRSCont.opts.MultipleSpectra.metab(ll);
             % For SPECIAL acquisitions, some of the sub-spectra need to be combined
             % prior to determining the CC coefficients. We'll set a flag here.

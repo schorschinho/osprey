@@ -430,7 +430,7 @@ classdef OspreyGUI < handle
             SepFileList = cell(1,MRSCont.nDatasets(1));
             gui.layout.RedFileList = cell(1,MRSCont.nDatasets(1));
             gui.layout.OnlyFileList = cell(1,MRSCont.nDatasets(1));
-            for i = 1 : MRSCont.nDatasets(1) %find last two subfolders and file names
+            for i = 1:MRSCont.nDatasets(1) %find last two subfolders and file names
                 SepFileList{i} =  split(gui.layout.fileList(i), filesep);
                 if length(SepFileList{i}) == 1
                     SepFileList{i} =  split(gui.layout.fileList(i), '\');

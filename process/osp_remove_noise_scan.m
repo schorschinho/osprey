@@ -19,7 +19,7 @@ function [MRSCont] = osp_remove_noise_scan(MRSCont)
 %       hzoelln2@jh.edu
 %  
 %%
-for kk = 1 : MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     MRSCont.raw_ref{kk}.fids(:,2) = [];
     MRSCont.raw_ref{kk}.specs(:,2) = [];
     MRSCont.raw_ref{kk}.sz(2) = 1;

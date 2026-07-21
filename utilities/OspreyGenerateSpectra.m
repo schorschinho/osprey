@@ -110,13 +110,13 @@ else
     NoGroups = 1;
 end
 dataToFit = op_freqrange(dataToFit,0.5,4);
-for kk = 1 : MRSCont.nDatasets *NoGroups
+for kk = 1:MRSCont.nDatasets(1) * NoGroups
     MRSCont.files{kk} = sprintf([outputFolder filesep 'simulated-raw' filesep 'sim-' '%03d' filesep 'ses-001' filesep 'sim-' '%03d' '_ses-001_PRESS_' '%1d' 'T_' '%d' '_TE'],kk,kk,round(dataToFit.Bo),round(dataToFit.te) );
 end
 MRSCont.flags.simulated = 1;
 MRSCont.flags.isSERIES = 0;
 MRSCont.flags.isSPECIAL = 0;
-MRSCont.opts.MultipleSpectra.metab = [1];
+MRSCont.opts.MultipleSpectra.metab = 1;
 %% Generate Distributions for all parameters accoring to each value from Big PRESS
 params = {'ph0','ph1','gaussLB','lorentzLB','freqShift','ampl','beta_j','lineShape','SNR'};
 
@@ -167,7 +167,7 @@ if changedComb
     par.ampl(:,9) = (par.ampl(:,34) + par.ampl(:,35))/2; %Glu+Gln
     par.ampl(:,8) = (par.ampl(:,34) - par.ampl(:,35))/2; %Glu+Gln
 else
-    for kk = 1 : MRSCont.nDatasets * NoGroups
+    for kk = 1:MRSCont.nDatasets(1) * NoGroups
         if (par.ampl(kk,28) - par.ampl(kk,14)) > 0
             par.ampl(kk,13) = par.ampl(kk,28) - par.ampl(kk,14); %NAA+NAAG
         else
@@ -234,9 +234,9 @@ if zeroed.lineShape
 end
 par.ampl = par.ampl(:,1:27);
 %% Generate in vivo like spectrum
-MRSCont.nDatasets = nDatasets *NoGroups;
+MRSCont.nDatasets(1) = nDatasets * NoGroups;
 basisSetBckp = basisSet;
-for kk = 1 : MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     
 
     basisSet =basisSetBckp;
@@ -401,7 +401,7 @@ mm_ll = 1;
 ref_ll = 1;
 w_ll = 1;
 ref_mm_ll=1;
-for kk = 1 : MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     raw = MRSCont.processed.metab{metab_ll,kk};
     [raw,SNR] = op_get_Multispectra_SNR(raw);
     FWHM = op_get_Multispectra_LW(raw);
@@ -458,7 +458,7 @@ end
 SubSpecNames = fieldnames(MRSCont.processed);
 NoSubSpec = length(fieldnames(MRSCont.processed));
 for ss = 1 : NoSubSpec
-    for kk = 1 : MRSCont.nDatasets
+    for kk = 1:MRSCont.nDatasets(1)
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
             temp_sz_sw{1,kk} = ['np_sw_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1)) '_' num2str(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth)];   
     end

@@ -45,37 +45,37 @@ prompt = 'Input the path to the folder contianing all subject folders on the ser
 oldPath = input(prompt)
 
 if MRSCont.flags.hasFiles
-    for kk = 1 : MRSCont.nDatasets
+    for kk = 1:MRSCont.nDatasets(1)
         MRSCont.files{kk} = strrep(MRSCont.files{kk},oldPath,dataFolder);
     end
 end
 
 if MRSCont.flags.hasRef
-   for kk = 1 : MRSCont.nDatasets
+   for kk = 1:MRSCont.nDatasets(1)
         MRSCont.files_ref{kk} = strrep(MRSCont.files_ref{kk},oldPath,dataFolder);
     end 
 end
 
 if MRSCont.flags.hasWater
-   for kk = 1 : MRSCont.nDatasets
+   for kk = 1:MRSCont.nDatasets(1)
         MRSCont.files_w{kk} = strrep(MRSCont.files_w{kk},oldPath,dataFolder);
     end 
 end
 
 if MRSCont.flags.hasMM
-   for kk = 1 : MRSCont.nDatasets
+   for kk = 1:MRSCont.nDatasets(1)
         MRSCont.files_mm{kk} = strrep(MRSCont.files_mm{kk},oldPath,dataFolder);
     end 
 end
 
 if ~isempty(MRSCont.files_nii)
-   for kk = 1 : MRSCont.nDatasets
+   for kk = 1:MRSCont.nDatasets(1)
         MRSCont.files_nii{kk} = strrep(MRSCont.files_nii{kk},oldPath,dataFolder);
     end 
 end
 
 if MRSCont.flags.didCoreg
-   for kk = 1 : MRSCont.nDatasets
+   for kk = 1:MRSCont.nDatasets(1)
        MRSCont.coreg.vol_image{kk}.fname  = MRSCont.files_nii{kk};
        MRSCont.coreg.vol_mask{kk}.fname  = strrep(MRSCont.coreg.vol_mask{kk}.fname,oldOutputFolder,outputFolder);
    end

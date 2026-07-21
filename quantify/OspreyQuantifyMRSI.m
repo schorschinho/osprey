@@ -153,7 +153,7 @@ if qtfyH2O
     end
 end
 
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     for ll = 1:length(getResults)
         for mm = 1:length(MRSCont.quantify.metabs.(getResults{ll}))
             if length(dim) == 2
@@ -185,7 +185,7 @@ else
     progressText = '';
 end
 
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     [~] = printLog('OspreyQuant',kk,MRSCont.nDatasets,progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI); 
 
     %%% 1. GET BASIS SET AND FIT AMPLITUDES %%%
@@ -330,7 +330,7 @@ end
 %%% Add combinations of metabolites %%%
 function MRSCont = addMetabComb(MRSCont, getResults)
 %% Loop over all datasets
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     % tNAA NAA+NAAG
     for ll = 1:length(getResults)
         idx_1 = find(strcmp(MRSCont.quantify.metabs.(getResults{ll}),'NAA'));
@@ -747,7 +747,7 @@ function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
 
             conc = zeros(MRSCont.nDatasets,length(names));
 
-                for kk = 1:MRSCont.nDatasets
+                for kk = 1:MRSCont.nDatasets(1)
                     conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
                 end
                 % Save back to Osprey data container
@@ -765,7 +765,7 @@ function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
 
             conc = zeros(MRSCont.nDatasets,length(names));
 
-                for kk = 1:MRSCont.nDatasets
+                for kk = 1:MRSCont.nDatasets(1)
                     conc(kk,:) = MRSCont.quantify.(qtfyType){kk}.(getResults{ll});
                 end
                 % Save back to Osprey data container
@@ -787,7 +787,7 @@ function [MRSCont] = osp_createTable(MRSCont, qtfyType, getResults)
 
         conc = zeros(MRSCont.nDatasets,length(names));
         for ll = 1:length(getResults)
-            for kk = 1:MRSCont.nDatasets
+            for kk = 1:MRSCont.nDatasets(1)
                 conc(kk,:) = MRSCont.quantify.(getResults{ll}).(qtfyType){kk};
             end
             % Save back to Osprey data container

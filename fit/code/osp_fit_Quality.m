@@ -89,7 +89,7 @@ for ss = 1 :NoFitSpecNames %Loop over fitted spectra
 for sf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),2) %Loop over all fits
     for bf = 1 : size(FitSpecNamesStruct.(FitSpecNames{ss}),1) %Loop over all basis sets
             if ~isempty(FitSpecNamesStruct.(FitSpecNames{ss}){bf,sf})
-                for kk = 1 : MRSCont.nDatasets(1) %Loop over all datasets
+                for kk = 1:MRSCont.nDatasets(1) %Loop over all datasets
                     switch MRSCont.opts.fit.method %Which model was used
                     case 'Osprey'
                         if ~strcmp(FitSpecNames{ss}, 'ref') && ~strcmp(FitSpecNames{ss}, 'w') && ~strcmp(FitSpecNames{ss}, 'mm') % metabolite only                        

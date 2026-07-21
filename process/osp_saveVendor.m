@@ -60,7 +60,7 @@ end
 %% Export files
 
 % Loop over all datasets
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     
     % Set up saving location
     if ~exist(saveDestination,'dir')

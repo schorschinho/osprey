@@ -44,7 +44,7 @@ if MRSCont.flags.hasWater && ~exist(fullfile(saveDestination,'w'),'dir')
 end  
 
 % Loop over all datasets
-for kk = 1:MRSCont.nDatasets
+for kk = 1:MRSCont.nDatasets(1)
     
     % Write LCModel .RAW files depending on sequence type
     % Get TE and the input file name

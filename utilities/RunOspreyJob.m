@@ -56,7 +56,7 @@ function [MRSCont] = RunOspreyJob(jobFilePath)
 
     MRSCont = OspreyOverview(MRSCont);
 
-    for kk = 1 : MRSCont.nDatasets
+    for kk = 1:MRSCont.nDatasets(1)
         [MRSCont] = OspreyHTMLReport(MRSCont,kk);
     end
 

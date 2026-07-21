@@ -117,7 +117,7 @@ if maxDatasets > 1
     if ~isfield(MRSCont.opts, 'extras')
         MRSCont.opts.extras.names = {};
         MRSCont.opts.extras.exp_var = [];
-        for ex = 1 : MRSCont.nDatasets(2)
+        for ex = 1:MRSCont.nDatasets(2)
             MRSCont.opts.extras.names{end+1} = ['Exp_' num2str(ex)];
             MRSCont.opts.extras.exp_var(end+1) = 1;
         end
@@ -374,34 +374,34 @@ if MRSCont.flags.isSERIES
         tempRawW = MRSCont.raw_w;
     end
     for kk = 1:MRSCont.nDatasets(1)
-        for ll = 1 : MRSCont.nDatasets(2)
+        for ll = 1:MRSCont.nDatasets(2)
             MRSCont.opts.MultipleSpectra.metab(ll) = ll;
             extras = op_takeextra(tempRaw{kk}, ll);
              MRSCont.raw{ll,kk} = extras;
         end    
         if MRSCont.flags.hasMM
-            for ll = 1 : MRSCont.nDatasets(2)
+            for ll = 1:MRSCont.nDatasets(2)
                 MRSCont.opts.MultipleSpectra.mm(ll) = ll;
                 extras = op_takeextra(tempRawMM{kk}, ll);
                  MRSCont.raw_mm{ll,kk} = extras;
             end
         end
         if MRSCont.flags.hasMMRef
-            for ll = 1 : MRSCont.nDatasets(2)
+            for ll = 1:MRSCont.nDatasets(2)
                 MRSCont.opts.MultipleSpectra.mm_ref(ll) = ll;
                 extras = op_takeextra(tempRawMMref{kk}, ll);
                  MRSCont.raw_mm_ref{ll,kk} = extras;
             end
         end
         if MRSCont.flags.hasRef
-            for ll = 1 : MRSCont.nDatasets(2)
+            for ll = 1:MRSCont.nDatasets(2)
                 MRSCont.opts.MultipleSpectra.ref(ll) = ll;
                 extras = op_takeextra(tempRawRef{kk}, ll);
                  MRSCont.raw_ref{ll,kk} = extras;
             end
         end
         if MRSCont.flags.hasWater
-            for ll = 1 : MRSCont.nDatasets(2)
+            for ll = 1:MRSCont.nDatasets(2)
                 MRSCont.opts.MultipleSpectra.w(ll) = ll;
                 extras = op_takeextra(tempRawW{kk}, ll);
                  MRSCont.raw_w{ll,kk} = extras;

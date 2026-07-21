@@ -47,7 +47,7 @@ else
 end
 
 for kk = 1:MRSCont.nDatasets(1) %Subject loop
-    for ll = 1: 1:MRSCont.nDatasets(2) %Experiment loop
+    for ll = 1:MRSCont.nDatasets(2) %Experiment loop
         [~] = printLog('OspreyProcess',kk,ll,MRSCont.nDatasets(1),progressText,MRSCont.flags.isGUI ,MRSCont.flags.isMRSI);
 
 
@@ -779,8 +779,8 @@ close all;
 % Gather some more information from the processed data;
 SubSpecNames = fieldnames(MRSCont.processed);
 NoSubSpec = length(fieldnames(MRSCont.processed));
-for ss = 1 : NoSubSpec
-    for kk = 1 : MRSCont.nDatasets
+for ss = 1:NoSubSpec
+    for kk = 1:MRSCont.nDatasets(1)
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
             temp_sz_sw{1,kk} = ['np_sw_' num2str(round(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1))) '_' num2str(round(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth))];
     end
