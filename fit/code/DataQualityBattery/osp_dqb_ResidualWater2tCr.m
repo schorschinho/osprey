@@ -1,5 +1,5 @@
-function[Wat_2_tCr_Ratio] = osp_dqb_SignalToResidualWater(Data, PPM)
-%% function[Wat_2_tCr_Ratio] = osp_dqb_SignalToResidualWater(Data, PPM)
+function[Wat_2_tCr_Ratio] = osp_dqb_ResidualWater2tCr(Data, PPM)
+%% function[Wat_2_tCr_Ratio] = osp_dqb_ResidualWater2tCr(Data, PPM)
 %
 % Description: Function that compares the integral of the signal in the
 % 4.5–4.85 ppm region to that of tCr (2.93–3.13 ppm region).

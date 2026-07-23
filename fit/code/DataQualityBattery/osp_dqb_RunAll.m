@@ -37,30 +37,37 @@ switch MRSCont.opts.fit.method
                             
                             % Select the relevant PPM range
                             RangeInd = [find(PPM>Model.Options{end}.optimFreqFitRange(1),1), find(PPM<Model.Options{end}.optimFreqFitRange(2),1,'last')];
+                            if isempty(Model.Options{end}.gap)
+                                GapInd = [];
+                            else
+                                GapInd = [find(PPM>Model.Options{end}.gap(1),1), find(PPM<Model.Options{end}.gap(2),1,'last')];
+                            end
                             %GapInd = ...;
                             if ~isempty(Model.Options{end}.gap)
                                 warning('Need to implement GAP in data quality metrics!')
                             end
-
-                            %% LCM residual analytics
-                            % Autocorrelation on residual
-                            [MRSCont.QM.dqb.Res_SSAutocorr(mm,kk,ss,ex,ms),...
-                             MRSCont.QM.dqb.Res_MaxAutocorr(mm,kk,ss,ex,ms)] = osp_dqb_Autocorr(Residual, RangeInd);     
-                            % "Runs" test on residual
-                            MRSCont.QM.dqb.Residual_RunstestPVal(mm,kk,ss,ex,ms) = osp_dqb_RunsTest(Residual, RangeInd);
-                            %% Nuisance signal analytics
-                            % Calculates the residual-water-to-tCr ratio
-                            MRSCont.QM.dqb.Water2tCr_Ratio(mm,kk,ss,ex,ms) = osp_dqb_SignalToResidualWater(Data, PPM);
-                            % Calculates the Lipid-region-to-tCr ratio
-                            MRSCont.QM.dqb.Lipid2tCr_Ratio(mm,kk,ss,ex,ms) = osp_dqb_SignalToLipid(Data, PPM);
-                            %% LCM baseline analytics
-                            % Calculates the baseline-to-tCr ratio
-                            MRSCont.QM.dqb.Baseline2tCr_Ratio(mm,kk,ss,ex,ms) = osp_dqb_SignalToBaseline(Data, PPM, Baseline, RangeInd);
-                            % Calculates the mean absolute curvature of the baseline
-                            MRSCont.QM.dqb.MeanAbsCurvature(mm,kk,ss,ex,ms) = osp_dqb_BaselineCurvature(Baseline, PPM, RangeInd);
-                            % Vertical shifts testing
-                            [MRSCont.QM.dqb.anyNegative(mm,kk,ss,ex,ms),...
-                             MRSCont.QM.dqb.belowBaseline(mm,kk,ss,ex,ms)] = osp_dqb_Verticalshifts(Data,Baseline,RangeInd);
+                            
+                            for dim = 1:size(Residual,2)
+                                %% LCM residual analytics
+                                % Autocorrelation on residual
+                                [MRSCont.QM.dqb.Res_SSAutocorr(mm,kk,ss,ex,ms),...
+                                 MRSCont.QM.dqb.Res_MaxAutocorr(mm,kk,ss,ex,ms)] = osp_dqb_Autocorr(Residual(:,dim), RangeInd, GapInd);     
+                                % "Runs" test on residual
+                                MRSCont.QM.dqb.Residual_RunstestPVal(mm,kk,ss,ex,ms) = osp_dqb_RunsTest(Residual(:,dim), RangeInd, GapInd);
+                                %% Nuisance signal analytics
+                                % Calculates the residual-water-to-tCr ratio
+                                MRSCont.QM.dqb.Water2tCr_Ratio(mm,kk,ss,ex,ms) = osp_dqb_ResidualWater2tCr (Data(:,dim), PPM);
+                                % Calculates the Lipid-region-to-tCr ratio
+                                MRSCont.QM.dqb.Lipid2tCr_Ratio(mm,kk,ss,ex,ms) = osp_dqb_Lipid2tCr(Data(:,dim), PPM);
+                                %% LCM baseline analytics
+                                % Calculates the baseline-to-tCr ratio
+                                MRSCont.QM.dqb.Baseline2tCr_Ratio(mm,kk,ss,ex,ms) = osp_dqb_Baseline2tCr(Data(:,dim), PPM, Baseline(:,dim), RangeInd);
+                                % Calculates the mean absolute curvature of the baseline
+                                MRSCont.QM.dqb.MeanAbsCurvature(mm,kk,ss,ex,ms) = osp_dqb_BaselineCurvature(Baseline(:,dim), PPM, RangeInd);
+                                % Vertical shifts testing
+                                [MRSCont.QM.dqb.anyNegative(mm,kk,ss,ex,ms),...
+                                 MRSCont.QM.dqb.belowBaseline(mm,kk,ss,ex,ms)] = osp_dqb_Verticalshifts(Data(:,dim),Baseline(:,dim),RangeInd);
+                            end
                         end
                     end
                 end

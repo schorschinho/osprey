@@ -1,5 +1,5 @@
-function[Lip_2_tCr_Ratio] = osp_dqb_SignalToLipid(Data, PPM)
-%% function[Lip_2_tCr_Ratio] = osp_dqb_SignalToLipid(Data, PPM)
+function[Lip_2_tCr_Ratio] = osp_dqb_Lipid2tCr(Data, PPM)
+%% function[Lip_2_tCr_Ratio] = osp_dqb_Lipid2tCr(Data, PPM)
 %
 % Description: Function that compares the integral of the signal in the
 % 0.5–1.9 ppm region to that of tCr (2.93–3.13 ppm region).

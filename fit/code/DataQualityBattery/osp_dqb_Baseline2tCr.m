@@ -1,4 +1,4 @@
-function[Baseline_2_tCr_Ratio] = osp_dqb_SignalToBaseline(Data, PPM, Baseline, Range)
+function[Baseline_2_tCr_Ratio] = osp_dqb_Baseline2tCr(Data, PPM, Baseline, Range)
 %% function[Baseline_2_tCr_Ratio] = osp_dqb_SignalToBaseline(Data, PPM, Baseline, Range)
 %
 % Description: Function that compares the integral of the signal in the

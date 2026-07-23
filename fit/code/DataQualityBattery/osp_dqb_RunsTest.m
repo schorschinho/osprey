@@ -1,4 +1,4 @@
-function[Runs_pVal,Stats] = osp_dqb_RunsTest(Residual, Range)
+function[Runs_pVal,Stats] = osp_dqb_RunsTest(Residual, Range, Gap)
 %% function[Runs_pVal,Stats] = osp_dqb_RunsTest(Residual, Range)
 %
 % Description: Uses the "runstest" to determine how random the residual is.
@@ -14,13 +14,17 @@ function[Runs_pVal,Stats] = osp_dqb_RunsTest(Residual, Range)
 % C.W. Davies-Jenkins, Johns Hopkins University 2025
 arguments
 Residual {mustBeVector} = [];
-Range (1,2) {mustBeVector} = []
+Range (1,2) {mustBeVector} = 1:length(Residual);
+Gap = []
 end
 
-% If a range is supplied, truncate the resiudal (and baseline)
-if exist("Range","var") && ~isempty(Range)
-    Residual = Residual(Range(1):Range(2));
+% If a Gap is supplied, exclude that range
+if ~isempty(Gap)
+    Incl = [Range(1):Gap(1), Gap(2):Range(2)];
+else
+    Incl = Range(1):Range(2);
 end
+Residual = Residual(Incl);
 
 % "ud" returns a test decision based on the number of runs up or down. Too 
 % few runs indicate a trend, while too many runs indicate an oscillation. 
