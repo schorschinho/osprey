@@ -520,7 +520,7 @@ end
         end
         
         %%%%%%%%%%%%% Run the MULTIVERSE tab if there are multi-model results %%%%%%%%%%%%
-        if size(MRSCont.quantify.CRLB,5)>1
+        if isfield(MRSCont.quantify,'CRLB') && size(MRSCont.quantify.CRLB,5)>1
             gui.layout.overviewTab.TabEnables{7} = 'on'; 
             gui.layout.overviewTab.Selection  = 7;
             
