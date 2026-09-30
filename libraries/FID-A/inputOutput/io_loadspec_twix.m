@@ -433,7 +433,7 @@ if isSiemens && (matches(seq,'PRESS')||matches(seq,'STEAM')) && length(sqzSize)>
 end
 
 % Extract voxel dimensions
-if (strcmp(version,'vd') || strcmp(version,'vb') || contains(version,'XA'))
+if (strcmp(version,'vd') || strcmp(version,'vb') || contains(version,'XA')) && isfield(twix_obj.hdr.Config,'Voi_RoFOV')
     TwixHeader.VoI_RoFOV     = twix_obj.hdr.Config.VoI_RoFOV; % Voxel size in readout direction [mm]
     TwixHeader.VoI_PeFOV     = twix_obj.hdr.Config.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
     TwixHeader.VoIThickness  = twix_obj.hdr.Config.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
@@ -444,7 +444,8 @@ if (strcmp(version,'vd') || strcmp(version,'vb') || contains(version,'XA'))
     TwixHeader.NormCor        = twix_obj.hdr.Config.VoI_Normal_Cor; % Coronal component of normal vector of voxel
     TwixHeader.NormSag        = twix_obj.hdr.Config.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
     TwixHeader.NormTra        = twix_obj.hdr.Config.VoI_Normal_Tra; % Transversal component of normal vector of voxel
-else
+    TwixHeader.PatientPosition = twix_obj.hdr.Config.PatientPosition;
+elseif isfield(twix_obj.hdr,'Spice') && isfield(twix_obj.hdr.Spice,'VoiReadoutFOV')
     TwixHeader.VoI_RoFOV     = twix_obj.hdr.Spice.VoiReadoutFOV; % Voxel size in readout direction [mm]
     TwixHeader.VoI_PeFOV     = twix_obj.hdr.Spice.VoiPhaseFOV; % Voxel size in phase encoding direction [mm]
     TwixHeader.VoIThickness  = twix_obj.hdr.Spice.VoiThickness; % Voxel size in slice selection direction [mm]
@@ -455,6 +456,19 @@ else
     TwixHeader.NormCor        = twix_obj.hdr.Spice.VoiNormalCor; % Coronal component of normal vector of voxel
     TwixHeader.NormSag        = twix_obj.hdr.Spice.VoiNormalSag; % Sagittal component of normal vector of voxel
     TwixHeader.NormTra        = twix_obj.hdr.Spice.VoiNormalTra; % Transversal component of normal vector of voxel
+elseif isfield(twix_obj.hdr,'Protocol') && isfield(twix_obj.hdr.Protocol,'VoI_RoFOV')
+    % XB10 (ARC added 2026-09-30; tested on product svs_se and CMRR eja_svs_mpress)
+    TwixHeader.VoI_RoFOV     = twix_obj.hdr.Protocol.VoI_RoFOV; % Voxel size in readout direction [mm]
+    TwixHeader.VoI_PeFOV     = twix_obj.hdr.Protocol.VoI_PeFOV; % Voxel size in phase encoding direction [mm]
+    TwixHeader.VoIThickness  = twix_obj.hdr.Protocol.VoI_SliceThickness; % Voxel size in slice selection direction [mm]
+    TwixHeader.PosCor         = twix_obj.hdr.Protocol.VoI_Position_Cor; % Coronal coordinate of voxel [mm]
+    TwixHeader.PosSag         = twix_obj.hdr.Protocol.VoI_Position_Sag; % Sagittal coordinate of voxel [mm]
+    TwixHeader.PosTra         = twix_obj.hdr.Protocol.VoI_Position_Tra; % Transversal coordinate of voxel [mm]
+    TwixHeader.VoI_InPlaneRot = twix_obj.hdr.Protocol.VoI_InPlaneRotAngle; % Voxel rotation in plane
+    TwixHeader.NormCor        = twix_obj.hdr.Protocol.VoI_Normal_Cor; % Coronal component of normal vector of voxel
+    TwixHeader.NormSag        = twix_obj.hdr.Protocol.VoI_Normal_Sag; % Sagittal component of normal vector of voxel
+    TwixHeader.NormTra        = twix_obj.hdr.Protocol.VoI_Normal_Tra; % Transversal component of normal vector of voxel
+    TwixHeader.PatientPosition = twix_obj.hdr.Protocol.PatientPosition;
 end
 TwixHeader.TablePosSag    = twix_obj.hdr.Dicom.lGlobalTablePosSag; % Sagittal table position [mm]
 TwixHeader.TablePosCor    = twix_obj.hdr.Dicom.lGlobalTablePosCor; % Coronal table position [mm]
@@ -923,7 +937,7 @@ else
     out.flags.isFourSteps=(out.sz(out.dims.subSpecs)==4);
 end
 % Add info for niiwrite
-out.PatientPosition = twix_obj.hdr.Config.PatientPosition;
+out.PatientPosition = TwixHeader.PatientPosition;
 out.Manufacturer = 'Siemens';
 [~,filename,ext] = fileparts(filename);
 out.OriginalFile = [filename ext];
