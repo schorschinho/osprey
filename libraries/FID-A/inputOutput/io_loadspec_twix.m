@@ -52,8 +52,8 @@ sqzDims=twix_obj.image.sqzDims;
 if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'E11')
     version='ve';
 end
-if contains(twix_obj.hdr.Dicom.SoftwareVersions, 'XA')
-    index = strfind(twix_obj.hdr.Dicom.SoftwareVersions,'XA');
+if contains(twix_obj.hdr.Dicom.SoftwareVersions, {'XA','XB'})
+    index = strfind(twix_obj.hdr.Dicom.SoftwareVersions,'X');
     version=twix_obj.hdr.Dicom.SoftwareVersions(index:index+3);
 end
 
@@ -86,7 +86,7 @@ isTLFrei=~isempty(strfind(sequence,'md_svs_edit')) ||... %Is Thomas Lange's MEGA
 isMinn_eja=~isempty(strfind(sequence,'eja_svs_')); %Is this one of Eddie Auerbach's (CMRR, U Minnesota) sequences?
 isMinn_dkd=~isempty(strfind(sequence,'svs_slaser_dkd')) ||...   % ... or Dinesh Deelchand's 2016 sLASER sequence?
        ~isempty(strfind(sequence,'svs_slaserVOI_dkd'))||...% ... or Dinesh Deelchand's 2022 'plug and play' sLASER sequence?
-       ~isempty(strfind(sequence,'svs_slaserVOI_dkd2'));%Is this Dinesh Deelchand's (CMRR, U Minnesota) sequence?     
+       ~isempty(strfind(sequence,'svs_slaserVOI_dkd2'));%Is this Dinesh Deelchand's (CMRR, U Minnesota) sequence?
 isSiemens=(~isempty(strfind(sequence,'svs_se')) ||... %Is this the Siemens PRESS seqeunce?
             ~isempty(strfind(sequence,'svs_st'))) && ... % or the Siemens STEAM sequence?
             isempty(strfind(sequence,'eja_svs'));    %And make sure it's not 'eja_svs_steam'.
@@ -217,22 +217,6 @@ end
 %Squeeze the data to remove singleton dims
 fids=double(squeeze(data));
 
-%noticed that in the Siemens PRESS and STEAM sequences, there is sometimes
-%an extra dimension containing unwanted reference scans or something.  Remove them here.
-if isSiemens && (strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')) && strcmp(sqzDims{end},'Phs')
-    sqzDims=sqzDims(1:end-1);
-    sqzSize=sqzSize(1:end-1);
-    if ndims(fids)==4
-        fids=fids(:,:,:,2);
-        fids=squeeze(fids);
-    elseif ndims(fids)==3
-        fids=fids(:,:,2);
-        fids=squeeze(fids);
-    elseif ndims(fids)==2
-        fids=fids(:,2);
-        fids=squeeze(fids);
-    end
-end
 
 
 %Find the magnetic field strength:
@@ -259,22 +243,80 @@ TR = twix_obj.hdr.MeasYaps.alTR{1};  %Franck Lamberton
 
 wRefs=false;  %Flag to identify if there are automatic water reference scans acquired.  There are none by default.
 
-% Dinesh Deelchand's CMRR sLASER sequences (svs_slaserVOI_dkd and svs_slaserVOI_dkd2) 
+% Product Siemens PRESS/STEAM can also include water reference scans.
+if isSiemens && (matches(seq,'PRESS')||matches(seq,'STEAM')) && length(sqzSize)>3
+    wRefs=true;
+
+    % First, separate out the reference scans:
+    Ind = find(matches(sqzDims,'Phs'));
+    if ~(sqzSize(Ind)==2)
+        error('Expecting 2 entries in the "Phs" dimension, we found %i!',Ind);
+    end
+    fids_w = squeeze(GetSlice(fids,Ind,1));
+    fids   = squeeze(GetSlice(fids,Ind,2));
+    sqzDims(Ind) = [];
+    sqzSize(Ind) = [];
+
+    % Then, concat the averages and repetitions (if they exist)
+    DimAv = find(matches(sqzDims,'Ave'));
+    if sqzSize(matches(sqzDims,'Rep'))>1
+        DimRep = find(matches(sqzDims,'Rep'));
+
+        % Reshape the fids:
+        NewSize = sqzSize;
+        NewSize(DimAv) = NewSize(DimAv) * NewSize(DimRep);
+        NewSize(DimRep) = [];
+        fids = reshape(fids,NewSize);
+
+        sqzSize = size(fids);
+        sqzDims(DimRep)=[];
+    else
+        DimAv = find(matches(sqzDims,'Ave'));
+    end
+
+    % Reshape the water fids, throwing out the zero entries
+    NZ_Avs = find(any(~(squeeze(sum(abs(fids_w),[1,2]))==0),DimAv-2)); % Finds water fids in "averages" which are non-zero
+    fids_w =fids_w(:,:,NZ_Avs,:);
+    Sz = size(fids_w);
+    fids_w = reshape(fids_w,Sz(1),Sz(2),[]);
+end
+
+% ARC 2026-10-02 : legacy code block follows, dropping any lingering extra dimension not attributed to the water ref above. This may well be redundant. {{{
+
+%noticed that in the Siemens PRESS and STEAM sequences, there is sometimes
+%an extra dimension containing unwanted reference scans or something.  Remove them here.
+if isSiemens && (strcmp(version,'vd') || strcmp(version,'ve') || contains(version,{'XA','XB'})) && strcmp(sqzDims{end},'Phs')
+    sqzDims=sqzDims(1:end-1);
+    sqzSize=sqzSize(1:end-1);
+    if ndims(fids)==4
+        fids=fids(:,:,:,2);
+        fids=squeeze(fids);
+    elseif ndims(fids)==3
+        fids=fids(:,:,2);
+        fids=squeeze(fids);
+    elseif ndims(fids)==2
+        fids=fids(:,2);
+        fids=squeeze(fids);
+    end
+end
+% }}}
+
+% Dinesh Deelchand's CMRR sLASER sequences (svs_slaserVOI_dkd and svs_slaserVOI_dkd2)
 % contain some reference scans, which are acquired at various points
 % (either at the beginning, at the end, or both)
-% We will save these and store them as a separate water reference structure (out_w).  
+% We will save these and store them as a separate water reference structure (out_w).
 if isMinn_dkd
 
-    % From Dinesh (2024-03-04): 
-    % I checked my code and the observations you mentioned are somewhat 
-    % correct. I have two version of the sequence 
-    % 1) dld_slaserVOI_dkd 
-    %    ScanMode =2 only 
-    %    if ScanNo=2, this means 4 water ref at start and 4 at the end where the first 2 water ref in each are acquired with VAPOR RF off but OVS on while last 2 ref are with VAPOR and OVS completely off. 
-    % 2) dld_slaserVOI_dkd2 
-    %    - ScanMode =8 does the same as ScanMode =2 above 
+    % From Dinesh (2024-03-04):
+    % I checked my code and the observations you mentioned are somewhat
+    % correct. I have two version of the sequence
+    % 1) dld_slaserVOI_dkd
+    %    ScanMode =2 only
+    %    if ScanNo=2, this means 4 water ref at start and 4 at the end where the first 2 water ref in each are acquired with VAPOR RF off but OVS on while last 2 ref are with VAPOR and OVS completely off.
+    % 2) dld_slaserVOI_dkd2
+    %    - ScanMode =8 does the same as ScanMode =2 above
     %    - ScanMode =2 with ScanNo=2, this means 2 water ref at start and 2 at end; this acq is done with VAPOR and OVS RF off, but all gradients still ON.
-    
+
     scanMode    = twix_obj.hdr.MeasYaps.sSpecPara.lAutoRefScanMode;
     nRefs       = twix_obj.hdr.MeasYaps.sSpecPara.lAutoRefScanNo;
     nLines      = sqzSize(end);
@@ -381,7 +423,7 @@ if isColumbia
     %These will be saved as "outw".
     nRefs=twix_obj.hdr.MeasYaps.sSpecPara.lAutoRefScanNo;
     if nRefs==1
-        nRefs=0;%Becuase Nrefs seems to have a default value of 1 even if there are no reference scans. 
+        nRefs=0;%Becuase Nrefs seems to have a default value of 1 even if there are no reference scans.
     end
     if nRefs>0
         wRefs=true;
@@ -393,43 +435,6 @@ if isColumbia
         fids_B = fids(:,:,2:2:end);
         fids = cat(4,fids_A,fids_B);
     end
-end
-
-% Product Siemens PRESS/STEAM can also include water reference scans. 
-if isSiemens && (matches(seq,'PRESS')||matches(seq,'STEAM')) && length(sqzSize)>3
-    wRefs=true;
-    
-    % First, separate out the reference scans:
-    Ind = find(matches(sqzDims,'Phs'));
-    if ~(sqzSize(Ind)==2)
-        error('Expecting 2 entries in the "Phs" dimension, we found %i!',Ind);
-    end
-    fids_w = squeeze(GetSlice(fids,Ind,1));
-    fids   = squeeze(GetSlice(fids,Ind,2));
-    sqzDims(Ind) = [];
-    sqzSize(Ind) = [];
-    
-    % Then, concat the averages and repetitions (if they exist)
-    if sqzSize(matches(sqzDims,'Rep'))>1
-        DimAv = find(matches(sqzDims,'Ave'));
-        DimRep = find(matches(sqzDims,'Rep'));
-        
-        % Reshape the fids:
-        NewSize = sqzSize;
-        NewSize(DimAv) = NewSize(DimAv) * NewSize(DimRep);
-        NewSize(DimRep) = [];
-        fids = reshape(fids,NewSize);
-
-        sqzSize = size(fids);
-        sqzDims(DimRep)=[];        
-        
-        % Reshape the water fids, throwing out the zero entries
-        NZ_Avs = find(any(~(squeeze(sum(abs(fids_w),[1,2]))==0),DimRep-2)); % Finds water fids in "averages" which are non-zero
-        fids_w =fids_w(:,:,NZ_Avs,:);
-        Sz = size(fids_w);
-        fids_w = reshape(fids_w,Sz(1),Sz(2),[]);
-    end
-
 end
 
 % Extract voxel dimensions
@@ -456,6 +461,7 @@ elseif isfield(twix_obj.hdr,'Spice') && isfield(twix_obj.hdr.Spice,'VoiReadoutFO
     TwixHeader.NormCor        = twix_obj.hdr.Spice.VoiNormalCor; % Coronal component of normal vector of voxel
     TwixHeader.NormSag        = twix_obj.hdr.Spice.VoiNormalSag; % Sagittal component of normal vector of voxel
     TwixHeader.NormTra        = twix_obj.hdr.Spice.VoiNormalTra; % Transversal component of normal vector of voxel
+    TwixHeader.PatientPosition = twix_obj.hdr.Config.PatientPosition;
 elseif isfield(twix_obj.hdr,'Protocol') && isfield(twix_obj.hdr.Protocol,'VoI_RoFOV')
     % XB10 (ARC added 2026-09-30; tested on product svs_se and CMRR eja_svs_mpress)
     TwixHeader.VoI_RoFOV     = twix_obj.hdr.Protocol.VoI_RoFOV; % Voxel size in readout direction [mm]
@@ -524,12 +530,12 @@ else
 end
 
 %Now index the dimension of the averages
-if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')
+if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,{'XA','XB'})
     if isMinn_eja || isMinn_dkd || isConnectom
         dims.averages=find(strcmp(sqzDims,'Set'));
     else
         % GO 6/2024: Encountered a VD13 Siemens product sequence that had
-        % transients in Set, not in Ave... 
+        % transients in Set, not in Ave...
         dims.averages=find(strcmp(sqzDims,'Ave'));
         if isempty(dims.averages)
             dims.averages=find(strcmp(sqzDims,'Set'));
@@ -570,7 +576,7 @@ end
 if ~isempty(dimsToIndex)
     %Now index the dimension of the sub-spectra
     if isjnseq  || isSpecial
-        if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,'XA')
+        if strcmp(version,'vd') || strcmp(version,'ve') || contains(version,{'XA','XB'})
             if contains(version,'XA3')
                 dims.subSpecs=find(strcmp(sqzDims,'Set'));
             elseif contains(version,'XA6')
@@ -788,6 +794,7 @@ date=''; %The above code for extracting the date from the header
 %of averages in the dataset as it is processed, which may be subject to
 %change.  'rawAverages' will specify the original number of acquired
 %averages in the dataset, which is unchangeable.
+
 if dims.subSpecs ~=0
     if dims.averages~=0
         if ~isColumbia
@@ -797,39 +804,60 @@ if dims.subSpecs ~=0
             averages=sz(dims.averages);
             rawAverages=sz(dims.averages)*sz(dims.subSpecs);
         end
-        if wRefs
-            if ~isColumbia
-                averages_w=sz_w(dims.averages)*sz_w(dims.subSpecs);
-            else
-                averages_w=sz_w(dims.averages);
-            end
-            rawAverages_w=averages_w;
-        end
     else
         averages=sz(dims.subSpecs);
         rawAverages=1;
-        if wRefs
-            averages_w=sz_w(dims.subSpecs);
-            rawAverages_w=1;
-        end
     end
 else
     if dims.averages~=0
         averages=sz(dims.averages);
         rawAverages=averages;
-        if wRefs
-            averages_w=sz_w(dims.averages);
-            rawAverages_w=averages_w;
-        end
     else
         averages=1;
         rawAverages=1;
-        if wRefs
-            averages_w=1;
-            rawAverages_w=1;
-        end
     end
 end
+
+if wRefs % Handle water ref averaging {{{
+
+    % Note that refs may have different dimensionality to metabolite data (eg,
+    % in case of single-shot ref, where trailing singleton dimensions are
+    % dropped)
+
+    dims_w = dims;
+    n_averages_w = 1;
+    n_subSpecs_w = 1;
+
+    if dims_w.subSpecs > length(sz_w)
+        dims_w.subSpecs = 0;
+    end
+
+    if dims_w.averages > length(sz_w)
+        dims_w.averages = 0;
+    end
+
+    if dims_w.averages > 0
+        n_averages_w = sz_w(n_averages_w);
+    else
+        n_averages_w = 1;
+    end
+
+    if dims_w.subSpecs > 0
+        n_subSpecs_w = sz_w(subSpecs);
+    else
+        n_subSpecs_w = 1;
+    end
+
+    if ~isColumbia
+        averages_w = n_averages_w * n_subSpecs_w;
+        rawAverages_w = averages_w;
+    else
+        % sLASER Columbia University implementation based on CMRR, U Minnesota
+        averages_w = n_averages_w;
+        rawAverages_w = averages_w;
+    end
+    clear n_averages_w n_subSpecs_w; % remove temporary factors
+end % }}}
 
 %Find the number of subspecs.  'subspecs' will specify the current number
 %of subspectra in the dataset as it is processed, which may be subject to
@@ -972,7 +1000,7 @@ if wRefs
     out_w.dwelltime=dwelltime;
     out_w.txfrq=txfrq;
     out_w.date=date;
-    out_w.dims=dims;
+    out_w.dims=dims_w;
     out_w.Bo=Bo;
     out_w.averages=averages_w;
     out_w.rawAverages=rawAverages_w;
@@ -992,7 +1020,6 @@ if wRefs
     else
         out_w.software = version;
     end
-
 
     %FILLING IN THE FLAGS
     out_w.flags.writtentostruct=1;
@@ -1020,7 +1047,7 @@ if wRefs
         end
     end
     % Add info for niiwrite
-    out_w.PatientPosition = twix_obj.hdr.Config.PatientPosition;
+    out_w.PatientPosition = out.PatientPosition;
     out_w.Manufacturer = 'Siemens';
     [~,filename,ext] = fileparts(filename);
     out_w.OriginalFile = [filename ext];
@@ -1058,7 +1085,7 @@ function[SlicedArray] = GetSlice(Array, Dim, Idx)
 % Description: Takes a slice of multi-dimensional array in dimension "Dim"
 % at the specified index: Idx.
 %
-% Input:     Array = Aray to be sliced 
+% Input:     Array = Aray to be sliced
 %            Dim = Dimension in which to slice
 %            Idx = Index (or indices) to extract from dimension "Dim"
 % Output:    SlicedArray = Subset of array
