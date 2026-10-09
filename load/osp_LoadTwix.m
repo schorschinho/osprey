@@ -83,10 +83,11 @@ for kk = 1:MRSCont.nDatasets(1)
                 raw_ref                        = osp_add_nii_mrs_field(raw_ref,MRSCont.ver.Osp);
                 MRSCont.raw_ref_uncomb{ll,kk}  = raw_ref;
             end
-            % Read in the raw reference data. If a reference exists, perform the
-            % coil combination based on the reference, and perform an eddy current
-            % correction. If not, combine metabolite data based on its own signal.
-            if MRSCont.flags.hasRef
+            % Read in the raw reference data (if not embedded in metab data).
+            % If a reference exists, perform the coil combination based on the
+            % reference, and perform an eddy current correction. If not,
+            % combine metabolite data based on its own signal.
+            if MRSCont.flags.hasRef && isempty(raw_ref)
                 ref_ll = MRSCont.opts.MultipleSpectra.ref(ll);
                 raw_ref                     = io_loadspec_twix(MRSCont.files_ref{ref_ll,kk});
                 raw_ref                     = op_leftshift(raw_ref,raw_ref.pointsToLeftshift);
