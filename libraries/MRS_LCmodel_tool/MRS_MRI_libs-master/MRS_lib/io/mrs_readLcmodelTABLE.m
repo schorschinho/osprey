@@ -35,7 +35,7 @@ function info = mrs_readLcmodelTABLE( fileName )
     
     no_lines=size(header_info{1});
     metabolites_num=0;
-    for i=1:no_lines
+    for i=1:no_lines(1)
         line=header_info{1}{i};    
         
         if ~isempty(strfind(line, '$$CONC'))
