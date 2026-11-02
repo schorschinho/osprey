@@ -45,7 +45,12 @@ function out = op_add_analysis_provenance(in,fields)
         try
             fields.Version  = hdr_ext.ProcessingSoftwareVersion.Value;
         catch
-            fields.Version  = hdr_ext.ProcessingSoftwareVersion;
+            try
+                fields.Version  = hdr_ext.ProcessingSoftwareVersion;
+            catch
+                fields.Version  = 'Processing software version unknown.';
+            end
+
         end
     
         fields = orderfields(fields,{'Time','Program','Version','Method', 'Details'});

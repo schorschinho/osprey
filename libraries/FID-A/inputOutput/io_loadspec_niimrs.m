@@ -379,6 +379,11 @@ end
 % Fill in additional FID-A format variables
 % Nucleus (new field)
 out.nucleus = hdr_ext.ResonantNucleus;
+% ResonantNucleus may come in as a single char array (e.g. '1H') rather
+% than a cell array; normalize to a cell so indexing below always works.
+if ischar(out.nucleus)
+    out.nucleus = {out.nucleus};
+end
 % Calculate B0 from spectrometer frequency depending on nucleus
 % Gamma from Wikipedia article "Gyromagnetic ratio" (3 signif. digits)
 for rr = 1:length(out.nucleus)
@@ -433,8 +438,20 @@ out.subspecs = subspecs;
 out.rawSubspecs = rawSubspecs;
 
 % Echo/repetition time
-out.te = hdr_ext.EchoTime * 1e3;        %convert to [ms]
-out.tr = hdr_ext.RepetitionTime * 1e3;  %convert to [ms]
+% These fields are optional in minimal/synthetic NIfTI-MRS files, so fall
+% back to NaN with a warning rather than erroring out if they're absent.
+if isfield(hdr_ext, 'EchoTime')
+    out.te = hdr_ext.EchoTime * 1e3;        %convert to [ms]
+else
+    warning('NIfTI-MRS header extension has no EchoTime field. Setting out.te = NaN.');
+    out.te = NaN;
+end
+if isfield(hdr_ext, 'RepetitionTime')
+    out.tr = hdr_ext.RepetitionTime * 1e3;  %convert to [ms]
+else
+    warning('NIfTI-MRS header extension has no RepetitionTime field. Setting out.tr = NaN.');
+    out.tr = NaN;
+end
 
 % time and frequency axis
 out.t   = t;

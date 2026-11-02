@@ -175,7 +175,11 @@ sz=size(fids);
 % Add NIfTI-MRS provenance
 % Generate fields for provenance
 fields.Method   = 'RF coil combination';
-fields.Details  = ['Weighted summation (Hall et al. 2014), dim = DIM_COIL,  reference = ', coilcombos.ref ', mode = ' mode];
+if isfield(coilcombos, 'ref')
+    fields.Details  = ['Weighted summation (Hall et al. 2014), dim = DIM_COIL,  reference = ', coilcombos.ref ', mode = ' mode];
+else
+    fields.Details  = ['Weighted summation (Hall et al. 2014), dim = DIM_COIL,  reference = unknown, mode = ' mode];
+end
 in = op_add_analysis_provenance(in,fields);
 
 %FILLING IN DATA STRUCTURE
