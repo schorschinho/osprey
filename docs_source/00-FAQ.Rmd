@@ -12,11 +12,7 @@ If you encounter any issues using Osprey, we encourage you to check the followin
 
 **Osprey crashes with unrecognized function or variable osp_platform:**
 
->Make sure to add SPM12 to the MATLAB path (see [system requirements](https://schorschinho.github.io/osprey/getting-started.html#system-requirements)). You can also write a startup.m script with the following lines and add this to your MATLAB folder. This will automatically set the path right during the MATLAB startup:
-```
-addpath(genpath('/Users/helge/Documents/GitHub/osprey'));
-addpath('/Users/helge/Documents/GitHub/osprey/spm12');
-```
+>Make sure SPM12 is installed (see [system requirements](https://schorschinho.github.io/osprey/getting-started.html#system-requirements)). Osprey automatically adds SPM12 to the MATLAB path if it is installed next to the `osprey` folder or inside your default `userpath` folder. If it is installed elsewhere, run `osp_set_spm_path('/path/to/spm12')` once &ndash; Osprey will remember this location and add it automatically in every future MATLAB session, so you no longer need a custom startup.m script.
 
 **Osprey crashes during the OspreyLoad call:**
 
@@ -28,8 +24,4 @@ addpath('/Users/helge/Documents/GitHub/osprey/spm12');
 
 **Osprey crahses with unrecognized function or variable 'spm_vol':**
 
->Make sure to add SPM12 to the MATLAB path (see [system requirements](https://schorschinho.github.io/osprey/getting-started.html#system-requirements)). You can also write a startup.m script with the following lines and add this to your MATLAB folder. This will automatically set the path right during the MATLAB startup.
-```
-addpath(genpath('/Users/Documents/GitHub/osprey'));
-addpath('/Users/Documents/GitHub/osprey/spm12');
-```
+>Make sure SPM12 is installed (see [system requirements](https://schorschinho.github.io/osprey/getting-started.html#system-requirements)). Osprey automatically adds SPM12 to the MATLAB path if it is installed next to the `osprey` folder or inside your default `userpath` folder. If it is installed elsewhere, run `osp_set_spm_path('/path/to/spm12')` once &ndash; Osprey will remember this location and add it automatically in every future MATLAB session, so you no longer need a custom startup.m script.

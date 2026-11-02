@@ -66,13 +66,24 @@ else
 end
 
 % SPM
-% Check if SPM12 is installed
+% Check if SPM12 is installed. If it is not already on the MATLAB path,
+% try to locate it automatically (a path registered earlier via
+% osp_set_spm_path, or a common installation location) and add it, so
+% that users do not need to call addpath manually in every MATLAB
+% session.
 spmversion = fileparts(which('spm'));
 if isempty(spmversion)
-    warning('SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and include it in your MATLAB path.');
+    spmversion = osp_find_spm12(ospFolder);
+    if ~isempty(spmversion)
+        addpath(spmversion);
+    end
+end
+if isempty(spmversion)
+    warning(['SPM not found! Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12), ' ...
+           'then run osp_set_spm_path(''<path-to-spm12>'') once to register it permanently with Osprey.']);
 elseif strcmpi(spmversion(end-3:end),'spm8')
     warning(['SPM8 detected, but only SPM12 is supported. ' ...
-           'Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and include it in your MATLAB path.']);
+           'Please install SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12) and register it with osp_set_spm_path.']);
 end
 
 

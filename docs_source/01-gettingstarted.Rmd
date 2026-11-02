@@ -75,10 +75,18 @@ If you run an Apple Silicon processor (M1 and later), please download the [SPM d
     knitr::include_graphics("img/02-installing-osprey-spm-folder.png")
  ``` 
 
-  - Add the `spm12` folder to your MATLAB path, but **without** subfolders.
-  
+  - If the `spm12` folder lives next to the `osprey` folder (as shown above) or inside your default MATLAB `userpath` folder, Osprey will automatically find it and add it to the MATLAB path (**without** subfolders) every time you start a new session &ndash; no manual `addpath` call required.
+
+  - If you installed SPM12 somewhere else, register its location with Osprey once by running:
+
+```matlab
+osp_set_spm_path('C:\path\to\spm12');
+```
+
+  This stores the location as a persistent MATLAB preference, so Osprey will keep finding SPM12 automatically in all future MATLAB sessions.
+
 ```{block2, noteSPMsub, type='rmdwarning'}
-During testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail. Add the top-level directory to your path, but not subfolders.
+During testing, we have found that adding SPM subfolders to the MATLAB path can cause functions to fail. Osprey's automatic path setup (and `osp_set_spm_path`) only adds the top-level `spm12` directory, not its subfolders.
 ```
 
 ### GUI Toolboxes

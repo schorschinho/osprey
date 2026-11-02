@@ -65,8 +65,21 @@ functions.
 
 To perform voxel co-registration and tissue segmentation, download **SPM12**
 [from the UCL website](http://www.fil.ion.ucl.ac.uk/spm/software/spm12/), then
-extract and add to your MATLAB path. If you run an Apple Silicon processor 
+extract it anywhere on disk. If you run an Apple Silicon processor
 (M1 and later), please download the [SPM development version from GitHub](https://github.com/spm/spm).
+
+Osprey automatically detects an SPM12 installation that lives in the same
+parent folder as Osprey itself (or inside your default MATLAB `userpath`
+folder), so in most cases you do not need to add it to the path manually. If
+SPM12 is installed elsewhere, register it with Osprey once by running:
+
+```matlab
+osp_set_spm_path('C:\path\to\spm12');
+```
+
+This stores the location as a persistent MATLAB preference, so Osprey will
+automatically add SPM12 to the path in every future MATLAB session without
+requiring a manual `addpath` call again.
 
 If you want to use the `Osprey` Graphical User Interface (GUI),
 please download the following toolboxes from the MATLAB File Exchange:
