@@ -1325,21 +1325,21 @@ function [MRSCont] = osp_createTable(MRSCont, qtfyType)
 if ~strcmp(MRSCont.opts.fit.method, 'LCModel') && ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
     subspecs = size(MRSCont.fit.results.metab.fitParams,3);
     mmmodels  = size(MRSCont.fit.results.metab.fitParams,1);
+    models = 1;
     voxels = 1;
     experiments = 1;
-else if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
-       subspecs = size(MRSCont.fit.results.metab,3);
-       mmmodels = size(MRSCont.fit.results.metab,1);
-       experiments = size(MRSCont.fit.results.metab,4);
-       models = size(MRSCont.fit.results.metab,5);
-       voxels = 1;
-    else
-        subspecs = 1;
-        mmmodels = 1;
-        models = 1;
-        voxels = 1;
-        experiments = 1;
-    end
+elseif strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+    subspecs = size(MRSCont.fit.results.metab,3);
+    mmmodels = size(MRSCont.fit.results.metab,1);
+    experiments = size(MRSCont.fit.results.metab,4);
+    models = size(MRSCont.fit.results.metab,5);
+    voxels = 1;
+else
+    subspecs = 1;
+    mmmodels = 1;
+    models = 1;
+    voxels = 1;
+    experiments = 1;
 end
 if ~(strcmp(qtfyType, 'AlphaCorrWaterScaled') || strcmp(qtfyType, 'AlphaCorrWaterScaledGroupNormed'))
     if ~(strcmp(qtfyType, 'amplMets') || strcmp(qtfyType, 'CRLB') ||strcmp(qtfyType, 'h2oarea') ||strcmp(qtfyType, 'indirect') )
