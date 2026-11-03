@@ -42,7 +42,7 @@ function [ spectra, spectra_metabolites, x_ppm, info ] = mrs_readLcmodelCOORD( f
 	no_lines=size(f{1});
     m=0; 
     l=[];
-    for i=1:no_lines
+    for i=1:no_lines(1)
         line=f{1}{i};   
         ppm_ind = strfind(line, 'ppm-axis');
         conc_ind = strfind(line, 'Conc. =');

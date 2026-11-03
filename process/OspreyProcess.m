@@ -780,7 +780,7 @@ close all;
 SubSpecNames = fieldnames(MRSCont.processed);
 NoSubSpec = length(fieldnames(MRSCont.processed));
 for ss = 1 : NoSubSpec
-    for kk = 1 : MRSCont.nDatasets
+    for kk = 1 : MRSCont.nDatasets(1)
             temp_sz(1,kk)= MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1);
             temp_sz_sw{1,kk} = ['np_sw_' num2str(round(MRSCont.processed.(SubSpecNames{ss}){1,kk}.sz(1))) '_' num2str(round(MRSCont.processed.(SubSpecNames{ss}){1,kk}.spectralwidth))];
     end

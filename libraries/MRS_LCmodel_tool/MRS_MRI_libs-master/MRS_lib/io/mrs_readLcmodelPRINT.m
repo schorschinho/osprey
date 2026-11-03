@@ -36,7 +36,7 @@ function [info ] = mrs_readLcmodelPRINT( fileName )
     
 	no_lines=size(f{1});
     info=[];
-    for i=1:no_lines
+    for i=1:no_lines(1)
         line=f{1}{i};   
         inital_ind = strfind(line, 'Starting values for final analysis');       
         if ~isempty(inital_ind)
@@ -52,7 +52,7 @@ function [info ] = mrs_readLcmodelPRINT( fileName )
         end        
     end
     
-    for i=1:no_lines
+    for i=1:no_lines(1)
         line=f{1}{i};
         inital_ind = strfind(line, 'Area of unsuppressed water peak');
         if ~isempty(inital_ind)

@@ -532,7 +532,7 @@ switch MRSCont.opts.fit.method
         else
             
             % If the field does not exist, write default control parameters
-            for kk = 1:MRSCont.nDatasets
+            for kk = 1:MRSCont.nDatasets(1)
                 
                 LCMparam = [];
                 LCMparam = osp_editControlParameters(LCMparam, 'srcraw', ['''' MRSCont.files{kk} '''']);
