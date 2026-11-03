@@ -41,25 +41,14 @@ warning('off','all');
 %Do some check on the naming convention first to avoid overwriting the
 %output due to non BIDS conform data names
 SameName = 0;
+
 if MRSCont.nDatasets(1) > 1
-    specFile = MRSCont.files{1,1};
-    specFile2 = MRSCont.files{1,2};
-    [~, SpecName, ~]  = fileparts(specFile);
-    [~, SpecName2, ~]  = fileparts(specFile2);
-    if ~isempty(SpecName) && ~isempty(SpecName2)
-        SameName = strcmp(SpecName,SpecName2);
-    else
-        [DirName, ~, ~]  = fileparts(specFile);
-        [DirName2, ~, ~]  = fileparts(specFile2);
-        SepFiles =  split(DirName, filesep);
-        SepFiles(strcmp(SepFiles,''))=[];
-        DirName = SepFiles{end};
-        SepFiles =  split(DirName2, filesep);
-        SepFiles(strcmp(SepFiles,''))=[];
-        DirName2 = SepFiles{end};
-        SameName = strcmp(DirName,DirName2);
-    end
+
+  [~, all_names, ~] = fileparts(strip(MRSCont.files,'right',filesep));
+  % by first stripping all trailing filesep characters, all_names will capture filename if available, or last path element if not
+  SameName = length(unique(all_names)) < length(all_names);
 end
+
 MRSCont.coreg.SameName = SameName;
 
 % Set up saving location
