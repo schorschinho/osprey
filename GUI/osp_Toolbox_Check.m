@@ -52,6 +52,7 @@ if ~(ismcc || isdeployed)
         % enabled and later try to enable on demand
         enabled = zeros(length(available),1);
     end
+    enabled = logical(enabled);
 
     [settingsFolder,~,~] = fileparts(which('OspreySettings.m'));
     allFolders      = strsplit(settingsFolder, filesep);
