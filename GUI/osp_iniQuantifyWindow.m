@@ -185,10 +185,9 @@ if ~(isfield(MRSCont.flags,'isPRIAM') || isfield(MRSCont.flags,'isMRSI')) || ~(M
 
             QuantText = roundQuantTextCRLB(QuantText);
 
-            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
-                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-            set ( temp, 'BackgroundColor',gui.colormap.Background);
-            set( temp, 'Parent', gui.Plot.quant);
+            % Add to the GUI
+            gui = addCellToGuiAsTable(gui, QuantText);
+
         end
 elseif  (MRSCont.flags.isPRIAM && isfield(MRSCont.flags,'isPRIAM'))    
 
@@ -285,10 +284,10 @@ elseif  (MRSCont.flags.isPRIAM && isfield(MRSCont.flags,'isPRIAM'))
                 end
 
                 QuantText = roundQuantTextCRLB(QuantText);
-            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
-                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-            set ( temp, 'BackgroundColor',gui.colormap.Background);
-            set( temp, 'Parent', gui.Plot.quant);
+                
+                % Add to the GUI
+                gui = addCellToGuiAsTable(gui, QuantText);
+                
         end 
 else
     for t = 1 : gui.quant.Number.Model %Loop over fits

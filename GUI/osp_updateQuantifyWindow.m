@@ -91,12 +91,11 @@ function osp_updateQuantifyWindow(gui)
            end
 
            QuantText = roundQuantTextCRLB(QuantText);
-            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
-                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-             set( temp, 'BackgroundColor',gui.colormap.Background);
-            delete(gui.Plot.quant.Children)
-            set( temp, 'Parent', gui.Plot.quant ); %Update table
-            set(gui.upperBox.quant.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]); %Update info Title
+
+           % Add to the GUI
+           gui = addCellToGuiAsTable(gui, QuantText);
+
+           set(gui.upperBox.quant.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]); %Update info Title
         elseif  (MRSCont.flags.isPRIAM && isfield(MRSCont.flags,'isPRIAM')) 
               for q = 1 : gui.quant.Number.Quants %Collect all results
                 QuantText(1,q+1) = gui.quant.Names.Quants(q);
@@ -119,12 +118,11 @@ function osp_updateQuantifyWindow(gui)
               end
 
               QuantText = roundQuantTextCRLB(QuantText);
-            temp=uimulticollist ( 'units', 'normalized', 'position', [0 0 1 1], 'string', QuantText,...
-                'BackgroundColor',gui.colormap.Background,'ForegroundColor', gui.colormap.Foreground);
-             set( temp, 'BackgroundColor',gui.colormap.Background);
-            delete(gui.Plot.quant.Children)
-            set( temp, 'Parent', gui.Plot.quant ); %Update table
-            set(gui.upperBox.quant.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]); %Update info Title
+
+              % Add to the GUI
+              gui = addCellToGuiAsTable(gui, QuantText);
+
+              set(gui.upperBox.quant.Info,'Title', ['Actual file: ' MRSCont.files{gui.controls.Selected}]); %Update info Title
        else
            temp = osp_plotFit(MRSCont, gui.controls.Selected,gui.quant.Names.Model{gui.quant.Selected.Model},[gui.controls.act_x gui.controls.act_y]); %Create figure
            ViewAxes = gca();
