@@ -48,22 +48,28 @@ qtfyCr = 1;
 
 % Check which types of metabolite data are available
 if ~strcmp(MRSCont.opts.fit.method, 'LCModel') && ~strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+    ModelsFitted = 1;
     SubSpectraFitted = size(MRSCont.fit.results.metab.fitParams,3);
     BasisSetsFitted  = size(MRSCont.fit.results.metab.fitParams,1);
     ExperimentsFitted = 1;
+elseif strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
+    ModelsFitted = size(MRSCont.fit.results.metab,5);
+    SubSpectraFitted = size(MRSCont.fit.results.metab,3);
+    BasisSetsFitted = size(MRSCont.fit.results.metab,1);
+    ExperimentsFitted = size(MRSCont.fit.results.metab,4);
+elseif strcmp(MRSCont.opts.fit.method, 'LCModel')
     ModelsFitted = 1;
-else if strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
-       SubSpectraFitted = size(MRSCont.fit.results.metab,3);
-       BasisSetsFitted = size(MRSCont.fit.results.metab,1);
-       ExperimentsFitted = size(MRSCont.fit.results.metab,4);
-       ModelsFitted = size(MRSCont.fit.results.metab,5);
-else
-        ModelsFitted = 1;
-        SubSpectraFitted = 1;
-        BasisSetsFitted = 1;
-        ExperimentsFitted = 1;
-    end
+    SubSpectraFitted = size(MRSCont.fit.results.metab.fitParams,3);
+    BasisSetsFitted  = size(MRSCont.fit.results.metab.fitParams,1);
+    ExperimentsFitted = 1;
+else % should not be reached
+    ModelsFitted = 1;
+    SubSpectraFitted = 1;
+    BasisSetsFitted = 1;
+    ExperimentsFitted = 1;
 end
+
+
 
 % Check which types of water data are available
 if [MRSCont.flags.hasRef MRSCont.flags.hasWater] == [1 1]
@@ -1333,6 +1339,12 @@ elseif strcmp(MRSCont.opts.fit.method, 'Osprey_gLCM')
     mmmodels = size(MRSCont.fit.results.metab,1);
     experiments = size(MRSCont.fit.results.metab,4);
     models = size(MRSCont.fit.results.metab,5);
+    voxels = 1;
+elseif strcmp(MRSCont.opts.fit.method, 'LCModel')
+    subspecs = size(MRSCont.fit.results.metab.fitParams,3);
+    mmmodels = size(MRSCont.fit.results.metab.fitParams,1);
+    experiments = 1;
+    models = 1;
     voxels = 1;
 else
     subspecs = 1;
