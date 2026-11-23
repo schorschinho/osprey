@@ -48,36 +48,35 @@ end
 
 %Do some check on the naming convention first to avoid overwriting the
 %output due to non BIDS conform data names
-switch MRSCont.vendor
-    case {'Siemens', 'Philips'}
-        % For Siemens and Philips data, this is simply the file that
-        % is directly pointed to in the job file
-        niftiFile = MRSCont.files_nii{1};
-        if MRSCont.nDatasets(1) > 1
-            niftiFile2 = MRSCont.files_nii{2};
-        end
-    case 'GE'
-        % For GE data, SPM has created a *.nii file in the DICOM folder
-        % that has been pointed to in the job file. We need to be
-        % careful not to select potentially segmented files, so we'll
-        % pick the filename that starts with an s (there should only be
-        % one!).
-        niftiList = dir([MRSCont.files_nii{1} filesep 's*.nii']);
-        niftiFile = fullfile(MRSCont.files_nii{1}, niftiList.name);
-        if MRSCont.nDatasets(1) > 1
-            niftiList2 = dir([MRSCont.files_nii{2} filesep 's*.nii']);
-            niftiFile2 = fullfile(MRSCont.files_nii{2}, niftiList2.name);
-        end
-    otherwise
-        msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
-        fprintf(msg);
-        error(msg);
-end
-SameName = 0;
-if MRSCont.nDatasets(1) > 1
-    [~, T1name, ~]  = fileparts(niftiFile);
-    [~, T1name2, ~]  = fileparts(niftiFile2);
-    SameName = strcmp(T1name,T1name2);
+
+% ARC2026 : updated to correctly handle the case of multiple voxels per
+% subject, having the same structural reference. First, reduce our list to a
+% set of unique NIfTI references, based on full path. Subsequent testing (to
+% determine SameName) is based on only the filename (last component of full
+% path)
+
+unique_nii_full = unique(MRSCont.files_nii);
+
+[all_folders, all_names, ~] = fileparts(unique_nii_full);
+
+if ~iscell(all_folders)
+    % If there's a single entry in unique_nii_full, all_folders comes
+    % out as a char rather than a cell array.
+    % There will not be a name conflict in this scenario.
+    SameName = false;
+else
+    nii_folders = isfolder(all_folders);
+
+    % In some cases (eg, GE data), the job file may point to SPM-generated data
+    % in DICOM folder. We need to be careful not to select potentially
+    % segmented files, so we'll pick the filename that starts with an s (there
+    % should only be one!).
+
+    if any(nii_folders)
+      all_names(nii_folders) =cellfun(@(f) dir(fullfile(f,'s*.nii*')).name, all_folders(nii_folders), 'UniformOutput',false);
+    end
+
+    SameName = length(unique(all_names)) < length(unique_nii_full);
 end
 
 % Let's write the SPM12 propabilistic maps in a higher folder structure 
@@ -117,13 +116,17 @@ for kk = 1:MRSCont.nDatasets(1)
                 % is directly pointed to in the job file
                 niftiFile = MRSCont.files_nii{kk};
             case 'GE'
-                % For GE data, SPM has created a *.nii file in the DICOM folder
-                % that has been pointed to in the job file. We need to be
-                % careful not to select potentially segmented files, so we'll
-                % pick the filename that starts with an s (there should only be
-                % one!).
-                niftiList = dir([MRSCont.files_nii{kk} filesep 's*.nii']);
-                niftiFile = fullfile(MRSCont.files_nii{kk}, niftiList.name);
+                if isfolder(MRSCont.files_nii{kk})
+                    % For GE data, SPM may have created a *.nii file in the
+                    % DICOM folder that has been pointed to in the job file. We
+                    % need to be careful not to select potentially segmented
+                    % files, so we'll pick the filename that starts with an s
+                    % (there should only be one!).
+                    niftiList = dir([MRSCont.files_nii{kk} filesep 's*.nii']);
+                    niftiFile = fullfile(MRSCont.files_nii{kk}, niftiList.name);
+                else
+                    niftiFile = MRSCont.files_nii{kk};
+                end
             otherwise
                 msg = 'Vendor not supported. Please contact the Osprey team (gabamrs@gmail.com).';
                 fprintf(msg);
